@@ -1,8 +1,7 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.DataWrapper;
-import org.broken.arrow.database.library.builders.Databasewrapper;
-import org.broken.arrow.database.library.builders.Databasewrapper.TableWrapper;
+import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
@@ -32,7 +31,7 @@ public abstract class Database {
 
 	protected Connection connection;
 	protected boolean batchUpdateGoingOn = false;
-	private final Map<String, Databasewrapper.TableWrapper> tables = new HashMap<>();
+	private final Map<String, TableWrapper> tables = new HashMap<>();
 	protected boolean hasStartWriteToDb = false;
 	private final boolean sQlittle;
 	private Set<String> removeColums = new HashSet<>();
@@ -46,11 +45,12 @@ public abstract class Database {
 	public void createTables() {
 		Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
 		try {
-			for (final Entry<String, Databasewrapper.TableWrapper> entitytables : tables.entrySet()) {
+			openConnection();
+			for (final Entry<String, TableWrapper> entitytables : tables.entrySet()) {
 				load(entitytables);
 			}
 			try {
-				for (final Entry<String, Databasewrapper.TableWrapper> entityTables : tables.entrySet()) {
+				for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
 					final List<String> columns = updateTableColumnsInDb(entityTables.getKey());
 					createMissingColums(entityTables.getValue(), columns);
 				}
@@ -64,6 +64,7 @@ public abstract class Database {
 
 	protected List<String> updateTableColumnsInDb(final String tableName) throws SQLException {
 		if (!openConnection()) return new ArrayList<>();
+		if (this.connection.isClosed()) return new ArrayList<>();
 
 		final List<String> column = new ArrayList<>();
 		final PreparedStatement statement = this.connection.prepareStatement("SELECT * FROM " + tableName);
@@ -96,14 +97,14 @@ public abstract class Database {
 			String primaryKey = dataWrapper.getPrimaryKey();
 
 			if (!primaryKey.isEmpty()) {
-				TableRow column = tableWrapper.getColumn(primaryKey);
+				TableRow column = tableWrapper.getPrimaryRow();
 				if (column != null)
-					column.getBuilder().setColumnValue(dataWrapper.getValue());
+					tableWrapper.setPrimaryRow(column.getBuilder().setColumnValue(dataWrapper.getValue()).build());
 			}
 			for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
 				TableRow column = tableWrapper.getColumn(entry.getKey());
 				if (column == null) continue;
-				column.getBuilder().setColumnValue(entry.getValue());
+				tableWrapper.addCustom(entry.getKey(), column.getBuilder().setColumnValue(entry.getValue()));
 
 			}
 			this.getSqlsCommands(sqls, tableWrapper);
@@ -131,14 +132,14 @@ public abstract class Database {
 			return;
 		}
 		if (!primaryKey.isEmpty()) {
-			TableRow column = tableWrapper.getColumn(primaryKey);
-			if (column != null)
-				tableWrapper.addCustom(primaryKey,column.getBuilder().setColumnValue(primaryValue));
+			TableRow primaryRow = tableWrapper.getPrimaryRow();
+			if (primaryRow != null)
+				tableWrapper.setPrimaryRow(primaryRow.getBuilder().setColumnValue(primaryValue).build());
 		}
 		for (Entry<String, Object> entry : configuration.serialize().entrySet()) {
 			TableRow column = tableWrapper.getColumn(entry.getKey());
 			if (column == null) continue;
-			tableWrapper.addCustom(entry.getKey(),column.getBuilder().setColumnValue(entry.getValue()));
+			tableWrapper.addCustom(entry.getKey(), column.getBuilder().setColumnValue(entry.getValue()));
 		}
 		this.getSqlsCommands(sqls, tableWrapper);
 		this.batchUpdate(sqls);
@@ -188,7 +189,9 @@ public abstract class Database {
 		this.batchUpdate(Collections.singletonList(sql));
 	}
 
-	protected void batchUpdate(@Nonnull final List<String> batchupdate) {
+	protected abstract void batchUpdate(@Nonnull final List<String> batchupdate);
+
+	protected void batchUpdate(@Nonnull final List<String> batchupdate, int resultSetType, int resultSetConcurrency) {
 		final ArrayList<String> sqls = new ArrayList<>(batchupdate);
 		if (!openConnection()) return;
 
@@ -198,14 +201,14 @@ public abstract class Database {
 		if (!hasStartWriteToDb)
 			try {
 				hasStartWriteToDb = true;
-				final Statement batchStatement = this.connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				final Statement statement = this.connection.createStatement(resultSetType, resultSetConcurrency);
 				final int processedCount = sqls.size();
 
 				// Prevent automatically sending db instructions
 				this.connection.setAutoCommit(false);
 
 				for (final String sql : sqls)
-					batchStatement.addBatch(sql);
+					statement.addBatch(sql);
 				if (processedCount > 10_000)
 					LogMsg.warn("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE "
 							+ (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
@@ -225,19 +228,19 @@ public abstract class Database {
 					}
 				}, 1000 * 30, 1000 * 30);
 				// Execute
-				batchStatement.executeBatch();
+				statement.executeBatch();
 
 				// This will block the thread
 				this.connection.commit();
 
 				LogMsg.info("Updated " + processedCount + " database entries.");
-
 			} catch (final Throwable t) {
 				t.printStackTrace();
 
 			} finally {
 				try {
 					this.connection.setAutoCommit(true);
+					this.closeConnection();
 
 				} catch (final SQLException ex) {
 					ex.printStackTrace();
@@ -269,7 +272,7 @@ public abstract class Database {
 
 	protected void dropColumn(final String createTableCmd, final List<String> existingColumns, final String tableName) throws SQLException {
 
-		final Databasewrapper.TableWrapper updatedTableColumns = tables.get(tableName);
+		final TableWrapper updatedTableColumns = tables.get(tableName);
 
 		if (updatedTableColumns == null || updatedTableColumns.getColumns().isEmpty()) return;
 		// Remove the columns we don't want anymore from the table's list of columns
@@ -300,7 +303,7 @@ public abstract class Database {
 		close(movedata, alterTable, createTable, removeOldtable);
 	}
 
-	protected void createMissingColums(final Databasewrapper.TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
+	protected void createMissingColums(final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
 		if (existingColumns == null) return;
 		if (!openConnection()) return;
 
@@ -324,6 +327,7 @@ public abstract class Database {
 			if (this.connection == null) return;
 
 			final PreparedStatement preparedStatement = this.connection.prepareStatement("SELECT * FROM `" + tableName + "` WHERE `" + columName + "` = ?");
+			preparedStatement.setString(1, "");
 			final ResultSet resultSet = preparedStatement.executeQuery();
 			close(preparedStatement, resultSet);
 
@@ -403,8 +407,8 @@ public abstract class Database {
 
 	protected void closeConnection() {
 		try {
-			if (connection != null) {
-				connection.close();
+			if (this.connection != null) {
+				this.connection.close();
 			}
 		} catch (final SQLException exception) {
 			exception.printStackTrace();
