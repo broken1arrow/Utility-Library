@@ -20,7 +20,6 @@ public class menutest extends MenuHolder {
 
 	public menutest(final List<String> fillItems) {
 		super(fillItems);
-
 		button = new GenericMenuButton<Integer>() {
 			@Override
 			public void onClickInsideMenu(@Nonnull final Player player, @Nonnull final Inventory menu, @Nonnull final ClickType click, @Nonnull final ItemStack clickedItem, final Integer object) {

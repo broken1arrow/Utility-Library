@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.MysqlPreferences;
+import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
 
@@ -16,7 +17,7 @@ import java.util.List;
 public class MySQL extends Database {
 
 	private final MysqlPreferences mysqlPreference;
-	private final String driverConnection;
+	private final String startSQLUrl;
 	private final String driver;
 	private boolean hasCastExeption = false;
 	private final boolean isHikariAvailable;
@@ -29,7 +30,7 @@ public class MySQL extends Database {
 	public MySQL(@Nonnull MysqlPreferences mysqlPreference, String hikariClazz) {
 		this.mysqlPreference = mysqlPreference;
 		this.isHikariAvailable = isHikariAvailable(hikariClazz);
-		this.driverConnection = "jdbc:mysql://";
+		this.startSQLUrl = "jdbc:mysql://";
 		this.driver = "com.mysql.cj.jdbc.Driver";
 		createMissingDatabase();
 		connect();
@@ -56,8 +57,18 @@ public class MySQL extends Database {
 	}
 
 	@Override
-	protected void batchUpdate(@Nonnull final List<String> batchupdate) {
-		this.batchUpdate(batchupdate, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
+		this.batchUpdate(batchList, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	}
+
+	@Override
+	protected void remove(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
+		this.batchUpdate(batchList, tableWrappers);
+	}
+
+	@Override
+	protected void dropTable(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
+		this.batchUpdate(batchList, tableWrappers);
 	}
 
 	public Connection setupConection() throws SQLException {
@@ -70,9 +81,9 @@ public class MySQL extends Database {
 		if (isHikariAvailable) {
 			if (this.hikari == null)
 				this.hikari = new HikariCP(this.mysqlPreference, this.driver);
-			connection = this.hikari.getConection(driverConnection);
+			connection = this.hikari.getConection(startSQLUrl);
 		} else {
-			connection = DriverManager.getConnection(driverConnection + hostAdress + ":" + port + "/" + databaseName + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true, user, password);
+			connection = DriverManager.getConnection(startSQLUrl + hostAdress + ":" + port + "/" + databaseName + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true, user, password);
 		}
 		return connection;
 	}
@@ -85,7 +96,7 @@ public class MySQL extends Database {
 		String password = mysqlPreference.getPassword();
 
 		try {
-			Connection createDatabase = DriverManager.getConnection(driverConnection + hostAdress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password);
+			Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAdress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password);
 
 			PreparedStatement createdatabase = createDatabase.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName);
 			createdatabase.execute();

@@ -1,11 +1,13 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.DataWrapper;
+import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
 import org.broken.arrow.database.library.utility.serialize.ConfigurationSerializeUtility;
+import org.broken.arrow.database.library.utility.serialize.DeSerialize;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,6 +32,7 @@ import java.util.TimerTask;
 public abstract class Database {
 
 	protected Connection connection;
+	private DeSerialize deSerialize = new DeSerialize();
 	protected boolean batchUpdateGoingOn = false;
 	private final Map<String, TableWrapper> tables = new HashMap<>();
 	protected boolean hasStartWriteToDb = false;
@@ -42,13 +45,17 @@ public abstract class Database {
 
 	public abstract Connection connect();
 
+	protected abstract void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers);
+
+	protected abstract void remove(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers);
+
+	protected abstract void dropTable(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers);
+
 	public void createTables() {
 		Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
 		try {
 			openConnection();
-			for (final Entry<String, TableWrapper> entitytables : tables.entrySet()) {
-				load(entitytables);
-			}
+			createAllTables();
 			try {
 				for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
 					final List<String> columns = updateTableColumnsInDb(entityTables.getKey());
@@ -109,7 +116,7 @@ public abstract class Database {
 			}
 			this.getSqlsCommands(sqls, tableWrapper);
 		}
-		this.batchUpdate(sqls);
+		this.batchUpdate(sqls, this.getTables().values().toArray(new TableWrapper[0]));
 	}
 
 	/**
@@ -142,10 +149,83 @@ public abstract class Database {
 			tableWrapper.addCustom(entry.getKey(), column.getBuilder().setColumnValue(entry.getValue()));
 		}
 		this.getSqlsCommands(sqls, tableWrapper);
-		this.batchUpdate(sqls);
+		this.batchUpdate(sqls, tableWrapper);
 	}
 
-	public boolean load(final String tableName) {
+	/**
+	 * Load one row from specified database table.
+	 *
+	 * @param tableName name of the table you want to get data from.
+	 * @param clazz     the class you have your static deserialize method.
+	 * @return one row you have in the table.
+	 */
+	@Nullable
+	public <T extends ConfigurationSerializeUtility> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
+		TableWrapper tableWrapper = this.getTable(tableName);
+		if (tableWrapper == null) {
+			LogMsg.warn("Could not find table " + tableName);
+			return null;
+		}
+		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Colud not find  primary column for table " + tableName);
+		String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
+		Map<String, Object> dataFromDB = new HashMap<>();
+		TableRow column = tableWrapper.getColumn(primaryColumn);
+		Validate.checkNotNull(column, "Colud not find column for " + primaryColumn);
+
+		final String sql = "SELECT * FROM  `" + tableWrapper.getTableName() + "` WHERE `" + primaryColumn + "` = '" + column.getColumnValue() + "'";
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		try {
+			preparedStatement = this.connection.prepareStatement(sql);
+			resultSet = preparedStatement.executeQuery();
+			dataFromDB.putAll(this.getDataFromDB(resultSet));
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			this.close(preparedStatement, resultSet);
+		}
+		T deserialize = this.deSerialize.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+		return new LoadDataWrapper<>(tableWrapper.getPrimaryRow().getColumnName(), dataFromDB, deserialize);
+	}
+
+	/**
+	 * Load all rows from specified database table.
+	 *
+	 * @param tableName name of the table you want to get data from.
+	 * @param clazz     the class you have your static deserialize method.
+	 * @return list of all data you have in the table.
+	 */
+	public <T extends ConfigurationSerializeUtility> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
+		final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
+		TableWrapper tableWrapper = this.getTable(tableName);
+		if (tableWrapper == null) {
+			LogMsg.warn("Could not find table " + tableName);
+			return null;
+		}
+		try {
+			final String sql = "SELECT * FROM  `" + tableWrapper.getTableName() + "`";
+
+			preparedStatement = connection.prepareStatement(sql);
+			resultSet = preparedStatement.executeQuery();
+			while (resultSet.next()) {
+				Map<String, Object> dataFromDB = this.getDataFromDB(resultSet);
+				T deserialize = this.deSerialize.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+				loadDataWrappers.add(new LoadDataWrapper<>(tableWrapper.getPrimaryRow().getColumnName(), dataFromDB, deserialize));
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			this.close(preparedStatement, resultSet);
+		}
+		return loadDataWrappers;
+	}
+
+	public boolean createTable(final String tableName) {
 		if (!openConnection()) return false;
 
 		try {
@@ -157,6 +237,9 @@ public abstract class Database {
 			final PreparedStatement statement = this.connection.prepareStatement(wrapperEntry.createTable());
 			statement.executeUpdate();
 			close(statement);
+			TableRow wraper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
+			Validate.checkNotNull(wraper, "Could not find a column for this table " + tableName);
+			checkIfTableExist(tableName, wraper.getColumnName());
 			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
@@ -164,35 +247,43 @@ public abstract class Database {
 		return true;
 	}
 
-	private void load(final Entry<String, TableWrapper> wrapperEntry) {
-		if (!openConnection()) return;
-
-		try {
-			final PreparedStatement statement = this.connection.prepareStatement(wrapperEntry.getValue().createTable());
-			statement.executeUpdate();
-			close(statement);
-		} catch (final SQLException e) {
-			e.printStackTrace();
+	public void createAllTables() {
+		for (final Entry<String, TableWrapper> wrapperEntry : tables.entrySet()) {
+			try {
+				final PreparedStatement statement = this.connection.prepareStatement(wrapperEntry.getValue().createTable());
+				statement.executeUpdate();
+				close(statement);
+			} catch (final SQLException e) {
+				e.printStackTrace();
+			}
+			TableRow wraper = wrapperEntry.getValue().getColumns().values().stream().findFirst().orElse(null);
+			Validate.checkNotNull(wraper, "Could not find a column for this table " + wrapperEntry.getKey());
+			checkIfTableExist(wrapperEntry.getKey(), wraper.getColumnName());
 		}
-		TableRow wraper = wrapperEntry.getValue().getColumns().values().stream().findFirst().orElse(null);
-		Validate.checkNotNull(wraper, "Could not find a column for this table " + wrapperEntry.getKey());
-		checkIfTableExist(wrapperEntry.getKey(), wraper.getColumnName());
 	}
 
 	public void remove(final String tableName, final String columnName, final String value) {
+		TableWrapper tableWrapper = this.getTable(tableName);
+		if (tableWrapper == null) {
+			LogMsg.warn("Could not find table " + tableName);
+			return;
+		}
 		final String sql = "DELETE FROM `" + tableName + "` WHERE  `" + columnName + "` = `" + value + "`";
-		this.batchUpdate(Collections.singletonList(sql));
+		this.remove(Collections.singletonList(sql), tableWrapper);
 	}
 
 	public void dropTable(final String tableName) {
+		TableWrapper tableWrapper = this.getTable(tableName);
+		if (tableWrapper == null) {
+			LogMsg.warn("Could not find table " + tableName);
+			return;
+		}
 		final String sql = "DROP TABLE `" + tableName + "`";
-		this.batchUpdate(Collections.singletonList(sql));
+		this.dropTable(Collections.singletonList(sql), tableWrapper);
 	}
 
-	protected abstract void batchUpdate(@Nonnull final List<String> batchupdate);
-
-	protected void batchUpdate(@Nonnull final List<String> batchupdate, int resultSetType, int resultSetConcurrency) {
-		final ArrayList<String> sqls = new ArrayList<>(batchupdate);
+	protected void batchUpdate(@Nonnull final List<String> batchList, int resultSetType, int resultSetConcurrency) {
+		final ArrayList<String> sqls = new ArrayList<>(batchList);
 		if (!openConnection()) return;
 
 		if (sqls.size() == 0)
@@ -413,6 +504,16 @@ public abstract class Database {
 		} catch (final SQLException exception) {
 			exception.printStackTrace();
 		}
+	}
+
+	public Map<String, Object> getDataFromDB(final ResultSet resultSet) throws SQLException {
+		final ResultSetMetaData rsmd = resultSet.getMetaData();
+		final int columnCount = rsmd.getColumnCount();
+		final Map<String, Object> objectMap = new HashMap<>();
+		for (int i = 1; i <= columnCount; i++) {
+			objectMap.put(rsmd.getColumnName(i), resultSet.getObject(i));
+		}
+		return objectMap;
 	}
 
 	public abstract boolean isHasCastExeption();

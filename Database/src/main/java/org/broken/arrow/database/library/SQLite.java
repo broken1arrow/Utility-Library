@@ -1,5 +1,6 @@
 package org.broken.arrow.database.library;
 
+import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 
 import javax.annotation.Nonnull;
@@ -51,8 +52,8 @@ public class SQLite extends Database {
 	}
 
 	@Override
-	protected void batchUpdate(@Nonnull final List<String> batchupdate) {
-		this.batchUpdate(batchupdate, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
+		this.batchUpdate(batchList, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 	}
 
 

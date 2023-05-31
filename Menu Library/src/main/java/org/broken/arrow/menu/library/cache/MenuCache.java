@@ -72,7 +72,7 @@ public enum MenuCache {
 	 * @return the menu cached or null if it not exist.
 	 */
 	@Nullable
-	public MenuUtility getMenuInCache(@Nonnull final MenuCacheKey key) {
+	public MenuUtility<?> getMenuInCache(@Nonnull final MenuCacheKey key) {
 		return this.menusCached.get(key);
 	}
 
@@ -112,7 +112,7 @@ public enum MenuCache {
 		return false;
 	}
 
-	public Map<Object, MenuUtility> getMenusCached() {
+	public Map<Object, MenuUtility<?>> getMenusCached() {
 		return Collections.unmodifiableMap(this.menusCached);
 	}
 

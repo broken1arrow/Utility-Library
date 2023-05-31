@@ -1,5 +1,7 @@
 package org.broken.arrow.database.library.builders.tables;
 
+import javax.annotation.Nonnull;
+
 public final class TableRow {
 
 	private final String columnName;
@@ -63,7 +65,7 @@ public final class TableRow {
 		private boolean autoIncrement;
 		private boolean notNull;
 
-		public Builder(final String columnName, final String datatype) {
+		public Builder(@Nonnull final String columnName, @Nonnull final String datatype) {
 			this.columnName = columnName;
 			this.datatype = datatype;
 		}

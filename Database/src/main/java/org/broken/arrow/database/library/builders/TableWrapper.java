@@ -138,6 +138,7 @@ public final class TableWrapper {
 		return this;
 	}
 
+	@Nullable
 	public TableRow getPrimaryRow() {
 		return primaryRow;
 	}
