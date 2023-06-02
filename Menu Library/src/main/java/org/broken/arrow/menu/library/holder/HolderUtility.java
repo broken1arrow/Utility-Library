@@ -6,6 +6,7 @@ import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
+import org.broken.arrow.menu.library.utility.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -115,7 +116,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
 	/**
 	 * Set menu title inside your menu. If you want to use
-	 * placeholders in the text use {@link #setTitle(org.brokenarrow.menu.library.utility.Function)}.
+	 * placeholders in the text use {@link #setTitle(Function)}.
 	 *
 	 * @param title you want to show inside the menu.
 	 */
@@ -130,7 +131,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 *
 	 * @param function a function that takes a String input, used to correcly update placeholders in the menu title.
 	 */
-	public void setTitle(final org.brokenarrow.menu.library.utility.Function<String> function) {
+	public void setTitle(final Function<String> function) {
 		this.function = function;
 	}
 

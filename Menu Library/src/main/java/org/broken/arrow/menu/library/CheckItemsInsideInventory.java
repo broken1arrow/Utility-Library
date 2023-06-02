@@ -2,7 +2,7 @@ package org.broken.arrow.menu.library;
 
 import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.itemcreator.library.ItemStackCounters;
-import org.brokenarrow.menu.library.messages.SendMsgDuplicatedItems;
+import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;

@@ -1,4 +1,4 @@
-package org.brokenarrow.menu.library.messages;
+package org.broken.arrow.menu.library.messages;
 
 
 import org.broken.lib.rbg.TextTranslator;

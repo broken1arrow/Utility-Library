@@ -7,8 +7,8 @@ import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
-import org.brokenarrow.menu.library.utility.Function;
-import org.brokenarrow.menu.library.utility.Validate;
+import org.broken.arrow.menu.library.utility.Function;
+import org.broken.arrow.menu.library.utility.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static org.broken.arrow.menu.library.RegisterMenuAPI.getPLUGIN;
-import static org.brokenarrow.menu.library.utility.Metadata.*;
+import static org.broken.arrow.menu.library.utility.Metadata.*;
 
 /**
  * Contains methods to create menu as you want it. Recomend you extends #MenuHolder to get all methods needed.

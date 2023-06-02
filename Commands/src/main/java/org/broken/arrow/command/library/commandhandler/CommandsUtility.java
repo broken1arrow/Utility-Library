@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.broken.lib.rbg.TextTranslator.toSpigotFormat;
-
 public class CommandsUtility extends Command {
 
 	private final CommandRegister commandRegister;
@@ -129,6 +127,6 @@ public class CommandsUtility extends Command {
 
 	public String colors(final String message) {
 		if (message == null) return "";
-		return toSpigotFormat(message);
+		return "";//toSpigotFormat(message);
 	}
 }

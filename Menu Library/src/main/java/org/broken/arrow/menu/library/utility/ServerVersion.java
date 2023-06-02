@@ -1,4 +1,4 @@
-package org.brokenarrow.menu.library.utility;
+package org.broken.arrow.menu.library.utility;
 
 import org.bukkit.plugin.Plugin;
 

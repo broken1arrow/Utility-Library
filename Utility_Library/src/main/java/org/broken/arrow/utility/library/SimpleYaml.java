@@ -1,4 +1,4 @@
-package org.broken.arrow.library.utility;
+package org.broken.arrow.utility.library;
 
 import org.broken.arrow.yaml.library.SimpleYamlHelper;
 import org.bukkit.plugin.Plugin;

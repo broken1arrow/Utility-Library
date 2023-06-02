@@ -6,7 +6,7 @@ import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCache;
-import org.brokenarrow.menu.library.utility.ServerVersion;
+import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -30,9 +30,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import static org.brokenarrow.menu.library.utility.Metadata.*;
-import static org.brokenarrow.menu.library.utility.ServerVersion.setServerVersion;
-import static org.brokenarrow.menu.library.utility.ServerVersion.v1_19_4;
+import static org.broken.arrow.menu.library.utility.Metadata.*;
+import static org.broken.arrow.menu.library.utility.ServerVersion.v1_19_4;
+
 
 public class RegisterMenuAPI {
 
@@ -50,7 +50,7 @@ public class RegisterMenuAPI {
 			Bukkit.getServer().getLogger().log(Level.WARNING, "You have not set plugin, becuse plugin is null");
 			return;
 		}
-		setServerVersion(plugin);
+		ServerVersion.setServerVersion(plugin);
 		versionCheck();
 		registerMenuEvent(plugin);
 		nbtApi = new RegisterNbtAPI(plugin, false);

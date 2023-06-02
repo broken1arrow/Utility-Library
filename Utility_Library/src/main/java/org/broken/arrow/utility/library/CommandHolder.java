@@ -1,4 +1,4 @@
-package org.broken.arrow.library.utility;
+package org.broken.arrow.utility.library;
 
 public abstract class CommandHolder extends org.broken.arrow.command.library.command.CommandHolder {
 

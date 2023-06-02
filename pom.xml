@@ -16,43 +16,13 @@
         <module>Database</module>
         <module>Convert Utility</module>
         <module>Item Creator</module>
+        <module>Utility_Library</module>
     </modules>
-    <dependencies>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.broken.arrow.library</groupId>
-            <artifactId>Menu_Library</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.broken.arrow.library</groupId>
-            <artifactId>Database</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.broken.arrow.library</groupId>
-            <artifactId>Yaml_Files</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.broken.arrow.library</groupId>
-            <artifactId>Commands</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-        </dependency>
-    </dependencies>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <main.class>org.broken.arrow.library.utility.UtilityLibrary</main.class>
+        <main.class>org.broken.arrow.utility.library.UtilityLibrary</main.class>
         <!-- The Java version your plugin uses, see bstats.org for what most servers have and use that -->
         <java.target>8</java.target>
         <java.source>8</java.source>
@@ -102,9 +72,9 @@
                 <scope>compile</scope>
             </dependency>
             <dependency>
-                <groupId>com.github.broken1arrow</groupId>
-                <artifactId>Item-NBT-API</artifactId>
-                <version>2.11.2</version>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>8.0.33</version>
                 <scope>compile</scope>
             </dependency>
             <dependency>
@@ -150,6 +120,18 @@
             <dependency>
                 <groupId>org.broken.arrow.library</groupId>
                 <artifactId>Database</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.broken.arrow.library</groupId>
+                <artifactId>UtilityLibrary</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.broken.arrow.library</groupId>
+                <artifactId>Item_Creator</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>
@@ -220,7 +202,8 @@
                             <finalName>${project.name}-${project.version}</finalName>
                             <artifactSet>
                                 <includes>
-                                    <include>com.github.broken1arrow:*</include>
+                                    <include>org.broken.arrow.library</include>
+                                    <!--<include>com.github.broken1arrow:*</include>-->
                                     <include>com.github.broken1arrow.Item-NBT-API:item-nbt-api:*</include>
                                 </includes>
                                 <excludes>
@@ -235,6 +218,22 @@
                                     <pattern>de.tr7zw.changeme</pattern>
                                     <shadedPattern>${project.groupId}.dependencies.nbt</shadedPattern>
                                 </relocation>
+                                <!--   <relocation>
+                                      <pattern>org.broken.arrow.menu</pattern>
+                                      <shadedPattern>${project.groupId}.dependencies.menu</shadedPattern>
+                                  </relocation>
+                                  <relocation>
+                                      <pattern>org.broken.arrow.command</pattern>
+                                      <shadedPattern>${project.groupId}.dependencies.command</shadedPattern>
+                                  </relocation>
+                                  <relocation>
+                                      <pattern>org.broken.arrow.itemcreator</pattern>
+                                      <shadedPattern>${project.groupId}.dependencies.itemcreator</shadedPattern>
+                                  </relocation>
+                                  <relocation>
+                                      <pattern>org.broken.arrow.yaml</pattern>
+                                      <shadedPattern>${project.groupId}.dependencies.yaml</shadedPattern>
+                                  </relocation>-->
                             </relocations>
                         </configuration>
                     </execution>
