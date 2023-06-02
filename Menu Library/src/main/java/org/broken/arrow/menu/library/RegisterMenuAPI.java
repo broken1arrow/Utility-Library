@@ -1,7 +1,7 @@
 package org.broken.arrow.menu.library;
 
 import de.tr7zw.changeme.nbtapi.metodes.RegisterNbtAPI;
-import org.broken.arrow.menu.library.Item.CreateItemStack;
+import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
@@ -38,6 +38,7 @@ public class RegisterMenuAPI {
 
 	private static Plugin PLUGIN;
 	private static RegisterNbtAPI nbtApi;
+	private static ItemCreator itemCreator;
 
 	private RegisterMenuAPI() {
 		throw new UnsupportedOperationException("You need specify your main class");
@@ -53,6 +54,7 @@ public class RegisterMenuAPI {
 		versionCheck();
 		registerMenuEvent(plugin);
 		nbtApi = new RegisterNbtAPI(plugin, false);
+		itemCreator = new ItemCreator(plugin);
 	}
 
 	private void versionCheck() {
@@ -68,6 +70,10 @@ public class RegisterMenuAPI {
 
 	public static Plugin getPLUGIN() {
 		return PLUGIN;
+	}
+
+	public static ItemCreator getItemCreator() {
+		return itemCreator;
 	}
 
 	private void registerMenuEvent(final Plugin plugin) {
@@ -129,7 +135,7 @@ public class RegisterMenuAPI {
 					final Object object = menuUtility.getObjectFromList(clickedPos);
 					final Object objectData = object != null && !object.equals("") ? object : clickedItem;
 					if (clickedItem == null)
-						clickedItem = CreateItemStack.of("AIR").makeItemStack();
+						clickedItem = getItemCreator().of("AIR").makeItemStack();
 					menuUtility.onClick(menuButton, player, clickedPos, event.getClick(), clickedItem);
 
 					if (ServerVersion.newerThan(ServerVersion.v1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {

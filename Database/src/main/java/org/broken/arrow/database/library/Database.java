@@ -1,12 +1,12 @@
 package org.broken.arrow.database.library;
 
+import org.broken.arrow.convert.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
-import org.broken.arrow.database.library.utility.serialize.ConfigurationSerializeUtility;
 import org.broken.arrow.database.library.utility.serialize.DeSerialize;
 
 import javax.annotation.Nonnull;
@@ -32,7 +32,7 @@ import java.util.TimerTask;
 public abstract class Database {
 
 	protected Connection connection;
-	private DeSerialize deSerialize = new DeSerialize();
+	private final DeSerialize deSerialize = new DeSerialize();
 	protected boolean batchUpdateGoingOn = false;
 	private final Map<String, TableWrapper> tables = new HashMap<>();
 	protected boolean hasStartWriteToDb = false;
@@ -54,8 +54,7 @@ public abstract class Database {
 	public void createTables() {
 		Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
 		try {
-			openConnection();
-			createAllTables();
+			createAllTablesIfNotExist();
 			try {
 				for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
 					final List<String> columns = updateTableColumnsInDb(entityTables.getKey());
@@ -105,8 +104,9 @@ public abstract class Database {
 
 			if (!primaryKey.isEmpty()) {
 				TableRow column = tableWrapper.getPrimaryRow();
-				if (column != null)
+				if (column != null) {
 					tableWrapper.setPrimaryRow(column.getBuilder().setColumnValue(dataWrapper.getValue()).build());
+				}
 			}
 			for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
 				TableRow column = tableWrapper.getColumn(entry.getKey());
@@ -131,7 +131,7 @@ public abstract class Database {
 	 * @param configuration The serialized data to be stored with the primary key.
 	 */
 
-	public void save(@Nonnull final String tableName, @Nonnull final String primaryKey, @Nonnull final Object primaryValue, @Nonnull final ConfigurationSerializeUtility configuration) {
+	public void save(@Nonnull final String tableName, @Nonnull final String primaryKey, @Nonnull final Object primaryValue, @Nonnull final ConfigurationSerializable configuration) {
 		final List<String> sqls = new ArrayList<>();
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
@@ -160,7 +160,7 @@ public abstract class Database {
 	 * @return one row you have in the table.
 	 */
 	@Nullable
-	public <T extends ConfigurationSerializeUtility> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
+	public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
 			LogMsg.warn("Could not find table " + tableName);
@@ -196,7 +196,7 @@ public abstract class Database {
 	 * @param clazz     the class you have your static deserialize method.
 	 * @return list of all data you have in the table.
 	 */
-	public <T extends ConfigurationSerializeUtility> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
+	public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
 		final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -206,6 +206,7 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return null;
 		}
+		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 		try {
 			final String sql = "SELECT * FROM  `" + tableWrapper.getTableName() + "`";
 
@@ -225,36 +226,41 @@ public abstract class Database {
 		return loadDataWrappers;
 	}
 
-	public boolean createTable(final String tableName) {
+	public boolean createTableIfNotExist(final String tableName) {
 		if (!openConnection()) return false;
-
+		PreparedStatement statement = null;
 		try {
 			TableWrapper wrapperEntry = this.getTable(tableName);
 			if (wrapperEntry == null) {
 				LogMsg.warn("Could not find table " + tableName);
 				return false;
 			}
-			final PreparedStatement statement = this.connection.prepareStatement(wrapperEntry.createTable());
+			statement = this.connection.prepareStatement(wrapperEntry.createTable());
 			statement.executeUpdate();
-			close(statement);
 			TableRow wraper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
 			Validate.checkNotNull(wraper, "Could not find a column for this table " + tableName);
 			checkIfTableExist(tableName, wraper.getColumnName());
 			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
+			return false;
+		} finally {
+			close(statement);
 		}
-		return true;
 	}
 
-	public void createAllTables() {
+	public void createAllTablesIfNotExist() {
+		if (!openConnection()) return;
+
 		for (final Entry<String, TableWrapper> wrapperEntry : tables.entrySet()) {
+			PreparedStatement statement = null;
 			try {
-				final PreparedStatement statement = this.connection.prepareStatement(wrapperEntry.getValue().createTable());
+				statement = this.connection.prepareStatement(wrapperEntry.getValue().createTable());
 				statement.executeUpdate();
-				close(statement);
 			} catch (final SQLException e) {
 				e.printStackTrace();
+			} finally {
+				close(statement);
 			}
 			TableRow wraper = wrapperEntry.getValue().getColumns().values().stream().findFirst().orElse(null);
 			Validate.checkNotNull(wraper, "Could not find a column for this table " + wrapperEntry.getKey());
@@ -343,6 +349,7 @@ public abstract class Database {
 	}
 
 	protected void close(final PreparedStatement... preparedStatement) {
+		if (preparedStatement == null) return;
 		for (final PreparedStatement statement : preparedStatement)
 			close(statement, null);
 	}

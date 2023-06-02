@@ -1,7 +1,7 @@
 package org.broken.arrow.menu.library;
 
-import org.broken.arrow.menu.library.Item.CreateItemStack;
-import org.broken.arrow.menu.library.Item.ItemStackCounters;
+import org.broken.arrow.itemcreator.library.ItemCreator;
+import org.broken.arrow.itemcreator.library.ItemStackCounters;
 import org.brokenarrow.menu.library.messages.SendMsgDuplicatedItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -166,14 +166,14 @@ public class CheckItemsInsideInventory {
 			if (entitys.getValue() != null) {
 
 				if (entitys.getValue().getAmount() > 1) {
-					chachedDuplicatedItems.put(CreateItemStack.createItemStackAsOne(entitys.getValue()), (ItemStackCounters.countItemStacks(entitys.getValue(), inventory)) - 1);
+					chachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entitys.getValue()), (ItemStackCounters.countItemStacks(entitys.getValue(), inventory)) - 1);
 					duplicatedItems.put(player.getUniqueId(), chachedDuplicatedItems);
 				}
-				if (!set.add(CreateItemStack.createItemStackAsOne(entitys.getValue()))) {
-					chachedDuplicatedItems.put(CreateItemStack.createItemStackAsOne(entitys.getValue()), (ItemStackCounters.countItemStacks(entitys.getValue(), inventory)) - 1);
+				if (!set.add(ItemCreator.createItemStackAsOne(entitys.getValue()))) {
+					chachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entitys.getValue()), (ItemStackCounters.countItemStacks(entitys.getValue(), inventory)) - 1);
 					duplicatedItems.put(player.getUniqueId(), chachedDuplicatedItems);
 				} else {
-					itemStacksNoDubbleEntity.put(entitys.getKey(), CreateItemStack.createItemStackAsOne(entitys.getValue()));
+					itemStacksNoDubbleEntity.put(entitys.getKey(), ItemCreator.createItemStackAsOne(entitys.getValue()));
 				}
 			}
 		}
@@ -218,9 +218,9 @@ public class CheckItemsInsideInventory {
 
 	private boolean chekItemAreOnBlacklist(final ItemStack itemStack) {
 		final List<String> itemStacks = blacklistedItems;
-		if (itemStack != null && itemStacks != null)
+		if (itemStack != null && !itemStacks.isEmpty())
 			for (final String item : itemStacks) {
-				if (CreateItemStack.of(item).makeItemStack().isSimilar(itemStack))
+				if (RegisterMenuAPI.getItemCreator().of(item).makeItemStack().isSimilar(itemStack))
 					return true;
 			}
 		return false;

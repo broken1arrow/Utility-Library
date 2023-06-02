@@ -1,8 +1,9 @@
 package org.broken.arrow.yaml.library;
 
 
+import org.broken.arrow.convert.library.SerializeData;
+import org.broken.arrow.convert.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.yaml.library.utillity.ConfigUpdater;
-import org.broken.arrow.yaml.library.utillity.converters.SerializeData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemorySection;
@@ -56,6 +57,7 @@ public abstract class SimpleYamlHelper {
 	private Set<String> filesFromResource;
 	protected Plugin plugin;
 	private ConfigUpdater configUpdater;
+	private final SerializeData serializeData;
 
 	public SimpleYamlHelper(Plugin plugin, final String name) {
 		if (plugin == null)
@@ -68,7 +70,8 @@ public abstract class SimpleYamlHelper {
 			folder.mkdir();
 		final String[] version = plugin.getServer().getBukkitVersion().split("\\.");
 		float ver = Float.parseFloat(version[1] + "." + version[2].substring(0, version[2].lastIndexOf("-")));
-		SerializeData.setServerVersion(ver);
+		serializeData = new SerializeData(ver);
+
 	}
 
 	public SimpleYamlHelper(Plugin plugin, final String name, boolean singleFile, boolean shallGenerateFiles) {
@@ -254,7 +257,7 @@ public abstract class SimpleYamlHelper {
 	}
 
 	@Nullable
-	public <T extends ConfigurationSerializeUtility> T getData(final String path, final Class<T> clazz) {
+	public <T extends ConfigurationSerializable> T getData(final String path, final Class<T> clazz) {
 		Valid.checkBoolean(path != null, "path can't be null");
 		if (clazz == null) return null;
 
@@ -270,14 +273,14 @@ public abstract class SimpleYamlHelper {
 		return invokeStatic(clazz, deserializeMethod, fileData);
 	}
 
-	public void setData(@Nonnull final String path, @Nonnull final ConfigurationSerializeUtility configuration) {
+	public void setData(@Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
 		Valid.checkBoolean(path != null, "path can't be null");
 		Valid.checkBoolean(configuration != null, "Serialize utility can't be null, need provide a class instance some implements ConfigurationSerializeUtility");
 		Valid.checkBoolean(configuration.serialize() != null, "Missing serialize method or it is null, can't serialize the class data.");
 
 		this.getCustomConfig().set(path, null);
 		for (final Map.Entry<String, Object> key : configuration.serialize().entrySet()) {
-			this.getCustomConfig().set(path + "." + key.getKey(), SerializeData.serialize(key.getValue()));
+			this.getCustomConfig().set(path + "." + key.getKey(), this.serializeData.serialize(key.getValue()));
 		}
 	}
 
@@ -515,7 +518,7 @@ public abstract class SimpleYamlHelper {
 		return null;
 	}
 
-	private <T extends ConfigurationSerializeUtility> T invokeStatic(final Class<T> clazz, final Method method, final Object... params) {
+	private <T extends ConfigurationSerializable> T invokeStatic(final Class<T> clazz, final Method method, final Object... params) {
 		if (method == null) return null;
 		try {
 			Valid.checkBoolean(Modifier.isStatic(method.getModifiers()), "deserialize method need to be static");

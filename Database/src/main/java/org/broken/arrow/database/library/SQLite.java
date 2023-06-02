@@ -39,9 +39,7 @@ public class SQLite extends Database {
 				return this.connection;
 			}
 			Class.forName("org.sqlite.JDBC");
-			this.connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile);
-			return this.connection;
-
+			return DriverManager.getConnection("jdbc:sqlite:" + dbFile);
 
 		} catch (final SQLException ex) {
 			LogMsg.warn("SQLite exception on initialize", ex);
@@ -54,6 +52,16 @@ public class SQLite extends Database {
 	@Override
 	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
 		this.batchUpdate(batchList, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+	}
+
+	@Override
+	protected void remove(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
+		this.batchUpdate(batchList, tableWrappers);
+	}
+
+	@Override
+	protected void dropTable(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
+		this.batchUpdate(batchList, tableWrappers);
 	}
 
 

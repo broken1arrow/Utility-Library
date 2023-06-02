@@ -7,12 +7,12 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
 import org.apache.logging.log4j.message.Message;
+import org.broken.arrow.convert.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.MysqlPreferences;
 import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableRow.Builder;
-import org.broken.arrow.database.library.utility.serialize.ConfigurationSerializeUtility;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -58,11 +58,10 @@ public class testRun {
 
 		LoadDataWrapper<testData> load = db.load("Test", testData.class);
 		testData testData = load.getDeSerializedData();
-		load.getPrimaryValue()
 	}
 
 
-	public static class testData implements ConfigurationSerializeUtility {
+	public static class testData implements ConfigurationSerializable {
 		@Nonnull
 		@Override
 		public Map<String, Object> serialize() {
