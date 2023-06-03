@@ -9,14 +9,18 @@ import org.broken.arrow.itemcreator.library.utility.Tuple;
 import org.broken.arrow.itemcreator.library.utility.Validate;
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
 import org.bukkit.Color;
+import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Banner;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -50,11 +54,13 @@ public class CreateItemStack {
 		logger = Logger.getLogger("itemcreator");
 	}
 
+	private static ConvertToItemStack convertItems;
 	private final Object item;
 	private String rgb;
 	private final Iterable<?> itemArray;
 	private final String displayName;
 	private String color;
+	private DyeColor bannerBaseColor;
 	private final List<String> lore;
 	private final Map<Enchantment, Tuple<Integer, Boolean>> enchantments = new HashMap<>();
 	private final List<ItemFlag> visibleItemFlags = new ArrayList<>();
@@ -62,6 +68,7 @@ public class CreateItemStack {
 	private final List<Pattern> pattern = new ArrayList<>();
 	private final List<PotionEffect> portionEffects = new ArrayList<>();
 	private final List<FireworkEffect> fireworkEffects = new ArrayList<>();
+	private final RegisterNbtAPI nbtApi;
 	private MetaDataWraper metadata;
 	private int amoutOfItems;
 	private int red = -1;
@@ -76,8 +83,6 @@ public class CreateItemStack {
 	private boolean keepAmount;
 	private boolean keepOldMeta = true;
 	private boolean copyOfItem;
-	private static ConvertToItemStack convertItems;
-	private final RegisterNbtAPI nbtApi;
 
 	public CreateItemStack(final ItemBuilder itemBuilder) {
 		if (convertItems == null)
@@ -233,7 +238,28 @@ public class CreateItemStack {
 	 * @param fireworkEffects list of effects you want to add.
 	 */
 	public void setFireworkEffects(final List<FireworkEffect> fireworkEffects) {
-		fireworkEffects.addAll(fireworkEffects);
+		this.fireworkEffects.addAll(fireworkEffects);
+	}
+
+	/**
+	 * Get the base color for the banner (the color befor add patterns).
+	 *
+	 * @return the color.
+	 */
+
+	public DyeColor getBannerBaseColor() {
+		return bannerBaseColor;
+	}
+
+	/**
+	 * Set the base color for the banner.
+	 *
+	 * @param bannerBaseColor the color.
+	 * @return this class.
+	 */
+	public CreateItemStack setBannerBaseColor(DyeColor bannerBaseColor) {
+		this.bannerBaseColor = bannerBaseColor;
+		return this;
 	}
 
 	/**
@@ -743,11 +769,12 @@ public class CreateItemStack {
 	}
 
 	private void addItemMeta(final ItemMeta itemMeta) {
-		addBannerPatterns(itemMeta);
-		addLeatherArmorColors(itemMeta);
-		addFireworkEffect(itemMeta);
-		addEnchantments(itemMeta);
-		addBottleEffects(itemMeta);
+		this.addBannerPatterns(itemMeta);
+		this.addLeatherArmorColors(itemMeta);
+		this.addFireworkEffect(itemMeta);
+		this.addEnchantments(itemMeta);
+		this.addBottleEffects(itemMeta);
+		this.blockStateMeta(itemMeta);
 		if (ServerVersion.newerThan(ServerVersion.v1_10))
 			addUnbreakableMeta(itemMeta);
 		addCustomModelData(itemMeta);
@@ -791,6 +818,21 @@ public class CreateItemStack {
 		if (itemMeta instanceof BannerMeta) {
 			final BannerMeta bannerMeta = (BannerMeta) itemMeta;
 			bannerMeta.setPatterns(getPattern());
+		}
+	}
+
+	private void blockStateMeta(final ItemMeta itemMeta) {
+		if (itemMeta instanceof BlockStateMeta) {
+			BlockState blockState = ((BlockStateMeta) itemMeta).getBlockState();
+			if (blockState instanceof Banner) {
+				if (this.getPattern() == null || this.getPattern().isEmpty())
+					return;
+				Banner banner = ((Banner) blockState);
+				banner.setBaseColor(bannerBaseColor);
+				banner.setPatterns(this.getPattern());
+				banner.update();
+				((BlockStateMeta) itemMeta).setBlockState(blockState);
+			}
 		}
 	}
 
