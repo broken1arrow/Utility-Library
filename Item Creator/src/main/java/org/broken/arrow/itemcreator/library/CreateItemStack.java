@@ -2,12 +2,12 @@ package org.broken.arrow.itemcreator.library;
 
 
 import de.tr7zw.changeme.nbtapi.metodes.RegisterNbtAPI;
+import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.itemcreator.library.utility.ConvertToItemStack;
 import org.broken.arrow.itemcreator.library.utility.ServerVersion;
 import org.broken.arrow.itemcreator.library.utility.Tuple;
 import org.broken.arrow.itemcreator.library.utility.Validate;
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
-import org.broken.lib.rbg.TextTranslator;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
@@ -877,7 +877,7 @@ public class CreateItemStack {
 		return TextTranslator.toSpigotFormat(rawSingelLine);
 	}
 
-	
+
 	public static ConvertToItemStack getConvertItems() {
 		if (convertItems == null)
 			convertItems = new ConvertToItemStack();
@@ -897,7 +897,6 @@ public class CreateItemStack {
 	}
 
 	private static String translateHexCodes(final String textTranslate) {
-
 		return TextTranslator.toSpigotFormat(textTranslate);
 	}
 

@@ -132,10 +132,10 @@ public class RegisterMenuAPI {
 				final MenuButtonI<?> menuButton = getClickedButton(menuUtility, clickedItem, clickedPos);
 				if (menuButton != null) {
 					event.setCancelled(true);
-					final Object object = menuUtility.getObjectFromList(clickedPos);
-					final Object objectData = object != null && !object.equals("") ? object : clickedItem;
+		/*			final Object object = menuUtility.getObjectFromList(clickedPos);
+					final Object objectData = object != null && !object.equals("") ? object : clickedItem;*/
 					if (clickedItem == null)
-						clickedItem = getItemCreator().of("AIR").makeItemStack();
+						clickedItem = new ItemStack(Material.AIR);
 					menuUtility.onClick(menuButton, player, clickedPos, event.getClick(), clickedItem);
 
 					if (ServerVersion.newerThan(ServerVersion.v1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
@@ -202,7 +202,7 @@ public class RegisterMenuAPI {
 			final Player player = (Player) event.getWhoClicked();
 			if (event.getView().getType() == InventoryType.PLAYER) return;
 
-			final MenuUtility menuUtility = getMenuHolder(player);
+			final MenuUtility<?> menuUtility = getMenuHolder(player);
 			if (menuUtility == null) return;
 			if (menuUtility.getMenu() == null) return;
 
@@ -232,7 +232,7 @@ public class RegisterMenuAPI {
 
 
 		public MenuButtonI<?> getClickedButton(final MenuUtility<?> menusData, final ItemStack item, final int clickedPos) {
-			final MenuDataUtility menuData = menusData.getMenuData(menusData.getPageNumber());
+			final MenuDataUtility<?> menuData = menusData.getMenuData(menusData.getPageNumber());
 			if (menuData != null) {
 				final ButtonData<?> buttonData = menuData.getButton(clickedPos);
 				if (buttonData == null) return null;

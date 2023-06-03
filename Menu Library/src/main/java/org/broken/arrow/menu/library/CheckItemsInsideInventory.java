@@ -1,8 +1,8 @@
 package org.broken.arrow.menu.library;
 
-import org.broken.arrow.itemcreator.library.ItemCreator;
-import org.broken.arrow.itemcreator.library.ItemStackCounters;
+
 import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
+import org.broken.arrow.menu.library.utility.ItemCreator;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -166,11 +166,11 @@ public class CheckItemsInsideInventory {
 			if (entitys.getValue() != null) {
 
 				if (entitys.getValue().getAmount() > 1) {
-					chachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entitys.getValue()), (ItemStackCounters.countItemStacks(entitys.getValue(), inventory)) - 1);
+					chachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entitys.getValue()), (ItemCreator.countItemStacks(entitys.getValue(), inventory)) - 1);
 					duplicatedItems.put(player.getUniqueId(), chachedDuplicatedItems);
 				}
 				if (!set.add(ItemCreator.createItemStackAsOne(entitys.getValue()))) {
-					chachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entitys.getValue()), (ItemStackCounters.countItemStacks(entitys.getValue(), inventory)) - 1);
+					chachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entitys.getValue()), (ItemCreator.countItemStacks(entitys.getValue(), inventory)) - 1);
 					duplicatedItems.put(player.getUniqueId(), chachedDuplicatedItems);
 				} else {
 					itemStacksNoDubbleEntity.put(entitys.getKey(), ItemCreator.createItemStackAsOne(entitys.getValue()));

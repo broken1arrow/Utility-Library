@@ -1,12 +1,12 @@
 package org.broken.arrow.menu.library.utility;
 
-public class Tuple<K, V> {
+public class Pair<K, V> {
 
 	private final K firstValue;
 	private final V secondValue;
 
 
-	public Tuple(K firstValue, V secondValue) {
+	public Pair(K firstValue, V secondValue) {
 
 		this.firstValue = firstValue;
 		this.secondValue = secondValue;

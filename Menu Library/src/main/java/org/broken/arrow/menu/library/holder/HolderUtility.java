@@ -121,7 +121,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * @param title you want to show inside the menu.
 	 */
 	public void setTitle(final String title) {
-		//this.title = title;
 		this.setTitle(() -> title);
 	}
 
@@ -132,7 +131,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * @param function a function that takes a String input, used to correcly update placeholders in the menu title.
 	 */
 	public void setTitle(final Function<String> function) {
-		this.function = function;
+		this.titlefunction = function;
 	}
 
 	/**
@@ -291,24 +290,25 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 *
 	 * @param menuButton the current button.
 	 */
-	public void updateButton(final MenuButtonI<?> menuButton) {
-		final MenuDataUtility menuDataUtility = getMenuData(getPageNumber());
+	public void updateButton(final MenuButtonI<T> menuButton) {
+		final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
 		final Set<Integer> buttonSlots = this.getButtonSlots(menuDataUtility, menuButton);
 
 		if (menuDataUtility != null && this.getMenu() != null) {
 			if (!buttonSlots.isEmpty()) {
 				for (final int slot : buttonSlots) {
 
-					final ButtonData<?> buttonData = menuDataUtility.getButton(getSlot(slot));
+					final ButtonData<T> buttonData = menuDataUtility.getButton(getSlot(slot));
 					if (buttonData == null) return;
 					final ItemStack menuItem = getMenuItem(menuButton, buttonData, slot, true);
 					this.getMenu().setItem(slot, menuItem);
-					menuDataUtility.putButton(this.getSlot(slot), new ButtonData<Object>(menuItem, buttonData.getMenuButton(), buttonData.getObject()), menuDataUtility.getFillMenuButton(this.getSlot(slot)));
+					menuDataUtility.putButton(this.getSlot(slot), new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject()), menuDataUtility.getFillMenuButton(this.getSlot(slot)));
 				}
 			} else {
 				final int buttonSlot = this.getButtonSlot(menuButton);
-				final ButtonData<?> buttonData = menuDataUtility.getButton(this.getSlot(buttonSlot));
+				final ButtonData<T> buttonData = menuDataUtility.getButton(this.getSlot(buttonSlot));
 				if (buttonData == null) return;
+
 				final ItemStack itemStack = getMenuItem(menuButton, buttonData, buttonSlot, true);
 				//final ItemStack itemStack = getMenuItem(menuButton, menuDataUtility.getButton(getSlot(buttonSlot)), buttonSlot, true);
 				this.getMenu().setItem(buttonSlot, itemStack);

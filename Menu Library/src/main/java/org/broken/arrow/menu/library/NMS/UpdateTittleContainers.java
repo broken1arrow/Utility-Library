@@ -1,9 +1,9 @@
 package org.broken.arrow.menu.library.NMS;
 
+import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.menu.library.utility.MenuLogger;
 import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.broken.arrow.menu.library.utility.Validate;
-import org.broken.lib.rbg.TextTranslator;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;

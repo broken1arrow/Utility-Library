@@ -1,5 +1,6 @@
 package org.broken.arrow.command.library.commandhandler;
 
+import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.command.library.CommandRegister;
 import org.broken.arrow.command.library.command.builders.CommandBuilder;
 import org.bukkit.Location;
@@ -127,6 +128,6 @@ public class CommandsUtility extends Command {
 
 	public String colors(final String message) {
 		if (message == null) return "";
-		return "";//toSpigotFormat(message);
+		return TextTranslator.toSpigotFormat(message);
 	}
 }

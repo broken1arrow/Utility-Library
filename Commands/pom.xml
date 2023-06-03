@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>Utility_Library</artifactId>
+        <artifactId>Utility_Library_Core</artifactId>
         <groupId>org.broken.arrow.library</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
@@ -20,6 +20,12 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.broken.arrow.library</groupId>
+            <artifactId>Color_Conversion</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

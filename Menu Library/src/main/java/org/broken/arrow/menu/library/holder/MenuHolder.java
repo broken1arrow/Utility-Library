@@ -2,7 +2,6 @@ package org.broken.arrow.menu.library.holder;
 
 import org.broken.arrow.menu.library.MenuUtility;
 
-import java.util.Collections;
 import java.util.List;
 
 
@@ -57,7 +56,7 @@ public class MenuHolder extends HolderUtility<Object> {
 	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link MenuUtility#getMenuButtonsCache()} to cache it own class.
 	 */
 	public MenuHolder(final List<Integer> fillSlots, final List<?> fillItems, final boolean shallCacheItems) {
-		super(fillSlots, Collections.singletonList(fillItems), shallCacheItems);
+		super(fillSlots, (List<Object>) fillItems, shallCacheItems);
 	}
 	
 }

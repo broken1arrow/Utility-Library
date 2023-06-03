@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.broken.arrow.library</groupId>
-    <artifactId>Utility_Library</artifactId>
+    <artifactId>Utility_Library_Core</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
@@ -16,7 +16,8 @@
         <module>Database</module>
         <module>Convert Utility</module>
         <module>Item Creator</module>
-        <module>Utility_Library</module>
+        <module>Utility Library</module>
+        <module>Color Conversion</module>
     </modules>
 
     <properties>
@@ -78,12 +79,6 @@
                 <scope>compile</scope>
             </dependency>
             <dependency>
-                <groupId>com.github.broken1arrow</groupId>
-                <artifactId>RBG-Gradients</artifactId>
-                <version>0.24</version>
-                <scope>compile</scope>
-            </dependency>
-            <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>2.10</version>
@@ -125,13 +120,19 @@
             </dependency>
             <dependency>
                 <groupId>org.broken.arrow.library</groupId>
-                <artifactId>UtilityLibrary</artifactId>
+                <artifactId>Utility_Library</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>org.broken.arrow.library</groupId>
                 <artifactId>Item_Creator</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.broken.arrow.library</groupId>
+                <artifactId>Color_Conversion</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>
@@ -163,7 +164,7 @@
                    You want to check and update the latest version periodically from
                    https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin
                -->
-                <version>3.8.1</version>
+                <version>3.10.1</version>
                 <configuration>
                     <source>${java.source}</source>
                     <target>${java.target}</target>
@@ -183,7 +184,7 @@
                    You want to check and update the latest version periodically from
                    https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin
                -->
-                <version>3.2.4</version>
+                <version>3.4.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

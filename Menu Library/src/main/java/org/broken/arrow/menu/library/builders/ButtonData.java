@@ -6,11 +6,11 @@ import org.bukkit.inventory.ItemStack;
 public class ButtonData<T> {
 
 	private final ItemStack itemStack;
-	private final MenuButtonI<?> menuButtonLinkedToThisItem;
+	private final MenuButtonI<T> menuButtonLinkedToThisItem;
 	private final int id;
 	private final T object;
 
-	public ButtonData(final ItemStack itemStack, final MenuButtonI<?> menuButton, final T object) {
+	public ButtonData(final ItemStack itemStack, final MenuButtonI<T> menuButton, final T object) {
 		this.itemStack = itemStack;
 		this.menuButtonLinkedToThisItem = menuButton;
 		this.id = menuButton != null ? menuButton.getId() : 0;
@@ -31,7 +31,7 @@ public class ButtonData<T> {
 	 *
 	 * @return menuButton.
 	 */
-	public MenuButtonI<?> getMenuButton() {
+	public MenuButtonI<T> getMenuButton() {
 		return menuButtonLinkedToThisItem;
 	}
 

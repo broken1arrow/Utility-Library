@@ -2,6 +2,7 @@ package org.broken.arrow.utility.library;
 
 
 import org.broken.arrow.command.library.CommandRegister;
+import org.broken.arrow.command.library.command.CommandHolder;
 import org.broken.arrow.command.library.command.builders.CommandBuilder.Builder;
 import org.broken.arrow.command.library.commandhandler.CommandRegistering;
 import org.broken.arrow.convert.library.SerializeData;
@@ -12,6 +13,8 @@ import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.logging.Level;
 
 public final class UtilityLibrary extends JavaPlugin {
 
@@ -24,6 +27,7 @@ public final class UtilityLibrary extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version=" + getDescription().getVersion());
 	}
 
 	@Override

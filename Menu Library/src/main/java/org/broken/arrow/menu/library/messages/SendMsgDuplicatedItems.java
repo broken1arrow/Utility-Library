@@ -1,7 +1,7 @@
 package org.broken.arrow.menu.library.messages;
 
 
-import org.broken.lib.rbg.TextTranslator;
+import org.broken.arrow.color.library.TextTranslator;
 import org.bukkit.entity.Player;
 
 /**
