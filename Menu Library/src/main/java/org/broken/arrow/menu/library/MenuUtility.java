@@ -437,7 +437,7 @@ public class MenuUtility<T> {
 	 * @return map with slot number (can be more than one inventory in number of buttons) and itemstack.
 	 */
 	@Nonnull
-	public Map<Integer, ButtonData<?>> getMenuButtonsCache() {
+	public Map<Integer, ButtonData<T>> getMenuButtonsCache() {
 		return addItemsToCache();
 	}
 
@@ -597,11 +597,11 @@ public class MenuUtility<T> {
 	 * @param pageNumber      the page number to set in cache
 	 * @param menuDataUtility the map with slot and menu data where both button,item and code execution is set.
 	 */
-	protected void putAddedButtonsCache(final Integer pageNumber, final MenuDataUtility menuDataUtility) {
+	protected void putAddedButtonsCache(final Integer pageNumber, final MenuDataUtility<T> menuDataUtility) {
 		this.pagesOfButtonsData.put(pageNumber, menuDataUtility);
 	}
 
-	protected void putTimeWhenUpdatesButtons(final MenuButtonI menuButton, final Long time) {
+	protected void putTimeWhenUpdatesButtons(final MenuButtonI<T> menuButton, final Long time) {
 		this.getTimeWhenUpdatesButtons().put(menuButton.getId(), time);
 	}
 
@@ -761,16 +761,6 @@ public class MenuUtility<T> {
 			}
 			menu = menuCached.getMenu();
 		} else {
-			/*final MenuUtility previous = getMenuholder(this.player);
-			if (previous != null && !hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
-				setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_PREVIOUS, this);
-				setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN, this);
-				menu = getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN).getMenu();
-			} else {
-				setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_PREVIOUS, this);
-				setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN, this);
-				menu = getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN).getMenu();
-			}*/
 			setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_PREVIOUS, this);
 			setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN, this);
 			final MenuUtility<?> menuUtility = getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
@@ -796,16 +786,16 @@ public class MenuUtility<T> {
 		} else return (double) this.pagesOfButtonsData.size() / this.inventorySize;
 	}
 
-	protected Map<Integer, ButtonData<?>> addItemsToCache(final int pageNumber) {
-		final MenuDataUtility menuDataUtility = cacheMenuData(pageNumber);
+	protected Map<Integer, ButtonData<T>> addItemsToCache(final int pageNumber) {
+		final MenuDataUtility<T> menuDataUtility = cacheMenuData(pageNumber);
 		if (!this.shallCacheItems) {
 			this.putAddedButtonsCache(pageNumber, menuDataUtility);
 		}
 		return menuDataUtility.getButtons();
 	}
 
-	protected Map<Integer, ButtonData<?>> addItemsToCache() {
-		Map<Integer, ButtonData<?>> addedButtons = new HashMap<>();
+	protected Map<Integer, ButtonData<T>> addItemsToCache() {
+		Map<Integer, ButtonData<T>> addedButtons = new HashMap<>();
 		this.requiredPages = Math.max((int) Math.ceil(amountOfpages()), 1);
 		if (this.manuallySetPages > 0) this.requiredPages = this.manuallySetPages;
 
@@ -915,7 +905,7 @@ public class MenuUtility<T> {
 		return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, title != null ? title : "");
 	}
 
-	private long getupdateTime(final MenuButtonI menuButton) {
+	private long getupdateTime(final MenuButtonI<T> menuButton) {
 		if (menuButton.setUpdateTime() == -1) return getUpdateTime();
 		return menuButton.setUpdateTime();
 	}
@@ -1014,8 +1004,6 @@ public class MenuUtility<T> {
 			final int menuButtonId = menuButton.getId();
 			if ((chacheMenuButton == null && fillMenuButton != null && fillMenuButton.getId() == menuButtonId) || (chacheMenuButton != null && Objects.equals(menuButtonId, chacheMenuButton.getId())))
 				slotList.add(slot);
-			//if ((addedButtons.getMenuButton() == null && menuDataMap.getFillMenuButton() != null && menuDataMap.getFillMenuButton().getId() == menuButton.getId()) || (addedButtons.getMenuButton().getId() == menuButton.getId()))
-			//slotList.add(slot);
 		}
 		return slotList;
 	}
