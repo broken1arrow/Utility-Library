@@ -7,7 +7,6 @@ import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.utility.Function;
-import org.broken.arrow.menu.library.utility.PairFunction;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -140,7 +139,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * @param time     set how often it shall update, in seconds.
 	 * @param function a function that takes a String and boolean input, for animate title.
 	 */
-	public void setAnimateTitle(final int time, final PairFunction<String> function) {
+	public void setAnimateTitle(final int time, final Function<String> function) {
 		this.animateTitleTime = time;
 		this.animateTitle = function;
 		this.animateTitle();

@@ -8,8 +8,6 @@ import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.utility.Function;
-import org.broken.arrow.menu.library.utility.Pair;
-import org.broken.arrow.menu.library.utility.PairFunction;
 import org.broken.arrow.menu.library.utility.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -82,7 +80,7 @@ public class MenuUtility<T> {
 	protected Player player;
 	protected Sound menuOpenSound;
 	protected Function<String> titlefunction;
-	protected PairFunction<String> animateTitle;
+	protected Function<String> animateTitle;
 	private String playermetadataKey;
 	private String uniqueKey;
 	protected boolean shallCacheItems;
@@ -982,15 +980,14 @@ public class MenuUtility<T> {
 	}
 
 	protected void animateTitle() {
-		PairFunction<String> task = this.animateTitle;
+		Function<String> task = this.animateTitle;
 		if (task == null) return;
 		this.taskidAnimateTitle = new BukkitRunnable() {
 
 			@Override
 			public void run() {
-				Pair<String, Boolean> apply = task.apply();
-				String text = apply.getFirst();
-				if (text == null || !apply.getSecond()) {
+				String text = task.apply();
+				if (text == null || this.isCancelled()) {
 					this.cancel();
 					UpdateTittleContainers.update(player, getTitle());
 					return;
@@ -1000,5 +997,16 @@ public class MenuUtility<T> {
 				}
 			}
 		}.runTaskTimerAsynchronously(menuAPI.getPlugin(), 1, 20 + this.animateTitleTime).getTaskId();
+	}
+
+	public void cancelAnimateTitle() {
+		Function<String> task = this.animateTitle;
+		if (task == null) return;
+		this.animateTitle = null;
+		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskidAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskidAnimateTitle)) {
+			Bukkit.getScheduler().cancelTask(this.taskidAnimateTitle);
+		}
+		UpdateTittleContainers.update(player, getTitle());
+		//Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), () -> UpdateTittleContainers.update(player, getTitle()), 1);
 	}
 }
