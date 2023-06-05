@@ -114,10 +114,10 @@ public abstract class CommandHolder implements CommandHandler {
 
 	/**
 	 * Copies and returns the arguments {@link #args} from the given range
-	 * to their end joined by spaces
+	 * to their end joined by spaces.
 	 *
-	 * @param from
-	 * @return
+	 * @param from The starting index of the args array from which the joining operation will begin.
+	 * @return The joined string from the specified start index to the end of the args array.
 	 */
 	@Nonnull
 	protected final String joinArgs(final int from) {
@@ -127,8 +127,8 @@ public abstract class CommandHolder implements CommandHandler {
 	/**
 	 * Joins an array together using spaces from the given start index
 	 *
-	 * @param startIndex were it shall start join the array.
-	 * @return a string with your join word.
+	 * @param startIndex from The starting index (inclusive) of the args array from which the joining operation will begin.
+	 * @return The joined string from the specified start index to the end of the args array.
 	 */
 	@Nonnull
 	public String joinRange(final int startIndex) {
@@ -148,12 +148,12 @@ public abstract class CommandHolder implements CommandHandler {
 	}
 
 	/**
-	 * Join an array together using the given deliminer
+	 * Joins the elements of an array together using the specified delimiter.
 	 *
-	 * @param start     were it shall start join the array.
-	 * @param stop      were it shall stop join the array.
-	 * @param delimiter add delimiter between words.
-	 * @return a string with your join word.
+	 * @param start     The index at which to start joining the array (inclusive).
+	 * @param stop      The index at which to stop joining the array (exclusive).
+	 * @param delimiter The delimiter to add between the elements.
+	 * @return A string containing the joined elements with the specified delimiter.
 	 */
 	@Nonnull
 	public String joinRange(final int start, final int stop, final String delimiter) {
@@ -170,9 +170,9 @@ public abstract class CommandHolder implements CommandHandler {
 	 * Copies and returns the arguments  from the given range
 	 * to the given end joined by spaces
 	 *
-	 * @param from
-	 * @param to
-	 * @return
+	 * @param from The starting index from where you want to join the arguments.
+	 * @param to   The ending index (exclusive) until which you want to join the arguments.
+	 * @return A joined string of the arguments from the specified range, separated by spaces.
 	 */
 	@Nonnull
 	protected final String joinArgs(final int from, final int to) {
@@ -192,7 +192,7 @@ public abstract class CommandHolder implements CommandHandler {
 	/**
 	 * Convenience method for returning the last word in arguments
 	 *
-	 * @return
+	 * @return the last in the {@link #args} array.
 	 */
 	@Nonnull
 	protected final String getLastArg() {

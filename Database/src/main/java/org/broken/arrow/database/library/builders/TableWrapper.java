@@ -63,9 +63,10 @@ public final class TableWrapper {
 	 * Method to create new database command. Will create first part of the table. You need then use method
 	 * {@link TableWrapper#replaceIntoTable()} to build the string for the database command.
 	 *
-	 * @param tableName  name on your table.
-	 * @param primaryRow key that is primary if not set you can add duplicate records.
-	 * @param isSQlittle some commands are not suported in SQlittle (so need to know what type of database).
+	 * @param tableName   name on your table.
+	 * @param primaryRow  key that is primary if not set you can add duplicate records.
+	 * @param valueLength Length of the value for primary key (used for text and similar in SQL database).
+	 * @param isSQlittle  some commands are not suported in SQlittle (so need to know what type of database).
 	 * @return TableWrapper class you need then add columms to your table.
 	 */
 	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow, final int valueLength, final boolean isSQlittle) {

@@ -195,6 +195,7 @@ public final class CompMetadata {
 	 * @param item  you want get metadata.
 	 * @param clazz class you set as value.
 	 * @param key   to get the metadata on item.
+	 * @param <T>   type of class the value
 	 * @return metadata value.
 	 */
 	@Nullable

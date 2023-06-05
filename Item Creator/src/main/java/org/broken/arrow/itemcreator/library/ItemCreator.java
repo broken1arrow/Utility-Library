@@ -91,6 +91,7 @@ public class ItemCreator {
 	 * Complete the creation by calling {@link CreateItemStack#makeItemStackArray()}.
 	 *
 	 * @param itemArray The iterable of items to convert to ItemStacks.
+	 * @param <T>       type if class on the item.
 	 * @return An instance of the CreateItemStack class.
 	 */
 	public <T> CreateItemStack of(Iterable<T> itemArray) {

@@ -192,7 +192,7 @@ public class CreateItemStack {
 	 * Set if you want to keep old amount.
 	 *
 	 * @param keepAmount set it to true if you want keep old amount.
-	 * @return
+	 * @return this class instance.
 	 */
 	public CreateItemStack setKeepAmount(final boolean keepAmount) {
 		this.keepAmount = keepAmount;
@@ -266,7 +266,6 @@ public class CreateItemStack {
 	 * <p>
 	 * This method uses varargs and add it to list, like this enchantment;level;levelRestriction or
 	 * enchantment;level and it will sett last one to false.
-	 * <p>
 	 * <p>
 	 * Example usage here:
 	 * "PROTECTION_FIRE;1;false","PROTECTION_EXPLOSIONS;15;true","WATER_WORKER;1;false".
@@ -731,6 +730,7 @@ public class CreateItemStack {
 	/**
 	 * Check if the material is an air block.
 	 *
+	 * @param material matrial to check.
 	 * @return True if this material is an air block.
 	 */
 	public boolean isAir(final Material material) {

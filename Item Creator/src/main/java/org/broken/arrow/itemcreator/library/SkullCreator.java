@@ -42,6 +42,8 @@ public class SkullCreator {
 
 	/**
 	 * Creates a player skull, should work in both legacy and new Bukkit APIs.
+	 *
+	 * @return itemstack.
 	 */
 	public static ItemStack createSkull() {
 		try {

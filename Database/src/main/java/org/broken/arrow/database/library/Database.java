@@ -157,6 +157,7 @@ public abstract class Database {
 	 *
 	 * @param tableName name of the table you want to get data from.
 	 * @param clazz     the class you have your static deserialize method.
+	 * @param <T>       Type of class that exstends ConfigurationSerializable .
 	 * @return one row you have in the table.
 	 */
 	@Nullable

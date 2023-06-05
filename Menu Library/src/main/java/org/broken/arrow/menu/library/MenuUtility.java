@@ -394,8 +394,6 @@ public class MenuUtility<T> {
 	 * setting the wrong number of pages can result in an insufficient or unnecessary amount of
 	 * pages being displayed.
 	 * <p>
-	 * <p>
-	 * <p>
 	 * Please be sure to double-check your calculations when setting the number of pages.
 	 * <p>
 	 *
