@@ -54,6 +54,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 	 * open menu and make one instance in cache.
 	 * Will be clered on server restart.
 	 *
+	 * @param menuAPI  Menu API instance.
 	 * @param player   some open menu.
 	 * @param location location you open menu.
 	 */
@@ -65,7 +66,8 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 	 * open menu and make one instance, will be removed
 	 * when you close menu.
 	 *
-	 * @param player some open menu.
+	 * @param menuAPI Menu API instance.
+	 * @param player  some open menu.
 	 */
 	public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player) {
 		menuOpen(menuAPI, player, null, false);
@@ -75,9 +77,10 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 	 * open menu and make one instance. If you set location to null, it will be removed
 	 * when you close menu.
 	 *
-	 * @param player     some open menu.
-	 * @param location   location you open menu.
-	 * @param loadToCahe if it shall load menu to cache.
+	 * @param menuAPI    Menu API instance.
+	 * @param player     Player some open menu.
+	 * @param location   Location where you open menu.
+	 * @param loadToCahe Ff it shall load menu to cache.
 	 */
 	public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player, @Nullable final Location location, final boolean loadToCahe) {
 		this.player = player;
