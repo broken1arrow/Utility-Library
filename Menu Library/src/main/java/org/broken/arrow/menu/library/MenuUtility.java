@@ -8,6 +8,8 @@ import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.utility.Function;
+import org.broken.arrow.menu.library.utility.Pair;
+import org.broken.arrow.menu.library.utility.PairFunction;
 import org.broken.arrow.menu.library.utility.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -19,7 +21,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
@@ -34,16 +35,15 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import static org.broken.arrow.menu.library.RegisterMenuAPI.getPLUGIN;
-import static org.broken.arrow.menu.library.utility.Metadata.*;
 
 /**
  * Contains methods to create menu as you want it. Recomend you extends #MenuHolder to get all methods needed.
  */
 
 public class MenuUtility<T> {
-
+	private final Logger logger = Logger.getLogger("Menu-Utility");
 
 	/**
 	 * Create menu instance.
@@ -64,6 +64,7 @@ public class MenuUtility<T> {
 		this.updateTime = -1;
 		this.menuOpenSound = Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull() == null ? Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BASEDRUM").orNull() : Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull();
 		this.uniqueKey = "";
+		this.menuAPI = RegisterMenuAPI.getMenuAPI();
 	}
 
 	protected MenuCacheKey menuCacheKey;
@@ -74,10 +75,16 @@ public class MenuUtility<T> {
 
 	protected List<Integer> fillSpace;
 	private final List<T> listOfFillItems;
-	protected final Plugin plugin = getPLUGIN();
+	protected Location location;
+	protected RegisterMenuAPI menuAPI;
 	private Inventory inventory;
 	protected InventoryType inventoryType;
-	protected int taskid;
+	protected Player player;
+	protected Sound menuOpenSound;
+	protected Function<String> titlefunction;
+	protected PairFunction<String> animateTitle;
+	private String playermetadataKey;
+	private String uniqueKey;
 	protected boolean shallCacheItems;
 	protected boolean slotsYouCanAddItems;
 	protected boolean allowShiftClick;
@@ -85,6 +92,7 @@ public class MenuUtility<T> {
 	protected boolean autoClearCache;
 	protected boolean ignoreItemCheck;
 	protected boolean autoTitleCurrentPage;
+	protected int taskid;
 	protected int slotIndex;
 	private int numberOfFillitems;
 	private int requiredPages;
@@ -93,13 +101,8 @@ public class MenuUtility<T> {
 	protected int itemsPerPage = this.inventorySize;
 	protected int pageNumber;
 	protected int updateTime;
-
-	protected Player player;
-	protected Sound menuOpenSound;
-	protected Function<String> titlefunction;
-	private String playermetadataKey;
-	private String uniqueKey;
-	protected Location location;
+	protected int animateTitleTime = 5;
+	private int taskidAnimateTitle;
 
 	/**
 	 * Set the item you want in a slot.
@@ -453,39 +456,6 @@ public class MenuUtility<T> {
 	}
 
 	/**
-	 * Get menuholder instance from player metadata.
-	 *
-	 * @return menuholder instance.
-	 */
-	@Nullable
-	public MenuUtility<?> getMenuholder(final Player player) {
-		return getMenuholder(player, MenuMetadataKey.MENU_OPEN);
-	}
-
-	/**
-	 * Get previous menuholder instance from player metadata.
-	 *
-	 * @return older menuholder instance.
-	 */
-
-	public MenuUtility<?> getPreviousMenuholder(final Player player) {
-		return getMenuholder(player, MenuMetadataKey.MENU_OPEN_PREVIOUS);
-	}
-
-	/**
-	 * Get current menu player has stored or currently open menu.
-	 *
-	 * @param player      the player that open menu.
-	 * @param metadataKey the menu key set for this menu.
-	 * @return the menu instance or null if player currently no menu open.
-	 */
-	private MenuUtility<?> getMenuholder(final Player player, final MenuMetadataKey metadataKey) {
-
-		if (hasPlayerMetadata(player, metadataKey)) return getPlayerMenuMetadata(player, metadataKey);
-		return null;
-	}
-
-	/**
 	 * Get the Object/entity from the @link {@link #listOfFillItems}.
 	 *
 	 * @param clickedPos the curent pos player clicking on, you need also add the page player currently have open and inventory size.
@@ -582,6 +552,10 @@ public class MenuUtility<T> {
 		if (titlefunction != null) {
 			title = titlefunction.apply();
 		}
+		if (title == null || title.equals("")) {
+			this.titlefunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " : "");
+			title = this.titlefunction.apply();
+		}
 		return title;
 	}
 
@@ -647,10 +621,6 @@ public class MenuUtility<T> {
 
 	protected void updateTittle() {
 		String title = getTitle();
-		if (title == null || title.equals("")) {
-			this.titlefunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " : "");
-			title = getTitle();
-		}
 		UpdateTittleContainers.update(player, title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? " " + (getPageNumber() + 1) + "" : ""));
 	}
 
@@ -699,14 +669,14 @@ public class MenuUtility<T> {
 			menuButtonCast.onClickInsideMenu(player, this.getMenu(), clickType, clickedItem, object);
 	}
 
-	private boolean checkLastOpenMenu() {
+/*	private boolean checkLastOpenMenu() {
 		if (getPreviousMenuholder(this.player) != null) {
 			if (hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_PREVIOUS))
 				removePlayerMenuMetadata(this.player, MenuMetadataKey.MENU_OPEN_PREVIOUS);
 			return false;
 		}
 		return true;
-	}
+	}*/
 
 	protected void setLocationMetaOnPlayer(final Player player, final Location location) {
 		String uniqueKey = this.uniqueKey;
@@ -716,7 +686,7 @@ public class MenuUtility<T> {
 		}
 		menuCacheKey = this.menuCache.getMenuCacheKey(location, uniqueKey);
 		if (menuCacheKey == null) menuCacheKey = new MenuCacheKey(location, uniqueKey);
-		setPlayerLocationMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION, menuCacheKey);
+		menuAPI.getPlayerMeta().setPlayerLocationMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION, menuCacheKey);
 	}
 
 	protected void setMetadataKey(final String setPlayerMetadataKey) {
@@ -740,13 +710,16 @@ public class MenuUtility<T> {
 	protected void onMenuClose(final InventoryCloseEvent event) {
 		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
 			Bukkit.getScheduler().cancelTask(this.taskid);
-
+		}
+		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskidAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskidAnimateTitle)) {
+			Bukkit.getScheduler().cancelTask(this.taskidAnimateTitle);
 		}
 	}
 
 	protected Inventory loadInventory(final Player player, final boolean loadToCahe) {
 		Inventory menu = null;
 		if (loadToCahe && this.location != null) {
+			this.setLocationMetaOnPlayer(player, this.location);
 			MenuUtility<?> menuCached = this.getMenuCache();
 
 			if (menuCached == null || menuCached.getMenu() == null) {
@@ -761,9 +734,9 @@ public class MenuUtility<T> {
 			}
 			menu = menuCached.getMenu();
 		} else {
-			setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_PREVIOUS, this);
-			setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN, this);
-			final MenuUtility<?> menuUtility = getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
+			menuAPI.getPlayerMeta().setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_PREVIOUS, this);
+			menuAPI.getPlayerMeta().setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN, this);
+			final MenuUtility<?> menuUtility = menuAPI.getPlayerMeta().getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
 			if (menuUtility != null) menu = menuUtility.getMenu();
 
 		}
@@ -775,7 +748,7 @@ public class MenuUtility<T> {
 		final List<Integer> fillSpace = this.getFillSpace();
 		if (this.itemsPerPage > 0) {
 			if (this.itemsPerPage > this.inventorySize)
-				this.plugin.getLogger().log(Level.SEVERE, "Items per page are biger an Inventory size, items items per page " + this.itemsPerPage + ". Inventory size " + this.inventorySize, new Throwable().fillInStackTrace());
+				this.logger.log(Level.SEVERE, "Items per page are biger an Inventory size, items items per page " + this.itemsPerPage + ". Inventory size " + this.inventorySize, new Throwable().fillInStackTrace());
 			if (!fillSpace.isEmpty()) {
 				return (double) fillSpace.size() / this.itemsPerPage;
 			} else if (fillItems != null && !fillItems.isEmpty()) return (double) fillItems.size() / this.itemsPerPage;
@@ -899,7 +872,7 @@ public class MenuUtility<T> {
 		if (this.getInventoryType() != null)
 			return Bukkit.createInventory(null, this.getInventoryType(), title != null ? title : "");
 		if (!(this.inventorySize == 5 || this.inventorySize % 9 == 0))
-			plugin.getLogger().log(Level.WARNING, "wrong inverntory size , you has put in " + this.inventorySize + " it need to be valid number.");
+			this.logger.log(Level.WARNING, "wrong inverntory size , you has put in " + this.inventorySize + " it need to be valid number.");
 		if (this.inventorySize == 5)
 			return Bukkit.createInventory(null, InventoryType.HOPPER, title != null ? title : "");
 		return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, title != null ? title : "");
@@ -960,7 +933,7 @@ public class MenuUtility<T> {
 				}
 				counter++;
 			}
-		}.runTaskTimer(plugin, 1L, 20L).getTaskId();
+		}.runTaskTimer(menuAPI.getPlugin(), 1L, 20L).getTaskId();
 	}
 
 	@Nullable
@@ -1008,4 +981,24 @@ public class MenuUtility<T> {
 		return slotList;
 	}
 
+	protected void animateTitle() {
+		PairFunction<String> task = this.animateTitle;
+		if (task == null) return;
+		this.taskidAnimateTitle = new BukkitRunnable() {
+
+			@Override
+			public void run() {
+				Pair<String, Boolean> apply = task.apply();
+				String text = apply.getFirst();
+				if (text == null || !apply.getSecond()) {
+					this.cancel();
+					UpdateTittleContainers.update(player, getTitle());
+					return;
+				}
+				if (!text.isEmpty()) {
+					UpdateTittleContainers.update(player, text);
+				}
+			}
+		}.runTaskTimerAsynchronously(menuAPI.getPlugin(), 1, 20 + this.animateTitleTime).getTaskId();
+	}
 }

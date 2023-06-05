@@ -2,7 +2,6 @@ package org.broken.arrow.menu.library.utility;
 
 import org.broken.arrow.menu.library.MenuMetadataKey;
 import org.broken.arrow.menu.library.MenuUtility;
-import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -18,48 +17,84 @@ import java.util.List;
  */
 public final class Metadata {
 
-	private static final Plugin plugin = RegisterMenuAPI.getPLUGIN();
+	private final Plugin plugin;
 
+	public Metadata(Plugin plugin) {
+		this.plugin = plugin;
+	}
 
-	public static boolean hasPlayerMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+	public boolean hasPlayerMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
 		return player.hasMetadata(key + "_" + plugin);
 	}
 
-	public static List<MetadataValue> getPlayerMenuMetadataList(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+	public List<MetadataValue> getPlayerMenuMetadataList(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
 		return player.getMetadata(key + "_" + plugin);
 	}
 
 	@Nullable
-	public static MenuUtility<?> getPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+	public MenuUtility<?> getPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
 		final List<MetadataValue> playerMetadata = player.getMetadata(key + "_" + plugin);
 		if (playerMetadata.isEmpty())
+			return null;
+		if (!(playerMetadata.get(0).value() instanceof MenuUtility))
 			return null;
 		return (MenuUtility<?>) playerMetadata.get(0).value();
 	}
 
 	@Nullable
-	public static Object getPlayerMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+	public Object getPlayerMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
 		final List<MetadataValue> playerMetadata = player.getMetadata(key + "_" + plugin);
 		if (playerMetadata.isEmpty())
 			return null;
 		return playerMetadata.get(0).value();
 	}
 
-	public static void setPlayerMetadata(@Nonnull final Player player, @Nonnull final String key, @Nonnull final Object object) {
+	public void setPlayerMetadata(@Nonnull final Player player, @Nonnull final String key, @Nonnull final Object object) {
 		player.setMetadata(key + "_" + plugin, new FixedMetadataValue(plugin, object));
 	}
 
-	public static void setPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key, @Nonnull final MenuUtility menu) {
+	public void setPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key, @Nonnull final MenuUtility<?> menu) {
 		player.setMetadata(key + "_" + plugin, new FixedMetadataValue(plugin, menu));
 	}
 
-	public static void setPlayerLocationMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key, @Nonnull final Object location) {
+	public void setPlayerLocationMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key, @Nonnull final Object location) {
 		player.setMetadata(key + "_" + plugin, new FixedMetadataValue(plugin, location));
 	}
 
-	public static void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+	public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
 		player.removeMetadata(key + "_" + plugin, plugin);
 	}
 
+	/**
+	 * Get menuholder instance from player metadata.
+	 *
+	 * @return menuholder instance.
+	 */
+	@Nullable
+	public MenuUtility<?> getMenuholder(final Player player) {
+		return getMenuholder(player, MenuMetadataKey.MENU_OPEN);
+	}
+
+	/**
+	 * Get previous menuholder instance from player metadata.
+	 *
+	 * @return older menuholder instance.
+	 */
+	public MenuUtility<?> getPreviousMenuholder(final Player player) {
+		return getMenuholder(player, MenuMetadataKey.MENU_OPEN_PREVIOUS);
+	}
+
+	/**
+	 * Get current menu player has stored or currently open menu.
+	 *
+	 * @param player      the player that open menu.
+	 * @param metadataKey the menu key set for this menu.
+	 * @return the menu instance or null if player currently no menu open.
+	 */
+	private MenuUtility<?> getMenuholder(final Player player, final MenuMetadataKey metadataKey) {
+
+		if (hasPlayerMetadata(player, metadataKey)) return getPlayerMenuMetadata(player, metadataKey);
+		return null;
+	}
 
 }

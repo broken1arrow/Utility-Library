@@ -12,7 +12,6 @@ public class Pair<K, V> {
 		this.secondValue = secondValue;
 	}
 
-
 	public K getFirst() {
 		return firstValue;
 	}

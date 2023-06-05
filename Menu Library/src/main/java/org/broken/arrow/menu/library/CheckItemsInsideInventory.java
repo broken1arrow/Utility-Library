@@ -27,10 +27,15 @@ import java.util.UUID;
 public class CheckItemsInsideInventory {
 
 	//todo fix this to only create on instance? and add player to cache.
-	private static final Map<UUID, Map<ItemStack, Integer>> duplicatedItems = new HashMap<>();
+	private final Map<UUID, Map<ItemStack, Integer>> duplicatedItems = new HashMap<>();
 	private boolean sendMsgPlayer = false;
-	private final List<String> blacklistedItems = new ArrayList<>();
+	private final List<Material> blacklistedItems = new ArrayList<>();
 	private final List<Integer> slotsToCheck = new ArrayList<>();
+	private final RegisterMenuAPI registerMenuAPI;
+
+	public CheckItemsInsideInventory(RegisterMenuAPI registerMenuAPI) {
+		this.registerMenuAPI = registerMenuAPI;
+	}
 
 	/**
 	 * set blacklisted items player not shall add to inventory/menu.
@@ -38,7 +43,11 @@ public class CheckItemsInsideInventory {
 	 * @param blacklistedItems list of items some are not allowed.
 	 */
 	public void setBlacklistedItems(final List<String> blacklistedItems) {
-		this.blacklistedItems.addAll(blacklistedItems);
+		if (blacklistedItems == null) return;
+		for (String item : blacklistedItems) {
+			Material material = convertString(item);
+			this.blacklistedItems.add(material);
+		}
 	}
 
 	/**
@@ -195,7 +204,7 @@ public class CheckItemsInsideInventory {
 
 	private void addItemsBackToPlayer(final Location location) {
 
-		for (final UUID playerUUID : CheckItemsInsideInventory.duplicatedItems.keySet()) {
+		for (final UUID playerUUID : this.duplicatedItems.keySet()) {
 			for (final Map.Entry<ItemStack, Integer> items : duplicatedItems.get(playerUUID).entrySet()) {
 				final ItemStack itemStack = items.getKey();
 				final int amount = items.getValue();
@@ -211,20 +220,32 @@ public class CheckItemsInsideInventory {
 				} else if (location != null && location.getWorld() != null)
 					location.getWorld().dropItemNaturally(location, itemStack);
 			}
-			CheckItemsInsideInventory.duplicatedItems.remove(playerUUID);
+			this.duplicatedItems.remove(playerUUID);
 		}
 
 	}
 
 	private boolean chekItemAreOnBlacklist(final ItemStack itemStack) {
-		final List<String> itemStacks = blacklistedItems;
+		final List<Material> itemStacks = blacklistedItems;
 		if (itemStack != null && !itemStacks.isEmpty())
-			for (final String item : itemStacks) {
-				if (RegisterMenuAPI.getItemCreator().of(item).makeItemStack().isSimilar(itemStack))
+			for (final Material item : itemStacks) {
+				if (item == itemStack.getType() && new ItemStack(item).isSimilar(itemStack))
 					return true;
 			}
 		return false;
 
+	}
+
+	public Material convertString(final String name) {
+		if (name == null) return null;
+		Material material = Material.getMaterial(name.toUpperCase());
+		if (material != null) {
+			return material;
+		} else {
+			if (!registerMenuAPI.isNotFoundItemCreator())
+				return registerMenuAPI.getItemCreator().of(name).makeItemStack().getType();
+		}
+		return null;
 	}
 
 	public static boolean isAir(final Material material) {

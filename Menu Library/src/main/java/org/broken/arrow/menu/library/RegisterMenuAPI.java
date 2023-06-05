@@ -1,12 +1,13 @@
 package org.broken.arrow.menu.library;
 
-import de.tr7zw.changeme.nbtapi.metodes.RegisterNbtAPI;
 import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCache;
+import org.broken.arrow.menu.library.utility.Metadata;
 import org.broken.arrow.menu.library.utility.ServerVersion;
+import org.broken.arrow.nbt.library.RegisterNbtAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -29,50 +30,74 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import static org.broken.arrow.menu.library.utility.Metadata.*;
 import static org.broken.arrow.menu.library.utility.ServerVersion.v1_19_4;
 
 
 public class RegisterMenuAPI {
-
-	private static Plugin PLUGIN;
-	private static RegisterNbtAPI nbtApi;
-	private static ItemCreator itemCreator;
+	private static RegisterMenuAPI menuAPI;
+	private final Plugin plugin;
+	private Metadata playerMeta;
+	private RegisterNbtAPI nbtApi;
+	private ItemCreator itemCreator;
+	private CheckItemsInsideInventory checkItemsInsideInventory;
+	private boolean notFoundItemCreator;
+	private final Logger logger = Logger.getLogger("Register_MenuAPI");
 
 	private RegisterMenuAPI() {
 		throw new UnsupportedOperationException("You need specify your main class");
 	}
 
 	public RegisterMenuAPI(final Plugin plugin) {
-		PLUGIN = plugin;
-		if (PLUGIN == null) {
-			Bukkit.getServer().getLogger().log(Level.WARNING, "You have not set plugin, becuse plugin is null");
+		this(plugin, false);
+	}
+
+	public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
+		this.plugin = plugin;
+		if (this.plugin == null) {
+			logger.log(Level.WARNING, "You have not set plugin, becuse plugin is null");
 			return;
 		}
 		ServerVersion.setServerVersion(plugin);
 		versionCheck();
 		registerMenuEvent(plugin);
-		nbtApi = new RegisterNbtAPI(plugin, false);
-		itemCreator = new ItemCreator(plugin);
-	}
+		this.nbtApi = new RegisterNbtAPI(plugin, turnOffLogger);
+		this.checkItemsInsideInventory = new CheckItemsInsideInventory(this);
+		this.playerMeta = new Metadata(plugin);
+		menuAPI = this;
 
-	private void versionCheck() {
-		PLUGIN.getLogger().log(Level.INFO, "Now starting MenuApi. Any errors will be shown below.");
-		if (ServerVersion.newerThan(v1_19_4)) {
-			PLUGIN.getLogger().log(Level.WARNING, "It is not tested on versions beyond 1.19.4");
+		try {
+			itemCreator = new ItemCreator(plugin);
+		} catch (NoClassDefFoundError ignore) {
+			notFoundItemCreator = true;
 		}
 	}
 
-	public static void getLogger(final Level level, final String messsage) {
-		PLUGIN.getLogger().log(level, messsage);
+	public static RegisterMenuAPI getMenuAPI() {
+		return menuAPI;
 	}
 
-	public static Plugin getPLUGIN() {
-		return PLUGIN;
+	private void versionCheck() {
+		logger.log(Level.INFO, "Now starting MenuApi. Any errors will be shown below.");
+		if (ServerVersion.newerThan(v1_19_4)) {
+			logger.log(Level.WARNING, "It is not tested on versions beyond 1.19.4");
+		}
 	}
 
-	public static ItemCreator getItemCreator() {
+	public void getLogger(final Level level, final String messsage) {
+		logger.log(level, messsage);
+	}
+
+	public Plugin getPlugin() {
+		return plugin;
+	}
+
+	public Metadata getPlayerMeta() {
+		return playerMeta;
+	}
+
+	public ItemCreator getItemCreator() {
 		return itemCreator;
 	}
 
@@ -83,11 +108,19 @@ public class RegisterMenuAPI {
 
 	}
 
-	public static RegisterNbtAPI getNbtApi() {
+	public CheckItemsInsideInventory getCheckItemsInsideInventory() {
+		return checkItemsInsideInventory;
+	}
+
+	public RegisterNbtAPI getNbtApi() {
 		return nbtApi;
 	}
 
-	private static class MenuHolderListener implements Listener {
+	public boolean isNotFoundItemCreator() {
+		return notFoundItemCreator;
+	}
+
+	private class MenuHolderListener implements Listener {
 
 		private final MenuCache menuCache = MenuCache.getInstance();
 		private final Map<UUID, SwapData> cacheData = new HashMap<>();
@@ -183,16 +216,16 @@ public class RegisterMenuAPI {
 			try {
 				menuUtility.menuClose(event, menuUtility);
 			} finally {
-				if (hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
-					removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
+				if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
+					getPlayerMeta().removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
 				}
-				if (hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
+				if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
 					if (menuUtility.isAutoClearCache()) {
 						if (menuUtility.getAmountOfViewers() < 1) {
-							menuCache.removeMenuCached(getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION));
+							menuCache.removeMenuCached(getPlayerMeta().getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION));
 						}
 					}
-					removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
+					getPlayerMeta().removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
 				}
 			}
 		}
@@ -287,20 +320,20 @@ public class RegisterMenuAPI {
 
 			Object menukey = null;
 
-			if (hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
-				menukey = getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
+			if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
+				menukey = getPlayerMeta().getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
 			}
 
 			final MenuUtility<?> menuUtility;
-			if (hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
-				menuUtility = getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
+			if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
+				menuUtility = getPlayerMeta().getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
 			} else {
 				menuUtility = menuCache.getMenuInCache(menukey);
 			}
 			return menuUtility;
 		}
 
-		private static class SwapData {
+		private class SwapData {
 
 			boolean playerUseSwapoffhand;
 			ItemStack itemInOfBeforeOpenMenuHand;

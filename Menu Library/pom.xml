@@ -43,6 +43,78 @@
         <dependency>
             <groupId>org.broken.arrow.library</groupId>
             <artifactId>Item_Creator</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.broken.arrow.library</groupId>
+            <artifactId>NBT</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <source>${java.source}</source>
+                    <target>${java.target}</target>
+
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <finalName>${project.name}-${project.version}</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>de.tr7zw:item-nbt-api-plugin</artifact>
+                                    <excludes>
+                                        <exclude>de/tr7zw/nbtinjector/**</exclude>
+                                        <exclude>de/tr7zw/nbtapi/plugin/**</exclude>
+                                        <exclude>META-INF/maven/de.tr7zw/item-nbt-api-plugin/**</exclude>
+                                        <exclude>META-INF/maven/de.tr7zw/nbt-data-api/**</exclude>
+                                        <exclude>META-INF/maven/de.tr7zw/nbt-injector/**</exclude>
+                                        <exclude>META-INF/MANIFEST.MF</exclude>
+                                        <exclude>plugin.yml</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <artifactSet>
+                                <includes>
+                                    <include>org.broken.arrow.library:NBT</include>
+                                    <include>org.broken.arrow.library:Color_Conversion</include>
+                                    <include>org.broken.arrow.library:Item_Creator</include>
+                                    <include>de.tr7zw:item-nbt-api-plugin</include>
+                                </includes>
+                            </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>de.tr7zw</pattern>
+                                    <shadedPattern>${project.groupId}.dependencies.nbt</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
 </project>

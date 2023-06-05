@@ -1,31 +1,46 @@
-package org.broken.arrow.menu.library.utility;
+package org.broken.arrow.nbt.library.utility;
 
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
 public enum ServerVersion {
-	v1_19_4((float) 19.4),
-	v1_19((float) 19.0),
-	v1_18_2((float) 18.2),
-	v1_18_1((float) 18.1),
-	v1_18_0((float) 18.0),
-	v1_17((float) 17.0),
-	v1_16((float) 16.0),
-	v1_15((float) 15.0),
-	v1_14((float) 14.0),
-	v1_13((float) 13.0),
-	v1_12((float) 12.0),
-	v1_11((float) 11.0),
-	v1_10((float) 10.0),
-	v1_9((float) 9.0),
-	v1_8((float) 8.0),
-	v1_7((float) 7.0),
-	v1_6((float) 6.0),
-	v1_5((float) 5.0),
-	v1_4((float) 4.0),
-	v1_3_AND_BELOW((float) 3.0);
+	v1_19_4(19.4F),
+	v1_19(19.0F),
+	v1_18_2(18.2F),
+	v1_18_1(18.1F),
+	v1_18_0(18.0F),
+	v1_17(17),
+	v1_16(16),
+	v1_15(15),
+	v1_14(14),
+	v1_13(13),
+	v1_12(12),
+	v1_11(11),
+	v1_10(10),
+	v1_9(9),
+	v1_8(8),
+	v1_7(7),
+	v1_6(6),
+	v1_5(5),
+	v1_4(4),
+	v1_3_AND_BELOW(3);
 
-	private final float version;
-	private static float currentServerVersion = -1;
+	private final double version;
+	private static double currentServerVersion;
+	private static String serverName;
+	private static boolean hasScoreboardTags = true;
+
+	public double getVersion() {
+		return version;
+	}
+
+	public static double getCurrentServerVersion() {
+		return currentServerVersion;
+	}
+
+	public static boolean isHasScoreboardTags() {
+		return hasScoreboardTags;
+	}
 
 	public static boolean equals(final ServerVersion version) {
 		return serverVersion(version) == 0;
@@ -48,7 +63,6 @@ public enum ServerVersion {
 	}
 
 	public static void setServerVersion(final Plugin plugin) {
-		if (currentServerVersion > 0) return;
 		final String[] strings = plugin.getServer().getBukkitVersion().split("\\.");
 		final String firstNumber;
 		String secondNumber;
@@ -71,18 +85,24 @@ public enum ServerVersion {
 			currentServerVersion = (float) Math.floor(version);
 		else
 			currentServerVersion = version;
+		checkClassesExist();
 	}
 
-	public float getVersion() {
-		return version;
+	public static boolean isPaper() {
+		return serverName.equals("Paper") || serverName.startsWith("Paper");
 	}
 
-	public static float getCurrentServerVersion() {
-		return currentServerVersion;
+	public static void checkClassesExist() {
+		try {
+			Entity.class.getMethod("getScoreboardTags");
+		} catch (Throwable ignore) {
+			hasScoreboardTags = false;
+		}
 	}
 
 	ServerVersion(final float version) {
 		this.version = version;
 
 	}
+
 }

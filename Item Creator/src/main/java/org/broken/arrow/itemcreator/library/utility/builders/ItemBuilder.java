@@ -1,16 +1,17 @@
 package org.broken.arrow.itemcreator.library.utility.builders;
 
 import org.broken.arrow.itemcreator.library.CreateItemStack;
+import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public final class ItemBuilder {
 
-	private Object item;
-	private Material matrial;
-	private String stringItem;
+	private final Object item;
+	private final ItemCreator itemCreator;
 	private final Iterable<?> itemArray;
 	private final String displayName;
 	private final List<String> lore;
@@ -21,8 +22,8 @@ public final class ItemBuilder {
 	 *
 	 * @param item item you want to create, suports string, matrial or itemstack.
 	 */
-	public ItemBuilder(final Object item) {
-		this(null, item, null, null);
+	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final Object item) {
+		this(itemCreator, null, item, null, null);
 
 	}
 
@@ -34,8 +35,8 @@ public final class ItemBuilder {
 	 * @param displayName name onb item.
 	 * @param lore        lore on item.
 	 */
-	public ItemBuilder(final ItemStack itemStack, final String displayName, final List<String> lore) {
-		this(null, itemStack, displayName, lore);
+	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final ItemStack itemStack, final String displayName, final List<String> lore) {
+		this(itemCreator, null, itemStack, displayName, lore);
 
 	}
 
@@ -47,8 +48,8 @@ public final class ItemBuilder {
 	 * @param displayName name onb item.
 	 * @param lore        lore on item.
 	 */
-	public ItemBuilder(final Material matrial, final String displayName, final List<String> lore) {
-		this(null, matrial, displayName, lore);
+	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final Material matrial, final String displayName, final List<String> lore) {
+		this(itemCreator, null, matrial, displayName, lore);
 	}
 
 	/**
@@ -59,8 +60,8 @@ public final class ItemBuilder {
 	 * @param displayName name onb item.
 	 * @param lore        lore on item.
 	 */
-	public ItemBuilder(final String stringItem, final String displayName, final List<String> lore) {
-		this(null, stringItem, displayName, lore);
+	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final String stringItem, final String displayName, final List<String> lore) {
+		this(itemCreator, null, stringItem, displayName, lore);
 	}
 
 	/**
@@ -69,15 +70,16 @@ public final class ItemBuilder {
 	 *
 	 * @param itemArray you want to create.
 	 */
-	public <T> ItemBuilder(final Iterable<T> itemArray) {
-		this(itemArray, null, null, null);
+	public <T> ItemBuilder(@Nonnull final ItemCreator itemCreator, final Iterable<T> itemArray) {
+		this(itemCreator, itemArray, null, null, null);
 	}
 
-	private <T> ItemBuilder(final Iterable<T> itemArray, final Object stringItem, final String displayName, final List<String> lore) {
+	private <T> ItemBuilder(@Nonnull final ItemCreator itemCreator, final Iterable<T> itemArray, final Object stringItem, final String displayName, final List<String> lore) {
 		this.itemArray = itemArray;
 		this.item = stringItem;
 		this.displayName = displayName;
 		this.lore = lore;
+		this.itemCreator = itemCreator;
 	}
 
 	/**
@@ -87,7 +89,7 @@ public final class ItemBuilder {
 	 * @return CreateItemUtily class with your data you have set.
 	 */
 	public CreateItemStack build() {
-		return new CreateItemStack(this);
+		return new CreateItemStack(this.itemCreator, this);
 	}
 
 	public Object getItem() {

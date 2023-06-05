@@ -1,7 +1,8 @@
-package org.broken.arrow.menu.library.holder;
+package org.broken.arrow.utility.library.menu.holders;
 
 import org.broken.arrow.menu.library.MenuMetadataKey;
 import org.broken.arrow.menu.library.MenuUtility;
+import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
@@ -25,7 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public abstract class HolderUtility<T> extends MenuUtility<T> {
+public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 
 	/**
 	 * Create menu instance.
@@ -34,7 +35,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * @param fillItems       List of items you want parse inside gui.
 	 * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
 	 */
-	public HolderUtility(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
+	public HolderUtilityU(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
 		super(fillSlots, fillItems, shallCacheItems);
 	}
 
@@ -57,8 +58,8 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * @param player   some open menu.
 	 * @param location location you open menu.
 	 */
-	public void menuOpen(@Nonnull final Player player, @Nullable final Location location) {
-		menuOpen(player, location, true);
+	public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player, @Nullable final Location location) {
+		menuOpen(menuAPI, player, location, true);
 	}
 
 	/**
@@ -67,8 +68,8 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 *
 	 * @param player some open menu.
 	 */
-	public void menuOpen(@Nonnull final Player player) {
-		menuOpen(player, null, false);
+	public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player) {
+		menuOpen(menuAPI, player, null, false);
 	}
 
 	/**
@@ -79,9 +80,10 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * @param location   location you open menu.
 	 * @param loadToCahe if it shall load menu to cache.
 	 */
-	public void menuOpen(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCahe) {
+	public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player, @Nullable final Location location, final boolean loadToCahe) {
 		this.player = player;
 		this.location = location;
+		this.menuAPI = menuAPI;
 		player.closeInventory();
 
 		if (!shallCacheItems) {
@@ -115,7 +117,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
 	/**
 	 * Set menu title inside your menu. If you want to use
-	 * placeholders in the text use {@link #setTitle(Function)}.
+	 * placeholders in the text use {@link #setTitle(org.broken.arrow.menu.library.utility.Function)}.
 	 *
 	 * @param title you want to show inside the menu.
 	 */
@@ -233,7 +235,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
 	/**
 	 * set this to true if you whant players has option to add or remove items. however you also need set the slots
-	 * you allow player remove and add items {@link MenuHolder#setFillSpace(String)} or {@link MenuHolder#setFillSpace(java.util.List)} for get it work.
+	 * you allow player remove and add items {@link MenuHolderU#setFillSpace(String)} or {@link MenuHolderU#setFillSpace(java.util.List)} for get it work.
 	 *
 	 * @param slotsYouCanAddItems true and it will give option to add and remove items on fill slots.
 	 */
@@ -295,7 +297,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
 
 	/**
-	 * Update only one button. Set this inside the {@link MenuButtonI#onClickInsideMenu(Player, Inventory, org.bukkit.event.inventory.ClickType, org.bukkit.inventory.ItemStack, Object)}}
+	 * Update only one button. Set this inside the {@link org.broken.arrow.menu.library.button.MenuButtonI#onClickInsideMenu(org.bukkit.entity.Player, org.bukkit.inventory.Inventory, org.bukkit.event.inventory.ClickType, org.bukkit.inventory.ItemStack, Object)}}
 	 * method and use this to tell what button some shal be updated.
 	 * <p>
 	 * You has to do this "this.YourClass.updateButton(MenuButtonI)" to acces this method.

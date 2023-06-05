@@ -8,13 +8,18 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>Item_Creator</artifactId>
-
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
+    <artifactId>NBT</artifactId>
+
     <dependencies>
+        <dependency>
+            <groupId>de.tr7zw</groupId>
+            <artifactId>item-nbt-api-plugin</artifactId>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
@@ -23,22 +28,6 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.mojang</groupId>
-            <artifactId>authlib</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.broken.arrow.library</groupId>
-            <artifactId>Color_Conversion</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.broken.arrow.library</groupId>
-            <artifactId>NBT</artifactId>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -57,6 +46,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+
+                <!--
+                   You want to check and update the latest version periodically from
+                   https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin
+               -->
                 <version>3.4.1</version>
                 <executions>
                     <execution>
@@ -68,22 +62,26 @@
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <finalName>${project.name}-${project.version}</finalName>
                             <filters>
+                                <!-- <filter>
+                                     <artifact>*:*</artifact>
+                                     <excludes>
+                                         <exclude>de/tr7zw/nbtinjector/**</exclude>
+                                         <exclude>de/tr7zw/nbtapi/plugin/**</exclude>
+                                     </excludes>
+                                 </filter>-->
                                 <filter>
                                     <artifact>de.tr7zw:item-nbt-api-plugin</artifact>
                                     <excludes>
                                         <exclude>plugin.yml</exclude>
                                         <exclude>de/tr7zw/nbtinjector/**</exclude>
                                         <exclude>de/tr7zw/nbtapi/plugin/**</exclude>
-                                        <exclude>META-INF/maven/de.tr7zw/item-nbt-api-plugin/**</exclude>
-                                        <exclude>META-INF/maven/de.tr7zw/nbt-data-api/**</exclude>
-                                        <exclude>META-INF/maven/de.tr7zw/nbt-injector/**</exclude>
+                                        <exclude>META-INF/MANIFEST.MF/**</exclude>
+                                        <exclude>META-INF/maven/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
                             <artifactSet>
                                 <includes>
-                                    <include>org.broken.arrow.library:NBT</include>
-                                    <include>org.broken.arrow.library:Color_Conversion</include>
                                     <include>de.tr7zw:item-nbt-api-plugin</include>
                                 </includes>
                             </artifactSet>

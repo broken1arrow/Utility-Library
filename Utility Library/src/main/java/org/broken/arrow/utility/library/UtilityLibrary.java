@@ -42,6 +42,10 @@ public final class UtilityLibrary extends JavaPlugin {
 		return new RegisterMenuAPI(plugin);
 	}
 
+	public RegisterMenuAPI getMenuApi(Plugin plugin, boolean turnOffLogger) {
+		return new RegisterMenuAPI(plugin, turnOffLogger);
+	}
+
 	public ItemCreator getItemCreator(Plugin plugin) {
 		return new ItemCreator(plugin);
 	}

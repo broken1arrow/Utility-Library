@@ -9,7 +9,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>Utility_Library</artifactId>
+    <artifactId>Utility-Library</artifactId>
     <dependencies>
         <dependency>
             <groupId>org.broken.arrow.library</groupId>
@@ -39,6 +39,11 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

@@ -18,6 +18,7 @@
         <module>Item Creator</module>
         <module>Utility Library</module>
         <module>Color Conversion</module>
+        <module>NBT</module>
     </modules>
 
     <properties>
@@ -50,6 +51,11 @@
         <repository> <!-- for development builds -->
             <id>sonatype-oss-snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.io/repository/maven-public/</url>
+            <layout>default</layout>
         </repository>
     </repositories>
     <dependencyManagement>
@@ -89,8 +95,8 @@
                 <version>3.0.0</version>
             </dependency>
             <dependency>
-                <groupId>com.github.broken1arrow</groupId>
-                <artifactId>Item-NBT-API</artifactId>
+                <groupId>de.tr7zw</groupId>
+                <artifactId>item-nbt-api-plugin</artifactId>
                 <version>2.11.2</version>
                 <scope>compile</scope>
             </dependency>
@@ -133,6 +139,12 @@
             <dependency>
                 <groupId>org.broken.arrow.library</groupId>
                 <artifactId>Color_Conversion</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.broken.arrow.library</groupId>
+                <artifactId>NBT</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>
@@ -201,40 +213,30 @@
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <finalName>${project.name}-${project.version}</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>de.tr7zw:item-nbt-api-plugin</artifact>
+                                    <excludes>
+                                        <exclude>plugin.yml</exclude>
+                                        <exclude>de/tr7zw/nbtinjector/**</exclude>
+                                        <exclude>de/tr7zw/nbtapi/plugin/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <artifactSet>
                                 <includes>
+                                    <!-- <include>org.broken.arrow.library:NBT</include>-->
                                     <include>org.broken.arrow.library</include>
-                                    <!--<include>com.github.broken1arrow:*</include>-->
-                                    <include>com.github.broken1arrow.Item-NBT-API:item-nbt-api:*</include>
+                                    <include>de.tr7zw:item-nbt-api-plugin</include>
                                 </includes>
                                 <excludes>
                                 </excludes>
                             </artifactSet>
                             <relocations>
                                 <relocation>
-                                    <pattern>org.broken.lib.rbg</pattern>
-                                    <shadedPattern>${project.groupId}.dependencies.rbglib</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>de.tr7zw.changeme</pattern>
+                                    <pattern>de.tr7zw</pattern>
                                     <shadedPattern>${project.groupId}.dependencies.nbt</shadedPattern>
                                 </relocation>
-                                <!--   <relocation>
-                                      <pattern>org.broken.arrow.menu</pattern>
-                                      <shadedPattern>${project.groupId}.dependencies.menu</shadedPattern>
-                                  </relocation>
-                                  <relocation>
-                                      <pattern>org.broken.arrow.command</pattern>
-                                      <shadedPattern>${project.groupId}.dependencies.command</shadedPattern>
-                                  </relocation>
-                                  <relocation>
-                                      <pattern>org.broken.arrow.itemcreator</pattern>
-                                      <shadedPattern>${project.groupId}.dependencies.itemcreator</shadedPattern>
-                                  </relocation>
-                                  <relocation>
-                                      <pattern>org.broken.arrow.yaml</pattern>
-                                      <shadedPattern>${project.groupId}.dependencies.yaml</shadedPattern>
-                                  </relocation>-->
                             </relocations>
                         </configuration>
                     </execution>

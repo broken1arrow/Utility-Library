@@ -1,8 +1,9 @@
 package org.broken.arrow.itemcreator.library;
 
-import de.tr7zw.changeme.nbtapi.metodes.RegisterNbtAPI;
+
 import org.broken.arrow.itemcreator.library.utility.ServerVersion;
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
+import org.broken.arrow.nbt.library.RegisterNbtAPI;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -13,14 +14,18 @@ import java.util.List;
 
 public class ItemCreator {
 
-	private static RegisterNbtAPI nbtApi;
+	private final RegisterNbtAPI nbtApi;
 
 	public ItemCreator(Plugin plugin) {
-		nbtApi = new RegisterNbtAPI(plugin, false);
+		this(plugin, false);
+	}
+
+	public ItemCreator(Plugin plugin, boolean turnOffLogger) {
+		nbtApi = new RegisterNbtAPI(plugin, turnOffLogger);
 		ServerVersion.setServerVersion(plugin);
 	}
 
-	public static RegisterNbtAPI getNbtApi() {
+	public RegisterNbtAPI getNbtApi() {
 		return nbtApi;
 	}
 
@@ -44,7 +49,7 @@ public class ItemCreator {
 	 * @return An instance of the CreateItemStack class.
 	 */
 	public CreateItemStack of(Object item) {
-		ItemBuilder itemBuilder = new ItemBuilder(item);
+		ItemBuilder itemBuilder = new ItemBuilder(this, item);
 		return itemBuilder.build();
 	}
 
@@ -73,11 +78,11 @@ public class ItemCreator {
 	public CreateItemStack of(Object item, String displayName, List<String> lore) {
 		ItemBuilder itemBuilder;
 		if (item instanceof ItemStack)
-			itemBuilder = new ItemBuilder((ItemStack) item, displayName, lore);
+			itemBuilder = new ItemBuilder(this, (ItemStack) item, displayName, lore);
 		else if (item instanceof Material)
-			itemBuilder = new ItemBuilder((Material) item, displayName, lore);
+			itemBuilder = new ItemBuilder(this, (Material) item, displayName, lore);
 		else
-			itemBuilder = new ItemBuilder(item + "", displayName, lore);
+			itemBuilder = new ItemBuilder(this, item + "", displayName, lore);
 		return itemBuilder.build();
 	}
 
@@ -89,7 +94,7 @@ public class ItemCreator {
 	 * @return An instance of the CreateItemStack class.
 	 */
 	public <T> CreateItemStack of(Iterable<T> itemArray) {
-		ItemBuilder itemBuilder = new ItemBuilder(itemArray);
+		ItemBuilder itemBuilder = new ItemBuilder(this, itemArray);
 		return itemBuilder.build();
 	}
 

@@ -1,13 +1,13 @@
 package org.broken.arrow.itemcreator.library;
 
 
-import de.tr7zw.changeme.nbtapi.metodes.RegisterNbtAPI;
 import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.itemcreator.library.utility.ConvertToItemStack;
 import org.broken.arrow.itemcreator.library.utility.ServerVersion;
 import org.broken.arrow.itemcreator.library.utility.Tuple;
 import org.broken.arrow.itemcreator.library.utility.Validate;
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
+import org.broken.arrow.nbt.library.RegisterNbtAPI;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static org.broken.arrow.itemcreator.library.ItemCreator.getNbtApi;
 
 
 /**
@@ -84,14 +82,14 @@ public class CreateItemStack {
 	private boolean keepOldMeta = true;
 	private boolean copyOfItem;
 
-	public CreateItemStack(final ItemBuilder itemBuilder) {
+	public CreateItemStack(final ItemCreator itemCreator, final ItemBuilder itemBuilder) {
 		if (convertItems == null)
 			convertItems = new ConvertToItemStack();
 		this.item = itemBuilder.getItem();
 		this.itemArray = itemBuilder.getItemArray();
 		this.displayName = itemBuilder.getDisplayName();
 		this.lore = itemBuilder.getLore();
-		this.nbtApi = getNbtApi();
+		this.nbtApi = itemCreator.getNbtApi();
 
 	}
 
