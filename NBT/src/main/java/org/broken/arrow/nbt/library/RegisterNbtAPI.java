@@ -16,8 +16,7 @@ public class RegisterNbtAPI {
 	public RegisterNbtAPI(Plugin plugin, boolean turnOffLogger) {
 		Logger logger = Logger.getLogger("NBTAPI");
 		if (turnOffLogger)
-			logger.setLevel(Level.OFF);
-
+			logger.setLevel(Level.WARNING);
 		getVersion();
 		compMetadata = new CompMetadata(plugin);
 		ServerVersion.setServerVersion(plugin);
