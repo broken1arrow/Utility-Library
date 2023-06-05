@@ -1,7 +1,7 @@
 # Utility-Library
 
 To import the library, please refer to the wiki for more details. If you want to compile specific modules only, you can find more information there as well.
-If you do want to use the Utility Library plugin or need sdeveral modules, you can follow the instructions below.
+If you do want to use the Utility Library plugin, you can follow the instructions below.
 
 ```xml
     <repositories>
