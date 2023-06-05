@@ -5,6 +5,7 @@ import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCache;
+import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.menu.library.utility.Metadata;
 import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.broken.arrow.nbt.library.RegisterNbtAPI;
@@ -42,6 +43,7 @@ public class RegisterMenuAPI {
 	private RegisterNbtAPI nbtApi;
 	private ItemCreator itemCreator;
 	private CheckItemsInsideInventory checkItemsInsideInventory;
+	private SendMsgDuplicatedItems messages;
 	private boolean notFoundItemCreator;
 	private final Logger logger = Logger.getLogger("Register_MenuAPI");
 
@@ -62,13 +64,13 @@ public class RegisterMenuAPI {
 		ServerVersion.setServerVersion(plugin);
 		versionCheck();
 		registerMenuEvent(plugin);
-		this.nbtApi = new RegisterNbtAPI(plugin, turnOffLogger);
 		this.checkItemsInsideInventory = new CheckItemsInsideInventory(this);
 		this.playerMeta = new Metadata(plugin);
 		menuAPI = this;
-
+		this.messages = new SendMsgDuplicatedItems();
 		try {
-			itemCreator = new ItemCreator(plugin);
+			this.nbtApi = new RegisterNbtAPI(plugin, turnOffLogger);
+			this.itemCreator = new ItemCreator(plugin);
 		} catch (NoClassDefFoundError ignore) {
 			notFoundItemCreator = true;
 		}
@@ -101,13 +103,6 @@ public class RegisterMenuAPI {
 		return itemCreator;
 	}
 
-	private void registerMenuEvent(final Plugin plugin) {
-		final MenuHolderListener menuHolderListener = new MenuHolderListener();
-		//if (!getRegisteredListeners(plugin).stream().allMatch(registeredListener -> registeredListener.getListener().getClass().equals(menuHolderListener.getClass())))
-		Bukkit.getPluginManager().registerEvents(menuHolderListener, plugin);
-
-	}
-
 	public CheckItemsInsideInventory getCheckItemsInsideInventory() {
 		return checkItemsInsideInventory;
 	}
@@ -118,6 +113,17 @@ public class RegisterMenuAPI {
 
 	public boolean isNotFoundItemCreator() {
 		return notFoundItemCreator;
+	}
+
+	public SendMsgDuplicatedItems getMessages() {
+		return messages;
+	}
+
+	private void registerMenuEvent(final Plugin plugin) {
+		final MenuHolderListener menuHolderListener = new MenuHolderListener();
+		//if (!getRegisteredListeners(plugin).stream().allMatch(registeredListener -> registeredListener.getListener().getClass().equals(menuHolderListener.getClass())))
+		Bukkit.getPluginManager().registerEvents(menuHolderListener, plugin);
+
 	}
 
 	private class MenuHolderListener implements Listener {

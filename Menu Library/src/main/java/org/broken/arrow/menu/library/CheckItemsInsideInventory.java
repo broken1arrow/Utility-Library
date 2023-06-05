@@ -1,7 +1,6 @@
 package org.broken.arrow.menu.library;
 
 
-import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.menu.library.utility.ItemCreator;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -197,7 +196,7 @@ public class CheckItemsInsideInventory {
 			player.getLocation().getWorld().dropItemNaturally(player.getLocation(), ifInventorFull.get(0));
 
 		if (!this.sendMsgPlayer) {
-			SendMsgDuplicatedItems.sendBlacklistMessage(player, itemStack.getType().name().toLowerCase());
+			this.registerMenuAPI.getMessages().sendBlacklistMessage(player, itemStack.getType().name().toLowerCase());
 			this.sendMsgPlayer = true;
 		}
 	}
@@ -216,7 +215,7 @@ public class CheckItemsInsideInventory {
 					if (!ifInventorFull.isEmpty() && offlinePlayer.getPlayer().getLocation().getWorld() != null)
 						offlinePlayer.getPlayer().getLocation().getWorld().dropItemNaturally(offlinePlayer.getPlayer().getLocation(), ifInventorFull.get(0));
 
-					SendMsgDuplicatedItems.sendDublicatedMessage(offlinePlayer.getPlayer(), itemStack.getType(), duplicatedItems.size(), amount);
+					this.registerMenuAPI.getMessages().sendDublicatedMessage(offlinePlayer.getPlayer(), itemStack.getType(), duplicatedItems.size(), amount);
 				} else if (location != null && location.getWorld() != null)
 					location.getWorld().dropItemNaturally(location, itemStack);
 			}
