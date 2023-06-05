@@ -25,13 +25,13 @@ public final class TextTranslator implements Interpolator {
 	/**
 	 * Type your message/string text here. you use this format for colors:
 	 * <ul>
-	 * <li> For vanilja color codes <strong>& or §</strong> and the color code.</li>
-	 * <li> For hex <strong><#5e4fa2></strong> </li>
-	 * <li> For normal gradiens <strong><#5e4fa2:#f79459></strong> </li>
-	 * <li> For hsv use <strong>gradiens_hsv_<#5e4fa2:...></strong> add at least 2 colors or more</li>
-	 * <li> For use multicolors <strong>gradiens_<#6B023E:...></strong>add at least 2 colors or more </li>
-	 * <li> For change balance beetween colors add this to the end of gradiens or gradiens_hsv <strong>_portion<0.2:0.6:0.2></strong>
-	 *  Like this <strong>gradiens_<#6B023E:#3360B3:#fc9:#e76424>_portion<0.2:0.6:0.2></strong> ,
+	 * <li> For vanilja color codes <strong>&amp; or &#167;</strong> and the color code.</li>
+	 * <li> For hex <strong>&lt;#5e4fa2&gt;</strong> </li>
+	 * <li> For normal gradiens <strong>&lt;#5e4fa2:#f79459&gt;</strong> </li>
+	 * <li> For hsv use <strong>gradiens_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
+	 * <li> For use multicolors <strong>gradiens_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
+	 * <li> For change balance beetween colors add this to the end of gradiens or gradiens_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
+	 *  Like this <strong>gradiens_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
 	 *  If you not add this it will have even balance beteen colors.</li>
 	 * </ul>
 	 *
@@ -45,15 +45,15 @@ public final class TextTranslator implements Interpolator {
 	/**
 	 * This is for component when you want to send message
 	 * thru vanilla minecraft MNS for example. DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
-	 * <br /> You use this format for colors:
+	 * <br> You use this format for colors:<br>
 	 * <ul>
-	 * <li> For vanilja color codes <strong>& or §</strong> and the color code.</li>
-	 * <li> For hex <strong><#5e4fa2></strong> </li>
-	 * <li> For normal gradiens <strong><#5e4fa2:#f79459></strong> </li>
-	 * <li> For hsv use <strong>gradiens_hsv_<#5e4fa2:...></strong> add at least 2 colors or more</li>
-	 * <li> For use multicolors <strong>gradiens_<#6B023E:...></strong>add at least 2 colors or more </li>
-	 * <li> For change balance beetween colors add this to the end of gradiens or gradiens_hsv <strong>_portion<0.2:0.6:0.2></strong>
-	 *  Like this <strong>gradiens_<#6B023E:#3360B3:#fc9:#e76424>_portion<0.2:0.6:0.2></strong> ,
+	 * <li> For vanilja color codes <strong>&amp; or &#167;</strong> and the color code.</li>
+	 * <li> For hex <strong>&lt;#5e4fa2&gt;</strong> </li>
+	 * <li> For normal gradiens <strong>&lt;#5e4fa2:#f79459&gt;</strong> </li>
+	 * <li> For hsv use <strong>gradiens_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
+	 * <li> For use multicolors <strong>gradiens_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
+	 * <li> For change balance beetween colors add this to the end of gradiens or gradiens_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
+	 *  Like this <strong>gradiens_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
 	 *  If you not add this it will have even balance beteen colors.</li>
 	 * </ul>
 	 *
@@ -67,16 +67,16 @@ public final class TextTranslator implements Interpolator {
 
 	/**
 	 * This is for component when you want to send message
-	 * thru vanilla minecraft MNS for example.DO NOT WORK IN SPIGOT API.Use {@link #toSpigotFormat(String)}
-	 * <br /> You use this format for colors:
+	 * thru vanilla minecraft MNS for example. DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
+	 * <br> You use this format for colors:<br>
 	 * <ul>
-	 * <li> For vanilja color codes <strong>& or §</strong> and the color code.</li>
-	 * <li> For hex <strong><#5e4fa2></strong> </li>
-	 * <li> For normal gradiens <strong><#5e4fa2:#f79459></strong> </li>
-	 * <li> For hsv use <strong>gradiens_hsv_<#5e4fa2:...></strong> add at least 2 colors or more</li>
-	 * <li> For use multicolors <strong>gradiens_<#6B023E:...></strong>add at least 2 colors or more </li>
-	 * <li> For change balance beetween colors add this to the end of gradiens or gradiens_hsv <strong>_portion<0.2:0.6:0.2></strong>
-	 *  Like this <strong>gradiens_<#6B023E:#3360B3:#fc9:#e76424>_portion<0.2:0.6:0.2></strong> ,
+	 * <li> For vanilja color codes <strong>&amp; or &#167;</strong> and the color code.</li>
+	 * <li> For hex <strong>&lt;#5e4fa2&gt;</strong> </li>
+	 * <li> For normal gradiens <strong>&lt;#5e4fa2:#f79459&gt;</strong> </li>
+	 * <li> For hsv use <strong>gradiens_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
+	 * <li> For use multicolors <strong>gradiens_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
+	 * <li> For change balance beetween colors add this to the end of gradiens or gradiens_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
+	 *  Like this <strong>gradiens_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
 	 *  If you not add this it will have even balance beteen colors.</li>
 	 * </ul>
 	 *
@@ -257,8 +257,9 @@ public final class TextTranslator implements Interpolator {
 
 	/**
 	 * Create a string with colors added on every letter
-	 * (some are after the color code and to message length or to &r).
+	 * (some are after the color code and to message length or to &amp;r).
 	 *
+	 * @param type    Gradient type you want to apply on the text.
 	 * @param message message you want to check and translate
 	 * @return string with added gradient and rest unaffected some are outside the gradient range.
 	 */
@@ -702,9 +703,10 @@ public final class TextTranslator implements Interpolator {
 	}
 
 	/**
-	 * Get values inside < >.
+	 * Get values inside &lt; &gt;.
 	 *
 	 * @param string the string to check for it.
+	 * @param end    where it shall stop split the hex.
 	 * @return null if not exist or list of values.
 	 */
 	public static String[] getValuesInside(String string, int end) {

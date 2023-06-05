@@ -244,6 +244,7 @@ public class MenuUtility<T> {
 	/**
 	 * Check if the cache contains the requested page.
 	 *
+	 * @param pageNumber The pagenumber you want to open.
 	 * @return true if the page exist.
 	 */
 	public boolean containsPage(final Integer pageNumber) {
@@ -313,7 +314,8 @@ public class MenuUtility<T> {
 	/**
 	 * Get all slots this menu button is added to.
 	 *
-	 * @param menuButton to get slots connected to this button.
+	 * @param menuButton      to get slots connected to this button.
+	 * @param menuDataUtility the cached button.
 	 * @return list of slot number or empty if not find data or if cache is null.
 	 */
 	@Nonnull
@@ -395,6 +397,7 @@ public class MenuUtility<T> {
 	 * <p>
 	 * <p>
 	 * Please be sure to double-check your calculations when setting the number of pages.
+	 * <p>
 	 *
 	 * @param amountOfPages the number of pages to set manually
 	 */

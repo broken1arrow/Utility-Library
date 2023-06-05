@@ -256,6 +256,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	/**
 	 * set the page you want to open.
 	 *
+	 * @param page set the page number.
 	 * @return true if it could set the page.
 	 */
 	public boolean setPage(final int page) {

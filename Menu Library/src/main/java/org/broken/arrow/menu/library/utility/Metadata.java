@@ -68,6 +68,7 @@ public final class Metadata {
 	/**
 	 * Get menuholder instance from player metadata.
 	 *
+	 * @param player the player you want to get metadata on.
 	 * @return menuholder instance.
 	 */
 	@Nullable
@@ -78,6 +79,7 @@ public final class Metadata {
 	/**
 	 * Get previous menuholder instance from player metadata.
 	 *
+	 * @param player the player you want to get metadata on.
 	 * @return older menuholder instance.
 	 */
 	public MenuUtility<?> getPreviousMenuholder(final Player player) {

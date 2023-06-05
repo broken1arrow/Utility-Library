@@ -24,10 +24,11 @@ public class ConvertsForJson {
 
 	/**
 	 * Serialize list to json to easy store it inside a database.
-	 * Use {@link @convertFromJsonList} to get back a list.
+	 * Use {@link #convertFromJsonList(Class, String)} to get back a list.
 	 *
 	 * @param key       key to the json to acces it.
 	 * @param arrayList the list you want to convert.
+	 * @param <T>       type of class.
 	 * @return json string.
 	 */
 	public <T> String convertToJsonList(final String key, final List<T> arrayList) {

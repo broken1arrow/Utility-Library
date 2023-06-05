@@ -27,8 +27,8 @@ import java.util.Map;
 /**
  * A library for update your config and keep comments.
  *
- * @author @tchristofferson on 2/8/2019.
- * @apiNote broken_arrow modify this code 11/24/2022
+ * @author tchristofferson on 2/8/2019.
+ * Note broken_arrow modify this code 11/24/2022
  */
 public class ConfigUpdater {
 

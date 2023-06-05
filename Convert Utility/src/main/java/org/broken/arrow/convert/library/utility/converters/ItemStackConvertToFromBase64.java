@@ -17,14 +17,10 @@ import java.io.IOException;
 public class ItemStackConvertToFromBase64 {
 	/**
 	 * A method to serialize an {@link org.bukkit.inventory.ItemStack} array to Base64 String.
-	 * <p>
-	 * <p/>
-	 * <p>
 	 * Based of {@link #itemStackArrayFromBase64(String)}.
 	 *
 	 * @param items to turn into a Base64 String.
 	 * @return Base64 string of the items.
-	 * @throws IllegalStateException
 	 */
 
 	public static String itemStackArrayToBase64(@Nonnull final ItemStack[] items) {
@@ -50,14 +46,10 @@ public class ItemStackConvertToFromBase64 {
 
 	/**
 	 * Gets an array of ItemStacks from Base64 string.
-	 * <p>
-	 * <p/>
-	 * <p>
 	 * Base of {@link #itemStackArrayToBase64(org.bukkit.inventory.ItemStack[])}}.
 	 *
 	 * @param data Base64 string to convert to ItemStack array.
 	 * @return ItemStack array created from the Base64 string.
-	 * @throws java.io.IOException
 	 */
 
 	public static ItemStack[] itemStackArrayFromBase64(@Nonnull final String data) {

@@ -13,9 +13,9 @@ public class SendMsgDuplicatedItems {
 
 	/**
 	 * Set message for when player have added item some are blacklisted.
-	 * Suport both hex and & colorcodes and have this placeholders:
+	 * Suport both hex and &amp; colorcodes and have this placeholders:
 	 * <p>
-	 * hex format is <#8000ff> and gradients <#8000ff:#8000ff>
+	 * hex format is &lt;#8000ff&gt; and gradients &lt;#8000ff:#8000ff&gt;
 	 * {0} = item type
 	 *
 	 * @param blacklistMessage set a message.
@@ -27,9 +27,9 @@ public class SendMsgDuplicatedItems {
 
 	/**
 	 * Set message for when player have added item some are dublicated.
-	 * Suport both hex and & colorcodes and have this placeholders:
+	 * Suport both hex and &amp; colorcodes and have this placeholders:
 	 * <p>
-	 * hex format is <#8000ff> and gradients <#8000ff:#8000ff>
+	 * hex format is &lt;#8000ff&gt; and gradients &lt;#8000ff:#8000ff&gt;
 	 * {0} = item type
 	 * {1} = amount of stacks
 	 * {2} = item amount
