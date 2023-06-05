@@ -91,14 +91,20 @@ public abstract class Database {
 	 * or {@link TableWrapper#addAllRecord(Set)} methods and it will then update all rows you added. If only one
 	 * record added it will update only one row.
 	 *
+	 * @param tableName  name of the table you want to update rows inside.
 	 * @param utilityMap new data you want to cache to database.
 	 *                   Note the key need to be the table name you want to update.
 	 */
-	public void saveAll(@Nonnull final Map<String, DataWrapper> utilityMap) {
+	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> utilityMap) {
 		final List<String> sqls = new ArrayList<>();
 
-		for (final TableWrapper tableWrapper : this.getTables().values()) {
-			DataWrapper dataWrapper = utilityMap.get(tableWrapper.getTableName());
+		final TableWrapper tableWrapper = this.getTable(tableName);
+		if (tableWrapper == null) {
+			LogMsg.warn("Could not find table " + tableName);
+			return;
+		}
+
+		for (DataWrapper dataWrapper : utilityMap) {
 			if (dataWrapper == null) continue;
 			String primaryKey = dataWrapper.getPrimaryKey();
 
@@ -125,19 +131,21 @@ public abstract class Database {
 	 * or {@link TableWrapper#addAllRecord(Set)} methods and it will then update all rows you added. If not set or only one
 	 * record added it will update only one row.
 	 *
-	 * @param tableName     The name of the table to save the row to.
-	 * @param primaryKey    The primary key column for the row.
-	 * @param primaryValue  The value for the primary key column.
-	 * @param configuration The serialized data to be stored with the primary key.
+	 * @param tableName   The name of the table to save the row to.
+	 * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.
 	 */
-
-	public void save(@Nonnull final String tableName, @Nonnull final String primaryKey, @Nonnull final Object primaryValue, @Nonnull final ConfigurationSerializable configuration) {
+	public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper) {
 		final List<String> sqls = new ArrayList<>();
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
+		if (dataWrapper == null)
+			return;
+		String primaryKey = dataWrapper.getPrimaryKey();
+		Object primaryValue = dataWrapper.getValue();
+		ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
 		if (!primaryKey.isEmpty()) {
 			TableRow primaryRow = tableWrapper.getPrimaryRow();
 			if (primaryRow != null)

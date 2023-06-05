@@ -43,7 +43,7 @@ public class testRun {
 		mysql.addTable(databasewrapper);
 		mysql.createTables();
 		databasewrapper.addRecord("something");
-		mysql.save("Test", "fun_key", "something", new testData());
+		//mysql.save("Test", "fun_key", "something", new testData());
 
 		SQLite db = new SQLite("database.db");
 		databasewrapper = TableWrapper.of("Test", new TableRow.Builder("fun_key", "VARCHAR(120)").build(), true);
@@ -54,7 +54,7 @@ public class testRun {
 				.addNotNull("fun_key5", "VARCHAR(120)");
 		db.addTable(databasewrapper);
 		db.createTables();
-		db.save("Test", "fun_key", "something", new testData());
+		//db.save("Test", "fun_key", "something", new testData());
 
 		LoadDataWrapper<testData> load = db.load("Test", testData.class);
 		testData testData = load.getDeSerializedData();
