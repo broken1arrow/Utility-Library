@@ -20,7 +20,8 @@ public final class ItemBuilder {
 	 * Create one itemStack, with name and lore. You can also add more
 	 * like enchants and metadata.
 	 *
-	 * @param item item you want to create, suports string, matrial or itemstack.
+	 * @param itemCreator the item creator instrace.
+	 * @param item        item you want to create, suports string, matrial or itemstack.
 	 */
 	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final Object item) {
 		this(itemCreator, null, item, null, null);
@@ -31,6 +32,7 @@ public final class ItemBuilder {
 	 * Create one itemStack, with name and lore. You can also add more
 	 * like enchants and metadata.
 	 *
+	 * @param itemCreator the item creator instrace.
 	 * @param itemStack   item you want to create.
 	 * @param displayName name onb item.
 	 * @param lore        lore on item.
@@ -44,6 +46,7 @@ public final class ItemBuilder {
 	 * Create one itemStack, with name and lore. You can also add more
 	 * like enchants and metadata.
 	 *
+	 * @param itemCreator the item creator instrace.
 	 * @param matrial     you want to create.
 	 * @param displayName name onb item.
 	 * @param lore        lore on item.
@@ -56,6 +59,7 @@ public final class ItemBuilder {
 	 * Create one itemStack, with name and lore. You can also add more
 	 * like enchants and metadata.
 	 *
+	 * @param itemCreator the item creator instrace.
 	 * @param stringItem  you want to create.
 	 * @param displayName name onb item.
 	 * @param lore        lore on item.
@@ -68,7 +72,9 @@ public final class ItemBuilder {
 	 * Create array of itemStack´s, with name and lore. You can also add more
 	 * like enchants and metadata.
 	 *
-	 * @param itemArray you want to create.
+	 * @param itemCreator the item creator instrace.
+	 * @param itemArray   you want to create.
+	 * @param <T>         type of items.
 	 */
 	public <T> ItemBuilder(@Nonnull final ItemCreator itemCreator, final Iterable<T> itemArray) {
 		this(itemCreator, itemArray, null, null, null);

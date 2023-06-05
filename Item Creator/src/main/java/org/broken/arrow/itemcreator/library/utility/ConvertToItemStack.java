@@ -43,7 +43,6 @@ public class ConvertToItemStack {
 	 * last one need the name be same as the Material name
 	 * (upper case or not do not mater (this method convert it to upper case auto)).
 	 * <p>
-	 * <p>
 	 * This is a help method for older minecraft versions some not have easy way to use colors.
 	 * This option only work on items some can use colors.
 	 *

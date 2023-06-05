@@ -226,6 +226,7 @@ public abstract class CommandHolder implements CommandHandler {
 	 * with the given suggestions. We sort them and only select ones
 	 * that the last word starts with.
 	 *
+	 * @param toString    the function you want to exicute.
 	 * @param <T>         class this list are from.
 	 * @param suggestions list of suggestions you want to tabcomplete.
 	 * @return list of words mathing one or several suggestions.

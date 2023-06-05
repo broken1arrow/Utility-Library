@@ -194,6 +194,7 @@ public abstract class Database {
 	 *
 	 * @param tableName name of the table you want to get data from.
 	 * @param clazz     the class you have your static deserialize method.
+	 * @param <T>       the type of ConfigurationSerialize instance.
 	 * @return list of all data you have in the table.
 	 */
 	public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {

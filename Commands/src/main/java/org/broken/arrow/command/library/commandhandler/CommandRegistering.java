@@ -96,6 +96,7 @@ public interface CommandRegistering {
 	 *
 	 * @param fallbackPrefix the prefix to use if could not use the normal command.
 	 * @param mainCommand    the command you want to register.
+	 * @return it return CommandRegister instance.
 	 */
 	CommandRegister registerMainCommand(String fallbackPrefix, String mainCommand);
 
@@ -105,6 +106,7 @@ public interface CommandRegistering {
 	 * @param fallbackPrefix the prefix to use if could not use the normal command.
 	 * @param aliases        set alias for your command to use insted of the main command.
 	 * @param mainCommand    the command you want to register.
+	 * @return it return CommandRegister instance.
 	 */
 	CommandRegister registerMainCommand(String fallbackPrefix, String mainCommand, String... aliases);
 
@@ -116,6 +118,7 @@ public interface CommandRegistering {
 	 * @param description    description of the command.
 	 * @param usageMessage   message how to use the command.
 	 * @param aliases        set alias for your command to use insted of the main command.
+	 * @return it return CommandRegister instance.
 	 */
 	CommandRegister registerMainCommand(String fallbackPrefix, String mainCommand, String description, String usageMessage, String... aliases);
 

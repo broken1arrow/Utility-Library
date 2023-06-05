@@ -421,6 +421,7 @@ public final class CompMetadata {
 	 * If the type equals to none or is empty, return null
 	 *
 	 * @param input to check.
+	 * @param <T>   the class type.
 	 * @return input or null
 	 */
 	public static <T> T getOrNull(final T input) {
