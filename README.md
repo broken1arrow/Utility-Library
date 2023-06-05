@@ -1,5 +1,7 @@
 # Utility-Library
 
+[![Java CI with Maven](https://github.com/broken1arrow/Utility-Library/actions/workflows/maven.yml/badge.svg)](https://github.com/broken1arrow/Utility-Library/actions/workflows/maven.yml)
+
 To import the library, please refer to the wiki for more details. If you want to compile specific modules only, you can find more information there as well.
 If you do want to use the Utility Library plugin, you can follow the instructions below.
 
