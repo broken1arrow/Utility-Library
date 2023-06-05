@@ -1,6 +1,7 @@
 # Utility-Library
 
-How to import the library, check the wiki for more details if you want only compile specific modules. If you not want to use the Utility Library plugin.
+To import the library, please refer to the wiki for more details. If you want to compile specific modules only, you can find more information there as well.
+If you do want to use the Utility Library plugin or only need a particular module, you can follow the instructions below.
 
 ```xml
     <repositories>
