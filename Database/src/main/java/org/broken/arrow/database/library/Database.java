@@ -103,7 +103,7 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-
+		if (!openConnection()) return;
 		for (DataWrapper dataWrapper : utilityMap) {
 			if (dataWrapper == null) continue;
 			String primaryKey = dataWrapper.getPrimaryKey();
@@ -163,14 +163,16 @@ public abstract class Database {
 	/**
 	 * Load one row from specified database table.
 	 *
-	 * @param tableName name of the table you want to get data from.
-	 * @param clazz     the class you have your static deserialize method.
-	 * @param <T>       Type of class that exstends ConfigurationSerializable .
+	 * @param tableName   name of the table you want to get data from.
+	 * @param clazz       the class you have your static deserialize method.
+	 * @param columnValue the value of the primary key you want to find data from.
+	 * @param <T>         Type of class that exstends ConfigurationSerializable .
 	 * @return one row you have in the table.
 	 */
 	@Nullable
-	public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
+	public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
 		TableWrapper tableWrapper = this.getTable(tableName);
+		if (!openConnection()) return null;
 		if (tableWrapper == null) {
 			LogMsg.warn("Could not find table " + tableName);
 			return null;
@@ -178,10 +180,9 @@ public abstract class Database {
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Colud not find  primary column for table " + tableName);
 		String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
 		Map<String, Object> dataFromDB = new HashMap<>();
-		TableRow column = tableWrapper.getColumn(primaryColumn);
-		Validate.checkNotNull(column, "Colud not find column for " + primaryColumn);
+		Validate.checkNotNull(columnValue, "Colud not find column for " + primaryColumn);
 
-		final String sql = "SELECT * FROM  `" + tableWrapper.getTableName() + "` WHERE `" + primaryColumn + "` = '" + column.getColumnValue() + "'";
+		final String sql = "SELECT * FROM  `" + tableWrapper.getTableName() + "` WHERE `" + primaryColumn + "` = '" + columnValue + "'";
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 		try {
@@ -216,6 +217,7 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return null;
 		}
+		if (!openConnection()) return null;
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 		try {
 			final String sql = "SELECT * FROM  `" + tableWrapper.getTableName() + "`";
@@ -498,6 +500,16 @@ public abstract class Database {
 		return tables.get(tableName);
 	}
 
+	/**
+	 * Remove the table.
+	 *
+	 * @param tableName The table you want to remove
+	 * @return true if it find the old table you want to remove.
+	 */
+	public boolean removeTable(String tableName) {
+		return tables.remove(tableName) != null;
+	}
+
 	public void addTable(TableWrapper tableWrapper) {
 		tables.put(tableWrapper.getTableName(), tableWrapper);
 	}
@@ -513,7 +525,7 @@ public abstract class Database {
 		return true;
 	}
 
-	protected void closeConnection() {
+	public void closeConnection() {
 		try {
 			if (this.connection != null) {
 				this.connection.close();

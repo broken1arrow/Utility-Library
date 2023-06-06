@@ -8,7 +8,6 @@ import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
 import org.apache.logging.log4j.message.Message;
 import org.broken.arrow.convert.library.utility.serialize.ConfigurationSerializable;
-import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.MysqlPreferences;
 import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.builders.tables.TableRow;
@@ -56,8 +55,8 @@ public class testRun {
 		db.createTables();
 		//db.save("Test", "fun_key", "something", new testData());
 
-		LoadDataWrapper<testData> load = db.load("Test", testData.class);
-		testData testData = load.getDeSerializedData();
+		//LoadDataWrapper<testData> load = db.load("Test", testData.class);
+		//testData testData = load.getDeSerializedData();
 	}
 
 
