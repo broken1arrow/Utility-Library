@@ -54,8 +54,8 @@ public final class UtilityLibrary extends JavaPlugin {
 		return new MySQL(mysqlPreference);
 	}
 
-	public SQLite createSQLiteInstance(String filePath) {
-		return new SQLite(filePath);
+	public SQLite createSQLiteInstance(String parent, String child) {
+		return new SQLite(parent, child);
 	}
 
 	public SerializeData getSerializeMethods(Plugin plugin) {

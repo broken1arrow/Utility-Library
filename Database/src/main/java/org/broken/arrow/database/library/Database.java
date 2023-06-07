@@ -207,6 +207,7 @@ public abstract class Database {
 	 * @param <T>       the type of ConfigurationSerialize instance.
 	 * @return list of all data you have in the table.
 	 */
+	@Nullable
 	public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
 		final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
 		PreparedStatement preparedStatement = null;

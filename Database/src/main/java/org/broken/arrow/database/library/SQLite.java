@@ -4,6 +4,7 @@ import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -14,17 +15,28 @@ import java.util.List;
 
 public class SQLite extends Database {
 
-	private final String filePath;
+	private final String parent;
+	private final String child;
 
-	public SQLite(final String filePath) {
-		this.filePath = filePath;
+	public SQLite(@Nonnull final String parent) {
+		this(parent, null);
+	}
+
+	public SQLite(@Nonnull final String parent, @Nullable final String child) {
+		this.parent = parent;
+		this.child = child;
 		connect();
 	}
 
 	@Override
 	public Connection connect() {
 		try {
-			final File dbFile = new File(filePath);
+			File dbFile;
+			if (this.parent != null && this.child == null)
+				dbFile = new File(parent);
+			else
+				dbFile = new File(this.parent, this.child);
+
 			if (!dbFile.exists()) {
 				try {
 					dbFile.createNewFile();
