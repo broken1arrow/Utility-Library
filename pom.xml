@@ -19,6 +19,8 @@
         <module>Utility Library</module>
         <module>Color Conversion</module>
         <module>NBT</module>
+        <module>Conversation Prompt</module>
+        <module>Block Visualization</module>
     </modules>
 
     <properties>
@@ -242,8 +244,36 @@
                     </execution>
                 </executions>
             </plugin>
-        </plugins>
+            <!-- Maven Source Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
+            <!-- Maven Javadoc Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadoc</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
         <!--
         During the build, we are going to scan all files in src/main/resources
         folder such as plugin.yml and your settings files and replace all variables
