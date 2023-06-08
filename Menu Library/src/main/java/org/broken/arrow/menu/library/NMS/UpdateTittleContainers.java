@@ -129,29 +129,11 @@ public class UpdateTittleContainers {
 		if (handle == null)
 			handle = Class.forName(versionCheckBukkit("entity.CraftPlayer")).getMethod("getHandle");
 		if (playerConnection == null)
-			playerConnection = Class.forName("net.minecraft.server.level.EntityPlayer").getField("b");
-		if (packetConnectionClass == null)
-			packetConnectionClass = Class.forName("net.minecraft.server.network.PlayerConnection");
-		if (chatBaseCompenent == null)
-			chatBaseCompenent = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
-		if (containersClass == null)
-			containersClass = Class.forName("net.minecraft.world.inventory.Containers");
-		if (containerClass == null)
-			containerClass = Class.forName("net.minecraft.world.inventory.Container");
-		if (chatCompenentSubClass == null)
-			chatCompenentSubClass = Class.forName("net.minecraft.network.chat.IChatBaseComponent$ChatSerializer");
-		if (packetConstructor == null)
-			packetConstructor = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenWindow").getConstructor(int.class, containersClass, chatBaseCompenent);
-	}
-
-	private static void loadNmsClasses1_18() throws ClassNotFoundException, NoSuchMethodException, NoSuchFieldException {
-
-		if (packetclass == null)
-			packetclass = Class.forName("net.minecraft.network.protocol.Packet");
-		if (handle == null)
-			handle = Class.forName(versionCheckBukkit("entity.CraftPlayer")).getMethod("getHandle");
-		if (playerConnection == null)
-			playerConnection = Class.forName("net.minecraft.server.level.EntityPlayer").getField("b");
+			// The PlayerConnection field value.
+			if (ServerVersion.atLeast(ServerVersion.v1_20_0))
+				playerConnection = Class.forName("net.minecraft.server.level.EntityPlayer").getField("c");
+			else
+				playerConnection = Class.forName("net.minecraft.server.level.EntityPlayer").getField("b");
 		if (packetConnectionClass == null)
 			packetConnectionClass = Class.forName("net.minecraft.server.network.PlayerConnection");
 		if (chatBaseCompenent == null)
