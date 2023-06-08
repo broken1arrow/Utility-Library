@@ -33,7 +33,7 @@ public final class MetaDataWraper {
 	 * @return this class
 	 */
 	public MetaDataWraper add(String key, Object value, boolean keepClazzData) {
-		itemMetaMap.put(key, (keepClazzData ? value + "" : value));
+		itemMetaMap.put(key, (keepClazzData ? value : value + ""));
 		return this;
 	}
 

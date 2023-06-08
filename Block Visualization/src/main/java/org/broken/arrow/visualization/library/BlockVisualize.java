@@ -26,8 +26,23 @@ public class BlockVisualize {
 	 */
 	public BlockVisualize(@Nonnull final Plugin plugin) {
 		this.plugin = plugin;
-		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
-		this.serverVersion = Float.parseFloat(versionPieces[1] + "." + versionPieces[2].substring(0, versionPieces[2].lastIndexOf("-")));
+		final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
+		final String firstNumber;
+		String secondNumber;
+		final String firstString = versionPieces[1];
+		if (firstString.contains("-")) {
+			firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
+
+			secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
+			final int index = secondNumber.toUpperCase().indexOf("R");
+			if (index >= 0)
+				secondNumber = secondNumber.substring(index + 1);
+		} else {
+			final String secondString = versionPieces[2];
+			firstNumber = firstString;
+			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
+		}
+		this.serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
 	}
 
 
