@@ -22,12 +22,12 @@ public class BlockVisualize {
 	/**
 	 * Constructs a BlockVisualize instance.
 	 *
-	 * @param plugin        Your plugin instance.
-	 * @param serverVersion The Minecraft server version in a supported format (e.g., 8.0, 8, or 8.8).
+	 * @param plugin Your plugin instance.
 	 */
-	public BlockVisualize(@Nonnull final Plugin plugin, float serverVersion) {
+	public BlockVisualize(@Nonnull final Plugin plugin) {
 		this.plugin = plugin;
-		this.serverVersion = serverVersion;
+		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
+		this.serverVersion = Float.parseFloat(versionPieces[1] + "." + versionPieces[2].substring(0, versionPieces[2].lastIndexOf("-")));
 	}
 
 

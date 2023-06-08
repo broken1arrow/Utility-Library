@@ -207,7 +207,6 @@ public final class TableWrapper {
 		columnsArray = this.columns.values().stream().map(TableRow::getColumnName).collect(Collectors.joining(","));
 
 		String string = "CREATE TABLE IF NOT EXISTS `" + this.getTableName() + "` (" + columns + ")" + (this.isSQLite() ? "" : " DEFAULT CHARSET=utf8mb4" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
-		System.out.println("string " + string);
 		return string;
 	}
 

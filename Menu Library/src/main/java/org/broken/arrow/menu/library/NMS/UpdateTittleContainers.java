@@ -47,10 +47,15 @@ public class UpdateTittleContainers {
 								new FieldName(45, "e"), new FieldName(54, "f"), new FieldName(5, "p"));
 
 						if (ServerVersion.atLeast(ServerVersion.v1_19)) {
-							if (ServerVersion.atLeast(ServerVersion.v1_19_4))
-								newNmsData = new NmsData("bP", "j",
-										"a", "a", inventorySizeNames);
-							else
+							if (ServerVersion.atLeast(ServerVersion.v1_19_4)) {
+								if (ServerVersion.atLeast(ServerVersion.v1_20_0))
+									newNmsData = new NmsData("bR", "j",
+											"a", "a", inventorySizeNames);
+								else
+									// inside net.minecraft.world.entity.player and class EntityHuman do you have the Container field.
+									newNmsData = new NmsData("bP", "j",
+											"a", "a", inventorySizeNames);
+							} else
 								newNmsData = new NmsData("bU", "j",
 										"a", "a", inventorySizeNames);
 
@@ -280,7 +285,7 @@ public class UpdateTittleContainers {
 		}
 
 		/**
-		 * take the method from this class net.minecraft.server.network.PlayerConnection .
+		 * It take the method from this class net.minecraft.server.network.PlayerConnection .
 		 * This method a(Packet packet) older versions is it sendPacket(Packet packet).
 		 *
 		 * @return method name.

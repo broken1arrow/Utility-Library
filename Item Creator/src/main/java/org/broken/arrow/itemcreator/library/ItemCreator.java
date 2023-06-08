@@ -1,7 +1,6 @@
 package org.broken.arrow.itemcreator.library;
 
 
-import org.broken.arrow.itemcreator.library.utility.ServerVersion;
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
 import org.broken.arrow.nbt.library.RegisterNbtAPI;
 import org.bukkit.Material;
@@ -15,6 +14,7 @@ import java.util.List;
 public class ItemCreator {
 
 	private final RegisterNbtAPI nbtApi;
+	private float serverVersion;
 
 	public ItemCreator(Plugin plugin) {
 		this(plugin, false);
@@ -22,13 +22,17 @@ public class ItemCreator {
 
 	public ItemCreator(Plugin plugin, boolean turnOffLogger) {
 		nbtApi = new RegisterNbtAPI(plugin, turnOffLogger);
-		ServerVersion.setServerVersion(plugin);
+		final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
+		this.serverVersion = Float.parseFloat(versionPieces[1] + "." + versionPieces[2].substring(0, versionPieces[2].lastIndexOf("-")));
 	}
 
 	public RegisterNbtAPI getNbtApi() {
 		return nbtApi;
 	}
 
+	public float getServerVersion() {
+		return serverVersion;
+	}
 
 	/**
 	 * Starts the creation of an item using an existing or new ItemBuilder instance. You can set all the values you want

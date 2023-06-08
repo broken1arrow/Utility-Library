@@ -86,6 +86,7 @@ public final class ItemBuilder {
 		this.displayName = displayName;
 		this.lore = lore;
 		this.itemCreator = itemCreator;
+
 	}
 
 	/**

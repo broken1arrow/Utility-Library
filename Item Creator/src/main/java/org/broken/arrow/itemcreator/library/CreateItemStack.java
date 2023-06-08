@@ -3,7 +3,6 @@ package org.broken.arrow.itemcreator.library;
 
 import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.itemcreator.library.utility.ConvertToItemStack;
-import org.broken.arrow.itemcreator.library.utility.ServerVersion;
 import org.broken.arrow.itemcreator.library.utility.Tuple;
 import org.broken.arrow.itemcreator.library.utility.Validate;
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
@@ -81,16 +80,17 @@ public class CreateItemStack {
 	private boolean keepAmount;
 	private boolean keepOldMeta = true;
 	private boolean copyOfItem;
+	private final float serverVersion;
 
 	public CreateItemStack(final ItemCreator itemCreator, final ItemBuilder itemBuilder) {
+		this.serverVersion = itemCreator.getServerVersion();
 		if (convertItems == null)
-			convertItems = new ConvertToItemStack();
+			convertItems = new ConvertToItemStack(serverVersion);
 		this.item = itemBuilder.getItem();
 		this.itemArray = itemBuilder.getItemArray();
 		this.displayName = itemBuilder.getDisplayName();
 		this.lore = itemBuilder.getLore();
 		this.nbtApi = itemCreator.getNbtApi();
-
 	}
 
 	/**
@@ -773,7 +773,7 @@ public class CreateItemStack {
 		this.addEnchantments(itemMeta);
 		this.addBottleEffects(itemMeta);
 		this.blockStateMeta(itemMeta);
-		if (ServerVersion.newerThan(ServerVersion.v1_10))
+		if (this.serverVersion > 10)
 			addUnbreakableMeta(itemMeta);
 		addCustomModelData(itemMeta);
 
@@ -919,8 +919,6 @@ public class CreateItemStack {
 
 
 	public static ConvertToItemStack getConvertItems() {
-		if (convertItems == null)
-			convertItems = new ConvertToItemStack();
 		return convertItems;
 	}
 

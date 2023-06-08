@@ -15,7 +15,10 @@ import java.util.Locale;
  */
 public class ConvertToItemStack {
 
-	public ConvertToItemStack() {
+	private float serverVersion;
+
+	public ConvertToItemStack(float serverVersion) {
+		this.serverVersion = serverVersion;
 	}
 
 	/**
@@ -71,7 +74,7 @@ public class ConvertToItemStack {
 	}
 
 	public ItemStack checkItemStack(final ItemStack itemStack, final String color) {
-		if (ServerVersion.olderThan(ServerVersion.v1_13) && itemStack != null) {
+		if (serverVersion < 13 && itemStack != null) {
 			final ItemStack stack = new ItemStack(itemStack.getType(), itemStack.getAmount(), checkColor(color));
 			final ItemMeta itemMeta = itemStack.getItemMeta();
 			if (itemMeta != null)
@@ -82,7 +85,7 @@ public class ConvertToItemStack {
 	}
 
 	public ItemStack checkString(final String stringName) {
-		if (ServerVersion.olderThan(ServerVersion.v1_13)) {
+		if (serverVersion < 13) {
 			final ItemStack stack = createStack(stringName, 1);
 			if (stack != null)
 				return stack;
@@ -114,7 +117,7 @@ public class ConvertToItemStack {
 		if (item.endsWith("_CARPET")) {
 			return new ItemStack(Material.valueOf("CARPET"), amount, (short) color);
 		}
-		if (ServerVersion.newerThan(ServerVersion.v1_8)) {
+		if (serverVersion > 11) {
 			if (item.contains("CONCRETE_POWDER")) {
 				return new ItemStack(Material.valueOf("CONCRETE_POWDER"), amount, (short) color);
 			}

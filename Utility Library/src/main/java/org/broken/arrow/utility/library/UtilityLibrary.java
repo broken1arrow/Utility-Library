@@ -140,8 +140,6 @@ public final class UtilityLibrary extends JavaPlugin {
 	 * @return The BlockVisualize instance.
 	 */
 	public BlockVisualize getVisualizer(Plugin plugin) {
-		final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
-		float ver = Float.parseFloat(versionPieces[1] + "." + versionPieces[2].substring(0, versionPieces[2].lastIndexOf("-")));
-		return new BlockVisualize(plugin, ver);
+		return new BlockVisualize(plugin);
 	}
 }

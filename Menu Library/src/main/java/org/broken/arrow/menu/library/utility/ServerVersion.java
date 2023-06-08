@@ -3,6 +3,7 @@ package org.broken.arrow.menu.library.utility;
 import org.bukkit.plugin.Plugin;
 
 public enum ServerVersion {
+	v1_20_0((float) 20.0),
 	v1_19_4((float) 19.4),
 	v1_19((float) 19.0),
 	v1_18_2((float) 18.2),
