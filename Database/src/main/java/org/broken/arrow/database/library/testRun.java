@@ -1,12 +1,5 @@
 package org.broken.arrow.database.library;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.core.LogEvent;
-import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.filter.AbstractFilter;
-import org.apache.logging.log4j.message.Message;
 import org.broken.arrow.convert.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.database.library.builders.MysqlPreferences;
 import org.broken.arrow.database.library.builders.TableWrapper;
@@ -29,8 +22,6 @@ public class testRun {
 	}
 
 	public static void main(String[] args) {
-		new LogFilter().registerFilter();
-
 		TableWrapper databasewrapper = TableWrapper.of("Test", new TableRow.Builder("fun_key", "TEXT(120)").build(), false);
 		MySQL mysql = new MySQL(new MysqlPreferences.Builder("sql7621744", "sql7.freesqldatabase.com", "3306", "sql7621744", "bZS6iTeRpm").build());
 		databasewrapper
@@ -71,37 +62,4 @@ public class testRun {
 		}
 	}
 
-	public static class LogFilter extends AbstractFilter {
-
-		public void registerFilter() {
-			Logger logger = (Logger) LogManager.getRootLogger();
-			logger.addFilter(new LogFilter());
-		}
-
-		@Override
-		public Result filter(LogEvent event) {
-			if (event == null) {
-				return Result.NEUTRAL;
-			}
-			if (event.getLoggerName().contains("Hikari")) {
-				return Result.DENY;
-			}
-			return Result.NEUTRAL;
-		}
-
-		@Override
-		public Result filter(Logger logger, Level level, Marker marker, Message msg, Throwable t) {
-			return Result.NEUTRAL;
-		}
-
-		@Override
-		public Result filter(Logger logger, Level level, Marker marker, String msg, Object... params) {
-			return Result.NEUTRAL;
-		}
-
-		@Override
-		public Result filter(Logger logger, Level level, Marker marker, Object msg, Throwable t) {
-			return Result.NEUTRAL;
-		}
-	}
 }
