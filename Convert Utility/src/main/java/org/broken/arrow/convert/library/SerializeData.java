@@ -6,9 +6,9 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
-import org.broken.arrow.convert.library.utility.converters.ConvertsForJson;
 import org.broken.arrow.convert.library.utility.converters.SerializeingLocation;
 import org.broken.arrow.convert.library.utility.serialize.ConfigurationSerializable;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -29,15 +29,33 @@ import java.util.stream.Collectors;
 
 
 public final class SerializeData {
-	private final float serverVersion;
-	private final ConvertsForJson convertsForJson;
+	private static final float serverVersion;
 
 	public SerializeData(final float serverVersion) {
-		this.serverVersion = serverVersion;
-		this.convertsForJson = new ConvertsForJson(this);
+
 	}
 
-	public Object serialize(final Object obj) {
+	static {
+		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
+		final String firstNumber;
+		String secondNumber;
+		final String firstString = versionPieces[1];
+		if (firstString.contains("-")) {
+			firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
+
+			secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
+			final int index = secondNumber.toUpperCase().indexOf("R");
+			if (index >= 0)
+				secondNumber = secondNumber.substring(index + 1);
+		} else {
+			final String secondString = versionPieces[2];
+			firstNumber = firstString;
+			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
+		}
+		serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+	}
+
+	public static Object serialize(final Object obj) {
 		if (obj == null)
 			return null;
 
@@ -119,11 +137,7 @@ public final class SerializeData {
 		throw new SerializeFailedException("Does not know how to serialize " + obj.getClass().getSimpleName() + "! Does it extends ConfigSerializable? Data: " + obj);
 	}
 
-	public ConvertsForJson getConvertsForJson() {
-		return convertsForJson;
-	}
-
-	private String toJson(final BaseComponent... comps) {
+	private static String toJson(final BaseComponent... comps) {
 		if (serverVersion < 8.8)
 			return "{}";
 		String json;

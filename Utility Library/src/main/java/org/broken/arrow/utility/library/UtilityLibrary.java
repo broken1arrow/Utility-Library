@@ -5,7 +5,6 @@ import org.broken.arrow.command.library.CommandRegister;
 import org.broken.arrow.command.library.command.CommandHolder;
 import org.broken.arrow.command.library.command.builders.CommandBuilder.Builder;
 import org.broken.arrow.command.library.commandhandler.CommandRegistering;
-import org.broken.arrow.convert.library.SerializeData;
 import org.broken.arrow.database.library.MySQL;
 import org.broken.arrow.database.library.SQLite;
 import org.broken.arrow.database.library.builders.MysqlPreferences;
@@ -103,19 +102,7 @@ public final class UtilityLibrary extends JavaPlugin {
 	public SQLite createSQLiteInstance(String parent, String child) {
 		return new SQLite(parent, child);
 	}
-
-	/**
-	 * Retrieves a new SerializeData instance for the given plugin.
-	 *
-	 * @param plugin The plugin to retrieve the SerializeData for.
-	 * @return The SerializeData instance.
-	 */
-	public SerializeData getSerializeMethods(Plugin plugin) {
-		final String[] version = plugin.getServer().getBukkitVersion().split("\\.");
-		float ver = Float.parseFloat(version[1] + "." + version[2].substring(0, version[2].lastIndexOf("-")));
-		return new SerializeData(ver);
-	}
-
+	
 	/**
 	 * Retrieves a new CommandRegistering instance.
 	 *

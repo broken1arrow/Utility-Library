@@ -57,7 +57,6 @@ public abstract class SimpleYamlHelper {
 	private Set<String> filesFromResource;
 	protected Plugin plugin;
 	private ConfigUpdater configUpdater;
-	private final SerializeData serializeData;
 
 	public SimpleYamlHelper(Plugin plugin, final String name) {
 		if (plugin == null)
@@ -68,10 +67,6 @@ public abstract class SimpleYamlHelper {
 		final File folder = this.plugin.getDataFolder();
 		if (!folder.exists())
 			folder.mkdir();
-		final String[] version = plugin.getServer().getBukkitVersion().split("\\.");
-		float ver = Float.parseFloat(version[1] + "." + version[2].substring(0, version[2].lastIndexOf("-")));
-		serializeData = new SerializeData(ver);
-
 	}
 
 	public SimpleYamlHelper(Plugin plugin, final String name, boolean singleFile, boolean shallGenerateFiles) {
@@ -280,7 +275,7 @@ public abstract class SimpleYamlHelper {
 
 		this.getCustomConfig().set(path, null);
 		for (final Map.Entry<String, Object> key : configuration.serialize().entrySet()) {
-			this.getCustomConfig().set(path + "." + key.getKey(), this.serializeData.serialize(key.getValue()));
+			this.getCustomConfig().set(path + "." + key.getKey(), SerializeData.serialize(key.getValue()));
 		}
 	}
 
