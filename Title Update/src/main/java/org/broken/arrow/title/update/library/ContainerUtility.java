@@ -14,8 +14,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 
-import static org.broken.arrow.title.update.library.UpdateTitle.getServerVersion;
-
 public class ContainerUtility {
 	private Class<?> packetclass;
 	private Method handle;
@@ -29,9 +27,10 @@ public class ContainerUtility {
 	private final NmsData newNmsData;
 	private final TitleLogger titleLogger;
 
-	protected ContainerUtility(final NmsData newNmsData) {
+	protected ContainerUtility(final NmsData newNmsData, final float serverVersion) {
 		titleLogger = new TitleLogger(ContainerUtility.class);
-		loadClasses();
+		loadClasses(serverVersion);
+		this.serverVersion = serverVersion;
 		this.newNmsData = newNmsData;
 	}
 
@@ -95,49 +94,51 @@ public class ContainerUtility {
 		return "org.bukkit.craftbukkit." + Bukkit.getServer().getClass().toGenericString().split("\\.")[3] + "." + clazzName;
 	}
 
-	private void loadClasses() {
+	private void loadClasses(final float serverVersion) {
 		try {
-			serverVersion = getServerVersion();
-
-			if (serverVersion < 16) packetclass = Class.forName(versionCheckNms("Packet"));
+			if (serverVersion < 17) packetclass = Class.forName(versionCheckNms("Packet"));
 			else packetclass = Class.forName("net.minecraft.network.protocol.Packet");
 
 			handle = Class.forName(versionCheckBukkit("entity.CraftPlayer")).getMethod("getHandle");
-			if (serverVersion < 16)
+			if (serverVersion < 17)
 				playerConnection = Class.forName(versionCheckNms("EntityPlayer")).getField("playerConnection");
-			else if (serverVersion >= 16)
+			else {
 				if (serverVersion >= 20)
 					playerConnection = Class.forName("net.minecraft.server.level.EntityPlayer").getField("c");
 				else playerConnection = Class.forName("net.minecraft.server.level.EntityPlayer").getField("b");
+			}
 
-			if (serverVersion < 16) packetConnectionClass = Class.forName(versionCheckNms("PlayerConnection"));
+			if (serverVersion < 17) packetConnectionClass = Class.forName(versionCheckNms("PlayerConnection"));
 			else packetConnectionClass = Class.forName("net.minecraft.server.network.PlayerConnection");
 
 			Class<?> chatBaseCompenent;
-			if (serverVersion < 16) chatBaseCompenent = Class.forName(versionCheckNms("IChatBaseComponent"));
+			if (serverVersion < 17) chatBaseCompenent = Class.forName(versionCheckNms("IChatBaseComponent"));
 			else chatBaseCompenent = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
 
 			if (serverVersion > 13)
-				if (serverVersion >= 16)
+				if (serverVersion < 17)
+					containersClass = Class.forName(versionCheckNms("Containers"));
+				else
 					containersClass = Class.forName("net.minecraft.world.inventory.Containers");
-				else containersClass = Class.forName(versionCheckNms("Containers"));
+
 			else containersClass = String.class;
 
-			if (serverVersion < 16) containerClass = Class.forName(versionCheckNms("Container"));
+			if (serverVersion < 17) containerClass = Class.forName(versionCheckNms("Container"));
 			else containerClass = Class.forName("net.minecraft.world.inventory.Container");
 
-			if (serverVersion < 16)
+			if (serverVersion < 17)
 				chatCompenentSubClass = Class.forName(versionCheckNms("IChatBaseComponent$ChatSerializer"));
 			else
 				chatCompenentSubClass = Class.forName("net.minecraft.network.chat.IChatBaseComponent$ChatSerializer");
 
 			if (serverVersion > 13)
-				if (serverVersion >= 16)
-					packetConstructor = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenWindow").getConstructor(int.class, containersClass, chatBaseCompenent);
-				else
+				if (serverVersion < 17)
 					packetConstructor = Class.forName(versionCheckNms("PacketPlayOutOpenWindow")).getConstructor(int.class, containersClass, chatBaseCompenent);
+				else
+					packetConstructor = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenWindow").getConstructor(int.class, containersClass, chatBaseCompenent);
 			else
 				packetConstructor = Class.forName(versionCheckNms("PacketPlayOutOpenWindow")).getConstructor(int.class, containersClass, chatBaseCompenent, int.class);
+
 		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException exception) {
 			this.titleLogger.sendLOG(exception, Level.WARNING, "An error occurred while updating the inventory title: ");
 		}

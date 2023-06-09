@@ -68,7 +68,7 @@ public class SetNmsData {
 			nmsData = new NmsData("activeContainer", "windowId", "sendPacket", "updateInventory", inventorySizeNames);
 		}
 		if (nmsData != null)
-			return new ContainerUtility(nmsData);
+			return new ContainerUtility(nmsData, serverVersion);
 		return null;
 	}
 
