@@ -22,6 +22,7 @@
         <module>Conversation Prompt</module>
         <module>Block Visualization</module>
         <module>Title Update</module>
+        <module>Language</module>
     </modules>
 
     <properties>

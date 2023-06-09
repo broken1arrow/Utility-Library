@@ -50,7 +50,7 @@ public abstract class SimpleYamlHelper {
 	private boolean firstLoad = true;
 	private FileConfiguration customConfig;
 	private final String name;
-	private Integer version;
+	private int version;
 	private String extension;
 	private File customConfigFile;
 	private final File dataFolder;
@@ -292,7 +292,7 @@ public abstract class SimpleYamlHelper {
 		return singelFile;
 	}
 
-	public Integer getVersion() {
+	public int getVersion() {
 		return version;
 	}
 
