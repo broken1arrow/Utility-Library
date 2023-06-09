@@ -1,6 +1,6 @@
-package org.broken.arrow.convert.library.utility.serialize;
+package org.broken.arrow.serialize.library.utility.serialize;
 
-import org.broken.arrow.convert.library.utility.Validate;
+import org.broken.arrow.serialize.library.utility.Validate;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

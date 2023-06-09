@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>org.broken.arrow.library</groupId>
-            <artifactId>Convert_Utility</artifactId>
+            <artifactId>Serialize-Utility</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

@@ -14,7 +14,7 @@
         <module>Commands</module>
         <module>Yaml Files</module>
         <module>Database</module>
-        <module>Convert Utility</module>
+        <module>Serialize Utility</module>
         <module>Item Creator</module>
         <module>Utility Library</module>
         <module>Color Conversion</module>
@@ -124,6 +124,12 @@
             <dependency>
                 <groupId>org.broken.arrow.library</groupId>
                 <artifactId>Database</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.broken.arrow.library</groupId>
+                <artifactId>Serialize-Utility</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>

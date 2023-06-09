@@ -1,4 +1,4 @@
-package org.broken.arrow.convert.library.utility.serialize;
+package org.broken.arrow.serialize.library.utility.serialize;
 
 import javax.annotation.Nonnull;
 import java.util.Map;

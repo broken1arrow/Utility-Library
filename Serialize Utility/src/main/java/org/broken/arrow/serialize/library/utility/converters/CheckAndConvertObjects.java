@@ -1,8 +1,8 @@
-package org.broken.arrow.convert.library.utility.converters;
+package org.broken.arrow.serialize.library.utility.converters;
 
 
-import org.broken.arrow.convert.library.utility.Pair;
-import org.broken.arrow.convert.library.utility.Validate;
+import org.broken.arrow.serialize.library.utility.Pair;
+import org.broken.arrow.serialize.library.utility.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

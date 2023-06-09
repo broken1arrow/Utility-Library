@@ -1,8 +1,8 @@
 package org.broken.arrow.yaml.library;
 
 
-import org.broken.arrow.convert.library.SerializeData;
-import org.broken.arrow.convert.library.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.serialize.library.SerializeData;
+import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.yaml.library.utillity.ConfigUpdater;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;

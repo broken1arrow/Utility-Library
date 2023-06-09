@@ -1,6 +1,5 @@
 package org.broken.arrow.database.library;
 
-import org.broken.arrow.convert.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.TableWrapper;
@@ -8,6 +7,7 @@ import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
 import org.broken.arrow.database.library.utility.serialize.DeSerialize;
+import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

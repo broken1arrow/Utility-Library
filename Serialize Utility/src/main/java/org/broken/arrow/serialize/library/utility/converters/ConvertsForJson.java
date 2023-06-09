@@ -1,7 +1,7 @@
-package org.broken.arrow.convert.library.utility.converters;
+package org.broken.arrow.serialize.library.utility.converters;
 
 import com.google.gson.Gson;
-import org.broken.arrow.convert.library.SerializeData;
+import org.broken.arrow.serialize.library.SerializeData;
 import org.bukkit.Location;
 
 import java.lang.reflect.Type;
@@ -15,7 +15,7 @@ import java.util.UUID;
  * Utility class for converting lists to JSON strings and vice versa.
  */
 public class ConvertsForJson {
-	
+
 	/**
 	 * Serializes a list to JSON format for easy storage in a database.
 	 * Use {@link #convertFromJsonList(Class, String)} to deserialize the JSON string back to a list.
