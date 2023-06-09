@@ -1,7 +1,6 @@
 package org.broken.arrow.menu.library;
 
 import com.google.common.base.Enums;
-import org.broken.arrow.menu.library.NMS.UpdateTittleContainers;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
@@ -9,6 +8,7 @@ import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.Validate;
+import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -555,6 +555,7 @@ public class MenuUtility<T> {
 			this.titlefunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " : "");
 			title = this.titlefunction.apply();
 		}
+		title = title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? " " + (getPageNumber() + 1) + "" : "");
 		return title;
 	}
 
@@ -593,8 +594,8 @@ public class MenuUtility<T> {
 		}
 		this.pageNumber = pageNumber;
 
-		updateButtons();
-		updateTittle();
+		this.updateButtons();
+		this.updateTittle();
 	}
 
 	protected void updateButtons() {
@@ -620,7 +621,9 @@ public class MenuUtility<T> {
 
 	protected void updateTittle() {
 		String title = getTitle();
-		UpdateTittleContainers.update(player, title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? " " + (getPageNumber() + 1) + "" : ""));
+		if (!menuAPI.isNotFoundUpdateTitleClazz())
+			UpdateTitle.update(player, title);
+		//UpdateTittleContainers.update(player, title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? " " + (getPageNumber() + 1) + "" : ""));
 	}
 
 	private Object toMenuCache(final Player player, final Location location) {
@@ -990,11 +993,13 @@ public class MenuUtility<T> {
 				String text = task.apply();
 				if (text == null || this.isCancelled()) {
 					this.cancel();
-					UpdateTittleContainers.update(player, getTitle());
+					updateTittle();
 					return;
 				}
-				if (!text.isEmpty()) {
-					UpdateTittleContainers.update(player, text);
+				if (!text.isEmpty() && !menuAPI.isNotFoundUpdateTitleClazz()) {
+					if (!menuAPI.isNotFoundUpdateTitleClazz())
+						UpdateTitle.update(player, text);
+					//UpdateTittleContainers.update(player, text);
 				}
 			}
 		}.runTaskTimerAsynchronously(menuAPI.getPlugin(), 1, 20 + this.animateTitleTime).getTaskId();
@@ -1007,7 +1012,6 @@ public class MenuUtility<T> {
 		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskidAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskidAnimateTitle)) {
 			Bukkit.getScheduler().cancelTask(this.taskidAnimateTitle);
 		}
-		UpdateTittleContainers.update(player, getTitle());
-		//Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), () -> UpdateTittleContainers.update(player, getTitle()), 1);
+		updateTittle();
 	}
 }

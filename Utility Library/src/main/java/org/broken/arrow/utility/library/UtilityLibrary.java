@@ -11,6 +11,7 @@ import org.broken.arrow.database.library.SQLite;
 import org.broken.arrow.database.library.builders.MysqlPreferences;
 import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
+import org.broken.arrow.title.update.library.UpdateTitle;
 import org.broken.arrow.visualization.library.BlockVisualize;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,7 @@ public final class UtilityLibrary extends JavaPlugin {
 	@Override
 	public void onLoad() {
 		instance = this;
+		UpdateTitle.update(null, "");
 	}
 
 	@Override

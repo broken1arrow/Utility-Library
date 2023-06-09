@@ -9,6 +9,7 @@ import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.menu.library.utility.Metadata;
 import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.broken.arrow.nbt.library.RegisterNbtAPI;
+import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -45,6 +46,7 @@ public class RegisterMenuAPI {
 	private CheckItemsInsideInventory checkItemsInsideInventory;
 	private SendMsgDuplicatedItems messages;
 	private boolean notFoundItemCreator;
+	private boolean notFoundUpdateTitle;
 	private final Logger logger = Logger.getLogger("Register_MenuAPI");
 
 	private RegisterMenuAPI() {
@@ -58,10 +60,24 @@ public class RegisterMenuAPI {
 	public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
 		this.plugin = plugin;
 		if (this.plugin == null) {
-			logger.log(Level.WARNING, "You have not set plugin, becuse plugin is null");
+			logger.log(Level.WARNING, "You have not set a plugin.");
+			logger.log(Level.WARNING, "If you're unsure how to use this library, " +
+					"contact plugin developer for assistance.");
 			return;
 		}
-		ServerVersion.setServerVersion(plugin);
+		try {
+			UpdateTitle.update(null, "");
+		} catch (NoClassDefFoundError ignore) {
+			logger.log(Level.INFO, "Important: Dynamic change menu titles not available.");
+			logger.log(Level.INFO, "To enable the option to change the menu title while the menu is open,");
+			logger.log(Level.INFO, "please make sure you have imported the Title Update module into your plugin.");
+			logger.log(Level.INFO, "Without the Title Update module, you won't be able to dynamically update");
+			logger.log(Level.INFO, "the menu title while the menu is open.");
+			logger.log(Level.INFO, "If you're unsure how to import the module, please refer to the documentation");
+			logger.log(Level.INFO, "or contact plugin developer for assistance.");
+			notFoundUpdateTitle = true;
+		}
+		//ServerVersion.setServerVersion(plugin);
 		versionCheck();
 		registerMenuEvent(plugin);
 		this.checkItemsInsideInventory = new CheckItemsInsideInventory(this);
@@ -109,6 +125,10 @@ public class RegisterMenuAPI {
 
 	public RegisterNbtAPI getNbtApi() {
 		return nbtApi;
+	}
+
+	public boolean isNotFoundUpdateTitleClazz() {
+		return notFoundUpdateTitle;
 	}
 
 	public boolean isNotFoundItemCreator() {

@@ -269,8 +269,8 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 			return false;
 
 		this.pageNumber = page;
-		updateButtons();
-		updateTittle();
+		this.updateButtons();
+		this.updateTittle();
 		return true;
 	}
 
