@@ -169,8 +169,8 @@ public abstract class SimpleYamlHelper {
 		if (!isSingelFile())
 			return name;
 		final int pos = name.lastIndexOf(".");
-		if (pos == -1)
-			this.setExtension(name.substring(pos));
+		if (pos > 0)
+			this.setExtension(name.substring(pos + 1));
 		return name;
 	}
 
