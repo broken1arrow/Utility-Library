@@ -1,4 +1,4 @@
-package org.broken.arrow.language.library;
+package org.broken.arrow.language.library.builders;
 
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 

@@ -1,4 +1,4 @@
-package org.broken.arrow.language.library;
+package org.broken.arrow.language.library.builders;
 
 
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
@@ -38,7 +38,7 @@ public class PluginMessages implements ConfigurationSerializable {
 	public Map<String, List<String>> getMessagesCache() {
 		return Collections.unmodifiableMap(messages);
 	}
-	
+
 	@Nullable
 	public PluginMessages getPluginMessages() {
 		return pluginMessages;
