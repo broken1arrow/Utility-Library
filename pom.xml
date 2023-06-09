@@ -21,6 +21,7 @@
         <module>NBT</module>
         <module>Conversation Prompt</module>
         <module>Block Visualization</module>
+        <module>Title Update</module>
     </modules>
 
     <properties>
@@ -153,6 +154,12 @@
             <dependency>
                 <groupId>org.broken.arrow.library</groupId>
                 <artifactId>Block-Visualization</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.broken.arrow.library</groupId>
+                <artifactId>Title-Update</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>
