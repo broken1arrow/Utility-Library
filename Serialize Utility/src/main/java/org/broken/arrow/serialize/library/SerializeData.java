@@ -30,11 +30,7 @@ import java.util.stream.Collectors;
 
 public final class SerializeData {
 	private static final float serverVersion;
-
-	public SerializeData(final float serverVersion) {
-
-	}
-
+	
 	static {
 		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
 		final String firstNumber;
