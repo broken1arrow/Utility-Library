@@ -3,3 +3,9 @@ version: ${project.version}
 main: ${main.class}
 author: broken arrow
 api-version: 1.13
+libraries:
+  - com.zaxxer:HikariCP:5.0.1
+legacy-libraries:
+  - org.slf4j:slf4j-simple:1.7.36
+  - org.slf4j:slf4j-api:1.7.36
+  - com.zaxxer:HikariCP:4.0.3

@@ -84,7 +84,7 @@ public class ParticleCreator {
 	public ParticleCreator(final Player player, @Nonnull final ParticleEffect effect, final World world, final double x, final double y, final double z) {
 		Validate.checkNotNull(world, "World is null, so can't spawn the particle");
 		Validate.checkNotNull(effect, "Effect is null, so can't spawn the particle");
-		
+
 		this.particle = effect.getParticle();
 		this.effect = effect.getEffect();
 		this.material = effect.getMaterial();
@@ -122,6 +122,8 @@ public class ParticleCreator {
 
 	/**
 	 * Creates the DustOptionsParticle if the micraft version suport it.
+	 *
+	 * @param dustOptions The dustoption for this particle.
 	 */
 	public void spawnDustOptionsParticle(final Particle.DustOptions dustOptions) {
 		Location location = null;
@@ -143,6 +145,8 @@ public class ParticleCreator {
 
 	/**
 	 * Creates the DustTransitionParticle if the micraft version suport it.
+	 *
+	 * @param dustOptions The transition for this particle.
 	 */
 	public void spawnDustTransitionParticle(final Particle.DustTransition dustOptions) {
 		Location location = null;

@@ -120,6 +120,7 @@ public class MenuButton implements ConfigurationSerializable {
 		/**
 		 * Sets the color of the menu button. Certain materials such as wool, concrete, or glass can have colors.
 		 *
+		 * @param color the DyeColor type.
 		 * @return the associated DyeColor.
 		 */
 		public Builder setColor(final DyeColor color) {

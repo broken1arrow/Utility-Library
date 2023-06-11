@@ -1,10 +1,10 @@
 package org.broken.arrow.menu.button.manager.library.utility;
 
 
-import com.sun.istack.internal.Nullable;
 import org.broken.arrow.serialize.library.utility.converters.SpigotSound;
 import org.bukkit.Sound;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
