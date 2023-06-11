@@ -1,4 +1,4 @@
-package org.broken.arrow.language.library.builders;
+package org.broken.arrow.localization.library.builders;
 
 
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+/**
+ * Represents a data structure that holds plugin messages, such as strings or lists of strings,
+ * associated with specific keys.
+ */
 public class PluginMessages implements ConfigurationSerializable {
 
 	private final Map<String, List<String>> messages;
@@ -21,11 +25,22 @@ public class PluginMessages implements ConfigurationSerializable {
 	private String prefixDecor;
 	private String suffixDecor;
 
+	/**
+	 * Constructs a new PluginMessages object with the specified messages.
+	 *
+	 * @param messages the map of messages associated with keys
+	 */
 	private PluginMessages(Map<String, List<String>> messages) {
 		this.messages = messages;
 		this.pluginMessages = this;
 	}
 
+	/**
+	 * Retrieves the message associated with the specified key.
+	 *
+	 * @param key the key associated with the desired message
+	 * @return the list of strings representing the message, or an empty list if not found
+	 */
 	@Nonnull
 	public List<String> getMessage(String key) {
 		List<String> message = messages.get(key);
@@ -34,46 +49,87 @@ public class PluginMessages implements ConfigurationSerializable {
 		return new ArrayList<>();
 	}
 
-
+	/**
+	 * Retrieves an unmodifiable view of the messages cache.
+	 *
+	 * @return an unmodifiable map of messages
+	 */
 	public Map<String, List<String>> getMessagesCache() {
 		return Collections.unmodifiableMap(messages);
 	}
 
-	@Nullable
+	/**
+	 * Retrieves the PluginMessages instance associated with the current object.
+	 *
+	 * @return the PluginMessages instance associated with this object.
+	 */
+	@Nonnull
 	public PluginMessages getPluginMessages() {
 		return pluginMessages;
 	}
 
-
+	/**
+	 * Retrieves the plugin name.
+	 *
+	 * @return the plugin name, or null if not set.
+	 */
 	@Nullable
 	public String getPluginName() {
 		return pluginName;
 	}
 
-
+	/**
+	 * Retrieves the prefix decoration.
+	 *
+	 * @return the prefix decoration, or null if not set.
+	 */
 	@Nullable
 	public String getPrefixDecor() {
 		return prefixDecor;
 	}
 
-
+	/**
+	 * Retrieves the suffix decoration.
+	 *
+	 * @return the suffix decoration, or null if not set.
+	 */
 	@Nullable
 	public String getSuffixDecor() {
 		return suffixDecor;
 	}
 
+	/**
+	 * Sets the prefix decoration.
+	 *
+	 * @param prefixDecor the prefix decoration to set
+	 */
 	public void setPrefixDecor(final String prefixDecor) {
 		this.prefixDecor = prefixDecor;
 	}
 
+	/**
+	 * Sets the suffix decoration.
+	 *
+	 * @param suffixDecor the suffix decoration to set
+	 */
 	public void setSuffixDecor(final String suffixDecor) {
 		this.suffixDecor = suffixDecor;
 	}
 
+	/**
+	 * Sets the plugin name.
+	 *
+	 * @param pluginName the plugin name to set
+	 */
 	public void setPluginName(final String pluginName) {
 		this.pluginName = pluginName;
 	}
 
+	/**
+	 * Serializes the PluginMessages object to a map of key-value pairs.
+	 *
+	 * @return a map containing the serialized data
+	 */
 	@Nonnull
 	@Override
 	public Map<String, Object> serialize() {
@@ -85,6 +141,12 @@ public class PluginMessages implements ConfigurationSerializable {
 		return map;
 	}
 
+	/**
+	 * Deserializes a PluginMessages object from a map of key-value pairs.
+	 *
+	 * @param map the map containing the serialized data
+	 * @return the deserialized PluginMessages object
+	 */
 	public static PluginMessages deserialize(Map<String, Object> map) {
 		final Map<String, List<String>> messages = new HashMap<>();
 		for (Entry<String, Object> entry : map.entrySet())

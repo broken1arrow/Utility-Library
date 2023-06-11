@@ -1,9 +1,9 @@
-package org.broken.arrow.language.library;
+package org.broken.arrow.localization.library;
 
-import org.broken.arrow.language.library.builders.PlaceholderText;
-import org.broken.arrow.language.library.builders.PlaceholderText.Language;
-import org.broken.arrow.language.library.builders.PluginMessages;
-import org.broken.arrow.yaml.library.SimpleYamlHelper;
+import org.broken.arrow.localization.library.builders.Localization;
+import org.broken.arrow.localization.library.builders.PlaceholderText;
+import org.broken.arrow.localization.library.builders.PluginMessages;
+import org.broken.arrow.yaml.library.YamlFileManager;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -12,17 +12,16 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LanguageCache extends SimpleYamlHelper {
+public class LocalizationCache extends YamlFileManager {
 
-	//private final Map<String, Language> language = new HashMap<>();
-	private Language language;
+	private Localization localization;
 
-	public LanguageCache(Plugin plugin, String path) {
+	public LocalizationCache(Plugin plugin, String path) {
 		super(plugin, path, true, true);
 	}
 
-	public Language getLanguage() {
-		return language;
+	public Localization getLocalization() {
+		return localization;
 	}
 
 	@Override
@@ -51,6 +50,6 @@ public class LanguageCache extends SimpleYamlHelper {
 			pluginMessages.setPrefixDecor(templateConfig.getString("Prefix_decor"));
 			pluginMessages.setSuffixDecor(templateConfig.getString("Suffix_decor"));
 		}
-		this.language = PlaceholderText.Language.deserialize(map);
+		this.localization = Localization.deserialize(map);
 	}
 }
