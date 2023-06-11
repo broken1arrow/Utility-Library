@@ -13,19 +13,19 @@
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
 
-    <artifactId>Language</artifactId>
+    <artifactId>Localization</artifactId>
     <dependencies>
-        <dependency>
-            <groupId>org.broken.arrow.library</groupId>
-            <artifactId>Serialize-Utility</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
         </dependency>
         <dependency>
             <groupId>org.broken.arrow.library</groupId>
-            <artifactId>Yaml_Files</artifactId>
+            <artifactId>Serialize-Utility</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.broken.arrow.library</groupId>
+            <artifactId>Yaml_Utility</artifactId>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>

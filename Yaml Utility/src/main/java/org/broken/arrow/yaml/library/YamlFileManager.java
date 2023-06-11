@@ -43,7 +43,7 @@ import java.util.jar.JarFile;
  * have a serialize method you can use.
  */
 
-public abstract class SimpleYamlHelper {
+public abstract class YamlFileManager {
 
 	private boolean shallGenerateFiles = true;
 	private boolean singelFile = true;
@@ -58,7 +58,7 @@ public abstract class SimpleYamlHelper {
 	protected Plugin plugin;
 	private ConfigUpdater configUpdater;
 
-	public SimpleYamlHelper(Plugin plugin, final String name) {
+	public YamlFileManager(Plugin plugin, final String name) {
 		if (plugin == null)
 			throw new RuntimeException("The yml file is null");
 		this.plugin = plugin;
@@ -69,7 +69,7 @@ public abstract class SimpleYamlHelper {
 			folder.mkdir();
 	}
 
-	public SimpleYamlHelper(Plugin plugin, final String name, boolean singleFile, boolean shallGenerateFiles) {
+	public YamlFileManager(Plugin plugin, final String name, boolean singleFile, boolean shallGenerateFiles) {
 		this(plugin, name);
 		this.singelFile = singleFile;
 		this.shallGenerateFiles = shallGenerateFiles;

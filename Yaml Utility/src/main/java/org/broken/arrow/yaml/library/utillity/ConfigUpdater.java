@@ -1,7 +1,7 @@
 package org.broken.arrow.yaml.library.utillity;
 
 
-import org.broken.arrow.yaml.library.SimpleYamlHelper.Valid;
+import org.broken.arrow.yaml.library.YamlFileManager.Valid;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
