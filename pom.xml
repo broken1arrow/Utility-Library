@@ -12,7 +12,7 @@
     <modules>
         <module>Menu Library</module>
         <module>Commands</module>
-        <module>Yaml Files</module>
+        <module>Yaml Utility</module>
         <module>Database</module>
         <module>Serialize Utility</module>
         <module>Item Creator</module>
@@ -22,7 +22,8 @@
         <module>Conversation Prompt</module>
         <module>Block Visualization</module>
         <module>Title Update</module>
-        <module>Language</module>
+        <module>Localization</module>
+        <module>MenuButton Manager</module>
     </modules>
 
     <properties>
@@ -67,7 +68,7 @@
             <dependency>
                 <groupId>org.spigotmc</groupId>
                 <artifactId>spigot-api</artifactId>
-                <version>1.16.5-R0.1-SNAPSHOT</version>
+                <version>1.17.1-R0.1-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -118,7 +119,7 @@
             </dependency>
             <dependency>
                 <groupId>org.broken.arrow.library</groupId>
-                <artifactId>Yaml_Files</artifactId>
+                <artifactId>Yaml_Utility</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>
@@ -173,6 +174,18 @@
             <dependency>
                 <groupId>org.broken.arrow.library</groupId>
                 <artifactId>Conversation-Prompt</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.broken.arrow.library</groupId>
+                <artifactId>Localization</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.broken.arrow.library</groupId>
+                <artifactId>MenuButton-Manager</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>
