@@ -46,12 +46,12 @@ public class ConvertParticlesUtility {
 	 * @param particles The list of particle names.
 	 * @return A list of ParticleEffect instances.
 	 */
-	public static List<ParticleEffect> convertListOfParticles(final List<String> particles) {
+	public static List<ParticleEffectAccessor> convertListOfParticles(final List<String> particles) {
 		if (particles == null) return null;
 
-		final List<ParticleEffect> particleList = new ArrayList<>();
+		final List<ParticleEffectAccessor> particleList = new ArrayList<>();
 		for (final String particle : particles) {
-			final ParticleEffect particleEffect = getParticleOrEffect(particle, null, 0.7F);
+			final ParticleEffectAccessor particleEffect = getParticleOrEffect(particle, null, 0.7F);
 			if (particleEffect == null) continue;
 			particleList.add(particleEffect);
 		}
@@ -64,12 +64,12 @@ public class ConvertParticlesUtility {
 	 * @param particles The map of particle names and colors.
 	 * @return A list of ParticleEffect instances.
 	 */
-	public static List<ParticleEffect> convertListOfParticles(final Map<String, Object> particles) {
+	public static List<ParticleEffectAccessor> convertListOfParticles(final Map<String, Object> particles) {
 		if (particles == null) return null;
 
-		final List<ParticleEffect> particleList = new ArrayList<>();
+		final List<ParticleEffectAccessor> particleList = new ArrayList<>();
 		for (final Map.Entry<String, Object> particle : particles.entrySet()) {
-			final ParticleEffect particleEffect = getParticleOrEffect(particle.getKey(), (String) particle.getValue(), 0.7F);
+			final ParticleEffectAccessor particleEffect = getParticleOrEffect(particle.getKey(), (String) particle.getValue(), 0.7F);
 			if (particleEffect == null) continue;
 			particleList.add(particleEffect);
 		}
@@ -85,12 +85,12 @@ public class ConvertParticlesUtility {
 	 *                  also be set to null if no color needed for the effect.
 	 * @return A list of ParticleEffect instances.
 	 */
-	public static List<ParticleEffect> convertListOfParticlesPair(final Map<String, Pair<String, String>> particles) {
+	public static List<ParticleEffectAccessor> convertListOfParticlesPair(final Map<String, Pair<String, String>> particles) {
 		if (particles == null) return null;
-		final List<ParticleEffect> particleList = new ArrayList<>();
+		final List<ParticleEffectAccessor> particleList = new ArrayList<>();
 		for (final Map.Entry<String, Pair<String, String>> pairEntry : particles.entrySet()) {
 			final Pair<String, String> colors = pairEntry.getValue();
-			final ParticleEffect particleEffect;
+			final ParticleEffectAccessor particleEffect;
 			if (colors == null)
 				particleEffect = getParticleOrEffect(pairEntry.getKey(), null, 0.7F);
 			else
@@ -110,7 +110,7 @@ public class ConvertParticlesUtility {
 	 * @param flot     Additional float value with different usage depending on the particle.
 	 * @return The ParticleEffect instance corresponding to the particle name and color.
 	 */
-	public static ParticleEffect getParticleOrEffect(final Object particle, @Nullable final String color, final float flot) {
+	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String color, final float flot) {
 		return getParticleOrEffect(particle, color, null, flot);
 	}
 
@@ -123,7 +123,7 @@ public class ConvertParticlesUtility {
 	 * @param flot        this have diffrent usage depending on particle.
 	 * @return particle effect particle.
 	 */
-	public static ParticleEffect getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, final float flot) {
+	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, final float flot) {
 		if (particle == null) return null;
 		Object partc;
 		if (serverVersion < 9) {
