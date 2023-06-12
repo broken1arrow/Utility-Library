@@ -16,7 +16,7 @@ import java.util.Map;
  * eliminating the need to worry about serializing the Particle class or encountering errors
  * due to missing functions in your Minecraft version.
  */
-public class ParticleEffect implements ConfigurationSerializable {
+public final class ParticleEffect implements ConfigurationSerializable, ParticleEffectAccessor {
 
 	private final Particle particle;
 	private final Effect effect;
@@ -49,6 +49,7 @@ public class ParticleEffect implements ConfigurationSerializable {
 	 *
 	 * @return the Particle object, or null if not set.
 	 */
+	@Override
 	@Nullable
 	public Particle getParticle() {
 		return particle;
@@ -59,6 +60,7 @@ public class ParticleEffect implements ConfigurationSerializable {
 	 *
 	 * @return the Effect object, or null if not set.
 	 */
+	@Override
 	@Nullable
 	public Effect getEffect() {
 		return effect;
@@ -69,27 +71,58 @@ public class ParticleEffect implements ConfigurationSerializable {
 	 *
 	 * @return the Material object, or null if not set.
 	 */
+	@Override
 	@Nullable
 	public Material getMaterial() {
 		return material;
 	}
 
+	/**
+	 * Retrieves the amount of particles associated with this ParticleEffect.
+	 *
+	 * @return amount of particels that should spawn at the same time.
+	 */
+	@Override
 	public int getCount() {
 		return count;
 	}
 
+	/**
+	 * Retrieves the X offset
+	 *
+	 * @return the offset.
+	 */
+	@Override
 	public double getOffsetX() {
 		return offsetX;
 	}
 
+	/**
+	 * Retrieves the X offset
+	 *
+	 * @return the offset.
+	 */
+	@Override
 	public double getOffsetY() {
 		return offsetY;
 	}
 
+	/**
+	 * Retrieves the X offset
+	 *
+	 * @return the offset.
+	 */
+	@Override
 	public double getOffsetZ() {
 		return offsetZ;
 	}
 
+	/**
+	 * Retrieves the data on the Particle effect.
+	 *
+	 * @return the data.
+	 */
+	@Override
 	public int getData() {
 		return data;
 	}
@@ -99,6 +132,7 @@ public class ParticleEffect implements ConfigurationSerializable {
 	 *
 	 * @return the class type for this effect or particle.
 	 */
+	@Override
 	@Nonnull
 	public Class<?> getDataType() {
 		return dataType;
@@ -110,11 +144,13 @@ public class ParticleEffect implements ConfigurationSerializable {
 	 *
 	 * @return the ParticleDustOptions instance.
 	 */
+	@Override
 	@Nullable
 	public ParticleDustOptions getParticleDustOptions() {
 		return particleDustOptions;
 	}
 
+	@Override
 	public Builder getBuilder() {
 		return builder;
 	}

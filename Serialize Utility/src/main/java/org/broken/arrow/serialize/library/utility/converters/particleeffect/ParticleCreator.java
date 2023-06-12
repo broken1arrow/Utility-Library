@@ -44,7 +44,7 @@ public class ParticleCreator {
 	 * @param effect   the ParticleEffect class wrapper.
 	 * @param location the location where the effect should spawn.
 	 */
-	public ParticleCreator(@Nullable final Player player, @Nonnull final ParticleEffect effect, @Nonnull final Location location) {
+	public ParticleCreator(@Nullable final Player player, @Nonnull final ParticleEffectAccessor effect, @Nonnull final Location location) {
 		this(player, effect, location.getWorld(), location.getX(), location.getY(), location.getZ());
 	}
 
@@ -54,7 +54,7 @@ public class ParticleCreator {
 	 * @param effect   the ParticleEffect class wrapper.
 	 * @param location the location where the effect should spawn.
 	 */
-	public ParticleCreator(final ParticleEffect effect, @Nonnull final Location location) {
+	public ParticleCreator(final ParticleEffectAccessor effect, @Nonnull final Location location) {
 		this(null, effect, location.getWorld(), location.getX(), location.getY(), location.getZ());
 	}
 
@@ -67,7 +67,7 @@ public class ParticleCreator {
 	 * @param y      the y-coordinate where the effect should spawn.
 	 * @param z      the z-coordinate where the effect should spawn.
 	 */
-	public ParticleCreator(@Nonnull final ParticleEffect effect, final World world, final double x, final double y, final double z) {
+	public ParticleCreator(@Nonnull final ParticleEffectAccessor effect, final World world, final double x, final double y, final double z) {
 		this(null, effect, world, x, y, z);
 	}
 
@@ -81,7 +81,7 @@ public class ParticleCreator {
 	 * @param y      the y-coordinate where the effect should spawn.
 	 * @param z      the z-coordinate where the effect should spawn.
 	 */
-	public ParticleCreator(final Player player, @Nonnull final ParticleEffect effect, final World world, final double x, final double y, final double z) {
+	public ParticleCreator(final Player player, @Nonnull final ParticleEffectAccessor effect, final World world, final double x, final double y, final double z) {
 		Validate.checkNotNull(world, "World is null, so can't spawn the particle");
 		Validate.checkNotNull(effect, "Effect is null, so can't spawn the particle");
 
