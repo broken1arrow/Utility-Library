@@ -25,10 +25,10 @@ public class ParticleCreator {
 	private final Particle particle;
 	private final Material material;
 	private final Class<?> dataType;
-	private int count;
-	private double offsetX;
-	private double offsetY;
-	private double offsetZ;
+	private final int count;
+	private final double offsetX;
+	private final double offsetY;
+	private final double offsetZ;
 	private final int data;
 	private final ParticleDustOptions particleDustOptions;
 	private final Player player;

@@ -16,7 +16,7 @@ import java.util.Map;
  * eliminating the need to worry about serializing the Particle class or encountering errors
  * due to missing functions in your Minecraft version.
  */
-public final class ParticleEffect implements ConfigurationSerializable {
+public class ParticleEffect implements ConfigurationSerializable {
 
 	private final Particle particle;
 	private final Effect effect;
