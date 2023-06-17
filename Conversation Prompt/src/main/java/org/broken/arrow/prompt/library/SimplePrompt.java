@@ -72,6 +72,7 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 
 	/**
 	 * Starts a new SimpleConversation with the specified player.
+	 * Note: Before using this method, make sure to provide a plugin instance using the appropriate constructor.
 	 *
 	 * @param player The player to start the conversation with.
 	 * @return The started SimpleConversation instance.
