@@ -30,11 +30,19 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 	private final Plugin plugin;
 
 	/**
+	 * Constructs a SimplePrompt instance. If you only
+	 * use this with #SimpleConversation and only this class.
+	 */
+	public SimplePrompt() {
+		this(null);
+	}
+
+	/**
 	 * Constructs a SimplePrompt instance.
 	 *
 	 * @param plugin The plugin instance.
 	 */
-	public SimplePrompt(@Nonnull final Plugin plugin) {
+	public SimplePrompt(@Nullable final Plugin plugin) {
 		this.plugin = plugin;
 	}
 
@@ -70,7 +78,7 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 	 */
 	public final SimpleConversation start(@Nonnull final Player player) {
 		this.player = player;
-
+		Validate.checkNotNull(this.plugin, "Please provide a plugin instance before using this method.");
 		final SimpleConversation conversation = new SimpleConversation(this.plugin) {
 			@Override
 			public Prompt getFirstPrompt() {
