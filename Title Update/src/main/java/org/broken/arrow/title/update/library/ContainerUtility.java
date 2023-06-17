@@ -23,7 +23,7 @@ public class ContainerUtility {
 	private Class<?> containersClass;
 	private Class<?> containerClass;
 	private Constructor<?> packetConstructor;
-	private float serverVersion;
+	private final float serverVersion;
 	private final NmsData newNmsData;
 	private final TitleLogger titleLogger;
 
