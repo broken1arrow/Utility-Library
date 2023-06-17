@@ -101,39 +101,7 @@ public class MenuUtility<T> {
 	protected int updateTime;
 	protected int animateTitleTime = 5;
 	private int taskidAnimateTitle;
-
-	/**
-	 * Set the item you want in a slot.
-	 *
-	 * @param slot will return current number till will add item.
-	 * @return one itemstack;
-	 */
-	public ItemStack getItemAt(final int slot) {
-		throw new Validate.CatchExceptions("WARN not in use");
-	}
-
-	/**
-	 * Set the items you want in fill slots.
-	 *
-	 * @param o will return object you have added as fillitems.
-	 * @return one itemstack;
-	 */
-
-	public ItemStack getFillItemsAt(final Object o) {
-		throw new Validate.CatchExceptions("WARN not in use");
-	}
-
-	/**
-	 * Set the items you want in fill slots.
-	 *
-	 * @param slot will return current number till will add item.
-	 * @return one itemstack;
-	 */
-
-	public ItemStack getFillItemsAt(final int slot) {
-		throw new Validate.CatchExceptions("WARN not in use");
-	}
-
+	
 	/**
 	 * Register your buttons you want inside the menu.
 	 *

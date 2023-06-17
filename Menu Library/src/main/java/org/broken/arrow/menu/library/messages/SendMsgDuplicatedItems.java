@@ -1,6 +1,7 @@
 package org.broken.arrow.menu.library.messages;
 
 
+import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.color.library.TextTranslator;
 import org.bukkit.entity.Player;
 
@@ -10,6 +11,16 @@ import org.bukkit.entity.Player;
 public class SendMsgDuplicatedItems {
 	private String blacklistMessage;
 	private String dublicatedMessage;
+	private boolean notFoundTextTranslator;
+
+	public SendMsgDuplicatedItems() {
+		try {
+			TextTranslator.getInstance();
+		} catch (NoClassDefFoundError ignore) {
+			notFoundTextTranslator = true;
+		}
+
+	}
 
 	/**
 	 * Set message for when player have added item some are blacklisted.
@@ -51,8 +62,10 @@ public class SendMsgDuplicatedItems {
 			message = "&fthis item&6 {0}&f are blacklisted";
 		else
 			message = blacklistMessage;
-
-		player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, placeholders)));
+		if (notFoundTextTranslator)
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&', (translatePlaceholders(message, placeholders))));
+		else
+			player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, placeholders)));
 	}
 
 	public void sendDublicatedMessage(Player player, Object... placeholders) {
@@ -61,8 +74,10 @@ public class SendMsgDuplicatedItems {
 			message = "&fYou can't add more than one &6 {0} &ftype, You have added &4{1}&f extra itemstack. You get back &6 {2}&f items.";
 		else
 			message = dublicatedMessage;
-
-		player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, placeholders)));
+		if (notFoundTextTranslator)
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&', (translatePlaceholders(message, placeholders))));
+		else
+			player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, placeholders)));
 	}
 
 	public String translatePlaceholders(String rawText, Object... placeholders) {
