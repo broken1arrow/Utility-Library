@@ -51,7 +51,7 @@ public class ConvertParticlesUtility {
 
 		final List<ParticleEffectAccessor> particleList = new ArrayList<>();
 		for (final String particle : particles) {
-			final ParticleEffectAccessor particleEffect = getParticleOrEffect(particle, null, 0.7F);
+			final ParticleEffectAccessor particleEffect = getParticleOrEffect(particle, 0.7F);
 			if (particleEffect == null) continue;
 			particleList.add(particleEffect);
 		}
@@ -92,7 +92,7 @@ public class ConvertParticlesUtility {
 			final Pair<String, String> colors = pairEntry.getValue();
 			final ParticleEffectAccessor particleEffect;
 			if (colors == null)
-				particleEffect = getParticleOrEffect(pairEntry.getKey(), null, 0.7F);
+				particleEffect = getParticleOrEffect(pairEntry.getKey(), 0.7F);
 			else
 				particleEffect = getParticleOrEffect(pairEntry.getKey(), colors.getFirst(), colors.getSecond(), 0.7F);
 			if (particleEffect == null) continue;
@@ -101,6 +101,16 @@ public class ConvertParticlesUtility {
 		return particleList;
 	}
 
+	/**
+	 * Retrieves the ParticleEffect instance for the given particle name and color.
+	 *
+	 * @param particle The particle name.
+	 * @param flot     Additional float value with different usage depending on the particle.
+	 * @return The ParticleEffect instance corresponding to the particle name and color.
+	 */
+	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, final float flot) {
+		return getParticleOrEffect(particle, null, null, flot);
+	}
 
 	/**
 	 * Retrieves the ParticleEffect instance for the given particle name and color.

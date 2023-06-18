@@ -1,7 +1,7 @@
 package org.broken.arrow.yaml.library;
 
 
-import org.broken.arrow.serialize.library.SerializeData;
+import org.broken.arrow.serialize.library.DataSerializer;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.yaml.library.utillity.ConfigUpdater;
 import org.bukkit.configuration.ConfigurationSection;
@@ -275,7 +275,7 @@ public abstract class YamlFileManager {
 
 		this.getCustomConfig().set(path, null);
 		for (final Map.Entry<String, Object> key : configuration.serialize().entrySet()) {
-			this.getCustomConfig().set(path + "." + key.getKey(), SerializeData.serialize(key.getValue()));
+			this.getCustomConfig().set(path + "." + key.getKey(), DataSerializer.serialize(key.getValue()));
 		}
 	}
 

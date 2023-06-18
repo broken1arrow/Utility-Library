@@ -6,7 +6,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
-import org.broken.arrow.serialize.library.utility.converters.SerializeingLocation;
+import org.broken.arrow.serialize.library.utility.converters.LocationSerializer;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -27,10 +27,17 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-
-public final class SerializeData {
+/**
+ * This class provides methods to serialize various data types into a format suitable for storage or database usage.
+ * It supports serialization of objects such as colors, locations, UUIDs, enums, command senders, potions, components,
+ * hover events, click events, iterable collections, maps, integers, doubles, floats, longs, shorts, strings,
+ * booleans, items, memory sections, patterns, and objects implementing the ConfigurationSerializable interface.
+ * The class also handles serialization of Bukkit-specific types and custom serializable objects.
+ * Note: If an object does not have a known serialization method, a SerializeFailedException will be thrown.
+ */
+public final class DataSerializer {
 	private static final float serverVersion;
-	
+
 	static {
 		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
 		final String firstNumber;
@@ -50,7 +57,14 @@ public final class SerializeData {
 		}
 		serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
 	}
-
+	
+	/**
+	 * Serializes an object into a format suitable for storage or database usage.
+	 *
+	 * @param obj The object to serialize.
+	 * @return The serialized representation of the object.
+	 * @throws SerializeFailedException If the serialization fails due to an unsupported data type or serialization error.
+	 */
 	public static Object serialize(final Object obj) {
 		if (obj == null)
 			return null;
@@ -63,7 +77,7 @@ public final class SerializeData {
 
 			return serverVersion >= 16.0 ? color.toString() : color.name();
 		} else if (obj instanceof Location)
-			return SerializeingLocation.serializeLocYaw((Location) obj);
+			return LocationSerializer.serializeLocYaw((Location) obj);
 
 		else if (obj instanceof UUID)
 			return obj.toString();

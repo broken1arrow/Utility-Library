@@ -1,7 +1,7 @@
 package org.broken.arrow.serialize.library.utility.converters;
 
 import com.google.gson.Gson;
-import org.broken.arrow.serialize.library.SerializeData;
+import org.broken.arrow.serialize.library.DataSerializer;
 import org.bukkit.Location;
 
 import java.lang.reflect.Type;
@@ -34,7 +34,7 @@ public class ConvertsForJson {
 				if (value instanceof UUID)
 					serializeList.add(String.valueOf(value));
 				else
-					serializeList.add(SerializeData.serialize(value));
+					serializeList.add(DataSerializer.serialize(value));
 			}
 		maps.put(key, serializeList);
 
@@ -57,7 +57,7 @@ public class ConvertsForJson {
 			final Map<String, List<Object>> mapList = new HashMap<>(map);
 			for (final Map.Entry<String, List<Object>> entry : mapList.entrySet())
 				for (final Object deserilizedObject : entry.getValue()) {
-					final Location loc = SerializeingLocation.deserializeLoc(deserilizedObject);
+					final Location loc = LocationSerializer.deserializeLoc(deserilizedObject);
 					if (classof == Location.class && loc != null)
 						arrayList.add(classof.cast(loc));
 					else if (classof == UUID.class)

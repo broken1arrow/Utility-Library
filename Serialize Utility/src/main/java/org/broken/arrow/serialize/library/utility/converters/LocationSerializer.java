@@ -4,8 +4,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-public class SerializeingLocation {
+/**
+ * Utility class for serializing and deserializing Location objects.
+ */
+public class LocationSerializer {
 
+	/**
+	 * Serializes a Location object into a string representation including yaw and pitch.
+	 *
+	 * @param loc The Location object to serialize.
+	 * @return The serialized string representation of the Location.
+	 */
 	public static String serializeLocYaw(final Location loc) {
 		String name = loc.getWorld() + "";
 		if (loc.getWorld() != null)
@@ -13,6 +22,12 @@ public class SerializeingLocation {
 		return name + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ() + (loc.getPitch() != 0F || loc.getYaw() != 0F ? " " + Math.round(loc.getYaw()) + " " + Math.round(loc.getPitch()) : "");
 	}
 
+	/**
+	 * Serializes a Location object into a string representation without yaw and pitch.
+	 *
+	 * @param loc The Location object to serialize.
+	 * @return The serialized string representation of the Location.
+	 */
 	public static String serializeLoc(final Location loc) {
 		String name = loc.getWorld() + "";
 		if (loc.getWorld() != null)
@@ -20,6 +35,13 @@ public class SerializeingLocation {
 		return name + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ();
 	}
 
+	/**
+	 * Deserializes a string representation of a Location object. It should be formatted like "world X Y Z".
+	 * If the input is already a Location instance, it will be returned directly.
+	 *
+	 * @param rawLoc The string representation of the Location or a Location instance.
+	 * @return The deserialized Location object, or null if the input is invalid.
+	 */
 	public static Location deserializeLoc(final Object rawLoc) {
 		if (rawLoc == null) return null;
 

@@ -11,18 +11,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
- * This class is used to convert from and too Base64 string.
+ * This class provides methods to convert an array of ItemStacks to and from a Base64 string representation.
  */
+public class Base64ItemStackConverter {
 
-public class ItemStackConvertToFromBase64 {
 	/**
-	 * A method to serialize an {@link org.bukkit.inventory.ItemStack} array to Base64 String.
-	 * Based of {@link #itemStackArrayFromBase64(String)}.
+	 * Serializes an array of ItemStacks to a Base64 string representation.
+	 * This method is based on {@link #itemStackArrayFromBase64(String)}.
 	 *
-	 * @param items to turn into a Base64 String.
-	 * @return Base64 string of the items.
+	 * @param items The ItemStack array to convert into a Base64 string.
+	 * @return The Base64 string representation of the ItemStack array.
 	 */
-
 	public static String itemStackArrayToBase64(@Nonnull final ItemStack[] items) {
 		final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		try {
@@ -45,13 +44,12 @@ public class ItemStackConvertToFromBase64 {
 	}
 
 	/**
-	 * Gets an array of ItemStacks from Base64 string.
-	 * Base of {@link #itemStackArrayToBase64(org.bukkit.inventory.ItemStack[])}}.
+	 * Deserializes an array of ItemStacks from a Base64 string representation.
+	 * This method is based on {@link #itemStackArrayToBase64(ItemStack[])}.
 	 *
-	 * @param data Base64 string to convert to ItemStack array.
-	 * @return ItemStack array created from the Base64 string.
+	 * @param data The Base64 string to convert into an ItemStack array.
+	 * @return The ItemStack array created from the Base64 string.
 	 */
-
 	public static ItemStack[] itemStackArrayFromBase64(@Nonnull final String data) {
 		final ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
 		ItemStack[] items = new ItemStack[0];
@@ -68,5 +66,4 @@ public class ItemStackConvertToFromBase64 {
 		}
 		return items;
 	}
-
 }
