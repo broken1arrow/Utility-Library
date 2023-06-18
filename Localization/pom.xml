@@ -16,20 +16,23 @@
     <artifactId>Localization</artifactId>
     <dependencies>
         <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.broken.arrow.library</groupId>
             <artifactId>Serialize-Utility</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.broken.arrow.library</groupId>
             <artifactId>Yaml_Utility</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
             <scope>compile</scope>
         </dependency>
     </dependencies>
