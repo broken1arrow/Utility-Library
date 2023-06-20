@@ -3,6 +3,7 @@ package org.broken.arrow.yaml.library;
 
 import org.broken.arrow.serialize.library.DataSerializer;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.serialize.library.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.yaml.library.utillity.ConfigUpdater;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -45,8 +46,8 @@ import java.util.jar.JarFile;
 
 public abstract class YamlFileManager {
 
-	private boolean shallGenerateFiles = true;
-	private boolean singelFile = true;
+	private boolean shallGenerateFiles;
+	private boolean singelFile;
 	private boolean firstLoad = true;
 	private FileConfiguration customConfig;
 	private final String name;
@@ -59,18 +60,18 @@ public abstract class YamlFileManager {
 	private ConfigUpdater configUpdater;
 
 	public YamlFileManager(Plugin plugin, final String name) {
-		if (plugin == null)
-			throw new RuntimeException("The yml file is null");
-		this.plugin = plugin;
-		this.dataFolder = this.plugin.getDataFolder();
-		this.name = this.checkIfFileHasExtension(name);
-		final File folder = this.plugin.getDataFolder();
-		if (!folder.exists())
-			folder.mkdir();
+		this(plugin, name, true, true);
 	}
 
 	public YamlFileManager(Plugin plugin, final String name, boolean singleFile, boolean shallGenerateFiles) {
-		this(plugin, name);
+		if (plugin == null)
+			throw new RuntimeException("The plugin is null");
+		this.plugin = plugin;
+		this.dataFolder = plugin.getDataFolder();
+		this.name = this.checkIfFileHasExtension(name);
+		final File folder = this.dataFolder;
+		if (!folder.exists())
+			folder.mkdir();
 		this.singelFile = singleFile;
 		this.shallGenerateFiles = shallGenerateFiles;
 	}
@@ -264,8 +265,11 @@ public abstract class YamlFileManager {
 				if (object instanceof MemorySection) continue;
 				fileData.put(data, object);
 			}
-		final Method deserializeMethod = getMethod(clazz, "deserialize", Map.class);
-		return invokeStatic(clazz, deserializeMethod, fileData);
+		Method deserializeMethod = MethodReflectionUtils.getMethod(clazz, "deserialize", Map.class);
+		if (deserializeMethod == null)
+			deserializeMethod = MethodReflectionUtils.getMethod(clazz, "valueOf", Map.class);
+
+		return MethodReflectionUtils.invokeStaticMethod(clazz, deserializeMethod, Map.class);
 	}
 
 	public void setData(@Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
