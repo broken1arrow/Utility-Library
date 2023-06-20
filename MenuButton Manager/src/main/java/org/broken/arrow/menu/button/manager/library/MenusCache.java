@@ -21,27 +21,45 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * This class represents a cache for menus, providing methods for retrieving menu templates, menu buttons, and other menu-related data.
+ * It extends the YamlFileManager class for handling YAML file operations.
+ */
 public class MenusCache extends YamlFileManager {
 	private final Plugin plugin;
 	private final int version = 1;
 	private final ItemCreator itemCreator;
 	private final Map<String, MenuTemplate> templates = new HashMap<>();
 
-	public MenusCache(final Plugin plugin) {
-		super(plugin, "language/menu_templets.yml");
+	/**
+	 * Creates an instance of MenusCache.
+	 *
+	 * @param plugin     Your main plugin instance.
+	 * @param name       The path where you want the file located.
+	 *                   For example, you can set the path as "menu/menu.yml" or "menus"
+	 *                   if you want to have one menu per file. You don't need to specify the plugin folder.
+	 * @param singleFile Set to true if you plan to have a single file, or false if you want to have one menu per file.
+	 */
+	public MenusCache(final Plugin plugin, final String name, boolean singleFile) {
+		super(plugin, name, singleFile, false);
 		itemCreator = new ItemCreator(plugin);
 		this.plugin = plugin;
 	}
 
+	/**
+	 * Get the ItemCreator instance associated with this MenusCache.
+	 *
+	 * @return The ItemCkreator instance.
+	 */
 	public ItemCreator getItemCreator() {
 		return itemCreator;
 	}
 
 	/**
-	 * Get the menu templet and all settings and buttons.
+	 * Retrieves the menu template for the specified menu name.
 	 *
-	 * @param menuName name of the menu.
-	 * @return the menutemplet instance.
+	 * @param menuName The name of the menu.
+	 * @return The MenuTemplate instance for the specified menu name, or null if not found.
 	 */
 	@Nullable
 	public MenuTemplate getTemplate(String menuName) {
@@ -49,11 +67,11 @@ public class MenusCache extends YamlFileManager {
 	}
 
 	/**
-	 * Get the menu button.
+	 * Retrieves the menu button for the specified menu name and slot.
 	 *
-	 * @param menuName name of the menu.
-	 * @param slot     the place inside the inventory this buton is placed.
-	 * @return the menutemplet instance.
+	 * @param menuName The name of the menu.
+	 * @param slot     The slot where the menu button is placed.
+	 * @return The MenuButtonData instance for the specified menu name and slot, or null if not found.
 	 */
 	@Nullable
 	public MenuButtonData getMenuButton(String menuName, int slot) {
@@ -65,11 +83,10 @@ public class MenusCache extends YamlFileManager {
 
 
 	/**
-	 * Retrive all buttons.
-	 * Note: you can't modify
-	 * this map.
+	 * Retrieves an unmodifiable map of all menu templates.
+	 * Note: You cannot modify this map.
 	 *
-	 * @return the buttons map.
+	 * @return The unmodifiable map of menu templates.
 	 */
 	@Nonnull
 	public Map<String, MenuTemplate> getTemplates() {

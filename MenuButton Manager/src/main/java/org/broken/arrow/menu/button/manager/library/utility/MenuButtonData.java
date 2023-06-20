@@ -16,12 +16,12 @@ public class MenuButtonData implements ConfigurationSerializable {
 
 	private final MenuButton passiveButton;
 	private final MenuButton activeButton;
-	private final String buttonType;
+	private final String actionType;
 
-	private MenuButtonData(@Nonnull final MenuButton passiveButton, @Nullable final MenuButton activeButton, @Nullable String buttonType) {
+	private MenuButtonData(@Nonnull final MenuButton passiveButton, @Nullable final MenuButton activeButton, @Nullable String actionType) {
 		this.passiveButton = passiveButton;
 		this.activeButton = activeButton;
-		this.buttonType = buttonType;
+		this.actionType = actionType;
 	}
 
 	/**
@@ -48,11 +48,24 @@ public class MenuButtonData implements ConfigurationSerializable {
 	 * Retrieves the type of button. Specifies whether the button performs a specific action
 	 * or is a visible button without any function (e.g., "back", "forward").
 	 *
-	 * @return the type of button represented by this menu button data, or an empty string if not set
+	 * @return The type of button represented by this menu button data, or an empty string if not set
 	 */
 	@Nonnull
-	public String getButtonType() {
-		return buttonType != null ? buttonType : "";
+	public String getActionType() {
+		return actionType != null ? actionType : "";
+	}
+
+	/**
+	 * Checks if the button type of this menu button data is equal to the provided button type,
+	 * ignoring the case.
+	 *
+	 * @param actionType the button type to compare against.
+	 * @return true if the provided button type is the same as the button type of this menu button data,
+	 * false if either the provided button type or the button type of this menu button data is null.
+	 */
+	public boolean isActionTypeEqual(String actionType) {
+		if (actionType == null) return false;
+		return this.actionType != null && this.actionType.equalsIgnoreCase(actionType);
 	}
 
 	@Override
@@ -60,7 +73,7 @@ public class MenuButtonData implements ConfigurationSerializable {
 		return "MenuButtonData{" +
 				"passive=" + passiveButton +
 				", active=" + activeButton +
-				", buttonType=" + buttonType +
+				", actionType=" + actionType +
 				'}';
 	}
 
@@ -70,7 +83,7 @@ public class MenuButtonData implements ConfigurationSerializable {
 		final Map<String, Object> map = new LinkedHashMap<>();
 		map.put("passive", this.passiveButton);
 		map.put("active", this.activeButton);
-		if (buttonType != null) map.put("buttonType", buttonType);
+		if (actionType != null) map.put("action_type", actionType);
 		return map;
 	}
 
@@ -95,7 +108,7 @@ public class MenuButtonData implements ConfigurationSerializable {
 			deserializePassiveData = MenuButton.deserialize(passiveData);
 		else
 			deserializePassiveData = MenuButton.deserialize(map);
-		String buttonType = (String) map.get("buttonType");
-		return new MenuButtonData(deserializePassiveData, deserializeActiveData, buttonType);
+		String actionType = (String) map.get("action_type");
+		return new MenuButtonData(deserializePassiveData, deserializeActiveData, actionType);
 	}
 }

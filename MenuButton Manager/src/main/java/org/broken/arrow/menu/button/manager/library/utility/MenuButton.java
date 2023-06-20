@@ -20,7 +20,7 @@ public class MenuButton implements ConfigurationSerializable {
 	private final String displayName;
 	private final List<String> lore;
 	private final boolean glow;
-	private final String buttonType;
+	private final String actionType;
 
 	public MenuButton(final Builder builder) {
 		this.color = builder.color;
@@ -28,7 +28,7 @@ public class MenuButton implements ConfigurationSerializable {
 		this.displayName = builder.displayName;
 		this.lore = builder.lore;
 		this.glow = builder.glow;
-		this.buttonType = builder.buttonType;
+		this.actionType = builder.buttonType;
 
 	}
 
@@ -91,8 +91,21 @@ public class MenuButton implements ConfigurationSerializable {
 	 * @return the type of button this is.
 	 */
 	@Nullable
-	public String getButtonType() {
-		return buttonType;
+	public String getActionType() {
+		return actionType;
+	}
+
+	/**
+	 * Checks if the button type of this menu button data is equal to the provided button type,
+	 * ignoring the case.
+	 *
+	 * @param actionType the button type to compare against.
+	 * @return true if the provided button type is the same as the button type of this menu button data,
+	 * false if either the provided button type or the button type of this menu button data is null.
+	 */
+	public boolean isActionTypeEqual(String actionType) {
+		if (actionType == null) return false;
+		return this.actionType != null && this.actionType.equalsIgnoreCase(actionType);
 	}
 
 	public static class Builder {
@@ -187,7 +200,7 @@ public class MenuButton implements ConfigurationSerializable {
 		map.put("name", displayName);
 		map.put("lore", lore);
 		map.put("glow", glow);
-		if (buttonType != null) map.put("buttonType", buttonType);
+		if (actionType != null) map.put("action_type", actionType);
 		return map;
 	}
 
@@ -197,9 +210,9 @@ public class MenuButton implements ConfigurationSerializable {
 		final String displayName = (String) map.get("name");
 		final List<String> lore = (List<String>) map.get("lore");
 		final boolean glow = (boolean) map.getOrDefault("glow", false);
-		final String buttonType = (String) map.get("buttonType");
+		final String actionType = (String) map.get("action_type");
 		final Builder builder = new Builder(material)
-				.setButtonType(buttonType)
+				.setButtonType(actionType)
 				.setColor(dyeColor(color))
 				.setDisplayName(displayName)
 				.setGlow(glow)
@@ -215,7 +228,7 @@ public class MenuButton implements ConfigurationSerializable {
 				", displayName='" + displayName + '\'' +
 				", lore=" + lore +
 				", glow=" + glow +
-				", buttonType='" + buttonType + '\'' +
+				", actionType='" + actionType + '\'' +
 				'}';
 	}
 
