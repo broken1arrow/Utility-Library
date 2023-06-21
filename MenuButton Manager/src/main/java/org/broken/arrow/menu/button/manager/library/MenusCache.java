@@ -41,7 +41,7 @@ public class MenusCache extends YamlFileManager {
 	 * @param singleFile Set to true if you plan to have a single file, or false if you want to have one menu per file.
 	 */
 	public MenusCache(final Plugin plugin, final String name, boolean singleFile) {
-		super(plugin, name, singleFile, false);
+		super(plugin, name, singleFile, true);
 		itemCreator = new ItemCreator(plugin);
 		this.plugin = plugin;
 	}
