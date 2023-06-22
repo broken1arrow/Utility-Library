@@ -269,7 +269,7 @@ public abstract class YamlFileManager {
 		if (deserializeMethod == null)
 			deserializeMethod = MethodReflectionUtils.getMethod(clazz, "valueOf", Map.class);
 
-		return MethodReflectionUtils.invokeStaticMethod(clazz, deserializeMethod, Map.class);
+		return MethodReflectionUtils.invokeStaticMethod(clazz, deserializeMethod, fileData);
 	}
 
 	public void setData(@Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
