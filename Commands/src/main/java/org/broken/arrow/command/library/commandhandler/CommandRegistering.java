@@ -37,6 +37,52 @@ public interface CommandRegistering {
 	CommandRegister setCommandLableMessage(String commandLableMessage);
 
 	/**
+	 * Returns the list of prefix messages to display in the command help.
+	 *
+	 * @return The list of prefix messages.
+	 */
+	List<String> getPrefixMessage();
+
+	/**
+	 * Help message befor the command sugestions.
+	 *
+	 * @param helpPrefixMessage the message send before.
+	 * @return this class.
+	 */
+	CommandRegister setPrefixMessage(String... helpPrefixMessage);
+
+	/**
+	 * Help message befor the command sugestions.
+	 *
+	 * @param helpPrefixMessage the message send before.
+	 * @return this class.
+	 */
+	CommandRegister setPrefixMessage(List<String> helpPrefixMessage);
+
+	/**
+	 * Returns the list of suffix messages to display in the command help.
+	 *
+	 * @return The list of suffix messages.
+	 */
+	List<String> getSuffixMessage();
+
+	/**
+	 * Help message after the command sugestions.
+	 *
+	 * @param suffixMessage the message send before.
+	 * @return this class.
+	 */
+	CommandRegister setSuffixMessage(String... suffixMessage);
+
+	/**
+	 * Help message after the command sugestions.
+	 *
+	 * @param helpSuffixMessage the message send before.
+	 * @return this class.
+	 */
+	CommandRegister setSuffixMessage(List<String> helpSuffixMessage);
+
+	/**
 	 * Get the message if player not have the permission.
 	 *
 	 * @return the message or null.
@@ -65,52 +111,6 @@ public interface CommandRegistering {
 	 * @return this class.
 	 */
 	CommandRegister setCommandLablePermission(String commandLablePermission);
-	
-	/**
-	 * Returns the list of prefix messages to display in the command help.
-	 *
-	 * @return The list of prefix messages.
-	 */
-	List<String> getHelpPrefixMessage();
-
-	/**
-	 * Help message befor the command sugestions.
-	 *
-	 * @param helpPrefixMessage the message send before.
-	 * @return this class.
-	 */
-	CommandRegister setHelpPrefixMessage(String... helpPrefixMessage);
-
-	/**
-	 * Help message befor the command sugestions.
-	 *
-	 * @param helpPrefixMessage the message send before.
-	 * @return this class.
-	 */
-	CommandRegister setHelpPrefixMessage(List<String> helpPrefixMessage);
-
-	/**
-	 * Returns the list of suffix messages to display in the command help.
-	 *
-	 * @return The list of suffix messages.
-	 */
-	List<String> getHelpSuffixMessage();
-
-	/**
-	 * Help message after the command sugestions.
-	 *
-	 * @param helpSuffixMessage the message send before.
-	 * @return this class.
-	 */
-	CommandRegister setHelpSuffixMessage(String... helpSuffixMessage);
-
-	/**
-	 * Help message after the command sugestions.
-	 *
-	 * @param helpSuffixMessage the message send before.
-	 * @return this class.
-	 */
-	CommandRegister setHelpSuffixMessage(List<String> helpSuffixMessage);
 
 	/**
 	 * Unregisters a subcommand with the specified sublabel.

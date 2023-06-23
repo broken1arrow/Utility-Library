@@ -2,6 +2,7 @@ package org.broken.arrow.command.library.commandhandler;
 
 import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.command.library.CommandRegister;
+import org.broken.arrow.command.library.command.CommandHolder;
 import org.broken.arrow.command.library.command.builders.CommandBuilder;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -40,18 +41,21 @@ public class CommandsUtility extends Command {
 			final CommandBuilder executor = commandRegister.getCommandBuilder(args[0]);
 			if (executor != null) {
 				if (!checkPermission(sender, executor)) {
-					if (executor.getPermissionMessage() != null)
-						sender.sendMessage(colors(placeholders(executor.getPermissionMessage(), commandLabel, executor)));
+					String permissionMessage = executor.getPermissionMessage();
+					if (permissionMessage != null)
+						sender.sendMessage(colors(placeholders(permissionMessage, commandLabel, executor)));
 					return false;
 				}
-				if (args.length == 1) {
-					if (executor.getDescription() != null)
-						sender.sendMessage(placeholders(executor.getDescription(), commandLabel, executor));
-					if (executor.getUsageMessages() != null) for (final String usage : executor.getUsageMessages()) {
+				CommandHolder holder = executor.getExecutor();
+				boolean excuteCommand = holder.excuteCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
+
+				if (executor.getUsageMessages() != null && !excuteCommand)
+					for (final String usage : executor.getUsageMessages()) {
 						sender.sendMessage(colors(placeholders(usage, commandLabel, executor)));
 					}
-				}
-				executor.getExecutor().excuteCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
+
+				if (executor.getDescription() != null && (Arrays.toString(args).endsWith("?") || Arrays.toString(args).endsWith("help")))
+					sender.sendMessage(placeholders(executor.getDescription(), commandLabel, executor));
 			}
 		}
 		return false;
@@ -99,17 +103,16 @@ public class CommandsUtility extends Command {
 			if (!checkPermission(sender, subcommand) && overridePermission) {
 				continue;
 			}
-
 			if (!label.trim().isEmpty() && label.startsWith(param)) tab.add(label);
 		}
 		return tab;
 	}
 
 	private void sendMessage(final CommandSender sender, String commandLabel) {
-		final List<String> helpPrefixMessage = commandRegister.getHelpPrefixMessage();
+		final List<String> helpPrefixMessage = commandRegister.getPrefixMessage();
 		if (helpPrefixMessage != null && !helpPrefixMessage.isEmpty())
-			for (final String prefixMssage : helpPrefixMessage)
-				sender.sendMessage(colors(prefixMssage));
+			for (final String prefixMessage : helpPrefixMessage)
+				sender.sendMessage(colors(prefixMessage));
 		final String commandLableMessage = commandRegister.getCommandLableMessage();
 		final String lableMessageNoPerms = commandRegister.getCommandLableMessageNoPerms();
 		if (lableMessageNoPerms != null && !lableMessageNoPerms.isEmpty() && !permissionCheck(sender, commandRegister.getCommandLablePermission())) {
@@ -117,12 +120,6 @@ public class CommandsUtility extends Command {
 
 		} else if (commandLableMessage != null && !commandLableMessage.isEmpty()) {
 			for (final CommandBuilder subcommand : commandRegister.getCommands()) {
-				String permissionMessage = subcommand.getPermissionMessage();
-				boolean doMessagesExist = permissionMessage != null && !permissionMessage.isEmpty();
-				if (doMessagesExist) {
-					sender.sendMessage(colors(placeholders(permissionMessage, commandLabel, subcommand)));
-					continue;
-				}
 				if (subcommand.isHideLable() && !checkPermission(sender, subcommand)) {
 					continue;
 				}
@@ -131,7 +128,7 @@ public class CommandsUtility extends Command {
 				}
 			}
 		}
-		final List<String> helpSuffixMessage = commandRegister.getHelpSuffixMessage();
+		final List<String> helpSuffixMessage = commandRegister.getSuffixMessage();
 		if (helpSuffixMessage != null && !helpSuffixMessage.isEmpty())
 			for (final String suffixMssage : helpSuffixMessage)
 				sender.sendMessage(colors(suffixMssage));

@@ -17,9 +17,9 @@ public interface CommandHandler {
 	 * @param commandLabel The command prefix for example this will be /command converted to commandName.
 	 * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
 	 *                     after the command prefix. For example, if the command used is "/commandName menu 1," the
-	 *                     `cmdArg` array will contain ["menu", "1"]. You can access and process these arguments as needed.
+	 * @return
 	 */
-	void excuteCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg);
+	boolean excuteCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg);
 
 	/**
 	 * Called when the sender is trying to tab-complete/type the command. This method is used to suggest the next part

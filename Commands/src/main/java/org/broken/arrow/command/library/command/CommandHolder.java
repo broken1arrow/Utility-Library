@@ -3,7 +3,6 @@ package org.broken.arrow.command.library.command;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,34 +14,35 @@ import java.util.function.Function;
 
 public abstract class CommandHolder implements CommandHandler {
 
-	private final String commandLable;
+	private final String commandLabel;
 	private String[] args;
 	private CommandSender sender;
-	private Plugin plugin;
 
 	/**
 	 * Set the prefix for subcommand. Use | like this
 	 * first|second command to add two options for same
 	 * command.
 	 *
-	 * @param commandLable the prefix you want as sublable.
+	 * @param commandLabel the prefix you want as sublable.
 	 */
-	public CommandHolder(final String commandLable) {
-		this.commandLable = commandLable;
+	public CommandHolder(final String commandLabel) {
+		this.commandLabel = commandLabel;
 
 	}
 
 	/**
-	 * Called when the command is executed by the specified sender. It can be either a player or another sender.
-	 * Therefore, check if the sender is a player before casting it to a Player instance.
+	 * Called when the command is executed by the specified sender. The sender can be a player or another command sender,
+	 * such as the console. Make sure to check the type of the sender before casting it to a specific sender type.
 	 *
-	 * @param sender       The command sender, could be player or console.
-	 * @param commandLabel The command prefix for example this will be /command converted to commandName.
-	 * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
-	 *                     after the command prefix. For example, if the command used is "/commandName menu 1," the
-	 *                     `cmdArg` array will contain ["menu", "1"]. You can access and process these arguments as needed.
+	 * @param sender       The command sender, which can be a player or console.
+	 * @param commandLabel The command label. For example, if the command executed is "/commandName menu 1", the command
+	 *                     label will be "commandName".
+	 * @param cmdArgs      The arguments for the command. The `cmdArgs` array contains any additional arguments provided
+	 *                     after the command label. For example, in the command "/MaincommandName menu 1", the `cmdArgs` array
+	 *                     will contain ["1"].
+	 * @return True if the command execution is successful, false otherwise.
 	 */
-	public abstract void onCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg);
+	public abstract boolean onCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs);
 
 	/**
 	 * Called when the sender is trying to tab-complete/type the command. This method is used to suggest the next part
@@ -52,8 +52,8 @@ public abstract class CommandHolder implements CommandHandler {
 	 * @param commandLabel The command prefix for example this will be /commandName converted to command.
 	 * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
 	 *                     after the initial part of the command. For example, if the command typed so far is
-	 *                     "/commandName menu 1," and the user is currently trying to type the next argument, the
-	 *                     `cmdArg` array will contain ["menu", "1"]. You can use these arguments to suggest the next
+	 *                     "/MaincommandName menu 1," and the user is currently trying to type the next argument, the
+	 *                     `cmdArg` array will contain ["1"]. You can use these arguments to suggest the next
 	 *                     part of the command or provide auto-completion options.
 	 * @return A list of command suggestions.
 	 */
@@ -63,10 +63,10 @@ public abstract class CommandHolder implements CommandHandler {
 	}
 
 	@Override
-	public final void excuteCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg) {
+	public final boolean excuteCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg) {
 		this.args = cmdArg;
 		this.sender = sender;
-		onCommand(sender, commandLabel, cmdArg);
+		return onCommand(sender, commandLabel, cmdArg);
 	}
 
 	@Nullable
@@ -77,8 +77,13 @@ public abstract class CommandHolder implements CommandHandler {
 		return this.onTabComplete(sender, commandLabel, cmdArg);
 	}
 
-	public String getCommandLable() {
-		return commandLable;
+	/**
+	 * Set the command label.
+	 *
+	 * @return the command label.
+	 */
+	public String getCommandLabel() {
+		return commandLabel;
 	}
 
 	/**
@@ -105,9 +110,9 @@ public abstract class CommandHolder implements CommandHandler {
 	/**
 	 * This method will stop command from get executed if is from the console.
 	 *
-	 * @throws org.bukkit.command.CommandException when an unhandled exception occurs during the execution of a Command.
+	 * @throws org.bukkit.command.CommandException when the command is run from console.
 	 */
-	public final void checkConsole() throws CommandException {
+	public final void checkConsole() {
 		if (!isPlayer(this.sender))
 			throw new CommandException("&c" + "You can´t run this command from console");
 	}

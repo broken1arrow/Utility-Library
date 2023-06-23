@@ -49,7 +49,8 @@ public class CommandBuilder {
 	}
 
 	/**
-	 * Returns the description of the command.
+	 * Returns the description of the command. The description should provide information about what the command does.
+	 * Players can add a "?" or "help" at the end of the command to request this information.
 	 *
 	 * @return The description.
 	 */
@@ -58,7 +59,8 @@ public class CommandBuilder {
 	}
 
 	/**
-	 * Returns the list of usage messages for the command.
+	 * Returns the list of usage messages for the command. When use method {@link org.broken.arrow.command.library.command.CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
+	 * and it return false to indicate that the specified usage message should be displayed.
 	 *
 	 * @return The list of usage messages.
 	 */
@@ -126,7 +128,7 @@ public class CommandBuilder {
 
 		public Builder(@Nonnull final CommandHolder executor) {
 			this.executor = executor;
-			this.subLabel = executor.getCommandLable();
+			this.subLabel = executor.getCommandLabel();
 		}
 
 		/**
@@ -141,7 +143,10 @@ public class CommandBuilder {
 		}
 
 		/**
-		 * Sets one or several messages to suggest to the player how to use the command.
+		 * Sets a list of messages to suggest to the player how to use the command. These usage messages provide guidance on how to properly
+		 * use the command and its arguments.
+		 * Note: You can use the {@link org.broken.arrow.command.library.command.CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
+		 * method and set it to false to indicate that the specified usage message should be displayed.
 		 *
 		 * @param usageMessages The array of usage messages.
 		 * @return The Builder instance.
@@ -152,7 +157,10 @@ public class CommandBuilder {
 		}
 
 		/**
-		 * Sets a list of messages to suggest to the player how to use the command.
+		 * Sets a list of messages to suggest to the player how to use the command. These usage messages provide guidance on how to properly
+		 * use the command and its arguments.
+		 * Note: when you use {@link org.broken.arrow.command.library.command.CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
+		 * method and set it to false to indicate that the specified usage message should be displayed.
 		 *
 		 * @param usageMessages The list of usage messages.
 		 * @return The Builder instance.
@@ -163,9 +171,10 @@ public class CommandBuilder {
 		}
 
 		/**
-		 * Sets the description of the command.
+		 * Sets the description of the command. The description should provide information about what the command does.
+		 * Player can add a "?" or "help" at the end of the command to request additional information about the command.
 		 *
-		 * @param description The description message.
+		 * @param description The description message that explains what the command does.
 		 * @return The Builder instance.
 		 */
 		public Builder setDescription(final String description) {

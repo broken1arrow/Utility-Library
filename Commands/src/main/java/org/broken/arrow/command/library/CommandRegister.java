@@ -27,8 +27,8 @@ public class CommandRegister implements CommandRegistering {
 	private String commandLableMessage;
 	private String commandLableMessageNoPerms;
 	private String commandLablePermission;
-	private List<String> helpPrefixMessage;
-	private List<String> helpSuffixMessage;
+	private List<String> prefixMessage;
+	private List<String> suffixMessage;
 	private boolean registedMainCommand;
 
 	/**
@@ -42,7 +42,7 @@ public class CommandRegister implements CommandRegistering {
 	public void registerSubCommand(final CommandBuilder commandBuilder) {
 		final String[] lableSplit;
 		if (commandBuilder.getSubLable() == null) {
-			lableSplit = commandBuilder.getExecutor().getCommandLable().split("\\|");
+			lableSplit = commandBuilder.getExecutor().getCommandLabel().split("\\|");
 		} else {
 			lableSplit = commandBuilder.getSubLable().split("\\|");
 		}
@@ -76,6 +76,75 @@ public class CommandRegister implements CommandRegistering {
 		this.commandLableMessage = commandLableMessage;
 		return this;
 	}
+
+	/**
+	 * Returns the list of prefix messages to display in the command help.
+	 *
+	 * @return The list of prefix messages.
+	 */
+	@Override
+	public List<String> getPrefixMessage() {
+		return prefixMessage;
+	}
+
+	/**
+	 * Sets the prefix messages to display in the command help using the provided string values.
+	 *
+	 * @param prefixMessage The prefix messages to set.
+	 * @return The CommandRegister instance.
+	 */
+	@Override
+	public CommandRegister setPrefixMessage(String... prefixMessage) {
+		this.prefixMessage = Arrays.asList(prefixMessage);
+		return this;
+	}
+
+	/**
+	 * Sets the prefix messages to display in the command help using the provided list of strings.
+	 *
+	 * @param prefixMessage The prefix messages to set.
+	 * @return The CommandRegister instance.
+	 */
+	@Override
+	public CommandRegister setPrefixMessage(List<String> prefixMessage) {
+		this.prefixMessage = prefixMessage;
+		return this;
+	}
+
+	/**
+	 * Returns the list of suffix messages to display in the command help.
+	 *
+	 * @return The list of suffix messages.
+	 */
+	@Override
+	public List<String> getSuffixMessage() {
+		return suffixMessage;
+	}
+
+	/**
+	 * Sets the suffix messages to display in the command help using the provided string values.
+	 *
+	 * @param suffixMessage The suffix messages to set.
+	 * @return The CommandRegister instance.
+	 */
+	@Override
+	public CommandRegister setSuffixMessage(String... suffixMessage) {
+		this.suffixMessage = Arrays.asList(suffixMessage);
+		return this;
+	}
+
+	/**
+	 * Sets the suffix messages to display in the command using the provided list of strings.
+	 *
+	 * @param suffixMessage The suffix messages to set.
+	 * @return The CommandRegister instance.
+	 */
+	@Override
+	public CommandRegister setSuffixMessage(List<String> suffixMessage) {
+		this.suffixMessage = suffixMessage;
+		return this;
+	}
+
 
 	/**
 	 * Get the message if player not have the permission.
@@ -131,74 +200,6 @@ public class CommandRegister implements CommandRegistering {
 	}
 
 	/**
-	 * Returns the list of prefix messages to display in the command help.
-	 *
-	 * @return The list of prefix messages.
-	 */
-	@Override
-	public List<String> getHelpPrefixMessage() {
-		return helpPrefixMessage;
-	}
-
-	/**
-	 * Sets the prefix messages to display in the command help using the provided string values.
-	 *
-	 * @param helpPrefixMessage The prefix messages to set.
-	 * @return The CommandRegister instance.
-	 */
-	@Override
-	public CommandRegister setHelpPrefixMessage(String... helpPrefixMessage) {
-		this.helpPrefixMessage = Arrays.asList(helpPrefixMessage);
-		return this;
-	}
-
-	/**
-	 * Sets the prefix messages to display in the command help using the provided list of strings.
-	 *
-	 * @param helpPrefixMessage The prefix messages to set.
-	 * @return The CommandRegister instance.
-	 */
-	@Override
-	public CommandRegister setHelpPrefixMessage(List<String> helpPrefixMessage) {
-		this.helpPrefixMessage = helpPrefixMessage;
-		return this;
-	}
-
-	/**
-	 * Returns the list of suffix messages to display in the command help.
-	 *
-	 * @return The list of suffix messages.
-	 */
-	@Override
-	public List<String> getHelpSuffixMessage() {
-		return helpSuffixMessage;
-	}
-
-	/**
-	 * Sets the suffix messages to display in the command help using the provided string values.
-	 *
-	 * @param helpSuffixMessage The suffix messages to set.
-	 * @return The CommandRegister instance.
-	 */
-	@Override
-	public CommandRegister setHelpSuffixMessage(String... helpSuffixMessage) {
-		this.helpSuffixMessage = Arrays.asList(helpSuffixMessage);
-		return this;
-	}
-	
-	/**
-	 * Sets the suffix messages to display in the command help using the provided list of strings.
-	 *
-	 * @param helpSuffixMessage The suffix messages to set.
-	 * @return The CommandRegister instance.
-	 */
-	@Override
-	public CommandRegister setHelpSuffixMessage(List<String> helpSuffixMessage) {
-		this.helpSuffixMessage = helpSuffixMessage;
-		return this;
-	}
-
-	/**
 	 * Unregisters a subcommand with the specified sublabel.
 	 *
 	 * @param subLabel The sublabel of the subcommand to unregister.
@@ -209,13 +210,14 @@ public class CommandRegister implements CommandRegistering {
 	}
 
 	/**
-	 * Returns the list of registered command builders.
+	 * Returns the list of registered sub commands. You can't change
+	 * this list.
 	 *
-	 * @return The list of command builders.
+	 * @return The list of sub commands.
 	 */
 	@Override
 	public List<CommandBuilder> getCommands() {
-		return commands;
+		return Collections.unmodifiableList(commands);
 	}
 
 	/**
@@ -347,11 +349,11 @@ public class CommandRegister implements CommandRegistering {
 		if (this == o) return true;
 		if (!(o instanceof CommandRegister)) return false;
 		final CommandRegister that = (CommandRegister) o;
-		return registedMainCommand == that.registedMainCommand && commands.equals(that.commands) && Objects.equals(commandLableMessage, that.commandLableMessage) && Objects.equals(commandLableMessageNoPerms, that.commandLableMessageNoPerms) && Objects.equals(helpPrefixMessage, that.helpPrefixMessage) && Objects.equals(helpSuffixMessage, that.helpSuffixMessage);
+		return registedMainCommand == that.registedMainCommand && commands.equals(that.commands) && Objects.equals(commandLableMessage, that.commandLableMessage) && Objects.equals(commandLableMessageNoPerms, that.commandLableMessageNoPerms) && Objects.equals(prefixMessage, that.prefixMessage) && Objects.equals(suffixMessage, that.suffixMessage);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(commands, commandLableMessage, commandLableMessageNoPerms, helpPrefixMessage, helpSuffixMessage, registedMainCommand);
+		return Objects.hash(commands, commandLableMessage, commandLableMessageNoPerms, prefixMessage, suffixMessage, registedMainCommand);
 	}
 }
