@@ -123,7 +123,9 @@ public class CommandsUtility extends Command {
 		String permission = subcommand.getPermission();
 		if (permission == null)
 			permission = "";
-		return message.replace("{lable}", "/" + commandLabel + " " + subcommand.getSubLable()).replace("{perm}", permission);
+		return message
+				.replace("{lable}", "/" + commandLabel + " " + subcommand.getSubLable())
+				.replace("{perm}", permission);
 	}
 
 	public String colors(final String message) {

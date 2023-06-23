@@ -74,7 +74,7 @@ public abstract class CommandHolder implements CommandHandler {
 	public final List<String> excuteTabComplete(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg) {
 		args = cmdArg;
 		this.sender = sender;
-		return Collections.emptyList();
+		return this.onTabComplete(sender, commandLabel, cmdArg);
 	}
 
 	public String getCommandLable() {
