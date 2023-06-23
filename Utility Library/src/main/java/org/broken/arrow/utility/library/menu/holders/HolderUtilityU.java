@@ -86,8 +86,11 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 		this.player = player;
 		this.location = location;
 		this.menuAPI = menuAPI;
+		if (menuAPI == null) {
+			Bukkit.getLogger().warning("[HolderUtilityU] Failed to retrieve MenuAPI instance. The MenuAPI instance cannot be null.");
+			throw new NullPointerException("A NullPointerException occurred because the MenuAPI instance is not properly set. Please ensure that the MenuAPI instance is properly assigned.");
+		}
 		player.closeInventory();
-
 		if (!shallCacheItems) {
 			addItemsToCache();
 		}
