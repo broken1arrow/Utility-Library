@@ -23,7 +23,7 @@
         <module>Block Visualization</module>
         <module>Title Update</module>
         <module>Localization</module>
-        <module>MenuButton Manager</module>
+        <module>MenuConfiguration Manager</module>
     </modules>
 
     <properties>
@@ -185,7 +185,7 @@
             </dependency>
             <dependency>
                 <groupId>org.broken.arrow.library</groupId>
-                <artifactId>MenuButton-Manager</artifactId>
+                <artifactId>MenuConfiguration-Manager</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <scope>compile</scope>
             </dependency>

@@ -25,14 +25,14 @@ import java.util.stream.IntStream;
  * This class represents a cache for menus, providing methods for retrieving menu templates, menu buttons, and other menu-related data.
  * It extends the YamlFileManager class for handling YAML file operations.
  */
-public class MenusCache extends YamlFileManager {
+public class MenusSettingsHandler extends YamlFileManager {
 	private final Plugin plugin;
 	private final int version = 1;
 	private final ItemCreator itemCreator;
 	private final Map<String, MenuTemplate> templates = new HashMap<>();
 
 	/**
-	 * Creates an instance of MenusCache.
+	 * Creates an instance of MenusSettingsHandler.
 	 *
 	 * @param plugin     Your main plugin instance.
 	 * @param name       The path where you want the file located.
@@ -40,14 +40,14 @@ public class MenusCache extends YamlFileManager {
 	 *                   if you want to have one menu per file. You don't need to specify the plugin folder.
 	 * @param singleFile Set to true if you plan to have a single file, or false if you want to have one menu per file.
 	 */
-	public MenusCache(final Plugin plugin, final String name, boolean singleFile) {
+	public MenusSettingsHandler(final Plugin plugin, final String name, boolean singleFile) {
 		super(plugin, name, singleFile, true);
 		itemCreator = new ItemCreator(plugin);
 		this.plugin = plugin;
 	}
 
 	/**
-	 * Get the ItemCreator instance associated with this MenusCache.
+	 * Get the ItemCreator instance associated with this MenusSettingsHandler.
 	 *
 	 * @return The ItemCkreator instance.
 	 */
