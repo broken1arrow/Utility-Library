@@ -50,7 +50,7 @@ public abstract class CommandHolder implements CommandHandler {
 	 *
 	 * @param sender       The command sender, could be player or console.
 	 * @param commandLabel The command prefix for example this will be /commandName converted to command.
-	 * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
+	 * @param cmdArgs      The arguments for the command. The `cmdArg` array contains the additional arguments provided
 	 *                     after the initial part of the command. For example, if the command typed so far is
 	 *                     "/MaincommandName menu 1," and the user is currently trying to type the next argument, the
 	 *                     `cmdArg` array will contain ["1"]. You can use these arguments to suggest the next
@@ -58,23 +58,23 @@ public abstract class CommandHolder implements CommandHandler {
 	 * @return A list of command suggestions.
 	 */
 	@Nullable
-	public List<String> onTabComplete(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg) {
+	public List<String> onTabComplete(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs) {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public final boolean excuteCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg) {
-		this.args = cmdArg;
+	public final boolean excuteCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs) {
+		this.args = cmdArgs;
 		this.sender = sender;
-		return onCommand(sender, commandLabel, cmdArg);
+		return onCommand(sender, commandLabel, cmdArgs);
 	}
 
 	@Nullable
 	@Override
-	public final List<String> excuteTabComplete(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg) {
-		args = cmdArg;
+	public final List<String> excuteTabComplete(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs) {
+		args = cmdArgs;
 		this.sender = sender;
-		return this.onTabComplete(sender, commandLabel, cmdArg);
+		return this.onTabComplete(sender, commandLabel, cmdArgs);
 	}
 
 	/**
