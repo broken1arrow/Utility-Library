@@ -5,18 +5,27 @@ import org.broken.arrow.command.library.command.builders.CommandBuilder;
 
 import java.util.List;
 
+/**
+ * A utility class for registering and managing command builders.
+ * CommandRegister provides methods for registering subcommands, setting command label messages and permissions,
+ * retrieving command builders, and registering the main command.
+ */
 public interface CommandRegistering {
 
 	/**
-	 * Register subcommand use {@link CommandBuilder.Builder} to build your
-	 * command. Don't forget you also need create 1 command class for every
-	 * sub command.
+	 * Registers a subcommand with the {@link CommandBuilder.Builder}.
+	 * If a sublabel is specified in the command builder, the command will be registered under that sublabel;
+	 * otherwise, it will be registered under the executor's command label.
 	 *
-	 * @param commandBuilder register your build command.
+	 * @param commandBuilder The command builder to register.
 	 */
 	void registerSubCommand(CommandBuilder commandBuilder);
 
-
+	/**
+	 * Returns the message to display as the command label.
+	 *
+	 * @return The command label message.
+	 */
 	String getCommandLableMessage();
 
 	/**
@@ -27,6 +36,11 @@ public interface CommandRegistering {
 	 */
 	CommandRegister setCommandLableMessage(String commandLableMessage);
 
+	/**
+	 * Get the message if player not have the permission.
+	 *
+	 * @return the message or null.
+	 */
 	String getCommandLableMessageNoPerms();
 
 	/**
@@ -37,6 +51,26 @@ public interface CommandRegistering {
 	 */
 	CommandRegister setCommandLableMessageNoPerms(String commandLableMessage);
 
+	/**
+	 * Get the permission for use the main command.
+	 *
+	 * @return the permission or null if not set.
+	 */
+	String getCommandLablePermission();
+
+	/**
+	 * Set the permission used.
+	 *
+	 * @param commandLablePermission the permission
+	 * @return this class.
+	 */
+	CommandRegister setCommandLablePermission(String commandLablePermission);
+	
+	/**
+	 * Returns the list of prefix messages to display in the command help.
+	 *
+	 * @return The list of prefix messages.
+	 */
 	List<String> getHelpPrefixMessage();
 
 	/**
@@ -55,6 +89,11 @@ public interface CommandRegistering {
 	 */
 	CommandRegister setHelpPrefixMessage(List<String> helpPrefixMessage);
 
+	/**
+	 * Returns the list of suffix messages to display in the command help.
+	 *
+	 * @return The list of suffix messages.
+	 */
 	List<String> getHelpSuffixMessage();
 
 	/**
@@ -74,11 +113,11 @@ public interface CommandRegistering {
 	CommandRegister setHelpSuffixMessage(List<String> helpSuffixMessage);
 
 	/**
-	 * Unregister your added command. You can't then run the command when is removed.
+	 * Unregisters a subcommand with the specified sublabel.
 	 *
-	 * @param subLable your command used and it will be unregisted.
+	 * @param subLabel The sublabel of the subcommand to unregister.
 	 */
-	void unregisterSubCommand(String subLable);
+	void unregisterSubCommand(String subLabel);
 
 	/**
 	 * Get all registed commands.

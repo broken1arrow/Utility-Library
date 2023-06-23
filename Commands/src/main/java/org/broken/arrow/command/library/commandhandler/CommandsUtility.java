@@ -34,26 +34,7 @@ public class CommandsUtility extends Command {
 	@Override
 	public boolean execute(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] args) {
 		if (args.length == 0) {
-			final List<String> helpPrefixMessage = commandRegister.getHelpPrefixMessage();
-			if (helpPrefixMessage != null && !helpPrefixMessage.isEmpty())
-				for (final String prefixMssage : helpPrefixMessage)
-					sender.sendMessage(colors(prefixMssage));
-			final String commandLableMessage = commandRegister.getCommandLableMessage();
-			if (commandLableMessage != null && !commandLableMessage.isEmpty())
-				for (final CommandBuilder subcommand : commandRegister.getCommands()) {
-					if (subcommand.isHideLable() && !checkPermission(sender, subcommand)) {
-						continue;
-					}
-					if (!checkPermission(sender, subcommand) && commandRegister.getCommandLableMessageNoPerms() != null && !commandRegister.getCommandLableMessageNoPerms().isEmpty()) {
-						sender.sendMessage(colors(placeholders(commandLableMessage, commandLabel, subcommand)));
-					} else {
-						sender.sendMessage(colors(placeholders(commandLableMessage, commandLabel, subcommand)));
-					}
-				}
-			final List<String> helpSuffixMessage = commandRegister.getHelpSuffixMessage();
-			if (helpSuffixMessage != null && !helpSuffixMessage.isEmpty())
-				for (final String suffixMssage : helpSuffixMessage)
-					sender.sendMessage(colors(suffixMssage));
+			this.sendMessage(sender, commandLabel);
 		}
 		if (args.length > 0) {
 			final CommandBuilder executor = commandRegister.getCommandBuilder(args[0]);
@@ -98,10 +79,16 @@ public class CommandsUtility extends Command {
 
 	private boolean checkPermission(final CommandSender sender, final CommandBuilder commandBuilder) {
 		if (commandBuilder.getPermission() == null || commandBuilder.getPermission().isEmpty()) return true;
+
+		return permissionCheck(sender, commandBuilder.getPermission());
+	}
+
+	private boolean permissionCheck(CommandSender sender, String permission) {
+		if (permission == null) return true;
 		if (!(sender instanceof Player)) return true;
 		final Player player = (Player) sender;
 
-		return player.isOp() || player.hasPermission(commandBuilder.getPermission());
+		return player.isOp() || player.hasPermission(permission);
 	}
 
 	private List<String> tabCompleteSubcommands(final CommandSender sender, String param, final boolean overridePermission) {
@@ -118,13 +105,46 @@ public class CommandsUtility extends Command {
 		return tab;
 	}
 
+	private void sendMessage(final CommandSender sender, String commandLabel) {
+		final List<String> helpPrefixMessage = commandRegister.getHelpPrefixMessage();
+		if (helpPrefixMessage != null && !helpPrefixMessage.isEmpty())
+			for (final String prefixMssage : helpPrefixMessage)
+				sender.sendMessage(colors(prefixMssage));
+		final String commandLableMessage = commandRegister.getCommandLableMessage();
+		final String lableMessageNoPerms = commandRegister.getCommandLableMessageNoPerms();
+		if (lableMessageNoPerms != null && !lableMessageNoPerms.isEmpty() && !permissionCheck(sender, commandRegister.getCommandLablePermission())) {
+			sender.sendMessage(colors(placeholders(lableMessageNoPerms, commandLabel, null)));
+
+		} else if (commandLableMessage != null && !commandLableMessage.isEmpty()) {
+			for (final CommandBuilder subcommand : commandRegister.getCommands()) {
+				String permissionMessage = subcommand.getPermissionMessage();
+				boolean doMessagesExist = permissionMessage != null && !permissionMessage.isEmpty();
+				if (doMessagesExist) {
+					sender.sendMessage(colors(placeholders(permissionMessage, commandLabel, subcommand)));
+					continue;
+				}
+				if (subcommand.isHideLable() && !checkPermission(sender, subcommand)) {
+					continue;
+				}
+				if (!checkPermission(sender, subcommand)) {
+					sender.sendMessage(colors(placeholders(commandLableMessage, commandLabel, subcommand)));
+				}
+			}
+		}
+		final List<String> helpSuffixMessage = commandRegister.getHelpSuffixMessage();
+		if (helpSuffixMessage != null && !helpSuffixMessage.isEmpty())
+			for (final String suffixMssage : helpSuffixMessage)
+				sender.sendMessage(colors(suffixMssage));
+	}
+
+
 	public String placeholders(final String message, final String commandLabel, final CommandBuilder subcommand) {
 		if (message == null) return "";
-		String permission = subcommand.getPermission();
+		String permission = subcommand != null ? subcommand.getPermission() : null;
 		if (permission == null)
 			permission = "";
 		return message
-				.replace("{lable}", "/" + commandLabel + " " + subcommand.getSubLable())
+				.replace("{lable}", "/" + commandLabel + (subcommand != null ? " " + subcommand.getSubLable() : ""))
 				.replace("{perm}", permission);
 	}
 
