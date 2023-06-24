@@ -15,13 +15,19 @@ import java.util.Map;
 public class LocalizationCache extends YamlFileManager {
 
 	private Localization localization;
+	private final MessagesUtility messagesUtility;
 
 	public LocalizationCache(Plugin plugin, String path) {
 		super(plugin, path, true, true);
+		this.messagesUtility = new MessagesUtility(this, plugin.getName());
 	}
 
 	public Localization getLocalization() {
 		return localization;
+	}
+
+	public MessagesUtility getMessagesUtility() {
+		return messagesUtility;
 	}
 
 	@Override
@@ -40,10 +46,10 @@ public class LocalizationCache extends YamlFileManager {
 			for (final String key : configurationSection.getKeys(false)) {
 				if (key.equals("Placeholders"))
 					map.put(key, this.getData(key, PlaceholderText.class));
-				if (key.equals("Messages"))
+				if (key.equals("MessagesUtility"))
 					map.put(key, this.getData(key, PluginMessages.class));
 			}
-		Object pluginMessage = map.get("Messages");
+		Object pluginMessage = map.get("MessagesUtility");
 		if (pluginMessage instanceof PluginMessages) {
 			PluginMessages pluginMessages = (PluginMessages) pluginMessage;
 			pluginMessages.setPluginName(templateConfig.getString("Plugin_name"));

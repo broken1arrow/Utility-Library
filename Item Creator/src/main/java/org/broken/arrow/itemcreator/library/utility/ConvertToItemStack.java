@@ -15,7 +15,7 @@ import java.util.Locale;
  */
 public class ConvertToItemStack {
 
-	private float serverVersion;
+	private final float serverVersion;
 
 	public ConvertToItemStack(float serverVersion) {
 		this.serverVersion = serverVersion;

@@ -61,14 +61,14 @@ public class Localization implements ConfigurationSerializable {
 	public Map<String, Object> serialize() {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("Placeholders", placeholderText);
-		map.put("Messages", pluginMessages);
+		map.put("MessagesUtility", pluginMessages);
 		return map;
 	}
 
 	public static Localization deserialize(Map<String, Object> map) {
 
 		Object placeholders = map.getOrDefault("Placeholders", null);
-		Object messages = map.getOrDefault("Messages", null);
+		Object messages = map.getOrDefault("MessagesUtility", null);
 		if (!(placeholders instanceof PlaceholderText))
 			placeholders = null;
 		if (!(messages instanceof PluginMessages))

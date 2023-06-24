@@ -35,6 +35,11 @@
             <artifactId>Yaml_Utility</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.broken.arrow.library</groupId>
+            <artifactId>Color_Conversion</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 </project>
