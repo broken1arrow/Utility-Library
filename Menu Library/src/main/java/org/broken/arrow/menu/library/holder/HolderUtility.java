@@ -137,7 +137,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * function to animate title.
 	 *
 	 * @param time     set how often it shall update, in seconds.
-	 * @param function a function that takes a String and boolean input, for animate title.
+	 * @param function a function that takes a String, for animate title.
 	 */
 	public void setAnimateTitle(final int time, final Function<String> function) {
 		this.animateTitleTime = time;
