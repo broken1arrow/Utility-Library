@@ -135,11 +135,12 @@ public class ConfigUpdater {
 		for (final String fullKey : defaultConfig.getKeys(true)) {
 			final String indents = KeyUtils.getIndents(fullKey, SEPARATOR);
 
-			if (ignoredSectionsValues.isEmpty()) {
-				writeCommentIfExists(comments, bufferedWriter, fullKey, indents);
-			} else {
-				writeIgnoredSectionValueIfExists(ignoredSectionsValues, bufferedWriter, fullKey);
+			if (!ignoredSectionsValues.isEmpty()) {
+				boolean continueLoop = writeIgnoredSectionValueIfExists(ignoredSectionsValues, bufferedWriter, fullKey);
+				if (continueLoop)
+					continue;
 			}
+			writeCommentIfExists(comments, bufferedWriter, fullKey, indents);
 
 			Object currentValue = this.getCurrentValue(fullKey, defaultConfig, currentConfig);
 			final String trailingKey = this.getTrailingKey(fullKey);
@@ -335,15 +336,16 @@ public class ConfigUpdater {
 	 * @param fullKey               The full key to search for in the ignoredSectionsValues map.
 	 * @throws IOException If an I/O error occurs while writing the value.
 	 */
-	private void writeIgnoredSectionValueIfExists(final Map<String, String> ignoredSectionsValues, final BufferedWriter bufferedWriter, final String fullKey) throws IOException {
+	private boolean writeIgnoredSectionValueIfExists(final Map<String, String> ignoredSectionsValues, final BufferedWriter bufferedWriter, final String fullKey) throws IOException {
 		for (final Map.Entry<String, String> entry : ignoredSectionsValues.entrySet()) {
 			if (entry.getKey().equals(fullKey)) {
 				bufferedWriter.write(ignoredSectionsValues.get(fullKey) + "\n");
-				return;
+				return true;
 			} else if (KeyUtils.isSubKeyOf(entry.getKey(), fullKey, SEPARATOR)) {
-				return;
+				return true;
 			}
 		}
+		return false;
 	}
 
 	/**
@@ -356,9 +358,9 @@ public class ConfigUpdater {
 	 */
 	private Object getCurrentValue(final String fullKey, final FileConfiguration defaultConfig, final FileConfiguration currentConfig) {
 		Object currentValue = currentConfig.get(fullKey);
-		if (currentValue == null) {
+	/*	if (currentValue == null) {
 			currentValue = defaultConfig.get(fullKey);
-		}
+		}*/
 		return currentValue;
 	}
 
