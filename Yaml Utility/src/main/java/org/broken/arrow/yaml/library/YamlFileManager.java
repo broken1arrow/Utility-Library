@@ -90,8 +90,6 @@ public abstract class YamlFileManager {
 		final File folder = this.dataFolder;
 		if (!folder.exists())
 			folder.mkdir();
-		System.out.println("path " + this.getPath());
-		System.out.println("path " + this.getPathWithExtension());
 	}
 
 	/**
@@ -497,7 +495,6 @@ public abstract class YamlFileManager {
 
 		if (this.shallGenerateFiles) {
 			final List<String> filenamesFromDir = getAllFilesInDirectory();
-			System.out.println("filenamesFromDir  " + filenamesFromDir);
 			if (filenamesFromDir != null)
 				filesFromResource = new HashSet<>(filenamesFromDir);
 		}
