@@ -57,8 +57,8 @@ public class MessagesUtility {
 	 * @param placeholders The placeholders to replace in the message.
 	 */
 	public void sendMessage(@Nullable final Level level, @Nullable final Player player, @Nonnull final String key, @Nullable final Object... placeholders) {
-		LocalizationCache language = this.localizationCache;
-		PluginMessages pluginMessages = language.getLocalization().getPluginMessages();
+		PluginMessages pluginMessages = this.localizationCache.getLocalization().getPluginMessages();
+		
 		if (pluginMessages == null) return;
 		List<String> messages = pluginMessages.getMessage(key);
 		String pluginName = pluginMessages.getPluginName();
