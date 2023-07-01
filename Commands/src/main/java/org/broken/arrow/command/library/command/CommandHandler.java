@@ -17,7 +17,9 @@ public interface CommandHandler {
 	 * @param commandLabel The command prefix for example this will be /command converted to commandName.
 	 * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
 	 *                     after the command prefix. For example, if the command used is "/commandName menu 1," the
-	 * @return
+	 *                     `cmdArg` array will contain ["1"]. You can use these arguments to excute next
+	 *                     part of the command.
+	 * @return True if the command execution is successful, false otherwise.
 	 */
 	boolean excuteCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg);
 
@@ -30,7 +32,7 @@ public interface CommandHandler {
 	 * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
 	 *                     after the initial part of the command. For example, if the command typed so far is
 	 *                     "/commandName menu 1," and the user is currently trying to type the next argument, the
-	 *                     `cmdArg` array will contain ["menu", "1"]. You can use these arguments to suggest the next
+	 *                     `cmdArg` array will contain ["1"]. You can use these arguments to suggest the next
 	 *                     part of the command or provide auto-completion options.
 	 * @return A list of command suggestions.
 	 */
