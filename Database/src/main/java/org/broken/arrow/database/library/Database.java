@@ -36,11 +36,11 @@ public abstract class Database {
 	protected boolean batchUpdateGoingOn = false;
 	private final Map<String, TableWrapper> tables = new HashMap<>();
 	protected boolean hasStartWriteToDb = false;
-	private final boolean sQlittle;
-	private Set<String> removeColums = new HashSet<>();
+	private final boolean sqlite;
+	private Set<String> removeColumns = new HashSet<>();
 
 	public Database() {
-		this.sQlittle = this instanceof SQLite;
+		this.sqlite = this instanceof SQLite;
 	}
 
 	public abstract Connection connect();
@@ -58,10 +58,10 @@ public abstract class Database {
 			try {
 				for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
 					final List<String> columns = updateTableColumnsInDb(entityTables.getKey());
-					createMissingColums(entityTables.getValue(), columns);
+					createMissingColumns(entityTables.getValue(), columns);
 				}
-			} catch (final SQLException throwables) {
-				throwables.printStackTrace();
+			} catch (final SQLException throwable) {
+				throwable.printStackTrace();
 			}
 		} finally {
 			closeConnection();
@@ -166,7 +166,7 @@ public abstract class Database {
 	 * @param tableName   name of the table you want to get data from.
 	 * @param clazz       the class you have your static deserialize method.
 	 * @param columnValue the value of the primary key you want to find data from.
-	 * @param <T>         Type of class that exstends ConfigurationSerializable .
+	 * @param <T>         Type of class that extends ConfigurationSerializable .
 	 * @return one row you have in the table.
 	 */
 	@Nullable
@@ -177,10 +177,10 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return null;
 		}
-		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Colud not find  primary column for table " + tableName);
+		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
 		String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
 		Map<String, Object> dataFromDB = new HashMap<>();
-		Validate.checkNotNull(columnValue, "Colud not find column for " + primaryColumn);
+		Validate.checkNotNull(columnValue, "Could not find column for " + primaryColumn);
 
 		final String sql = "SELECT * FROM  `" + tableWrapper.getTableName() + "` WHERE `" + primaryColumn + "` = '" + columnValue + "'";
 		PreparedStatement preparedStatement = null;
@@ -250,9 +250,9 @@ public abstract class Database {
 			}
 			statement = this.connection.prepareStatement(wrapperEntry.createTable());
 			statement.executeUpdate();
-			TableRow wraper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
-			Validate.checkNotNull(wraper, "Could not find a column for this table " + tableName);
-			checkIfTableExist(tableName, wraper.getColumnName());
+			TableRow wrapper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
+			Validate.checkNotNull(wrapper, "Could not find a column for this table " + tableName);
+			checkIfTableExist(tableName, wrapper.getColumnName());
 			return true;
 		} catch (final SQLException e) {
 			e.printStackTrace();
@@ -275,13 +275,13 @@ public abstract class Database {
 			} finally {
 				close(statement);
 			}
-			TableRow wraper = wrapperEntry.getValue().getColumns().values().stream().findFirst().orElse(null);
-			Validate.checkNotNull(wraper, "Could not find a column for this table " + wrapperEntry.getKey());
-			checkIfTableExist(wrapperEntry.getKey(), wraper.getColumnName());
+			TableRow wrapper = wrapperEntry.getValue().getColumns().values().stream().findFirst().orElse(null);
+			Validate.checkNotNull(wrapper, "Could not find a column for this table " + wrapperEntry.getKey());
+			checkIfTableExist(wrapperEntry.getKey(), wrapper.getColumnName());
 		}
 	}
 
-	public void remove(final String tableName, final String columnName, final String value) {
+	public final void remove(final String tableName, final String columnName, final String value) {
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
 			LogMsg.warn("Could not find table " + tableName);
@@ -291,7 +291,7 @@ public abstract class Database {
 		this.remove(Collections.singletonList(sql), tableWrapper);
 	}
 
-	public void dropTable(final String tableName) {
+	public final void dropTable(final String tableName) {
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
 			LogMsg.warn("Could not find table " + tableName);
@@ -388,17 +388,17 @@ public abstract class Database {
 		if (updatedTableColumns == null || updatedTableColumns.getColumns().isEmpty()) return;
 		// Remove the columns we don't want anymore from the table's list of columns
 
-		if (this.removeColums != null)
-			for (final String removed : this.removeColums) {
+		if (this.removeColumns != null)
+			for (final String removed : this.removeColumns) {
 				existingColumns.remove(removed);
 			}
-		final String columnsSeperated = getColumsFromTable(updatedTableColumns.getColumns().values());
+		final String columnsSeparated = getColumnsFromTable(updatedTableColumns.getColumns().values());
 		if (!openConnection()) return;
 
-		// Rename the old table, so we can remove old name and rename colums.
+		// Rename the old table, so we can remove old name and rename columns.
 		final PreparedStatement alterTable = connection.prepareStatement("ALTER TABLE " + tableName + " RENAME TO " + tableName + "_old;");
 		// Creating the table on its new format (no redundant columns)
-		final PreparedStatement createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnsSeperated + ");");
+		final PreparedStatement createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnsSeparated + ");");
 
 		alterTable.execute();
 		createTable.execute();
@@ -414,14 +414,14 @@ public abstract class Database {
 		close(movedata, alterTable, createTable, removeOldtable);
 	}
 
-	protected void createMissingColums(final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
+	protected void createMissingColumns(final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
 		if (existingColumns == null) return;
 		if (!openConnection()) return;
 
 		for (final Entry<String, TableRow> entry : tableWrapper.getColumns().entrySet()) {
 			String columnName = entry.getKey();
 			TableRow tableRow = entry.getValue();
-			if (removeColums.contains(columnName)) continue;
+			if (removeColumns.contains(columnName)) continue;
 			if (existingColumns.contains(columnName)) continue;
 			try {
 				final PreparedStatement statement = connection.prepareStatement("ALTER TABLE `" + tableWrapper.getTableName() + "` ADD `" + columnName + "` " + tableRow.getDatatype() + ";");
@@ -448,9 +448,9 @@ public abstract class Database {
 	}
 
 
-	protected String getColumsFromTable(final Collection<TableRow> colums) {
+	protected String getColumnsFromTable(final Collection<TableRow> columns) {
 		final StringBuilder columRow = new StringBuilder();
-		for (final TableRow colum : colums) {
+		for (final TableRow colum : columns) {
 			columRow.append(colum).append(" ");
 		}
 		return columRow.toString();
@@ -479,16 +479,16 @@ public abstract class Database {
 		return hasStartWriteToDb;
 	}
 
-	public Set<String> getRemoveColums() {
-		return removeColums;
+	public Set<String> getRemoveColumns() {
+		return removeColumns;
 	}
 
-	public void setRemoveColums(final Set<String> removeColums) {
-		this.removeColums = removeColums;
+	public void setRemoveColumns(final Set<String> removeColumns) {
+		this.removeColumns = removeColumns;
 	}
 
-	public boolean issQlittle() {
-		return sQlittle;
+	public boolean isSqlite() {
+		return sqlite;
 	}
 
 	@Nonnull

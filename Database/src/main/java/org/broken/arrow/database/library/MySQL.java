@@ -46,12 +46,12 @@ public class MySQL extends Database {
 					connection = this.setupConection();
 				}
 			}
-		} catch (SQLRecoverableException throwables) {
+		} catch (SQLRecoverableException exception) {
 			hasCastExeption = true;
-			LogMsg.warn("Could not connect to the database. Check your database connection.", throwables);
+			LogMsg.warn("Could not connect to the database. Check your database connection.", exception);
 
-		} catch (SQLException throwables) {
-			throwables.printStackTrace();
+		} catch (SQLException throwable) {
+			throwable.printStackTrace();
 		}
 		return connection;
 	}
@@ -73,7 +73,7 @@ public class MySQL extends Database {
 
 	public Connection setupConection() throws SQLException {
 		String databaseName = mysqlPreference.getDatabaseName();
-		String hostAdress = mysqlPreference.getHostAdress();
+		String hostAddress = mysqlPreference.getHostAdress();
 		String port = mysqlPreference.getPort();
 		String user = mysqlPreference.getUser();
 		String password = mysqlPreference.getPassword();
@@ -83,24 +83,24 @@ public class MySQL extends Database {
 				this.hikari = new HikariCP(this.mysqlPreference, this.driver);
 			connection = this.hikari.getConection(startSQLUrl);
 		} else {
-			connection = DriverManager.getConnection(startSQLUrl + hostAdress + ":" + port + "/" + databaseName + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true, user, password);
+			connection = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/" + databaseName + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true, user, password);
 		}
 		return connection;
 	}
 
 	public void createMissingDatabase() {
 		String databaseName = mysqlPreference.getDatabaseName();
-		String hostAdress = mysqlPreference.getHostAdress();
+		String hostAddress = mysqlPreference.getHostAdress();
 		String port = mysqlPreference.getPort();
 		String user = mysqlPreference.getUser();
 		String password = mysqlPreference.getPassword();
 
 		try {
-			Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAdress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password);
+			Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password);
 
-			PreparedStatement createdatabase = createDatabase.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName);
-			createdatabase.execute();
-			close(createdatabase);
+			PreparedStatement create = createDatabase.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName);
+			create.execute();
+			close(create);
 			createDatabase.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
