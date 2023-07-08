@@ -153,23 +153,30 @@ public class ConvertParticlesUtility {
 				if (part.name().equals("BLOCK_MARKER")) {
 					builder.setMaterial(Material.BARRIER);
 				}
-				if (firstColor != null && part.name().equals("REDSTONE"))
+				if (firstColor != null && part.name().equals("REDSTONE")) {
 					if (secondColor != null)
 						builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, flot));
 					else
 						builder.setDustOptions(new ParticleDustOptions(firstColor, flot));
+				} else {
+					builder.setData((int) flot);
+				}
 			}
 		if (partc instanceof Effect) {
 			final Effect part = (Effect) partc;
 			builder = new ParticleEffect.Builder(part, part.getData() != null ? part.getData() : Void.class);
-			if (firstColor != null && part.name().equals("REDSTONE"))
+			if (firstColor != null && part.name().equals("REDSTONE")) {
 				if (secondColor != null)
 					builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, flot));
 				else
 					builder.setDustOptions(new ParticleDustOptions(firstColor, flot));
+			} else {
+				builder.setData((int) flot);
+			}
 		}
 		if (partc == null || builder == null)
 			return null;
+
 		return builder.build();
 	}
 
