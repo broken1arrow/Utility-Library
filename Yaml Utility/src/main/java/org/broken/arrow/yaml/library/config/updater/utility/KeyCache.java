@@ -7,24 +7,24 @@ import java.util.Map.Entry;
 
 public class KeyCache {
 
-	private final Map<String, KeyBuilder> configKeys = new HashMap<>();
+	private final Map<String, CommentBuilder> configKeys = new HashMap<>();
 
-	public Map<String, KeyBuilder> getConfigKeys() {
+	public Map<String, CommentBuilder> getConfigKeys() {
 		return Collections.unmodifiableMap(configKeys);
 	}
 
-	public KeyBuilder getConfigKey(final String key) {
+	public CommentBuilder getConfigKey(final String key) {
 		return configKeys.get(key);
 	}
 
-	public void putConfigKey(final String key, final KeyBuilder keyBuilder) {
+	public void putConfigKey(final String key, final CommentBuilder keyBuilder) {
 		configKeys.put(key, keyBuilder);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(configKeys.size());
-		for (Entry<String, KeyBuilder> entry : configKeys.entrySet()) {
+		for (Entry<String, CommentBuilder> entry : configKeys.entrySet()) {
 			builder.append("{configKeys='")
 					.append(entry.getKey())
 					.append("' coment='")
