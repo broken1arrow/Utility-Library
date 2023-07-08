@@ -66,7 +66,7 @@ public interface ParticleEffectAccessor {
 	 *
 	 * @return the data.
 	 */
-	int getData();
+	double getData();
 
 	/**
 	 * Retrieves the data set on the effect.

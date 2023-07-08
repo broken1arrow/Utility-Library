@@ -25,7 +25,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 	private final double offsetX;
 	private final double offsetY;
 	private final double offsetZ;
-	private final int data;
+	private final double data;
 	private final Class<?> dataType;
 	private final ParticleDustOptions particleDustOptions;
 	private final Builder builder;
@@ -123,7 +123,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 	 * @return the data.
 	 */
 	@Override
-	public int getData() {
+	public double getData() {
 		return data;
 	}
 
@@ -163,7 +163,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		private double offsetX;
 		private double offsetY;
 		private double offsetZ;
-		private int data;
+		private double data;
 		private final Class<?> dataType;
 		private ParticleDustOptions dustOptions;
 
@@ -271,7 +271,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		 * @param data the data you want to set.
 		 * @return this instance.
 		 */
-		public Builder setData(final int data) {
+		public Builder setData(final double data) {
 			this.data = data;
 			return this;
 		}

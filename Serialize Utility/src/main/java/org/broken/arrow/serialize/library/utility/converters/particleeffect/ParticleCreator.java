@@ -29,7 +29,7 @@ public class ParticleCreator {
 	private final double offsetX;
 	private final double offsetY;
 	private final double offsetZ;
-	private final int data;
+	private final double data;
 	private final ParticleDustOptions particleDustOptions;
 	private final Player player;
 	private final World world;

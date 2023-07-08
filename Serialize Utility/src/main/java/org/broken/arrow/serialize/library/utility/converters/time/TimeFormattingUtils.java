@@ -45,8 +45,6 @@ public class TimeFormattingUtils {
 		long min = 0;
 		long hours;
 		long days;
-		TimeFormatProvider timeFormatProvider = new TimeFormatProvider() {
-		};
 		if (!((time - currentTime) / millisToSeconds % 60 == 0))
 			second = (time - currentTime) / millisToSeconds % 60;
 		if (!((time - currentTime) / millisToMinute % 60 == 0))

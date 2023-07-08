@@ -94,7 +94,7 @@ public class ConvertParticlesUtility {
 			if (colors == null)
 				particleEffect = getParticleOrEffect(pairEntry.getKey(), 0.7F);
 			else
-				particleEffect = getParticleOrEffect(pairEntry.getKey(), colors.getFirst(), colors.getSecond(), 0.7F);
+				particleEffect = getParticleOrEffect(pairEntry.getKey(), colors.getFirst(), colors.getSecond(), 1, 0.7F);
 			if (particleEffect == null) continue;
 			particleList.add(particleEffect);
 		}
@@ -109,7 +109,7 @@ public class ConvertParticlesUtility {
 	 * @return The ParticleEffect instance corresponding to the particle name and color.
 	 */
 	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, final float flot) {
-		return getParticleOrEffect(particle, null, null, flot);
+		return getParticleOrEffect(particle, null, null, 1, flot);
 	}
 
 	/**
@@ -121,33 +121,34 @@ public class ConvertParticlesUtility {
 	 * @return The ParticleEffect instance corresponding to the particle name and color.
 	 */
 	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String color, final float flot) {
-		return getParticleOrEffect(particle, color, null, flot);
+		return getParticleOrEffect(particle, color, null, 1, flot);
 	}
 
 	/**
 	 * Get the particle effect.
 	 *
-	 * @param particle    the particle you want to convert.
-	 * @param firstColor  the first color if you use effect you can change color.
-	 * @param secondColor the second color for the effet.
-	 * @param flot        this have diffrent usage depending on particle.
+	 * @param particle          the particle you want to convert.
+	 * @param firstColor        the first color if you use effect you can change color.
+	 * @param secondColor       the second color for the effect.
+	 * @param amountOfParticles the amount of particles.
+	 * @param flot              this have different usage depending on particle.
 	 * @return particle effect particle.
 	 */
-	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, final float flot) {
+	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, final int amountOfParticles, final float flot) {
 		if (particle == null) return null;
-		Object partc;
+		Object object;
 		if (serverVersion < 9) {
-			partc = getEffect(String.valueOf(particle));
+			object = getEffect(String.valueOf(particle));
 		} else {
-			partc = getParticle(String.valueOf(particle));
-			if (partc == null) {
-				partc = getEffect(String.valueOf(particle));
+			object = getParticle(String.valueOf(particle));
+			if (object == null) {
+				object = getEffect(String.valueOf(particle));
 			}
 		}
 		ParticleEffect.Builder builder = null;
 		if (serverVersion >= 9)
-			if (partc instanceof Particle) {
-				final Particle part = (Particle) partc;
+			if (object instanceof Particle) {
+				final Particle part = (Particle) object;
 				builder = new ParticleEffect.Builder(part, part.getDataType());
 
 				if (part.name().equals("BLOCK_MARKER")) {
@@ -159,11 +160,12 @@ public class ConvertParticlesUtility {
 					else
 						builder.setDustOptions(new ParticleDustOptions(firstColor, flot));
 				} else {
-					builder.setData((int) flot);
+					builder.setData(flot);
 				}
+				builder.setCount(amountOfParticles);
 			}
-		if (partc instanceof Effect) {
-			final Effect part = (Effect) partc;
+		if (object instanceof Effect) {
+			final Effect part = (Effect) object;
 			builder = new ParticleEffect.Builder(part, part.getData() != null ? part.getData() : Void.class);
 			if (firstColor != null && part.name().equals("REDSTONE")) {
 				if (secondColor != null)
@@ -171,10 +173,11 @@ public class ConvertParticlesUtility {
 				else
 					builder.setDustOptions(new ParticleDustOptions(firstColor, flot));
 			} else {
-				builder.setData((int) flot);
+				builder.setData(flot);
 			}
+			builder.setCount(amountOfParticles);
 		}
-		if (partc == null || builder == null)
+		if (object == null || builder == null)
 			return null;
 
 		return builder.build();
