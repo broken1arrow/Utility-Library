@@ -12,8 +12,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class CheckAndConvertObjects {
+/**
+ * Utility class for checking and converting different types of objects to the desired class type.
+ */
+public class ObjectConverter {
 
+	/**
+	 * Casts an object to a specific number type.
+	 *
+	 * @param object the object to be cast.
+	 * @param clazz  the class representing the number type to convert to.
+	 * @param <T>    the type for the number you want to convert to.
+	 * @return the number with the specified class type.
+	 */
 	public static <T> T castToPrimaryNumber(@Nonnull final Object object, final Class<T> clazz) {
 		Validate.checkNotNull(object, "the number can't be null");
 		Object obj = object;
@@ -61,31 +72,30 @@ public class CheckAndConvertObjects {
 		return (T) obj;
 	}
 
-
 	/**
-	 * Convert the innerst key from your yaml path
-	 * to map with the key and value it find.
+	 * Converts the innermost key from a YAML path to a map with the corresponding key-value pair.
+	 *
 	 * <p>
-	 * Like this example inside yamlfile.
-	 * <pre> {@code
+	 * Example YAML structure:
+	 * <pre>{@code
 	 * somekey:
 	 *   otherkey:
 	 *     keyYouWant: value
 	 * }
 	 * </pre>
-	 * <p>
-	 * You then set pathStartWith "somekey.otherkey" it will then use keyYouWant as a key for your map.
 	 *
-	 * @param pathStartWith path to your file, use dots as delimiter.
-	 * @param serializedMap the map to key the key and value.
-	 * @return map with the set values.
+	 * <p>
+	 * If you set the pathStartWith parameter to "somekey.otherkey", it will use the "keyYouWant" as the key in the resulting map.
+	 *
+	 * @param pathStartWith the path to the data you want to extract, using dots as the delimiter.
+	 * @param serializedMap the map containing the key-value pairs.
+	 * @return a map with the extracted key-value pair.
 	 */
-
 	public static Map<String, Object> convertToMap(@Nonnull final String pathStartWith, @Nonnull final Map<String, Object> serializedMap) {
 		final Map<String, Object> values = new HashMap<>();
-		for (final Map.Entry<String, Object> ententy : serializedMap.entrySet()) {
-			if (ententy.getKey().startsWith(pathStartWith))
-				values.put(ententy.getKey().substring(ententy.getKey().lastIndexOf('.') + 1), ententy.getValue());
+		for (final Map.Entry<String, Object> entity : serializedMap.entrySet()) {
+			if (entity.getKey().startsWith(pathStartWith))
+				values.put(entity.getKey().substring(entity.getKey().lastIndexOf('.') + 1), entity.getValue());
 		}
 		return values;
 	}
@@ -110,15 +120,25 @@ public class CheckAndConvertObjects {
 	 */
 	public static List<Pair<String, Object>> convertToPair(@Nonnull final String pathStartWith, @Nonnull final Map<String, Object> serializedMap) {
 		final List<Pair<String, Object>> values = new ArrayList<>();
-		for (final Map.Entry<String, Object> ententy : serializedMap.entrySet()) {
-			if (ententy.getKey().startsWith(pathStartWith)) {
-				values.add(Pair.of(ententy.getKey().substring(ententy.getKey().lastIndexOf('.') + 1), ententy.getValue()));
+		for (final Map.Entry<String, Object> entity : serializedMap.entrySet()) {
+			if (entity.getKey().startsWith(pathStartWith)) {
+				values.add(Pair.of(entity.getKey().substring(entity.getKey().lastIndexOf('.') + 1), entity.getValue()));
 			}
 		}
 		return values;
 	}
 
-	public static <K, V> Map<K, V> castMapTo(final Map<?, ?> map, final Class<K> keyClazz, final Class<V> valueClazz) {
+	/**
+	 * Casts an object to a map with specified key and value types.
+	 *
+	 * @param map        the object to be converted to a map.
+	 * @param keyClazz   the class representing the type of keys in the resulting map.
+	 * @param valueClazz the class representing the type of values in the resulting map.
+	 * @param <K>        the type for the keys in the map.
+	 * @param <V>        the type for the values in the map.
+	 * @return a map with the specified key and value types; if any entry cannot be cast, returns an empty map.
+	 */
+	public static <K, V> Map<K, V> castMap(final Map<?, ?> map, final Class<K> keyClazz, final Class<V> valueClazz) {
 		final Map<K, V> convertMap = new LinkedHashMap<>();
 		for (final Map.Entry<?, ?> entry : map.entrySet()) {
 			final Object key = entry.getKey();
@@ -130,8 +150,43 @@ public class CheckAndConvertObjects {
 		return convertMap;
 	}
 
-	public static <L> List<L> castListTo(final List<?> list, final Class<L> clazz) {
+	/**
+	 * Converts a list of objects to a list of a specific class.
+	 *
+	 * @param list  the list to be checked.
+	 * @param clazz the class that the elements of the list should be cast to.
+	 * @param <L>   the type of the elements in the resulting list.
+	 * @return a list of objects cast to the provided class; if any element cannot be cast, returns an empty list.
+	 */
+	public static <L> List<L> castList(final List<?> list, final Class<L> clazz) {
 		if (list == null) return null;
 		return list.stream().filter(clazz::isInstance).map(clazz::cast).collect(Collectors.toList());
+	}
+
+	/**
+	 * Converts a list of maps to a list of {@link java.util.LinkedHashMap}.
+	 * This method is useful for converting a YAML structure stored in a list to a list of maps.
+	 *
+	 * <p>
+	 * Example YAML structure:
+	 * <pre>{@code
+	 * key1:
+	 *   - otherkey: value
+	 *     otherkey2: value
+	 *   - otherkey: value
+	 *     otherkey2: value
+	 * }
+	 * </pre>
+	 *
+	 * @param list the list to be checked.
+	 * @return a list of maps if the provided list contains map instances; otherwise, returns an empty list.
+	 */
+	public static List<Map<String, Object>> castListOfMaps(final List<?> list) {
+		if (list == null) return null;
+		return list.stream()
+				.filter(Map.class::isInstance)
+				.map(Map.class::cast)
+				.map(LinkedHashMap<String, Object>::new)
+				.collect(Collectors.toList());
 	}
 }
