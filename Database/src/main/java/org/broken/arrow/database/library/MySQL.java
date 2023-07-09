@@ -60,17 +60,7 @@ public class MySQL extends Database {
 	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
 		this.batchUpdate(batchList, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	}
-
-	@Override
-	protected void remove(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
-		this.batchUpdate(batchList, tableWrappers);
-	}
-
-	@Override
-	protected void dropTable(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
-		this.batchUpdate(batchList, tableWrappers);
-	}
-
+	
 	public Connection setupConnection() throws SQLException {
 		Connection connection;
 
@@ -80,19 +70,19 @@ public class MySQL extends Database {
 			connection = this.hikari.getConnection(startSQLUrl);
 		} else {
 			String databaseName = mysqlPreference.getDatabaseName();
-			String hostAddress = mysqlPreference.getHostAdress();
+			String hostAddress = mysqlPreference.getHostAddress();
 			String port = mysqlPreference.getPort();
 			String user = mysqlPreference.getUser();
 			String password = mysqlPreference.getPassword();
 			connection = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/" + databaseName + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true, user, password);
 		}
-		
+
 		return connection;
 	}
 
 	public void createMissingDatabase() {
 		String databaseName = mysqlPreference.getDatabaseName();
-		String hostAddress = mysqlPreference.getHostAdress();
+		String hostAddress = mysqlPreference.getHostAddress();
 		String port = mysqlPreference.getPort();
 		String user = mysqlPreference.getUser();
 		String password = mysqlPreference.getPassword();
@@ -107,15 +97,6 @@ public class MySQL extends Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public boolean isHikariAvailable(final String path) {
-		try {
-			Class.forName(path);
-		} catch (ClassNotFoundException e) {
-			return false;
-		}
-		return true;
 	}
 
 	@Override

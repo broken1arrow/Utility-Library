@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -16,6 +17,7 @@ public class SQLite extends Database {
 
 	private final String parent;
 	private final String child;
+	private final boolean isHikariAvailable;
 	private HikariCP hikari;
 
 	public SQLite(@Nonnull final String parent) {
@@ -23,31 +25,19 @@ public class SQLite extends Database {
 	}
 
 	public SQLite(@Nonnull final String parent, @Nullable final String child) {
+		this("com.zaxxer.hikari.HikariConfig", parent, child);
+	}
+
+	public SQLite(@Nonnull final String hikariClazzPath, @Nonnull final String parent, @Nullable final String child) {
 		this.parent = parent;
 		this.child = child;
-		hikari = new HikariCP(new MysqlPreferences.Builder("", parent, "", "", "").build(), "org.sqlite.JDBC");
+		this.isHikariAvailable = isHikariAvailable(hikariClazzPath);
 		connect();
 	}
 
 	@Override
 	public Connection connect() {
 		try {
-			File dbFile;
-			if (this.parent != null && this.child == null)
-				dbFile = new File(parent);
-			else
-				dbFile = new File(this.parent, this.child);
-
-	/*		if (!dbFile.exists()) {
-				try {
-					dbFile.createNewFile();
-
-					//String url = "jdbc:sqlite:" + dbFile.getPath();
-				} catch (final IOException ex) {
-					LogMsg.warn("File write error: " + dbFile + ".db", ex);
-				}
-			}
-*/
 			if (this.connection != null && !this.connection.isClosed()) {
 				return this.connection;
 			}
@@ -68,23 +58,20 @@ public class SQLite extends Database {
 		this.batchUpdate(batchList, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 	}
 
-	@Override
-	protected void remove(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
-		this.batchUpdate(batchList, tableWrappers);
-	}
-
-	@Override
-	protected void dropTable(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
-		this.batchUpdate(batchList, tableWrappers);
-	}
-
 	public Connection setupConnection() throws SQLException {
 		Connection connection;
+		File dbFile;
+		if (this.parent != null && this.child == null)
+			dbFile = new File(parent);
+		else
+			dbFile = new File(this.parent, this.child);
 
-		//if (this.hikari == null)
-
-		connection = this.hikari.getFileConnection("jdbc:sqlite:");
-
+		if (this.hikari == null)
+			hikari = new HikariCP(new MysqlPreferences(dbFile.getPath()), "org.sqlite.JDBC");
+		if (this.isHikariAvailable)
+			connection = this.hikari.getFileConnection("jdbc:sqlite:");
+		else
+			connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getPath());
 
 		return connection;
 	}

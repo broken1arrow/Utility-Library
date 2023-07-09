@@ -45,11 +45,14 @@ public abstract class Database {
 
 	public abstract Connection connect();
 
-	protected abstract void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers);
+	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
+	}
 
-	protected abstract void remove(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers);
+	protected void remove(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
+	}
 
-	protected abstract void dropTable(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers);
+	protected void dropTable(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
+	}
 
 	public void createTables() {
 		Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
@@ -544,6 +547,15 @@ public abstract class Database {
 			objectMap.put(rsmd.getColumnName(i), resultSet.getObject(i));
 		}
 		return objectMap;
+	}
+
+	public boolean isHikariAvailable(final String path) {
+		try {
+			Class.forName(path);
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
+		return true;
 	}
 
 	public abstract boolean isHasCastException();

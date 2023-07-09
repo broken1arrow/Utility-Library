@@ -27,7 +27,7 @@ public class HikariCP {
 
 	public Connection getConnection(String driverConnection) throws SQLException {
 		String databaseName = mysqlPreference.getDatabaseName();
-		String hostAddress = mysqlPreference.getHostAdress();
+		String hostAddress = mysqlPreference.getHostAddress();
 		String port = mysqlPreference.getPort();
 		String user = mysqlPreference.getUser();
 		String password = mysqlPreference.getPassword();
@@ -47,23 +47,16 @@ public class HikariCP {
 	}
 
 	public Connection getFileConnection(String driverConnection) throws SQLException {
-		String databaseName = mysqlPreference.getDatabaseName();
-		String hostAddress = mysqlPreference.getHostAdress();
-		String port = "";
-		String user = "";
-		String password = "";
 
+		String hostAddress = mysqlPreference.getHostAddress();
 		HikariConfig config = new HikariConfig();
 		config.setJdbcUrl(driverConnection + hostAddress);
-		//config.setUsername(user);
-		//config.setPassword(password);
 		config.setDriverClassName(this.driver);
 
 		/*		config.addDataSourceProperty("cachePrepStmts", "true");
 		config.addDataSourceProperty("prepStmtCacheSize", "250");
 		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");*/
 		this.hikari = new HikariDataSource(config);
-
 		return this.hikari.getConnection();
 	}
 }
