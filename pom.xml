@@ -269,7 +269,6 @@
                                     <!-- <include>org.broken.arrow.library:NBT</include>-->
                                     <include>org.broken.arrow.library</include>
                                     <include>de.tr7zw:item-nbt-api-plugin</include>
-                                    <include>com.zaxxer:HikariCP</include>
                                 </includes>
                                 <excludes>
                                 </excludes>
@@ -278,10 +277,6 @@
                                 <relocation>
                                     <pattern>de.tr7zw</pattern>
                                     <shadedPattern>${project.groupId}.dependencies.nbt</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.zaxxer.hikari</pattern>
-                                    <shadedPattern>${project.groupId}.dependencies.hikari</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

@@ -546,6 +546,6 @@ public abstract class Database {
 		return objectMap;
 	}
 
-	public abstract boolean isHasCastExeption();
+	public abstract boolean isHasCastException();
 
 }

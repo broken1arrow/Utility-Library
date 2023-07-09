@@ -19,7 +19,7 @@ public class MySQL extends Database {
 	private final MysqlPreferences mysqlPreference;
 	private final String startSQLUrl;
 	private final String driver;
-	private boolean hasCastExeption = false;
+	private boolean hasCastException = false;
 	private final boolean isHikariAvailable;
 	private HikariCP hikari;
 
@@ -42,12 +42,12 @@ public class MySQL extends Database {
 		Connection connection = null;
 		try {
 			if (this.connection == null || this.connection.isClosed()) {
-				if (!hasCastExeption) {
-					connection = this.setupConection();
+				if (!hasCastException) {
+					connection = this.setupConnection();
 				}
 			}
 		} catch (SQLRecoverableException exception) {
-			hasCastExeption = true;
+			hasCastException = true;
 			LogMsg.warn("Could not connect to the database. Check your database connection.", exception);
 
 		} catch (SQLException throwable) {
@@ -71,20 +71,22 @@ public class MySQL extends Database {
 		this.batchUpdate(batchList, tableWrappers);
 	}
 
-	public Connection setupConection() throws SQLException {
-		String databaseName = mysqlPreference.getDatabaseName();
-		String hostAddress = mysqlPreference.getHostAdress();
-		String port = mysqlPreference.getPort();
-		String user = mysqlPreference.getUser();
-		String password = mysqlPreference.getPassword();
+	public Connection setupConnection() throws SQLException {
 		Connection connection;
+
 		if (isHikariAvailable) {
 			if (this.hikari == null)
 				this.hikari = new HikariCP(this.mysqlPreference, this.driver);
-			connection = this.hikari.getConection(startSQLUrl);
+			connection = this.hikari.getConnection(startSQLUrl);
 		} else {
+			String databaseName = mysqlPreference.getDatabaseName();
+			String hostAddress = mysqlPreference.getHostAdress();
+			String port = mysqlPreference.getPort();
+			String user = mysqlPreference.getUser();
+			String password = mysqlPreference.getPassword();
 			connection = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/" + databaseName + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true, user, password);
 		}
+		
 		return connection;
 	}
 
@@ -117,7 +119,7 @@ public class MySQL extends Database {
 	}
 
 	@Override
-	public boolean isHasCastExeption() {
-		return hasCastExeption;
+	public boolean isHasCastException() {
+		return hasCastException;
 	}
 }
