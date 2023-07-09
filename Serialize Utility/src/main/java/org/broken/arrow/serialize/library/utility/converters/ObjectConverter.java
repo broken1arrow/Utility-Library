@@ -186,7 +186,11 @@ public class ObjectConverter {
 		return list.stream()
 				.filter(Map.class::isInstance)
 				.map(Map.class::cast)
-				.map(LinkedHashMap<String, Object>::new)
+				.map(map -> {
+					Map<String, Object> newMap = new LinkedHashMap<>();
+					map.forEach((key, value) -> newMap.put(key.toString(), value));
+					return newMap;
+				})
 				.collect(Collectors.toList());
 	}
 }
