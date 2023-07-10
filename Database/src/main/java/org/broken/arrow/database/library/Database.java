@@ -479,10 +479,7 @@ public abstract class Database {
 			} else
 				sql = tableWrapper.updateTable();
 		} else {
-			if (this.getDatabaseType() == DatabaseType.H2)
-				sql = tableWrapper.mergeIntoTable();
-			else
-				sql = tableWrapper.replaceIntoTable();
+			sql = tableWrapper.replaceIntoTable();
 		}
 		if (sql != null)
 			listOfCommands.add(sql);

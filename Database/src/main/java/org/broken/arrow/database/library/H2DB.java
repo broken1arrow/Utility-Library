@@ -46,6 +46,22 @@ public class H2DB extends Database {
 		this.batchUpdate(batchList, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 	}
 
+	@Override
+	protected List<String> getSqlsCommands(final List<String> listOfCommands, final TableWrapper tableWrapper) {
+		String sql = null;
+		if (tableWrapper.getRecord() != null && !tableWrapper.getRecord().isEmpty()) {
+			if (tableWrapper.getRecord().size() > 1) {
+				listOfCommands.addAll(tableWrapper.updateTables());
+			} else
+				sql = tableWrapper.updateTable();
+		} else {
+			sql = tableWrapper.mergeIntoTable();
+		}
+		if (sql != null)
+			listOfCommands.add(sql);
+		return listOfCommands;
+	}
+
 	public Connection setupConnection() throws SQLException {
 		Connection connection;
 		File dbFile;
