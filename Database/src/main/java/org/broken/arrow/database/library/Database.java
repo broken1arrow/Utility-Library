@@ -6,7 +6,8 @@ import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
-import org.broken.arrow.database.library.utility.serialize.DeSerialize;
+import org.broken.arrow.database.library.utility.DatabaseType;
+import org.broken.arrow.database.library.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -32,15 +33,27 @@ import java.util.TimerTask;
 public abstract class Database {
 
 	protected Connection connection;
-	private final DeSerialize deSerialize = new DeSerialize();
+	private final MethodReflectionUtils methodReflectionUtils = new MethodReflectionUtils();
 	protected boolean batchUpdateGoingOn = false;
 	private final Map<String, TableWrapper> tables = new HashMap<>();
 	protected boolean hasStartWriteToDb = false;
-	private final boolean sqlite;
+	private final DatabaseType databaseType;
 	private Set<String> removeColumns = new HashSet<>();
 
 	public Database() {
-		this.sqlite = this instanceof SQLite;
+		if (this instanceof SQLite) {
+			this.databaseType = DatabaseType.SQLite;
+			return;
+		}
+		if (this instanceof MySQL) {
+			this.databaseType = DatabaseType.MySQL;
+			return;
+		}
+		if (this instanceof H2DB) {
+			this.databaseType = DatabaseType.H2;
+			return;
+		}
+		this.databaseType = DatabaseType.Unknown;
 	}
 
 	public abstract Connection connect();
@@ -198,7 +211,7 @@ public abstract class Database {
 		} finally {
 			this.close(preparedStatement, resultSet);
 		}
-		T deserialize = this.deSerialize.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+		T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
 		return new LoadDataWrapper<>(tableWrapper.getPrimaryRow().getColumnName(), dataFromDB, deserialize);
 	}
 
@@ -230,7 +243,7 @@ public abstract class Database {
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
 				Map<String, Object> dataFromDB = this.getDataFromDB(resultSet);
-				T deserialize = this.deSerialize.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+				T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
 				loadDataWrappers.add(new LoadDataWrapper<>(tableWrapper.getPrimaryRow().getColumnName(), dataFromDB, deserialize));
 			}
 
@@ -345,7 +358,7 @@ public abstract class Database {
 
 				// This will block the thread
 				this.connection.commit();
-				
+
 			} catch (final Throwable t) {
 				t.printStackTrace();
 
@@ -466,7 +479,7 @@ public abstract class Database {
 			} else
 				sql = tableWrapper.updateTable();
 		} else {
-			if (this instanceof H2DB)
+			if (this.getDatabaseType() == DatabaseType.H2)
 				sql = tableWrapper.mergeIntoTable();
 			else
 				sql = tableWrapper.replaceIntoTable();
@@ -493,8 +506,13 @@ public abstract class Database {
 		this.removeColumns = removeColumns;
 	}
 
-	public boolean isSqlite() {
-		return sqlite;
+	/**
+	 * Type of database set.
+	 *
+	 * @return the database type currently set.
+	 */
+	public DatabaseType getDatabaseType() {
+		return databaseType;
 	}
 
 	@Nonnull

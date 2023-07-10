@@ -9,7 +9,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
 
-public class DeSerialize {
+public class MethodReflectionUtils {
 
 
 	public <T extends ConfigurationSerializable> T invokeDeSerializeMethod(final Class<T> clazz, final String methodName, final Object... params) {

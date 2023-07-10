@@ -26,7 +26,7 @@ public class testRun {
 		MySQL mysql = new MySQL(new MysqlPreferences("sql7621744", "sql7.freesqldatabase.com", "3306", "sql7621744", "bZS6iTeRpm"));
 		databasewrapper
 				.add("fun_key1", "VARCHAR(120)")
-				.addDefult("fun_key2", "VARCHAR(120)", "HI")
+				.addDefault("fun_key2", "VARCHAR(120)", "HI")
 				.addNotNull("fun_key3", "VARCHAR(120)")
 				.addCustom("fun_key4", new Builder("fun_key4", "VARCHAR(120)").setNotNull(true))
 				.addNotNull("fun_key5", "VARCHAR(120)");
@@ -38,7 +38,7 @@ public class testRun {
 		SQLite db = new SQLite("database.db");
 		databasewrapper = TableWrapper.of("Test", new TableRow.Builder("fun_key", "VARCHAR(120)").build(), true);
 		databasewrapper.add("fun_key1", "VARCHAR(120)")
-				.addDefult("fun_key2", "VARCHAR(120)", "HI")
+				.addDefault("fun_key2", "VARCHAR(120)", "HI")
 				.addNotNull("fun_key3", "VARCHAR(120)")
 				.addCustom("fun_key4", new Builder("fun_key4", "VARCHAR(120)").setNotNull(true))
 				.addNotNull("fun_key5", "VARCHAR(120)");

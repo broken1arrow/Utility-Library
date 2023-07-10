@@ -23,21 +23,21 @@ public final class TableWrapper {
 	private Set<String> record;
 	private String columnsArray;
 	private final int primaryKeyLength;
-	private final boolean SQLite;
+	private final boolean supportCharset;
 	private final Map<String, TableRow> columns = new LinkedHashMap<>();
 
 	private TableWrapper() {
-		throw new CatchExceptions("You should not try create empty constractor");
+		throw new CatchExceptions("You should not try create empty constructor");
 	}
 
-	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow tableRow, final boolean isSQlittle) {
-		this(tableName, tableRow, 120, isSQlittle);
+	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow tableRow, final boolean supportCharset) {
+		this(tableName, tableRow, 120, supportCharset);
 	}
 
-	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow primaryRow, final int valueLength, final boolean isSQLite) {
+	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow primaryRow, final int valueLength, final boolean supportCharset) {
 		Validate.checkNotEmpty(tableName, "Table name is empty.");
 		Validate.checkNotEmpty(primaryRow, "Primary key is empty, if you not set this you can`t have unique rows in the database.");
-		this.SQLite = isSQLite;
+		this.supportCharset = supportCharset;
 		this.tableName = tableName;
 		this.primaryRow = primaryRow;
 		this.primaryKeyLength = valueLength > 0 ? valueLength : 120;
@@ -45,37 +45,40 @@ public final class TableWrapper {
 	}
 
 	/**
-	 * Method to create new database command. Will create first part of the table. You need then use methods
-	 * {@link TableWrapper#add(String, String)}, {@link TableWrapper#addNotNull(String, String)}
-	 * {@link TableWrapper#addDefult(String, String, String)}, {@link TableWrapper#addAutoIncrement(String, String)}
-	 * and lastly use this {@link TableWrapper#createTable()}. To build the string for the database command.
+	 * Creates a new TableWrapper object to build a database command for creating a table.
+	 * Use the provided methods to add columns and define table properties. You can then call {@link TableWrapper#createTable()}
+	 * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
 	 *
-	 * @param tableName  name on your table.
-	 * @param primaryRow key that is primary if not set you can add duplicate records.
-	 * @param isSQlittle some commands are not suported in SQlittle (so need to know what type of database).
-	 * @return TableWrapper class you need then add columms to your table.
+	 * @param tableName  the name of the table.
+	 * @param primaryRow the key that serves as the primary key. If not set, duplicate records may be added.
+	 * @param support    a flag indicating whether certain commands and settings are supported in the target SQL database.
+	 *                   Set to `true` to enable support, or `false` to disable it. Use this option if you encounter errors.
+	 * @return a TableWrapper object that allows you to add columns and define properties for the table.
 	 */
-	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow, final boolean isSQlittle) {
-		return new TableWrapper(tableName, primaryRow, isSQlittle).getTableWrapper();
+	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow, final boolean support) {
+		return new TableWrapper(tableName, primaryRow, support).getTableWrapper();
 	}
 
 	/**
-	 * Method to create new database command. Will create first part of the table. You need then use method
-	 * {@link TableWrapper#replaceIntoTable()} to build the string for the database command.
+	 * Creates a new TableWrapper object to build a database command for creating a table.
+	 * Use the provided methods to add columns and define table properties. You can then call {@link TableWrapper#createTable()}
+	 * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
 	 *
 	 * @param tableName   name on your table.
-	 * @param primaryRow  key that is primary if not set you can add duplicate records.
+	 * @param primaryRow  the key that serves as the primary key. If not set, duplicate records may be added.
 	 * @param valueLength Length of the value for primary key (used for text and similar in SQL database).
-	 * @param isSQlittle  some commands are not suported in SQlittle (so need to know what type of database).
-	 * @return TableWrapper class you need then add columms to your table.
+	 * @param support     a flag indicating whether certain commands and settings are supported in the target SQL database.
+	 *                    *                    Set to `true` to enable support, or `false` to disable it. Use this option if you encounter errors.
+	 * @return TableWrapper class you need then add columns to your table.
 	 */
-	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow, final int valueLength, final boolean isSQlittle) {
-		return new TableWrapper(tableName, primaryRow, valueLength, isSQlittle).getTableWrapper();
+	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow, final int valueLength, final boolean support) {
+		return new TableWrapper(tableName, primaryRow, valueLength, support).getTableWrapper();
 	}
 
 	public TableWrapper getTableWrapper() {
 		return table;
 	}
+
 
 	public TableWrapper add(final String columnName, final String datatype) {
 		columns.put(columnName, new TableRow.Builder(columnName, datatype)
@@ -83,9 +86,9 @@ public final class TableWrapper {
 		return this;
 	}
 
-	public TableWrapper addDefult(final String columnName, final String datatype, final String defult) {
+	public TableWrapper addDefault(final String columnName, final String datatype, final String defaultValue) {
 		columns.put(columnName, new TableRow.Builder(columnName, datatype)
-				.setPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).setDefaultValue(defult).build());
+				.setPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).setDefaultValue(defaultValue).build());
 		return this;
 	}
 
@@ -169,16 +172,16 @@ public final class TableWrapper {
 		return columnsArray;
 	}
 
-	public boolean isSQLite() {
-		return SQLite;
+	public boolean isSupportCharset() {
+		return supportCharset;
 	}
 
 	/**
 	 * Create new table with columns,data type and primary key you have set.
 	 * From this methods {@link #add(String, String)}, {@link #addNotNull(String, String)}
-	 * {@link #addDefult(String, String, String)} {@link #addAutoIncrement(String, String)}
+	 * {@link #addDefault(String, String, String)} {@link #addAutoIncrement(String, String)}
 	 *
-	 * @return string with prepered query to run on your database.
+	 * @return string with prepared query to run on your database.
 	 */
 	public String createTable() {
 		final StringBuilder columns = new StringBuilder();
@@ -199,14 +202,14 @@ public final class TableWrapper {
 			if (column.getDefaultValue() != null)
 				columns.append(" DEFAULT ").append("'").append(column.getDefaultValue()).append("'");
 		}
-		if (this.isSQLite())
+		if (this.isSupportCharset())
 			columns.append(", PRIMARY KEY (`").append(primaryKey.getColumnName()).append("`)");
 		else
 			columns.append(", PRIMARY KEY (`").append(primaryKey.getColumnName()).append("`(").append(this.getPrimaryKeyLength()).append("))");
 
 		columnsArray = this.columns.values().stream().map(TableRow::getColumnName).collect(Collectors.joining(","));
 
-		String string = "CREATE TABLE IF NOT EXISTS `" + this.getTableName() + "` (" + columns + ")" + (this.isSQLite() ? "" : " DEFAULT CHARSET=utf8mb4" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
+		String string = "CREATE TABLE IF NOT EXISTS `" + this.getTableName() + "` (" + columns + ")" + (this.isSupportCharset() ? "" : " DEFAULT CHARSET=utf8mb4" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
 		return string;
 	}
 
@@ -216,64 +219,22 @@ public final class TableWrapper {
 	 * @return string with prepared query to run on your database.
 	 */
 	public String replaceIntoTable() {
-	/*	final StringBuilder columns = new StringBuilder();
-		final StringBuilder values = new StringBuilder();
-		TableRow primaryKey = this.getPrimaryRow();
-		int index = 0;
-		columns.append("(`").append(primaryKey.getColumnName()).append(this.getColumns().size() > 0 ? "`, " : "` ");
-		values.append("'").append(primaryKey.getColumnValue()).append(this.getColumns().size() > 0 ? "', " : "' ");
-		for (Entry<String, TableRow> entry : this.getColumns().entrySet()) {
-			index++;
-			//for (int index = 0; index < this.getColumns().size(); index++) {
-			final String columnName = entry.getKey();
-			final TableRow column = entry.getValue();
-			final boolean endOfString = index == this.getColumns().size();
-			columns.append((columns.length() == 0) ? "(" : "").append("`").append(columnName).append("`").insert(columns.length(), columns.length() == 0 || endOfString ? "" : ",");
-			Object value = column.getColumnValue();
-			if (value == null && column.isNotNull())
-				value = "";
-			if (value == null && column.getDefaultValue() != null)
-				value = column.getDefaultValue();
-			values.append(value != null ? "'" : "").append(value).insert(values.length(), values.length() == 0 || endOfString ? "" : value == null ? ", " : "',");
-		}
-		columns.insert(columns.length(), ") VALUES(" + values + "')");*/
 		return "REPLACE INTO `" + this.getTableName() + "` " + this.merge() + ";";
 	}
 
 	/**
 	 * Replace data in your database, on columns you added.
 	 *
-	 * @return string with prepered query to run on your database.
+	 * @return string with prepared query to run on your database.
 	 */
 	public String mergeIntoTable() {
-	/*	final StringBuilder columns = new StringBuilder();
-		final StringBuilder values = new StringBuilder();
-		TableRow primaryKey = this.getPrimaryRow();
-		int index = 0;
-		columns.append("(`").append(primaryKey.getColumnName()).append(this.getColumns().size() > 0 ? "`, " : "` ");
-		values.append("'").append(primaryKey.getColumnValue()).append(this.getColumns().size() > 0 ? "', " : "' ");
-		for (Entry<String, TableRow> entry : this.getColumns().entrySet()) {
-			index++;
-			//for (int index = 0; index < this.getColumns().size(); index++) {
-			final String columnName = entry.getKey();
-			final TableRow column = entry.getValue();
-			final boolean endOfString = index == this.getColumns().size();
-			columns.append((columns.length() == 0) ? "(" : "").append("`").append(columnName).append("`").insert(columns.length(), columns.length() == 0 || endOfString ? "" : ",");
-			Object value = column.getColumnValue();
-			if (value == null && column.isNotNull())
-				value = "";
-			if (value == null && column.getDefaultValue() != null)
-				value = column.getDefaultValue();
-			values.append(value != null ? "'" : "").append(value).insert(values.length(), values.length() == 0 || endOfString ? "" : value == null ? ", " : "',");
-		}
-		columns.insert(columns.length(), ") VALUES(" + values + "')");*/
 		return "MERGE INTO `" + this.getTableName() + "` " + this.merge() + ";";
 	}
 
 	/**
-	 * Update data in your database, on columns you added. Will replace old data on colums you added.
+	 * Update data in your database, on columns you added. Will replace old data on columns you added.
 	 *
-	 * @return string with prepered query to run on your database.
+	 * @return string with prepared query to run on your database.
 	 */
 	public String updateTable() {
 		Set<String> records = this.getRecord();
@@ -284,9 +245,9 @@ public final class TableWrapper {
 	}
 
 	/**
-	 * Update data in your database, on columns you added. Will replace old data on colums you added.
+	 * Update data in your database, on columns you added. Will replace old data on columns you added.
 	 *
-	 * @return list of prepered querys to run on your database.
+	 * @return list of prepared query's to run on your database.
 	 */
 	public List<String> updateTables() {
 		List<String> list = new ArrayList<>();
@@ -297,6 +258,12 @@ public final class TableWrapper {
 		return list;
 	}
 
+	/**
+	 * Creates the command for update the row.
+	 *
+	 * @param record the record match in the database to update.
+	 * @return the constructed SQL command for the database.
+	 */
 	private String updateTable(String record) {
 		TableRow primaryKey = this.getPrimaryRow();
 		Validate.checkBoolean(primaryKey == null || primaryKey.getColumnName() == null || primaryKey.getColumnName().equals("non"), "You need set primary key, for update records in the table or all records get updated.");
