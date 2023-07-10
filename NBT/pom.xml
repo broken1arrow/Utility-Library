@@ -21,14 +21,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>de.tr7zw</groupId>
-            <artifactId>item-nbt-api-plugin</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.tr7zw</groupId>
+            <artifactId>item-nbt-api</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -83,7 +83,7 @@
                             </filters>
                             <artifactSet>
                                 <includes>
-                                    <include>de.tr7zw:item-nbt-api-plugin</include>
+                                    <include>de.tr7zw:item-nbt-api</include>
                                 </includes>
                             </artifactSet>
                             <relocations>

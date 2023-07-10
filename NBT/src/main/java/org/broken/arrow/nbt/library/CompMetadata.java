@@ -1,7 +1,7 @@
 package org.broken.arrow.nbt.library;
 
-import de.tr7zw.nbtapi.NBTCompound;
-import de.tr7zw.nbtapi.NBTItem;
+import de.tr7zw.changeme.nbtapi.NBTCompound;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.broken.arrow.nbt.library.utility.ServerVersion;
 import org.broken.arrow.nbt.library.utility.Valid;
 import org.bukkit.Material;

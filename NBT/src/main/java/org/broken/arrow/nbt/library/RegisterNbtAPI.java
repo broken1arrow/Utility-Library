@@ -7,7 +7,8 @@ import org.bukkit.plugin.Plugin;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static de.tr7zw.nbtapi.utils.MinecraftVersion.getVersion;
+import static de.tr7zw.changeme.nbtapi.utils.MinecraftVersion.getVersion;
+
 
 public class RegisterNbtAPI {
 
@@ -32,8 +33,8 @@ public class RegisterNbtAPI {
 
 	/**
 	 * Get methods to easy set metadata. If you want to set up self you can start
-	 * with this classes {@link de.tr7zw.nbtapi.NBTItem} and
-	 * {@link de.tr7zw.nbtapi.NBTEntity}
+	 * with this classes {@link de.tr7zw.changeme.nbtapi.NBTItem} and
+	 * {@link de.tr7zw.changeme.nbtapi.NBTEntity}
 	 *
 	 * @return CompMetadata class.
 	 */
