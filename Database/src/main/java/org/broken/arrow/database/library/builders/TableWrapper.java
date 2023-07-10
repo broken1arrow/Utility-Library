@@ -213,10 +213,10 @@ public final class TableWrapper {
 	/**
 	 * Replace data in your database, on columns you added.
 	 *
-	 * @return string with prepered query to run on your database.
+	 * @return string with prepared query to run on your database.
 	 */
 	public String replaceIntoTable() {
-		final StringBuilder columns = new StringBuilder();
+	/*	final StringBuilder columns = new StringBuilder();
 		final StringBuilder values = new StringBuilder();
 		TableRow primaryKey = this.getPrimaryRow();
 		int index = 0;
@@ -236,8 +236,38 @@ public final class TableWrapper {
 				value = column.getDefaultValue();
 			values.append(value != null ? "'" : "").append(value).insert(values.length(), values.length() == 0 || endOfString ? "" : value == null ? ", " : "',");
 		}
-		columns.insert(columns.length(), ") VALUES(" + values + "')");
-		return "REPLACE INTO `" + this.getTableName() + "` " + columns + ";";
+		columns.insert(columns.length(), ") VALUES(" + values + "')");*/
+		return "REPLACE INTO `" + this.getTableName() + "` " + this.merge() + ";";
+	}
+
+	/**
+	 * Replace data in your database, on columns you added.
+	 *
+	 * @return string with prepered query to run on your database.
+	 */
+	public String mergeIntoTable() {
+	/*	final StringBuilder columns = new StringBuilder();
+		final StringBuilder values = new StringBuilder();
+		TableRow primaryKey = this.getPrimaryRow();
+		int index = 0;
+		columns.append("(`").append(primaryKey.getColumnName()).append(this.getColumns().size() > 0 ? "`, " : "` ");
+		values.append("'").append(primaryKey.getColumnValue()).append(this.getColumns().size() > 0 ? "', " : "' ");
+		for (Entry<String, TableRow> entry : this.getColumns().entrySet()) {
+			index++;
+			//for (int index = 0; index < this.getColumns().size(); index++) {
+			final String columnName = entry.getKey();
+			final TableRow column = entry.getValue();
+			final boolean endOfString = index == this.getColumns().size();
+			columns.append((columns.length() == 0) ? "(" : "").append("`").append(columnName).append("`").insert(columns.length(), columns.length() == 0 || endOfString ? "" : ",");
+			Object value = column.getColumnValue();
+			if (value == null && column.isNotNull())
+				value = "";
+			if (value == null && column.getDefaultValue() != null)
+				value = column.getDefaultValue();
+			values.append(value != null ? "'" : "").append(value).insert(values.length(), values.length() == 0 || endOfString ? "" : value == null ? ", " : "',");
+		}
+		columns.insert(columns.length(), ") VALUES(" + values + "')");*/
+		return "MERGE INTO `" + this.getTableName() + "` " + this.merge() + ";";
 	}
 
 	/**
@@ -294,6 +324,38 @@ public final class TableWrapper {
 			}
 		}
 		return "UPDATE `" + this.getTableName() + "` SET " + columns + " WHERE `" + primaryKey.getColumnName() + "` = '" + record + "'" + ";";
+	}
+
+	/**
+	 * Constructs the SQL command for merging data into a database table.
+	 * The resulting command can be executed using "REPLACE INTO" or "MERGE INTO".
+	 *
+	 * @return the constructed SQL command for database merging.
+	 */
+	public StringBuilder merge() {
+		final StringBuilder columns = new StringBuilder();
+		final StringBuilder values = new StringBuilder();
+		TableRow primaryKey = this.getPrimaryRow();
+		int index = 0;
+		columns.append("(`").append(primaryKey.getColumnName()).append(this.getColumns().size() > 0 ? "`, " : "` ");
+		values.append("'").append(primaryKey.getColumnValue()).append(this.getColumns().size() > 0 ? "', " : "' ");
+		for (Entry<String, TableRow> entry : this.getColumns().entrySet()) {
+			index++;
+			//for (int index = 0; index < this.getColumns().size(); index++) {
+			final String columnName = entry.getKey();
+			final TableRow column = entry.getValue();
+			final boolean endOfString = index == this.getColumns().size();
+			columns.append((columns.length() == 0) ? "(" : "").append("`").append(columnName).append("`").insert(columns.length(), columns.length() == 0 || endOfString ? "" : ",");
+			Object value = column.getColumnValue();
+			if (value == null && column.isNotNull())
+				value = "";
+			if (value == null && column.getDefaultValue() != null)
+				value = column.getDefaultValue();
+			values.append(value != null ? "'" : "").append(value).insert(values.length(), values.length() == 0 || endOfString ? "" : value == null ? ", " : "',");
+		}
+		columns.insert(columns.length(), ") VALUES(" + values + "')");
+
+		return columns;
 	}
 
 }

@@ -7,7 +7,7 @@ public class LogMsg {
 	static Logger logger;
 
 	static {
-		logger = Logger.getLogger("Database.broken.arrow");
+		logger = Logger.getLogger("Utility.Library.Database");
 	}
 
 	public static void info(String message) {

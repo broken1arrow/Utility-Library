@@ -23,7 +23,7 @@ public class testRun {
 
 	public static void main(String[] args) {
 		TableWrapper databasewrapper = TableWrapper.of("Test", new TableRow.Builder("fun_key", "TEXT(120)").build(), false);
-		MySQL mysql = new MySQL(new MysqlPreferences.Builder("sql7621744", "sql7.freesqldatabase.com", "3306", "sql7621744", "bZS6iTeRpm").build());
+		MySQL mysql = new MySQL(new MysqlPreferences("sql7621744", "sql7.freesqldatabase.com", "3306", "sql7621744", "bZS6iTeRpm"));
 		databasewrapper
 				.add("fun_key1", "VARCHAR(120)")
 				.addDefult("fun_key2", "VARCHAR(120)", "HI")

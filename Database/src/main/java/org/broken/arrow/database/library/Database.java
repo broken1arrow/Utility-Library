@@ -304,7 +304,7 @@ public abstract class Database {
 		this.dropTable(Collections.singletonList(sql), tableWrapper);
 	}
 
-	protected void batchUpdate(@Nonnull final List<String> batchList, int resultSetType, int resultSetConcurrency) {
+	protected final void batchUpdate(@Nonnull final List<String> batchList, int resultSetType, int resultSetConcurrency) {
 		final ArrayList<String> sqls = new ArrayList<>(batchList);
 		if (!openConnection()) return;
 
@@ -345,8 +345,7 @@ public abstract class Database {
 
 				// This will block the thread
 				this.connection.commit();
-
-				LogMsg.info("Updated " + processedCount + " database entries.");
+				
 			} catch (final Throwable t) {
 				t.printStackTrace();
 
@@ -411,10 +410,10 @@ public abstract class Database {
 				+ TextUtils(existingColumns) + " FROM " + tableName + "_old;");
 		movedata.execute();
 
-		final PreparedStatement removeOldtable = connection.prepareStatement("DROP TABLE " + tableName + "_old;");
-		removeOldtable.execute();
+		final PreparedStatement removeOldTable = connection.prepareStatement("DROP TABLE " + tableName + "_old;");
+		removeOldTable.execute();
 
-		close(movedata, alterTable, createTable, removeOldtable);
+		close(movedata, alterTable, createTable, removeOldTable);
 	}
 
 	protected void createMissingColumns(final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
@@ -429,8 +428,8 @@ public abstract class Database {
 			try {
 				final PreparedStatement statement = connection.prepareStatement("ALTER TABLE `" + tableWrapper.getTableName() + "` ADD `" + columnName + "` " + tableRow.getDatatype() + ";");
 				statement.execute();
-			} catch (final SQLException throwables) {
-				throwables.printStackTrace();
+			} catch (final SQLException throwable) {
+				throwable.printStackTrace();
 			}
 		}
 	}
@@ -446,7 +445,7 @@ public abstract class Database {
 			close(preparedStatement, resultSet);
 
 		} catch (final SQLException ex) {
-			LogMsg.warn("Unable to retreive connection ", ex);
+			LogMsg.warn("Unable to retrieve connection ", ex);
 		}
 	}
 
@@ -466,16 +465,20 @@ public abstract class Database {
 				listOfCommands.addAll(tableWrapper.updateTables());
 			} else
 				sql = tableWrapper.updateTable();
-		} else
-			sql = tableWrapper.replaceIntoTable();
+		} else {
+			if (this instanceof H2DB)
+				sql = tableWrapper.mergeIntoTable();
+			else
+				sql = tableWrapper.replaceIntoTable();
+		}
 		if (sql != null)
 			listOfCommands.add(sql);
 
 		return listOfCommands;
 	}
 
-	protected String TextUtils(final List<String> colums) {
-		return colums.toString().replace("[", "").replace("]", "");
+	protected String TextUtils(final List<String> columns) {
+		return columns.toString().replace("[", "").replace("]", "");
 	}
 
 	public boolean isHasStartWriteToDb() {

@@ -2,13 +2,14 @@ package org.broken.arrow.database.library;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.broken.arrow.database.library.builders.MysqlPreferences;
+import org.broken.arrow.database.library.log.LogMsg;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class HikariCP {
 	private HikariDataSource hikari;
@@ -18,11 +19,10 @@ public class HikariCP {
 	public HikariCP(@Nonnull MysqlPreferences mysqlPreference, String driver) {
 		this.mysqlPreference = mysqlPreference;
 		this.driver = driver;
-		Logger.getLogger("com.zaxxer.hikari.pool.PoolBase").setLevel(Level.OFF);
-		Logger.getLogger("com.zaxxer.hikari.pool.HikariPool").setLevel(Level.OFF);
-		Logger.getLogger("com.zaxxer.hikari.HikariDataSource").setLevel(Level.OFF);
-		Logger.getLogger("com.zaxxer.hikari.HikariConfig").setLevel(Level.OFF);
-		Logger.getLogger("com.zaxxer.hikari.util.DriverDataSource").setLevel(Level.OFF);
+		Configurator.setAllLevels("com.zaxxer.hikari.pool.PoolBase", Level.WARN);
+		Configurator.setAllLevels("com.zaxxer.hikari.HikariDataSource", Level.WARN);
+		Configurator.setAllLevels("com.zaxxer.hikari.pool.HikariPool", Level.WARN);
+		LogMsg.info("load the HikariCP api...");
 	}
 
 	public Connection getConnection(String driverConnection) throws SQLException {
