@@ -596,9 +596,10 @@ public abstract class Database {
 		final ResultSetMetaData rsmd = resultSet.getMetaData();
 		final int columnCount = rsmd.getColumnCount();
 		final Map<String, Object> objectMap = new HashMap<>();
-		for (int i = 1; i <= columnCount; i++) {
-			objectMap.put(rsmd.getColumnName(i), resultSet.getObject(i));
-		}
+		if (resultSet.first())
+			for (int i = 1; i <= columnCount; i++) {
+				objectMap.put(rsmd.getColumnName(i), resultSet.getObject(i));
+			}
 		return objectMap;
 	}
 
