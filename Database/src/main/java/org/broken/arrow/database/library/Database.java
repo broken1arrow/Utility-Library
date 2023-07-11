@@ -56,17 +56,24 @@ public abstract class Database {
 		this.databaseType = DatabaseType.Unknown;
 	}
 
+	/**
+	 * The conetion to the database.
+	 *
+	 * @return the connection.
+	 */
 	public abstract Connection connect();
 
-	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
-	}
+	/**
+	 * The batchUpdate method, override this method to self set the {@link #batchUpdate(java.util.List, int, int)} method.
+	 *
+	 * @param batchList     list of commands that should be executed.
+	 * @param tableWrappers the table wrapper involved in the execution of this event.
+	 */
+	protected abstract void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers);
 
-	protected void remove(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
-	}
-
-	protected void dropTable(@Nonnull final List<String> batchList, @Nonnull final TableWrapper tableWrappers) {
-	}
-
+	/**
+	 * Create all needed tables if it not exist.
+	 */
 	public void createTables() {
 		Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
 		try {
@@ -74,7 +81,7 @@ public abstract class Database {
 			try {
 				for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
 					final List<String> columns = updateTableColumnsInDb(entityTables.getKey());
-					createMissingColumns(entityTables.getValue(), columns);
+					this.createMissingColumns(entityTables.getValue(), columns);
 				}
 			} catch (final SQLException throwable) {
 				throwable.printStackTrace();
@@ -84,34 +91,17 @@ public abstract class Database {
 		}
 	}
 
-	protected List<String> updateTableColumnsInDb(final String tableName) throws SQLException {
-		if (!openConnection()) return new ArrayList<>();
-		if (this.connection.isClosed()) return new ArrayList<>();
-
-		final List<String> column = new ArrayList<>();
-		final PreparedStatement statement = this.connection.prepareStatement("SELECT * FROM " + tableName);
-		final ResultSet rs = statement.executeQuery();
-		final ResultSetMetaData rsmd = rs.getMetaData();
-		final int columnCount = rsmd.getColumnCount();
-
-		for (int i = 1; i <= columnCount; i++) {
-			column.add(rsmd.getColumnName(i));
-		}
-		close(statement, rs);
-		return column;
-	}
-
 	/**
-	 * Saves all row to the specified database table, based on the provided primary key and associated data.
-	 * Note that this method can also use previously added records using either the {@link TableWrapper#addRecord(String)}
+	 * Saves all rows to the specified database table, based on the provided primary key and associated data.
+	 * Note: that this method can also use previously added records using either the {@link TableWrapper#addRecord(String)}
 	 * or {@link TableWrapper#addAllRecord(Set)} methods and it will then update all rows you added. If only one
-	 * record added it will update only one row.
+	 * record added it will update only one row. If no record is set, it will instead replace the old data.
 	 *
-	 * @param tableName  name of the table you want to update rows inside.
-	 * @param utilityMap new data you want to cache to database.
-	 *                   Note the key need to be the table name you want to update.
+	 * @param tableName       name of the table you want to update rows inside.
+	 * @param dataWrapperList List of data you want to cache to database.
+	 *                        Note: the key you set has to be the primary key you want to update.
 	 */
-	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> utilityMap) {
+	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList) {
 		final List<String> sqls = new ArrayList<>();
 
 		final TableWrapper tableWrapper = this.getTable(tableName);
@@ -120,7 +110,7 @@ public abstract class Database {
 			return;
 		}
 		if (!openConnection()) return;
-		for (DataWrapper dataWrapper : utilityMap) {
+		for (DataWrapper dataWrapper : dataWrapperList) {
 			if (dataWrapper == null) continue;
 			String primaryKey = dataWrapper.getPrimaryKey();
 
@@ -143,9 +133,9 @@ public abstract class Database {
 
 	/**
 	 * Saves a single row to the specified database table, based on the provided primary key and associated data.
-	 * Note that this method can also use previously added records using either the {@link TableWrapper#addRecord(String)}
+	 * Note: that this method can also use previously added records using either the {@link TableWrapper#addRecord(String)}
 	 * or {@link TableWrapper#addAllRecord(Set)} methods and it will then update all rows you added. If not set or only one
-	 * record added it will update only one row.
+	 * record added it will update only one row. If no record is set, it will instead replace the old data.
 	 *
 	 * @param tableName   The name of the table to save the row to.
 	 * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.
@@ -177,45 +167,6 @@ public abstract class Database {
 	}
 
 	/**
-	 * Load one row from specified database table.
-	 *
-	 * @param tableName   name of the table you want to get data from.
-	 * @param clazz       the class you have your static deserialize method.
-	 * @param columnValue the value of the primary key you want to find data from.
-	 * @param <T>         Type of class that extends ConfigurationSerializable .
-	 * @return one row you have in the table.
-	 */
-	@Nullable
-	public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
-		TableWrapper tableWrapper = this.getTable(tableName);
-		if (!openConnection()) return null;
-		if (tableWrapper == null) {
-			LogMsg.warn("Could not find table " + tableName);
-			return null;
-		}
-		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
-		String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
-		Map<String, Object> dataFromDB = new HashMap<>();
-		Validate.checkNotNull(columnValue, "Could not find column for " + primaryColumn);
-
-		final String sql = "SELECT * FROM  `" + tableWrapper.getTableName() + "` WHERE `" + primaryColumn + "` = '" + columnValue + "'";
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-		try {
-			preparedStatement = this.connection.prepareStatement(sql);
-			resultSet = preparedStatement.executeQuery();
-			dataFromDB.putAll(this.getDataFromDB(resultSet));
-
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			this.close(preparedStatement, resultSet);
-		}
-		T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-		return new LoadDataWrapper<>(tableWrapper.getPrimaryRow().getColumnName(), dataFromDB, deserialize);
-	}
-
-	/**
 	 * Load all rows from specified database table.
 	 *
 	 * @param tableName name of the table you want to get data from.
@@ -237,9 +188,7 @@ public abstract class Database {
 		if (!openConnection()) return null;
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 		try {
-			final String sql = "SELECT * FROM  `" + tableWrapper.getTableName() + "`";
-
-			preparedStatement = connection.prepareStatement(sql);
+			preparedStatement = connection.prepareStatement(tableWrapper.selectTable());
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
 				Map<String, Object> dataFromDB = this.getDataFromDB(resultSet);
@@ -255,6 +204,60 @@ public abstract class Database {
 		return loadDataWrappers;
 	}
 
+	/**
+	 * Load one row from specified database table.
+	 *
+	 * @param tableName   name of the table you want to get data from.
+	 * @param clazz       the class you have your static deserialize method.
+	 * @param columnValue the value of the primary key you want to find data from.
+	 * @param <T>         Type of class that extends ConfigurationSerializable .
+	 * @return one row you have in the table.
+	 */
+	@Nullable
+	public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
+		TableWrapper tableWrapper = this.getTable(tableName);
+		if (!openConnection()) return null;
+		if (tableWrapper == null) {
+			LogMsg.warn("Could not find table " + tableName);
+			return null;
+		}
+		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
+		String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
+		Map<String, Object> dataFromDB = new HashMap<>();
+		Validate.checkNotNull(columnValue, "Could not find column for " + primaryColumn + ". Because the column value is null.");
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		try {
+			preparedStatement = this.connection.prepareStatement(tableWrapper.selectRow(columnValue));
+			resultSet = preparedStatement.executeQuery();
+			dataFromDB.putAll(this.getDataFromDB(resultSet));
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			this.close(preparedStatement, resultSet);
+		}
+		T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+		return new LoadDataWrapper<>(tableWrapper.getPrimaryRow().getColumnName(), dataFromDB, deserialize);
+	}
+
+	/**
+	 * Create all tables if it not exist yet, will only create a table if it not already exist.
+	 */
+	public void createAllTablesIfNotExist() {
+		//if (!openConnection()) return;
+		for (final Entry<String, TableWrapper> wrapperEntry : tables.entrySet()) {
+			this.createTableIfNotExist(wrapperEntry.getKey());
+		}
+	}
+
+
+	/**
+	 * Create table if it not exist yet, will only create a table if it not already exist.
+	 *
+	 * @param tableName the name of the table to create.
+	 * @return true if it could check if the table exist or create now table.
+	 */
 	public boolean createTableIfNotExist(final String tableName) {
 		if (!openConnection()) return false;
 		PreparedStatement statement = null;
@@ -278,43 +281,52 @@ public abstract class Database {
 		}
 	}
 
-	public void createAllTablesIfNotExist() {
-		if (!openConnection()) return;
-
-		for (final Entry<String, TableWrapper> wrapperEntry : tables.entrySet()) {
-			PreparedStatement statement = null;
-			try {
-				statement = this.connection.prepareStatement(wrapperEntry.getValue().createTable());
-				statement.executeUpdate();
-			} catch (final SQLException e) {
-				e.printStackTrace();
-			} finally {
-				close(statement);
-			}
-			TableRow wrapper = wrapperEntry.getValue().getColumns().values().stream().findFirst().orElse(null);
-			Validate.checkNotNull(wrapper, "Could not find a column for this table " + wrapperEntry.getKey());
-			checkIfTableExist(wrapperEntry.getKey(), wrapper.getColumnName());
-		}
-	}
-
-	public final void remove(final String tableName, final String columnName, final String value) {
+	/**
+	 * Remove all rows from specified database table.
+	 *
+	 * @param tableName name of the table you want to get data from.
+	 * @param values    the list of primary key values you want to remove from database.
+	 */
+	public void removeAll(final String tableName, final List<String> values) {
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-		final String sql = "DELETE FROM `" + tableName + "` WHERE  `" + columnName + "` = `" + value + "`";
-		this.remove(Collections.singletonList(sql), tableWrapper);
+		List<String> columns = new ArrayList<>();
+		for (String value : values) {
+			columns.add(tableWrapper.removeRow(value));
+		}
+		this.batchUpdate(columns, tableWrapper);
 	}
 
-	public final void dropTable(final String tableName) {
+	/**
+	 * Remove one row from specified database table.
+	 *
+	 * @param tableName name of the table you want to get data from.
+	 * @param value     the primary key value you want to remove from database.
+	 */
+	public void remove(final String tableName, final String value) {
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-		final String sql = "DROP TABLE `" + tableName + "`";
-		this.dropTable(Collections.singletonList(sql), tableWrapper);
+		this.batchUpdate(Collections.singletonList(tableWrapper.removeRow(value)), tableWrapper);
+	}
+
+	/**
+	 * Drop the table.
+	 *
+	 * @param tableName the name of the table to drop.
+	 */
+	public void dropTable(final String tableName) {
+		TableWrapper tableWrapper = this.getTable(tableName);
+		if (tableWrapper == null) {
+			LogMsg.warn("Could not find table " + tableName);
+			return;
+		}
+		this.batchUpdate(Collections.singletonList(tableWrapper.dropTable()), tableWrapper);
 	}
 
 	protected final void batchUpdate(@Nonnull final List<String> batchList, int resultSetType, int resultSetConcurrency) {
@@ -395,6 +407,29 @@ public abstract class Database {
 
 	}
 
+	/**
+	 * Update the table, if it missing a colum or columns.
+	 *
+	 * @param tableName the table you want to check.
+	 * @return list of columns added in the database.
+	 * @throws SQLException if something going wrong.
+	 */
+	protected List<String> updateTableColumnsInDb(final String tableName) throws SQLException {
+		if (!openConnection()) return new ArrayList<>();
+		if (this.connection.isClosed()) return new ArrayList<>();
+
+		final List<String> column = new ArrayList<>();
+		final PreparedStatement statement = this.connection.prepareStatement("SELECT * FROM " + tableName);
+		final ResultSet rs = statement.executeQuery();
+		final ResultSetMetaData rsmd = rs.getMetaData();
+		final int columnCount = rsmd.getColumnCount();
+
+		for (int i = 1; i <= columnCount; i++) {
+			column.add(rsmd.getColumnName(i));
+		}
+		close(statement, rs);
+		return column;
+	}
 
 	protected void dropColumn(final String createTableCmd, final List<String> existingColumns, final String tableName) throws SQLException {
 

@@ -23,21 +23,21 @@ public final class TableWrapper {
 	private Set<String> record;
 	private String columnsArray;
 	private final int primaryKeyLength;
-	private final boolean supportCharset;
+	private final boolean supportMySQL;
 	private final Map<String, TableRow> columns = new LinkedHashMap<>();
 
 	private TableWrapper() {
 		throw new CatchExceptions("You should not try create empty constructor");
 	}
 
-	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow tableRow, final boolean supportCharset) {
-		this(tableName, tableRow, 120, supportCharset);
+	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow tableRow, final boolean supportMySQL) {
+		this(tableName, tableRow, 120, supportMySQL);
 	}
 
-	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow primaryRow, final int valueLength, final boolean supportCharset) {
+	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow primaryRow, final int valueLength, final boolean supportMySQL) {
 		Validate.checkNotEmpty(tableName, "Table name is empty.");
 		Validate.checkNotEmpty(primaryRow, "Primary key is empty, if you not set this you can`t have unique rows in the database.");
-		this.supportCharset = supportCharset;
+		this.supportMySQL = supportMySQL;
 		this.tableName = tableName;
 		this.primaryRow = primaryRow;
 		this.primaryKeyLength = valueLength > 0 ? valueLength : 120;
@@ -79,14 +79,13 @@ public final class TableWrapper {
 		return table;
 	}
 
-
 	public TableWrapper add(final String columnName, final String datatype) {
 		columns.put(columnName, new TableRow.Builder(columnName, datatype)
 				.setPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).build());
 		return this;
 	}
 
-	public TableWrapper addDefault(final String columnName, final String datatype, final String defaultValue) {
+	public TableWrapper addDefault(final String columnName, final String datatype, final Object defaultValue) {
 		columns.put(columnName, new TableRow.Builder(columnName, datatype)
 				.setPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).setDefaultValue(defaultValue).build());
 		return this;
@@ -172,14 +171,14 @@ public final class TableWrapper {
 		return columnsArray;
 	}
 
-	public boolean isSupportCharset() {
-		return supportCharset;
+	public boolean isSupportMySQL() {
+		return supportMySQL;
 	}
 
 	/**
 	 * Create new table with columns,data type and primary key you have set.
 	 * From this methods {@link #add(String, String)}, {@link #addNotNull(String, String)}
-	 * {@link #addDefault(String, String, String)} {@link #addAutoIncrement(String, String)}
+	 * {@link #addDefault(String, String, Object)} {@link #addAutoIncrement(String, String)}
 	 *
 	 * @return string with prepared query to run on your database.
 	 */
@@ -202,14 +201,14 @@ public final class TableWrapper {
 			if (column.getDefaultValue() != null)
 				columns.append(" DEFAULT ").append("'").append(column.getDefaultValue()).append("'");
 		}
-		if (this.isSupportCharset())
+		if (this.isSupportMySQL())
 			columns.append(", PRIMARY KEY (`").append(primaryKey.getColumnName()).append("`)");
 		else
 			columns.append(", PRIMARY KEY (`").append(primaryKey.getColumnName()).append("`(").append(this.getPrimaryKeyLength()).append("))");
 
 		columnsArray = this.columns.values().stream().map(TableRow::getColumnName).collect(Collectors.joining(","));
 
-		String string = "CREATE TABLE IF NOT EXISTS `" + this.getTableName() + "` (" + columns + ")" + (this.isSupportCharset() ? "" : " DEFAULT CHARSET=utf8mb4" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
+		String string = "CREATE TABLE IF NOT EXISTS `" + this.getTableName() + "` (" + columns + ")" + (this.isSupportMySQL() ? "" : " DEFAULT CHARSET=utf8mb4" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
 		return string;
 	}
 
@@ -325,4 +324,43 @@ public final class TableWrapper {
 		return columns;
 	}
 
+	/**
+	 * Select specific table.
+	 *
+	 * @return the constructed SQL command for get the table.
+	 */
+	public String selectTable() {
+		return "SELECT * FROM  `" + this.getTableName() + "`";
+	}
+
+	/**
+	 * Select specific table.
+	 *
+	 * @param columnValue the primary key value you want to get from database.
+	 * @return the constructed SQL command for get the table.
+	 */
+	public String selectRow(String columnValue) {
+		TableRow primaryKey = this.getPrimaryRow();
+		return "SELECT * FROM  `" + this.getTableName() + "` WHERE `" + primaryKey.getColumnName() + "` = '" + columnValue + "'";
+	}
+
+	/**
+	 * Remove a specific row from the table.
+	 *
+	 * @param value the primary key value you want to remove from database.
+	 * @return the constructed SQL command for remove the row.
+	 */
+	public String removeRow(final String value) {
+		TableRow primaryKey = this.getPrimaryRow();
+		return "DELETE FROM `" + this.getTableName() + "` WHERE  `" + primaryKey.getColumnName() + "` = `" + value + "`";
+	}
+
+	/**
+	 * Remove this table from the database.
+	 *
+	 * @return the constructed SQL command for drop the table.
+	 */
+	public String dropTable() {
+		return "DROP TABLE `" + this.getTableName() + "`";
+	}
 }

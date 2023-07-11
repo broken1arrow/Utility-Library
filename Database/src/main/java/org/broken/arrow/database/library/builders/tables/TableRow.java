@@ -6,7 +6,7 @@ public final class TableRow {
 
 	private final String columnName;
 	private final Object columnValue;
-	private final String defaultValue;
+	private final Object defaultValue;
 	private final String datatype;
 	private final boolean primaryKey;
 	private final boolean autoIncrement;
@@ -24,18 +24,38 @@ public final class TableRow {
 		this.builder = builder;
 	}
 
+	/**
+	 * Retrieve the name of the column.
+	 *
+	 * @return the name of the column.
+	 */
 	public String getColumnName() {
 		return columnName;
 	}
 
+	/**
+	 * Retrieve the value of the column.
+	 *
+	 * @return the value of the column.
+	 */
 	public Object getColumnValue() {
 		return columnValue;
 	}
 
-	public String getDefaultValue() {
+	/**
+	 * Retrieve the default value of the column.
+	 *
+	 * @return the default value of the column.
+	 */
+	public Object getDefaultValue() {
 		return defaultValue;
 	}
 
+	/**
+	 * Retrieve the datatype of the column.
+	 *
+	 * @return the datatype of the column.
+	 */
 	public String getDatatype() {
 		return datatype;
 	}
@@ -44,10 +64,20 @@ public final class TableRow {
 		return primaryKey;
 	}
 
+	/**
+	 * Retrieve whether the column is auto-incremented.
+	 *
+	 * @return true if the column is auto-incremented, false otherwise.
+	 */
 	public boolean isAutoIncrement() {
 		return autoIncrement;
 	}
 
+	/**
+	 * Retrieve whether the column allows null values.
+	 *
+	 * @return true if the column does not allow null values, false otherwise.
+	 */
 	public boolean isNotNull() {
 		return notNull;
 	}
@@ -59,42 +89,83 @@ public final class TableRow {
 	public static class Builder {
 		private final String columnName;
 		private Object columnValue;
-		private String defaultValue;
+		private Object defaultValue;
 		private final String datatype;
 		private boolean primaryKey;
 		private boolean autoIncrement;
 		private boolean notNull;
 
+		/**
+		 * Constructs a new Builder object with the specified column name and datatype.
+		 *
+		 * @param columnName the name of the column.
+		 * @param datatype   the datatype of the column.
+		 */
 		public Builder(@Nonnull final String columnName, @Nonnull final String datatype) {
 			this.columnName = columnName;
 			this.datatype = datatype;
 		}
 
+		/**
+		 * Sets the column value for the TableRow being built.
+		 *
+		 * @param columnValue the value of the column.
+		 * @return the Builder object.
+		 */
 		public Builder setColumnValue(final Object columnValue) {
 			this.columnValue = columnValue;
 			return this;
 		}
 
-		public Builder setDefaultValue(final String defaultValue) {
+		/**
+		 * Sets the default value for the TableRow being built.
+		 *
+		 * @param defaultValue the default value of the column.
+		 * @return the Builder object.
+		 */
+		public Builder setDefaultValue(final Object defaultValue) {
 			this.defaultValue = defaultValue;
 			return this;
 		}
 
+		/**
+		 * Sets the primary key flag for the TableRow being built.
+		 *
+		 * @param primaryKey true if the column is a primary key, false otherwise.
+		 * @return the Builder object.
+		 */
 		public Builder setPrimaryKey(final boolean primaryKey) {
 			this.primaryKey = primaryKey;
 			return this;
 		}
 
+		/**
+		 * Sets the auto-increment flag for the TableRow being built.
+		 *
+		 * @param autoIncrement true if the column is auto-incremented, false otherwise.
+		 * @return the Builder object.
+		 */
 		public Builder setAutoIncrement(final boolean autoIncrement) {
 			this.autoIncrement = autoIncrement;
 			return this;
 		}
 
+		/**
+		 * Sets the not-null flag for the TableRow being built.
+		 *
+		 * @param notNull true if the column does not allow null values, false otherwise.
+		 * @return the Builder object.
+		 */
 		public Builder setNotNull(final boolean notNull) {
 			this.notNull = notNull;
 			return this;
 		}
 
+		/**
+		 * Builds and returns the TableRow object.
+		 *
+		 * @return the constructed TableRow object.
+		 */
 		public TableRow build() {
 			return new TableRow(this);
 		}

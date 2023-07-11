@@ -10,7 +10,7 @@ public class DataWrapper {
 	private final String primaryKey;
 	private final Object value;
 
-	public DataWrapper(@Nonnull final ConfigurationSerializable serialize, @Nonnull final String primaryKey, @Nonnull final Object primaryValue) {
+	public DataWrapper(@Nonnull final String primaryKey, @Nonnull final Object primaryValue, @Nonnull final ConfigurationSerializable serialize) {
 		this.configurationSerialize = serialize;
 		this.primaryKey = primaryKey;
 		this.value = primaryValue;
