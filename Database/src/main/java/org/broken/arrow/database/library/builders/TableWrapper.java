@@ -258,6 +258,46 @@ public final class TableWrapper {
 	}
 
 	/**
+	 * Select specific table.
+	 *
+	 * @return the constructed SQL command for get the table.
+	 */
+	public String selectTable() {
+		return "SELECT * FROM  `" + this.getTableName() + "`";
+	}
+
+	/**
+	 * Select specific table.
+	 *
+	 * @param columnValue the primary key value you want to get from database.
+	 * @return the constructed SQL command for get the table.
+	 */
+	public String selectRow(String columnValue) {
+		TableRow primaryKey = this.getPrimaryRow();
+		return "SELECT * FROM  `" + this.getTableName() + "` WHERE `" + primaryKey.getColumnName() + "` = '" + columnValue + "'";
+	}
+
+	/**
+	 * Remove a specific row from the table.
+	 *
+	 * @param value the primary key value you want to remove from database.
+	 * @return the constructed SQL command for remove the row.
+	 */
+	public String removeRow(final String value) {
+		TableRow primaryKey = this.getPrimaryRow();
+		return "DELETE FROM `" + this.getTableName() + "` WHERE  `" + primaryKey.getColumnName() + "` = `" + value + "`";
+	}
+
+	/**
+	 * Remove this table from the database.
+	 *
+	 * @return the constructed SQL command for drop the table.
+	 */
+	public String dropTable() {
+		return "DROP TABLE `" + this.getTableName() + "`";
+	}
+
+	/**
 	 * Creates the command for update the row.
 	 *
 	 * @param record the record match in the database to update.
@@ -322,45 +362,5 @@ public final class TableWrapper {
 		columns.insert(columns.length(), ") VALUES(" + values + "')");
 
 		return columns;
-	}
-
-	/**
-	 * Select specific table.
-	 *
-	 * @return the constructed SQL command for get the table.
-	 */
-	public String selectTable() {
-		return "SELECT * FROM  `" + this.getTableName() + "`";
-	}
-
-	/**
-	 * Select specific table.
-	 *
-	 * @param columnValue the primary key value you want to get from database.
-	 * @return the constructed SQL command for get the table.
-	 */
-	public String selectRow(String columnValue) {
-		TableRow primaryKey = this.getPrimaryRow();
-		return "SELECT * FROM  `" + this.getTableName() + "` WHERE `" + primaryKey.getColumnName() + "` = '" + columnValue + "'";
-	}
-
-	/**
-	 * Remove a specific row from the table.
-	 *
-	 * @param value the primary key value you want to remove from database.
-	 * @return the constructed SQL command for remove the row.
-	 */
-	public String removeRow(final String value) {
-		TableRow primaryKey = this.getPrimaryRow();
-		return "DELETE FROM `" + this.getTableName() + "` WHERE  `" + primaryKey.getColumnName() + "` = `" + value + "`";
-	}
-
-	/**
-	 * Remove this table from the database.
-	 *
-	 * @return the constructed SQL command for drop the table.
-	 */
-	public String dropTable() {
-		return "DROP TABLE `" + this.getTableName() + "`";
 	}
 }
