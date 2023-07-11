@@ -4,18 +4,18 @@ import java.util.Map;
 
 public final class NmsData {
 
-	private final String contanerField;
+	private final String containerField;
 	private final String windowId;
 	private final String sendPacket;
 	private final String updateInventory;
-	private final Map<Integer, String> containerFieldnames;
+	private final Map<Integer, String> containerFilenames;
 
-	public NmsData(final String contanerField, final String windowId, final String sendPacket, final String updateInventory, final Map<Integer, String> containerFieldnames) {
-		this.contanerField = contanerField;
+	public NmsData(final String containerField, final String windowId, final String sendPacket, final String updateInventory, final Map<Integer, String> containerFilenames) {
+		this.containerField = containerField;
 		this.windowId = windowId;
 		this.sendPacket = sendPacket;
 		this.updateInventory = updateInventory;
-		this.containerFieldnames = containerFieldnames;
+		this.containerFilenames = containerFilenames;
 	}
 
 	/**
@@ -23,12 +23,12 @@ public final class NmsData {
 	 *
 	 * @return field name.
 	 */
-	public String getContanerField() {
-		return contanerField;
+	public String getContainerField() {
+		return containerField;
 	}
 
 	/**
-	 * This is uesd to get current id of a inventory (is intriger)
+	 * This is used to get current id of a inventory (is integer)
 	 * <p>
 	 * The field in this class net.minecraft.world.entity.player.EntityHuman.
 	 *
@@ -59,13 +59,24 @@ public final class NmsData {
 	}
 
 	/**
-	 * Get the name for the container type fieald name.
+	 * Get the name for the container type field name.
 	 *
 	 * @param inventorySize the size of the inventory.
 	 * @return the right name for the field player currently open.
 	 */
-	public String getContainerFieldnames(final int inventorySize) {
-		return containerFieldnames.get(inventorySize);
+	public String getContainerFilenames(final int inventorySize) {
+		return containerFilenames.get(inventorySize);
+	}
+
+	@Override
+	public String toString() {
+		return "NmsData{" +
+				"containerField='" + containerField + '\'' +
+				", windowId='" + windowId + '\'' +
+				", sendPacket='" + sendPacket + '\'' +
+				", updateInventory='" + updateInventory + '\'' +
+				", containerFilenames=" + containerFilenames +
+				'}';
 	}
 }
 

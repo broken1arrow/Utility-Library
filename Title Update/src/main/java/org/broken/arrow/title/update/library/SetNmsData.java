@@ -50,13 +50,15 @@ public class SetNmsData {
 		if (serverVersion >= 17.0) {
 			inventorySizeNames = convertFieldNames(new FieldName(9, "a"), new FieldName(18, "b"), new FieldName(27, "c"), new FieldName(36, "d"), new FieldName(45, "e"), new FieldName(54, "f"), new FieldName(5, "p"));
 			if (serverVersion >= 19.0) {
-				if (serverVersion >= 19.4) {
+				if (serverVersion >= 19.4F) {
 					if (serverVersion >= 20.0)
 						nmsData = new NmsData("bR", "j", "a", "a", inventorySizeNames);
 					else
 						// inside net.minecraft.world.entity.player and class EntityHuman do you have the Container field.
 						nmsData = new NmsData("bP", "j", "a", "a", inventorySizeNames);
-				} else nmsData = new NmsData("bU", "j", "a", "a", inventorySizeNames);
+				} else {
+					nmsData = new NmsData("bU", "j", "a", "a", inventorySizeNames);
+				}
 
 			} else if (serverVersion >= 18.0) {
 				nmsData = new NmsData(serverVersion >= 18.2 ? "bV" : "bW", "j", "a", "a", inventorySizeNames);
