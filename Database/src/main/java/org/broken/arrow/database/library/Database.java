@@ -230,7 +230,8 @@ public abstract class Database {
 		try {
 			preparedStatement = this.connection.prepareStatement(tableWrapper.selectRow(columnValue));
 			resultSet = preparedStatement.executeQuery();
-			dataFromDB.putAll(this.getDataFromDB(resultSet));
+			if (resultSet.next())
+				dataFromDB.putAll(this.getDataFromDB(resultSet));
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -596,10 +597,9 @@ public abstract class Database {
 		final ResultSetMetaData rsmd = resultSet.getMetaData();
 		final int columnCount = rsmd.getColumnCount();
 		final Map<String, Object> objectMap = new HashMap<>();
-		if (resultSet.next())
-			for (int i = 1; i <= columnCount; i++) {
-				objectMap.put(rsmd.getColumnName(i), resultSet.getObject(i));
-			}
+		for (int i = 1; i <= columnCount; i++) {
+			objectMap.put(rsmd.getColumnName(i), resultSet.getObject(i));
+		}
 		return objectMap;
 	}
 
