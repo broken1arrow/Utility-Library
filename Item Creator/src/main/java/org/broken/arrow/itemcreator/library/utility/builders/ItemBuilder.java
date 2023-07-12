@@ -76,8 +76,8 @@ public final class ItemBuilder {
 	 * @param itemArray   you want to create.
 	 * @param <T>         type of items.
 	 */
-	public <T> ItemBuilder(@Nonnull final ItemCreator itemCreator, final Iterable<T> itemArray) {
-		this(itemCreator, itemArray, null, null, null);
+	public <T> ItemBuilder(@Nonnull final ItemCreator itemCreator, final Iterable<T> itemArray, final String displayName, final List<String> lore) {
+		this(itemCreator, itemArray, null, displayName, lore);
 	}
 
 	private <T> ItemBuilder(@Nonnull final ItemCreator itemCreator, final Iterable<T> itemArray, final Object stringItem, final String displayName, final List<String> lore) {

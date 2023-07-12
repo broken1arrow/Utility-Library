@@ -106,15 +106,18 @@ public class ItemCreator {
 	}
 
 	/**
-	 * Starts the creation of an item from an iterable of items.
+	 * Starts the creation of an item from an iterable of items. If you set name and/or lore
+	 * it will be shared over all items. Set it to null too keep the original text.
 	 * Complete the creation by calling {@link CreateItemStack#makeItemStackArray()}.
 	 *
-	 * @param itemArray The iterable of items to convert to ItemStacks.
-	 * @param <T>       type if class on the item.
+	 * @param itemArray   The iterable of items to convert to ItemStacks.
+	 * @param displayName The display name of the items.
+	 * @param lore        The lore of the items.
+	 * @param <T>         type if class on the item.
 	 * @return An instance of the CreateItemStack class.
 	 */
-	public <T> CreateItemStack of(Iterable<T> itemArray) {
-		ItemBuilder itemBuilder = new ItemBuilder(this, itemArray);
+	public <T> CreateItemStack of(Iterable<T> itemArray, String displayName, List<String> lore) {
+		ItemBuilder itemBuilder = new ItemBuilder(this, itemArray, displayName, lore);
 		return itemBuilder.build();
 	}
 
