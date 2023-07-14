@@ -773,7 +773,7 @@ public class CreateItemStack {
 		this.addEnchantments(itemMeta);
 		this.addBottleEffects(itemMeta);
 		this.blockStateMeta(itemMeta);
-		if (this.serverVersion > 10)
+		if (this.serverVersion > 10.0F)
 			addUnbreakableMeta(itemMeta);
 		addCustomModelData(itemMeta);
 

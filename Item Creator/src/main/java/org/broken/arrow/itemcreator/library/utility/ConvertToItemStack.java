@@ -74,7 +74,7 @@ public class ConvertToItemStack {
 	}
 
 	public ItemStack checkItemStack(final ItemStack itemStack, final String color) {
-		if (serverVersion < 13 && itemStack != null) {
+		if (serverVersion < 13.0F && itemStack != null) {
 			final ItemStack stack = new ItemStack(itemStack.getType(), itemStack.getAmount(), checkColor(color));
 			final ItemMeta itemMeta = itemStack.getItemMeta();
 			if (itemMeta != null)
@@ -85,7 +85,7 @@ public class ConvertToItemStack {
 	}
 
 	public ItemStack checkString(final String stringName) {
-		if (serverVersion < 13) {
+		if (serverVersion < 13.0F) {
 			final ItemStack stack = createStack(stringName, 1);
 			if (stack != null)
 				return stack;
@@ -117,7 +117,7 @@ public class ConvertToItemStack {
 		if (item.endsWith("_CARPET")) {
 			return new ItemStack(Material.valueOf("CARPET"), amount, (short) color);
 		}
-		if (serverVersion > 11) {
+		if (serverVersion > 11.0F) {
 			if (item.contains("CONCRETE_POWDER")) {
 				return new ItemStack(Material.valueOf("CONCRETE_POWDER"), amount, (short) color);
 			}
