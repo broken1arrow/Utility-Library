@@ -134,7 +134,7 @@ public final class TableRow {
 		 * @param primaryKey true if the column is a primary key, false otherwise.
 		 * @return the Builder object.
 		 */
-		public Builder setPrimaryKey(final boolean primaryKey) {
+		public Builder setIsPrimaryKey(final boolean primaryKey) {
 			this.primaryKey = primaryKey;
 			return this;
 		}

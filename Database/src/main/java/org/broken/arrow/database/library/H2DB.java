@@ -1,7 +1,7 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.MysqlPreferences;
-import org.broken.arrow.database.library.builders.TableWrapper;
+import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 
 import javax.annotation.Nonnull;

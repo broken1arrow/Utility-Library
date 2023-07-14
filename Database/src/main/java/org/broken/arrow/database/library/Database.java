@@ -2,8 +2,8 @@ package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
-import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.builders.tables.TableRow;
+import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
 import org.broken.arrow.database.library.utility.DatabaseType;
@@ -39,6 +39,7 @@ public abstract class Database {
 	protected boolean hasStartWriteToDb = false;
 	private final DatabaseType databaseType;
 	private Set<String> removeColumns = new HashSet<>();
+	private String quote = "`";
 
 	public Database() {
 		if (this instanceof SQLite) {
@@ -51,6 +52,11 @@ public abstract class Database {
 		}
 		if (this instanceof H2DB) {
 			this.databaseType = DatabaseType.H2;
+			return;
+		}
+		if (this instanceof PostgreSQL) {
+			this.databaseType = DatabaseType.PostgreSQL;
+			quote = "\"";
 			return;
 		}
 		this.databaseType = DatabaseType.Unknown;
@@ -475,7 +481,7 @@ public abstract class Database {
 			if (removeColumns.contains(columnName)) continue;
 			if (existingColumns.contains(columnName)) continue;
 			try {
-				final PreparedStatement statement = connection.prepareStatement("ALTER TABLE `" + tableWrapper.getTableName() + "` ADD `" + columnName + "` " + tableRow.getDatatype() + ";");
+				final PreparedStatement statement = connection.prepareStatement("ALTER TABLE " + quote + tableWrapper.getTableName() + quote + " ADD " + quote + columnName + quote + " " + tableRow.getDatatype() + ";");
 				statement.execute();
 			} catch (final SQLException throwable) {
 				throwable.printStackTrace();
@@ -488,7 +494,7 @@ public abstract class Database {
 		try {
 			if (this.connection == null) return;
 
-			final PreparedStatement preparedStatement = this.connection.prepareStatement("SELECT * FROM `" + tableName + "` WHERE `" + columName + "` = ?");
+			final PreparedStatement preparedStatement = this.connection.prepareStatement("SELECT * FROM " + quote + tableName + quote + " WHERE " + quote + columName + quote + " = ?");
 			preparedStatement.setString(1, "");
 			final ResultSet resultSet = preparedStatement.executeQuery();
 			close(preparedStatement, resultSet);
@@ -515,7 +521,10 @@ public abstract class Database {
 			} else
 				sql = tableWrapper.updateTable();
 		} else {
-			sql = tableWrapper.replaceIntoTable();
+			if (databaseType == DatabaseType.PostgreSQL)
+				sql = tableWrapper.insertIntoTable();
+			else
+				sql = tableWrapper.replaceIntoTable();
 		}
 		if (sql != null)
 			listOfCommands.add(sql);

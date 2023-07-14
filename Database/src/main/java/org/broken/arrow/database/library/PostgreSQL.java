@@ -14,58 +14,53 @@ import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 import java.util.List;
 
-public class MySQL extends Database {
+public class PostgreSQL extends Database {
 
 	private final MysqlPreferences mysqlPreference;
+	private final boolean isHikariAvailable;
 	private final String startSQLUrl;
 	private final String driver;
-	private boolean hasCastException = false;
-	private final boolean isHikariAvailable;
 	private HikariCP hikari;
+	private boolean hasCastException;
 
 	/**
-	 * Creates a new MySQL instance with the given MySQL preferences.This
+	 * Creates a new PostgreSQL instance with the given MySQL preferences. This
 	 * constructor will not check if the database is created or not.
 	 *
 	 * @param mysqlPreference The set preference information to connect to the database.
 	 */
-	public MySQL(@Nonnull MysqlPreferences mysqlPreference) {
-		this(mysqlPreference, "com.zaxxer.hikari.HikariConfig");
+	public PostgreSQL(final MysqlPreferences mysqlPreference) {
+		this(mysqlPreference, false, "com.zaxxer.hikari.HikariConfig");
 	}
 
 	/**
-	 * Creates a new MySQL instance with the given MySQL preferences.
+	 * Creates a new PostgreSQL instance with the given MySQL preferences.
 	 *
 	 * @param mysqlPreference The set preference information to connect to the database.
 	 * @param createDatabase  If it shall check and create the database if it not created yet.
 	 */
-	public MySQL(@Nonnull MysqlPreferences mysqlPreference, boolean createDatabase) {
+	public PostgreSQL(@Nonnull MysqlPreferences mysqlPreference, boolean createDatabase) {
 		this(mysqlPreference, createDatabase, "com.zaxxer.hikari.HikariConfig");
 	}
 
 	/**
-	 * Creates a new MySQL instance with the given MySQL preferences.This
-	 * constructor will not check if the database is created or not.
-	 *
-	 * @param mysqlPreference The set preference information to connect to the database.
-	 * @param hikariClazz     If you shade the lib to your plugin, so for this api shall find it you need to set the path.
-	 */
-	public MySQL(@Nonnull MysqlPreferences mysqlPreference, String hikariClazz) {
-		this(mysqlPreference, false, hikariClazz);
-	}
-
-	/**
-	 * Creates a new MySQL instance with the given MySQL preferences.
+	 * Creates a new PostgreSQL instance with the given MySQL preferences.
 	 *
 	 * @param mysqlPreference The set preference information to connect to the database.
 	 * @param hikariClazz     If you shade the lib to your plugin, so for this api shall find it you need to set the path.
 	 * @param createDatabase  If it shall check and create the database if it not created yet.
 	 */
-	public MySQL(@Nonnull MysqlPreferences mysqlPreference, boolean createDatabase, String hikariClazz) {
+	public PostgreSQL(@Nonnull MysqlPreferences mysqlPreference, boolean createDatabase, String hikariClazz) {
 		this.mysqlPreference = mysqlPreference;
 		this.isHikariAvailable = isHikariAvailable(hikariClazz);
-		this.startSQLUrl = "jdbc:mysql://";
-		this.driver = "com.mysql.cj.jdbc.Driver";
+		this.startSQLUrl = "jdbc:postgresql://";
+		// don't know if this is need or what driver to use.
+		//this.driver = "com.impossibl.postgres.jdbc.PGDataSource";
+		// This is other solutions I found online.
+		this.driver = "org.postgresql.Driver";
+		// this.driver = "org.postgresql.ds.PGConnectionPoolDataSource";
+		// this.driver = "org.postgresql.xa.PGXADataSource";
+		//this.driver = "org.postgresql.ds.PGSimpleDataSource";
 		if (createDatabase)
 			createMissingDatabase();
 		connect();
@@ -93,7 +88,12 @@ public class MySQL extends Database {
 
 	@Override
 	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
-		this.batchUpdate(batchList, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+		this.batchUpdate(batchList, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	}
+
+	@Override
+	public boolean isHasCastException() {
+		return hasCastException;
 	}
 
 	public Connection setupConnection() throws SQLException {
@@ -115,7 +115,7 @@ public class MySQL extends Database {
 		return connection;
 	}
 
-	public void createMissingDatabase() {
+	private void createMissingDatabase() {
 		String databaseName = mysqlPreference.getDatabaseName();
 		String hostAddress = mysqlPreference.getHostAddress();
 		String port = mysqlPreference.getPort();
@@ -132,10 +132,5 @@ public class MySQL extends Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	}
-
-	@Override
-	public boolean isHasCastException() {
-		return hasCastException;
 	}
 }

@@ -1,9 +1,9 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.MysqlPreferences;
-import org.broken.arrow.database.library.builders.TableWrapper;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableRow.Builder;
+import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
