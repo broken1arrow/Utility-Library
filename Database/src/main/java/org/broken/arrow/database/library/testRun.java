@@ -32,7 +32,6 @@ public class testRun {
 				.addNotNull("fun_key5", "VARCHAR(120)");
 		mysql.addTable(databasewrapper);
 		mysql.createTables();
-		databasewrapper.addRecord("something");
 		//mysql.save("Test", "fun_key", "something", new testData());
 
 		SQLite db = new SQLite("database.db");
