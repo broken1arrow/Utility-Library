@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.MysqlPreferences;
+import org.broken.arrow.database.library.builders.tables.SqlCommandUtility;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 
@@ -47,15 +48,13 @@ public class H2DB extends Database {
 	}
 
 	@Override
-	protected List<String> getSqlsCommands(final List<String> listOfCommands, final TableWrapper tableWrapper) {
+	protected List<String> getSqlsCommand(@Nonnull final List<String> listOfCommands, @Nonnull final TableWrapper tableWrapper, @Nonnull final boolean shallUpdate) {
 		String sql = null;
-		if (tableWrapper.getRecord() != null && !tableWrapper.getRecord().isEmpty()) {
-			if (tableWrapper.getRecord().size() > 1) {
-				listOfCommands.addAll(tableWrapper.updateTables());
-			} else
-				sql = tableWrapper.updateTable();
+		SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		if (shallUpdate) {
+			sql = sqlCommandUtility.updateTable(tableWrapper.getPrimaryRow().getColumnName());
 		} else {
-			sql = tableWrapper.mergeIntoTable();
+			sql = sqlCommandUtility.mergeIntoTable();
 		}
 		if (sql != null)
 			listOfCommands.add(sql);
@@ -65,17 +64,12 @@ public class H2DB extends Database {
 	public Connection setupConnection() throws SQLException {
 		Connection connection;
 		File dbFile;
-		if (this.parent != null && this.child == null)
-			dbFile = new File(parent);
-		else
-			dbFile = new File(this.parent, this.child);
+		if (this.parent != null && this.child == null) dbFile = new File(parent);
+		else dbFile = new File(this.parent, this.child);
 
-		if (this.hikari == null)
-			hikari = new HikariCP(new MysqlPreferences(dbFile.getPath()), "org.h2.Driver");
-		if (this.isHikariAvailable)
-			connection = this.hikari.getFileConnection("jdbc:h2:");
-		else
-			connection = DriverManager.getConnection("jdbc:h2:" + dbFile.getPath());
+		if (this.hikari == null) hikari = new HikariCP(new MysqlPreferences(dbFile.getPath()), "org.h2.Driver");
+		if (this.isHikariAvailable) connection = this.hikari.getFileConnection("jdbc:h2:");
+		else connection = DriverManager.getConnection("jdbc:h2:" + dbFile.getPath());
 
 		return connection;
 	}

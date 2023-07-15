@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * This class help you to wrap your command.
@@ -70,7 +69,7 @@ public final class SqlCommandUtility {
 					.append(tableWrapper.getQuote())
 					.append(primaryKey.getColumnName())
 					.append(tableWrapper.getQuote())
-					.append("(").append(this.tableWrapper.getPrimaryKeyLength()).append("))");
+					.append("(").append(tableWrapper.getPrimaryKeyLength()).append("))");
 
 
 		String string = "CREATE TABLE IF NOT EXISTS " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " (" + columns + ")" + (tableWrapper.isSupportMySQL() ? "" : " DEFAULT CHARSET=utf8mb4" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
@@ -88,6 +87,16 @@ public final class SqlCommandUtility {
 	}
 
 	/**
+	 * Replace data in your database, on columns you added.
+	 *
+	 * @return string with prepared query to run on your database.
+	 */
+	public String insertIntoTable() {
+		TableWrapper tableWrapper = this.getTableWrapper();
+		return "INSERT INTO " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " " + this.merge() + ";";
+	}
+
+	/**
 	 * Replace data in your database, on columns you added. This do same thing as
 	 * "REPLACE INTO", but this command is often used with a database that not support
 	 * "REPLACE INTO" for example H2 database.
@@ -100,29 +109,27 @@ public final class SqlCommandUtility {
 	}
 
 	/**
-	 * Update data in your database, on columns you added. Will replace old data on columns you added.
+	 * Update data in your database from the provided record value, on columns you added. Will update old data on columns you added.
 	 *
-	 * @return string with prepared query to run on your database.
+	 * @param record the record for the primary key you want to update.
+	 * @return list of prepared query's to run on your database.
 	 */
-	public String updateTable() {
-		Set<String> records = this.getTableWrapper().getRecord();
-		Validate.checkBoolean(records == null || records.isEmpty(), "You need to set record value for the primary key. When you want to update the row.");
-		String record = this.getTableWrapper().getRecord().stream().findFirst().orElse(null);
-		Validate.checkBoolean(record == null || record.isEmpty(), "You need to set record value for the primary key. When you want to update the row.");
-		return this.updateTable(record);
+	public String updateTable(String record) {
+		Validate.checkBoolean(record == null || record.isEmpty(), "You need to set record value.You can't update the row without it.");
+		return this.createUpdateCommand(record);
 	}
 
 	/**
-	 * Update data in your database, on columns you added. Will replace old data on columns you added.
+	 * Update data in your database from the list of record values, on columns you added. Will update old data on columns you added.
 	 *
+	 * @param records the records for the primary key you want to update.
 	 * @return list of prepared query's to run on your database.
 	 */
-	public List<String> updateTables() {
+	public List<String> updateTables(List<String> records) {
 		List<String> list = new ArrayList<>();
-		Set<String> records = getTableWrapper().getRecord();
-		Validate.checkBoolean(records == null || records.isEmpty(), "You need to set record value for the primary key. When you want to update the row.");
+		Validate.checkBoolean(records == null || records.isEmpty(), "You need to set record value.You can't update the row without it.");
 		for (String record : records)
-			list.add(this.updateTable(record));
+			list.add(this.createUpdateCommand(record));
 		return list;
 	}
 
@@ -171,7 +178,7 @@ public final class SqlCommandUtility {
 	 */
 	public String dropTable() {
 		TableWrapper tableWrapper = this.getTableWrapper();
-		return "DROP TABLE `" + tableWrapper.getTableName() + "`";
+		return "DROP TABLE " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + ";";
 	}
 
 	/**
@@ -180,37 +187,51 @@ public final class SqlCommandUtility {
 	 * @param record the record match in the database to update.
 	 * @return the constructed SQL command for the database.
 	 */
-	private String updateTable(String record) {
+	/**
+	 * Creates the command for update the row.
+	 *
+	 * @param record the record match in the database to update.
+	 * @return the constructed SQL command for the database.
+	 */
+	private String createUpdateCommand(String record) {
 		TableWrapper tableWrapper = this.getTableWrapper();
 		TableRow primaryKey = tableWrapper.getPrimaryRow();
 		Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
 		Validate.checkBoolean(primaryKey == null || primaryKey.getColumnName() == null || primaryKey.getColumnName().equals("non"), "You need set primary key, for update records in the table or all records get updated.");
 		Validate.checkBoolean(record == null || record.isEmpty(), "You need to set record value for the primary key. When you want to update the row.");
 		final StringBuilder columns = new StringBuilder();
-		int index = 0;
-		columns.append(tableWrapper.getQuote())
+/*		columns.append(tableWrapper.getQuote())
 				.append(primaryKey.getColumnName())
 				.append(tableWrapper.getQuote())
 				.append(" ");
-		columns.append("= '").append(primaryKey.getColumnValue()).append(tableRowMap.size() > 0 ? "', " : "' ");
+		Object primaryKeyColumnValue = primaryKey.getColumnValue();
+		if (primaryKeyColumnValue != null)
+			columns.append("= '");
+		else
+			columns.append("= ");
 
+		columns.append(primaryKey.getColumnValue());
+		if (primaryKeyColumnValue != null)
+			columns.append(tableRowMap.size() > 0 ? "', " : "' ");
+		else
+			columns.append(tableRowMap.size() > 0 ? "," : " ");
+*/
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
-			index++;
 			final String columnName = entry.getKey();
 			final TableRow column = entry.getValue();
-			final boolean endOfString = index == tableRowMap.size();
 			Object value = column.getColumnValue();
 			if (value == null && column.isNotNull())
 				value = "";
 			if (value == null && column.getDefaultValue() != null)
 				value = column.getDefaultValue();
 			columns.append(tableWrapper.getQuote()).append(columnName).append(tableWrapper.getQuote());
-			if (columns.length() == 0 || endOfString) {
-				columns.append(" = ").append(value == null ? null : " '" + value + "'");
+			if (columns.length() == 0) {
+				columns.append(" = ").append(value == null ? null : "'" + value + "'");
 			} else {
-				columns.append(" = ").append(value == null ? null + "," : " '" + value + "',");
+				columns.append(" = ").append(value == null ? null + "," : "'" + value + "', ");
 			}
 		}
+		columns.setLength(columns.length() - 2);
 		return "UPDATE " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " SET " + columns + " WHERE " + tableWrapper.getQuote() + primaryKey.getColumnName() + tableWrapper.getQuote() + " = '" + record + "'" + ";";
 	}
 
@@ -227,30 +248,37 @@ public final class SqlCommandUtility {
 		TableRow primaryKey = tableWrapper.getPrimaryRow();
 		Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
 		Validate.checkBoolean(primaryKey == null || primaryKey.getColumnName() == null || primaryKey.getColumnName().equals("non"), "You need set primary key, for update records in the table or all records get updated.");
+		Object primaryKeyColumnValue = primaryKey.getColumnValue();
 
-		int index = 0;
-		columns.append(tableWrapper.getQuote())
-				.append("(")
+		columns.append("(")
+				.append(tableWrapper.getQuote())
 				.append(primaryKey.getColumnName())
 				.append(tableWrapper.getQuote())
-				.append(tableRowMap.size() > 0 ? ", " : " ");
-		values.append("'").append(primaryKey.getColumnValue()).append(tableRowMap.size() > 0 ? "', " : "' ");
+				.append(tableRowMap.size() > 0 ? "," : " ");
+		if (primaryKeyColumnValue != null)
+			values.append("'");
+		values.append(primaryKeyColumnValue);
+		if (primaryKeyColumnValue != null)
+			values.append(tableRowMap.size() > 0 ? "'," : "' ");
+		else
+			values.append(tableRowMap.size() > 0 ? "," : " ");
+
 		for (Entry<String, TableRow> entry : tableWrapper.getColumns().entrySet()) {
-			index++;
-			//for (int index = 0; index < this.getColumns().size(); index++) {
 			final String columnName = entry.getKey();
 			final TableRow column = entry.getValue();
-			final boolean endOfString = index == tableRowMap.size();
-			columns.append((columns.length() == 0) ? "(" : "").append(tableWrapper.getQuote()).append(columnName).append(tableWrapper.getQuote()).insert(columns.length(), columns.length() == 0 || endOfString ? "" : ",");
+			columns.append((columns.length() == 0) ? "(" : "").append(tableWrapper.getQuote()).append(columnName).append(tableWrapper.getQuote()).insert(columns.length(), columns.length() == 0 ? "" : ",");
 			Object value = column.getColumnValue();
 			if (value == null && column.isNotNull())
 				value = "";
 			if (value == null && column.getDefaultValue() != null)
 				value = column.getDefaultValue();
-			values.append(value != null ? "'" : "").append(value).insert(values.length(), values.length() == 0 || endOfString ? "" : value == null ? ", " : "',");
+			values.append(value != null ? "'" : "").append(value).insert(values.length(), values.length() == 0 ? "" : value == null ? "," : "',");
 		}
-		columns.insert(columns.length(), ") VALUES(" + values + "')");
+		columns.setLength(columns.length() - 1);
+		values.setLength(values.length() - 1);
+		columns.insert(columns.length(), ") VALUES(" + values + ")");
 
 		return columns;
 	}
+
 }

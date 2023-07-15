@@ -2,6 +2,7 @@ package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
+import org.broken.arrow.database.library.builders.tables.SqlCommandUtility;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
@@ -99,15 +100,25 @@ public abstract class Database {
 
 	/**
 	 * Saves all rows to the specified database table, based on the provided primary key and associated data.
-	 * Note: that this method can also use previously added records using either the {@link TableWrapper#addRecord(String)}
-	 * or {@link TableWrapper#addAllRecord(Set)} methods and it will then update all rows you added. If only one
-	 * record added it will update only one row. If no record is set, it will instead replace the old data.
+	 * Note: If you use this method it will replace the old data instead of update it.
 	 *
 	 * @param tableName       name of the table you want to update rows inside.
 	 * @param dataWrapperList List of data you want to cache to database.
 	 *                        Note: the key you set has to be the primary key you want to update.
 	 */
 	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList) {
+		this.saveAll(tableName, dataWrapperList, false);
+	}
+
+	/**
+	 * Saves all rows to the specified database table, based on the provided primary key and associated data.
+	 *
+	 * @param tableName       name of the table you want to update rows inside.
+	 * @param dataWrapperList List of data you want to cache to database.
+	 *                        Note: the key you set has to be the primary key you want to update.
+	 * @param shallUpdate     Set to true if you want to update the row, other wise it will replace the old row.
+	 */
+	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate) {
 		final List<String> sqls = new ArrayList<>();
 
 		final TableWrapper tableWrapper = this.getTable(tableName);
@@ -118,35 +129,42 @@ public abstract class Database {
 		if (!openConnection()) return;
 		for (DataWrapper dataWrapper : dataWrapperList) {
 			if (dataWrapper == null) continue;
-			String primaryKey = dataWrapper.getPrimaryKey();
 
-			if (!primaryKey.isEmpty()) {
-				TableRow column = tableWrapper.getPrimaryRow();
-				if (column != null) {
-					tableWrapper.setPrimaryRow(column.getBuilder().setColumnValue(dataWrapper.getValue()).build());
-				}
+
+			TableRow primaryRow = tableWrapper.getPrimaryRow();
+			if (primaryRow != null) {
+				tableWrapper.setPrimaryRow(primaryRow.getBuilder().setColumnValue(dataWrapper.getPrimaryValue()).build());
 			}
+
 			for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
 				TableRow column = tableWrapper.getColumn(entry.getKey());
 				if (column == null) continue;
 				tableWrapper.addCustom(entry.getKey(), column.getBuilder().setColumnValue(entry.getValue()));
-
 			}
-			this.getSqlsCommands(sqls, tableWrapper);
+			this.getSqlsCommand(sqls, tableWrapper, shallUpdate);
 		}
 		this.batchUpdate(sqls, this.getTables().values().toArray(new TableWrapper[0]));
 	}
 
 	/**
 	 * Saves a single row to the specified database table, based on the provided primary key and associated data.
-	 * Note: that this method can also use previously added records using either the {@link TableWrapper#addRecord(String)}
-	 * or {@link TableWrapper#addAllRecord(Set)} methods and it will then update all rows you added. If not set or only one
-	 * record added it will update only one row. If no record is set, it will instead replace the old data.
+	 * Note: If you use this method it will replace the old data instead of update it.
 	 *
 	 * @param tableName   The name of the table to save the row to.
 	 * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.
 	 */
 	public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper) {
+		this.save(tableName, dataWrapper, false);
+	}
+
+	/**
+	 * Saves a single row to the specified database table, based on the provided primary key and associated data.
+	 *
+	 * @param tableName   The name of the table to save the row to.
+	 * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.
+	 * @param shallUpdate Set to true if you want to update the row, other wise it will replace the old row.
+	 */
+	public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate) {
 		final List<String> sqls = new ArrayList<>();
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
@@ -155,20 +173,19 @@ public abstract class Database {
 		}
 		if (dataWrapper == null)
 			return;
-		String primaryKey = dataWrapper.getPrimaryKey();
-		Object primaryValue = dataWrapper.getValue();
+
+		Object primaryValue = dataWrapper.getPrimaryValue();
 		ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
-		if (!primaryKey.isEmpty()) {
-			TableRow primaryRow = tableWrapper.getPrimaryRow();
-			if (primaryRow != null)
-				tableWrapper.setPrimaryRow(primaryRow.getBuilder().setColumnValue(primaryValue).build());
-		}
+		TableRow primaryRow = tableWrapper.getPrimaryRow();
+		if (primaryRow != null)
+			tableWrapper.setPrimaryRow(primaryRow.getBuilder().setColumnValue(primaryValue).build());
+
 		for (Entry<String, Object> entry : configuration.serialize().entrySet()) {
 			TableRow column = tableWrapper.getColumn(entry.getKey());
 			if (column == null) continue;
 			tableWrapper.addCustom(entry.getKey(), column.getBuilder().setColumnValue(entry.getValue()));
 		}
-		this.getSqlsCommands(sqls, tableWrapper);
+		this.getSqlsCommand(sqls, tableWrapper, shallUpdate);
 		this.batchUpdate(sqls, tableWrapper);
 	}
 
@@ -192,9 +209,11 @@ public abstract class Database {
 			return null;
 		}
 		if (!openConnection()) return null;
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
+
 		try {
-			preparedStatement = connection.prepareStatement(tableWrapper.selectTable());
+			preparedStatement = connection.prepareStatement(sqlCommandUtility.selectTable());
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
 				Map<String, Object> dataFromDB = this.getDataFromDB(resultSet);
@@ -233,8 +252,10 @@ public abstract class Database {
 		Validate.checkNotNull(columnValue, "Could not find column for " + primaryColumn + ". Because the column value is null.");
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
+
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
 		try {
-			preparedStatement = this.connection.prepareStatement(tableWrapper.selectRow(columnValue));
+			preparedStatement = this.connection.prepareStatement(sqlCommandUtility.selectRow(columnValue));
 			resultSet = preparedStatement.executeQuery();
 			if (resultSet.next())
 				dataFromDB.putAll(this.getDataFromDB(resultSet));
@@ -274,7 +295,8 @@ public abstract class Database {
 				LogMsg.warn("Could not find table " + tableName);
 				return false;
 			}
-			statement = this.connection.prepareStatement(wrapperEntry.createTable());
+			final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(wrapperEntry);
+			statement = this.connection.prepareStatement(sqlCommandUtility.createTable());
 			statement.executeUpdate();
 			TableRow wrapper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
 			Validate.checkNotNull(wrapper, "Could not find a column for this table " + tableName);
@@ -301,8 +323,10 @@ public abstract class Database {
 			return;
 		}
 		List<String> columns = new ArrayList<>();
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+
 		for (String value : values) {
-			columns.add(tableWrapper.removeRow(value));
+			columns.add(sqlCommandUtility.removeRow(value));
 		}
 		this.batchUpdate(columns, tableWrapper);
 	}
@@ -319,7 +343,8 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-		this.batchUpdate(Collections.singletonList(tableWrapper.removeRow(value)), tableWrapper);
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		this.batchUpdate(Collections.singletonList(sqlCommandUtility.removeRow(value)), tableWrapper);
 	}
 
 	/**
@@ -333,7 +358,8 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-		this.batchUpdate(Collections.singletonList(tableWrapper.dropTable()), tableWrapper);
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		this.batchUpdate(Collections.singletonList(sqlCommandUtility.dropTable()), tableWrapper);
 	}
 
 	protected final void batchUpdate(@Nonnull final List<String> batchList, int resultSetType, int resultSetConcurrency) {
@@ -513,18 +539,16 @@ public abstract class Database {
 		return columRow.toString();
 	}
 
-	protected List<String> getSqlsCommands(final List<String> listOfCommands, TableWrapper tableWrapper) {
+	protected List<String> getSqlsCommand(@Nonnull final List<String> listOfCommands, @Nonnull final TableWrapper tableWrapper, @Nonnull final boolean shallUpdate) {
 		String sql = null;
-		if (tableWrapper.getRecord() != null && !tableWrapper.getRecord().isEmpty()) {
-			if (tableWrapper.getRecord().size() > 1) {
-				listOfCommands.addAll(tableWrapper.updateTables());
-			} else
-				sql = tableWrapper.updateTable();
+		SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		if (shallUpdate) {
+			sql = sqlCommandUtility.updateTable(tableWrapper.getPrimaryRow().getColumnName());
 		} else {
 			if (databaseType == DatabaseType.PostgreSQL)
-				sql = tableWrapper.insertIntoTable();
+				sql = sqlCommandUtility.insertIntoTable();
 			else
-				sql = tableWrapper.replaceIntoTable();
+				sql = sqlCommandUtility.replaceIntoTable();
 		}
 		if (sql != null)
 			listOfCommands.add(sql);
