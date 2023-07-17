@@ -194,7 +194,6 @@ public class MongoDB extends Database {
 		} else {
 			LogMsg.info("Could not find any row with this value " + columnValue);
 		}
-
 		// Close the MongoDB connection
 		this.closeConnection();
 		return loadDataWrapper;
@@ -213,8 +212,8 @@ public class MongoDB extends Database {
 		if (user != null && password != null)
 			if (!user.isEmpty() && !password.isEmpty())
 				credentials = user + ":" + password + "@";
-		
-		ConnectionString connection = new ConnectionString(startSQLUrl + credentials + hostAddress + ":" + port + "/" + databaseName + extra);// + "?authMechanism=DEFAULT");//?authSource=databaseName); //+ "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true);
+
+		ConnectionString connection = new ConnectionString(startSQLUrl + credentials + hostAddress + ":" + port + "/" + databaseName + extra);
 
 		MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connection)
 				.serverApi(ServerApi.builder()
