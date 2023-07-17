@@ -7,7 +7,7 @@ import org.broken.arrow.command.library.command.builders.CommandBuilder.Builder;
 import org.broken.arrow.command.library.commandhandler.CommandRegistering;
 import org.broken.arrow.database.library.MySQL;
 import org.broken.arrow.database.library.SQLite;
-import org.broken.arrow.database.library.builders.MysqlPreferences;
+import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.title.update.library.UpdateTitle;
@@ -88,7 +88,7 @@ public final class UtilityLibrary extends JavaPlugin {
 	 * @param mysqlPreference The MySQL preferences.
 	 * @return The MySQL instance.
 	 */
-	public MySQL createMySQLInstance(MysqlPreferences mysqlPreference) {
+	public MySQL createMySQLInstance(ConnectionSettings mysqlPreference) {
 		return new MySQL(mysqlPreference);
 	}
 
@@ -102,7 +102,7 @@ public final class UtilityLibrary extends JavaPlugin {
 	public SQLite createSQLiteInstance(String parent, String child) {
 		return new SQLite(parent, child);
 	}
-	
+
 	/**
 	 * Retrieves a new CommandRegistering instance.
 	 *

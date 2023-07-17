@@ -1,6 +1,6 @@
 package org.broken.arrow.database.library;
 
-import org.broken.arrow.database.library.builders.MysqlPreferences;
+import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 
@@ -67,7 +67,7 @@ public class SQLite extends Database {
 			dbFile = new File(this.parent, this.child);
 
 		if (this.hikari == null)
-			hikari = new HikariCP(new MysqlPreferences(dbFile.getPath()), "org.sqlite.JDBC");
+			hikari = new HikariCP(new ConnectionSettings(dbFile.getPath()), "org.sqlite.JDBC");
 		if (this.isHikariAvailable)
 			connection = this.hikari.getFileConnection("jdbc:sqlite:");
 		else

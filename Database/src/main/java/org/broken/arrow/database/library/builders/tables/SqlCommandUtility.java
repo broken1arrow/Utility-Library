@@ -200,22 +200,6 @@ public final class SqlCommandUtility {
 		Validate.checkBoolean(primaryKey == null || primaryKey.getColumnName() == null || primaryKey.getColumnName().equals("non"), "You need set primary key, for update records in the table or all records get updated.");
 		Validate.checkBoolean(record == null || record.isEmpty(), "You need to set record value for the primary key. When you want to update the row.");
 		final StringBuilder columns = new StringBuilder();
-/*		columns.append(tableWrapper.getQuote())
-				.append(primaryKey.getColumnName())
-				.append(tableWrapper.getQuote())
-				.append(" ");
-		Object primaryKeyColumnValue = primaryKey.getColumnValue();
-		if (primaryKeyColumnValue != null)
-			columns.append("= '");
-		else
-			columns.append("= ");
-
-		columns.append(primaryKey.getColumnValue());
-		if (primaryKeyColumnValue != null)
-			columns.append(tableRowMap.size() > 0 ? "', " : "' ");
-		else
-			columns.append(tableRowMap.size() > 0 ? "," : " ");
-*/
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
 			final String columnName = entry.getKey();
 			final TableRow column = entry.getValue();
@@ -232,7 +216,7 @@ public final class SqlCommandUtility {
 			}
 		}
 		columns.setLength(columns.length() - 2);
-		return "UPDATE " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " SET " + columns + " WHERE " + tableWrapper.getQuote() + primaryKey.getColumnName() + tableWrapper.getQuote() + " = '" + record + "'" + ";";
+		return "UPDATE " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " SET " + columns + " WHERE " + tableWrapper.getQuote() + primaryKey.getColumnName() + tableWrapper.getQuote() + " = " + tableWrapper.getQuote() + record + tableWrapper.getQuote() + ";";
 	}
 
 	/**

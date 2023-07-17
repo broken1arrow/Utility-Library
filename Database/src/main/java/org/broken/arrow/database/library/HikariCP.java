@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.broken.arrow.database.library.builders.MysqlPreferences;
+import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.log.LogMsg;
 
 import javax.annotation.Nonnull;
@@ -13,10 +13,10 @@ import java.sql.SQLException;
 
 public class HikariCP {
 	private HikariDataSource hikari;
-	private final MysqlPreferences mysqlPreference;
+	private final ConnectionSettings mysqlPreference;
 	private final String driver;
 
-	public HikariCP(@Nonnull MysqlPreferences mysqlPreference, String driver) {
+	public HikariCP(@Nonnull ConnectionSettings mysqlPreference, String driver) {
 		this.mysqlPreference = mysqlPreference;
 		this.driver = driver;
 		Configurator.setAllLevels("com.zaxxer.hikari.pool.PoolBase", Level.WARN);
@@ -31,9 +31,11 @@ public class HikariCP {
 		String port = mysqlPreference.getPort();
 		String user = mysqlPreference.getUser();
 		String password = mysqlPreference.getPassword();
-
+		String extra = mysqlPreference.getQuery();
+		if (extra.isEmpty())
+			extra = "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true;
 		HikariConfig config = new HikariConfig();
-		config.setJdbcUrl(driverConnection + hostAddress + ":" + port + "/" + databaseName + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true);
+		config.setJdbcUrl(driverConnection + hostAddress + ":" + port + "/" + databaseName + extra);
 		config.setUsername(user);
 		config.setPassword(password);
 		config.setDriverClassName(this.driver);

@@ -130,7 +130,6 @@ public abstract class Database {
 		for (DataWrapper dataWrapper : dataWrapperList) {
 			if (dataWrapper == null) continue;
 
-
 			TableRow primaryRow = tableWrapper.getPrimaryRow();
 			if (primaryRow != null) {
 				tableWrapper.setPrimaryRow(primaryRow.getBuilder().setColumnValue(dataWrapper.getPrimaryValue()).build());
@@ -218,7 +217,10 @@ public abstract class Database {
 			while (resultSet.next()) {
 				Map<String, Object> dataFromDB = this.getDataFromDB(resultSet);
 				T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-				loadDataWrappers.add(new LoadDataWrapper<>(tableWrapper.getPrimaryRow().getColumnName(), dataFromDB, deserialize));
+				Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
+				if (primaryValue == null)
+					LogMsg.warn("This table " + tableName + " with the primary key " + tableWrapper.getPrimaryRow().getColumnName() + " is null. Please ensure that this is not a mistake.");
+				loadDataWrappers.add(new LoadDataWrapper<>(primaryValue, deserialize));
 			}
 
 		} catch (SQLException e) {
@@ -266,7 +268,10 @@ public abstract class Database {
 			this.close(preparedStatement, resultSet);
 		}
 		T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-		return new LoadDataWrapper<>(tableWrapper.getPrimaryRow().getColumnName(), dataFromDB, deserialize);
+		Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
+		if (primaryValue == null)
+			LogMsg.warn("This table " + tableName + " with the primary key " + tableWrapper.getPrimaryRow().getColumnName() + " is null. Please ensure that this is not a mistake.");
+		return new LoadDataWrapper<>(primaryValue, deserialize);
 	}
 
 	/**
@@ -449,7 +454,6 @@ public abstract class Database {
 	 */
 	protected List<String> updateTableColumnsInDb(final String tableName) throws SQLException {
 		if (!openConnection()) return new ArrayList<>();
-		if (this.connection.isClosed()) return new ArrayList<>();
 
 		final List<String> column = new ArrayList<>();
 		final PreparedStatement statement = this.connection.prepareStatement("SELECT * FROM " + tableName);
@@ -545,10 +549,7 @@ public abstract class Database {
 		if (shallUpdate) {
 			sql = sqlCommandUtility.updateTable(tableWrapper.getPrimaryRow().getColumnName());
 		} else {
-			if (databaseType == DatabaseType.PostgreSQL)
-				sql = sqlCommandUtility.insertIntoTable();
-			else
-				sql = sqlCommandUtility.replaceIntoTable();
+			sql = sqlCommandUtility.replaceIntoTable();
 		}
 		if (sql != null)
 			listOfCommands.add(sql);
@@ -606,14 +607,9 @@ public abstract class Database {
 	}
 
 	public boolean openConnection() {
-		try {
-			if (this.connection == null || this.connection.isClosed())
-				this.connection = connect();
-		} catch (SQLException e) {
-			LogMsg.warn("Could not check if the connection is closed ", e);
-			return false;
-		}
-		return true;
+		if (isClosed())
+			this.connection = connect();
+		return this.connection != null;
 	}
 
 	public void closeConnection() {
@@ -623,6 +619,20 @@ public abstract class Database {
 			}
 		} catch (final SQLException exception) {
 			exception.printStackTrace();
+		}
+	}
+
+	/**
+	 * This method check if connection is null or close.
+	 *
+	 * @return true if connection is closed or null.
+	 */
+	public boolean isClosed() {
+		try {
+			return this.connection == null || this.connection.isClosed();
+		} catch (SQLException e) {
+			LogMsg.warn("Could not check if the connection is closed ", e);
+			return false;
 		}
 	}
 
@@ -643,6 +653,10 @@ public abstract class Database {
 			return false;
 		}
 		return true;
+	}
+
+	public MethodReflectionUtils getMethodReflectionUtils() {
+		return methodReflectionUtils;
 	}
 
 	public abstract boolean isHasCastException();

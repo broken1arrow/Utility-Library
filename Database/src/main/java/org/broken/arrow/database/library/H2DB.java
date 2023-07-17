@@ -1,6 +1,6 @@
 package org.broken.arrow.database.library;
 
-import org.broken.arrow.database.library.builders.MysqlPreferences;
+import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.tables.SqlCommandUtility;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
@@ -67,7 +67,7 @@ public class H2DB extends Database {
 		if (this.parent != null && this.child == null) dbFile = new File(parent);
 		else dbFile = new File(this.parent, this.child);
 
-		if (this.hikari == null) hikari = new HikariCP(new MysqlPreferences(dbFile.getPath()), "org.h2.Driver");
+		if (this.hikari == null) hikari = new HikariCP(new ConnectionSettings(dbFile.getPath()), "org.h2.Driver");
 		if (this.isHikariAvailable) connection = this.hikari.getFileConnection("jdbc:h2:");
 		else connection = DriverManager.getConnection("jdbc:h2:" + dbFile.getPath());
 

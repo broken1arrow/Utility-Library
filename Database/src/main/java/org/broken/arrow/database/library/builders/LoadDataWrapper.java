@@ -2,7 +2,6 @@ package org.broken.arrow.database.library.builders;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Map;
 
 /**
  * Wrapper class for loading and storing deserialized data along with its primary value.
@@ -14,16 +13,14 @@ public class LoadDataWrapper<T> {
 	private final Object primaryValue;
 
 	/**
-	 * Constructs a LoadDataWrapper instance with the provided primary column name, serialized data from the database,
-	 * and the deserialized data.
+	 * Constructs a LoadDataWrapper instance with the provided primary column value, deserialized the values from the database.
 	 *
-	 * @param primaryColumn    The primary column name.
-	 * @param dataFromDB       The serialized data obtained from the database.
+	 * @param primaryKeyValue  The primary column value.
 	 * @param deSerializedData The deserialized data.
 	 */
-	public LoadDataWrapper(@Nonnull final String primaryColumn, @Nonnull final Map<String, Object> dataFromDB, @Nonnull final T deSerializedData) {
+	public LoadDataWrapper(@Nullable final Object primaryKeyValue, @Nonnull final T deSerializedData) {
 		this.deSerializedData = deSerializedData;
-		this.primaryValue = dataFromDB.get(primaryColumn);
+		this.primaryValue = primaryKeyValue;
 	}
 
 	/**

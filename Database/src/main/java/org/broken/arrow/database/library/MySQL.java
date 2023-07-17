@@ -1,6 +1,6 @@
 package org.broken.arrow.database.library;
 
-import org.broken.arrow.database.library.builders.MysqlPreferences;
+import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
@@ -16,7 +16,7 @@ import java.util.List;
 
 public class MySQL extends Database {
 
-	private final MysqlPreferences mysqlPreference;
+	private final ConnectionSettings mysqlPreference;
 	private final String startSQLUrl;
 	private final String driver;
 	private boolean hasCastException = false;
@@ -29,7 +29,7 @@ public class MySQL extends Database {
 	 *
 	 * @param mysqlPreference The set preference information to connect to the database.
 	 */
-	public MySQL(@Nonnull MysqlPreferences mysqlPreference) {
+	public MySQL(@Nonnull ConnectionSettings mysqlPreference) {
 		this(mysqlPreference, "com.zaxxer.hikari.HikariConfig");
 	}
 
@@ -39,7 +39,7 @@ public class MySQL extends Database {
 	 * @param mysqlPreference The set preference information to connect to the database.
 	 * @param createDatabase  If it shall check and create the database if it not created yet.
 	 */
-	public MySQL(@Nonnull MysqlPreferences mysqlPreference, boolean createDatabase) {
+	public MySQL(@Nonnull ConnectionSettings mysqlPreference, boolean createDatabase) {
 		this(mysqlPreference, createDatabase, "com.zaxxer.hikari.HikariConfig");
 	}
 
@@ -50,7 +50,7 @@ public class MySQL extends Database {
 	 * @param mysqlPreference The set preference information to connect to the database.
 	 * @param hikariClazz     If you shade the lib to your plugin, so for this api shall find it you need to set the path.
 	 */
-	public MySQL(@Nonnull MysqlPreferences mysqlPreference, String hikariClazz) {
+	public MySQL(@Nonnull ConnectionSettings mysqlPreference, String hikariClazz) {
 		this(mysqlPreference, false, hikariClazz);
 	}
 
@@ -61,7 +61,7 @@ public class MySQL extends Database {
 	 * @param hikariClazz     If you shade the lib to your plugin, so for this api shall find it you need to set the path.
 	 * @param createDatabase  If it shall check and create the database if it not created yet.
 	 */
-	public MySQL(@Nonnull MysqlPreferences mysqlPreference, boolean createDatabase, String hikariClazz) {
+	public MySQL(@Nonnull ConnectionSettings mysqlPreference, boolean createDatabase, String hikariClazz) {
 		this.mysqlPreference = mysqlPreference;
 		this.isHikariAvailable = isHikariAvailable(hikariClazz);
 		this.startSQLUrl = "jdbc:mysql://";
@@ -109,7 +109,10 @@ public class MySQL extends Database {
 			String port = mysqlPreference.getPort();
 			String user = mysqlPreference.getUser();
 			String password = mysqlPreference.getPassword();
-			connection = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/" + databaseName + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true, user, password);
+			String extra = mysqlPreference.getQuery();
+			if (extra.isEmpty())
+				extra = "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true;
+			connection = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/" + databaseName + extra, user, password);
 		}
 
 		return connection;

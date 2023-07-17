@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library;
 
-import org.broken.arrow.database.library.builders.MysqlPreferences;
+import org.broken.arrow.database.library.builders.ConnectionSettings;
+import org.broken.arrow.database.library.builders.tables.SqlCommandUtility;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class PostgreSQL extends Database {
 
-	private final MysqlPreferences mysqlPreference;
+	private final ConnectionSettings preferences;
 	private final boolean isHikariAvailable;
 	private final String startSQLUrl;
 	private final String driver;
@@ -27,31 +28,31 @@ public class PostgreSQL extends Database {
 	 * Creates a new PostgreSQL instance with the given MySQL preferences. This
 	 * constructor will not check if the database is created or not.
 	 *
-	 * @param mysqlPreference The set preference information to connect to the database.
+	 * @param preferences The set preference information to connect to the database.
 	 */
-	public PostgreSQL(final MysqlPreferences mysqlPreference) {
-		this(mysqlPreference, false, "com.zaxxer.hikari.HikariConfig");
+	public PostgreSQL(final ConnectionSettings preferences) {
+		this(preferences, false, "com.zaxxer.hikari.HikariConfig");
 	}
 
 	/**
 	 * Creates a new PostgreSQL instance with the given MySQL preferences.
 	 *
-	 * @param mysqlPreference The set preference information to connect to the database.
-	 * @param createDatabase  If it shall check and create the database if it not created yet.
+	 * @param preferences    The set preference information to connect to the database.
+	 * @param createDatabase If it shall check and create the database if it not created yet.
 	 */
-	public PostgreSQL(@Nonnull MysqlPreferences mysqlPreference, boolean createDatabase) {
-		this(mysqlPreference, createDatabase, "com.zaxxer.hikari.HikariConfig");
+	public PostgreSQL(@Nonnull ConnectionSettings preferences, boolean createDatabase) {
+		this(preferences, createDatabase, "com.zaxxer.hikari.HikariConfig");
 	}
 
 	/**
 	 * Creates a new PostgreSQL instance with the given MySQL preferences.
 	 *
-	 * @param mysqlPreference The set preference information to connect to the database.
-	 * @param hikariClazz     If you shade the lib to your plugin, so for this api shall find it you need to set the path.
-	 * @param createDatabase  If it shall check and create the database if it not created yet.
+	 * @param preferences    The set preference information to connect to the database.
+	 * @param hikariClazz    If you shade the lib to your plugin, so for this api shall find it you need to set the path.
+	 * @param createDatabase If it shall check and create the database if it not created yet.
 	 */
-	public PostgreSQL(@Nonnull MysqlPreferences mysqlPreference, boolean createDatabase, String hikariClazz) {
-		this.mysqlPreference = mysqlPreference;
+	public PostgreSQL(@Nonnull ConnectionSettings preferences, boolean createDatabase, String hikariClazz) {
+		this.preferences = preferences;
 		this.isHikariAvailable = isHikariAvailable(hikariClazz);
 		this.startSQLUrl = "jdbc:postgresql://";
 		// don't know if this is need or what driver to use.
@@ -68,7 +69,7 @@ public class PostgreSQL extends Database {
 
 	@Override
 	public Connection connect() {
-		Validate.checkNotNull(mysqlPreference, "You need to set preferences for the database");
+		Validate.checkNotNull(preferences, "You need to set preferences for the database");
 		Connection connection = null;
 		try {
 			if (this.connection == null || this.connection.isClosed()) {
@@ -101,26 +102,29 @@ public class PostgreSQL extends Database {
 
 		if (isHikariAvailable) {
 			if (this.hikari == null)
-				this.hikari = new HikariCP(this.mysqlPreference, this.driver);
+				this.hikari = new HikariCP(this.preferences, this.driver);
 			connection = this.hikari.getConnection(startSQLUrl);
 		} else {
-			String databaseName = mysqlPreference.getDatabaseName();
-			String hostAddress = mysqlPreference.getHostAddress();
-			String port = mysqlPreference.getPort();
-			String user = mysqlPreference.getUser();
-			String password = mysqlPreference.getPassword();
-			connection = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/" + databaseName + "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true, user, password);
+			String databaseName = preferences.getDatabaseName();
+			String hostAddress = preferences.getHostAddress();
+			String port = preferences.getPort();
+			String user = preferences.getUser();
+			String password = preferences.getPassword();
+			String extra = preferences.getQuery();
+			if (extra.isEmpty())
+				extra = "?useSSL=false&useUnicode=yes&characterEncoding=UTF-8&autoReconnect=" + true;
+			connection = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/" + databaseName + extra, user, password);
 		}
 
 		return connection;
 	}
 
 	private void createMissingDatabase() {
-		String databaseName = mysqlPreference.getDatabaseName();
-		String hostAddress = mysqlPreference.getHostAddress();
-		String port = mysqlPreference.getPort();
-		String user = mysqlPreference.getUser();
-		String password = mysqlPreference.getPassword();
+		String databaseName = preferences.getDatabaseName();
+		String hostAddress = preferences.getHostAddress();
+		String port = preferences.getPort();
+		String user = preferences.getUser();
+		String password = preferences.getPassword();
 
 		try {
 			Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password);
@@ -132,5 +136,19 @@ public class PostgreSQL extends Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	protected List<String> getSqlsCommand(@Nonnull final List<String> listOfCommands, @Nonnull final TableWrapper tableWrapper, @Nonnull final boolean shallUpdate) {
+		String sql = null;
+		SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		if (shallUpdate) {
+			sql = sqlCommandUtility.updateTable(tableWrapper.getPrimaryRow().getColumnName());
+		} else {
+			sql = sqlCommandUtility.insertIntoTable();
+		}
+		if (sql != null)
+			listOfCommands.add(sql);
+		return listOfCommands;
 	}
 }
