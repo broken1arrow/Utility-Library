@@ -134,10 +134,10 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 	 * Sets the title of the menu using the specified
 	 * function to automatically update any placeholders.
 	 *
-	 * @param function a function that takes a String input, used to correcly update placeholders in the menu title.
+	 * @param function a function that takes a String input, used to correctly update placeholders in the menu title.
 	 */
 	public void setTitle(final Function<String> function) {
-		this.titlefunction = function;
+		this.titleFunction = function;
 	}
 
 	/**

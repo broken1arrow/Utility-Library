@@ -43,6 +43,45 @@ import java.util.logging.Logger;
 public class MenuUtility<T> {
 	private final Logger logger = Logger.getLogger("Menu-Utility");
 
+	protected MenuCacheKey menuCacheKey;
+	private final MenuCache menuCache = MenuCache.getInstance();
+	private final List<MenuButtonI<T>> buttonsToUpdate = new ArrayList<>();
+	private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
+	private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
+
+	protected List<Integer> fillSpace;
+	private final List<T> listOfFillItems;
+	protected Location location;
+	protected RegisterMenuAPI menuAPI;
+	private Inventory inventory;
+	protected InventoryType inventoryType;
+	protected Player player;
+	protected Sound menuOpenSound;
+	protected Function<String> titleFunction;
+	protected Function<String> animateTitle;
+	private String playerMetadataKey;
+	private String uniqueKey;
+
+	protected boolean shallCacheItems;
+	protected boolean slotsYouCanAddItems;
+	protected boolean allowShiftClick;
+	protected boolean ignoreValidCheck;
+	protected boolean autoClearCache;
+	protected boolean ignoreItemCheck;
+	protected boolean autoTitleCurrentPage;
+
+	protected int taskid;
+	protected int slotIndex;
+	private int numberOfFillitems;
+	private int requiredPages;
+	private int manuallySetPages = -1;
+	protected int inventorySize;
+	protected int itemsPerPage = this.inventorySize;
+	protected int pageNumber;
+	protected int updateTime;
+	protected int animateTitleTime = 5;
+	private int taskidAnimateTitle;
+
 	/**
 	 * Create menu instance.
 	 *
@@ -65,43 +104,6 @@ public class MenuUtility<T> {
 		this.menuAPI = RegisterMenuAPI.getMenuAPI();
 	}
 
-	protected MenuCacheKey menuCacheKey;
-	private final MenuCache menuCache = MenuCache.getInstance();
-	private final List<MenuButtonI<T>> buttonsToUpdate = new ArrayList<>();
-	private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
-	private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
-
-	protected List<Integer> fillSpace;
-	private final List<T> listOfFillItems;
-	protected Location location;
-	protected RegisterMenuAPI menuAPI;
-	private Inventory inventory;
-	protected InventoryType inventoryType;
-	protected Player player;
-	protected Sound menuOpenSound;
-	protected Function<String> titlefunction;
-	protected Function<String> animateTitle;
-	private String playermetadataKey;
-	private String uniqueKey;
-	protected boolean shallCacheItems;
-	protected boolean slotsYouCanAddItems;
-	protected boolean allowShiftClick;
-	protected boolean ignoreValidCheck;
-	protected boolean autoClearCache;
-	protected boolean ignoreItemCheck;
-	protected boolean autoTitleCurrentPage;
-	protected int taskid;
-	protected int slotIndex;
-	private int numberOfFillitems;
-	private int requiredPages;
-	private int manuallySetPages = -1;
-	protected int inventorySize;
-	protected int itemsPerPage = this.inventorySize;
-	protected int pageNumber;
-	protected int updateTime;
-	protected int animateTitleTime = 5;
-	private int taskidAnimateTitle;
-	
 	/**
 	 * Register your buttons you want inside the menu.
 	 *
@@ -418,8 +420,8 @@ public class MenuUtility<T> {
 	 * @return key you has used.
 	 */
 
-	public String getPlayermetadataKey() {
-		return playermetadataKey;
+	public String getPlayerMetadataKey() {
+		return playerMetadataKey;
 	}
 
 	/**
@@ -516,12 +518,12 @@ public class MenuUtility<T> {
 	 */
 	public String getTitle() {
 		String title = null;
-		if (titlefunction != null) {
-			title = titlefunction.apply();
+		if (titleFunction != null) {
+			title = titleFunction.apply();
 		}
 		if (title == null || title.equals("")) {
-			this.titlefunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " : "");
-			title = this.titlefunction.apply();
+			this.titleFunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " : "");
+			title = this.titleFunction.apply();
 		}
 		title = title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? " " + (getPageNumber() + 1) + "" : "");
 		return title;
@@ -591,7 +593,6 @@ public class MenuUtility<T> {
 		String title = getTitle();
 		if (!menuAPI.isNotFoundUpdateTitleClazz())
 			UpdateTitle.update(player, title);
-		//UpdateTittleContainers.update(player, title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? " " + (getPageNumber() + 1) + "" : ""));
 	}
 
 	private Object toMenuCache(final Player player, final Location location) {
@@ -660,7 +661,7 @@ public class MenuUtility<T> {
 	}
 
 	protected void setMetadataKey(final String setPlayerMetadataKey) {
-		this.playermetadataKey = setPlayerMetadataKey;
+		this.playerMetadataKey = setPlayerMetadataKey;
 	}
 
 	protected void onMenuOpenPlaySound() {

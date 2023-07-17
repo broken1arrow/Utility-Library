@@ -129,7 +129,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * @param function a function that takes a String input, used to correcly update placeholders in the menu title.
 	 */
 	public void setTitle(final Function<String> function) {
-		this.titlefunction = function;
+		this.titleFunction = function;
 	}
 
 	/**

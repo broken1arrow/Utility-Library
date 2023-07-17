@@ -26,11 +26,13 @@ import java.util.logging.Level;
 public final class UtilityLibrary extends JavaPlugin {
 
 	private static UtilityLibrary instance;
+	private RegisterMenuAPI menuAPI;
 
 	@Override
 	public void onLoad() {
 		instance = this;
 		UpdateTitle.update(null, "");
+		this.menuAPI = new RegisterMenuAPI(this);
 	}
 
 	@Override
@@ -52,24 +54,12 @@ public final class UtilityLibrary extends JavaPlugin {
 	}
 
 	/**
-	 * Creates a new RegisterMenuAPI instance for the given plugin.
+	 * Get the RegisterMenuAPI instance for the given plugin.
 	 *
-	 * @param plugin The plugin to create the RegisterMenuAPI for.
 	 * @return The RegisterMenuAPI instance.
 	 */
-	public RegisterMenuAPI getMenuApi(Plugin plugin) {
-		return new RegisterMenuAPI(plugin);
-	}
-
-	/**
-	 * Creates a new RegisterMenuAPI instance for the given plugin, with an option to turn off logging.
-	 *
-	 * @param plugin        The plugin to create the RegisterMenuAPI for.
-	 * @param turnOffLogger True to turn off logging, true otherwise.
-	 * @return The RegisterMenuAPI instance.
-	 */
-	public RegisterMenuAPI getMenuApi(Plugin plugin, boolean turnOffLogger) {
-		return new RegisterMenuAPI(plugin, turnOffLogger);
+	public RegisterMenuAPI getMenuApi() {
+		return menuAPI;
 	}
 
 	/**
