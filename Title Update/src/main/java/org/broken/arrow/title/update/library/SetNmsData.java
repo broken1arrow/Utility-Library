@@ -61,7 +61,7 @@ public class SetNmsData {
 				}
 
 			} else if (serverVersion >= 18.0) {
-				nmsData = new NmsData(serverVersion >= 18.2 ? "bV" : "bW", "j", "a", "a", inventorySizeNames);
+				nmsData = new NmsData(serverVersion >= 18.2F ? "bV" : "bW", "j", "a", "a", inventorySizeNames);
 			} else if (serverVersion == 17.0) {
 				nmsData = new NmsData("bV", "j", "sendPacket", "initMenu", inventorySizeNames);
 			}
