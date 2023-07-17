@@ -9,3 +9,6 @@ legacy-libraries:
   - org.slf4j:slf4j-simple:1.7.36
   - org.slf4j:slf4j-api:1.7.36
   - com.zaxxer:HikariCP:4.0.3
+  - com.h2database:h2:2.1.214
+  - org.postgresql:postgresql:42.6.0
+  - org.mongodb:mongodb-driver-sync:4.9.0
