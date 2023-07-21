@@ -58,19 +58,14 @@ public final class SqlCommandUtility {
 			if (column.getDefaultValue() != null)
 				columns.append(" DEFAULT ").append("'").append(column.getDefaultValue()).append("'");
 		}
-		if (tableWrapper.isSupportMySQL())
-			columns.append(", PRIMARY KEY (")
-					.append(tableWrapper.getQuote())
-					.append(primaryKey.getColumnName())
-					.append(tableWrapper.getQuote())
-					.append("(").append(tableWrapper.getPrimaryKeyLength()).append("))");
+		columns.append(", PRIMARY KEY (")
+				.append(tableWrapper.getQuote())
+				.append(primaryKey.getColumnName())
+				.append(tableWrapper.getQuote());
+		if (tableWrapper.getPrimaryKeyLength() > 0)
+			columns.append("(").append(tableWrapper.getPrimaryKeyLength()).append("))");
 		else
-			columns.append(", PRIMARY KEY (")
-					.append(tableWrapper.getQuote())
-					.append(primaryKey.getColumnName())
-					.append(tableWrapper.getQuote())
-					.append(")");
-
+			columns.append(")");
 
 		String string = "CREATE TABLE IF NOT EXISTS " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " (" + columns + ")" + (tableWrapper.isSupportMySQL() ? "" : " DEFAULT CHARSET=utf8mb4" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
 		return string;

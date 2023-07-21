@@ -33,7 +33,7 @@ public final class TableWrapper {
 		this.supportMySQL = supportMySQL;
 		this.tableName = tableName;
 		this.primaryRow = primaryRow;
-		this.primaryKeyLength = valueLength > 0 ? valueLength : 120;
+		this.primaryKeyLength = valueLength > 0 ? valueLength : -1;
 		this.table = this;
 	}
 
