@@ -63,7 +63,7 @@ public abstract class CommandHolder implements CommandHandler {
 	}
 
 	@Override
-	public final boolean excuteCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs) {
+	public final boolean executeCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs) {
 		this.args = cmdArgs;
 		this.sender = sender;
 		return onCommand(sender, commandLabel, cmdArgs);
@@ -71,7 +71,7 @@ public abstract class CommandHolder implements CommandHandler {
 
 	@Nullable
 	@Override
-	public final List<String> excuteTabComplete(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs) {
+	public final List<String> executeTabComplete(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs) {
 		args = cmdArgs;
 		this.sender = sender;
 		return this.onTabComplete(sender, commandLabel, cmdArgs);

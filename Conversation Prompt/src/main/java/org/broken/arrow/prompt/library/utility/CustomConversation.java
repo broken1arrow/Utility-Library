@@ -11,21 +11,29 @@ import javax.annotation.Nonnull;
 
 public class CustomConversation extends Conversation {
 	private SimplePrompt lastSimplePrompt;
-	private final SimpleConversation simpleConversatin;
+	private final SimpleConversation simpleConversation;
 
 	public CustomConversation(@Nonnull final Plugin plugin, @Nonnull final SimpleConversation simpleConversation, @Nonnull final Conversable forWhom) {
 		super(plugin, forWhom, simpleConversation.getFirstPrompt());
 		this.localEchoEnabled = false;
-		this.simpleConversatin = simpleConversation;
+		this.simpleConversation = simpleConversation;
 		if (simpleConversation.insertPrefix() && simpleConversation.getPrefix() != null)
 			prefix = simpleConversation.getPrefix();
 
 	}
 
+	/**
+	 * Gets the last prompt.
+	 *
+	 * @return The last prompt that was executed.
+	 */
 	public SimplePrompt getLastSimplePrompt() {
 		return lastSimplePrompt;
 	}
 
+	/**
+	 * Set the next prompt.
+	 */
 	@Override
 	public void outputNextPrompt() {
 		if (currentPrompt == null)
@@ -40,7 +48,7 @@ public class CustomConversation extends Conversation {
 			try {
 				//	Map<String, Void /*dont have expiring set class*/> askedQuestions = new HashMap<>();
 				//	askedQuestions.put()
-				final Object askedQuestions = context.getAllSessionData().getOrDefault("Asked_" + promptClass, simpleConversatin.getTimeout());
+				final Object askedQuestions = context.getAllSessionData().getOrDefault("Asked_" + promptClass, simpleConversation.getTimeout());
 
 				if (!askedQuestions.equals(question)) {
 					//askedQuestions.put(question, null);

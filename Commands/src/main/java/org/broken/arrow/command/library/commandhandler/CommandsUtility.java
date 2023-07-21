@@ -47,9 +47,9 @@ public class CommandsUtility extends Command {
 					return false;
 				}
 				CommandHolder holder = executor.getExecutor();
-				boolean excuteCommand = holder.excuteCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
+				boolean executeCommand = holder.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
 
-				if (executor.getUsageMessages() != null && !excuteCommand)
+				if (executor.getUsageMessages() != null && !executeCommand)
 					for (final String usage : executor.getUsageMessages()) {
 						sender.sendMessage(colors(placeholders(usage, commandLabel, executor)));
 					}
@@ -68,7 +68,7 @@ public class CommandsUtility extends Command {
 			final CommandBuilder subcommand = commandRegister.getCommandBuilder(args[0], true);
 			if (subcommand == null) return new ArrayList<>();
 			if (args.length == 1) return tabCompleteSubcommands(sender, args[0], subcommand.isHideLable());
-			final List<String> tabComplete = subcommand.getExecutor().excuteTabComplete(sender, alias, Arrays.copyOfRange(args, 1, args.length));
+			final List<String> tabComplete = subcommand.getExecutor().executeTabComplete(sender, alias, Arrays.copyOfRange(args, 1, args.length));
 			return tabComplete != null && checkPermission(sender, subcommand) ? tabComplete : new ArrayList<>();
 		}
 		return new ArrayList<>();

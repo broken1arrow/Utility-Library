@@ -22,7 +22,7 @@ import javax.annotation.Nonnull;
  * It isolates their chat messages and processes them as conversation input.
  */
 public abstract class SimpleConversation implements ConversationAbandonedListener {
-	
+
 	private String prefix;
 	private int timeout = 60;
 	private final Plugin plugin;
@@ -69,8 +69,8 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 	}
 
 	/**
-	 * Return the canceller that listens for certain words to exit the convo,
-	 * by default we use {@link org.broken.arrow.prompt.library.utility.SimpleCanceller} that listens to quit|cancel|exit
+	 * Return the canceller that listens for certain words to exit the conversation,
+	 * by default we use {@link SimpleCanceller} that listens to quit|cancel|exit
 	 *
 	 * @return cancel message.
 	 */
@@ -119,7 +119,7 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 	}
 
 	/**
-	 * Called when the whole conversation is over. This is called before {@link org.broken.arrow.prompt.library.SimpleConversation#onConversationEnd(org.bukkit.conversations.ConversationAbandonedEvent)}
+	 * Called when the whole conversation is over. This is called before {@link SimpleConversation#onConversationEnd(ConversationAbandonedEvent)}
 	 *
 	 * @param conversation message send from server to player.
 	 * @param event        some get called when conversation ended.
@@ -157,10 +157,21 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 		return this.prefix != null && !this.prefix.isEmpty();
 	}
 
+	/**
+	 * Get the inactivity time when it should quit the conversion in seconds.
+	 *
+	 * @return The time when it should automatic close.
+	 */
 	public int getTimeout() {
 		return timeout;
 	}
 
+	/**
+	 * Set the inactivity time, before automatic ends the
+	 * conversion.
+	 *
+	 * @param timeout time in seconds.
+	 */
 	protected void setTimeout(final int timeout) {
 		this.timeout = timeout;
 	}

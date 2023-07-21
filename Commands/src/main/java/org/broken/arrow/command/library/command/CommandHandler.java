@@ -21,7 +21,7 @@ public interface CommandHandler {
 	 *                     part of the command.
 	 * @return True if the command execution is successful, false otherwise.
 	 */
-	boolean excuteCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg);
+	boolean executeCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArg);
 
 	/**
 	 * Called when the sender is trying to tab-complete/type the command. This method is used to suggest the next part
@@ -37,5 +37,5 @@ public interface CommandHandler {
 	 * @return A list of command suggestions.
 	 */
 	@Nullable
-	List<String> excuteTabComplete(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] cmdArg);
+	List<String> executeTabComplete(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] cmdArg);
 }

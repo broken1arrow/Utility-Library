@@ -27,24 +27,6 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 	protected abstract String getPrompt(ConversationContext context);
 
 	private Player player = null;
-	private final Plugin plugin;
-
-	/**
-	 * Constructs a SimplePrompt instance. If you only
-	 * use this with #SimpleConversation and only this class.
-	 */
-	public SimplePrompt() {
-		this(null);
-	}
-
-	/**
-	 * Constructs a SimplePrompt instance.
-	 *
-	 * @param plugin The plugin instance.
-	 */
-	public SimplePrompt(@Nullable final Plugin plugin) {
-		this.plugin = plugin;
-	}
 
 	/**
 	 * Retrieves the prompt text to be displayed to the player.
@@ -72,15 +54,15 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 
 	/**
 	 * Starts a new SimpleConversation with the specified player.
-	 * Note: Before using this method, make sure to provide a plugin instance using the appropriate constructor.
 	 *
 	 * @param player The player to start the conversation with.
+	 * @param plugin The plugin instance.
 	 * @return The started SimpleConversation instance.
 	 */
-	public final SimpleConversation start(@Nonnull final Player player) {
+	public final SimpleConversation start(@Nonnull final Plugin plugin, @Nonnull final Player player) {
 		this.player = player;
-		Validate.checkNotNull(this.plugin, "Please provide a plugin instance before using this method.");
-		final SimpleConversation conversation = new SimpleConversation(this.plugin) {
+		Validate.checkNotNull(plugin, "Please provide a plugin instance before using this method.");
+		final SimpleConversation conversation = new SimpleConversation(plugin) {
 			@Override
 			public Prompt getFirstPrompt() {
 				return SimplePrompt.this;
@@ -92,7 +74,7 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 	}
 
 	/**
-	 * Called when the whole conversation is over. This is called before {@link SimpleConversation#onConversationEnd(org.bukkit.conversations.ConversationAbandonedEvent)}
+	 * Called when the whole conversation is over. This is called before {@link SimpleConversation#onConversationEnd(ConversationAbandonedEvent)}
 	 *
 	 * @param conversation the message sent when end conversation.
 	 * @param event        the event when conversation ends.
@@ -101,18 +83,23 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 	}
 
 	/**
-	 * Converts the {@link org.bukkit.conversations.ConversationContext} into a {@link org.bukkit.entity.Player}
-	 * or throws an error if it is not a player
+	 * Converts the {@link ConversationContext} into a {@link Player}.
 	 *
 	 * @param ctx conversation context.
-	 * @return player in other case it will trow than error.
+	 * @return A player or null if the convertible is a player.
 	 */
 	protected final Player getPlayer(@Nonnull final ConversationContext ctx) {
-		Validate.checkBoolean(!(ctx.getForWhom() instanceof Player), "Conversable is not a player but: " + ctx.getForWhom());
-
+		if (!(ctx.getForWhom() instanceof Player))
+			return null;
+		//Validate.checkBoolean(!(ctx.getForWhom() instanceof Player), "Convertible is not a player but: " + ctx.getForWhom());
 		return (Player) ctx.getForWhom();
 	}
 
+	/**
+	 * Get the player that do the conversation.
+	 *
+	 * @return the player or null if not player is set.
+	 */
 	@Nullable
 	protected final Player getPlayer() {
 		return this.player;

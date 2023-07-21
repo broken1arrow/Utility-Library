@@ -1,7 +1,7 @@
 package org.broken.arrow.prompt.library.utility;
 
 public class Validate {
-	
+
 	public static void checkNotNull(final Object checkNull) {
 		if (checkNull == null)
 			throw new CatchExceptions("Object is null ");
@@ -19,8 +19,8 @@ public class Validate {
 			throw new CatchExceptions("Value should not be null.");
 	}
 
-	public static void checkBoolean(final boolean bolen, final String s) {
-		if (bolen)
+	public static void checkBoolean(final boolean b, final String s) {
+		if (b)
 			throw new CatchExceptions(s);
 	}
 

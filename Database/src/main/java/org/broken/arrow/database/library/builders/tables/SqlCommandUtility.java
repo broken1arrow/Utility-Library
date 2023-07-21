@@ -63,13 +63,13 @@ public final class SqlCommandUtility {
 					.append(tableWrapper.getQuote())
 					.append(primaryKey.getColumnName())
 					.append(tableWrapper.getQuote())
-					.append(")");
+					.append("(").append(tableWrapper.getPrimaryKeyLength()).append("))");
 		else
 			columns.append(", PRIMARY KEY (")
 					.append(tableWrapper.getQuote())
 					.append(primaryKey.getColumnName())
 					.append(tableWrapper.getQuote())
-					.append("(").append(tableWrapper.getPrimaryKeyLength()).append("))");
+					.append(")");
 
 
 		String string = "CREATE TABLE IF NOT EXISTS " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " (" + columns + ")" + (tableWrapper.isSupportMySQL() ? "" : " DEFAULT CHARSET=utf8mb4" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
