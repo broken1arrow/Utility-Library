@@ -1,5 +1,7 @@
 package org.broken.arrow.database.library;
 
+import org.broken.arrow.database.library.builders.ColumnDataWrapper;
+import org.broken.arrow.database.library.builders.ColumnWrapper;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlCommandUtility;
@@ -131,16 +133,16 @@ public abstract class Database {
 			if (dataWrapper == null) continue;
 
 			TableRow primaryRow = tableWrapper.getPrimaryRow();
-			if (primaryRow != null) {
-				tableWrapper.setPrimaryRow(primaryRow.getBuilder().setColumnValue(dataWrapper.getPrimaryValue()).build());
-			}
+			if (primaryRow == null) continue;
+
+			ColumnWrapper saveWrapper = new ColumnDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
 
 			for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
 				TableRow column = tableWrapper.getColumn(entry.getKey());
 				if (column == null) continue;
-				tableWrapper.addCustom(entry.getKey(), column.getBuilder().setColumnValue(entry.getValue()));
+				saveWrapper.putColumn(entry.getKey(), entry.getValue());
 			}
-			this.getSqlsCommand(sqls, tableWrapper, shallUpdate);
+			this.getSqlsCommand(sqls, saveWrapper, shallUpdate);
 		}
 		this.batchUpdate(sqls, this.getTables().values().toArray(new TableWrapper[0]));
 	}
@@ -173,18 +175,16 @@ public abstract class Database {
 		if (dataWrapper == null)
 			return;
 
-		Object primaryValue = dataWrapper.getPrimaryValue();
 		ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
-		TableRow primaryRow = tableWrapper.getPrimaryRow();
-		if (primaryRow != null)
-			tableWrapper.setPrimaryRow(primaryRow.getBuilder().setColumnValue(primaryValue).build());
+		ColumnWrapper saveWrapper = new ColumnDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
+
 
 		for (Entry<String, Object> entry : configuration.serialize().entrySet()) {
 			TableRow column = tableWrapper.getColumn(entry.getKey());
 			if (column == null) continue;
-			tableWrapper.addCustom(entry.getKey(), column.getBuilder().setColumnValue(entry.getValue()));
+			saveWrapper.putColumn(entry.getKey(), entry.getValue());
 		}
-		this.getSqlsCommand(sqls, tableWrapper, shallUpdate);
+		this.getSqlsCommand(sqls, saveWrapper, shallUpdate);
 		this.batchUpdate(sqls, tableWrapper);
 	}
 
@@ -208,7 +208,7 @@ public abstract class Database {
 			return null;
 		}
 		if (!openConnection()) return null;
-		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(new ColumnWrapper(tableWrapper));
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 
 		try {
@@ -255,7 +255,7 @@ public abstract class Database {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
-		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(new ColumnWrapper(tableWrapper));
 		try {
 			preparedStatement = this.connection.prepareStatement(sqlCommandUtility.selectRow(columnValue));
 			resultSet = preparedStatement.executeQuery();
@@ -300,7 +300,7 @@ public abstract class Database {
 				LogMsg.warn("Could not find table " + tableName);
 				return false;
 			}
-			final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(wrapperEntry);
+			final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(new ColumnWrapper(wrapperEntry));
 			statement = this.connection.prepareStatement(sqlCommandUtility.createTable());
 			statement.executeUpdate();
 			TableRow wrapper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
@@ -328,7 +328,7 @@ public abstract class Database {
 			return;
 		}
 		List<String> columns = new ArrayList<>();
-		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(new ColumnWrapper(tableWrapper));
 
 		for (String value : values) {
 			columns.add(sqlCommandUtility.removeRow(value));
@@ -348,7 +348,7 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(new ColumnWrapper(tableWrapper));
 		this.batchUpdate(Collections.singletonList(sqlCommandUtility.removeRow(value)), tableWrapper);
 	}
 
@@ -363,7 +363,7 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(new ColumnWrapper(tableWrapper));
 		this.batchUpdate(Collections.singletonList(sqlCommandUtility.dropTable()), tableWrapper);
 	}
 
@@ -543,11 +543,11 @@ public abstract class Database {
 		return columRow.toString();
 	}
 
-	protected List<String> getSqlsCommand(@Nonnull final List<String> listOfCommands, @Nonnull final TableWrapper tableWrapper, @Nonnull final boolean shallUpdate) {
+	protected List<String> getSqlsCommand(@Nonnull final List<String> listOfCommands, @Nonnull final ColumnWrapper saveWrapper, final boolean shallUpdate) {
 		String sql = null;
-		SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(saveWrapper);
 		if (shallUpdate) {
-			sql = sqlCommandUtility.updateTable(tableWrapper.getPrimaryRow().getColumnName());
+			sql = sqlCommandUtility.updateTable(saveWrapper.getPrimaryKey());
 		} else {
 			sql = sqlCommandUtility.replaceIntoTable();
 		}

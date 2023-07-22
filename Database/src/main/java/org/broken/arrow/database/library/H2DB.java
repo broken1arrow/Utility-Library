@@ -1,5 +1,6 @@
 package org.broken.arrow.database.library;
 
+import org.broken.arrow.database.library.builders.ColumnWrapper;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.tables.SqlCommandUtility;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
@@ -48,11 +49,11 @@ public class H2DB extends Database {
 	}
 
 	@Override
-	protected List<String> getSqlsCommand(@Nonnull final List<String> listOfCommands, @Nonnull final TableWrapper tableWrapper, @Nonnull final boolean shallUpdate) {
+	protected List<String> getSqlsCommand(@Nonnull final List<String> listOfCommands, @Nonnull final ColumnWrapper columnWrapper, @Nonnull final boolean shallUpdate) {
 		String sql = null;
-		SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(tableWrapper);
+		SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(columnWrapper);
 		if (shallUpdate) {
-			sql = sqlCommandUtility.updateTable(tableWrapper.getPrimaryRow().getColumnName());
+			sql = sqlCommandUtility.updateTable(columnWrapper.getPrimaryKey());
 		} else {
 			sql = sqlCommandUtility.mergeIntoTable();
 		}

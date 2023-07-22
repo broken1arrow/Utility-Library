@@ -5,7 +5,6 @@ import javax.annotation.Nonnull;
 public final class TableRow {
 
 	private final String columnName;
-	private final Object columnValue;
 	private final Object defaultValue;
 	private final String datatype;
 	private final boolean primaryKey;
@@ -15,7 +14,6 @@ public final class TableRow {
 
 	public TableRow(final Builder builder) {
 		this.columnName = builder.columnName;
-		this.columnValue = builder.columnValue;
 		this.defaultValue = builder.defaultValue;
 		this.datatype = builder.datatype;
 		this.primaryKey = builder.primaryKey;
@@ -31,15 +29,6 @@ public final class TableRow {
 	 */
 	public String getColumnName() {
 		return columnName;
-	}
-
-	/**
-	 * Retrieve the value of the column.
-	 *
-	 * @return the value of the column.
-	 */
-	public Object getColumnValue() {
-		return columnValue;
 	}
 
 	/**
@@ -88,7 +77,6 @@ public final class TableRow {
 
 	public static class Builder {
 		private final String columnName;
-		private Object columnValue;
 		private Object defaultValue;
 		private final String datatype;
 		private boolean primaryKey;
@@ -105,18 +93,7 @@ public final class TableRow {
 			this.columnName = columnName;
 			this.datatype = datatype;
 		}
-
-		/**
-		 * Sets the column value for the TableRow being built.
-		 *
-		 * @param columnValue the value of the column.
-		 * @return the Builder object.
-		 */
-		public Builder setColumnValue(final Object columnValue) {
-			this.columnValue = columnValue;
-			return this;
-		}
-
+		
 		/**
 		 * Sets the default value for the TableRow being built.
 		 *
