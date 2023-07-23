@@ -44,49 +44,16 @@ public class KeyBuilder implements Cloneable {
 		this.key = new StringBuilder(keyBuilder.toString());
 		this.defaultConfKeys = keyBuilder.defaultConfKeys;
 	}
-
+	
 	/**
-	 * Processes the key and checks if the key is still valid. This method creates the key
-	 * by adding each part of the key parsed from the line to the {@link #key}.
-	 * <p>
-	 * For example, if the first key is 'key1' and the next valid key is 'key2', it will be combined
-	 * to 'key1.key2'. Furthermore, it will remove the last key if it is not a valid YAML path or set it
-	 * back to the first non-nested key from currentMappingKey.
+	 * Parses the line to check if it represents a valid YAML path. If the
+	 * config does not contain the path, it removes the last part of the line
+	 * until it finds a valid path or becomes empty.
 	 *
-	 * @param line              The line to process from the input scanned file.
-	 * @param currentMappingKey The non-nested key in the YAML key.
-	 * @return A valid YAML key for the current path.
+	 * @param line      the line to check if it belongs to the current path set in the {@link #key}.
+	 * @param checkLine set to true to check if the path is valid in the config.
 	 */
-	public String processKey(String line, String currentMappingKey) {
-		final StringBuilder lastCheckedKey = this.getKey();
-		final FileConfiguration defaultConfig = this.getConfig();
-		int lastIndex = line.lastIndexOf(":");
-		final String substring = line.substring(0, Math.min(lastIndex, line.length()));
-
-		if (this.isEmpty() || defaultConfig.contains(lastCheckedKey.toString() + separator + substring)) {
-			parseLine(line);
-		} else {
-			int nextKeyIndex = this.defaultConfKeys.indexOf(lastCheckedKey.toString()) + 1;
-			if (nextKeyIndex < this.defaultConfKeys.size()) {
-				String nextKey = this.defaultConfKeys.get(nextKeyIndex);
-				if (!this.isEmpty() && !nextKey.equals(lastCheckedKey.toString())) {
-					this.removeLastKey();
-					if (defaultConfig.contains(lastCheckedKey.toString() + separator + substring))
-						return lastCheckedKey.toString() + separator + substring;
-				}
-				parseLine(currentMappingKey);
-			}
-			return null;
-		}
-		return lastCheckedKey.toString();
-	}
-
-	/**
-	 * Parses the given line and updates the KeyBuilder accordingly.
-	 *
-	 * @param line The line to parse and extract key information from.
-	 */
-	public void parseLine(String line) {
+	public void parseLine(String line, boolean checkLine) {
 		line = line.trim();
 		String[] currentSplitLine = line.split(":");
 
@@ -95,10 +62,12 @@ public class KeyBuilder implements Cloneable {
 
 		String key = currentSplitLine[0].replace("'", "").replace("\"", "");
 
-		//Checks keyBuilder path against config to see if the path is valid.
-		//If the path doesn't exist in the config it keeps removing last key in keyBuilder.
-		while (this.key.length() > 0 && !config.contains(this.key.toString() + separator + key)) {
-			removeLastKey();
+		if (checkLine) {
+			//Checks keyBuilder path against config to see if the path is valid.
+			//If the path doesn't exist in the config it keeps removing last key in keyBuilder.
+			while (this.key.length() > 0 && !config.contains(this.key.toString() + separator + key)) {
+				removeLastKey();
+			}
 		}
 
 		//Add the separator if there is already a key inside keyBuilder
