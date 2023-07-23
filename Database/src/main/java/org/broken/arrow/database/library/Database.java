@@ -462,7 +462,7 @@ public abstract class Database {
 		final int columnCount = rsmd.getColumnCount();
 
 		for (int i = 1; i <= columnCount; i++) {
-			column.add(rsmd.getColumnName(i));
+			column.add(rsmd.getColumnName(i).toLowerCase());
 		}
 		close(statement, rs);
 		return column;
@@ -509,7 +509,7 @@ public abstract class Database {
 			String columnName = entry.getKey();
 			TableRow tableRow = entry.getValue();
 			if (removeColumns.contains(columnName)) continue;
-			if (existingColumns.contains(columnName)) continue;
+			if (existingColumns.contains(columnName.toLowerCase())) continue;
 			try {
 				final PreparedStatement statement = connection.prepareStatement("ALTER TABLE " + quote + tableWrapper.getTableName() + quote + " ADD " + quote + columnName + quote + " " + tableRow.getDatatype() + ";");
 				statement.execute();
