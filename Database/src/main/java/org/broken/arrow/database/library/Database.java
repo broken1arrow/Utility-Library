@@ -215,7 +215,7 @@ public abstract class Database {
 			preparedStatement = connection.prepareStatement(sqlCommandUtility.selectTable());
 			resultSet = preparedStatement.executeQuery();
 			while (resultSet.next()) {
-				Map<String, Object> dataFromDB = this.getDataFromDB(resultSet);
+				Map<String, Object> dataFromDB = this.getDataFromDB(resultSet, tableWrapper);
 				T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
 				Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
 				if (primaryValue == null)
@@ -260,7 +260,7 @@ public abstract class Database {
 			preparedStatement = this.connection.prepareStatement(sqlCommandUtility.selectRow(columnValue));
 			resultSet = preparedStatement.executeQuery();
 			if (resultSet.next())
-				dataFromDB.putAll(this.getDataFromDB(resultSet));
+				dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -636,14 +636,49 @@ public abstract class Database {
 		}
 	}
 
-	public Map<String, Object> getDataFromDB(final ResultSet resultSet) throws SQLException {
+	/**
+	 * Converts the data retrieved from the database and puts it into a map. Some databases
+	 * may return column names in uppercase, and this method uses {@link #getColumnName(TableWrapper, String)}
+	 * to correct the keys in the map based on the column names set in the TableWrapper.
+	 *
+	 * @param resultSet    The ResultSet object representing the cursor to retrieve the data set.
+	 * @param tableWrapper The TableWrapper instance representing the current table to get the column names.
+	 * @return A map containing the column values from the database, with corrected keys based on the
+	 * column names in the TableWrapper.
+	 * @throws SQLException If there is an issue reading data from the database.
+	 */
+	public Map<String, Object> getDataFromDB(final ResultSet resultSet, final TableWrapper tableWrapper) throws SQLException {
 		final ResultSetMetaData rsmd = resultSet.getMetaData();
 		final int columnCount = rsmd.getColumnCount();
 		final Map<String, Object> objectMap = new HashMap<>();
 		for (int i = 1; i <= columnCount; i++) {
-			objectMap.put(rsmd.getColumnName(i), resultSet.getObject(i));
+			objectMap.put(this.getColumnName(tableWrapper, rsmd.getColumnName(i)), resultSet.getObject(i));
 		}
 		return objectMap;
+	}
+
+	/**
+	 * Retrieves the correct column name for the given table from the TableWrapper.
+	 * Some databases may return column names in uppercase, so this method allows you
+	 * to fetch the column name with the appropriate casing as set in the TableWrapper.
+	 *
+	 * @param tableWrapper The TableWrapper instance currently being processed.
+	 * @param columnName   The name of the column to retrieve.
+	 * @return The column name with the correct case as set in the TableWrapper. If there
+	 * is no matching column name in the TableWrapper, it returns the columnName
+	 * you set in the second argument.
+	 */
+	public String getColumnName(final TableWrapper tableWrapper, String columnName) {
+		TableRow primaryRow = tableWrapper.getPrimaryRow();
+		if (primaryRow.getColumnName().equalsIgnoreCase(columnName))
+			return primaryRow.getColumnName();
+
+		for (String column : tableWrapper.getColumns().keySet()) {
+			if (column.equalsIgnoreCase(columnName))
+				return column;
+		}
+		// If no matching column name is found, return the original name from the columnName.
+		return columnName;
 	}
 
 	public boolean isHikariAvailable(final String path) {
