@@ -67,10 +67,17 @@ public class H2DB extends Database {
 		File dbFile;
 		if (this.parent != null && this.child == null) dbFile = new File(parent);
 		else dbFile = new File(this.parent, this.child);
-
-		if (this.hikari == null) hikari = new HikariCP(new ConnectionSettings(dbFile.getPath()), "org.h2.Driver");
-		if (this.isHikariAvailable) connection = this.hikari.getFileConnection("jdbc:h2:");
-		else connection = DriverManager.getConnection("jdbc:h2:" + dbFile.getPath());
+		if (this.isHikariAvailable) {
+			if (this.hikari == null) hikari = new HikariCP(new ConnectionSettings(dbFile.getPath()), "org.h2.Driver");
+			connection = this.hikari.getFileConnection("jdbc:h2:");
+		} else {
+			try {
+				Class.forName("org.h2.Driver");
+			} catch (ClassNotFoundException e) {
+				LogMsg.warn("Cloud not load the H2 driver, check so the driver is installed.");
+			}
+			connection = DriverManager.getConnection("jdbc:h2:" + dbFile.getPath());
+		}
 
 		return connection;
 	}

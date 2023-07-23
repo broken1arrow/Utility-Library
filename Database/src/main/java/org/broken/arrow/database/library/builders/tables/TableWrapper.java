@@ -41,6 +41,8 @@ public final class TableWrapper {
 	 * Creates a new TableWrapper object to build a database command for creating a table.
 	 * Use the provided methods to add columns and define table properties. You can then call {@link SqlCommandUtility#createTable()}
 	 * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
+	 * <p>
+	 * Note: if you set up a Mysql database is it recommended you also set the length of the primary column value.
 	 *
 	 * @param tableName  the name of the table.
 	 * @param primaryRow the key that serves as the primary key. If not set, duplicate records may be added.
@@ -59,7 +61,7 @@ public final class TableWrapper {
 	 *
 	 * @param tableName   name on your table.
 	 * @param primaryRow  the key that serves as the primary key. If not set, duplicate records may be added.
-	 * @param valueLength Length of the value for primary key (used for text and similar in SQL database).
+	 * @param valueLength length of the value for primary key (used for text,varchar and similar in SQL database).
 	 * @param support     a flag indicating whether certain commands and settings are supported in the target SQL database.
 	 *                    *                    Set to true to enable support, or false to disable it. Use this option if you encounter errors.
 	 * @return TableWrapper class you need then add columns to your table.

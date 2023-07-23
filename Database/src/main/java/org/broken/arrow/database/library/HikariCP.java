@@ -5,7 +5,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
-import org.broken.arrow.database.library.log.LogMsg;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
@@ -19,10 +18,6 @@ public class HikariCP {
 	public HikariCP(@Nonnull ConnectionSettings mysqlPreference, String driver) {
 		this.mysqlPreference = mysqlPreference;
 		this.driver = driver;
-		Configurator.setAllLevels("com.zaxxer.hikari.pool.PoolBase", Level.WARN);
-		Configurator.setAllLevels("com.zaxxer.hikari.HikariDataSource", Level.WARN);
-		Configurator.setAllLevels("com.zaxxer.hikari.pool.HikariPool", Level.WARN);
-		LogMsg.info("load the HikariCP api...");
 	}
 
 	public Connection getConnection(String driverConnection) throws SQLException {
@@ -44,7 +39,7 @@ public class HikariCP {
 		config.addDataSourceProperty("prepStmtCacheSize", "250");
 		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");*/
 		this.hikari = new HikariDataSource(config);
-
+		turnOfLogs();
 		return this.hikari.getConnection();
 	}
 
@@ -59,6 +54,13 @@ public class HikariCP {
 		config.addDataSourceProperty("prepStmtCacheSize", "250");
 		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");*/
 		this.hikari = new HikariDataSource(config);
+		turnOfLogs();
 		return this.hikari.getConnection();
+	}
+
+	public void turnOfLogs() {
+		Configurator.setAllLevels("com.zaxxer.hikari.pool.PoolBase", Level.WARN);
+		Configurator.setAllLevels("com.zaxxer.hikari.HikariDataSource", Level.WARN);
+		Configurator.setAllLevels("com.zaxxer.hikari.pool.HikariPool", Level.WARN);
 	}
 }
