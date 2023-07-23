@@ -670,7 +670,7 @@ public abstract class Database {
 	 */
 	public String getColumnName(final TableWrapper tableWrapper, String columnName) {
 		TableRow primaryRow = tableWrapper.getPrimaryRow();
-		if (primaryRow.getColumnName().equalsIgnoreCase(columnName))
+		if (primaryRow != null && primaryRow.getColumnName().equalsIgnoreCase(columnName))
 			return primaryRow.getColumnName();
 
 		for (String column : tableWrapper.getColumns().keySet()) {
