@@ -26,15 +26,15 @@ public interface CommandRegistering {
 	 *
 	 * @return The command label message.
 	 */
-	String getCommandLableMessage();
+	String getCommandLabelMessage();
 
 	/**
-	 * Use {lable} to replace it with the command name and {perm} to get permission.
+	 * Use {label} to replace it with the command name and {perm} to get permission.
 	 *
-	 * @param commandLableMessage the message send for every subcomnmand.
+	 * @param commandLabelMessage the message send for every sub-command.
 	 * @return this class.
 	 */
-	CommandRegister setCommandLableMessage(String commandLableMessage);
+	CommandRegister setCommandLabelMessage(String commandLabelMessage);
 
 	/**
 	 * Returns the list of prefix messages to display in the command help.
@@ -44,7 +44,7 @@ public interface CommandRegistering {
 	List<String> getPrefixMessage();
 
 	/**
-	 * Help message befor the command sugestions.
+	 * Help message before the command suggestions.
 	 *
 	 * @param helpPrefixMessage the message send before.
 	 * @return this class.
@@ -52,7 +52,7 @@ public interface CommandRegistering {
 	CommandRegister setPrefixMessage(String... helpPrefixMessage);
 
 	/**
-	 * Help message befor the command sugestions.
+	 * Help message before the command suggestions.
 	 *
 	 * @param helpPrefixMessage the message send before.
 	 * @return this class.
@@ -67,7 +67,7 @@ public interface CommandRegistering {
 	List<String> getSuffixMessage();
 
 	/**
-	 * Help message after the command sugestions.
+	 * Help message after the command suggestions.
 	 *
 	 * @param suffixMessage the message send before.
 	 * @return this class.
@@ -75,7 +75,7 @@ public interface CommandRegistering {
 	CommandRegister setSuffixMessage(String... suffixMessage);
 
 	/**
-	 * Help message after the command sugestions.
+	 * Help message after the command suggestions.
 	 *
 	 * @param helpSuffixMessage the message send before.
 	 * @return this class.
@@ -87,30 +87,30 @@ public interface CommandRegistering {
 	 *
 	 * @return the message or null.
 	 */
-	String getCommandLableMessageNoPerms();
+	String getCommandLabelMessageNoPerms();
 
 	/**
-	 * Use {lable} to replace it with the command name and {perm} to get permission. Used if you not have permission.
+	 * Use {label} to replace it with the command name and {perm} to get permission. Used if you not have permission.
 	 *
-	 * @param commandLableMessage the message send for every subcomnmand.
+	 * @param commandLabelMessage the message send for every subcommand.
 	 * @return this class.
 	 */
-	CommandRegister setCommandLableMessageNoPerms(String commandLableMessage);
+	CommandRegister setCommandLabelMessageNoPerms(String commandLabelMessage);
 
 	/**
 	 * Get the permission for use the main command.
 	 *
 	 * @return the permission or null if not set.
 	 */
-	String getCommandLablePermission();
+	String getCommandLabelPermission();
 
 	/**
 	 * Set the permission used.
 	 *
-	 * @param commandLablePermission the permission
+	 * @param commandLabelPermission the permission
 	 * @return this class.
 	 */
-	CommandRegister setCommandLablePermission(String commandLablePermission);
+	CommandRegister setCommandLabelPermission(String commandLabelPermission);
 
 	/**
 	 * Unregisters a subcommand with the specified sublabel.
@@ -120,15 +120,15 @@ public interface CommandRegistering {
 	void unregisterSubCommand(String subLabel);
 
 	/**
-	 * Get all registed commands.
+	 * Get all register commands.
 	 *
 	 * @return list of all commands added.
 	 */
 	List<CommandBuilder> getCommands();
 
-	CommandBuilder getCommandBuilder(String lable);
+	CommandBuilder getCommandBuilder(String label);
 
-	CommandBuilder getCommandBuilder(String lable, boolean startsWith);
+	CommandBuilder getCommandBuilder(String label, boolean startsWith);
 
 	/**
 	 * Register main command used for your subcommands.
@@ -143,7 +143,7 @@ public interface CommandRegistering {
 	 * Register main command used for your subcommands.
 	 *
 	 * @param fallbackPrefix the prefix to use if could not use the normal command.
-	 * @param aliases        set alias for your command to use insted of the main command.
+	 * @param aliases        set alias for your command to use instead of the main command.
 	 * @param mainCommand    the command you want to register.
 	 * @return it return CommandRegister instance.
 	 */
@@ -156,7 +156,7 @@ public interface CommandRegistering {
 	 * @param mainCommand    the command you want to register.
 	 * @param description    description of the command.
 	 * @param usageMessage   message how to use the command.
-	 * @param aliases        set alias for your command to use insted of the main command.
+	 * @param aliases        set alias for your command to use instead of the main command.
 	 * @return it return CommandRegister instance.
 	 */
 	CommandRegister registerMainCommand(String fallbackPrefix, String mainCommand, String description, String usageMessage, String... aliases);

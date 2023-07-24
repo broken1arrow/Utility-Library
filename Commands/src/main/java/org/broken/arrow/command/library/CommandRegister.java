@@ -24,35 +24,36 @@ import java.util.Objects;
 public class CommandRegister implements CommandRegistering {
 
 	private final List<CommandBuilder> commands = Collections.synchronizedList(new ArrayList<>());
-	private String commandLableMessage;
-	private String commandLableMessageNoPerms;
-	private String commandLablePermission;
+	private String commandLabelMessage;
+	private String commandLabelMessageNoPerms;
+	private String commandLabelPermission;
 	private List<String> prefixMessage;
 	private List<String> suffixMessage;
-	private boolean registedMainCommand;
+	private boolean registeredMainCommand;
+	private List<String> descriptions;
 
 	/**
 	 * Registers a subcommand with the {@link CommandBuilder.Builder}.
-	 * If a sublabel is specified in the command builder, the command will be registered under that sublabel;
+	 * If a sub-label is specified in the command builder, the command will be registered under that sub-label;
 	 * otherwise, it will be registered under the executor's command label.
 	 *
 	 * @param commandBuilder The command builder to register.
 	 */
 	@Override
 	public void registerSubCommand(final CommandBuilder commandBuilder) {
-		final String[] lableSplit;
-		if (commandBuilder.getSubLable() == null) {
-			lableSplit = commandBuilder.getExecutor().getCommandLabel().split("\\|");
+		final String[] labelSplit;
+		if (commandBuilder.getSubLabel() == null) {
+			labelSplit = commandBuilder.getExecutor().getCommandLabel().split("\\|");
 		} else {
-			lableSplit = commandBuilder.getSubLable().split("\\|");
+			labelSplit = commandBuilder.getSubLabel().split("\\|");
 		}
-		if (collectCommands(commandBuilder, lableSplit)) {
+		if (collectCommands(commandBuilder, labelSplit)) {
 			return;
 		}
 		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.equals(commandBuilder));
-		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getSubLable().equals(commandBuilder.getSubLable()));
+		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getSubLabel().equals(commandBuilder.getSubLabel()));
 		commands.add(commandBuilder);
-		commands.sort(Comparator.comparing(CommandBuilder::getSubLable));
+		commands.sort(Comparator.comparing(CommandBuilder::getSubLabel));
 	}
 
 	/**
@@ -61,19 +62,20 @@ public class CommandRegister implements CommandRegistering {
 	 * @return The command label message.
 	 */
 	@Override
-	public String getCommandLableMessage() {
-		return commandLableMessage;
+	public String getCommandLabelMessage() {
+		return commandLabelMessage;
 	}
 
 	/**
 	 * Sets the message to display as the command label.
+	 * Use {label} to replace it with the command name.
 	 *
 	 * @param commandLableMessage The command label message to set.
 	 * @return The CommandRegister instance.
 	 */
 	@Override
-	public CommandRegister setCommandLableMessage(String commandLableMessage) {
-		this.commandLableMessage = commandLableMessage;
+	public CommandRegister setCommandLabelMessage(String commandLableMessage) {
+		this.commandLabelMessage = commandLableMessage;
 		return this;
 	}
 
@@ -145,6 +147,29 @@ public class CommandRegister implements CommandRegistering {
 		return this;
 	}
 
+	/**
+	 * Returns the description of the command. The description could provide information about the main command
+	 * and/or brief explanation to the subcommands. Player then add a "?" or "help" at the end of the command to
+	 * request additional information about the command.
+	 *
+	 * @return The description.
+	 */
+	public List<String> getDescriptions() {
+		return descriptions;
+	}
+
+	/**
+	 * Sets the description of the main command. The description could provide information about the main command
+	 * and/or brief explanation to the subcommands. Player then add a "?" or "help" at the end of the command to
+	 * request additional information about the command.
+	 *
+	 * @param descriptions The description message that explains what the command does.
+	 * @return The Builder instance.
+	 */
+	public CommandRegister setDescriptions(final String... descriptions) {
+		this.descriptions = Arrays.asList(descriptions);
+		return this;
+	}
 
 	/**
 	 * Get the message if player not have the permission.
@@ -152,19 +177,19 @@ public class CommandRegister implements CommandRegistering {
 	 * @return the message or null.
 	 */
 	@Override
-	public String getCommandLableMessageNoPerms() {
-		return commandLableMessageNoPerms;
+	public String getCommandLabelMessageNoPerms() {
+		return commandLabelMessageNoPerms;
 	}
 
 	/**
-	 * Use {lable} to replace it with the command name and {perm} to get permission. Used if you not have permission.
+	 * Use {label} to replace it with the command name and {perm} to get permission. Used if you not have permission.
 	 *
-	 * @param commandLableMessage the message send for every subcomnmand.
+	 * @param commandLabelMessage the message send for every subcommand.
 	 * @return this class.
 	 */
 	@Override
-	public CommandRegister setCommandLableMessageNoPerms(String commandLableMessage) {
-		this.commandLableMessageNoPerms = commandLableMessage;
+	public CommandRegister setCommandLabelMessageNoPerms(String commandLabelMessage) {
+		this.commandLabelMessageNoPerms = commandLabelMessage;
 		return this;
 	}
 
@@ -174,39 +199,39 @@ public class CommandRegister implements CommandRegistering {
 	 * @return the permission or null if not set.
 	 */
 	@Override
-	public String getCommandLablePermission() {
-		return commandLablePermission;
+	public String getCommandLabelPermission() {
+		return commandLabelPermission;
 	}
 
 	/**
 	 * Set the permission used.
 	 *
-	 * @param commandLablePermission the permission
+	 * @param commandLabelPermission the permission
 	 * @return this class.
 	 */
 	@Override
-	public CommandRegister setCommandLablePermission(final String commandLablePermission) {
-		this.commandLablePermission = commandLablePermission;
+	public CommandRegister setCommandLabelPermission(final String commandLabelPermission) {
+		this.commandLabelPermission = commandLabelPermission;
 		return this;
 	}
 
-	public boolean isRegistedMainCommand() {
-		return registedMainCommand;
+	public boolean isRegisteredMainCommand() {
+		return registeredMainCommand;
 	}
 
-	public CommandRegister setRegistedMainCommand(final boolean registedMainCommand) {
-		this.registedMainCommand = registedMainCommand;
+	public CommandRegister setRegisteredMainCommand(final boolean registeredMainCommand) {
+		this.registeredMainCommand = registeredMainCommand;
 		return this;
 	}
 
 	/**
-	 * Unregisters a subcommand with the specified sublabel.
+	 * Unregisters a subcommand with the specified sub-label.
 	 *
-	 * @param subLabel The sublabel of the subcommand to unregister.
+	 * @param subLabel The sub-label of the subcommand to unregister.
 	 */
 	@Override
 	public void unregisterSubCommand(String subLabel) {
-		commands.removeIf(commandBuilder -> commandBuilder.getSubLable().equals(subLabel));
+		commands.removeIf(commandBuilder -> commandBuilder.getSubLabel().equals(subLabel));
 	}
 
 	/**
@@ -221,10 +246,10 @@ public class CommandRegister implements CommandRegistering {
 	}
 
 	/**
-	 * Returns the command builder with the specified sublabel.
+	 * Returns the command builder with the specified sub-label.
 	 *
-	 * @param label The sublabel of the command builder to retrieve.
-	 * @return The command builder with the specified sublabel, or null if not found.
+	 * @param label The sub-label of the command builder to retrieve.
+	 * @return The command builder with the specified sub-label, or null if not found.
 	 */
 	@Override
 	public CommandBuilder getCommandBuilder(String label) {
@@ -232,18 +257,18 @@ public class CommandRegister implements CommandRegistering {
 	}
 
 	/**
-	 * Returns the command builder with the specified sublabel.
+	 * Returns the command builder with the specified sub-label.
 	 *
-	 * @param label      The sublabel of the command builder to retrieve.
-	 * @param startsWith Specifies whether the sublabel should match the beginning of the command builder's sublabel.
-	 * @return The command builder with the specified sublabel, or null if not found.
+	 * @param label      The sub-label of the command builder to retrieve.
+	 * @param startsWith Specifies whether the sub-label should match the beginning of the command builder's sub-label.
+	 * @return The command builder with the specified sub-label, or null if not found.
 	 */
 	@Override
 	public CommandBuilder getCommandBuilder(String label, boolean startsWith) {
 		for (final CommandBuilder command : commands) {
-			if (startsWith && (label.isEmpty() || command.getSubLable().startsWith(label)))
+			if (startsWith && (label.isEmpty() || command.getSubLabel().startsWith(label)))
 				return command;
-			if (command.getSubLable().equalsIgnoreCase(label))
+			if (command.getSubLabel().equalsIgnoreCase(label))
 				return command;
 		}
 		return null;
@@ -290,13 +315,13 @@ public class CommandRegister implements CommandRegistering {
 	@Override
 	public CommandRegister registerMainCommand(String fallbackPrefix, String mainCommand, String description, String usageMessage, String... aliases) {
 		final String[] main = mainCommand.split("\\|");
-		if (registedMainCommand) return this;
+		if (registeredMainCommand) return this;
 		if (main.length > 1)
 			for (final String command : main)
 				this.register(fallbackPrefix, new CommandsUtility(this, command, description, usageMessage, Arrays.asList(aliases)));
 		else
 			this.register(fallbackPrefix, new CommandsUtility(this, mainCommand, description, usageMessage, Arrays.asList(aliases)));
-		registedMainCommand = true;
+		registeredMainCommand = true;
 
 		return this;
 	}
@@ -304,7 +329,7 @@ public class CommandRegister implements CommandRegistering {
 	/**
 	 * Collects subcommands from the specified command builder with the given command labels.
 	 * If the command labels contain multiple labels separated by '|', the command builder will be registered
-	 * with each sublabel separately.
+	 * with each sub-label separately.
 	 *
 	 * @param commandBuilder The command builder to collect subcommands from.
 	 * @param commandLabels  The command labels to assign to the subcommands.
@@ -313,12 +338,12 @@ public class CommandRegister implements CommandRegistering {
 	@Override
 	public boolean collectCommands(CommandBuilder commandBuilder, String[] commandLabels) {
 		if (commandLabels.length > 1) {
-			for (final String lable : commandLabels) {
-				final CommandBuilder newComandBuilder = commandBuilder.getBuilder().setSubLabel(lable).build();
-				commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getSubLable().equals(lable));
-				commands.add(newComandBuilder);
+			for (final String label : commandLabels) {
+				final CommandBuilder newCommandBuilder = commandBuilder.getBuilder().setSubLabel(label).build();
+				commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getSubLabel().equals(label));
+				commands.add(newCommandBuilder);
 			}
-			commands.sort(Comparator.comparing(CommandBuilder::getSubLable));
+			commands.sort(Comparator.comparing(CommandBuilder::getSubLabel));
 			return true;
 		}
 		return false;
@@ -349,11 +374,11 @@ public class CommandRegister implements CommandRegistering {
 		if (this == o) return true;
 		if (!(o instanceof CommandRegister)) return false;
 		final CommandRegister that = (CommandRegister) o;
-		return registedMainCommand == that.registedMainCommand && commands.equals(that.commands) && Objects.equals(commandLableMessage, that.commandLableMessage) && Objects.equals(commandLableMessageNoPerms, that.commandLableMessageNoPerms) && Objects.equals(prefixMessage, that.prefixMessage) && Objects.equals(suffixMessage, that.suffixMessage);
+		return registeredMainCommand == that.registeredMainCommand && commands.equals(that.commands) && Objects.equals(commandLabelMessage, that.commandLabelMessage) && Objects.equals(commandLabelMessageNoPerms, that.commandLabelMessageNoPerms) && Objects.equals(prefixMessage, that.prefixMessage) && Objects.equals(suffixMessage, that.suffixMessage);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(commands, commandLableMessage, commandLableMessageNoPerms, prefixMessage, suffixMessage, registedMainCommand);
+		return Objects.hash(commands, commandLabelMessage, commandLabelMessageNoPerms, prefixMessage, suffixMessage, registeredMainCommand);
 	}
 }

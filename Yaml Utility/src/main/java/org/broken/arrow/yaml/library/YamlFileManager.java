@@ -43,7 +43,7 @@ import java.util.jar.JarFile;
 public abstract class YamlFileManager {
 
 	private boolean shallGenerateFiles;
-	private boolean singelFile;
+	private boolean singleFile;
 	private boolean firstLoad = true;
 	private final String path;
 	private final String fileName;
@@ -77,7 +77,7 @@ public abstract class YamlFileManager {
 	public YamlFileManager(Plugin plugin, final String path, boolean singleFile, boolean shallGenerateFiles) {
 		if (plugin == null)
 			throw new RuntimeException("The plugin is null");
-		this.singelFile = singleFile;
+		this.singleFile = singleFile;
 		this.shallGenerateFiles = shallGenerateFiles;
 		this.plugin = plugin;
 		this.dataFolder = plugin.getDataFolder();
@@ -346,7 +346,7 @@ public abstract class YamlFileManager {
 	 */
 	public String setExtensionIfExist(String name) {
 		Valid.checkBoolean(name != null && !name.isEmpty(), "The given path must not be empty!");
-		if (!isSingelFile())
+		if (!isSingleFile())
 			return name;
 		final int pos = name.lastIndexOf(".");
 		if (pos > 0) {
@@ -436,8 +436,8 @@ public abstract class YamlFileManager {
 	 *
 	 * @return true if it is a single file, false otherwise.
 	 */
-	public boolean isSingelFile() {
-		return singelFile;
+	public boolean isSingleFile() {
+		return singleFile;
 	}
 
 	/**
@@ -478,7 +478,7 @@ public abstract class YamlFileManager {
 	 * @param singelFile false if it shall check for several files.
 	 */
 	public void setIsSingelFile(final boolean singelFile) {
-		this.singelFile = singelFile;
+		this.singleFile = singelFile;
 	}
 
 	/**
@@ -532,7 +532,7 @@ public abstract class YamlFileManager {
 	}
 
 	public File[] getFilesInPluginFolder(final String directory) {
-		if (isSingelFile()) {
+		if (isSingleFile()) {
 			final File checkFile = new File(this.getDataFolder(), this.getPathWithExtension());
 			if (!checkFile.exists() && this.shallGenerateFiles)
 				createMissingFile();
@@ -633,7 +633,7 @@ public abstract class YamlFileManager {
 				}
 			} else if (url.getProtocol().equals("jar")) {
 
-				final String dirname = isSingelFile() ? directoryName : directoryName + "/";
+				final String dirname = isSingleFile() ? directoryName : directoryName + "/";
 				final String path = url.getPath();
 				final String jarPath = path.substring(5, path.indexOf("!"));
 				try (final JarFile jar = new JarFile(URLDecoder.decode(jarPath, StandardCharsets.UTF_8.name()))) {

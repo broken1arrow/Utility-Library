@@ -13,12 +13,12 @@ import java.util.Objects;
  */
 public class CommandBuilder {
 
-	private final String subLable;
+	private final String subLabel;
 	private final String description;
 	private final String permission;
 	private final String permissionMessage;
 	private final List<String> usageMessages;
-	private final boolean hideLable;
+	private final boolean hideLabel;
 	private final CommandHolder executor;
 	private final Builder builder;
 
@@ -28,13 +28,13 @@ public class CommandBuilder {
 	 * @param builder The builder instance used to set the command properties.
 	 */
 	private CommandBuilder(final Builder builder) {
-		this.subLable = builder.subLabel;
+		this.subLabel = builder.subLabel;
 		this.description = builder.description;
 		this.permission = builder.permission;
 		this.permissionMessage = builder.permissionMessage;
 
 		this.usageMessages = builder.usageMessages;
-		this.hideLable = builder.hideLabel;
+		this.hideLabel = builder.hideLabel;
 		this.executor = builder.executor;
 		this.builder = builder;
 	}
@@ -44,13 +44,13 @@ public class CommandBuilder {
 	 *
 	 * @return The sub-label.
 	 */
-	public String getSubLable() {
-		return subLable;
+	public String getSubLabel() {
+		return subLabel;
 	}
 
 	/**
 	 * Returns the description of the command. The description should provide information about what the command does.
-	 * Players can add a "?" or "help" at the end of the command to request this information.
+	 * Players add a "?" or "help" at the end of the command to request the information.
 	 *
 	 * @return The description.
 	 */
@@ -91,8 +91,8 @@ public class CommandBuilder {
 	 *
 	 * @return True if the label should be hidden, false otherwise.
 	 */
-	public boolean isHideLable() {
-		return hideLable;
+	public boolean isHideLabel() {
+		return hideLabel;
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class CommandBuilder {
 
 		/**
 		 * Sets the description of the command. The description should provide information about what the command does.
-		 * Player can add a "?" or "help" at the end of the command to request additional information about the command.
+		 * Player then add a "?" or "help" at the end of the command to request additional information about the command.
 		 *
 		 * @param description The description message that explains what the command does.
 		 * @return The Builder instance.
@@ -231,12 +231,12 @@ public class CommandBuilder {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		final CommandBuilder that = (CommandBuilder) o;
-		return hideLable == that.hideLable && Objects.equals(subLable, that.subLable) && Objects.equals(description, that.description) && Objects.equals(permission, that.permission) && Objects.equals(permissionMessage, that.permissionMessage) && Objects.equals(usageMessages, that.usageMessages) && Objects.equals(executor, that.executor) && Objects.equals(builder, that.builder);
+		return hideLabel == that.hideLabel && Objects.equals(subLabel, that.subLabel) && Objects.equals(description, that.description) && Objects.equals(permission, that.permission) && Objects.equals(permissionMessage, that.permissionMessage) && Objects.equals(usageMessages, that.usageMessages) && Objects.equals(executor, that.executor) && Objects.equals(builder, that.builder);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(subLable, description, permission, permissionMessage, usageMessages, hideLable, executor, builder);
+		return Objects.hash(subLabel, description, permission, permissionMessage, usageMessages, hideLabel, executor, builder);
 	}
 
 }
