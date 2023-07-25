@@ -66,7 +66,7 @@ public abstract class Database {
 	}
 
 	/**
-	 * The conetion to the database.
+	 * The connection to the database.
 	 *
 	 * @return the connection.
 	 */
@@ -219,7 +219,7 @@ public abstract class Database {
 				T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
 				Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
 				if (primaryValue == null)
-					LogMsg.warn("This table " + tableName + " with the primary key " + tableWrapper.getPrimaryRow().getColumnName() + " is null. Please ensure that this is not a mistake.");
+					LogMsg.warn("This table '" + tableName + "' with the primary key '" + tableWrapper.getPrimaryRow().getColumnName() + "' has null value. Please ensure that this is not a mistake.");
 				loadDataWrappers.add(new LoadDataWrapper<>(primaryValue, deserialize));
 			}
 
@@ -270,7 +270,7 @@ public abstract class Database {
 		T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
 		Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
 		if (primaryValue == null)
-			LogMsg.warn("This table " + tableName + " with the primary key " + tableWrapper.getPrimaryRow().getColumnName() + " is null. Please ensure that this is not a mistake.");
+			LogMsg.warn("This table '" + tableName + "' with the primary key '" + tableWrapper.getPrimaryRow().getColumnName() + "' has null value. Please ensure that this is not a mistake.");
 		return new LoadDataWrapper<>(primaryValue, deserialize);
 	}
 
@@ -491,14 +491,14 @@ public abstract class Database {
 		createTable.execute();
 
 		// Populating the table with the data
-		final PreparedStatement movedata = connection.prepareStatement("INSERT INTO " + tableName + "(" + TextUtils(existingColumns) + ") SELECT "
+		final PreparedStatement moveData = connection.prepareStatement("INSERT INTO " + tableName + "(" + TextUtils(existingColumns) + ") SELECT "
 				+ TextUtils(existingColumns) + " FROM " + tableName + "_old;");
-		movedata.execute();
+		moveData.execute();
 
 		final PreparedStatement removeOldTable = connection.prepareStatement("DROP TABLE " + tableName + "_old;");
 		removeOldTable.execute();
 
-		close(movedata, alterTable, createTable, removeOldTable);
+		close(moveData, alterTable, createTable, removeOldTable);
 	}
 
 	protected void createMissingColumns(final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
