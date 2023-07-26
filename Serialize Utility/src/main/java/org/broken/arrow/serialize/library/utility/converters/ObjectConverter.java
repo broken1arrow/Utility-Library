@@ -73,6 +73,26 @@ public class ObjectConverter {
 	}
 
 	/**
+	 * Retrieves the boolean value from an object. If the object is already a boolean,
+	 * the method returns the boolean value as-is. If the object is a string, it checks
+	 * if the string value is equal to "true" (case-sensitive) and returns the corresponding
+	 * boolean value. For any other type of object, the method returns false.
+	 *
+	 * @param object The object from which to retrieve the boolean value.
+	 * @return The boolean value from the object. Returns false if the object is not a boolean
+	 * or a string equal to "true".
+	 */
+	public static boolean getBoolean(Object object) {
+		if (object instanceof Boolean) {
+			return (boolean) object;
+		}
+		if (object instanceof String) {
+			return object.equals("true");
+		}
+		return false;
+	}
+
+	/**
 	 * Converts the innermost key from a YAML path to a map with the corresponding key-value pair.
 	 *
 	 * <p>
@@ -193,4 +213,6 @@ public class ObjectConverter {
 				})
 				.collect(Collectors.toList());
 	}
+
+
 }
