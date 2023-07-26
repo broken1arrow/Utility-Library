@@ -141,6 +141,7 @@ public class CheckItemsInsideInventory {
 	public Map<Integer, ItemStack> getItemsOnSpecifiedSlots(final Inventory inv, final Player player, final Location location, final boolean shallCheckDuplicates) {
 		this.checkDuplicates = shallCheckDuplicates;
 		final Map<Integer, ItemStack> items = new HashMap<>();
+		ItemStack[] itemStacks = inv.getStorageContents().clone();
 		if (!this.getSlotsToCheck().isEmpty()) {
 			for (final int slot : this.getSlotsToCheck()) {
 				getInventoryItems(items, inv, player, slot);
@@ -151,7 +152,7 @@ public class CheckItemsInsideInventory {
 			}
 		}
 		if (shallCheckDuplicates)
-			return addToMuchItems(items, player, inv, location);
+			return addToMuchItems(items, player, itemStacks, location);
 		else return items;
 	}
 
@@ -159,9 +160,9 @@ public class CheckItemsInsideInventory {
 		if (slot > inv.getSize()) return;
 		final ItemStack item = inv.getItem(slot);
 		if (chekItemAreOnBlacklist(item)) {
-			addItemsBackToPlayer(player, item);
+			addItemsBackToPlayer(player, item.clone());
 		} else {
-			items.put(slot, item != null && !isAir(item.getType()) ? item : null);
+			items.put(slot, item != null && !isAir(item.getType()) ? item.clone() : null);
 		}
 
 		if (checkDuplicates && item != null) {
@@ -171,7 +172,7 @@ public class CheckItemsInsideInventory {
 		}
 	}
 
-	private Map<Integer, ItemStack> addToMuchItems(final Map<Integer, ItemStack> items, final Player player, final Inventory inventory, final Location location) {
+	private Map<Integer, ItemStack> addToMuchItems(final Map<Integer, ItemStack> items, final Player player, final ItemStack[] itemStacks, final Location location) {
 		final Map<Integer, ItemStack> itemStacksNoDoubleEntity = new HashMap<>();
 		final Map<ItemStack, Integer> cachedDuplicatedItems = new HashMap<>();
 		final Set<ItemStack> set = new HashSet<>();
@@ -181,11 +182,11 @@ public class CheckItemsInsideInventory {
 			if (entity.getValue() != null) {
 
 				if (entity.getValue().getAmount() > 1) {
-					cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), inventory)) - 1);
+					cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), itemStacks)) - 1);
 					duplicatedItems.put(player.getUniqueId(), cachedDuplicatedItems);
 				}
 				if (!set.add(ItemCreator.createItemStackAsOne(entity.getValue()))) {
-					cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), inventory)) - 1);
+					cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), itemStacks)) - 1);
 					duplicatedItems.put(player.getUniqueId(), cachedDuplicatedItems);
 				} else {
 					itemStacksNoDoubleEntity.put(entity.getKey(), ItemCreator.createItemStackAsOne(entity.getValue()));
