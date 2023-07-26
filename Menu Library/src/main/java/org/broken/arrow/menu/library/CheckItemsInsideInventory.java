@@ -31,6 +31,7 @@ public class CheckItemsInsideInventory {
 	private final List<Material> blacklistedItems = new ArrayList<>();
 	private final List<Integer> slotsToCheck = new ArrayList<>();
 	private final RegisterMenuAPI registerMenuAPI;
+	private boolean checkDuplicates;
 
 	public CheckItemsInsideInventory(RegisterMenuAPI registerMenuAPI) {
 		this.registerMenuAPI = registerMenuAPI;
@@ -138,6 +139,7 @@ public class CheckItemsInsideInventory {
 	 */
 
 	public Map<Integer, ItemStack> getItemsOnSpecifiedSlots(final Inventory inv, final Player player, final Location location, final boolean shallCheckDuplicates) {
+		this.checkDuplicates = shallCheckDuplicates;
 		final Map<Integer, ItemStack> items = new HashMap<>();
 		if (!this.getSlotsToCheck().isEmpty()) {
 			for (final int slot : this.getSlotsToCheck()) {
@@ -153,40 +155,45 @@ public class CheckItemsInsideInventory {
 		else return items;
 	}
 
-	public Map<Integer, ItemStack> getInventoryItems(final Map<Integer, ItemStack> items, final Inventory inv, final Player player, final int slot) {
-		if (slot > inv.getSize()) return items;
+	public void getInventoryItems(final Map<Integer, ItemStack> items, final Inventory inv, final Player player, final int slot) {
+		if (slot > inv.getSize()) return;
 		final ItemStack item = inv.getItem(slot);
 		if (chekItemAreOnBlacklist(item)) {
 			addItemsBackToPlayer(player, item);
 		} else {
 			items.put(slot, item != null && !isAir(item.getType()) ? item : null);
 		}
-		return items;
+
+		if (checkDuplicates && item != null) {
+			ItemStack clone = new ItemStack(item);
+			clone.setAmount(1);
+			inv.setItem(slot, clone);
+		}
 	}
 
 	private Map<Integer, ItemStack> addToMuchItems(final Map<Integer, ItemStack> items, final Player player, final Inventory inventory, final Location location) {
-		final Map<Integer, ItemStack> itemStacksNoDubbleEntity = new HashMap<>();
-		final Map<ItemStack, Integer> chachedDuplicatedItems = new HashMap<>();
+		final Map<Integer, ItemStack> itemStacksNoDoubleEntity = new HashMap<>();
+		final Map<ItemStack, Integer> cachedDuplicatedItems = new HashMap<>();
 		final Set<ItemStack> set = new HashSet<>();
 		this.sendMsgPlayer = false;
-		for (final Map.Entry<Integer, ItemStack> entitys : items.entrySet()) {
+		for (final Map.Entry<Integer, ItemStack> entity : items.entrySet()) {
 
-			if (entitys.getValue() != null) {
+			if (entity.getValue() != null) {
 
-				if (entitys.getValue().getAmount() > 1) {
-					chachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entitys.getValue()), (ItemCreator.countItemStacks(entitys.getValue(), inventory)) - 1);
-					duplicatedItems.put(player.getUniqueId(), chachedDuplicatedItems);
+				if (entity.getValue().getAmount() > 1) {
+					cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), inventory)) - 1);
+					duplicatedItems.put(player.getUniqueId(), cachedDuplicatedItems);
 				}
-				if (!set.add(ItemCreator.createItemStackAsOne(entitys.getValue()))) {
-					chachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entitys.getValue()), (ItemCreator.countItemStacks(entitys.getValue(), inventory)) - 1);
-					duplicatedItems.put(player.getUniqueId(), chachedDuplicatedItems);
+				if (!set.add(ItemCreator.createItemStackAsOne(entity.getValue()))) {
+					cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), inventory)) - 1);
+					duplicatedItems.put(player.getUniqueId(), cachedDuplicatedItems);
 				} else {
-					itemStacksNoDubbleEntity.put(entitys.getKey(), ItemCreator.createItemStackAsOne(entitys.getValue()));
+					itemStacksNoDoubleEntity.put(entity.getKey(), ItemCreator.createItemStackAsOne(entity.getValue()));
 				}
 			}
 		}
 		addItemsBackToPlayer(location);
-		return itemStacksNoDubbleEntity;
+		return itemStacksNoDoubleEntity;
 	}
 
 	private void addItemsBackToPlayer(final Player player, final ItemStack itemStack) {
