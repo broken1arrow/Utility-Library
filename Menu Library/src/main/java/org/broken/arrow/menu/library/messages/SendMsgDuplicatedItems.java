@@ -24,15 +24,15 @@ public class SendMsgDuplicatedItems {
 
 	/**
 	 * Set message for when player have added item some are blacklisted.
-	 * Support both hex and &amp; color codes and have this placeholders:
+	 * Support both hex and &amp; color codes. Hex formats supported:
 	 * <p>
 	 * hex format is &lt;#8000ff&gt; and gradients &lt;#8000ff:#8000ff&gt;
-	 * <ul>
+	 * </p>
+	 * <p>&nbsp;</p>
+	 * {@code
 	 * The placeholders to use:
-	 * <p>
 	 * &ndash; {0} = item type
-	 * <p>
-	 * </ul>
+	 * }
 	 *
 	 * @param blacklistMessage set a message.
 	 */
@@ -43,20 +43,17 @@ public class SendMsgDuplicatedItems {
 
 	/**
 	 * Set message for when player have added item some are duplicated.
-	 * Support both hex and &amp; color codes and have this placeholders:
+	 * Support both hex and &amp; color codes.Hex formats supported:
 	 * <p>
 	 * hex format is &lt;#8000ff&gt; and gradients &lt;#8000ff:#8000ff&gt;
-	 * <p>
-	 * <ul>
-	 * The placeholders to use:
-	 * <p>
-	 * &ndash; {0} = item type
-	 * <p>
-	 * &ndash; {1} = total amount of stacks
-	 * <p>
-	 * &ndash; {2} = item amount
-	 * <p>
-	 * </ul>
+	 * </p>
+	 * <p>&nbsp;</p>
+	 * {@code
+	 * <p>The placeholders to use:</p>
+	 * <p> &ndash; {0} = item type </p>
+	 * <p> &ndash; {1} = total amount of stacks</p>
+	 * <p>&ndash; {2} = item amount</p>
+	 * }
 	 *
 	 * @param duplicatedMessage set a message.
 	 */
