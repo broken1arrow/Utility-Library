@@ -43,7 +43,7 @@ public class RegisterMenuAPI {
 	private Metadata playerMeta;
 	private RegisterNbtAPI nbtApi;
 	private ItemCreator itemCreator;
-	private CheckItemsInsideInventory checkItemsInsideInventory;
+	private CheckItemsInsideMenu checkItemsInsideMenu;
 	private SendMsgDuplicatedItems messages;
 	private boolean notFoundItemCreator;
 	private boolean notFoundUpdateTitle;
@@ -80,7 +80,7 @@ public class RegisterMenuAPI {
 		//ServerVersion.setServerVersion(plugin);
 		versionCheck();
 		registerMenuEvent(plugin);
-		this.checkItemsInsideInventory = new CheckItemsInsideInventory(this);
+		this.checkItemsInsideMenu = new CheckItemsInsideMenu(this);
 		this.playerMeta = new Metadata(plugin);
 		menuAPI = this;
 		this.messages = new SendMsgDuplicatedItems();
@@ -119,8 +119,8 @@ public class RegisterMenuAPI {
 		return itemCreator;
 	}
 
-	public CheckItemsInsideInventory getCheckItemsInsideInventory() {
-		return checkItemsInsideInventory;
+	public CheckItemsInsideMenu getCheckItemsInsideInventory() {
+		return checkItemsInsideMenu;
 	}
 
 	public RegisterNbtAPI getNbtApi() {

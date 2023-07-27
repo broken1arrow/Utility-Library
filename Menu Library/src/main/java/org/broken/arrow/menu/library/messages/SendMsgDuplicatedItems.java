@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
  */
 public class SendMsgDuplicatedItems {
 	private String blacklistMessage;
-	private String dublicatedMessage;
+	private String duplicatedMessage;
 	private boolean notFoundTextTranslator;
 
 	public SendMsgDuplicatedItems() {
@@ -24,10 +24,15 @@ public class SendMsgDuplicatedItems {
 
 	/**
 	 * Set message for when player have added item some are blacklisted.
-	 * Suport both hex and &amp; colorcodes and have this placeholders:
+	 * Support both hex and &amp; color codes and have this placeholders:
 	 * <p>
 	 * hex format is &lt;#8000ff&gt; and gradients &lt;#8000ff:#8000ff&gt;
-	 * {0} = item type
+	 * <ul>
+	 * The placeholders to use:
+	 * <p>
+	 * &ndash; {0} = item type
+	 * <p>
+	 * </ul>
 	 *
 	 * @param blacklistMessage set a message.
 	 */
@@ -37,19 +42,27 @@ public class SendMsgDuplicatedItems {
 	}
 
 	/**
-	 * Set message for when player have added item some are dublicated.
-	 * Suport both hex and &amp; colorcodes and have this placeholders:
+	 * Set message for when player have added item some are duplicated.
+	 * Support both hex and &amp; color codes and have this placeholders:
 	 * <p>
 	 * hex format is &lt;#8000ff&gt; and gradients &lt;#8000ff:#8000ff&gt;
-	 * {0} = item type
-	 * {1} = amount of stacks
-	 * {2} = item amount
+	 * <p>
+	 * <ul>
+	 * The placeholders to use:
+	 * <p>
+	 * &ndash; {0} = item type
+	 * <p>
+	 * &ndash; {1} = total amount of stacks
+	 * <p>
+	 * &ndash; {2} = item amount
+	 * <p>
+	 * </ul>
 	 *
-	 * @param dublicatedMessage set a message.
+	 * @param duplicatedMessage set a message.
 	 */
 
-	public void setDublicatedMessage(String dublicatedMessage) {
-		this.dublicatedMessage = dublicatedMessage;
+	public void setDuplicatedMessage(String duplicatedMessage) {
+		this.duplicatedMessage = duplicatedMessage;
 	}
 
 	public void sendMessage(Player player, String msg) {
@@ -58,26 +71,21 @@ public class SendMsgDuplicatedItems {
 
 	public void sendBlacklistMessage(Player player, Object... placeholders) {
 		String message;
-		if (blacklistMessage == null)
-			message = "&fthis item&6 {0}&f are blacklisted";
-		else
-			message = blacklistMessage;
+		if (blacklistMessage == null) message = "&fthis item&6 {0}&f are blacklisted and you get the items back";
+		else message = blacklistMessage;
 		if (notFoundTextTranslator)
 			player.sendMessage(ChatColor.translateAlternateColorCodes('&', (translatePlaceholders(message, placeholders))));
-		else
-			player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, placeholders)));
+		else player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, placeholders)));
 	}
 
-	public void sendDublicatedMessage(Player player, Object... placeholders) {
+	public void sendDuplicatedMessage(Player player, Object... placeholders) {
 		String message;
-		if (dublicatedMessage == null)
-			message = "&fYou can't add more than one &6 {0} &ftype, You have added &4{1}&f extra itemstack. You get back &6 {2}&f items.";
-		else
-			message = dublicatedMessage;
+		if (duplicatedMessage == null)
+			message = "&fYou can't add more if this &6 {0} &ftype, you get back &6 {2}&f items.You have added totally &4{1}&f extra itemstacks";
+		else message = duplicatedMessage;
 		if (notFoundTextTranslator)
 			player.sendMessage(ChatColor.translateAlternateColorCodes('&', (translatePlaceholders(message, placeholders))));
-		else
-			player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, placeholders)));
+		else player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, placeholders)));
 	}
 
 	public String translatePlaceholders(String rawText, Object... placeholders) {

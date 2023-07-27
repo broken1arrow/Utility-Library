@@ -529,6 +529,17 @@ public class MenuUtility<T> {
 		return title;
 	}
 
+	/**
+	 * Retrieves an instance of CheckItemsInsideMenu, which allows you to process the items inside the menu's
+	 * inventory. You can use this instance, for example, to collect and save the items added by the player
+	 * to the menu to a cache or for other specific purposes.
+	 *
+	 * @return A CheckItemsInsideMenu instance for collect the menu's inventory items.
+	 */
+	public CheckItemsInsideMenu getCheckItemsInsideMenu() {
+		return this.menuAPI.getCheckItemsInsideInventory();
+	}
+
 	//========================================================
 
 	/**
