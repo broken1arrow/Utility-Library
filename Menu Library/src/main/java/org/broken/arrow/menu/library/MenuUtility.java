@@ -522,10 +522,10 @@ public class MenuUtility<T> {
 			title = titleFunction.apply();
 		}
 		if (title == null || title.equals("")) {
-			this.titleFunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " : "");
+			this.titleFunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " + (getPageNumber() + 1) : "");
 			title = this.titleFunction.apply();
 		}
-		title = title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? " " + (getPageNumber() + 1) + "" : "");
+		title = title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? "page: " + (getPageNumber() + 1) : "");
 		return title;
 	}
 

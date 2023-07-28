@@ -36,7 +36,6 @@ public class SendMsgDuplicatedItems {
 	 *
 	 * @param blacklistMessage set a message.
 	 */
-
 	public void setBlacklistMessage(String blacklistMessage) {
 		this.blacklistMessage = blacklistMessage;
 	}
@@ -57,7 +56,6 @@ public class SendMsgDuplicatedItems {
 	 *
 	 * @param duplicatedMessage set a message.
 	 */
-
 	public void setDuplicatedMessage(String duplicatedMessage) {
 		this.duplicatedMessage = duplicatedMessage;
 	}
