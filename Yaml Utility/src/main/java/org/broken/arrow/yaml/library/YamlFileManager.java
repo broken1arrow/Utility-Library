@@ -16,12 +16,15 @@ import org.bukkit.plugin.Plugin;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -35,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
 
 /**
  * Helper class to load and save data from one or several files.
@@ -42,6 +46,9 @@ import java.util.jar.JarFile;
  */
 public abstract class YamlFileManager {
 
+	private FileConfiguration customConfig;
+	private File customConfigFile;
+	private final File dataFolder;
 	private boolean shallGenerateFiles;
 	private boolean singleFile;
 	private boolean firstLoad = true;
@@ -49,15 +56,15 @@ public abstract class YamlFileManager {
 	private final String fileName;
 	private int version;
 	private String extension;
+	private String resourcePath;
 	private Set<String> filesFromResource;
-	private FileConfiguration customConfig;
-	private File customConfigFile;
-	private final File dataFolder;
+
 	protected Plugin plugin;
 	private ConfigUpdater configUpdater;
 
 	/**
-	 * Constructs a new `YamlFileManager` object with the specified plugin and path.
+	 * Constructs a new `YamlFileManager` object with the specified plugin and path. This constructor
+	 * will default generate files and can only handle single file.
 	 *
 	 * @param plugin the plugin associated with the file manager
 	 * @param path   the path to the file or folder where data will be stored
@@ -85,8 +92,8 @@ public abstract class YamlFileManager {
 			this.fileName = this.getNameOfFile(path);
 		else
 			this.fileName = "";
-
 		this.path = this.setExtensionIfExist(path);
+		this.resourcePath = singleFile ? path : this.path;
 		final File folder = this.dataFolder;
 		if (!folder.exists())
 			folder.mkdir();
@@ -94,21 +101,34 @@ public abstract class YamlFileManager {
 
 	/**
 	 * Subclasses must implement this method to save data to the specified file.
-	 * The argument is most useful when you have a list of files to save. For other cases,
-	 * you could use {@link #getCustomConfig()} directly.
+	 * The argument is most useful when you have a list of files to save.
 	 *
 	 * @param file the file to which the data should be saved
 	 */
 	protected abstract void saveDataToFile(final File file);
 
 	/**
+	 * <p>
+	 * NOTE: this method is deprecated and will soon be removed.
+	 * Use {@link #loadSettingsFromYaml(File, FileConfiguration)}
+	 * </p>
 	 * Subclasses must implement this method to load settings from the specified YAML file.
-	 * The argument is most useful when you have a list of files to load. For other cases,
-	 * you could use {@link #getCustomConfig()} directly.
+	 * The argument is most useful when you have a list of files to load.
 	 *
 	 * @param file the YAML file from which to load the settings.
 	 */
-	protected abstract void loadSettingsFromYaml(final File file);
+	@Deprecated
+	protected void loadSettingsFromYaml(final File file) {
+	}
+
+	/**
+	 * Subclasses must implement this method to load settings from the specified YAML file.
+	 * The argument is most useful when you have a list of files to load.
+	 *
+	 * @param file         the YAML file from which to load the settings.
+	 * @param loadedConfig the loaded config for the file.
+	 */
+	protected abstract void loadSettingsFromYaml(final File file, FileConfiguration loadedConfig);
 
 	/**
 	 * Updates the configuration file.
@@ -132,7 +152,8 @@ public abstract class YamlFileManager {
 	 *
 	 * @param file            The file to update. If null, the current file is used.
 	 * @param resource        The resource path of the file. Use this if you store your file on the disk in a different path
-	 *                        than what you have in the resource folder.
+	 *                        than what you have in the resource folder. You can also use {@link #setResourcePath(String)} to
+	 *                        set the resource path.
 	 * @param ignoredSections The sections to ignore during the update.
 	 */
 
@@ -141,8 +162,11 @@ public abstract class YamlFileManager {
 			this.configUpdater = new ConfigUpdater(this.plugin, ignoredSections);
 		if (file == null)
 			file = new File(this.getFullPath());
+		String resourcePath = resource;
+		if (resourcePath == null)
+			resourcePath = this.resourcePath;
 		try {
-			this.configUpdater.update(getVersion(), resource != null ? resource : this.getPathWithExtension(), file);
+			this.configUpdater.update(getVersion(), resourcePath != null ? resourcePath : this.getPathWithExtension(), file);
 		} catch (final IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -155,7 +179,8 @@ public abstract class YamlFileManager {
 	 */
 	public void reload() {
 		try {
-			if (this.getCustomConfigFile() == null || this.firstLoad) {
+			Set<String> filesFromResource = this.filesFromResource;
+			if (filesFromResource == null || filesFromResource.isEmpty()) {
 				load(getAllFilesInPluginJar());
 			} else {
 				load(getFilesInPluginFolder(this.getPath()));
@@ -200,14 +225,53 @@ public abstract class YamlFileManager {
 	 * @param configuration the ConfigurationSerializable object to serialize and set
 	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
 	 */
+	public void setData(@Nonnull final File file, @Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
+		this.setData(file, path, false, configuration);
+	}
+
+	/**
+	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
+	 *
+	 * @param file          the file to save the serialized data to.
+	 * @param path          the path to set the serialized data at.
+	 * @param updateData    if it shall update the file and also keep the commits.
+	 * @param configuration the ConfigurationSerializable object to serialize and set
+	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
+	 */
+	public void setData(@Nonnull final File file, @Nonnull final String path, final boolean updateData, @Nonnull final ConfigurationSerializable configuration) {
+		Valid.checkNotNull(file, "file can't be null");
+		Valid.checkNotNull(path, "path can't be null");
+		Valid.checkNotNull(configuration, "Serialize utility can't be null, need provide a class instance some implements ConfigurationSerializeUtility");
+		Valid.checkNotNull(configuration.serialize(), "Missing serialize method or it is null, can't serialize the class data.");
+		FileConfiguration customConfig = YamlConfiguration.loadConfiguration(file);
+
+		customConfig.set(path, null);
+		for (final Map.Entry<String, Object> key : configuration.serialize().entrySet()) {
+			customConfig.set(path + "." + key.getKey(), DataSerializer.serialize(key.getValue()));
+		}
+		this.saveToFile(file, customConfig, updateData);
+	}
+
+	/**
+	 * <p>
+	 * NOTE: Deprecated method, use {@link #setData(java.io.File, String, org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable)}
+	 * </p>
+	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
+	 *
+	 * @param path          the path to set the serialized data at
+	 * @param configuration the ConfigurationSerializable object to serialize and set
+	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
+	 */
+	@Deprecated
 	public void setData(@Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
 		Valid.checkBoolean(path != null, "path can't be null");
 		Valid.checkBoolean(configuration != null, "Serialize utility can't be null, need provide a class instance some implements ConfigurationSerializeUtility");
 		Valid.checkBoolean(configuration.serialize() != null, "Missing serialize method or it is null, can't serialize the class data.");
 
-		this.getCustomConfig().set(path, null);
+
+		this.customConfig.set(path, null);
 		for (final Map.Entry<String, Object> key : configuration.serialize().entrySet()) {
-			this.getCustomConfig().set(path + "." + key.getKey(), DataSerializer.serialize(key.getValue()));
+			this.customConfig.set(path + "." + key.getKey(), DataSerializer.serialize(key.getValue()));
 		}
 	}
 
@@ -259,21 +323,23 @@ public abstract class YamlFileManager {
 	/**
 	 * Saves the configuration to the specified file.
 	 *
-	 * @param file the file to which the configuration should be saved
+	 * @param file         the file to which the configuration should be saved
+	 * @param customConfig the config you want to save to the file.
 	 */
-	public void saveToFile(final File file) {
-		this.saveToFile(file, false);
+	public void saveToFile(@Nonnull final File file, @Nonnull final FileConfiguration customConfig) {
+		this.saveToFile(file, customConfig, false);
 	}
 
 	/**
 	 * Saves the configuration to the specified file and updates the data if requested.
 	 *
-	 * @param file       the file to which the configuration should be saved
-	 * @param updateData specifies whether the data should be updated after saving
+	 * @param file         the file to which the configuration should be saved
+	 * @param customConfig the config you want to save to the file.
+	 * @param updateData   specifies whether the data should be updated after saving and add the commits.
 	 */
-	public void saveToFile(final File file, boolean updateData) {
+	public void saveToFile(@Nonnull final File file, @Nonnull final FileConfiguration customConfig, boolean updateData) {
 		try {
-			this.customConfig.save(file);
+			customConfig.save(file);
 			if (updateData)
 				update(file);
 		} catch (final IOException e) {
@@ -309,11 +375,9 @@ public abstract class YamlFileManager {
 				if (!file.exists()) {
 					this.plugin.saveResource(file.getName(), false);
 				}
-				if (this.firstLoad) {
-					this.customConfig = YamlConfiguration.loadConfiguration(file);
-					this.firstLoad = false;
-				} else
-					this.customConfig.load(file);
+				FileConfiguration customConfig = YamlConfiguration.loadConfiguration(file);
+				this.customConfig = customConfig;
+				loadSettingsFromYaml(file, customConfig);
 				loadSettingsFromYaml(file);
 			}
 	}
@@ -324,6 +388,7 @@ public abstract class YamlFileManager {
 	 *
 	 * @return the file configuration.
 	 */
+	@Deprecated
 	public FileConfiguration getCustomConfig() {
 		return customConfig;
 	}
@@ -334,15 +399,16 @@ public abstract class YamlFileManager {
 	 *
 	 * @return the last loaded file.
 	 */
+	@Deprecated
 	public File getCustomConfigFile() {
 		return customConfigFile;
 	}
 
 	/**
-	 * Check if the file name is missing an extension.
+	 * Set the extension and also format the path to the file.
 	 *
-	 * @param name the name of the file.
-	 * @return the name with the extension added if it is missing.
+	 * @param name the full path and file name with the extension.
+	 * @return the name without the extension added if it is missing.
 	 */
 	public String setExtensionIfExist(String name) {
 		Valid.checkBoolean(name != null && !name.isEmpty(), "The given path must not be empty!");
@@ -475,10 +541,19 @@ public abstract class YamlFileManager {
 	 * Set this to false if it is more an one file. It will then check for all
 	 * files in the folder you provide.
 	 *
-	 * @param singelFile false if it shall check for several files.
+	 * @param singleFile false if it shall check for several files.
 	 */
-	public void setIsSingelFile(final boolean singelFile) {
-		this.singleFile = singelFile;
+	public void setIsSingleFile(final boolean singleFile) {
+		this.singleFile = singleFile;
+	}
+
+	/**
+	 * Set the path were the file or files is located in the resource folder.
+	 *
+	 * @param resourcePath the path to the folder the files is located or path to the file self.
+	 */
+	public void setResourcePath(final String resourcePath) {
+		this.resourcePath = resourcePath;
 	}
 
 	/**
@@ -502,7 +577,7 @@ public abstract class YamlFileManager {
 	}
 
 	public List<String> getAllFilesInDirectory() {
-		return getFilenamesForDirnameFromCP(getPath());
+		return getFilenamesForDirnameFromCP(this.resourcePath);
 	}
 
 	public boolean checkFolderExist(final String fileToSave, final File[] dataFolders) {
@@ -640,9 +715,9 @@ public abstract class YamlFileManager {
 					final Enumeration<JarEntry> entries = jar.entries();
 					while (entries.hasMoreElements()) {
 						final JarEntry entry = entries.nextElement();
-						final String name = entry.getName();
-						if (name.startsWith(dirname) && name.endsWith(this.getExtension())) {
-							filenames.add(name);
+						final String filePath = entry.getName();
+						if (filePath.startsWith(dirname) && filePath.endsWith(this.getExtension())) {
+							filenames.add(filePath);
 						}
 					}
 				} catch (final IOException e) {
@@ -654,27 +729,23 @@ public abstract class YamlFileManager {
 	}
 
 	private void createMissingFile() {
-		try {
-			this.plugin.saveResource(this.getPathWithExtension(), false);
-		} catch (final IllegalArgumentException ignore) {
-			final InputStream inputStream = this.plugin.getResource(this.getPathWithExtension());
-			if (inputStream == null) {
-				final File checkFile = new File(this.getDataFolder(), this.getPathWithExtension());
-				if (!checkFile.exists()) {
-					try {
-						checkFile.createNewFile();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+		final InputStream inputStream = this.plugin.getResource(this.resourcePath);
+		if (inputStream == null) {
+			final File checkFile = new File(this.getDataFolder(), this.getPathWithExtension());
+			if (!checkFile.exists()) {
+				try {
+					checkFile.createNewFile();
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-				return;
 			}
-			final FileConfiguration newConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(inputStream));
-			try {
-				newConfig.save(this.getPathWithExtension());
-			} catch (final IOException e) {
-				e.printStackTrace();
-			}
+			return;
+		}
+		final FileConfiguration newConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(inputStream));
+		try {
+			newConfig.save(this.getPathWithExtension());
+		} catch (final IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -683,20 +754,67 @@ public abstract class YamlFileManager {
 		if (listFiles == null || listFiles.length < 1) {
 			this.filesFromResource.forEach(file -> {
 				if (file.endsWith(getExtension()))
-					this.plugin.saveResource(file, false);
+					this.saveResource(file);
+				//this.plugin.saveResource(file, false);
 			});
 			return;
 		}
 
-		this.filesFromResource.stream().filter((files) -> {
-			if (!files.endsWith(getExtension())) return false;
-			for (final File file : listFiles) {
-				if (this.getFileName(files).equals(file.getName())) {
-					return false;
+		this.filesFromResource.forEach((file) -> {
+			if (!file.endsWith(getExtension())) return;
+			for (final File fileList : listFiles) {
+				if (this.getFileName(file).equals(fileList.getName())) {
+					return;
 				}
 			}
-			return true;
-		}).forEach((files) -> this.plugin.saveResource(files, false));
+			this.saveResource(file);
+		});
 	}
 
+	private void saveResource(@Nonnull final String path) {
+		String resourcePath = path;
+		if (resourcePath.equals("")) {
+			throw new IllegalArgumentException("ResourcePath cannot be empty.");
+		}
+		resourcePath = resourcePath.replace('\\', '/');
+		InputStream in = getResource(resourcePath);
+		if (in == null) {
+			plugin.getLogger().log(Level.SEVERE, "The embedded resource '" + resourcePath + "' cannot be found in " + path);
+			return;
+		}
+
+		File outFile = new File(dataFolder, this.getPath() + "/" + this.getFileName(path));
+
+		try {
+			if (!outFile.exists()) {
+				OutputStream out = new FileOutputStream(outFile);
+				byte[] buf = new byte[1024];
+				int len;
+				while ((len = in.read(buf)) > 0) {
+					out.write(buf, 0, len);
+				}
+				out.close();
+				in.close();
+			}
+		} catch (IOException exception) {
+			plugin.getLogger().log(Level.SEVERE, "Could not save " + outFile.getName() + " to " + outFile, exception);
+		}
+	}
+
+	public InputStream getResource(final String filename) {
+		if (filename == null) {
+			throw new IllegalArgumentException("Filename cannot be null");
+		}
+		try {
+			URL url = this.plugin.getClass().getClassLoader().getResource(filename);
+			if (url == null) {
+				return null;
+			}
+			URLConnection connection = url.openConnection();
+			connection.setUseCaches(false);
+			return connection.getInputStream();
+		} catch (IOException ex) {
+			return null;
+		}
+	}
 }

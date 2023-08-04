@@ -36,10 +36,10 @@ public class LocalizationCache extends YamlFileManager {
 	}
 
 	@Override
-	protected void loadSettingsFromYaml(final File file) {
-		final FileConfiguration templateConfig = this.getCustomConfig();
+	protected void loadSettingsFromYaml(final File file, FileConfiguration configuration) {
+		final FileConfiguration fileConfiguration = configuration;
 
-		ConfigurationSection configurationSection = templateConfig.getConfigurationSection("");
+		ConfigurationSection configurationSection = fileConfiguration.getConfigurationSection("");
 
 		Map<String, Object> map = new HashMap<>();
 		if (configurationSection != null)
@@ -52,9 +52,9 @@ public class LocalizationCache extends YamlFileManager {
 		Object pluginMessage = map.get("MessagesUtility");
 		if (pluginMessage instanceof PluginMessages) {
 			PluginMessages pluginMessages = (PluginMessages) pluginMessage;
-			pluginMessages.setPluginName(templateConfig.getString("Plugin_name"));
-			pluginMessages.setPrefixDecor(templateConfig.getString("Prefix_decor"));
-			pluginMessages.setSuffixDecor(templateConfig.getString("Suffix_decor"));
+			pluginMessages.setPluginName(fileConfiguration.getString("Plugin_name"));
+			pluginMessages.setPrefixDecor(fileConfiguration.getString("Prefix_decor"));
+			pluginMessages.setSuffixDecor(fileConfiguration.getString("Suffix_decor"));
 		}
 		this.localization = Localization.deserialize(map);
 	}

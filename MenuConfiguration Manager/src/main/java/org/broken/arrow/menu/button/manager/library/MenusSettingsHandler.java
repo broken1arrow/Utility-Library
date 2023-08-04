@@ -94,17 +94,17 @@ public class MenusSettingsHandler extends YamlFileManager {
 	}
 
 	@Override
-	public void loadSettingsFromYaml(final File file) {
-		final FileConfiguration templateConfig = this.getCustomConfig();
-		ConfigurationSection configurationSection = templateConfig.getConfigurationSection("Menus");
+	public void loadSettingsFromYaml(final File file, FileConfiguration configuration) {
+		final FileConfiguration fileConfiguration = configuration;
+		ConfigurationSection configurationSection = fileConfiguration.getConfigurationSection("Menus");
 		if (configurationSection != null)
 			for (final String key : configurationSection.getKeys(false)) {
-				final ConfigurationSection menuData = templateConfig.getConfigurationSection("Menus." + key + ".buttons");
+				final ConfigurationSection menuData = fileConfiguration.getConfigurationSection("Menus." + key + ".buttons");
 				final Map<List<Integer>, MenuButtonData> menuButtonMap = new HashMap<>();
 
-				final String menuSettings = templateConfig.getString("Menus." + key + ".menu_settings.name");
-				final List<Integer> fillSpace = parseRange(templateConfig.getString("Menus." + key + ".menu_settings.fill-space"));
-				final String sound = templateConfig.getString("Menus." + key + ".menu_settings.sound");
+				final String menuSettings = fileConfiguration.getString("Menus." + key + ".menu_settings.name");
+				final List<Integer> fillSpace = parseRange(fileConfiguration.getString("Menus." + key + ".menu_settings.fill-space"));
+				final String sound = fileConfiguration.getString("Menus." + key + ".menu_settings.sound");
 				if (menuData != null) {
 					for (final String menuButtons : menuData.getKeys(false)) {
 						final MenuButtonData menuButton = this.getData("Menus." + key + ".buttons." + menuButtons, MenuButtonData.class);
