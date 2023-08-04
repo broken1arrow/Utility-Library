@@ -49,7 +49,7 @@ public class MenusSettingsHandler extends YamlFileManager {
 	/**
 	 * Get the ItemCreator instance associated with this MenusSettingsHandler.
 	 *
-	 * @return The ItemCkreator instance.
+	 * @return The ItemCreator instance.
 	 */
 	public ItemCreator getItemCreator() {
 		return itemCreator;
@@ -58,7 +58,8 @@ public class MenusSettingsHandler extends YamlFileManager {
 	/**
 	 * Retrieves the menu template for the specified menu name.
 	 *
-	 * @param menuName The name of the menu.
+	 * @param menuName The name of the menu or if you use one menu for every file
+	 *                 it is the filename you use.
 	 * @return The MenuTemplate instance for the specified menu name, or null if not found.
 	 */
 	@Nullable
@@ -69,7 +70,8 @@ public class MenusSettingsHandler extends YamlFileManager {
 	/**
 	 * Retrieves the menu button for the specified menu name and slot.
 	 *
-	 * @param menuName The name of the menu.
+	 * @param menuName The name of the menu or if you use one menu for every file
+	 *                 it is the filename you use.
 	 * @param slot     The slot where the menu button is placed.
 	 * @return The MenuButtonData instance for the specified menu name and slot, or null if not found.
 	 */
@@ -84,7 +86,7 @@ public class MenusSettingsHandler extends YamlFileManager {
 
 	/**
 	 * Retrieves an unmodifiable map of all menu templates.
-	 * Note: You cannot modify this map.
+	 * Note: You can't modify this map.
 	 *
 	 * @return The unmodifiable map of menu templates.
 	 */
@@ -95,26 +97,26 @@ public class MenusSettingsHandler extends YamlFileManager {
 
 	@Override
 	public void loadSettingsFromYaml(final File file, FileConfiguration configuration) {
-		final FileConfiguration fileConfiguration = configuration;
-		ConfigurationSection configurationSection = fileConfiguration.getConfigurationSection("Menus");
-		if (configurationSection != null)
+		ConfigurationSection configurationSection = configuration.getConfigurationSection("Menus");
+		MenuTemplate menuTemplate = null;
+
+		if (configurationSection != null) {
 			for (final String key : configurationSection.getKeys(false)) {
-				final ConfigurationSection menuData = fileConfiguration.getConfigurationSection("Menus." + key + ".buttons");
-				final Map<List<Integer>, MenuButtonData> menuButtonMap = new HashMap<>();
+				final ConfigurationSection menuData = configuration.getConfigurationSection("Menus." + key + ".buttons");
 
-				final String menuSettings = fileConfiguration.getString("Menus." + key + ".menu_settings.name");
-				final List<Integer> fillSpace = parseRange(fileConfiguration.getString("Menus." + key + ".menu_settings.fill-space"));
-				final String sound = fileConfiguration.getString("Menus." + key + ".menu_settings.sound");
-				if (menuData != null) {
-					for (final String menuButtons : menuData.getKeys(false)) {
-						final MenuButtonData menuButton = this.getData("Menus." + key + ".buttons." + menuButtons, MenuButtonData.class);
-						menuButtonMap.put(parseRange(menuButtons), menuButton);
-					}
-				}
-				final MenuTemplate menuTemplate = new MenuTemplate(menuSettings, fillSpace, menuButtonMap, sound);
+				final String menuSettings = configuration.getString("Menus." + key + ".menu_settings.name");
+				final List<Integer> fillSpace = parseRange(configuration.getString("Menus." + key + ".menu_settings.fill-space"));
+				final String sound = configuration.getString("Menus." + key + ".menu_settings.sound");
 
-				templates.put(key, menuTemplate);
+				final Map<List<Integer>, MenuButtonData> menuButtonMap = getButtons(menuData, key);
+
+				menuTemplate = new MenuTemplate(menuSettings, fillSpace, menuButtonMap, sound);
+				if (this.isSingleFile())
+					templates.put(key, menuTemplate);
 			}
+		}
+		if (!this.isSingleFile() && menuTemplate != null)
+			templates.put(this.getNameOfFile(file.getName()), menuTemplate);
 	}
 
 	@Nonnull
@@ -142,6 +144,18 @@ public class MenusSettingsHandler extends YamlFileManager {
 			plugin.getLogger().log(Level.WARNING, "Couldn't parse range " + range);
 		}
 		return slots;
+	}
+
+	private Map<List<Integer>, MenuButtonData> getButtons(ConfigurationSection menuData, String key) {
+		final Map<List<Integer>, MenuButtonData> menuButtonMap = new HashMap<>();
+		if (menuData == null) return menuButtonMap;
+
+		for (final String menuButtons : menuData.getKeys(false)) {
+			final MenuButtonData menuButton = this.getData("Menus." + key + ".buttons." + menuButtons, MenuButtonData.class);
+			menuButtonMap.put(parseRange(menuButtons), menuButton);
+		}
+
+		return menuButtonMap;
 	}
 
 	@Override
