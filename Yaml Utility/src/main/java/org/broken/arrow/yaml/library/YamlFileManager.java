@@ -155,7 +155,6 @@ public abstract class YamlFileManager {
 	 *                        set the resource path.
 	 * @param ignoredSections The sections to ignore during the update.
 	 */
-
 	public final void update(@Nullable File file, final String resource, final String... ignoredSections) {
 		if (this.configUpdater == null)
 			this.configUpdater = new ConfigUpdater(this.plugin, ignoredSections);
