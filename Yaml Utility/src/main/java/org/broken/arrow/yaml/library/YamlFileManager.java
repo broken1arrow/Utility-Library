@@ -46,12 +46,11 @@ import java.util.logging.Level;
  */
 public abstract class YamlFileManager {
 
-	private FileConfiguration customConfig;
-	private File customConfigFile;
+	private FileConfiguration currentConfig;
+	private File currentConfigFile;
 	private final File dataFolder;
 	private boolean shallGenerateFiles;
 	private boolean singleFile;
-	private boolean firstLoad = true;
 	private final String path;
 	private final String fileName;
 	private int version;
@@ -170,7 +169,7 @@ public abstract class YamlFileManager {
 		} catch (final IOException e) {
 			e.printStackTrace();
 		} finally {
-			customConfig = YamlConfiguration.loadConfiguration(file);
+			currentConfig = YamlConfiguration.loadConfiguration(file);
 		}
 	}
 
@@ -200,14 +199,28 @@ public abstract class YamlFileManager {
 	 */
 	@Nullable
 	public <T extends ConfigurationSerializable> T getData(final String path, final Class<T> clazz) {
+		return this.getData(path, this.currentConfigFile, clazz);
+	}
+
+	/**
+	 * Retrieves data from the specified path in the configuration and deserializes it into an object of the given class.
+	 *
+	 * @param path  the path to the data in the configuration
+	 * @param file  the file to load the configuration from.
+	 * @param clazz the class to deserialize the data into
+	 * @param <T>   the type of the deserialized object
+	 * @return the deserialized object, or null if the path or class is invalid
+	 */
+	@Nullable
+	public <T extends ConfigurationSerializable> T getData(final String path, @Nonnull final File file, final Class<T> clazz) {
 		Valid.checkBoolean(path != null, "path can't be null");
 		if (clazz == null) return null;
-
+		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 		final Map<String, Object> fileData = new HashMap<>();
-		final ConfigurationSection configurationSection = customConfig.getConfigurationSection(path);
+		final ConfigurationSection configurationSection = config.getConfigurationSection(path);
 		if (configurationSection != null)
 			for (final String data : configurationSection.getKeys(true)) {
-				final Object object = customConfig.get(path + "." + data);
+				final Object object = config.get(path + "." + data);
 				if (object instanceof MemorySection) continue;
 				fileData.put(data, object);
 			}
@@ -216,6 +229,29 @@ public abstract class YamlFileManager {
 			deserializeMethod = MethodReflectionUtils.getMethod(clazz, "valueOf", Map.class);
 
 		return MethodReflectionUtils.invokeStaticMethod(clazz, deserializeMethod, fileData);
+	}
+
+	/**
+	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
+	 *
+	 * @param path          the path to set the serialized data at
+	 * @param configuration the ConfigurationSerializable object to serialize and set
+	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
+	 */
+	public void setData(@Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
+		this.setData(this.currentConfigFile, path, configuration);
+	}
+
+	/**
+	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
+	 *
+	 * @param path          the path to set the serialized data at
+	 * @param updateData    If true, the method updates the file with the serialized data and keeps the existing commits.
+	 * @param configuration the ConfigurationSerializable object to serialize and set
+	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
+	 */
+	public void setData(@Nonnull final String path, final boolean updateData, @Nonnull final ConfigurationSerializable configuration) {
+		this.setData(this.currentConfigFile, path, updateData, configuration);
 	}
 
 	/**
@@ -234,7 +270,7 @@ public abstract class YamlFileManager {
 	 *
 	 * @param file          the file to save the serialized data to.
 	 * @param path          the path to set the serialized data at.
-	 * @param updateData    if it shall update the file and also keep the commits.
+	 * @param updateData    If true, the method updates the file with the serialized data and keeps the existing commits.
 	 * @param configuration the ConfigurationSerializable object to serialize and set
 	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
 	 */
@@ -243,36 +279,12 @@ public abstract class YamlFileManager {
 		Valid.checkNotNull(path, "path can't be null");
 		Valid.checkNotNull(configuration, "Serialize utility can't be null, need provide a class instance some implements ConfigurationSerializeUtility");
 		Valid.checkNotNull(configuration.serialize(), "Missing serialize method or it is null, can't serialize the class data.");
-		FileConfiguration customConfig = YamlConfiguration.loadConfiguration(file);
+		FileConfiguration config = new YamlConfiguration();
 
-		customConfig.set(path, null);
 		for (final Map.Entry<String, Object> key : configuration.serialize().entrySet()) {
-			customConfig.set(path + "." + key.getKey(), DataSerializer.serialize(key.getValue()));
+			config.set(path + "." + key.getKey(), DataSerializer.serialize(key.getValue()));
 		}
-		this.saveToFile(file, customConfig, updateData);
-	}
-
-	/**
-	 * <p>
-	 * NOTE: Deprecated method, use {@link #setData(java.io.File, String, org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable)}
-	 * </p>
-	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
-	 *
-	 * @param path          the path to set the serialized data at
-	 * @param configuration the ConfigurationSerializable object to serialize and set
-	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
-	 */
-	@Deprecated
-	public void setData(@Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
-		Valid.checkBoolean(path != null, "path can't be null");
-		Valid.checkBoolean(configuration != null, "Serialize utility can't be null, need provide a class instance some implements ConfigurationSerializeUtility");
-		Valid.checkBoolean(configuration.serialize() != null, "Missing serialize method or it is null, can't serialize the class data.");
-
-
-		this.customConfig.set(path, null);
-		for (final Map.Entry<String, Object> key : configuration.serialize().entrySet()) {
-			this.customConfig.set(path + "." + key.getKey(), DataSerializer.serialize(key.getValue()));
-		}
+		this.saveToFile(file, config, updateData);
 	}
 
 	/**
@@ -331,12 +343,14 @@ public abstract class YamlFileManager {
 	}
 
 	/**
-	 * Saves the configuration to the specified file and updates the data if requested.
+	 * Saves the configuration to the specified file and updates the data if you set update data to true.
 	 *
-	 * @param file         the file to which the configuration should be saved
-	 * @param customConfig the config you want to save to the file.
-	 * @param updateData   specifies whether the data should be updated after saving and add the commits.
+	 * @param file         The file to which the configuration should be saved.
+	 * @param customConfig The FileConfiguration you want to save to the file.
+	 * @param updateData   Specifies whether the data related to the saved configuration should be updated after saving.
+	 *                     This involve additional commits or changes to the original file shall be added to the file saved on disk.
 	 */
+	//  IOException Thrown when the given file cannot be written to for any reason.
 	public void saveToFile(@Nonnull final File file, @Nonnull final FileConfiguration customConfig, boolean updateData) {
 		try {
 			customConfig.save(file);
@@ -369,14 +383,12 @@ public abstract class YamlFileManager {
 		if (files != null)
 			for (final File file : files) {
 				if (file == null) continue;
-				if (getCustomConfigFile() == null) {
-					this.customConfigFile = file;
-				}
 				if (!file.exists()) {
 					this.plugin.saveResource(file.getName(), false);
 				}
 				FileConfiguration customConfig = YamlConfiguration.loadConfiguration(file);
-				this.customConfig = customConfig;
+				this.currentConfigFile = file;
+				this.currentConfig = customConfig;
 				loadSettingsFromYaml(file, customConfig);
 				loadSettingsFromYaml(file);
 			}
@@ -390,7 +402,7 @@ public abstract class YamlFileManager {
 	 */
 	@Deprecated
 	public FileConfiguration getCustomConfig() {
-		return customConfig;
+		return currentConfig;
 	}
 
 	/**
@@ -401,7 +413,7 @@ public abstract class YamlFileManager {
 	 */
 	@Deprecated
 	public File getCustomConfigFile() {
-		return customConfigFile;
+		return currentConfigFile;
 	}
 
 	/**
