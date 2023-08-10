@@ -104,13 +104,15 @@ public class MenusSettingsHandler extends YamlFileManager {
 			for (final String key : configurationSection.getKeys(false)) {
 				final ConfigurationSection menuData = configuration.getConfigurationSection("Menus." + key + ".buttons");
 
-				final String menuSettings = configuration.getString("Menus." + key + ".menu_settings.name");
+				String menuTitle = configuration.getString("Menus." + key + ".menu_settings.title");
+				if (menuTitle == null || menuTitle.isEmpty())
+					menuTitle = configuration.getString("Menus." + key + ".menu_settings.name");
 				final List<Integer> fillSpace = parseRange(configuration.getString("Menus." + key + ".menu_settings.fill-space"));
 				final String sound = configuration.getString("Menus." + key + ".menu_settings.sound");
 
 				final Map<List<Integer>, MenuButtonData> menuButtonMap = getButtons(menuData, key);
 
-				menuTemplate = new MenuTemplate(menuSettings, fillSpace, menuButtonMap, sound);
+				menuTemplate = new MenuTemplate(menuTitle, fillSpace, menuButtonMap, sound);
 				if (this.isSingleFile())
 					templates.put(key, menuTemplate);
 			}

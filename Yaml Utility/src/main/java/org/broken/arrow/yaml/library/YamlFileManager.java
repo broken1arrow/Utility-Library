@@ -100,7 +100,6 @@ public abstract class YamlFileManager {
 
 	/**
 	 * Subclasses must implement this method to save data to the specified file.
-	 * The argument is most useful when you have a list of files to save.
 	 *
 	 * @param file the file to which the data should be saved
 	 */
@@ -122,7 +121,6 @@ public abstract class YamlFileManager {
 
 	/**
 	 * Subclasses must implement this method to load settings from the specified YAML file.
-	 * The argument is most useful when you have a list of files to load.
 	 *
 	 * @param file         the YAML file from which to load the settings.
 	 * @param loadedConfig the loaded config for the file.
@@ -621,7 +619,7 @@ public abstract class YamlFileManager {
 		if (isSingleFile()) {
 			final File checkFile = new File(this.getDataFolder(), this.getPathWithExtension());
 			if (!checkFile.exists() && this.shallGenerateFiles)
-				createMissingFile();
+				this.saveResource(this.resourcePath);
 			return new File(checkFile.getParent()).listFiles(file -> !file.isDirectory() && file.getName().equals(getFileName(this.getPathWithExtension())));
 		}
 		final File dataFolder = new File(this.getDataFolder(), directory);
@@ -740,24 +738,11 @@ public abstract class YamlFileManager {
 	}
 
 	private void createMissingFile() {
-		final InputStream inputStream = this.plugin.getResource(this.resourcePath);
-		if (inputStream == null) {
-			final File checkFile = new File(this.getDataFolder(), this.getPathWithExtension());
-			if (!checkFile.exists()) {
-				try {
-					checkFile.createNewFile();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
+		final File checkFile = new File(this.getDataFolder(), this.getPathWithExtension());
+		if (checkFile.exists()) {
 			return;
 		}
-		final FileConfiguration newConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(inputStream));
-		try {
-			newConfig.save(this.getPathWithExtension());
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
+		this.saveResource(this.resourcePath);
 	}
 
 	private void createMissingFiles(final File[] listFiles) {
