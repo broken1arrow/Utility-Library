@@ -77,7 +77,7 @@ public final class SqlCommandUtility {
 		else
 			columns.append(")");
 
-		String string = "CREATE TABLE IF NOT EXISTS " + quote + tableWrapper.getTableName() + quote + " (" + columns + ")" + (tableWrapper.isSupportMySQL() ? "" : " DEFAULT CHARSET=utf8mb4" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
+		String string = "CREATE TABLE IF NOT EXISTS " + quote + tableWrapper.getTableName() + quote + " (" + columns + ")" + (tableWrapper.isSupportMySQL() ? " DEFAULT CHARSET=utf8mb4" : "" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
 		return string;
 	}
 

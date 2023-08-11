@@ -12,7 +12,7 @@ public final class TableRow {
 	private final boolean notNull;
 	private final Builder builder;
 
-	public TableRow(final Builder builder) {
+	private TableRow(final Builder builder) {
 		this.columnName = builder.columnName;
 		this.defaultValue = builder.defaultValue;
 		this.datatype = builder.datatype;
@@ -20,6 +20,18 @@ public final class TableRow {
 		this.autoIncrement = builder.autoIncrement;
 		this.notNull = builder.notNull;
 		this.builder = builder;
+	}
+
+	/**
+	 * Create a column with only name and datatype.
+	 *
+	 * @param columnName the name of the column.
+	 * @param datatype   the type of data stored in this column.
+	 * @return the TableRow object.
+	 */
+
+	public static TableRow of(@Nonnull final String columnName, @Nonnull final String datatype) {
+		return new Builder(columnName, datatype).build();
 	}
 
 	/**
@@ -93,7 +105,7 @@ public final class TableRow {
 			this.columnName = columnName;
 			this.datatype = datatype;
 		}
-		
+
 		/**
 		 * Sets the default value for the TableRow being built.
 		 *

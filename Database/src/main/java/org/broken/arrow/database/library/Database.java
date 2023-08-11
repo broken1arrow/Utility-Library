@@ -294,6 +294,7 @@ public abstract class Database {
 	public boolean createTableIfNotExist(final String tableName) {
 		if (!openConnection()) return false;
 		PreparedStatement statement = null;
+		String table = "";
 		try {
 			TableWrapper wrapperEntry = this.getTable(tableName);
 			if (wrapperEntry == null) {
@@ -301,14 +302,17 @@ public abstract class Database {
 				return false;
 			}
 			final SqlCommandUtility sqlCommandUtility = new SqlCommandUtility(new ColumnWrapper(wrapperEntry));
-			statement = this.connection.prepareStatement(sqlCommandUtility.createTable());
+			table = sqlCommandUtility.createTable();
+			statement = this.connection.prepareStatement(table);
 			statement.executeUpdate();
 			TableRow wrapper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
 			Validate.checkNotNull(wrapper, "Could not find a column for this table " + tableName);
 			checkIfTableExist(tableName, wrapper.getColumnName());
 			return true;
 		} catch (final SQLException e) {
-			e.printStackTrace();
+			LogMsg.warn("Something not working when try create this table: '" + tableName + "'");
+			LogMsg.warn("With this command: " + table, e);
+			//e.printStackTrace();
 			return false;
 		} finally {
 			close(statement);
