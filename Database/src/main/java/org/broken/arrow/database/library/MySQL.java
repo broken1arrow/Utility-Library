@@ -64,7 +64,7 @@ public class MySQL extends Database {
 	public MySQL(@Nonnull ConnectionSettings mysqlPreference, boolean createDatabase, String hikariClazz) {
 		this.mysqlPreference = mysqlPreference;
 		this.isHikariAvailable = isHikariAvailable(hikariClazz);
-		this.setQuery("DEFAULT CHARSET=utf8mb4");
+		this.setCharacterSet("DEFAULT CHARSET=utf8mb4");
 		this.startSQLUrl = "jdbc:mysql://";
 		this.driver = "com.mysql.cj.jdbc.Driver";
 		if (createDatabase)

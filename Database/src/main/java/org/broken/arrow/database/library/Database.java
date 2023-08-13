@@ -43,7 +43,7 @@ public abstract class Database {
 	private final DatabaseType databaseType;
 	private Set<String> removeColumns = new HashSet<>();
 	private char quote = '`';
-	private String query = "";
+	private String characterSet = "";
 	private boolean secureQuery = true;
 
 	public Database() {
@@ -393,22 +393,24 @@ public abstract class Database {
 	}
 
 	/**
-	 * Retrieve the set query parameters.
+	 * Retrieve the character set declaration used for defining
+	 * the character set of text-based columns in a table.
 	 *
-	 * @return the query parameters.
+	 * @return the character set declaration.
 	 */
-	public String getQuery() {
-		return this.query;
+	public String getCharacterSet() {
+		return this.characterSet;
 	}
 
 	/**
-	 * Sets the query parameter when you create the table for the first time.
-	 * Note: Some databases may not support the query option.
+	 * Sets the character set declaration parameter when creating a table for the first time.
+	 * Note: The character set declaration specifies the desired character set for text-based columns in a table.
+	 * Keep in mind that not all databases support this option; compatibility may vary.
 	 *
-	 * @param query set the query parameters for the connection.
+	 * @param characterSet the desired character set for text-based columns (e.g., "utf8mb4", "UTF-8").
 	 */
-	public void setQuery(@Nonnull final String query) {
-		this.query = query;
+	public void setCharacterSet(@Nonnull final String characterSet) {
+		this.characterSet = characterSet;
 	}
 
 	protected void close(final PreparedStatement... preparedStatement) {

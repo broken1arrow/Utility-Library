@@ -109,7 +109,7 @@ public final class SqlCommandComposer {
 		else
 			columns.append(")");
 
-		String string = "CREATE TABLE IF NOT EXISTS " + quote + tableWrapper.getTableName() + quote + " (" + columns + ")" + (!database.getQuery().isEmpty() ? " " + database.getQuery() : "" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
+		String string = "CREATE TABLE IF NOT EXISTS " + quote + tableWrapper.getTableName() + quote + " (" + columns + ")" + (!database.getCharacterSet().isEmpty() ? " " + database.getCharacterSet() : "" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
 		return string;
 	}
 
