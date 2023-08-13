@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
+import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
@@ -44,14 +45,13 @@ public class MySQL extends Database {
 	}
 
 	/**
-	 * Creates a new MySQL instance with the given MySQL preferences.This
-	 * constructor will not check if the database is created or not.
+	 * Creates a new MySQL instance with the given MySQL preferences.
 	 *
 	 * @param mysqlPreference The set preference information to connect to the database.
 	 * @param hikariClazz     If you shade the lib to your plugin, so for this api shall find it you need to set the path.
 	 */
 	public MySQL(@Nonnull ConnectionSettings mysqlPreference, String hikariClazz) {
-		this(mysqlPreference, false, hikariClazz);
+		this(mysqlPreference, true, hikariClazz);
 	}
 
 	/**
@@ -64,6 +64,7 @@ public class MySQL extends Database {
 	public MySQL(@Nonnull ConnectionSettings mysqlPreference, boolean createDatabase, String hikariClazz) {
 		this.mysqlPreference = mysqlPreference;
 		this.isHikariAvailable = isHikariAvailable(hikariClazz);
+		this.setQuery("DEFAULT CHARSET=utf8mb4");
 		this.startSQLUrl = "jdbc:mysql://";
 		this.driver = "com.mysql.cj.jdbc.Driver";
 		if (createDatabase)
@@ -92,8 +93,8 @@ public class MySQL extends Database {
 	}
 
 	@Override
-	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
-		this.batchUpdate(batchList, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
+		this.batchUpdate(sqlComposer, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	}
 
 	public Connection setupConnection() throws SQLException {

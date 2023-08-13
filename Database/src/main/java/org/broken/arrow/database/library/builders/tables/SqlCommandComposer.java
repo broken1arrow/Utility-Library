@@ -1,10 +1,12 @@
 package org.broken.arrow.database.library.builders.tables;
 
+import org.broken.arrow.database.library.Database;
 import org.broken.arrow.database.library.builders.ColumnWrapper;
 import org.broken.arrow.database.library.log.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -12,15 +14,21 @@ import java.util.Map.Entry;
 /**
  * This class help you to wrap your command.
  */
-public final class SqlCommandUtility {
+public final class SqlCommandComposer {
 
 	private final TableWrapper tableWrapper;
 	private final ColumnWrapper saveWrapper;
-	private String columnsArray;
+	private final Database database;
+	private final Map<Integer, Object> columns = new HashMap<>();
+	private final StringBuilder preparedSQLBatch = new StringBuilder();
+	private String queryCommand = "";
+	private final char quote;
 
-	public SqlCommandUtility(@Nonnull final ColumnWrapper columnWrapper) {
+	public SqlCommandComposer(@Nonnull final ColumnWrapper columnWrapper, Database database) {
 		this.tableWrapper = columnWrapper.getTableWrapper();
 		this.saveWrapper = columnWrapper;
+		this.database = database;
+		this.quote = database.getQuote();
 	}
 
 	public TableWrapper getTableWrapper() {
@@ -29,6 +37,30 @@ public final class SqlCommandUtility {
 
 	public ColumnWrapper getColumnWrapper() {
 		return saveWrapper;
+	}
+
+	public Map<Integer, Object> getColumns() {
+		return columns;
+	}
+
+	public String getPreparedSQLBatch() {
+		return preparedSQLBatch.toString();
+	}
+
+	/**
+	 * Retrieves the SQL command that has been constructed for execution in the database.
+	 * <p></p>
+	 * <p>
+	 * Note that the returned string has not been checked for potential SQL injection or
+	 * other security vulnerabilities. It is recommended to use {@link #getPreparedSQLBatch()}
+	 * and {@link #getColumns()} in conjunction with the preparedStatement method to ensure
+	 * safer query execution.
+	 * </p>
+	 *
+	 * @return The SQL command that has been constructed.
+	 */
+	public String getQueryCommand() {
+		return queryCommand;
 	}
 
 	/**
@@ -43,7 +75,7 @@ public final class SqlCommandUtility {
 		final StringBuilder columns = new StringBuilder();
 		TableRow primaryKey = tableWrapper.getPrimaryRow();
 		Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
-		String quote = tableWrapper.getQuote();
+		char quote = this.quote;
 
 		Validate.checkBoolean(primaryKey == null || primaryKey.getColumnName() == null || primaryKey.getColumnName().equals("non"), "You need set primaryKey, for create a table.");
 
@@ -69,15 +101,15 @@ public final class SqlCommandUtility {
 				columns.append(" DEFAULT ").append("'").append(column.getDefaultValue()).append("'");
 		}
 		columns.append(", PRIMARY KEY (")
-				.append(tableWrapper.getQuote())
+				.append(quote)
 				.append(primaryKey.getColumnName())
-				.append(tableWrapper.getQuote());
+				.append(quote);
 		if (tableWrapper.getPrimaryKeyLength() > 0)
 			columns.append("(").append(tableWrapper.getPrimaryKeyLength()).append("))");
 		else
 			columns.append(")");
 
-		String string = "CREATE TABLE IF NOT EXISTS " + quote + tableWrapper.getTableName() + quote + " (" + columns + ")" + (tableWrapper.isSupportMySQL() ? " DEFAULT CHARSET=utf8mb4" : "" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
+		String string = "CREATE TABLE IF NOT EXISTS " + quote + tableWrapper.getTableName() + quote + " (" + columns + ")" + (!database.getQuery().isEmpty() ? " " + database.getQuery() : "" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
 		return string;
 	}
 
@@ -88,7 +120,9 @@ public final class SqlCommandUtility {
 	 */
 	public String replaceIntoTable() {
 		TableWrapper tableWrapper = this.getTableWrapper();
-		return "REPLACE INTO " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " " + this.merge() + ";";
+		queryCommand = "REPLACE INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + this.merge() + ";";
+		preparedSQLBatch.insert(0, "REPLACE INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + " ");
+		return queryCommand;
 	}
 
 	/**
@@ -98,7 +132,9 @@ public final class SqlCommandUtility {
 	 */
 	public String insertIntoTable() {
 		TableWrapper tableWrapper = this.getTableWrapper();
-		return "INSERT INTO " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " " + this.merge() + ";";
+		queryCommand = "INSERT INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + this.merge() + ";";
+		preparedSQLBatch.insert(0, "INSERT INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + " ");
+		return queryCommand;
 	}
 
 	/**
@@ -110,7 +146,9 @@ public final class SqlCommandUtility {
 	 */
 	public String mergeIntoTable() {
 		TableWrapper tableWrapper = this.getTableWrapper();
-		return "MERGE INTO " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " " + this.merge() + ";";
+		queryCommand = "MERGE INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + this.merge() + ";";
+		preparedSQLBatch.insert(0, "MERGE INTO " + this.quote + tableWrapper.getTableName() + this.quote + " ");
+		return queryCommand;
 	}
 
 	/**
@@ -145,45 +183,43 @@ public final class SqlCommandUtility {
 	 */
 	public String selectTable() {
 		TableWrapper tableWrapper = this.getTableWrapper();
-		return "SELECT * FROM " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + ";";
+		return "SELECT * FROM " + this.quote + tableWrapper.getTableName() + this.quote + ";";
 	}
 
 	/**
 	 * Select specific table.
 	 *
-	 * @param columnValue the primary key value you want to get from database.
+	 * @param primaryValue the primary key value you want to get from database.
 	 * @return the constructed SQL command for get the table.
 	 */
-	public String selectRow(String columnValue) {
+	public String selectRow(String primaryValue) {
 		TableWrapper tableWrapper = this.getTableWrapper();
 		TableRow primaryKey = tableWrapper.getPrimaryRow();
 		Validate.checkBoolean(primaryKey == null || primaryKey.getColumnName() == null || primaryKey.getColumnName().equals("non"), "You need set primaryKey, for create a table.");
 
-		return "SELECT * FROM " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " WHERE " + tableWrapper.getQuote() + primaryKey.getColumnName() + tableWrapper.getQuote() + " = '" + columnValue + "';";
+		return "SELECT * FROM " + this.quote + tableWrapper.getTableName() + this.quote + " WHERE " + this.quote + primaryKey.getColumnName() + this.quote + " = '" + primaryValue + "';";
 	}
 
 	/**
 	 * Remove a specific row from the table.
 	 *
 	 * @param value the primary key value you want to remove from database.
-	 * @return the constructed SQL command for remove the row.
 	 */
-	public String removeRow(final String value) {
+	public void removeRow(final String value) {
 		final TableWrapper tableWrapper = this.getTableWrapper();
 		final ColumnWrapper columnWrapper = getColumnWrapper();
 		Validate.checkBoolean(columnWrapper.getPrimaryKey().isEmpty(), "You need set primaryKey, for drop the column in this table." + tableWrapper.getTableName());
-
-		return "DELETE FROM " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + " WHERE " + tableWrapper.getQuote() + columnWrapper.getPrimaryKey() + tableWrapper.getQuote() + " = '" + value + "'";
+		queryCommand = "DELETE FROM " + this.quote + tableWrapper.getTableName() + this.quote + " WHERE " + this.quote + columnWrapper.getPrimaryKey() + this.quote + " = '" + value + "';";
+		preparedSQLBatch.insert(0, queryCommand);
 	}
 
 	/**
 	 * Remove this table from the database.
-	 *
-	 * @return the constructed SQL command for drop the table.
 	 */
-	public String dropTable() {
+	public void dropTable() {
 		TableWrapper tableWrapper = this.getTableWrapper();
-		return "DROP TABLE " + tableWrapper.getQuote() + tableWrapper.getTableName() + tableWrapper.getQuote() + ";";
+		queryCommand = "DROP TABLE " + this.quote + tableWrapper.getTableName() + this.quote + ";";
+		preparedSQLBatch.insert(0, queryCommand);
 	}
 
 	/**
@@ -202,7 +238,7 @@ public final class SqlCommandUtility {
 		final TableWrapper tableWrapper = this.getTableWrapper();
 		final ColumnWrapper columnWrapper = getColumnWrapper();
 		final Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
-		final String quote = tableWrapper.getQuote();
+		final char quote = this.quote;
 
 		Validate.checkNotNull(columnWrapper, "The ColumnWrapper instance you try to save is null, for this record: " + record);
 		Validate.checkBoolean(columnWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table.");
@@ -237,41 +273,50 @@ public final class SqlCommandUtility {
 	public StringBuilder merge() {
 		final StringBuilder columns = new StringBuilder();
 		final StringBuilder values = new StringBuilder();
-
+		final StringBuilder prepareValues = new StringBuilder();
 		final TableWrapper tableWrapper = this.getTableWrapper();
 		final Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
 		final ColumnWrapper saveWrapper = getColumnWrapper();
-		final String quote = tableWrapper.getQuote();
+		final char quote = this.quote;
 
 		Validate.checkBoolean(saveWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table or no records get updated.");
 		Object primaryKeyColumnValue = saveWrapper.getPrimaryKeyValue();
+		Validate.checkNotNull(primaryKeyColumnValue, "Value for primary key can't be null.");
 
 		columns.append("(")
 				.append(quote)
 				.append(saveWrapper.getPrimaryKey())
 				.append(quote)
 				.append(tableRowMap.size() > 0 ? "," : " ");
-		if (primaryKeyColumnValue != null)
-			values.append("'");
-		values.append(primaryKeyColumnValue);
-		if (primaryKeyColumnValue != null)
-			values.append(tableRowMap.size() > 0 ? "'," : "' ");
-		else
-			values.append(tableRowMap.size() > 0 ? "," : " ");
 
+		values.append("'");
+		values.append(primaryKeyColumnValue);
+		values.append(tableRowMap.size() > 0 ? "'," : "' ");
+		this.columns.put(1, primaryKeyColumnValue);
+		prepareValues.append("?,");
+		int index = 2;
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
 			final String columnName = entry.getKey();
 			final TableRow column = entry.getValue();
+
 			columns.append((columns.length() == 0) ? "(" : "").append(quote).append(columnName).append(quote).insert(columns.length(), columns.length() == 0 ? "" : ",");
 			Object value = saveWrapper.getColumnValue(columnName);
 			if (value == null && column.isNotNull())
 				value = "";
 			if (value == null && column.getDefaultValue() != null)
 				value = column.getDefaultValue();
-			values.append(value != null ? "'" : "").append(value).insert(values.length(), values.length() == 0 ? "" : value == null ? "," : "',");
+			boolean setQuote = value != null;
+			if (column.getDatatype().equalsIgnoreCase("INTEGER"))
+				setQuote = false;
+
+			values.append(setQuote ? "'" : "").append(value).insert(values.length(), values.length() == 0 ? "" : setQuote ? "," : "',");
+			prepareValues.append("?,");
+			this.columns.put(index++, value);
 		}
 		columns.setLength(columns.length() - 1);
 		values.setLength(values.length() - 1);
+		prepareValues.setLength(prepareValues.length() - 1);
+		preparedSQLBatch.append(columns).append(") VALUES (").append(prepareValues).append(")");
 		columns.insert(columns.length(), ") VALUES(" + values + ")");
 
 		return columns;

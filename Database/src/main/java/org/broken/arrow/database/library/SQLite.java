@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
+import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 
@@ -54,8 +55,8 @@ public class SQLite extends Database {
 	}
 
 	@Override
-	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
-		this.batchUpdate(batchList, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+	protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
+		this.batchUpdate(sqlComposer, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 	}
 
 	public Connection setupConnection() throws SQLException {

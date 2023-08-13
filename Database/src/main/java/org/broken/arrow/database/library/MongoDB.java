@@ -15,6 +15,7 @@ import com.mongodb.client.result.UpdateResult;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
+import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
@@ -167,7 +168,10 @@ public class MongoDB extends Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return null;
 		}
-		if (!openConnection()) return null;
+		if (!openConnection()) {
+			LogMsg.warn("Could not open connection.");
+			return null;
+		}
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 
 		LoadDataWrapper<T> loadDataWrapper = null;
@@ -237,7 +241,7 @@ public class MongoDB extends Database {
 	}
 
 	@Override
-	protected void batchUpdate(@Nonnull final List<String> batchList, @Nonnull final TableWrapper... tableWrappers) {
+	protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
 
 	}
 

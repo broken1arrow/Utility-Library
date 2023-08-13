@@ -6,5 +6,6 @@ public enum DatabaseType {
 	MySQL,
 	PostgreSQL,
 	H2,
+	MongoDB,
 	Unknown,
 }

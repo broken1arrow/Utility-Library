@@ -87,7 +87,7 @@ public class ObjectConverter {
 			return (boolean) object;
 		}
 		if (object instanceof String) {
-			return object.equals("true");
+			return ((String) object).equalsIgnoreCase("true");
 		}
 		return false;
 	}
