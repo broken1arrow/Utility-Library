@@ -783,10 +783,11 @@ public abstract class Database {
 					+ (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
 		}
 		for (SqlCommandComposer sql : batchList) {
-
+			Object value = "";
 			try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
 				// Populate the updates map with data where the outer key is the row identifier (id)
 				for (Entry<Integer, Object> column : sql.getColumns().entrySet()) {
+					value = column.getValue();
 					statement.setObject(column.getKey(), column.getValue());
 				}
 				// Adding the current set of parameters to the batch
@@ -794,7 +795,8 @@ public abstract class Database {
 				statement.executeBatch();
 			} catch (SQLException e) {
 				// Handle the exception for a specific statement
-				LogMsg.warn("Could not execute the prepared batch. \"" + sql.getPreparedSQLBatch() + "\"", e);
+				LogMsg.warn("Could not execute the prepared batch. \"" + sql.getPreparedSQLBatch() + "\"");
+				LogMsg.warn("Last value executed, before the error. '" + (value != null && value.toString().isEmpty() ? "No value set" : value) + "'", e);
 			} finally {
 				batchUpdateGoingOn = false;
 			}
