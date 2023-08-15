@@ -162,6 +162,7 @@ public final class TableWrapper {
 	 * Add a column to database with your own settings.
 	 *
 	 * @param columnName The name of the column.
+	 * @param builder    The builder instance of your set data.
 	 * @return instance of this class.
 	 */
 	public TableWrapper addCustom(final String columnName, final TableRow.Builder builder) {

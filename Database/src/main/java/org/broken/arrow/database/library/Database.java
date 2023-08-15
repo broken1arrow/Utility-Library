@@ -173,10 +173,10 @@ public abstract class Database {
 	/**
 	 * Saves a single row to the specified database table. The row is identified by the
 	 * provided primary key and associated data.
-	 * <p></p>
+	 * <p>&nbsp;</p>
 	 * <p>
 	 * Note: If you use this method it will replace the old data instead of update it.
-	 * </p<
+	 * </p>
 	 *
 	 * @param tableName   The name of the table to save the row to.
 	 * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.

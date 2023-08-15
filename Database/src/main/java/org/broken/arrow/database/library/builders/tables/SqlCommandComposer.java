@@ -62,7 +62,7 @@ public final class SqlCommandComposer {
 
 	/**
 	 * Retrieves the SQL command that has been constructed for execution in the database.
-	 * <p></p>
+	 * <p>&nbsp;</p>
 	 * <p>
 	 * Note that the returned string has not been checked for potential SQL injection or
 	 * other security vulnerabilities. It is recommended to use {@link #getPreparedSQLBatch()}
