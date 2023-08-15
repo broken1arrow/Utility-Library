@@ -1,7 +1,7 @@
 package org.broken.arrow.database.library;
 
-import org.broken.arrow.database.library.builders.ColumnWrapper;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
+import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
@@ -50,17 +50,14 @@ public class H2DB extends Database {
 	}
 
 	@Override
-	protected List<SqlCommandComposer> getSqlsCommand(@Nonnull final List<SqlCommandComposer> listOfCommands, @Nonnull final ColumnWrapper columnWrapper, final boolean shallUpdate) {
-		SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(columnWrapper, this);
+	protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
+		SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(rowWrapper, this);
 
-		if (shallUpdate && this.doRowExist(columnWrapper.getTableWrapper().getTableName(), columnWrapper.getPrimaryKeyValue()))
-			sqlCommandComposer.updateTable(columnWrapper.getPrimaryKey());
+		if (shallUpdate && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
+			sqlCommandComposer.updateTable(rowWrapper.getPrimaryKey());
 		else
 			sqlCommandComposer.mergeIntoTable();
-
-		listOfCommands.add(sqlCommandComposer);
-
-		return listOfCommands;
+		return sqlCommandComposer;
 	}
 
 	public Connection setupConnection() throws SQLException {

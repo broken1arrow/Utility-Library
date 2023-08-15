@@ -8,10 +8,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * This class represents a wrapper for all column's data, providing a convenient way
+ * This class represents a wrapper for all row's data, providing a convenient way
  * to set both the primary key value and non-primary column values for creating database commands.
  */
-public class ColumnDataWrapper extends ColumnWrapper {
+public class RowDataWrapper extends RowWrapper {
 
 	private final Map<String, Object> columns = new LinkedHashMap<>();
 	private final Object primaryKeyValue;
@@ -22,7 +22,7 @@ public class ColumnDataWrapper extends ColumnWrapper {
 	 * @param tableWrapper    the TableWrapper object representing the database table.
 	 * @param primaryKeyValue the value of the primary key for this column.
 	 */
-	public ColumnDataWrapper(@Nonnull final TableWrapper tableWrapper, @Nonnull final Object primaryKeyValue) {
+	public RowDataWrapper(@Nonnull final TableWrapper tableWrapper, @Nonnull final Object primaryKeyValue) {
 		super(tableWrapper);
 		this.primaryKeyValue = primaryKeyValue;
 	}

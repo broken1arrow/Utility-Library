@@ -1,15 +1,18 @@
 package org.broken.arrow.database.library.builders.tables;
 
 import org.broken.arrow.database.library.Database;
-import org.broken.arrow.database.library.builders.ColumnWrapper;
+import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.log.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * This class help you to wrap your command.
@@ -17,16 +20,17 @@ import java.util.Map.Entry;
 public final class SqlCommandComposer {
 
 	private final TableWrapper tableWrapper;
-	private final ColumnWrapper saveWrapper;
+	private final RowWrapper rowWrapper;
 	private final Database database;
 	private final Map<Integer, Object> columns = new HashMap<>();
+	private Set<String> columnsToUpdate;
 	private final StringBuilder preparedSQLBatch = new StringBuilder();
 	private String queryCommand = "";
 	private final char quote;
 
-	public SqlCommandComposer(@Nonnull final ColumnWrapper columnWrapper, Database database) {
-		this.tableWrapper = columnWrapper.getTableWrapper();
-		this.saveWrapper = columnWrapper;
+	public SqlCommandComposer(@Nonnull final RowWrapper rowWrapper, Database database) {
+		this.tableWrapper = rowWrapper.getTableWrapper();
+		this.rowWrapper = rowWrapper;
 		this.database = database;
 		this.quote = database.getQuote();
 	}
@@ -35,8 +39,8 @@ public final class SqlCommandComposer {
 		return tableWrapper;
 	}
 
-	public ColumnWrapper getColumnWrapper() {
-		return saveWrapper;
+	public RowWrapper getColumnWrapper() {
+		return rowWrapper;
 	}
 
 	public Map<Integer, Object> getColumns() {
@@ -45,6 +49,15 @@ public final class SqlCommandComposer {
 
 	public String getPreparedSQLBatch() {
 		return preparedSQLBatch.toString();
+	}
+
+	/**
+	 * Set the columns name you only want to update.
+	 *
+	 * @param columnsToUpdate the columns you want to update.
+	 */
+	public void setColumnsToUpdate(final String... columnsToUpdate) {
+		this.columnsToUpdate = new HashSet<>(Arrays.asList(columnsToUpdate));
 	}
 
 	/**
@@ -207,9 +220,9 @@ public final class SqlCommandComposer {
 	 */
 	public void removeRow(final String value) {
 		final TableWrapper tableWrapper = this.getTableWrapper();
-		final ColumnWrapper columnWrapper = getColumnWrapper();
-		Validate.checkBoolean(columnWrapper.getPrimaryKey().isEmpty(), "You need set primaryKey, for drop the column in this table." + tableWrapper.getTableName());
-		queryCommand = "DELETE FROM " + this.quote + tableWrapper.getTableName() + this.quote + " WHERE " + this.quote + columnWrapper.getPrimaryKey() + this.quote + " = '" + value + "';";
+		final RowWrapper rowWrapper = getColumnWrapper();
+		Validate.checkBoolean(rowWrapper.getPrimaryKey().isEmpty(), "You need set primaryKey, for drop the column in this table." + tableWrapper.getTableName());
+		queryCommand = "DELETE FROM " + this.quote + tableWrapper.getTableName() + this.quote + " WHERE " + this.quote + rowWrapper.getPrimaryKey() + this.quote + " = '" + value + "';";
 		preparedSQLBatch.insert(0, queryCommand);
 	}
 
@@ -236,19 +249,22 @@ public final class SqlCommandComposer {
 	 */
 	private String createUpdateCommand(String record) {
 		final TableWrapper tableWrapper = this.getTableWrapper();
-		final ColumnWrapper columnWrapper = getColumnWrapper();
+		final RowWrapper rowWrapper = getColumnWrapper();
 		final Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
 		final char quote = this.quote;
 
-		Validate.checkNotNull(columnWrapper, "The ColumnWrapper instance you try to save is null, for this record: " + record);
-		Validate.checkBoolean(columnWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table.");
+		Validate.checkNotNull(rowWrapper, "The RowWrapper instance you try to save is null, for this record: " + record);
+		Validate.checkBoolean(rowWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table.");
 		Validate.checkBoolean(record == null || record.isEmpty(), "You need to set record value for the primary key. When you want to update the row.");
 
 		final StringBuilder columns = new StringBuilder();
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
 			final String columnName = entry.getKey();
 			final TableRow column = entry.getValue();
-			Object value = columnWrapper.getColumnValue(columnName);
+			if (columnsToUpdate != null && !columnsToUpdate.isEmpty() && !columnsToUpdate.contains(columnName))
+				continue;
+
+			Object value = rowWrapper.getColumnValue(columnName);
 			if (value == null && column.isNotNull())
 				value = "";
 			if (value == null && column.getDefaultValue() != null)
@@ -261,7 +277,7 @@ public final class SqlCommandComposer {
 			}
 		}
 		columns.setLength(columns.length() - 2);
-		return "UPDATE " + quote + tableWrapper.getTableName() + quote + " SET " + columns + " WHERE " + quote + columnWrapper.getPrimaryKey() + quote + " = " + quote + record + quote + ";";
+		return "UPDATE " + quote + tableWrapper.getTableName() + quote + " SET " + columns + " WHERE " + quote + rowWrapper.getPrimaryKey() + quote + " = " + quote + record + quote + ";";
 	}
 
 	/**
@@ -276,7 +292,7 @@ public final class SqlCommandComposer {
 		final StringBuilder prepareValues = new StringBuilder();
 		final TableWrapper tableWrapper = this.getTableWrapper();
 		final Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
-		final ColumnWrapper saveWrapper = getColumnWrapper();
+		final RowWrapper saveWrapper = getColumnWrapper();
 		final char quote = this.quote;
 
 		Validate.checkBoolean(saveWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table or no records get updated.");

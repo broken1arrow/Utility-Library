@@ -1,9 +1,9 @@
 package org.broken.arrow.database.library;
 
-import org.broken.arrow.database.library.builders.ColumnDataWrapper;
-import org.broken.arrow.database.library.builders.ColumnWrapper;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
+import org.broken.arrow.database.library.builders.RowDataWrapper;
+import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
@@ -112,7 +112,7 @@ public abstract class Database {
 	 *
 	 * @param tableName       name of the table you want to update rows inside.
 	 * @param dataWrapperList List of data you want to cache to database.
-	 *                        Note: the key you set has to be the primary key you want to update.
+	 *                        Note: the primary value you set has to be linked to the primary key you want to update.
 	 */
 	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList) {
 		this.saveAll(tableName, dataWrapperList, false);
@@ -120,14 +120,31 @@ public abstract class Database {
 
 	/**
 	 * Saves all rows to the specified database table, based on the provided primary key and associated data.
+	 * Note: If you use this method it will replace the old data instead of update it.
 	 *
 	 * @param tableName       name of the table you want to update rows inside.
 	 * @param dataWrapperList List of data you want to cache to database.
-	 *                        Note: the key you set has to be the primary key you want to update.
-	 * @param shallUpdate     Set to true if you want to update the row, other wise it will replace the old row.
+	 *                        Note: the primary value you set has to be linked to the primary key you want to update.
+	 * @param columns         Set the columns you only wants to update in the database. It will not null and not empty,
+	 *                        updates the existing row with these columns if it exists.
 	 */
-	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate) {
-		final List<SqlCommandComposer> sqls = new ArrayList<>();
+	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, String... columns) {
+		this.saveAll(tableName, dataWrapperList, true, columns);
+	}
+
+
+	/**
+	 * Saves all rows to the specified database table, based on the provided primary key and associated data.
+	 *
+	 * @param tableName       name of the table you want to update rows inside.
+	 * @param dataWrapperList List of data you want to cache to database.
+	 *                        Note: the primary value you set has to be linked to the primary key you want to update.
+	 * @param shallUpdate     Set to true if you want to update the row, other wise it will replace the old row.
+	 * @param columns         Set the columns you only wants to update in the database. It will not null and not empty,
+	 *                        updates the existing row with these columns if it exists.
+	 */
+	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns) {
+		final List<SqlCommandComposer> composerList = new ArrayList<>();
 
 		final TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
@@ -141,21 +158,25 @@ public abstract class Database {
 			TableRow primaryRow = tableWrapper.getPrimaryRow();
 			if (primaryRow == null) continue;
 
-			ColumnWrapper saveWrapper = new ColumnDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
+			RowWrapper saveWrapper = new RowDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
 
 			for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
 				TableRow column = tableWrapper.getColumn(entry.getKey());
 				if (column == null) continue;
 				saveWrapper.putColumn(entry.getKey(), entry.getValue());
 			}
-			this.getSqlsCommand(sqls, saveWrapper, shallUpdate);
+			composerList.add(this.getCommandComposer(saveWrapper, shallUpdate, columns));
 		}
-		this.batchUpdate(sqls, this.getTables().values().toArray(new TableWrapper[0]));
+		this.batchUpdate(composerList, this.getTables().values().toArray(new TableWrapper[0]));
 	}
 
 	/**
-	 * Saves a single row to the specified database table, based on the provided primary key and associated data.
+	 * Saves a single row to the specified database table. The row is identified by the
+	 * provided primary key and associated data.
+	 * <p></p>
+	 * <p>
 	 * Note: If you use this method it will replace the old data instead of update it.
+	 * </p<
 	 *
 	 * @param tableName   The name of the table to save the row to.
 	 * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.
@@ -165,14 +186,30 @@ public abstract class Database {
 	}
 
 	/**
-	 * Saves a single row to the specified database table, based on the provided primary key and associated data.
+	 * Saves a single row to the specified database table. The row is identified by the
+	 * provided primary key and associated data.
+	 *
+	 * @param tableName   The name of the table to save the row to.
+	 * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.
+	 * @param columns     Set the columns you only wants to update in the database. It will not null and not empty,
+	 *                    updates the existing row with these columns if it exists.
+	 */
+	public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, String... columns) {
+		this.save(tableName, dataWrapper, true, columns);
+	}
+
+	/**
+	 * Saves a single row to the specified database table. The row is identified by the
+	 * provided primary key and associated data.
 	 *
 	 * @param tableName   The name of the table to save the row to.
 	 * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.
 	 * @param shallUpdate Set to true if you want to update the row, other wise it will replace the old row.
+	 * @param columns     Set the columns you only wants to update in the database. It will not null and not empty,
+	 *                    updates the existing row with these columns if it exists.
 	 */
-	public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate) {
-		final List<SqlCommandComposer> sqls = new ArrayList<>();
+	public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
+		final List<SqlCommandComposer> composerList = new ArrayList<>();
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
 			LogMsg.warn("Could not find table " + tableName);
@@ -182,16 +219,15 @@ public abstract class Database {
 			return;
 
 		ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
-		ColumnWrapper saveWrapper = new ColumnDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
-
+		RowWrapper rowWrapper = new RowDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
 
 		for (Entry<String, Object> entry : configuration.serialize().entrySet()) {
 			TableRow column = tableWrapper.getColumn(entry.getKey());
 			if (column == null) continue;
-			saveWrapper.putColumn(entry.getKey(), entry.getValue());
+			rowWrapper.putColumn(entry.getKey(), entry.getValue());
 		}
-		this.getSqlsCommand(sqls, saveWrapper, shallUpdate);
-		this.batchUpdate(sqls, tableWrapper);
+		composerList.add(this.getCommandComposer(rowWrapper, shallUpdate));
+		this.batchUpdate(composerList, tableWrapper);
 	}
 
 	/**
@@ -217,7 +253,7 @@ public abstract class Database {
 			LogMsg.warn("Could not open connection.");
 			return null;
 		}
-		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new ColumnWrapper(tableWrapper), this);
+		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 
 		try {
@@ -268,7 +304,7 @@ public abstract class Database {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
-		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new ColumnWrapper(tableWrapper), this);
+		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
 		try {
 			preparedStatement = this.connection.prepareStatement(sqlCommandComposer.selectRow(columnValue));
 			resultSet = preparedStatement.executeQuery();
@@ -302,7 +338,7 @@ public abstract class Database {
 		}
 		List<SqlCommandComposer> columns = new ArrayList<>();
 		for (String value : values) {
-			final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new ColumnWrapper(tableWrapper), this);
+			final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
 			sqlCommandComposer.removeRow(value);
 			columns.add(sqlCommandComposer);
 		}
@@ -321,7 +357,7 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new ColumnWrapper(tableWrapper), this);
+		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
 		sqlCommandComposer.removeRow(value);
 		this.batchUpdate(Collections.singletonList(sqlCommandComposer), tableWrapper);
 	}
@@ -337,7 +373,7 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new ColumnWrapper(tableWrapper), this);
+		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
 		sqlCommandComposer.dropTable();
 		this.batchUpdate(Collections.singletonList(sqlCommandComposer), tableWrapper);
 	}
@@ -358,7 +394,7 @@ public abstract class Database {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
-		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new ColumnWrapper(tableWrapper), this);
+		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
 		try {
 			preparedStatement = this.connection.prepareStatement(sqlCommandComposer.selectRow(primaryKeyValue + ""));
 			resultSet = preparedStatement.executeQuery();
@@ -541,7 +577,7 @@ public abstract class Database {
 				LogMsg.warn("Could not find table " + tableName);
 				return false;
 			}
-			final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new ColumnWrapper(wrapperEntry), this);
+			final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(wrapperEntry), this);
 			table = sqlCommandComposer.createTable();
 			statement = this.connection.prepareStatement(table);
 			statement.executeUpdate();
@@ -582,16 +618,25 @@ public abstract class Database {
 		return columRow.toString();
 	}
 
-	protected List<SqlCommandComposer> getSqlsCommand(@Nonnull final List<SqlCommandComposer> listOfCommands, @Nonnull final ColumnWrapper saveWrapper, final boolean shallUpdate) {
-		SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(saveWrapper, this);
+	/**
+	 * Retrieves a SqlCommandComposer instance.
+	 *
+	 * @param rowWrapper  The current row's column data.
+	 * @param shallUpdate Specifies whether the table should be updated.
+	 * @param columns     If not null and not empty, updates the existing row with these columns if it exists.
+	 * @return The SqlCommandComposer instance with the finish SQL command for either use for prepare statement or not.
+	 */
+	protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
+		SqlCommandComposer commandComposer = new SqlCommandComposer(rowWrapper, this);
+		commandComposer.setColumnsToUpdate(columns);
+		boolean columnsIsEmpty = columns == null || columns.length == 0;
 
-		if (shallUpdate && this.doRowExist(saveWrapper.getTableWrapper().getTableName(), saveWrapper.getPrimaryKeyValue()))
-			sqlCommandComposer.updateTable(saveWrapper.getPrimaryKey());
+		if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
+			commandComposer.updateTable(rowWrapper.getPrimaryKey());
 		else
-			sqlCommandComposer.replaceIntoTable();
+			commandComposer.replaceIntoTable();
 
-		listOfCommands.add(sqlCommandComposer);
-		return listOfCommands;
+		return commandComposer;
 	}
 
 	protected String TextUtils(final List<String> columns) {
@@ -785,7 +830,7 @@ public abstract class Database {
 		for (SqlCommandComposer sql : batchList) {
 
 			try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
-				// Populate the updates map with data where the outer key is the row identifier (id)
+				// Populate the statement with data where the key is the row identifier (id).
 				for (Entry<Integer, Object> column : sql.getColumns().entrySet()) {
 					statement.setObject(column.getKey(), column.getValue());
 				}
@@ -794,8 +839,8 @@ public abstract class Database {
 				statement.executeBatch();
 			} catch (SQLException e) {
 				// Handle the exception for a specific statement
-				LogMsg.warn("Could not execute the prepared batch. \"" + sql.getPreparedSQLBatch() + "\"");
-				LogMsg.warn("Values that should be executed. '" + sql.getColumns().values() + "'", e);
+				LogMsg.warn("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\"");
+				LogMsg.warn("Values that could not be executed: '" + sql.getColumns().values() + "'", e);
 			} finally {
 				batchUpdateGoingOn = false;
 			}

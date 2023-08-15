@@ -7,19 +7,19 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * This class represents a wrapper for a database column, providing a convenient way to
+ * This class represents a wrapper for a row , providing a convenient way to
  * set the primary key value , for later be used for example when creating database commands.
  */
-public class ColumnWrapper {
+public class RowWrapper {
 	private final TableWrapper tableWrapper;
 	private final String primaryKey;
 
 	/**
-	 * Constructs a new ColumnWrapper object for the given database table and set the primary column name.
+	 * Constructs a new RowWrapper object for the given database table and set the primary column name.
 	 *
 	 * @param tableWrapper the TableWrapper object representing the database table.
 	 */
-	public ColumnWrapper(@Nonnull final TableWrapper tableWrapper) {
+	public RowWrapper(@Nonnull final TableWrapper tableWrapper) {
 		this.tableWrapper = tableWrapper;
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "The primary column are not set.");
 		final String columnName = tableWrapper.getPrimaryRow().getColumnName();
