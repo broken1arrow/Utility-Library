@@ -318,8 +318,7 @@ public abstract class Database {
 		}
 		T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
 		Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
-		if (primaryValue == null)
-			LogMsg.warn("This table '" + tableName + "' with the primary key '" + tableWrapper.getPrimaryRow().getColumnName() + "' has null value. Please ensure that this is not a mistake.");
+
 		return new LoadDataWrapper<>(primaryValue, deserialize);
 	}
 

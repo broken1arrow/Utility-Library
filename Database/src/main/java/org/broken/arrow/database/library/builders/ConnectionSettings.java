@@ -103,7 +103,7 @@ public final class ConnectionSettings {
 	}
 
 	/**
-	 * Returns additional connection information, such as query parameters.
+	 * Returns the query parameters set.
 	 *
 	 * @return the query parameters.
 	 */
