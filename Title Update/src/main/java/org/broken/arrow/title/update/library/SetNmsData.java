@@ -47,11 +47,11 @@ public class SetNmsData {
 	private ContainerUtility setNmsData(float serverVersion) {
 		final Map<Integer, String> inventorySizeNames;
 		NmsData nmsData = null;
-		if (serverVersion >= 17.0) {
+		if (serverVersion >= 17.0F) {
 			inventorySizeNames = convertFieldNames(new FieldName(9, "a"), new FieldName(18, "b"), new FieldName(27, "c"), new FieldName(36, "d"), new FieldName(45, "e"), new FieldName(54, "f"), new FieldName(5, "p"));
-			if (serverVersion >= 19.0) {
+			if (serverVersion >= 19.0F) {
 				if (serverVersion >= 19.4F) {
-					if (serverVersion >= 20.0)
+					if (serverVersion >= 20.0F)
 						nmsData = new NmsData("bR", "j", "a", "a", inventorySizeNames);
 					else
 						// inside net.minecraft.world.entity.player and class EntityHuman do you have the Container field.
@@ -60,12 +60,12 @@ public class SetNmsData {
 					nmsData = new NmsData("bU", "j", "a", "a", inventorySizeNames);
 				}
 
-			} else if (serverVersion >= 18.0) {
+			} else if (serverVersion >= 18.0F) {
 				nmsData = new NmsData(serverVersion >= 18.2F ? "bV" : "bW", "j", "a", "a", inventorySizeNames);
-			} else if (serverVersion == 17.0) {
+			} else if (serverVersion == 17.0F) {
 				nmsData = new NmsData("bV", "j", "sendPacket", "initMenu", inventorySizeNames);
 			}
-		} else if (serverVersion < 17) {
+		} else if (serverVersion < 17F) {
 			inventorySizeNames = convertFieldNames(new FieldName(9, "1"), new FieldName(18, "2"), new FieldName(27, "3"), new FieldName(36, "4"), new FieldName(45, "5"), new FieldName(54, "6"), new FieldName(5, "HOPPER"));
 			nmsData = new NmsData("activeContainer", "windowId", "sendPacket", "updateInventory", inventorySizeNames);
 		}
