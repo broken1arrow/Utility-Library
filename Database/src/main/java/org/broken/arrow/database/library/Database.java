@@ -226,7 +226,7 @@ public abstract class Database {
 			if (column == null) continue;
 			rowWrapper.putColumn(entry.getKey(), entry.getValue());
 		}
-		composerList.add(this.getCommandComposer(rowWrapper, shallUpdate));
+		composerList.add(this.getCommandComposer(rowWrapper, shallUpdate, columns));
 		this.batchUpdate(composerList, tableWrapper);
 	}
 
