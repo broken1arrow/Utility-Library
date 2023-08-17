@@ -168,11 +168,10 @@ public final class SqlCommandComposer {
 	 * Update data in your database from the provided record value, on columns you added. Will update old data on columns you added.
 	 *
 	 * @param record the record for the primary key you want to update.
-	 * @return list of prepared query's to run on your database.
 	 */
-	public String updateTable(String record) {
+	public void updateTable(String record) {
 		Validate.checkBoolean(record == null || record.isEmpty(), "You need to set record value.You can't update the row without it.");
-		return this.createUpdateCommand(record);
+		queryCommand = this.createUpdateCommand(record);
 	}
 
 	/**
@@ -181,6 +180,7 @@ public final class SqlCommandComposer {
 	 * @param records the records for the primary key you want to update.
 	 * @return list of prepared query's to run on your database.
 	 */
+	@Deprecated
 	public List<String> updateTables(List<String> records) {
 		List<String> list = new ArrayList<>();
 		Validate.checkBoolean(records == null || records.isEmpty(), "You need to set record value.You can't update the row without it.");
@@ -252,12 +252,14 @@ public final class SqlCommandComposer {
 		final RowWrapper rowWrapper = getColumnWrapper();
 		final Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
 		final char quote = this.quote;
-
 		Validate.checkNotNull(rowWrapper, "The RowWrapper instance you try to save is null, for this record: " + record);
 		Validate.checkBoolean(rowWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table.");
 		Validate.checkBoolean(record == null || record.isEmpty(), "You need to set record value for the primary key. When you want to update the row.");
 
+		final StringBuilder prepareColumnsToUpdate = new StringBuilder();
 		final StringBuilder columns = new StringBuilder();
+
+		int index = 1;
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
 			final String columnName = entry.getKey();
 			final TableRow column = entry.getValue();
@@ -269,13 +271,33 @@ public final class SqlCommandComposer {
 				value = "";
 			if (value == null && column.getDefaultValue() != null)
 				value = column.getDefaultValue();
-			columns.append(quote).append(columnName).append(quote);
+			columns.append(quote)
+					.append(columnName)
+					.append(quote);
 			if (columns.length() == 0) {
 				columns.append(" = ").append(value == null ? null : "'" + value + "'");
 			} else {
 				columns.append(" = ").append(value == null ? null + "," : "'" + value + "', ");
 			}
+			prepareColumnsToUpdate.append(quote)
+					.append(columnName)
+					.append(quote)
+					.append(" = ?,");
+			this.columns.put(index++, value);
 		}
+		this.columns.put(index, record);
+		prepareColumnsToUpdate.setLength(prepareColumnsToUpdate.length() - 1);
+		preparedSQLBatch.append("UPDATE ")
+				.append(quote)
+				.append(tableWrapper.getTableName())
+				.append(quote).append(" SET ")
+				.append(prepareColumnsToUpdate).append(" WHERE ")
+				.append(quote)
+				.append(record)
+				.append(quote)
+				.append(" = ")
+				.append(" ? ")
+				.append(";");
 		columns.setLength(columns.length() - 2);
 		return "UPDATE " + quote + tableWrapper.getTableName() + quote + " SET " + columns + " WHERE " + quote + rowWrapper.getPrimaryKey() + quote + " = " + quote + record + quote + ";";
 	}
