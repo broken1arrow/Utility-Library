@@ -155,9 +155,11 @@ public class PostgreSQL extends Database {
 	@Override
 	protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
 		SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(rowWrapper, this);
-
-		if (shallUpdate && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
-			sqlCommandComposer.updateTable(rowWrapper.getPrimaryKey());
+		boolean columnsIsEmpty = columns == null || columns.length == 0;
+		sqlCommandComposer.setColumnsToUpdate(columns);
+		
+		if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
+			sqlCommandComposer.updateTable(rowWrapper.getPrimaryKeyValue());
 		else
 			sqlCommandComposer.insertIntoTable();
 

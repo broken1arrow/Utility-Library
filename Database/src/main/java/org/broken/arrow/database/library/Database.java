@@ -632,7 +632,7 @@ public abstract class Database {
 		boolean columnsIsEmpty = columns == null || columns.length == 0;
 
 		if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
-			commandComposer.updateTable(rowWrapper.getPrimaryKey());
+			commandComposer.updateTable(rowWrapper.getPrimaryKeyValue());
 		else
 			commandComposer.replaceIntoTable();
 

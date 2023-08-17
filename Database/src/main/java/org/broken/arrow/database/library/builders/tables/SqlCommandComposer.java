@@ -169,8 +169,8 @@ public final class SqlCommandComposer {
 	 *
 	 * @param record the record for the primary key you want to update.
 	 */
-	public void updateTable(String record) {
-		Validate.checkBoolean(record == null || record.isEmpty(), "You need to set record value.You can't update the row without it.");
+	public void updateTable(Object record) {
+		Validate.checkBoolean(record == null || record.toString().isEmpty(), "You need to set record value.You can't update the row without it.");
 		queryCommand = this.createUpdateCommand(record);
 	}
 
@@ -247,14 +247,14 @@ public final class SqlCommandComposer {
 	 * @param record the record match in the database to update.
 	 * @return the constructed SQL command for the database.
 	 */
-	private String createUpdateCommand(String record) {
+	private String createUpdateCommand(Object record) {
 		final TableWrapper tableWrapper = this.getTableWrapper();
 		final RowWrapper rowWrapper = getColumnWrapper();
 		final Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
 		final char quote = this.quote;
 		Validate.checkNotNull(rowWrapper, "The RowWrapper instance you try to save is null, for this record: " + record);
 		Validate.checkBoolean(rowWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table.");
-		Validate.checkBoolean(record == null || record.isEmpty(), "You need to set record value for the primary key. When you want to update the row.");
+		Validate.checkBoolean(record == null || record.equals(""), "You need to set record value for the primary key. When you want to update the row.");
 
 		final StringBuilder prepareColumnsToUpdate = new StringBuilder();
 		final StringBuilder columns = new StringBuilder();
@@ -263,8 +263,9 @@ public final class SqlCommandComposer {
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
 			final String columnName = entry.getKey();
 			final TableRow column = entry.getValue();
-			if (columnsToUpdate != null && !columnsToUpdate.isEmpty() && !columnsToUpdate.contains(columnName))
+			if (columnsToUpdate != null && !columnsToUpdate.isEmpty() && !columnsToUpdate.contains(columnName)) {
 				continue;
+			}
 
 			Object value = rowWrapper.getColumnValue(columnName);
 			if (value == null && column.isNotNull())
@@ -293,7 +294,7 @@ public final class SqlCommandComposer {
 				.append(quote).append(" SET ")
 				.append(prepareColumnsToUpdate).append(" WHERE ")
 				.append(quote)
-				.append(record)
+				.append(rowWrapper.getPrimaryKey())
 				.append(quote)
 				.append(" = ")
 				.append(" ? ")
