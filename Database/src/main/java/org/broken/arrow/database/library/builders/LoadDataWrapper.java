@@ -36,7 +36,7 @@ public class LoadDataWrapper<T> {
 	/**
 	 * Retrieves the primary value associated with the data stored in this wrapper.
 	 *
-	 * @return The primary value for the primaryColumn.
+	 * @return The primary value for the primaryColumn or null if not this value is set in the database.
 	 */
 	@Nullable
 	public Object getPrimaryValue() {

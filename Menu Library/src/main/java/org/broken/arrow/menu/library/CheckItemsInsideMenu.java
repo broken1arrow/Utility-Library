@@ -149,7 +149,7 @@ public class CheckItemsInsideMenu {
 	public Map<Integer, ItemStack> getItemsFromSetSlots(final Inventory inv, final Player player, final Location location, final boolean shallCheckDuplicates) {
 		this.checkDuplicates = shallCheckDuplicates;
 		final Map<Integer, ItemStack> inventoryItems = new HashMap<>();
-		ItemStack[] itemStacks = inv.getStorageContents();
+		ItemStack[] itemStacks = inv.getContents();
 		//ItemStack[] itemStacks = inv.getStorageContents().clone();
 
 		for (int slot = 0; slot < inv.getSize() - 9; slot++) {
