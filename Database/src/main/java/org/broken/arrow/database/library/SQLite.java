@@ -33,6 +33,7 @@ public class SQLite extends Database {
 		this.parent = parent;
 		this.child = child;
 		this.isHikariAvailable = isHikariAvailable(hikariClazzPath);
+		this.loadDriver("org.sqlite.JDBC");
 		connect();
 	}
 
