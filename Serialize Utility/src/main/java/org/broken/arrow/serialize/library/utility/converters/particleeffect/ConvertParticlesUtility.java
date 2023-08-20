@@ -5,6 +5,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.material.MaterialData;
+import org.bukkit.potion.Potion;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -18,7 +22,7 @@ import java.util.logging.Logger;
 public class ConvertParticlesUtility {
 
 	private static final float serverVersion;
-	private static final Logger logger = Logger.getLogger("ConvertParticlesUtility");
+	private static final Logger logger = Logger.getLogger(ConvertParticlesUtility.class.getName());
 
 	static {
 		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
@@ -43,6 +47,13 @@ public class ConvertParticlesUtility {
 	/**
 	 * Converts a list of particle names to a list of ParticleEffect instances.
 	 *
+	 * <p>
+	 * Note: As of 1.17, the BARRIER particle is called BLOCK_MARKER. For BARRIER, this method
+	 * automatically handles setting the material to BARRIER. However, this automation is limited
+	 * to BARRIER; other materials for BLOCK_MARKER or other effects requiring data must be set manually
+	 * due to the variety of configuration options available.
+	 * </p>
+	 *
 	 * @param particles The list of particle names.
 	 * @return A list of ParticleEffect instances.
 	 */
@@ -51,7 +62,7 @@ public class ConvertParticlesUtility {
 
 		final List<ParticleEffectAccessor> particleList = new ArrayList<>();
 		for (final String particle : particles) {
-			final ParticleEffectAccessor particleEffect = getParticleOrEffect(particle, 0.7F);
+			final ParticleEffectAccessor particleEffect = getParticleOrEffect(particle, 1.0F);
 			if (particleEffect == null) continue;
 			particleList.add(particleEffect);
 		}
@@ -61,6 +72,13 @@ public class ConvertParticlesUtility {
 	/**
 	 * Converts a map of particle names and colors to a list of ParticleEffect instances.
 	 *
+	 * <p>
+	 * Note: As of 1.17, the BARRIER particle is called BLOCK_MARKER. For BARRIER, this method
+	 * automatically handles setting the material to BARRIER. However, this automation is limited
+	 * to BARRIER; other materials for BLOCK_MARKER or other effects requiring data must be set manually
+	 * due to the variety of configuration options available.
+	 * </p>
+	 *
 	 * @param particles The map of particle names and colors.
 	 * @return A list of ParticleEffect instances.
 	 */
@@ -69,7 +87,7 @@ public class ConvertParticlesUtility {
 
 		final List<ParticleEffectAccessor> particleList = new ArrayList<>();
 		for (final Map.Entry<String, Object> particle : particles.entrySet()) {
-			final ParticleEffectAccessor particleEffect = getParticleOrEffect(particle.getKey(), (String) particle.getValue(), 0.7F);
+			final ParticleEffectAccessor particleEffect = getParticleOrEffect(particle.getKey(), (String) particle.getValue(), 1.0F);
 			if (particleEffect == null) continue;
 			particleList.add(particleEffect);
 		}
@@ -78,6 +96,13 @@ public class ConvertParticlesUtility {
 
 	/**
 	 * Converts a map of particle names and colors represented as pairs to a list of ParticleEffect instances.
+	 *
+	 * <p>
+	 * Note: As of 1.17, the BARRIER particle is called BLOCK_MARKER. For BARRIER, this method
+	 * automatically handles setting the material to BARRIER. However, this automation is limited
+	 * to BARRIER; other materials for BLOCK_MARKER or other effects requiring data must be set manually
+	 * due to the variety of configuration options available.
+	 * </p>
 	 *
 	 * @param particles The map of particle names and colors as pairs.
 	 *                  The key represents the particle name, and the value is a Pair object
@@ -92,7 +117,7 @@ public class ConvertParticlesUtility {
 			final Pair<String, String> colors = pairEntry.getValue();
 			final ParticleEffectAccessor particleEffect;
 			if (colors == null)
-				particleEffect = getParticleOrEffect(pairEntry.getKey(), 0.7F);
+				particleEffect = getParticleOrEffect(pairEntry.getKey(), 1.0F);
 			else
 				particleEffect = getParticleOrEffect(pairEntry.getKey(), colors.getFirst(), colors.getSecond(), 1, 0.7F);
 			if (particleEffect == null) continue;
@@ -102,39 +127,81 @@ public class ConvertParticlesUtility {
 	}
 
 	/**
-	 * Retrieves the ParticleEffect instance for the given particle name and color.
+	 * Retrieves the particle effect with configured properties.
+	 *
+	 * <p>
+	 * Note: As of 1.17, the BARRIER particle is called BLOCK_MARKER. For BARRIER, this method
+	 * automatically handles setting the material to BARRIER. However, this automation is limited
+	 * to BARRIER; other materials for BLOCK_MARKER or other effects requiring data must be set manually
+	 * due to the variety of configuration options available.
+	 * </p>
 	 *
 	 * @param particle The particle name.
-	 * @param flot     Additional float value with different usage depending on the particle.
+	 * @param extra    Additional float value with different usage depending on the particle.
 	 * @return The ParticleEffect instance corresponding to the particle name and color.
 	 */
-	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, final float flot) {
-		return getParticleOrEffect(particle, null, null, 1, flot);
+	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, final float extra) {
+		return getParticleOrEffect(particle, null, null, 1, extra);
 	}
 
 	/**
-	 * Retrieves the ParticleEffect instance for the given particle name and color.
+	 * Retrieves the particle effect with configured properties.
+	 *
+	 * <p>
+	 * Note: As of 1.17, the BARRIER particle is called BLOCK_MARKER. For BARRIER, this method
+	 * automatically handles setting the material to BARRIER. However, this automation is limited
+	 * to BARRIER; other materials for BLOCK_MARKER or other effects requiring data must be set manually
+	 * due to the variety of configuration options available.
+	 * </p>
 	 *
 	 * @param particle The particle name.
 	 * @param color    The color for the particle (if applicable).
-	 * @param flot     Additional float value with different usage depending on the particle.
+	 * @param extra    Additional float value with different usage depending on the particle.
 	 * @return The ParticleEffect instance corresponding to the particle name and color.
 	 */
-	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String color, final float flot) {
-		return getParticleOrEffect(particle, color, null, 1, flot);
+	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String color, final float extra) {
+		return getParticleOrEffect(particle, color, null, 1, extra);
 	}
 
 	/**
-	 * Get the particle effect.
+	 * Retrieves the particle effect with configured properties.
+	 *
+	 * <p>
+	 * Note: As of 1.17, the BARRIER particle is called BLOCK_MARKER. For BARRIER, this method
+	 * automatically handles setting the material to BARRIER. However, this automation is limited
+	 * to BARRIER; other materials for BLOCK_MARKER or other effects requiring data must be set manually
+	 * due to the variety of configuration options available.
+	 * </p>
 	 *
 	 * @param particle          the particle you want to convert.
 	 * @param firstColor        the first color if you use effect you can change color.
 	 * @param secondColor       the second color for the effect.
 	 * @param amountOfParticles the amount of particles.
-	 * @param flot              this have different usage depending on particle.
+	 * @param extra             this have different usage depending on particle.
 	 * @return particle effect particle.
 	 */
-	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, final int amountOfParticles, final float flot) {
+	public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, final int amountOfParticles, final float extra) {
+		ParticleEffectWrapper wrapper = new ParticleEffectWrapper(particle, amountOfParticles, extra);
+		wrapper.setFromColor(firstColor);
+		wrapper.setToColor(secondColor);
+		return getParticleOrEffect(wrapper);
+	}
+
+	/**
+	 * Retrieves the particle effect with configured properties.
+	 *
+	 * <p>
+	 * Note: As of 1.17, the BARRIER particle is called BLOCK_MARKER. For BARRIER, this method
+	 * automatically handles setting the material to BARRIER. However, this automation is limited
+	 * to BARRIER; other materials for BLOCK_MARKER or other effects requiring data must be set manually
+	 * due to the variety of configuration options available.
+	 * </p>
+	 *
+	 * @param particleEffectWrapper A utility wrapper containing the configured data for the particle.
+	 * @return The configured particle effect.
+	 */
+	public static ParticleEffectAccessor getParticleOrEffect(final ParticleEffectWrapper particleEffectWrapper) {
+		Object particle = particleEffectWrapper.getParticle();
 		if (particle == null) return null;
 		Object object;
 		if (serverVersion < 9) {
@@ -145,6 +212,12 @@ public class ConvertParticlesUtility {
 				object = getEffect(String.valueOf(particle));
 			}
 		}
+		Object particleData = particleEffectWrapper.getParticleData();
+		String firstColor = particleEffectWrapper.getFromColor();
+		String secondColor = particleEffectWrapper.getToColor();
+		int amountOfParticles = particleEffectWrapper.getAmountOfParticles();
+		float extra = particleEffectWrapper.getExtra();
+
 		ParticleEffect.Builder builder = null;
 		if (serverVersion >= 9)
 			if (object instanceof Particle) {
@@ -154,13 +227,14 @@ public class ConvertParticlesUtility {
 				if (part.name().equals("BLOCK_MARKER")) {
 					builder.setMaterial(Material.BARRIER);
 				}
+				setBuilderExtraDataParticle(builder, particleData, part);
 				if (firstColor != null && part.name().equals("REDSTONE")) {
 					if (secondColor != null)
-						builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, flot));
+						builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, extra));
 					else
-						builder.setDustOptions(new ParticleDustOptions(firstColor, flot));
+						builder.setDustOptions(new ParticleDustOptions(firstColor, extra));
 				} else {
-					builder.setData(flot);
+					builder.setExtra(extra);
 				}
 				builder.setCount(amountOfParticles);
 			}
@@ -169,12 +243,13 @@ public class ConvertParticlesUtility {
 			builder = new ParticleEffect.Builder(part, part.getData() != null ? part.getData() : Void.class);
 			if (firstColor != null && part.name().equals("REDSTONE")) {
 				if (secondColor != null)
-					builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, flot));
+					builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, extra));
 				else
-					builder.setDustOptions(new ParticleDustOptions(firstColor, flot));
+					builder.setDustOptions(new ParticleDustOptions(firstColor, extra));
 			} else {
-				builder.setData(flot);
+				builder.setExtra(extra);
 			}
+			setBuilderExtraDataEffect(builder, particleData, part);
 			builder.setCount(amountOfParticles);
 		}
 		if (object == null || builder == null)
@@ -233,5 +308,38 @@ public class ConvertParticlesUtility {
 		return particle;
 	}
 
+	public static void setBuilderExtraDataParticle(ParticleEffect.Builder builder, Object particleData, Particle part) {
+		if (part.getDataType().isInstance(particleData)) {
+			if (particleData instanceof Material)
+				builder.setMaterial((Material) particleData);
+			if (particleData instanceof MaterialData)
+				builder.setMaterialData((Class<? extends MaterialData>) particleData);
+			if (particleData instanceof BlockData)
+				builder.setMaterialBlockData((BlockData) particleData);
+			if (particleData instanceof BlockFace)
+				builder.setBlockFace((BlockFace) particleData);
+			if (particleData instanceof Potion)
+				builder.setPotion((Potion) particleData);
+		} else {
+			if (particleData != null)
+				logger.warning("You must set the extra data for this '" + part.name() + "' or the effect will not spawn. The class you should use is '" + part.getDataType() + "'");
+		}
+	}
 
+	public static void setBuilderExtraDataEffect(ParticleEffect.Builder builder, Object particleData, Effect effect) {
+		Class<?> effectData = effect.getData();
+		if (effectData != null && effectData.isInstance(particleData)) {
+			if (particleData instanceof Material)
+				builder.setMaterial((Material) particleData);
+			if (particleData instanceof MaterialData)
+				builder.setMaterialData((Class<? extends MaterialData>) particleData);
+			if (particleData instanceof BlockFace)
+				builder.setBlockFace((BlockFace) particleData);
+			if (particleData instanceof Potion)
+				builder.setPotion((Potion) particleData);
+		} else {
+			if (particleData != null && effectData != null)
+				logger.warning("You must set the extra data for this '" + effect.name() + "' or the effect will not spawn. The class you should use is '" + effectData + "'");
+		}
+	}
 }

@@ -4,11 +4,16 @@ import org.broken.arrow.serialize.library.utility.converters.particleeffect.Part
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.material.MaterialData;
+import org.bukkit.potion.Potion;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public interface ParticleEffectAccessor {
+
 	/**
 	 * Retrieves the Particle associated with this ParticleEffect.
 	 *
@@ -34,9 +39,41 @@ public interface ParticleEffectAccessor {
 	Material getMaterial();
 
 	/**
+	 * Retrieves the Material data associated with this ParticleEffect.
+	 *
+	 * @return the Material data object, or null if not set or if this effect don't use this class.
+	 */
+	@Nullable
+	Class<? extends MaterialData> getMaterialData();
+
+	/**
+	 * Retrieves the Material BlockData associated with this ParticleEffect.
+	 *
+	 * @return the Material BlockData object, or null if not set or if this effect don't use this class.
+	 */
+	@Nullable
+	BlockData getMaterialBlockData();
+
+	/**
+	 * Retrieves the block face associated with this ParticleEffect.
+	 *
+	 * @return the block face, or null if not set or if this effect don't use this class.
+	 */
+	@Nullable
+	BlockFace getBlockFace();
+
+	/**
+	 * Retrieves the potion associated with this ParticleEffect.
+	 *
+	 * @return the potion object, or null if not set or if this effect don't use this class.
+	 */
+	@Nullable
+	Potion getPotion();
+
+	/**
 	 * Retrieves the amount of particles associated with this ParticleEffect.
 	 *
-	 * @return amount of particels that should spawn at the same time.
+	 * @return amount of particles that should spawn at the same time.
 	 */
 	int getCount();
 
@@ -62,11 +99,14 @@ public interface ParticleEffectAccessor {
 	double getOffsetZ();
 
 	/**
-	 * Retrieves the data on the Particle effect.
+	 * Retrieves the extra data on the Particle effect.
+	 * This number have variety of functions depending
+	 * on the particle. Can be everything from speed to
+	 * the size of the particle.
 	 *
-	 * @return the data.
+	 * @return the extra data set.
 	 */
-	double getData();
+	double getExtra();
 
 	/**
 	 * Retrieves the data set on the effect.
@@ -78,7 +118,7 @@ public interface ParticleEffectAccessor {
 
 	/**
 	 * Retrieves ParticleDustOptions, but this can only be used
-	 * if the Minecraft version suport it.
+	 * if the Minecraft version support it.
 	 *
 	 * @return the ParticleDustOptions instance.
 	 */

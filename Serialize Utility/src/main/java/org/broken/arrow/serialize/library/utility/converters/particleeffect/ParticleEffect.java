@@ -1,14 +1,21 @@
 package org.broken.arrow.serialize.library.utility.converters.particleeffect;
 
+import org.broken.arrow.serialize.library.utility.Validate;
+import org.broken.arrow.serialize.library.utility.converters.SpigotBlockFace;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.material.MaterialData;
+import org.bukkit.potion.Potion;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * A simple wrapper class that provides support for serialization to file or other database.
@@ -18,14 +25,20 @@ import java.util.Map;
  */
 public final class ParticleEffect implements ConfigurationSerializable, ParticleEffectAccessor {
 
+	private static final Logger logger = Logger.getLogger(ParticleEffect.class.getName());
 	private final Particle particle;
 	private final Effect effect;
 	private final Material material;
+	private final Class<? extends MaterialData> materialData;
+	private final BlockData materialBlockData;
+	private final BlockFace blockFace;
+	private final Potion potion;
 	private final int count;
 	private final double offsetX;
 	private final double offsetY;
 	private final double offsetZ;
-	private final double data;
+	private final double extra;
+	@Nonnull
 	private final Class<?> dataType;
 	private final ParticleDustOptions particleDustOptions;
 	private final Builder builder;
@@ -34,11 +47,15 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		this.particle = builder.particle;
 		this.effect = builder.effect;
 		this.material = builder.material;
+		this.materialData = builder.materialData;
+		this.materialBlockData = builder.materialBlockData;
+		this.blockFace = builder.blockFace;
+		this.potion = builder.potion;
 		this.count = builder.count;
 		this.offsetX = builder.offsetX;
 		this.offsetY = builder.offsetY;
 		this.offsetZ = builder.offsetZ;
-		this.data = builder.data;
+		this.extra = builder.extra;
 		this.dataType = builder.dataType;
 		this.particleDustOptions = builder.dustOptions;
 		this.builder = builder;
@@ -78,9 +95,53 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 	}
 
 	/**
+	 * Retrieves the Material data associated with this ParticleEffect.
+	 *
+	 * @return the Material data object, or null if not set.
+	 */
+	@Override
+	@Nullable
+	public Class<? extends MaterialData> getMaterialData() {
+		return materialData;
+	}
+
+	/**
+	 * Retrieves the Material BlockData associated with this ParticleEffect.
+	 *
+	 * @return the Material BlockData object, or null if not set.
+	 */
+	@Override
+	@Nullable
+	public BlockData getMaterialBlockData() {
+		return materialBlockData;
+	}
+
+	/**
+	 * Retrieves the block face associated with this ParticleEffect.
+	 *
+	 * @return the block face, or null if not set.
+	 */
+	@Override
+	@Nullable
+	public BlockFace getBlockFace() {
+		return blockFace;
+	}
+
+	/**
+	 * Retrieves the potion associated with this ParticleEffect.
+	 *
+	 * @return the Material object, or null if not set.
+	 */
+	@Override
+	@Nullable
+	public Potion getPotion() {
+		return potion;
+	}
+
+	/**
 	 * Retrieves the amount of particles associated with this ParticleEffect.
 	 *
-	 * @return amount of particels that should spawn at the same time.
+	 * @return amount of particles that should spawn at the same time.
 	 */
 	@Override
 	public int getCount() {
@@ -123,8 +184,8 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 	 * @return the data.
 	 */
 	@Override
-	public double getData() {
-		return data;
+	public double getExtra() {
+		return extra;
 	}
 
 	/**
@@ -140,7 +201,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 
 	/**
 	 * Retrieves ParticleDustOptions, but this can only be used
-	 * if the Minecraft version suport it.
+	 * if the Minecraft version support it.
 	 *
 	 * @return the ParticleDustOptions instance.
 	 */
@@ -159,13 +220,19 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		private final Particle particle;
 		private final Effect effect;
 		private Material material;
+		private Class<? extends MaterialData> materialData;
+		private BlockData materialBlockData;
+		private BlockFace blockFace;
+		private Potion potion;
 		private int count;
 		private double offsetX;
 		private double offsetY;
 		private double offsetZ;
-		private double data;
+		private double extra;
+		@Nonnull
 		private final Class<?> dataType;
 		private ParticleDustOptions dustOptions;
+
 
 		/**
 		 * Constructs a new Builder instance for creating a particle effect with the specified effect and data type.
@@ -173,11 +240,10 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		 *
 		 * @param effect   the effect particle.
 		 * @param dataType the type of data this particle belongs to. Only used for certain particles,
-		 *                 but still this should not be set to null.
+		 *                 if the particle data is null it will be set to to Void.class.
 		 */
-		public Builder(final Effect effect, @Nonnull final Class<?> dataType) {
+		public Builder(final Effect effect, @Nullable final Class<?> dataType) {
 			this(null, effect, dataType);
-
 		}
 
 
@@ -187,9 +253,9 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		 *
 		 * @param particle the particle.
 		 * @param dataType the type of data this particle belongs to. Only used for certain particles,
-		 *                 but still this should not be set to null.
+		 *                 if the particle data is null it will be set to to Void.class.
 		 */
-		public Builder(final Particle particle, @Nonnull final Class<?> dataType) {
+		public Builder(final Particle particle, @Nullable final Class<?> dataType) {
 			this(particle, null, dataType);
 
 		}
@@ -200,18 +266,24 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		 * @param particle the particle.
 		 * @param effect   the effect particle.
 		 * @param dataType the type of data this particle belongs to. Only used for certain particles,
-		 *                 but still this should not be set to null.
+		 *                 if the particle data is null it will be set to to Void.class.
 		 */
-		public Builder(final Particle particle, final Effect effect, @Nonnull final Class<?> dataType) {
+		public Builder(final Particle particle, final Effect effect, @Nullable final Class<?> dataType) {
+			if (particle != null)
+				Validate.checkBoolean(particle.getClass() == dataType, "You can't set dataType to same class as the particle or effect, should be '" + particle.getDataType() + "'");
+			if (effect != null)
+				Validate.checkBoolean(effect.getClass() == dataType, "You can't set dataType to same class as the particle or effect, should be '" + (effect.getData() == null ? "Void.class" : effect.getData()) + "'");
+
 			this.particle = particle;
 			this.effect = effect;
-			this.dataType = dataType;
+			this.dataType = dataType == null ? Void.class : dataType;
+
 		}
 
 		/**
-		 * The matrial on the item, only works on 1.17+
+		 * The material on the effect.
 		 *
-		 * @param material the matrial you want to use as effect.
+		 * @param material the material you need to set for this effect.
 		 * @return this instance.
 		 */
 		public Builder setMaterial(final Material material) {
@@ -220,9 +292,57 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		}
 
 		/**
-		 * Amount of particels you want.
+		 * The material data on the effect, this is used on
+		 * legacy versions below 1.13.
+		 *
+		 * @param materialData the material data you need to set for this effect.
+		 * @return this instance.
+		 */
+		public Builder setMaterialData(final Class<? extends MaterialData> materialData) {
+			this.materialData = materialData;
+			return this;
+		}
+
+		/**
+		 * The material data on the effect, not used on legacy.
+		 *
+		 * @param materialData the block bata from the material you need to set for this effect.
+		 * @return this instance.
+		 */
+		public Builder setMaterialBlockData(final BlockData materialData) {
+			this.materialBlockData = materialData;
+			return this;
+		}
+
+		/**
+		 * The block face on the effect, this is used on
+		 * legacy versions below 1.13.
+		 *
+		 * @param blockFace the block face set to this effect.
+		 * @return this instance.
+		 */
+		public Builder setBlockFace(final BlockFace blockFace) {
+			this.blockFace = blockFace;
+			return this;
+		}
+
+		/**
+		 * The potion on the effect, this is used on
+		 * legacy versions below 1.13.
+		 *
+		 * @param Potion the potion set to this effect.
+		 * @return this instance.
+		 */
+
+		public Builder setPotion(final Potion Potion) {
+			this.potion = Potion;
+			return this;
+		}
+
+		/**
+		 * Amount of particles you want.
 		 * <p>
-		 * NOTE: this can behave diffrent depening on type of particle.
+		 * NOTE: this can behave different depending on type of particle.
 		 *
 		 * @param count the amount
 		 * @return this instance.
@@ -266,19 +386,21 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		}
 
 		/**
-		 * Set data on the particle. On redstone effect this tell the size of the effect.
+		 * Set extra data on the particle. On redstone effect this tell the size of the effect
+		 * and other effects could it be the speed or something else. It also depends on the
+		 * Minecraft version.
 		 *
-		 * @param data the data you want to set.
+		 * @param extra the extra data you want to set.
 		 * @return this instance.
 		 */
-		public Builder setData(final double data) {
-			this.data = data;
+		public Builder setExtra(final double extra) {
+			this.extra = extra;
 			return this;
 		}
 
 		/**
-		 * If the mincraft verfsion support it, you can add doneing to
-		 * restone effect and gradients.
+		 * If the Minecraft version support it, you can add doing to
+		 * redstone effect and gradients.
 		 *
 		 * @param dustOptions the dustOptions class.
 		 * @return this instance.
@@ -300,7 +422,15 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 				"particle=" + particle +
 				", effect=" + effect +
 				", material=" + material +
-				", data=" + data +
+				", materialData=" + materialData +
+				", materialBlockData=" + materialBlockData +
+				", blockFace=" + blockFace +
+				", potion=" + potion +
+				", count=" + count +
+				", offsetX=" + offsetX +
+				", offsetY=" + offsetY +
+				", offsetZ=" + offsetZ +
+				", extra=" + extra +
 				", dataType=" + dataType +
 				", particleDustOptions=" + particleDustOptions +
 				", builder=" + builder +
@@ -319,7 +449,9 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		particleData.put("Particle", this.particle + "");
 		particleData.put("Effect", this.effect + "");
 		particleData.put("Material", this.material + "");
-		particleData.put("Data", this.data);
+		particleData.put("Block_face", this.blockFace + "");
+		particleData.put("Potion", this.potion + "");
+		particleData.put("Data", this.extra);
 		final ParticleDustOptions dustOptions = this.particleDustOptions;
 		if (dustOptions != null) {
 			if (dustOptions.getToColor() != null) {
@@ -342,11 +474,13 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 
 		final Particle particle = ConvertParticlesUtility.getParticle((String) map.get("Particle"));
 		final Effect effect = ConvertParticlesUtility.getEffect((String) map.get("Effect"));
-		String icon = (String) map.get("Material");
+		String materialString = (String) map.get("Material");
+		String blockFace = (String) map.get("Block_face");
+		int potion = (int) map.getOrDefault("Potion_number", -1);
 		Material material = null;
-		if (icon != null) {
-			icon = icon.toUpperCase();
-			material = Material.getMaterial(icon);
+		if (materialString != null) {
+			materialString = materialString.toUpperCase();
+			material = Material.getMaterial(materialString);
 		}
 		final int data = (int) map.get("Data");
 		Class<?> dataType = null;
@@ -354,17 +488,48 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 			dataType = particle.getDataType();
 		if (effect != null)
 			dataType = effect.getData();
+		if (dataType == null)
+			dataType = Void.class;
 
 		ParticleDustOptions options = (ParticleDustOptions) map.get("DustOptions");
 
 		final Builder builder = new Builder(particle, effect, dataType);
 		if (options == null)
 			options = (ParticleDustOptions) map.get("Transition");
+		if (material != null) {
+			if (dataType.isInstance(material))
+				builder.setMaterial(material);
+			if (dataType.isInstance(material))
+				builder.setMaterialData(material.getData());
+			if (dataType.isInstance(material))
+				builder.setMaterialBlockData(material.createBlockData());
+		}
+		if (material == null) {
+			if (dataType.isInstance(Material.class)) {
+				logger.warning("you have to set the material for this particle effect, this particle use this class '" + dataType + "' .");
+			}
+		}
+		if (blockFace == null) {
+			if (dataType.isInstance(BlockFace.class)) {
+				logger.warning("you have to set the block face for this particle effect, from this class '" + dataType + "' .");
+			}
+		}
+		if (potion == -1) {
+			if (dataType.isInstance(Potion.class)) {
+				logger.warning("you have to set the potion number for this particle effect, from this class '" + dataType + "' .");
+			}
+		}
+		BlockFace facing = SpigotBlockFace.getBlockFace(blockFace);
+		if (potion >= 0)
+			builder.setPotion(Potion.fromDamage(potion));
 
-		return builder
-				.setMaterial(material)
+		builder.setBlockFace(facing)
 				.setDustOptions(options)
-				.setData(data)
+				.setExtra(data)
 				.build();
+
+
+		return builder.build();
+
 	}
 }
