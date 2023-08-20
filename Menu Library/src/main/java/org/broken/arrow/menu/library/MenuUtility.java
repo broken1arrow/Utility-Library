@@ -7,6 +7,7 @@ import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.utility.Function;
+import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.broken.arrow.menu.library.utility.Validate;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Bukkit;
@@ -967,11 +968,10 @@ public class MenuUtility<T> {
 		Function<String> task = this.animateTitle;
 		if (task == null) return;
 		this.taskidAnimateTitle = new BukkitRunnable() {
-
 			@Override
 			public void run() {
 				String text = task.apply();
-				if (text == null || this.isCancelled()) {
+				if (text == null || (ServerVersion.atLeast(ServerVersion.v1_9) && this.isCancelled())) {
 					this.cancel();
 					updateTittle();
 					return;
