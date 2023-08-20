@@ -1,6 +1,5 @@
 package org.broken.arrow.menu.button.manager.library;
 
-import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.menu.button.manager.library.utility.MenuButtonData;
 import org.broken.arrow.menu.button.manager.library.utility.MenuTemplate;
 import org.broken.arrow.yaml.library.YamlFileManager;
@@ -28,7 +27,6 @@ import java.util.stream.IntStream;
 public class MenusSettingsHandler extends YamlFileManager {
 	private final Plugin plugin;
 	private final int version = 1;
-	private final ItemCreator itemCreator;
 	private final Map<String, MenuTemplate> templates = new HashMap<>();
 
 	/**
@@ -37,22 +35,12 @@ public class MenusSettingsHandler extends YamlFileManager {
 	 * @param plugin     Your main plugin instance.
 	 * @param name       The path where you want the file located.
 	 *                   For example, you can set the path as "menu/menu.yml" or "menus"
-	 *                   if you want to have one menu per file. You don't need to specify the plugin folder.
+	 *                   if you want to have one menu per file. You don't need to specify the file name here, only the folder path.
 	 * @param singleFile Set to true if you plan to have a single file, or false if you want to have one menu per file.
 	 */
 	public MenusSettingsHandler(final Plugin plugin, final String name, boolean singleFile) {
 		super(plugin, name, singleFile, true);
-		itemCreator = new ItemCreator(plugin);
 		this.plugin = plugin;
-	}
-
-	/**
-	 * Get the ItemCreator instance associated with this MenusSettingsHandler.
-	 *
-	 * @return The ItemCreator instance.
-	 */
-	public ItemCreator getItemCreator() {
-		return itemCreator;
 	}
 
 	/**

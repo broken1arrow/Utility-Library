@@ -127,7 +127,7 @@ public class MenuTemplate {
 	}
 
 	/**
-	 * Calulate amount of buttons inside the inventory.
+	 * Calculate amount of buttons inside the inventory.
 	 *
 	 * @param menuButtons the map with all set buttons.
 	 * @return amount of slots needed.

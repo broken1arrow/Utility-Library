@@ -85,8 +85,8 @@ public class MenuButton implements ConfigurationSerializable {
 	}
 
 	/**
-	 * Retrive type of button, if this is a button that char run some code
-	 * or only visiable button without any funtion.
+	 * Retrieve type of button, if this is a button that run some code
+	 * or only visible button without any function.
 	 *
 	 * @return the type of button this is.
 	 */
