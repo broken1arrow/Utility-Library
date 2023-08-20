@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 
 /**
  * Create items with your set data. When you make a item it will also detect minecraft version
- * and provide help when make items for diffrent minecraft versions (you can ether let it auto convert colors depending
+ * and provide help when make items for different minecraft versions (you can ether let it auto convert colors depending
  * on version or hardcode it self).
  */
 
@@ -67,12 +67,12 @@ public class CreateItemStack {
 	private final List<FireworkEffect> fireworkEffects = new ArrayList<>();
 	private final RegisterNbtAPI nbtApi;
 	private MetaDataWraper metadata;
-	private int amoutOfItems;
+	private int amountOfItems;
 	private int red = -1;
 	private int green = -1;
 	private int blue = -1;
 	private short data = -1;
-	private int customModeldata = -1;
+	private int customModelData = -1;
 	private boolean glow;
 	private boolean showEnchantments;
 	private boolean waterBottle;
@@ -96,11 +96,11 @@ public class CreateItemStack {
 	/**
 	 * Amount of items you want to create.
 	 *
-	 * @param amoutOfItems item amount.
+	 * @param amountOfItems item amount.
 	 * @return this class.
 	 */
-	public CreateItemStack setAmoutOfItems(final int amoutOfItems) {
-		this.amoutOfItems = amoutOfItems;
+	public CreateItemStack setAmountOfItems(final int amountOfItems) {
+		this.amountOfItems = amountOfItems;
 		return this;
 	}
 
@@ -144,7 +144,7 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Add list of patterns (if it exist old patterns in the list, will the new ones be added ontop).
+	 * Add list of patterns (if it exist old patterns in the list, will the new ones be added on top).
 	 *
 	 * @param pattern list some contains patterns.
 	 * @return this class.
@@ -158,15 +158,15 @@ public class CreateItemStack {
 	/**
 	 * Get enchantments for this item.
 	 *
-	 * @return map with enchantment level and if it shall ignore level reestriction.
+	 * @return map with enchantment level and if it shall ignore level restriction.
 	 */
 	public Map<Enchantment, Tuple<Integer, Boolean>> getEnchantments() {
 		return enchantments;
 	}
 
 	/**
-	 * Check if it water Bottle. Becuse
-	 * only exist matrial portion, so need this method.
+	 * Check if it water Bottle. Because
+	 * only exist material portion, so need this method.
 	 *
 	 * @return true if it a water Bottle item.
 	 */
@@ -182,7 +182,7 @@ public class CreateItemStack {
 	/**
 	 * If it shall keep the old amount of items (if you modify old itemstack).
 	 *
-	 * @return true if you keep old amunt.
+	 * @return true if you keep old amount.
 	 */
 	public boolean isKeepAmount() {
 		return keepAmount;
@@ -200,8 +200,8 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * if it shall keep old medatada (only work if you modify old itemstack).
-	 * Defult it will keep the meta.
+	 * if it shall keep old metadata (only work if you modify old itemstack).
+	 * Default it will keep the meta.
 	 *
 	 * @return true if you keep old meta.
 	 */
@@ -211,7 +211,7 @@ public class CreateItemStack {
 
 	/**
 	 * Set if it shall keep the old metadata or not.
-	 * Defult it will keep the meta.
+	 * Default it will keep the meta.
 	 *
 	 * @param keepOldMeta set to false if you not want to keep old metadata.
 	 * @return this class.
@@ -224,7 +224,7 @@ public class CreateItemStack {
 	/**
 	 * Get list of firework effects
 	 *
-	 * @return list of efects set on this item.
+	 * @return list of effects set on this item.
 	 */
 	public List<FireworkEffect> getFireworkEffects() {
 		return fireworkEffects;
@@ -240,7 +240,7 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Get the base color for the banner (the color befor add patterns).
+	 * Get the base color for the banner (the color before add patterns).
 	 *
 	 * @return the color.
 	 */
@@ -262,7 +262,7 @@ public class CreateItemStack {
 
 	/**
 	 * Add own enchantments. Set {@link #setShowEnchantments(boolean)} to true
-	 * if you whant to hide all enchants (defult so will it not hide enchants).
+	 * if you want to hide all enchants (default so will it not hide enchants).
 	 * <p>
 	 * This method uses varargs and add it to list, like this enchantment;level;levelRestriction or
 	 * enchantment;level and it will sett last one to false.
@@ -299,16 +299,16 @@ public class CreateItemStack {
 
 	/**
 	 * Add own enchantments. Set {@link #setShowEnchantments(boolean)} to true
-	 * if you whant to hide all enchants (defult so will it not hide enchants).
+	 * if you want to hide all enchants (default so will it not hide enchants).
 	 *
-	 * @param enchantmentMap add direcly a map with enchants and level and levelRestrictions.
+	 * @param enchantmentMap add directly a map with enchants and level and levelRestrictions.
 	 * @param override       the old value in the map if you set it to true.
 	 * @return this class.
 	 */
 	public CreateItemStack addEnchantments(final Map<Enchantment, Tuple<Integer, Boolean>> enchantmentMap, final boolean override) {
 		Validate.checkNotNull(enchantmentMap, "this map is null");
 		if (enchantmentMap.isEmpty())
-			logger.log(Level.INFO, "This map is empty so no enchantments vill be added");
+			logger.log(Level.INFO, "This map is empty so no enchantments will be added");
 
 		enchantmentMap.forEach((key, value) -> {
 			if (!override)
@@ -321,9 +321,9 @@ public class CreateItemStack {
 
 	/**
 	 * Add own enchantments. Set {@link #setShowEnchantments(boolean)} to true
-	 * if you whant to hide all enchants (defult so will it not hide enchants).
+	 * if you want to hide all enchants (default so will it not hide enchants).
 	 *
-	 * @param enchant          enchantments you want to add, suport string and Enchantment class.
+	 * @param enchant          enchantments you want to add, support string and Enchantment class.
 	 * @param levelRestriction bypass the level limit.
 	 * @param enchantmentLevel set level for this enchantment.
 	 * @return this class.
@@ -347,7 +347,7 @@ public class CreateItemStack {
 
 	/**
 	 * When use {@link #addEnchantments(Object, boolean, int)}   or {@link #addEnchantments(String...)} and
-	 * want to not show enchants set it to true. When use {@link #setGlow(boolean)} it will defult hide
+	 * want to not show enchants set it to true. When use {@link #setGlow(boolean)} it will default hide
 	 * enchants, if you set #setGlow to true and set this to true it will show the enchantments.
 	 *
 	 * @param showEnchantments true and will show enchants.
@@ -386,11 +386,11 @@ public class CreateItemStack {
 	 * Set your metadata on the item. Use {@link MetaDataWraper} class.
 	 * To set key and value.
 	 *
-	 * @param wraper values from MetaDataWraper.
+	 * @param wrapper values from MetaDataWrapper.
 	 * @return this class.
 	 */
-	public CreateItemStack setItemMetaDataList(final MetaDataWraper wraper) {
-		metadata = wraper;
+	public CreateItemStack setItemMetaDataList(final MetaDataWraper wrapper) {
+		metadata = wrapper;
 		return this;
 	}
 
@@ -403,11 +403,11 @@ public class CreateItemStack {
 	 */
 	public CreateItemStack setItemMetaDataList(final Map<String, Object> itemMetaMap) {
 		if (itemMetaMap != null && !itemMetaMap.isEmpty()) {
-			final MetaDataWraper wraper = MetaDataWraper.of();
-			for (final Map.Entry<String, Object> itemdata : itemMetaMap.entrySet()) {
-				wraper.add(itemdata.getKey(), itemdata.getValue());
+			final MetaDataWraper wrapper = MetaDataWraper.of();
+			for (final Map.Entry<String, Object> itemData : itemMetaMap.entrySet()) {
+				wrapper.add(itemData.getKey(), itemData.getValue());
 			}
-			metadata = wraper;
+			metadata = wrapper;
 		}
 		return this;
 	}
@@ -433,7 +433,7 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Old methoid to set data on a item.
+	 * Old method to set data on a item.
 	 *
 	 * @return number.
 	 */
@@ -442,7 +442,7 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Set data on a item, this only suport short
+	 * Set data on a item, this only support short
 	 * so it is a limit of how high you can set it.
 	 *
 	 * @param data the number you want to set.
@@ -454,23 +454,23 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Get Custom Modeldata on the item. use this insted of set data on a item.
+	 * Get Custom Model data on the item. use this instead of set data on a item.
 	 *
-	 * @return Modeldata number.
+	 * @return Model data number.
 	 */
 
-	public int getCustomModeldata() {
-		return customModeldata;
+	public int getCustomModelData() {
+		return customModelData;
 	}
 
 	/**
-	 * Set Custom Modeldata on a item. will work on newer minecraft versions.
+	 * Set Custom Model data on a item. will work on newer minecraft versions.
 	 *
-	 * @param customModeldata number.
+	 * @param customModelData number.
 	 * @return this class.
 	 */
-	public CreateItemStack setCustomModeldata(final int customModeldata) {
-		this.customModeldata = customModeldata;
+	public CreateItemStack setCustomModelData(final int customModelData) {
+		this.customModelData = customModelData;
 		return this;
 	}
 
@@ -497,14 +497,14 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Add a list of effects to the list. If it exist old effects this will add the effects ontop of the old ones.
+	 * Add a list of effects to the list. If it exist old effects this will add the effects on top of the old ones.
 	 *
 	 * @param potionEffects list of effects you want to add.
 	 * @return this class.
 	 */
 	public CreateItemStack addPortionEffects(final List<PotionEffect> potionEffects) {
 		if (potionEffects.isEmpty()) {
-			logger.log(Level.INFO, "This list of portion effects is empty so no values vill be added");
+			logger.log(Level.INFO, "This list of portion effects is empty so no values will be added");
 			return this;
 		}
 
@@ -520,7 +520,7 @@ public class CreateItemStack {
 	 */
 	public CreateItemStack setPortionEffects(final List<PotionEffect> potionEffects) {
 		if (potionEffects.isEmpty()) {
-			logger.log(Level.INFO, "This list of portion effects is empty so no values vill be added");
+			logger.log(Level.INFO, "This list of portion effects is empty so no values will be added");
 			return this;
 		}
 		portionEffects.clear();
@@ -529,7 +529,7 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Get the rbg colors, used to dye lether armor,potions and fierworks.
+	 * Get the rbg colors, used to dye leather armor,potions and fireworks.
 	 *
 	 * @return string with the colors, like this #,#,#.
 	 */
@@ -540,14 +540,14 @@ public class CreateItemStack {
 	/**
 	 * Set the 3 colors auto.
 	 *
-	 * @param rgb string need to be formated like this #,#,#.
+	 * @param rgb string need to be formatted like this #,#,#.
 	 * @return this class.
 	 */
 	public CreateItemStack setRgb(final String rgb) {
 		this.rgb = rgb;
 
 		final String[] colors = this.getRgb().split(",");
-		Validate.checkBoolean(colors.length < 4, "rgb is not format correcly. Should be formated like this 'r,b,g'. Example '20,15,47'.");
+		Validate.checkBoolean(colors.length < 4, "rgb is not format correctly. Should be formatted like this 'r,b,g'. Example '20,15,47'.");
 		try {
 			red = Integer.parseInt(colors[0]);
 			green = Integer.parseInt(colors[2]);
@@ -561,7 +561,7 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Get red color
+	 * Get red color.
 	 *
 	 * @return color number.
 	 */
@@ -570,7 +570,7 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Get greencolor
+	 * Get green color.
 	 *
 	 * @return color number.
 	 */
@@ -634,7 +634,7 @@ public class CreateItemStack {
 	/**
 	 * Get if it has create copy of item or not.
 	 *
-	 * @return true if it shall make copy of orginal item.
+	 * @return true if it shall make copy of original item.
 	 */
 
 	public boolean isCopyOfItem() {
@@ -642,7 +642,7 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * If it shall create copy of the item or change orginal item.
+	 * If it shall create copy of the item or change original item.
 	 *
 	 * @param copyItem true if you want to create copy.
 	 * @return this class.
@@ -706,8 +706,8 @@ public class CreateItemStack {
 			if (nbtApi != null) {
 				final Map<String, Object> metadataMap = this.getMetadataMap();
 				if (metadataMap != null)
-					for (final Map.Entry<String, Object> entitys : metadataMap.entrySet()) {
-						itemstackNew = nbtApi.getCompMetadata().setMetadata(itemstackNew, entitys.getKey(), entitys.getValue());
+					for (final Map.Entry<String, Object> entity : metadataMap.entrySet()) {
+						itemstackNew = nbtApi.getCompMetadata().setMetadata(itemstackNew, entity.getKey(), entity.getValue());
 					}
 			}
 			final ItemMeta itemMeta = itemstackNew.getItemMeta();
@@ -722,7 +722,7 @@ public class CreateItemStack {
 			}
 			itemstackNew.setItemMeta(itemMeta);
 			if (!this.keepAmount)
-				itemstackNew.setAmount(this.amoutOfItems <= 0 ? 1 : this.amoutOfItems);
+				itemstackNew.setAmount(this.amountOfItems <= 0 ? 1 : this.amountOfItems);
 		}
 		return itemstackNew;
 	}
@@ -730,7 +730,7 @@ public class CreateItemStack {
 	/**
 	 * Check if the material is an air block.
 	 *
-	 * @param material matrial to check.
+	 * @param material material to check.
 	 * @return True if this material is an air block.
 	 */
 	public boolean isAir(final Material material) {
@@ -896,8 +896,8 @@ public class CreateItemStack {
 	}
 
 	private void addCustomModelData(final ItemMeta itemMeta) {
-		if (this.getCustomModeldata() > 0)
-			itemMeta.setCustomModelData(this.getCustomModeldata());
+		if (this.getCustomModelData() > 0)
+			itemMeta.setCustomModelData(this.getCustomModelData());
 	}
 
 	private boolean isShowEnchantments() {
@@ -906,15 +906,15 @@ public class CreateItemStack {
 
 
 	private List<String> translateColors(final List<String> rawLore) {
-		final List<String> lores = new ArrayList<>();
+		final List<String> loreList = new ArrayList<>();
 		for (final String lore : rawLore)
 			if (lore != null)
-				lores.add(TextTranslator.toSpigotFormat(lore));
-		return lores;
+				loreList.add(TextTranslator.toSpigotFormat(lore));
+		return loreList;
 	}
 
-	private String translateColors(final String rawSingelLine) {
-		return TextTranslator.toSpigotFormat(rawSingelLine);
+	private String translateColors(final String rawSingleLine) {
+		return TextTranslator.toSpigotFormat(rawSingleLine);
 	}
 
 
@@ -924,14 +924,14 @@ public class CreateItemStack {
 
 
 	public static List<String> formatColors(final List<String> rawLore) {
-		final List<String> lores = new ArrayList<>();
+		final List<String> loreList = new ArrayList<>();
 		for (final String lore : rawLore)
-			lores.add(translateHexCodes(lore));
-		return lores;
+			loreList.add(translateHexCodes(lore));
+		return loreList;
 	}
 
-	public static String formatColors(final String rawSingelLine) {
-		return translateHexCodes(rawSingelLine);
+	public static String formatColors(final String rawSingleLine) {
+		return translateHexCodes(rawSingleLine);
 	}
 
 	private static String translateHexCodes(final String textTranslate) {

@@ -30,15 +30,23 @@ import java.util.UUID;
  */
 public class SkullCreator {
 
-	private SkullCreator() {
-	}
-
+	private static boolean legacy;
 	private static boolean warningPosted = false;
 
 	// some reflection stuff to be used when setting a skull's profile
 	private static Field blockProfileField;
 	private static Method metaSetProfileMethod;
 	private static Field metaProfileField;
+
+	// Check if it legacy version, means before 1.13.
+	static {
+		try {
+			Class<?> skullMeta = Class.forName("org.bukkit.inventory.meta.SkullMeta");
+			skullMeta.getMethod("setOwningPlayer", OfflinePlayer.class);
+		} catch (ClassNotFoundException | NoSuchMethodException e) {
+			legacy = true;
+		}
+	}
 
 	/**
 	 * Creates a player skull, should work in both legacy and new Bukkit APIs.
@@ -339,9 +347,12 @@ public class SkullCreator {
 
 	public static void SetOwningPlayer(SkullMeta meta, OfflinePlayer player) {
 		try {
-			meta.setOwningPlayer(player);
-		} catch (Exception e) {
-			meta.setOwner(player.getName());
+			if (legacy) {
+				meta.setOwner(player.getName());
+			} else {
+				meta.setOwningPlayer(player);
+			}
+		} catch (Exception ignored) {
 		}
 	}
 
