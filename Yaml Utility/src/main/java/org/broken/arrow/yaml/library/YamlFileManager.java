@@ -778,11 +778,12 @@ public abstract class YamlFileManager {
 			plugin.getLogger().log(Level.SEVERE, "The embedded resource '" + resourcePath + "' cannot be found in " + path);
 			return;
 		}
-
 		File outFile = new File(dataFolder, this.getPath() + "/" + this.getFileName(path));
 
 		try {
 			if (!outFile.exists()) {
+				new File(dataFolder, this.getPath()).mkdir();
+				outFile.createNewFile();
 				OutputStream out = new FileOutputStream(outFile);
 				byte[] buf = new byte[1024];
 				int len;
