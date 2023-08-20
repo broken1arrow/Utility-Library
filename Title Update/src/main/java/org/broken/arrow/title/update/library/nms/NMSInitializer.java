@@ -12,16 +12,6 @@ import java.lang.reflect.Method;
 public interface NMSInitializer {
 
 	/**
-	 * Retrieve the packet class.
-	 *
-	 * @return The packet class.
-	 * @throws ClassNotFoundException If the packet class cannot be found.
-	 */
-	default Class<?> getPacket() throws ClassNotFoundException {
-		return Class.forName(retrieveNMSPackage("Packet"));
-	}
-
-	/**
 	 * Retrieve the method for obtaining the EntityPlayer instance from a CraftPlayer instance.
 	 *
 	 * @return The method for obtaining EntityPlayer.
@@ -33,24 +23,28 @@ public interface NMSInitializer {
 	}
 
 	/**
+	 * Retrieve the packet class.
+	 *
+	 * @return The packet class.
+	 * @throws ClassNotFoundException If the packet class cannot be found.
+	 */
+	Class<?> getPacket() throws ClassNotFoundException;
+
+	/**
 	 * Retrieve the field representing the PlayerConnection instance from an EntityPlayer.
 	 *
 	 * @return The field representing PlayerConnection.
 	 * @throws ClassNotFoundException If the required class cannot be found.
 	 * @throws NoSuchFieldException   If the required field cannot be found.
 	 */
-	default Field getPlayerConnection() throws ClassNotFoundException, NoSuchFieldException {
-		return Class.forName(retrieveNMSPackage("EntityPlayer")).getField("playerConnection");
-	}
+	Field getPlayerConnection() throws ClassNotFoundException, NoSuchFieldException;
 
 	/**
 	 * Retrieve the PlayerConnection class.
 	 *
 	 * @return the method that returns PlayerConnection instance.
 	 */
-	default Class<?> getPlayerConnectionClass() throws ClassNotFoundException {
-		return Class.forName(retrieveNMSPackage("PlayerConnection"));
-	}
+	Class<?> getPlayerConnectionClass() throws ClassNotFoundException;
 
 	/**
 	 * Retrieve the Containers class.
@@ -58,9 +52,7 @@ public interface NMSInitializer {
 	 * @return The method that returns Containers instance.
 	 * @throws ClassNotFoundException If the Containers class cannot be found.
 	 */
-	default Class<?> getContainersClass() throws ClassNotFoundException {
-		return Class.forName(retrieveNMSPackage("Containers"));
-	}
+	Class<?> getContainersClass() throws ClassNotFoundException;
 
 	/**
 	 * Retrieve the Container class.
@@ -68,9 +60,7 @@ public interface NMSInitializer {
 	 * @return The method that returns Container instance.
 	 * @throws ClassNotFoundException If the Container class cannot be found.
 	 */
-	default Class<?> getContainerClass() throws ClassNotFoundException {
-		return Class.forName(retrieveNMSPackage("Container"));
-	}
+	Class<?> getContainerClass() throws ClassNotFoundException;
 
 	/**
 	 * Retrieve the class representing the IChatBaseComponent.ChatSerializer class,
@@ -79,9 +69,7 @@ public interface NMSInitializer {
 	 * @return The class representing IChatBaseComponent.ChatSerializer.
 	 * @throws ClassNotFoundException If the ChatSerializer class cannot be found.
 	 */
-	default Class<?> getChatSerializer() throws ClassNotFoundException {
-		return Class.forName(retrieveNMSPackage("IChatBaseComponent$ChatSerializer"));
-	}
+	Class<?> getChatSerializer() throws ClassNotFoundException;
 
 	/**
 	 * Retrieve the constructor for creating PacketPlayOutOpenWindow instances.
@@ -90,9 +78,7 @@ public interface NMSInitializer {
 	 * @throws ClassNotFoundException If the required class cannot be found.
 	 * @throws NoSuchMethodException  If the required constructor cannot be found.
 	 */
-	default Constructor<?> getPacketPlayOutOpenWindow() throws ClassNotFoundException, NoSuchMethodException {
-		return Class.forName(retrieveNMSPackage("PacketPlayOutOpenWindow")).getConstructor(int.class, this.getContainerClass(), this.getChatSerializer());
-	}
+	Constructor<?> getPacketPlayOutOpenWindow() throws ClassNotFoundException, NoSuchMethodException;
 
 	/**
 	 * Utility method for retrieving the fully qualified NMS package for the given class.

@@ -1,9 +1,9 @@
 package org.broken.arrow.title.update.library;
 
 import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.title.update.library.nms.InventoryNMS;
 import org.broken.arrow.title.update.library.utility.TitleLogger;
 import org.broken.arrow.title.update.library.utility.Validate;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
@@ -19,19 +19,19 @@ public class ContainerUtility {
 	private Method handle;
 	private Field playerConnection;
 	private Class<?> packetConnectionClass;
-	private Method chatComponentSubClass;
+	private Method chatComponentMethod;
 	private Class<?> containersClass;
 	private Class<?> containerClass;
 	private Constructor<?> packetConstructor;
 	private final float serverVersion;
-	private final NmsData newNmsData;
+	private final InventoryNMS inventoryNMS;
 	private final TitleLogger titleLogger;
 
-	protected ContainerUtility(final NmsData newNmsData, final float serverVersion) {
+	protected ContainerUtility(final InventoryNMS inventoryNMS, final float serverVersion) {
 		titleLogger = new TitleLogger(ContainerUtility.class);
-		loadClasses(serverVersion);
 		this.serverVersion = serverVersion;
-		this.newNmsData = newNmsData;
+		this.inventoryNMS = inventoryNMS;
+		loadClasses(serverVersion);
 	}
 
 	protected void updateInventory(@Nonnull final Player player, final String title) throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, IllegalAccessException, InstantiationException {
@@ -40,21 +40,24 @@ public class ContainerUtility {
 		Validate.checkBoolean(packetClass == null, "Could not updating the inventory title, because it could not invoke the nms classes");
 
 		final Inventory inventory = player.getOpenInventory().getTopInventory();
-		NmsData nmsData = this.newNmsData;
+		InventoryNMS inventoryNMS = this.inventoryNMS;
 		final int inventorySize = inventory.getSize();
 		final boolean isOlder = serverVersion < 17;
 		//final Object entityPlayer = player.getClass().getMethod("getHandle").invoke(player);
 		Object entityPlayer = handle.invoke(player);
+		Class<?> entityPlayerClass = entityPlayer.getClass();
 		// inside net.minecraft.world.entity.player and class EntityHuman do you have this field
-		final Object activeContainer = entityPlayer.getClass().getField(nmsData.getContainerField()).get(entityPlayer);
+		final Object activeContainer = entityPlayerClass.getField(inventoryNMS.getContainerField()).get(entityPlayer);
 		// inside net.minecraft.world.inventory and class Container do you have this field newer version it is currently "j"
-		final Object windowId = activeContainer.getClass().getField(nmsData.getWindowId()).get(activeContainer);
+		final Object windowId = activeContainer.getClass().getField(inventoryNMS.getWindowId()).get(activeContainer);
 
-		final Method declaredMethodChat;
-		final Object inventoryTittle;
-		final Object methods;
+		final Method chatSerialMethod = this.chatComponentMethod; //.getMethod("a", String.class); //before 1.14-> .getMethod(serverVersion >= 9.0 ? "b" : "a", String.class);
+		final Object inventoryTitle;
+		final Object packetInstance;
+		final Object inventoryType;
 
-		String fieldName = nmsData.getContainerFilenames(inventorySize);
+		String fieldName = inventoryNMS.getContainerFieldName(inventory);
+
 		if (fieldName == null || fieldName.isEmpty()) {
 			if (isOlder) fieldName = "GENERIC_9X3";
 			else fieldName = "f";
@@ -62,82 +65,40 @@ public class ContainerUtility {
 			if (inventorySize % 9 == 0) fieldName = "GENERIC_9X" + fieldName;
 		}
 		if (serverVersion > 13) {
-			declaredMethodChat = chatComponentSubClass;//.getMethod("a", String.class);
-			inventoryTittle = declaredMethodChat.invoke(null, TextTranslator.toComponent(title));
-			final Object inventoryType = containersClass.getField(fieldName).get(null);
-
-			methods = packetConstructor.newInstance(windowId, inventoryType, inventoryTittle);
+			inventoryTitle = chatSerialMethod.invoke(null, TextTranslator.toComponent(title));
+			inventoryType = containersClass.getField(fieldName).get(null);
+			packetInstance = packetConstructor.newInstance(windowId, inventoryType, inventoryTitle);
 		} else {
-
-			declaredMethodChat = chatComponentSubClass;//.getMethod(serverVersion >= 9.0 ? "b" : "a", String.class);
-			inventoryTittle = declaredMethodChat.invoke(null, "'" + TextTranslator.toSpigotFormat(title) + "'");
-
-			methods = packetConstructor.newInstance(windowId, "minecraft:" + inventory.getType().name().toLowerCase(), inventoryTittle, inventorySize);
+			inventoryTitle = chatSerialMethod.invoke(null, "'" + TextTranslator.toSpigotFormat(title) + "'");
+			inventoryType = inventoryNMS.getContainerFieldName(inventory);
+			packetInstance = packetConstructor.newInstance(windowId, inventoryType, inventoryTitle, inventorySize);
 		}
-
 		//final Object handles = handle.invoke(player);
 		final Object playerConnect = playerConnection.get(entityPlayer);
 		// net.minecraft.server.network.PlayerConnection
-		final Method packet = packetConnectionClass.getMethod(nmsData.getSendPacket(), packetClass);
-		packet.invoke(playerConnect, methods);
+		final Method packet = packetConnectionClass.getMethod(inventoryNMS.getSendPacketName(), packetClass);
+		packet.invoke(playerConnect, packetInstance);
 		// inside net.minecraft.world.inventory.Container do you have method a(Container container)
 		// This part make sure the inventory gets updated properly.
-		entityPlayer.getClass().getMethod(nmsData.getUpdateInventory(), containerClass).invoke(entityPlayer, activeContainer);
+		entityPlayerClass.getMethod(inventoryNMS.getUpdateInventoryMethodName(), containerClass).invoke(entityPlayer, activeContainer);
 
-	}
-
-	private static String versionCheckNms(final String clazzName) {
-		return "net.minecraft.server." + Bukkit.getServer().getClass().toGenericString().split("\\.")[3] + "." + clazzName;
-	}
-
-	private static String versionCheckBukkit(final String clazzName) {
-		return "org.bukkit.craftbukkit." + Bukkit.getServer().getClass().toGenericString().split("\\.")[3] + "." + clazzName;
 	}
 
 	private void loadClasses(final float serverVersion) {
 		try {
-			if (serverVersion < 17) packetClass = Class.forName(versionCheckNms("Packet"));
-			else packetClass = Class.forName("net.minecraft.network.protocol.Packet");
-
-			handle = Class.forName(versionCheckBukkit("entity.CraftPlayer")).getMethod("getHandle");
+			InventoryNMS inventoryNMS = this.inventoryNMS;
+			this.packetClass = inventoryNMS.getPacket();
+			this.handle = inventoryNMS.getPlayerHandle();
+			this.playerConnection = inventoryNMS.getPlayerConnection();
+			this.packetConnectionClass = inventoryNMS.getPlayerConnectionClass();
+			this.containersClass = inventoryNMS.getContainersClass();
+			this.containerClass = inventoryNMS.getContainerClass();
+			Class<?> chatBaseComponent = inventoryNMS.getChatSerializer();
 			if (serverVersion < 17)
-				playerConnection = Class.forName(versionCheckNms("EntityPlayer")).getField("playerConnection");
-			else {
-				if (serverVersion >= 20.0)
-					playerConnection = Class.forName("net.minecraft.server.level.EntityPlayer").getField("c");
-				else playerConnection = Class.forName("net.minecraft.server.level.EntityPlayer").getField("b");
-			}
-
-			if (serverVersion < 17) packetConnectionClass = Class.forName(versionCheckNms("PlayerConnection"));
-			else packetConnectionClass = Class.forName("net.minecraft.server.network.PlayerConnection");
-
-			Class<?> chatBaseComponent;
-			if (serverVersion < 17) chatBaseComponent = Class.forName(versionCheckNms("IChatBaseComponent"));
-			else chatBaseComponent = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
-
-			if (serverVersion > 13)
-				if (serverVersion < 17)
-					containersClass = Class.forName(versionCheckNms("Containers"));
-				else
-					containersClass = Class.forName("net.minecraft.world.inventory.Containers");
-
-			else containersClass = String.class;
-
-			if (serverVersion < 17) containerClass = Class.forName(versionCheckNms("Container"));
-			else containerClass = Class.forName("net.minecraft.world.inventory.Container");
-
-			if (serverVersion < 17)
-				chatComponentSubClass = Class.forName(versionCheckNms("IChatBaseComponent$ChatSerializer")).getMethod(serverVersion >= 9.0 ? "b" : "a", String.class);
+				this.chatComponentMethod = chatBaseComponent.getMethod(serverVersion >= 9.0 ? "b" : "a", String.class);
 			else
-				chatComponentSubClass = Class.forName("net.minecraft.network.chat.IChatBaseComponent$ChatSerializer").getMethod("a", String.class);
-
-			if (serverVersion > 13)
-				if (serverVersion < 17)
-					packetConstructor = Class.forName(versionCheckNms("PacketPlayOutOpenWindow")).getConstructor(int.class, containersClass, chatBaseComponent);
-				else
-					packetConstructor = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenWindow").getConstructor(int.class, containersClass, chatBaseComponent);
-			else
-				packetConstructor = Class.forName(versionCheckNms("PacketPlayOutOpenWindow")).getConstructor(int.class, containersClass, chatBaseComponent, int.class);
+				this.chatComponentMethod = chatBaseComponent.getMethod("a", String.class);
+			this.packetConstructor = inventoryNMS.getPacketPlayOutOpenWindow();
 
 		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException exception) {
 			this.titleLogger.sendLOG(exception, Level.WARNING, "An error occurred while updating the inventory title: ");
@@ -147,7 +108,16 @@ public class ContainerUtility {
 	@Override
 	public String toString() {
 		return "ContainerUtility{" +
-				"NMS_Data=" + newNmsData +
+				"packetClass=" + packetClass +
+				", handle=" + handle +
+				", playerConnection=" + playerConnection +
+				", packetConnectionClass=" + packetConnectionClass +
+				", chatComponentMethod=" + chatComponentMethod +
+				", containersClass=" + containersClass +
+				", containerClass=" + containerClass +
+				", packetConstructor=" + packetConstructor +
+				", serverVersion=" + serverVersion +
+				", inventoryNMS=" + inventoryNMS +
 				'}';
 	}
 }

@@ -1,13 +1,14 @@
-package org.broken.arrow.title.update.library.nms;
+package org.broken.arrow.title.update.library.nms.modules;
 
+import org.broken.arrow.title.update.library.nms.InventoryNMS;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-public class V_1_17 implements InventoryNMS {
-
+public class V_1_18_2_Inventory implements InventoryNMS {
 
 	@Override
 	public Class<?> getPacket() throws ClassNotFoundException {
@@ -41,31 +42,36 @@ public class V_1_17 implements InventoryNMS {
 
 	@Override
 	public Constructor<?> getPacketPlayOutOpenWindow() throws ClassNotFoundException, NoSuchMethodException {
-		return Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenWindow").getConstructor(int.class, this.getContainerClass(), this.getChatSerializer());
+		Class<?> iChatBaseComponent = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
+		return Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenWindow").getConstructor(int.class, this.getContainerClass(), iChatBaseComponent);
 	}
 
+	@Nonnull
 	@Override
-	public String containerField() {
+	public String getContainerField() {
 		return "bV";
 	}
 
+	@Nonnull
 	@Override
-	public String windowId() {
+	public String getWindowId() {
 		return "j";
 	}
 
+	@Nonnull
 	@Override
-	public String sendPacket() {
-		return "sendPacket";
+	public String getSendPacketName() {
+		return "a";
 	}
 
+	@Nonnull
 	@Override
 	public String getUpdateInventoryMethodName() {
-		return "initMenu";
+		return "a";
 	}
 
 	@Override
-	public String containerFieldName(final Inventory currentlyOpenInventory) {
+	public String getContainerFieldName(@Nonnull final Inventory currentlyOpenInventory) {
 
 		InventoryType inventoryType = currentlyOpenInventory.getType();
 		switch (inventoryType) {

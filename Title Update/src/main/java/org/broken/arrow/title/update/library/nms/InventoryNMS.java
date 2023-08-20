@@ -2,10 +2,14 @@ package org.broken.arrow.title.update.library.nms;
 
 import org.bukkit.inventory.Inventory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * This class handle the inventory methods needed to access current inventory player open.
  */
 public interface InventoryNMS extends NMSInitializer {
+
 
 	/**
 	 * The name of the field inside net.minecraft.world.entity.player.EntityHuman
@@ -13,7 +17,8 @@ public interface InventoryNMS extends NMSInitializer {
 	 *
 	 * @return The name of the container field.
 	 */
-	String containerField();
+	@Nonnull
+	String getContainerField();
 
 	/**
 	 * Retrieves the field name that represents the window ID of the current inventory.
@@ -23,7 +28,8 @@ public interface InventoryNMS extends NMSInitializer {
 	 *
 	 * @return The name of the window ID field.
 	 */
-	String windowId();
+	@Nonnull
+	String getWindowId();
 
 	/**
 	 * Retrieves the method name responsible for sending a packet.
@@ -32,7 +38,8 @@ public interface InventoryNMS extends NMSInitializer {
 	 *
 	 * @return The name of the method for sending a packet.
 	 */
-	String sendPacket();
+	@Nonnull
+	String getSendPacketName();
 
 	/**
 	 * Retrieves the method name used to update an inventory.
@@ -43,6 +50,7 @@ public interface InventoryNMS extends NMSInitializer {
 	 *
 	 * @return The name of the method for updating the inventory.
 	 */
+	@Nonnull
 	String getUpdateInventoryMethodName();
 
 	/**
@@ -52,6 +60,7 @@ public interface InventoryNMS extends NMSInitializer {
 	 * @param currentlyOpenInventory The inventory that the player currently has open.
 	 * @return The name of the field corresponding to the player's currently open inventory.
 	 */
-	String containerFieldName(Inventory currentlyOpenInventory);
+	@Nullable
+	String getContainerFieldName(@Nonnull final Inventory currentlyOpenInventory);
 
 }

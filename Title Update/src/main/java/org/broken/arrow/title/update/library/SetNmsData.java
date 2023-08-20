@@ -1,10 +1,18 @@
 package org.broken.arrow.title.update.library;
 
+import org.broken.arrow.title.update.library.nms.InventoryNMS;
+import org.broken.arrow.title.update.library.nms.modules.V_1_12_Inventory;
+import org.broken.arrow.title.update.library.nms.modules.V_1_16_Inventory;
+import org.broken.arrow.title.update.library.nms.modules.V_1_17_Inventory;
+import org.broken.arrow.title.update.library.nms.modules.V_1_18_2_Inventory;
+import org.broken.arrow.title.update.library.nms.modules.V_1_18_Inventory;
+import org.broken.arrow.title.update.library.nms.modules.V_1_19_4_Inventory;
+import org.broken.arrow.title.update.library.nms.modules.V_1_19_Inventory;
+import org.broken.arrow.title.update.library.nms.modules.V_1_20_Inventory;
 import org.bukkit.Bukkit;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
 
 public class SetNmsData {
 	private final ContainerUtility containerUtility;
@@ -43,49 +51,38 @@ public class SetNmsData {
 		return Float.parseFloat(firstNumber + "." + secondNumber);
 	}
 
-	@Nullable
+	@Nonnull
 	private ContainerUtility setNmsData(float serverVersion) {
-		final Map<Integer, String> inventorySizeNames;
-		NmsData nmsData = null;
-		if (serverVersion >= 17.0F) {
-			inventorySizeNames = convertFieldNames(new FieldName(9, "a"), new FieldName(18, "b"), new FieldName(27, "c"), new FieldName(36, "d"), new FieldName(45, "e"), new FieldName(54, "f"), new FieldName(5, "p"));
-			if (serverVersion >= 19.0F) {
+		InventoryNMS inventoryNMS;
+		switch ((int) Math.floor(serverVersion)) {
+			case 20:
+				inventoryNMS = new V_1_20_Inventory();
+				break;
+			case 19:
 				if (serverVersion >= 19.4F) {
-					if (serverVersion >= 20.0F)
-						nmsData = new NmsData("bR", "j", "a", "a", inventorySizeNames);
-					else
-						// inside net.minecraft.world.entity.player and class EntityHuman do you have the Container field.
-						nmsData = new NmsData("bP", "j", "a", "a", inventorySizeNames);
+					inventoryNMS = new V_1_19_4_Inventory();
 				} else {
-					nmsData = new NmsData("bU", "j", "a", "a", inventorySizeNames);
+					inventoryNMS = new V_1_19_Inventory();
 				}
-
-			} else if (serverVersion >= 18.0F) {
-				nmsData = new NmsData(serverVersion >= 18.2F ? "bV" : "bW", "j", "a", "a", inventorySizeNames);
-			} else if (serverVersion == 17.0F) {
-				nmsData = new NmsData("bV", "j", "sendPacket", "initMenu", inventorySizeNames);
-			}
-		} else if (serverVersion < 17F) {
-			inventorySizeNames = convertFieldNames(new FieldName(9, "1"), new FieldName(18, "2"), new FieldName(27, "3"), new FieldName(36, "4"), new FieldName(45, "5"), new FieldName(54, "6"), new FieldName(5, "HOPPER"));
-			nmsData = new NmsData("activeContainer", "windowId", "sendPacket", "updateInventory", inventorySizeNames);
+				break;
+			case 18:
+				if (serverVersion >= 18.2F) {
+					inventoryNMS = new V_1_18_2_Inventory();
+				} else {
+					inventoryNMS = new V_1_18_Inventory();
+				}
+				break;
+			case 17:
+				inventoryNMS = new V_1_17_Inventory();
+				break;
+			default:
+				if (serverVersion < 14.0F) {
+					inventoryNMS = new V_1_12_Inventory();
+				} else {
+					inventoryNMS = new V_1_16_Inventory();
+				}
 		}
-		if (nmsData != null)
-			return new ContainerUtility(nmsData, serverVersion);
-		return null;
+		return new ContainerUtility(inventoryNMS, serverVersion);
 	}
 
-
-	/**
-	 * Use the method like this 9;a ("9" is inventory size and "a" is the field name).
-	 * Is used to get the field for different inventories in the NMS class.
-	 *
-	 * @param fieldNames fieldNames set the name to get the right container inventory.
-	 */
-	static Map<Integer, String> convertFieldNames(final FieldName... fieldNames) {
-		final Map<Integer, String> inventoryFieldname = new HashMap<>();
-		for (final FieldName fieldName : fieldNames) {
-			inventoryFieldname.put(fieldName.getInventorySize(), fieldName.getFieldName());
-		}
-		return inventoryFieldname;
-	}
 }
