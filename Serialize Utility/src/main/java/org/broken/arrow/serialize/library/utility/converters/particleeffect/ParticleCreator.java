@@ -107,7 +107,7 @@ public class ParticleCreator {
 
 
 	/**
-	 * Creates the particle effect.
+	 * Spawn the particle effect.
 	 *
 	 * @return true if the particle effect was successfully spawned.
 	 */

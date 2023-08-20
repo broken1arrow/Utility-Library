@@ -821,7 +821,12 @@ public class CreateItemStack {
 
 	private void blockStateMeta(final ItemMeta itemMeta) {
 		if (itemMeta instanceof BlockStateMeta) {
-			BlockState blockState = ((BlockStateMeta) itemMeta).getBlockState();
+
+			BlockStateMeta blockStateMeta = (BlockStateMeta) itemMeta;
+			if (!blockStateMeta.hasBlockState()) return;
+
+			BlockState blockState = blockStateMeta.getBlockState();
+
 			if (blockState instanceof Banner) {
 				if (this.getPattern() == null || this.getPattern().isEmpty())
 					return;

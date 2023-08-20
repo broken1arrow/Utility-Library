@@ -11,7 +11,7 @@ import java.util.Locale;
 /**
  * This class convert object to itemstack (if the object can be translated), It also check if you
  * input string enum of a item. First check and translate it to right item depending
- * on minecraft version and then convert to matrial and last to itemstack.
+ * on minecraft version and then convert to material and last to itemstack.
  */
 public class ConvertToItemStack {
 
@@ -22,7 +22,7 @@ public class ConvertToItemStack {
 	}
 
 	/**
-	 * Check the objekt if it ether ItemStack,Material or String
+	 * Check the object if it ether ItemStack,Material or String
 	 * last one need the name be same as the Material name
 	 * (upper case or not do not mater (this method convert it to upper case auto)).
 	 *
@@ -42,7 +42,7 @@ public class ConvertToItemStack {
 	}
 
 	/**
-	 * Check the objekt if it ether ItemStack,Material or String
+	 * Check the object if it ether ItemStack,Material or String
 	 * last one need the name be same as the Material name
 	 * (upper case or not do not mater (this method convert it to upper case auto)).
 	 * <p>
@@ -106,57 +106,93 @@ public class ConvertToItemStack {
 			amount = 1;
 		final int color = checkColor(item);
 		if (item.endsWith("STAINED_GLASS_PANE")) {
-			return new ItemStack(Material.valueOf("STAINED_GLASS_PANE"), amount, (short) color);
+			Material material = Material.getMaterial("STAINED_GLASS_PANE");
+			if (material != null)
+				return new ItemStack(material, amount, (short) color);
 		}
 		if (item.endsWith("STAINED_GLASS")) {
-			return new ItemStack(Material.valueOf("STAINED_GLASS"), amount, (short) color);
+			Material material = Material.getMaterial("STAINED_GLASS");
+			if (material != null)
+				return new ItemStack(material, amount, (short) color);
 		}
 		if (item.endsWith("_WOOL")) {
-			return new ItemStack(Material.valueOf("WOOL"), amount, (short) color);
+			Material material = Material.getMaterial("WOOL");
+			if (material != null)
+				return new ItemStack(material, amount, (short) color);
 		}
 		if (item.endsWith("_CARPET")) {
-			return new ItemStack(Material.valueOf("CARPET"), amount, (short) color);
+			Material material = Material.getMaterial("CARPET");
+			if (material != null)
+				return new ItemStack(material, amount, (short) color);
 		}
 		if (serverVersion > 11.0F) {
 			if (item.contains("CONCRETE_POWDER")) {
-				return new ItemStack(Material.valueOf("CONCRETE_POWDER"), amount, (short) color);
+				Material material = Material.getMaterial("CONCRETE_POWDER");
+				if (material != null)
+					return new ItemStack(material, amount, (short) color);
 			}
-
 			if (item.endsWith("_CONCRETE")) {
-				return new ItemStack(Material.valueOf("CONCRETE"), amount, (short) color);
+				Material material = Material.getMaterial("CONCRETE");
+				if (material != null)
+					return new ItemStack(material, amount, (short) color);
 			}
 		}
 		if ((item.endsWith("_TERRACOTTA") || item.endsWith("_STAINED_CLAY")) && !item.endsWith("GLAZED_TERRACOTTA")) {
-			return new ItemStack(Material.valueOf("STAINED_CLAY"), amount, (short) color);
+			Material material = Material.getMaterial("STAINED_CLAY");
+			if (material != null)
+				return new ItemStack(material, amount, (short) color);
 		}
-
+		ItemStack fish = this.getFish(item, amount);
+		if (fish != null)
+			return fish;
+		if (item.equals("ENCHANTING_TABLE")) {
+			Material enchantment_table = Material.getMaterial("ENCHANTMENT_TABLE");
+			if (enchantment_table != null)
+				return new ItemStack(enchantment_table, amount);
+		}
 		if (item.equals("TERRACOTTA")) {
-			return new ItemStack(Material.valueOf("HARD_CLAY"), amount, (short) 0);
+			Material material = Material.getMaterial("HARD_CLAY");
+			if (material != null)
+				return new ItemStack(material, amount, (short) 0);
 		}
 		if (item.equals("ENDER_EYE")) {
-			return new ItemStack(Material.valueOf("ENDER_PEARL"), amount);
+			Material material = Material.getMaterial("ENDER_PEARL");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (item.equals("CRACKED_STONE_BRICKS")) {
-			return new ItemStack(Material.valueOf("SMOOTH_BRICK"), amount);
+			Material material = Material.getMaterial("SMOOTH_BRICK");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (item.equals("SMOOTH_STONE")) {
-			return new ItemStack(Material.valueOf("STEP"), amount);
+			Material material = Material.getMaterial("STEP");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (item.equals("SMOOTH_STONE_SLAB")) {
-			return new ItemStack(Material.valueOf("STEP"), amount);
+			Material material = Material.getMaterial("STEP");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (item.startsWith("GOLDEN_")) {
 			final Material material = Material.getMaterial("GOLD" + item.substring(item.indexOf("_")));
 			return new ItemStack(material == null ? Material.AIR : material, amount);
 		}
 		if (item.equals("CLOCK")) {
-			return new ItemStack(Material.valueOf("WATCH"), amount);
+			Material material = Material.getMaterial("WATCH");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (item.equals("CRAFTING_TABLE")) {
-			return new ItemStack(Material.valueOf("WORKBENCH"), amount);
+			Material material = Material.getMaterial("WORKBENCH");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (item.equals("PLAYER_HEAD")) {
-			return new ItemStack(Material.valueOf("SKULL_ITEM"), amount);
+			Material material = Material.getMaterial("SKULL_ITEM");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (item.contains("ANDESITE") || item.contains("DIORITE") || item.contains("GRANITE")) {
 			return getStoneTypes(Material.STONE, item, amount);
@@ -179,7 +215,7 @@ public class ConvertToItemStack {
 	/**
 	 * Check the type of wood you want to get.
 	 *
-	 * @param itemName the matrial name from 1.13+ versions.
+	 * @param itemName the material name from 1.13+ versions.
 	 * @param amount   the amount of items you want to make.
 	 * @return itemstack or null.
 	 */
@@ -188,10 +224,14 @@ public class ConvertToItemStack {
 		if (itemName == null) return null;
 		ItemStack itemStack = null;
 		if (itemName.equals("OAK_FENCE")) {
-			return new ItemStack(Material.valueOf("FENCE"), amount);
+			final Material material = Material.getMaterial("FENCE");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (itemName.equals("OAK_FENCE_GATE")) {
-			return new ItemStack(Material.valueOf("FENCE_GATE"), amount);
+			final Material material = Material.getMaterial("FENCE_GATE");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 
 		if (itemName.contains("_PLANKS")) {
@@ -285,11 +325,11 @@ public class ConvertToItemStack {
 
 	public ItemStack getStoneTypes(final Material material, final String itemName, final int amount) {
 		if (material == null) return null;
-		short stonetype = getStoneTypeData(itemName);
-		if (stonetype == -1)
+		short stoneType = getStoneTypeData(itemName);
+		if (stoneType == -1)
 			return new ItemStack(material, amount);
-		if (stonetype >= 0)
-			return new ItemStack(material, amount, stonetype);
+		if (stoneType >= 0)
+			return new ItemStack(material, amount, stoneType);
 		return null;
 	}
 
@@ -348,6 +388,28 @@ public class ConvertToItemStack {
 			return 4;
 		}
 		return -1;
+	}
+
+	public ItemStack getFish(String item, int amount) {
+		if (item.equals("COD")) {
+			return new ItemStack(Material.valueOf("RAW_FISH"), amount, (short) 0);
+		}
+		if (item.equals("SALMON")) {
+			return new ItemStack(Material.valueOf("RAW_FISH"), amount, (short) 1);
+		}
+		if (item.equals("TROPICAL_FISH")) {
+			return new ItemStack(Material.valueOf("RAW_FISH"), amount, (short) 2);
+		}
+		if (item.equals("PUFFERFISH")) {
+			return new ItemStack(Material.valueOf("RAW_FISH"), amount, (short) 3);
+		}
+		if (item.equals("COOKED_COD")) {
+			return new ItemStack(Material.valueOf("COOKED_FISH"), amount, (short) 0);
+		}
+		if (item.equals("COOKED_SALMON")) {
+			return new ItemStack(Material.valueOf("COOKED_FISH"), amount, (short) 1);
+		}
+		return null;
 	}
 
 	public short checkColor(String color) {
