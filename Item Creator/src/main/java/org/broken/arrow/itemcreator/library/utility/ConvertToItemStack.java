@@ -104,6 +104,9 @@ public class ConvertToItemStack {
 	public ItemStack createStack(final String item, int amount) {
 		if (amount <= 0)
 			amount = 1;
+		ItemStack fish = this.getFish(item, amount);
+		if (fish != null)
+			return fish;
 		final int color = checkColor(item);
 		if (item.endsWith("STAINED_GLASS_PANE")) {
 			Material material = Material.getMaterial("STAINED_GLASS_PANE");
@@ -142,9 +145,6 @@ public class ConvertToItemStack {
 			if (material != null)
 				return new ItemStack(material, amount, (short) color);
 		}
-		ItemStack fish = this.getFish(item, amount);
-		if (fish != null)
-			return fish;
 		if (item.equals("ENCHANTING_TABLE")) {
 			Material enchantment_table = Material.getMaterial("ENCHANTMENT_TABLE");
 			if (enchantment_table != null)
@@ -170,14 +170,28 @@ public class ConvertToItemStack {
 			if (material != null)
 				return new ItemStack(material, amount);
 		}
+		if (item.equals("COCOA_BEANS") || item.endsWith("_DYE") || item.equals("BONE_MEAL") || item.equals("INK_SACK")) {
+			Material material = Material.getMaterial("INK_SACK");
+			if (material != null) {
+				return new ItemStack(material, amount, this.getDye(item));
+			}
+		}
 		if (item.equals("SMOOTH_STONE_SLAB")) {
 			Material material = Material.getMaterial("STEP");
 			if (material != null)
 				return new ItemStack(material, amount);
 		}
 		if (item.startsWith("GOLDEN_")) {
-			final Material material = Material.getMaterial("GOLD" + item.substring(item.indexOf("_")));
-			return new ItemStack(material == null ? Material.AIR : material, amount);
+			String goldTool = item.substring(item.indexOf("_"));
+			Material material = Material.getMaterial("GOLD" + goldTool);
+			if (serverVersion < 9.0F && material == null) {
+				String tool = goldTool;
+				if (tool.equals("_SHOVEL"))
+					tool = "_SPADE";
+				material = Material.getMaterial("GOLD" + tool);
+			}
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (item.equals("CLOCK")) {
 			Material material = Material.getMaterial("WATCH");
@@ -463,5 +477,58 @@ public class ConvertToItemStack {
 		if (color.equals("BLACK"))
 			return 15;
 		return -1;
+	}
+
+	public short getDye(final String itemName) {
+
+		if (itemName.equals("INK_SACK")) {
+			return 0;
+		}
+		if (itemName.equals("BONE_MEAL")) {
+			return 15;
+		}
+		if (itemName.equals("COCOA_BEANS")) {
+			return 3;
+		}
+		int lastIndex = itemName.lastIndexOf("_");
+		if (lastIndex < 0) return 15;
+
+		String color = itemName.substring(0, lastIndex);
+		switch (color) {
+			case "WHITE":
+				return 15;
+			case "ORANGE":
+				return 14;
+			case "MAGENTA":
+				return 13;
+			case "LIGHT_BLUE":
+				return 12;
+			case "YELLOW":
+				return 11;
+			case "LIME":
+				return 10;
+			case "PINK":
+				return 9;
+			case "GRAY":
+				return 8;
+			case "LIGHT_GRAY":
+				return 7;
+			case "CYAN":
+				return 6;
+			case "PURPLE":
+				return 5;
+			case "BLUE":
+				return 4;
+			case "BROWN":
+				return 3;
+			case "GREEN":
+				return 2;
+			case "RED":
+				return 1;
+			case "BLACK":
+				return 0;
+			default:
+				return 15;
+		}
 	}
 }
