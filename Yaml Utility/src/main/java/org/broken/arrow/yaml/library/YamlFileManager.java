@@ -297,17 +297,19 @@ public abstract class YamlFileManager {
 	 * @param fileToSave the name of the file to save the data to
 	 */
 	public final void save(final String fileToSave) {
-		final File dataFolder = new File(getFullPath());
-		if (!dataFolder.isDirectory()) {
-			saveData(dataFolder);
+		final File dataFolder = new File(this.getPath());
+		if (this.singleFile) {
+			final File singleFile = new File(this.getFullPath());
+			saveData(singleFile);
 			return;
 		}
+		if (!dataFolder.isDirectory()) return;
+		
 		final File[] listOfFiles = dataFolder.listFiles();
-
 		if (dataFolder.exists() && listOfFiles != null) {
 			if (fileToSave != null) {
 				if (!checkFolderExist(fileToSave, listOfFiles)) {
-					final File newDataFolder = new File(getFullPath(), fileToSave + "." + this.getExtension());
+					final File newDataFolder = new File(this.getPath(), fileToSave + "." + this.getExtension());
 					try {
 						newDataFolder.createNewFile();
 					} catch (final IOException e) {
