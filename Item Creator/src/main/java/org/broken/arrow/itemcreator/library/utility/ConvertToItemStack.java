@@ -2,8 +2,10 @@ package org.broken.arrow.itemcreator.library.utility;
 
 import com.google.common.base.Enums;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.SpawnEgg;
 
 import javax.annotation.Nullable;
 import java.util.Locale;
@@ -127,6 +129,29 @@ public class ConvertToItemStack {
 			Material material = Material.getMaterial("CARPET");
 			if (material != null)
 				return new ItemStack(material, amount, (short) color);
+		}
+		if (item.equals("GRASS_BLOCK")) {
+			Material material = Material.getMaterial("GRASS");
+			if (material != null)
+				return new ItemStack(material, amount);
+		}
+		if (item.equals("FIREWORK_STAR")) {
+			Material material = Material.getMaterial("FIREWORK_CHARGE");
+			if (material != null)
+				return new ItemStack(material, amount);
+		}
+		if (item.equals("FIRE_CHARGE")) {
+			Material material = Material.getMaterial("FIREBALL");
+			if (material != null)
+				return new ItemStack(material, amount);
+		}
+		if (item.endsWith("_SPAWN_EGG")) {
+			return getSpawnEgg(item, amount);
+		}
+		if (item.equals("SPAWNER")) {
+			Material material = Material.getMaterial("MOB_SPAWNER");
+			if (material != null)
+				return new ItemStack(material, amount);
 		}
 		if (serverVersion > 11.0F) {
 			if (item.contains("CONCRETE_POWDER")) {
@@ -531,4 +556,113 @@ public class ConvertToItemStack {
 				return 15;
 		}
 	}
+
+	public ItemStack getSpawnEgg(String itemName, int amount) {
+		Material material = Material.getMaterial("MONSTER_EGG");
+		if (material == null) return null;
+		ItemStack itemStack = new ItemStack(material, amount);
+		SpawnEgg spawnEgg = (SpawnEgg) itemStack.getData();
+		spawnEgg.setSpawnedType(EntityType.SHEEP);
+
+		if (itemName.startsWith("CREEPER_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.CREEPER);
+		}
+		if (itemName.startsWith("SKELETON_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.SKELETON);
+		}
+		if (itemName.startsWith("SPIDER_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.SPIDER);
+		}
+		if (itemName.startsWith("GIANT_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.GIANT);
+		}
+		if (itemName.startsWith("ZOMBIE_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.ZOMBIE);
+		}
+		if (itemName.startsWith("SLIME_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.SLIME);
+		}
+		if (itemName.startsWith("GHAST_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.SLIME);
+		}
+		if (itemName.startsWith("ZOMBIFIED_PIGLIN_SPAWN") || itemName.startsWith("ZOMBIE_PIGMAN_SPAWN")) {
+			EntityType entityType = EntityType.fromName("PIG_ZOMBIE");
+			if (entityType != null)
+				spawnEgg.setSpawnedType(entityType);
+		}
+		if (itemName.startsWith("ENDERMAN_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.ENDERMAN);
+		}
+		if (itemName.startsWith("CAVE_SPIDER_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.CAVE_SPIDER);
+		}
+		if (itemName.startsWith("SILVERFISH_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.SILVERFISH);
+		}
+		if (itemName.startsWith("BLAZE_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.BLAZE);
+		}
+		if (itemName.startsWith("MAGMA_CUBE_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.MAGMA_CUBE);
+		}
+		if (itemName.startsWith("ENDER_DRAGON_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.ENDER_DRAGON);
+		}
+		if (itemName.startsWith("WITHER_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.WITHER);
+		}
+		if (itemName.startsWith("BAT_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.BAT);
+		}
+		if (itemName.startsWith("WITCH_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.BAT);
+		}
+		if (itemName.startsWith("ENDERMITE_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.ENDERMITE);
+		}
+		if (itemName.startsWith("GUARDIAN_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.GUARDIAN);
+		}
+		if (itemName.startsWith("PIG_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.PIG);
+		}
+		if (itemName.startsWith("COW_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.COW);
+		}
+		if (itemName.startsWith("CHICKEN_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.CHICKEN);
+		}
+		if (itemName.startsWith("SQUID_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.SQUID);
+		}
+		if (itemName.startsWith("WOLF_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.WOLF);
+		}
+		if (itemName.startsWith("MOOSHROOM_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.MUSHROOM_COW);
+		}
+		if (itemName.startsWith("SNOW_GOLEM_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.SNOWMAN);
+		}
+		if (itemName.startsWith("OCELOT_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.OCELOT);
+		}
+		if (itemName.startsWith("CAT_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.CAT);
+		}
+		if (itemName.startsWith("IRON_GOLEM_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.IRON_GOLEM);
+		}
+		if (itemName.startsWith("HORSE_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.HORSE);
+		}
+		if (itemName.startsWith("RABBIT_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.RABBIT);
+		}
+		if (itemName.startsWith("VILLAGER_SPAWN")) {
+			spawnEgg.setSpawnedType(EntityType.VILLAGER);
+		}
+		return spawnEgg.toItemStack(amount);
+	}
+
 }
