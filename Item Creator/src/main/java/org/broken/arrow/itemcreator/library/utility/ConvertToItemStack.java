@@ -209,7 +209,7 @@ public class ConvertToItemStack {
 		if (item.startsWith("GOLDEN_")) {
 			String goldTool = item.substring(item.indexOf("_"));
 			Material material = Material.getMaterial("GOLD" + goldTool);
-			if (serverVersion < 9.0F && material == null) {
+			if (material == null) {
 				String tool = goldTool;
 				if (tool.equals("_SHOVEL"))
 					tool = "_SPADE";
