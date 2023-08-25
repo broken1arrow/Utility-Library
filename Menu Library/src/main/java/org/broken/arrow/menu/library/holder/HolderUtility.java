@@ -1,5 +1,6 @@
 package org.broken.arrow.menu.library.holder;
 
+import com.google.gson.JsonObject;
 import org.broken.arrow.menu.library.MenuMetadataKey;
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.builders.ButtonData;
@@ -134,7 +135,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
 	/**
 	 * Sets the title of the menu using the specified
-	 * function to animate title.
+	 * function to animate title. You can
 	 *
 	 * @param time     set how often it shall update, in seconds.
 	 * @param function a function that takes a String, for animate title.
@@ -142,6 +143,50 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	public void setAnimateTitle(final int time, final Function<String> function) {
 		this.animateTitleTime = time;
 		this.animateTitle = function;
+		this.animateTitle();
+	}
+
+	/**
+	 * Sets the title of the menu using the specified
+	 * function to animate title.
+	 * <p>
+	 * You need to ensure proper formatting, follow this structure:
+	 * For titles with multiple colors set in the same text, use the "extra" key and
+	 * an empty "text" element outside the array at the end of the JSON.
+	 * </p>
+	 * <p>
+	 * Example with multiple components:
+	 * </p>
+	 * <pre>
+	 * {
+	 *   "extra":[
+	 *      {
+	 *        "color":"gold",
+	 *        "text":"Test "
+	 *      },
+	 *      {
+	 *        "color":"dark_red",
+	 *        "bold":true,
+	 *        "text":"this"
+	 *       }
+	 *    ],
+	 *    "text":""
+	 * }
+	 * </pre>
+	 * Example with a single color set:
+	 * <pre>
+	 * {
+	 *   "color": "gold",
+	 *   "text": "Test this"
+	 * }
+	 * </pre>
+	 *
+	 * @param time     set how often it shall update, in seconds.
+	 * @param function a function that takes a JsonObject, for animate title.
+	 */
+	public void setAnimateTitleJson(final int time, final Function<JsonObject> function) {
+		this.animateTitleTime = time;
+		this.animateTitleJson = function;
 		this.animateTitle();
 	}
 
@@ -403,6 +448,19 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 */
 	public void setAutoTitleCurrentPage(final boolean autoTitleCurrentPage) {
 		this.autoTitleCurrentPage = autoTitleCurrentPage;
+
+	}
+
+	/**
+	 * Sets the flag indicating whether to use the Color Conversion module for translating colors, hex values, and gradients.
+	 * Check the Color Conversion module for details on formatting hex values and gradients.
+	 *
+	 * @param useColorConversion Set to true if you want this API to translate colors using the Color Conversion module.
+	 *                           In other cases, it will use the method {@link org.bukkit.ChatColor#translateAlternateColorCodes(char, String)}.
+	 *                           Note that hex colors may not work in the title.
+	 */
+	public void setUseColorConversion(final boolean useColorConversion) {
+		this.useColorConversion = useColorConversion;
 	}
 
 	/**

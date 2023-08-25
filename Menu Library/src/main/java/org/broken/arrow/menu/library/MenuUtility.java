@@ -1,6 +1,7 @@
 package org.broken.arrow.menu.library;
 
 import com.google.common.base.Enums;
+import com.google.gson.JsonObject;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
@@ -60,6 +61,7 @@ public class MenuUtility<T> {
 	protected Sound menuOpenSound;
 	protected Function<String> titleFunction;
 	protected Function<String> animateTitle;
+	protected Function<JsonObject> animateTitleJson;
 	private String playerMetadataKey;
 	private String uniqueKey;
 
@@ -70,6 +72,7 @@ public class MenuUtility<T> {
 	protected boolean autoClearCache;
 	protected boolean ignoreItemCheck;
 	protected boolean autoTitleCurrentPage;
+	protected boolean useColorConversion;
 
 	protected int taskid;
 	protected int slotIndex;
@@ -965,20 +968,20 @@ public class MenuUtility<T> {
 	}
 
 	protected void animateTitle() {
-		Function<String> task = this.animateTitle;
+		Function<?> task = getAnimateTitle() ;
 		if (task == null) return;
 		this.taskidAnimateTitle = new BukkitRunnable() {
 			@Override
 			public void run() {
-				String text = task.apply();
+				Object text = task.apply();
 				if (text == null || (ServerVersion.atLeast(ServerVersion.v1_9) && this.isCancelled())) {
 					this.cancel();
 					updateTittle();
 					return;
 				}
-				if (!text.isEmpty() && !menuAPI.isNotFoundUpdateTitleClazz()) {
+				if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz()) {
 					if (!menuAPI.isNotFoundUpdateTitleClazz())
-						UpdateTitle.update(player, text);
+						updateTitle(text);
 					//UpdateTittleContainers.update(player, text);
 				}
 			}
@@ -986,12 +989,28 @@ public class MenuUtility<T> {
 	}
 
 	public void cancelAnimateTitle() {
-		Function<String> task = this.animateTitle;
+		Function<?> task = getAnimateTitle();
 		if (task == null) return;
 		this.animateTitle = null;
+		this.animateTitleJson = null;
 		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskidAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskidAnimateTitle)) {
 			Bukkit.getScheduler().cancelTask(this.taskidAnimateTitle);
 		}
 		updateTittle();
+	}
+
+	public Function<?> getAnimateTitle() {
+		if (this.animateTitle != null)
+			return this.animateTitle;
+		if (this.animateTitleJson != null)
+			return this.animateTitleJson;
+		return null;
+	}
+
+	private void updateTitle(Object text) {
+		if (text instanceof String)
+			UpdateTitle.update(player, (String) text, useColorConversion);
+		if (text instanceof JsonObject)
+			UpdateTitle.update(player, (JsonObject) text);
 	}
 }

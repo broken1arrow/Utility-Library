@@ -11,10 +11,11 @@ import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**
- * This class convert object to itemstack (if the object can be translated), It also check if you
+ * This class convert object to itemStack (if the object can be translated), It also check if you
  * input string enum of a item. First check and translate it to right item depending
- * on minecraft version and then convert to material and last to itemstack.
+ * on minecraft version and then convert to material and last to itemStack.
  */
+@SuppressWarnings("deprecation")
 public class ConvertToItemStack {
 
 	private final float serverVersion;
@@ -29,7 +30,7 @@ public class ConvertToItemStack {
 	 * (upper case or not do not mater (this method convert it to upper case auto)).
 	 *
 	 * @param object of ether ItemStack,Material or String.
-	 * @return itemstack.
+	 * @return itemStack instance.
 	 */
 	public ItemStack checkItem(final Object object) {
 		if (object instanceof ItemStack)
@@ -53,7 +54,7 @@ public class ConvertToItemStack {
 	 *
 	 * @param object of ether ItemStack,Material or String.
 	 * @param color  of your item (if it like glass,wool or concrete as example).
-	 * @return itemstack.
+	 * @return itemStack instance with your set values.
 	 */
 	public ItemStack checkItem(final Object object, String color) {
 		color = color.toUpperCase(Locale.ROOT);
@@ -96,11 +97,11 @@ public class ConvertToItemStack {
 	}
 
 	/**
-	 * This method check the itemname and convert item name from 1.13+ to 1.12 and older versions item names.
+	 * This method check the item name and convert item name from 1.13+ to 1.12 and older versions item names.
 	 *
 	 * @param item   the 1.13+ item name.
 	 * @param amount the amount you want to create.
-	 * @return Itemstack with the amount or null.
+	 * @return ItemStack with the amount or null.
 	 */
 	@Nullable
 	public ItemStack createStack(final String item, int amount) {
@@ -256,7 +257,7 @@ public class ConvertToItemStack {
 	 *
 	 * @param itemName the material name from 1.13+ versions.
 	 * @param amount   the amount of items you want to make.
-	 * @return itemstack or null.
+	 * @return itemStack or null.
 	 */
 	@Nullable
 	public ItemStack checkAndGetWood(final String itemName, final int amount) {
@@ -469,39 +470,42 @@ public class ConvertToItemStack {
 			end = color.length();
 		color = color.substring(0, end);
 
-		if (color.equals("WHITE"))
-			return 0;
-		if (color.equals("ORANGE"))
-			return 1;
-		if (color.equals("MAGENTA"))
-			return 2;
-		if (color.equals("LIGHT_BLUE"))
-			return 3;
-		if (color.equals("YELLOW"))
-			return 4;
-		if (color.equals("LIME"))
-			return 5;
-		if (color.equals("PINK"))
-			return 6;
-		if (color.equals("GRAY"))
-			return 7;
-		if (color.equals("LIGHT_GRAY"))
-			return 8;
-		if (color.equals("CYAN"))
-			return 9;
-		if (color.equals("PURPLE"))
-			return 10;
-		if (color.equals("BLUE"))
-			return 11;
-		if (color.equals("BROWN"))
-			return 12;
-		if (color.equals("GREEN"))
-			return 13;
-		if (color.equals("RED"))
-			return 14;
-		if (color.equals("BLACK"))
-			return 15;
-		return -1;
+		switch (color) {
+			case "WHITE":
+				return 0;
+			case "ORANGE":
+				return 1;
+			case "MAGENTA":
+				return 2;
+			case "LIGHT_BLUE":
+				return 3;
+			case "YELLOW":
+				return 4;
+			case "LIME":
+				return 5;
+			case "PINK":
+				return 6;
+			case "GRAY":
+				return 7;
+			case "LIGHT_GRAY":
+				return 8;
+			case "CYAN":
+				return 9;
+			case "PURPLE":
+				return 10;
+			case "BLUE":
+				return 11;
+			case "BROWN":
+				return 12;
+			case "GREEN":
+				return 13;
+			case "RED":
+				return 14;
+			case "BLACK":
+				return 15;
+			default:
+				return -1;
+		}
 	}
 
 	public short getDye(final String itemName) {
@@ -562,6 +566,7 @@ public class ConvertToItemStack {
 		if (material == null) return null;
 		ItemStack itemStack = new ItemStack(material, amount);
 		SpawnEgg spawnEgg = (SpawnEgg) itemStack.getData();
+		if (spawnEgg == null) return itemStack;
 		spawnEgg.setSpawnedType(EntityType.SHEEP);
 
 		if (itemName.startsWith("CREEPER_SPAWN")) {

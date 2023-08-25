@@ -1,8 +1,8 @@
 package org.broken.arrow.title.update.library;
 
-import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.title.update.library.nms.InventoryNMS;
 import org.broken.arrow.title.update.library.utility.TitleLogger;
+import org.broken.arrow.title.update.library.utility.TitleUtility;
 import org.broken.arrow.title.update.library.utility.Validate;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -27,6 +27,7 @@ public class ContainerUtility {
 	private final InventoryNMS inventoryNMS;
 	private final TitleLogger titleLogger;
 
+
 	protected ContainerUtility(final InventoryNMS inventoryNMS, final float serverVersion) {
 		titleLogger = new TitleLogger(ContainerUtility.class);
 		this.serverVersion = serverVersion;
@@ -34,11 +35,11 @@ public class ContainerUtility {
 		loadClasses(serverVersion);
 	}
 
-	protected void updateInventory(@Nonnull final Player player, final String title) throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, IllegalAccessException, InstantiationException {
-		Validate.checkNotNull(player, "player should not be null");
-		Validate.checkNotNull(title, "title should not be null");
+	protected void updateInventory(@Nonnull final Player player, final TitleUtility titleUtility) throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, IllegalAccessException, InstantiationException {
+		Validate.checkNotNull(player, "Player should not be null");
 		Validate.checkBoolean(packetClass == null, "Could not updating the inventory title, because it could not invoke the nms classes");
-
+		String title = titleUtility.getTitle(this.serverVersion);
+		Validate.checkNotNull(title, "Title should not be null");
 		final Inventory inventory = player.getOpenInventory().getTopInventory();
 		InventoryNMS inventoryNMS = this.inventoryNMS;
 		final int inventorySize = inventory.getSize();
@@ -57,21 +58,18 @@ public class ContainerUtility {
 		final Object inventoryType;
 
 		String fieldName = inventoryNMS.getContainerFieldName(inventory);
-
 		if (fieldName == null || fieldName.isEmpty()) {
-			if (isOlder) fieldName = "GENERIC_9X3";
-			else fieldName = "f";
-		} else if (isOlder) {
-			if (inventorySize % 9 == 0) fieldName = "GENERIC_9X" + fieldName;
+			titleLogger.sendLOG(Level.WARNING,"Could not update title for this inventory: " + inventory);
+			return;
 		}
+
 		if (serverVersion > 13) {
-			inventoryTitle = chatSerialMethod.invoke(null, TextTranslator.toComponent(title));
+			inventoryTitle = chatSerialMethod.invoke(null, title);
 			inventoryType = containersClass.getField(fieldName).get(null);
 			packetInstance = packetConstructor.newInstance(windowId, inventoryType, inventoryTitle);
 		} else {
-			inventoryTitle = chatSerialMethod.invoke(null, "'" + TextTranslator.toSpigotFormat(title) + "'");
-			inventoryType = inventoryNMS.getContainerFieldName(inventory);
-			packetInstance = packetConstructor.newInstance(windowId, inventoryType, inventoryTitle, inventorySize);
+			inventoryTitle = chatSerialMethod.invoke(null, title);
+			packetInstance = packetConstructor.newInstance(windowId, fieldName, inventoryTitle, inventorySize);
 		}
 		//final Object handles = handle.invoke(player);
 		final Object playerConnect = playerConnection.get(entityPlayer);

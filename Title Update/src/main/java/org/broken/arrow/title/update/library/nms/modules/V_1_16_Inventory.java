@@ -72,24 +72,26 @@ public class V_1_16_Inventory implements InventoryNMS {
 
 	@Override
 	public String getContainerFieldName(@Nonnull final Inventory currentlyOpenInventory) {
-
 		InventoryType inventoryType = currentlyOpenInventory.getType();
+
 		switch (inventoryType) {
 			case CHEST:
 				final int inventorySize = currentlyOpenInventory.getSize();
 				switch (inventorySize) {
 					case 9:
-						return "1";
+						return "GENERIC_9X1";
 					case 18:
-						return "2";
+						return "GENERIC_9X2";
+					case 27:
+						return "GENERIC_9X3";
 					case 36:
-						return "3";
+						return "GENERIC_9X4";
 					case 45:
-						return "4";
-					case 55:
-						return "5";
+						return "GENERIC_9X5";
 					default:
-						return "6";
+						if (inventorySize == 54)
+							return "GENERIC_9X6";
+						break;
 				}
 			case DISPENSER:
 			case DROPPER:
