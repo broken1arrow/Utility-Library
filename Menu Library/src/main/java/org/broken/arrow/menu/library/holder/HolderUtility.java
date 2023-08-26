@@ -127,12 +127,52 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * Sets the title of the menu using the specified
 	 * function to automatically update any placeholders.
 	 *
-	 * @param function a function that takes a String input, used to correcly update placeholders in the menu title.
+	 * @param function a function that takes a String input, used to correctly update placeholders in the menu title.
 	 */
 	public void setTitle(final Function<String> function) {
 		this.titleFunction = function;
 	}
 
+	/**
+	 * Sets the title of the menu using the specified
+	 * function to automatically update any placeholders.
+	 * <p>
+	 * You need to ensure proper formatting, follow this structure:
+	 * For titles with multiple colors set in the same text, use the "extra" key and
+	 * an empty "text" element outside the array at the end of the JSON.
+	 * </p>
+	 * <p>
+	 * Example with multiple components:
+	 * </p>
+	 * <pre>
+	 * {
+	 *   "extra":[
+	 *      {
+	 *        "color":"gold",
+	 *        "text":"Test "
+	 *      },
+	 *      {
+	 *        "color":"dark_red",
+	 *        "bold":true,
+	 *        "text":"this"
+	 *       }
+	 *    ],
+	 *    "text":""
+	 * }
+	 * </pre>
+	 * Example with a single color set:
+	 * <pre>
+	 * {
+	 *   "color": "gold",
+	 *   "text": "Test this"
+	 * }
+	 * </pre>
+	 *
+	 * @param function a function that takes a String input, used to correctly update placeholders in the menu title.
+	 */
+	public void setTitleJson(final Function<JsonObject> function) {
+		this.titleFunctionJson = function;
+	}
 	/**
 	 * Sets the title of the menu using the specified
 	 * function to animate title. You can

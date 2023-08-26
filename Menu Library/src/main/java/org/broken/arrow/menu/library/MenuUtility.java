@@ -60,6 +60,7 @@ public class MenuUtility<T> {
 	protected Player player;
 	protected Sound menuOpenSound;
 	protected Function<String> titleFunction;
+	protected Function<JsonObject> titleFunctionJson;
 	protected Function<String> animateTitle;
 	protected Function<JsonObject> animateTitleJson;
 	private String playerMetadataKey;
@@ -520,10 +521,13 @@ public class MenuUtility<T> {
 	 *
 	 * @return The title.
 	 */
-	public String getTitle() {
-		String title = null;
+	public Object getTitle() {
+		Object title = null;
 		if (titleFunction != null) {
 			title = titleFunction.apply();
+		}
+		if (titleFunction != null) {
+			title = this.titleFunctionJson.apply();
 		}
 		if (title == null || title.equals("")) {
 			this.titleFunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " + (getPageNumber() + 1) : "");
@@ -605,9 +609,9 @@ public class MenuUtility<T> {
 	}
 
 	protected void updateTittle() {
-		String title = getTitle();
+		Object title = getTitle();
 		if (!menuAPI.isNotFoundUpdateTitleClazz())
-			UpdateTitle.update(player, title);
+			this.updateTitle(title);
 	}
 
 	private Object toMenuCache(final Player player, final Location location) {
@@ -853,15 +857,17 @@ public class MenuUtility<T> {
 	}
 
 	private Inventory createInventory() {
-		final String title = this.getTitle();
-
+		final Object title = this.getTitle();
+		String menuTitle = "&&";
+		if (title instanceof String)
+			menuTitle = String.valueOf(title);
 		if (this.getInventoryType() != null)
-			return Bukkit.createInventory(null, this.getInventoryType(), title != null ? title : "");
+			return Bukkit.createInventory(null, this.getInventoryType(), menuTitle != null ? menuTitle : "");
 		if (!(this.inventorySize == 5 || this.inventorySize % 9 == 0))
 			this.logger.log(Level.WARNING, "wrong inverntory size , you has put in " + this.inventorySize + " it need to be valid number.");
 		if (this.inventorySize == 5)
-			return Bukkit.createInventory(null, InventoryType.HOPPER, title != null ? title : "");
-		return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, title != null ? title : "");
+			return Bukkit.createInventory(null, InventoryType.HOPPER, menuTitle != null ? menuTitle : "");
+		return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, menuTitle != null ? menuTitle : "");
 	}
 
 	private long getupdateTime(final MenuButtonI<T> menuButton) {
@@ -968,7 +974,7 @@ public class MenuUtility<T> {
 	}
 
 	protected void animateTitle() {
-		Function<?> task = getAnimateTitle() ;
+		Function<?> task = getAnimateTitle();
 		if (task == null) return;
 		this.taskidAnimateTitle = new BukkitRunnable() {
 			@Override
