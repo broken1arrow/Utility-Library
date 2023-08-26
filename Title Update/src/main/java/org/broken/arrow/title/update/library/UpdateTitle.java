@@ -91,9 +91,9 @@ public class UpdateTitle {
 	 * <p>&nbsp;</p>
 	 * As the example below:
 	 * <pre>
-	 *  standard -> &5,&f
+	 *  standard -&#62; &#38;5,&#38;f
 	 *
-	 *  hex -> &x&b&d&e&a&a
+	 *  hex -&#62; &#38;x&#38;b&#38;d&#38;e&#38;a&#38;a
 	 * </pre>
 	 *
 	 * @param player the player that open the inventory.
