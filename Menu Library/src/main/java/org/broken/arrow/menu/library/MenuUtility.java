@@ -523,17 +523,18 @@ public class MenuUtility<T> {
 	 */
 	public Object getTitle() {
 		Object title = null;
-		if (titleFunction != null) {
-			title = titleFunction.apply();
+		if (this.titleFunction != null) {
+			title = this.titleFunction.apply();
 		}
-		if (titleFunction != null) {
+		if (this.titleFunctionJson != null) {
 			title = this.titleFunctionJson.apply();
 		}
 		if (title == null || title.equals("")) {
 			this.titleFunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " + (getPageNumber() + 1) : "");
 			title = this.titleFunction.apply();
 		}
-		title = title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? "page: " + (getPageNumber() + 1) : "");
+		if (this.titleFunctionJson == null)
+			title = title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? "page: " + (getPageNumber() + 1) : "");
 		return title;
 	}
 

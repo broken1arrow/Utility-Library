@@ -90,7 +90,7 @@ public class TitleUtility {
 
 	/**
 	 * Gets the title text based on the server version and the value of the {@link #defaultConvertColor} flag.
-	 * If the flag is set to true, this method attempts to translate colors using the 'Color conversion module'.
+	 * If the flag is set to true, this method attempts to translate colors using the Color conversion module.
 	 * <p>&nbsp;</p>
 	 * <p>
 	 * If you are using the {@link com.google.gson.JsonObject}, this method will only convert it to a string.
