@@ -1,5 +1,6 @@
 package org.broken.arrow.title.update.library;
 
+import com.google.gson.JsonObject;
 import org.broken.arrow.title.update.library.nms.InventoryNMS;
 import org.broken.arrow.title.update.library.utility.TitleLogger;
 import org.broken.arrow.title.update.library.utility.TitleUtility;
@@ -20,6 +21,7 @@ public class ContainerUtility {
 	private Field playerConnection;
 	private Class<?> packetConnectionClass;
 	private Method chatComponentMethod;
+	private Method chatComponentMethodString;
 	private Class<?> containersClass;
 	private Class<?> containerClass;
 	private Constructor<?> packetConstructor;
@@ -38,7 +40,7 @@ public class ContainerUtility {
 	protected void updateInventory(@Nonnull final Player player, final TitleUtility titleUtility) throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, IllegalAccessException, InstantiationException {
 		Validate.checkNotNull(player, "Player should not be null");
 		Validate.checkBoolean(packetClass == null, "Could not updating the inventory title, because it could not invoke the nms classes");
-		String title = titleUtility.getTitle(this.serverVersion);
+		Object title = titleUtility.getTitle(this.serverVersion);
 		Validate.checkNotNull(title, "Title should not be null");
 		final Inventory inventory = player.getOpenInventory().getTopInventory();
 		InventoryNMS inventoryNMS = this.inventoryNMS;
@@ -64,7 +66,10 @@ public class ContainerUtility {
 		}
 
 		if (serverVersion > 13) {
-			inventoryTitle = chatSerialMethod.invoke(null, title);
+			if (title instanceof JsonObject)
+				inventoryTitle = chatSerialMethod.invoke(null, title.toString());
+			else
+				inventoryTitle = this.chatComponentMethodString.invoke(null, title.toString());
 			inventoryType = containersClass.getField(fieldName).get(null);
 			packetInstance = packetConstructor.newInstance(windowId, inventoryType, inventoryTitle);
 		} else {
@@ -94,8 +99,10 @@ public class ContainerUtility {
 			Class<?> chatBaseComponent = inventoryNMS.getChatSerializer();
 			if (serverVersion < 17)
 				this.chatComponentMethod = chatBaseComponent.getMethod(serverVersion >= 9.0 ? "b" : "a", String.class);
-			else
+			else {
 				this.chatComponentMethod = chatBaseComponent.getMethod("a", String.class);
+				this.chatComponentMethodString = chatBaseComponent.getMethod("b", String.class);
+			}
 			this.packetConstructor = inventoryNMS.getPacketPlayOutOpenWindow();
 
 		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException exception) {

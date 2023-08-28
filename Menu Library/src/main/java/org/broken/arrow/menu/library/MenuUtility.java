@@ -859,7 +859,7 @@ public class MenuUtility<T> {
 
 	private Inventory createInventory() {
 		final Object title = this.getTitle();
-		String menuTitle = "&&";
+		String menuTitle = " ";
 		if (title instanceof String)
 			menuTitle = String.valueOf(title);
 		if (this.getInventoryType() != null)

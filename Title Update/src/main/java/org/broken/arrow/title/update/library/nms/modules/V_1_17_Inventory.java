@@ -72,7 +72,6 @@ public class V_1_17_Inventory implements InventoryNMS {
 
 	@Override
 	public String getContainerFieldName(@Nonnull final Inventory currentlyOpenInventory) {
-
 		switch (currentlyOpenInventory.getType()) {
 			case CHEST:
 				final int inventorySize = currentlyOpenInventory.getSize();
@@ -81,11 +80,13 @@ public class V_1_17_Inventory implements InventoryNMS {
 						return "a";
 					case 18:
 						return "b";
+					case 27:
+						return "c";
 					case 36:
 						return "d";
 					case 45:
 						return "e";
-					case 55:
+					case 54:
 						return "f";
 					default:
 						return "c";

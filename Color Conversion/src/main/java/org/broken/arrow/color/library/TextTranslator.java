@@ -59,9 +59,9 @@ public final class TextTranslator implements Interpolator {
 	 *
 	 * @param message      your string message.
 	 * @param defaultColor set default color when colors are not set in the message.
-	 * @return json to string.
+	 * @return json object with the set colors.
 	 */
-	public static String toComponent(String message, String defaultColor) {
+	public static JsonObject toComponent(String message, String defaultColor) {
 		return getInstance().componentFormat(message, defaultColor);
 	}
 
@@ -81,10 +81,10 @@ public final class TextTranslator implements Interpolator {
 	 * </ul>
 	 *
 	 * @param message your string message.
-	 * @return json to string.
+	 * @return json object with the set colors.
 	 */
 
-	public static String toComponent(String message) {
+	public static JsonObject toComponent(String message) {
 		return getInstance().componentFormat(message, null);
 	}
 
@@ -94,10 +94,10 @@ public final class TextTranslator implements Interpolator {
 	 *
 	 * @param message      your string message.
 	 * @param defaultColor set default color when colors are not set in the message.
-	 * @return json to string.
+	 * @return json object with the set colors.
 	 */
 
-	private String componentFormat(String message, String defaultColor) {
+	private JsonObject componentFormat(String message, String defaultColor) {
 		JsonArray jsonArray = new JsonArray();
 		Component.Builder component = new Component.Builder();
 		message = checkStringForGradient(message);
@@ -187,9 +187,9 @@ public final class TextTranslator implements Interpolator {
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.add("extra", jsonArray);
 			jsonObject.addProperty("text", "");
-			return jsonObject.toString();
+			return jsonObject;
 		}
-		return component.build() + "";
+		return component.build().toJson();
 	}
 
 	/**

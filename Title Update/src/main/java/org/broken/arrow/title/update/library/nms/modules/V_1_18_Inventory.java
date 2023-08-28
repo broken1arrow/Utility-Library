@@ -82,11 +82,13 @@ public class V_1_18_Inventory implements InventoryNMS {
 						return "a";
 					case 18:
 						return "b";
+					case 27:
+						return "c";
 					case 36:
 						return "d";
 					case 45:
 						return "e";
-					case 55:
+					case 54:
 						return "f";
 					default:
 						return "c";
