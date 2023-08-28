@@ -66,7 +66,7 @@ public class ContainerUtility {
 		}
 
 		if (serverVersion > 13) {
-			if (title instanceof JsonObject)
+			if (title instanceof JsonObject || this.chatComponentMethodString == null)
 				inventoryTitle = chatSerialMethod.invoke(null, title.toString());
 			else
 				inventoryTitle = this.chatComponentMethodString.invoke(null, title.toString());
