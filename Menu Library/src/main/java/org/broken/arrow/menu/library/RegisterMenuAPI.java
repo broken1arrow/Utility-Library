@@ -59,6 +59,7 @@ public class RegisterMenuAPI {
 
 	public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
 		this.plugin = plugin;
+		menuAPI = this;
 		if (this.plugin == null) {
 			logger.log(Level.WARNING, "You have not set a plugin.");
 			logger.log(Level.WARNING, "If you're unsure how to use this library, " +
@@ -82,7 +83,6 @@ public class RegisterMenuAPI {
 		registerMenuEvent(plugin);
 		this.checkItemsInsideMenu = new CheckItemsInsideMenu(this);
 		this.playerMeta = new Metadata(plugin);
-		menuAPI = this;
 		this.messages = new SendMsgDuplicatedItems();
 		try {
 			this.nbtApi = new RegisterNbtAPI(plugin, turnOffLogger);
