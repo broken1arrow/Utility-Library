@@ -2,6 +2,7 @@ package org.broken.arrow.title.update.library.utility;
 
 import com.google.gson.JsonObject;
 import net.md_5.bungee.api.ChatColor;
+import org.broken.arrow.color.library.ChatColors;
 import org.broken.arrow.color.library.TextTranslator;
 
 import javax.annotation.Nonnull;
@@ -96,6 +97,7 @@ public class TitleUtility {
 	 * If you are using the {@link com.google.gson.JsonObject}, this method will only convert it to a string.
 	 * It will not translate colors or correct the JSON format if it doesn't follow Minecraft formatting rules
 	 * </p>
+	 *
 	 * @param serverVersion The version of the server.
 	 * @return The formatted title text, or {@code null} if no title is set.
 	 */
@@ -108,9 +110,12 @@ public class TitleUtility {
 			else {
 				if (this.defaultConvertColor)
 					return "'" + TextTranslator.toSpigotFormat(title) + "'";
-				else
-					//return "'" + ChatColor.translateAlternateColorCodes('&', title) + "'";
-				return "'" +  title + "'";
+				else {
+					if (serverVersion >= 16.0F)
+						return TextTranslator.fromLegacyText(title, ChatColors.WHITE);
+					else
+						return "'" + ChatColor.translateAlternateColorCodes('&', title) + "'";
+				}
 			}
 		}
 		return null;

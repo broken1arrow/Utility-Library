@@ -151,6 +151,7 @@ public class CheckItemsInsideMenu {
 		final Map<Integer, ItemStack> inventoryItems = new HashMap<>();
 		ItemStack[] itemStacks = inv.getContents();
 		int inventorySize = this.getSlotsToCheck().isEmpty() ? inv.getSize() - 9: inv.getSize();
+
 		for (int slot = 0; slot < inventorySize; slot++) {
 			if (!this.getSlotsToCheck().isEmpty() && !this.getSlotsToCheck().contains(slot)) {
 				continue;

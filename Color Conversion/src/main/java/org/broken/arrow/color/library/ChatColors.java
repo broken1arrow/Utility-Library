@@ -1,5 +1,7 @@
 package org.broken.arrow.color.library;
 
+import net.md_5.bungee.api.ChatColor;
+
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Locale;
@@ -20,7 +22,7 @@ public final class ChatColors {
 	 */
 	public static final char COLOR_AMPERSAND = '\u0026';
 	public static final String[] ALL_CODES = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "a", "B", "b", "C", "c", "D", "d", "E", "e", "F", "f", "K", "k", "L", "l", "M", "m", "N", "n", "O", "o", "R", "r", "X", "x"};
-	public static final char[] ALL_COLOR_CODES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'a', 'B', 'b', 'C', 'c', 'D', 'd', 'E', 'e', 'F', 'f', 'R', 'r', 'X', 'x'};
+	public static final char[] ALL_CHAR_COLOR_CODES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'a', 'B', 'b', 'C', 'c', 'D', 'd', 'E', 'e', 'F', 'f', 'R', 'r', 'X', 'x'};
 	private static final char[] SPECIAL_SIGN = {'l', 'n', 'o', 'k', 'm', 'r'};
 	/**
 	 * Pattern to remove all colour codes.
@@ -179,8 +181,8 @@ public final class ChatColors {
 	}
 
 	public static ChatColors of(String string) {
-		if (string != null)
-			new Throwable("String can't be null").printStackTrace();
+		if (string == null)
+			throw new RuntimeException("String can't be null");
 		if (string.startsWith("#") && string.length() == 7) {
 			int rgb;
 			try {
@@ -203,6 +205,24 @@ public final class ChatColors {
 		}
 
 		throw new IllegalArgumentException("Could not parse ChatColors " + string);
+	}
+
+	public static String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
+		char[] b = textToTranslate.toCharArray();
+		for (int i = 0; i < b.length - 1; i++) {
+			if (b[i] == altColorChar && getColorCode(b[i]) > -1) {
+				b[i] = ChatColor.COLOR_CHAR;
+				b[i + 1] = Character.toLowerCase(b[i + 1]);
+			}
+		}
+		return new String(b);
+	}
+
+	public static int getColorCode(char letter) {
+		for (char color : ChatColors.ALL_CHAR_COLOR_CODES)
+			if (color == letter)
+				return 1;
+		return -1;
 	}
 
 	public static int getCount() {
