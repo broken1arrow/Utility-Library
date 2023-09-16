@@ -6,7 +6,6 @@ import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.color.library.Component.Builder;
 import org.broken.arrow.color.library.utility.TextGradientUtil;
 
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -277,7 +276,11 @@ public final class TextTranslator {
 	 * @return A JSON object representing the formatted text.
 	 */
 	public static JsonObject fromLegacyText(String message, ChatColors defaultColor) {
-		ArrayList<Builder> components = new ArrayList<>();
+		if (message == null) {
+			JsonObject jsonObject = new JsonObject();
+			jsonObject.addProperty("text", "");
+			return jsonObject;
+		}
 		StringBuilder builder = new StringBuilder();
 		Builder component = new Component.Builder();
 		JsonArray jsonArray = new JsonArray();
@@ -285,7 +288,7 @@ public final class TextTranslator {
 
 		for (int i = 0; i < message.length(); i++) {
 			char c = message.charAt(i);
-			if (c == ChatColors.COLOR_CHAR) {
+			if (c == ChatColors.COLOR_CHAR|| c == ChatColors.COLOR_AMPERSAND) {
 				if (++i >= message.length()) {
 					break;
 				}
