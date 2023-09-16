@@ -1,7 +1,12 @@
 package org.broken.arrow.nbt.library;
 
+import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTItem;
+import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
+import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
+import org.broken.arrow.nbt.library.utility.NBTDataWriterWrapper;
+import org.broken.arrow.nbt.library.utility.NBTValueWrapper;
 import org.broken.arrow.nbt.library.utility.ServerVersion;
 import org.broken.arrow.nbt.library.utility.Valid;
 import org.bukkit.Material;
@@ -17,15 +22,22 @@ import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 
+import static org.broken.arrow.nbt.library.utility.ConvertObjectType.setNBTValue;
 import static org.broken.arrow.nbt.library.utility.ServerVersion.isHasScoreboardTags;
 
 
 /**
  * Utility class for persistent metadata manipulation
+ * <p>&nbsp;</p>
  * <p>
  * We apply scoreboard tags to ensure permanent metadata storage if supported,
- * otherwise it is lost on reload
+ * otherwise it is lost on reload.
+ * </p>
+ * <p>&nbsp;</p>
  */
 public final class CompMetadata {
 
@@ -44,25 +56,99 @@ public final class CompMetadata {
 	// ----------------------------------------------------------------------------------------
 
 	/**
-	 * A shortcut for setting a tag with key-value pair on an item
+	 * A shortcut for setting a tag with a key-value pair on an item.
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * For a list of values that can be retrieved from the NBT, please refer to the "See Also" section.
+	 * For other classes not supported by this class, you may need to handle serialization and deserialization
+	 * of the values manually.
+	 * </p>
 	 *
 	 * @param item  you want to set metadata on.
 	 * @param key   you want to set on this item.
 	 * @param value you want to set on this item.
 	 * @return clone of your item with metadata set.
+	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
 	 */
-	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull final String key,
-	                             @Nonnull final Object value) {
+	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull final String key, @Nonnull final Object value) {
 		Valid.checkNotNull(item, "Setting NBT tag got null item");
 
-		final NBTItem nbt = new NBTItem(item);
-		final NBTCompound tag = nbt.addCompound(getCompoundKey());
+		ItemStack clonedStack = new ItemStack(item);
+		return NBT.modify(clonedStack, writeItemNBT -> {
+			ReadWriteNBT compound = writeItemNBT.getCompound(this.getCompoundKey());
+			if (compound != null) {
+				setNBTValue(compound, key, value);
+			}
+			return clonedStack;
+		});
+	}
 
-		if (value instanceof String)
-			tag.setString(key, (String) value);
-		else
-			tag.setObject(key, value);
-		return nbt.getItem();
+	/**
+	 * A shortcut for setting a tag with a key-value pair on an item using the provided Consumer.
+	 * The tag will be written only if the compound is not null.
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * For classes not supported by NBT, you can manually serialize and when retrieve the values you deserialize it.
+	 * Consider setting the serialized data as a string for such cases.
+	 * </p>
+	 *
+	 * @param item     The ItemStack you want to set metadata on.
+	 * @param writeNBT The NBT data writer used to set metadata values.
+	 * @return A clone of your item with metadata set.
+	 */
+	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull Consumer<NBTDataWriterWrapper> writeNBT) {
+		Valid.checkNotNull(item, "Setting NBT tag got null item");
+
+		ItemStack clonedStack = new ItemStack(item);
+
+		return NBT.modify(clonedStack, writeItemNBT -> {
+			ReadWriteNBT compound = writeItemNBT.getCompound(this.getCompoundKey());
+			if (compound != null) {
+				writeNBT.accept(new NBTDataWriterWrapper(compound));
+			}
+			return clonedStack;
+		});
+	}
+
+	/**
+	 * A shortcut for setting several tags with key-value pairs on an item. It will attempt
+	 * to cast the values to the correct data types. If a matching NBT supported class is not
+	 * found, the values will be cast to strings.
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * For a list of values that can be retrieved from the NBT, please refer to the "See Also" section.
+	 * For other classes not supported by this class, you may need to handle serialization and deserialization
+	 * of the values manually.
+	 * </p>
+	 *
+	 * @param item   The item on which you want to set metadata.
+	 * @param nbtMap A map containing all the key-value pairs you want to set.
+	 * @return A clone of your item with the metadata set.
+	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
+	 */
+	public ItemStack setAllMetadata(@Nonnull final ItemStack item, @Nonnull final Map<String, Object> nbtMap) {
+		Valid.checkNotNull(item, "Setting NBT tag got null item");
+		Valid.checkNotNull(nbtMap, "The map with nbt should not be null");
+
+		ItemStack clonedStack = new ItemStack(item);
+		return NBT.modify(clonedStack, nbts -> {
+			ReadWriteNBT compound = nbts.getCompound(this.getCompoundKey());
+			if (compound != null) {
+				for (Entry<String, Object> entry : nbtMap.entrySet()) {
+					Object value = entry.getValue();
+					setNBTValue(compound, entry.getKey(), value);
+				}
+			}
+			return clonedStack;
+		});
+	/*	for (Entry<String, Object> entry : nbtMap.entrySet()) {
+			Object value = entry.getValue();
+			if (value instanceof String)
+				tag.setString(entry.getKey(), (String) value);
+			else
+				tag.setObject(entry.getKey(), value);
+		}
+		return nbt.getItem();*/
 	}
 
 	/**
@@ -98,11 +184,6 @@ public final class CompMetadata {
 		}
 	}
 
-	// Format the syntax of stored tags
-	private String format(final String key, final String value) {
-		return plugin.getName() + DELIMITER + key + DELIMITER + value;
-	}
-
 	/**
 	 * Sets persistent tile entity metadata
 	 *
@@ -110,8 +191,7 @@ public final class CompMetadata {
 	 * @param key        you want to set on this tileEntity.
 	 * @param value      you want to set on this tileEntity.
 	 */
-	public void setMetadata(@Nonnull final BlockState tileEntity, @Nonnull final String key,
-	                        @Nonnull final String value) {
+	public void setMetadata(@Nonnull final BlockState tileEntity, @Nonnull final String key, @Nonnull final String value) {
 		Valid.checkNotNull(tileEntity);
 		Valid.checkNotNull(key);
 		Valid.checkNotNull(value);
@@ -120,7 +200,7 @@ public final class CompMetadata {
 			Valid.checkBoolean(tileEntity instanceof TileState,
 					"BlockState must be instance of a TileState not " + tileEntity);
 
-			setNamedspaced((TileState) tileEntity, key, value);
+			setNameSpacedKey((TileState) tileEntity, key, value);
 			tileEntity.update();
 
 		} else {
@@ -160,10 +240,6 @@ public final class CompMetadata {
 		entity.setMetadata(createTempMetadataKey(tag), new FixedMetadataValue(plugin, key));
 	}
 
-	private void setNamedspaced(final TileState tile, final String key, final String value) {
-		tile.getPersistentDataContainer().set(new NamespacedKey(plugin, key), PersistentDataType.STRING, value);
-	}
-
 	// ----------------------------------------------------------------------------------------
 	// Getting metadata
 	// ----------------------------------------------------------------------------------------
@@ -171,22 +247,17 @@ public final class CompMetadata {
 	/**
 	 * A shortcut from reading a certain key from an item's given compound tag
 	 *
-	 * @param item you want get metadata.
-	 * @param key  to get the metadata on item.
+	 * @param itemStack you want get metadata.
+	 * @param key       to get the metadata on item.
 	 * @return metadata value.
 	 */
 	@Nullable
-	public String getMetadata(@Nonnull final ItemStack item, @Nonnull final String key) {
-		Valid.checkNotNull(item, "Reading NBT tag got null item");
-		if (item.getType() == Material.AIR)
-			// if (item == null || CompMaterial.isAir(item.getType()))
-			return null;
-
-		final String compoundTag = getCompoundKey();
-		final NBTItem nbt = new NBTItem(item);
-		final String value = nbt.hasKey(compoundTag) ? nbt.getCompound(compoundTag).getString(key) : null;
-
-		return getOrNull(value);
+	public String getMetadata(@Nonnull final ItemStack itemStack, @Nonnull final String key) {
+		NBTValueWrapper nbtWrapper = getMetadata(itemStack);
+		if (nbtWrapper != null) {
+			return nbtWrapper.getString(key);
+		}
+		return null;
 	}
 
 	/**
@@ -198,6 +269,7 @@ public final class CompMetadata {
 	 * @param <T>   type of class the value
 	 * @return metadata value.
 	 */
+	@Deprecated
 	@Nullable
 	public <T> T getMetadata(@Nonnull final ItemStack item, @Nonnull Class<T> clazz, @Nonnull final String key) {
 		Valid.checkNotNull(item, "Reading NBT tag got null item");
@@ -207,10 +279,50 @@ public final class CompMetadata {
 
 		final String compoundTag = getCompoundKey();
 		final NBTItem nbt = new NBTItem(item);
+		final boolean hasTag = nbt.hasTag(compoundTag);
+		final NBTCompound compound = hasTag ? nbt.getCompound(compoundTag) : null;
+		T value = null;
 
-		final T value = nbt.hasKey(compoundTag) ? nbt.getCompound(compoundTag).getObject(key, clazz) : null;
+		if (compound != null) {
+			if (clazz.isInstance(String.class))
+				value = clazz.cast(compound.getString(key));
+			else
+				value = compound.getObject(key, clazz);
+		}
 
 		return getOrNull(value);
+	}
+
+	/**
+	 * Retrieve specific NBT data from an item's compound tag.
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * This method gives you access to retrieve multiple set tags inside
+	 * the compound tag without creating a new {@link NBTItem} instance for
+	 * every retrieval of a value.
+	 * </p>
+	 * <p>&nbsp;</p>
+	 *
+	 * @param item The item from which to retrieve metadata.
+	 * @return The NBTValueWrapper instance if the compound key was found and applied, null otherwise.
+	 */
+	@Nullable
+	public NBTValueWrapper getMetadata(@Nonnull final ItemStack item) {
+		Valid.checkNotNull(item, "Reading NBT tag got null item");
+		if (item.getType() == Material.AIR)
+			return null;
+
+		final String compoundTag = getCompoundKey();
+		return NBT.get(item, nbt -> {
+			final boolean hasTag = nbt.hasTag(compoundTag);
+			if (hasTag) {
+				ReadableNBT compound = nbt.getCompound(compoundTag);
+				if (compound != null) {
+					return new NBTValueWrapper(compound);
+				}
+			}
+			return null;
+		});
 	}
 
 	/**
@@ -239,13 +351,6 @@ public final class CompMetadata {
 		return getOrNull(value);
 	}
 
-	// Parses the tag and gets its value
-	private String getTag(final String raw, final String key) {
-		final String[] parts = raw.split(DELIMITER);
-
-		return parts.length == 3 && parts[0].equals(plugin.getName()) && parts[1].equals(key) ? parts[2] : null;
-	}
-
 	/**
 	 * Return saved tile entity metadata, or null if none
 	 *
@@ -263,7 +368,7 @@ public final class CompMetadata {
 			Valid.checkBoolean(tileEntity instanceof TileState,
 					"BlockState must be instance of a TileState not " + tileEntity);
 
-			return getNamedspaced((TileState) tileEntity, key);
+			return getNameSpacedKey((TileState) tileEntity, key);
 		}
 		final String value = tileEntity.hasMetadata(key) ? tileEntity.getMetadata(key).get(0).asString() : null;
 
@@ -288,7 +393,14 @@ public final class CompMetadata {
 		return entity.hasMetadata(key) ? entity.getMetadata(key).get(0) : null;
 	}
 
-	private String getNamedspaced(final TileState tile, final String key) {
+	// Parses the tag and gets its value
+	private String getTag(final String raw, final String key) {
+		final String[] parts = raw.split(DELIMITER);
+
+		return parts.length == 3 && parts[0].equals(plugin.getName()) && parts[1].equals(key) ? parts[2] : null;
+	}
+
+	private String getNameSpacedKey(final TileState tile, final String key) {
 		final String value = tile.getPersistentDataContainer().get(new NamespacedKey(plugin, key),
 				PersistentDataType.STRING);
 
@@ -355,7 +467,7 @@ public final class CompMetadata {
 			Valid.checkBoolean(tileEntity instanceof TileState,
 					"BlockState must be instance of a TileState not " + tileEntity);
 
-			return hasNamedspaced((TileState) tileEntity, key);
+			return hasNameSpacedKey((TileState) tileEntity, key);
 		}
 
 
@@ -371,10 +483,6 @@ public final class CompMetadata {
 	 */
 	public boolean hasTempMetadata(final Entity player, final String tag) {
 		return player.hasMetadata(createTempMetadataKey(tag));
-	}
-
-	private boolean hasNamedspaced(final TileState tile, final String key) {
-		return tile.getPersistentDataContainer().has(new NamespacedKey(plugin, key), PersistentDataType.STRING);
 	}
 
 	// Parses the tag and gets its value
@@ -429,7 +537,22 @@ public final class CompMetadata {
 		return input == null || "none".equalsIgnoreCase(input.toString()) || input.toString().isEmpty() ? null : input;
 	}
 
+	// Format the syntax of stored tags
+	private String format(final String key, final String value) {
+		return plugin.getName() + DELIMITER + key + DELIMITER + value;
+	}
+
+	private void setNameSpacedKey(final TileState tile, final String key, final String value) {
+		tile.getPersistentDataContainer().set(new NamespacedKey(plugin, key), PersistentDataType.STRING, value);
+	}
+
+	private boolean hasNameSpacedKey(final TileState tile, final String key) {
+		return tile.getPersistentDataContainer().has(new NamespacedKey(plugin, key), PersistentDataType.STRING);
+	}
+
 	/**
+	 * Note!!! This is not implemented.
+	 *
 	 * Due to lack of persistent metadata implementation until Minecraft 1.14.x, we
 	 * simply store them in a file during server restart and then apply as a
 	 * temporary metadata for the Bukkit entities.

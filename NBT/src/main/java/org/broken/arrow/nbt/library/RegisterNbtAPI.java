@@ -35,7 +35,16 @@ public class RegisterNbtAPI {
 	 * Get methods to easy set metadata. If you want to set up self you can start
 	 * with this classes {@link de.tr7zw.changeme.nbtapi.NBTItem} and
 	 * {@link de.tr7zw.changeme.nbtapi.NBTEntity}
-	 *
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * Note: Should use these methods, give you better performance, if you don't use my methods.
+	 * </p>
+	 * <p>
+	 * {@link de.tr7zw.changeme.nbtapi.NBT#get(org.bukkit.inventory.ItemStack, java.util.function.Function)} and {@link de.tr7zw.changeme.nbtapi.NBT#get(org.bukkit.entity.Entity, java.util.function.Function)}
+	 * </p>
+	 * <p>
+	 * {@link de.tr7zw.changeme.nbtapi.NBT#modify(org.bukkit.entity.Entity, java.util.function.Function)} and {@link de.tr7zw.changeme.nbtapi.NBT#modify(org.bukkit.inventory.ItemStack, java.util.function.Function)}
+	 * </p>
 	 * @return CompMetadata class.
 	 */
 	public CompMetadata getCompMetadata() {

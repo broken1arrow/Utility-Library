@@ -670,10 +670,10 @@ public class CreateItemStack {
 	}
 
 	/**
-	 * Create itemstack array, call it after you added all data you want
+	 * Create itemStack array, call it after you added all data you want
 	 * on the item.
 	 *
-	 * @return new itemstack array with amount of 1 if you not set it.
+	 * @return new itemStack array with amount of 1 if you not set it.
 	 */
 	public ItemStack[] makeItemStackArray() {
 		ItemStack itemstack = null;
@@ -691,26 +691,24 @@ public class CreateItemStack {
 	@Nonnull
 	private ItemStack createItem(final ItemStack itemstack) {
 		if (itemstack == null) return new ItemStack(Material.AIR);
-		ItemStack itemstackNew = itemstack;
+		ItemStack itemStackNew = itemstack;
 		final RegisterNbtAPI nbtApi = this.nbtApi;
 		if (!this.keepOldMeta) {
-			itemstackNew = new ItemStack(itemstack.getType());
+			itemStackNew = new ItemStack(itemstack.getType());
 			if (this.keepAmount)
-				itemstackNew.setAmount(itemstack.getAmount());
+				itemStackNew.setAmount(itemstack.getAmount());
 		}
 		if (this.isCopyOfItem() && this.keepOldMeta) {
-			itemstackNew = new ItemStack(itemstackNew);
+			itemStackNew = new ItemStack(itemStackNew);
 		}
 
-		if (!isAir(itemstackNew.getType())) {
+		if (!isAir(itemStackNew.getType())) {
 			if (nbtApi != null) {
 				final Map<String, Object> metadataMap = this.getMetadataMap();
 				if (metadataMap != null)
-					for (final Map.Entry<String, Object> entity : metadataMap.entrySet()) {
-						itemstackNew = nbtApi.getCompMetadata().setMetadata(itemstackNew, entity.getKey(), entity.getValue());
-					}
+					itemStackNew = nbtApi.getCompMetadata().setAllMetadata(itemStackNew, metadataMap);
 			}
-			final ItemMeta itemMeta = itemstackNew.getItemMeta();
+			final ItemMeta itemMeta = itemStackNew.getItemMeta();
 			if (itemMeta != null) {
 				if (this.displayName != null) {
 					itemMeta.setDisplayName(translateColors(this.displayName));
@@ -720,11 +718,11 @@ public class CreateItemStack {
 				}
 				addItemMeta(itemMeta);
 			}
-			itemstackNew.setItemMeta(itemMeta);
+			itemStackNew.setItemMeta(itemMeta);
 			if (!this.keepAmount)
-				itemstackNew.setAmount(this.amountOfItems <= 0 ? 1 : this.amountOfItems);
+				itemStackNew.setAmount(this.amountOfItems <= 0 ? 1 : this.amountOfItems);
 		}
-		return itemstackNew;
+		return itemStackNew;
 	}
 
 	/**
