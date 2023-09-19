@@ -131,8 +131,8 @@ public final class CompMetadata {
 		Valid.checkNotNull(nbtMap, "The map with nbt should not be null");
 
 		ItemStack clonedStack = new ItemStack(item);
-		return NBT.modify(clonedStack, nbts -> {
-			ReadWriteNBT compound = nbts.getCompound(this.getCompoundKey());
+		return NBT.modify(clonedStack, nbt -> {
+			ReadWriteNBT compound = nbt.getCompound(this.getCompoundKey());
 			if (compound != null) {
 				for (Entry<String, Object> entry : nbtMap.entrySet()) {
 					Object value = entry.getValue();
