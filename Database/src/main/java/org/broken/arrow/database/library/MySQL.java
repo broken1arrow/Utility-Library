@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 import java.util.List;
 
-public class MySQL extends Database {
+public class MySQL extends Database<PreparedStatement> {
 
 	private final ConnectionSettings mysqlPreference;
 	private final String startSQLUrl;

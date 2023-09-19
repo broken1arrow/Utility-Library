@@ -32,8 +32,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-public abstract class Database {
+public abstract class Database<statement> {
 
 	protected Connection connection;
 	private final MethodReflectionUtils methodReflectionUtils = new MethodReflectionUtils();
@@ -215,8 +217,7 @@ public abstract class Database {
 			LogMsg.warn("Could not find table " + tableName);
 			return;
 		}
-		if (dataWrapper == null)
-			return;
+		if (dataWrapper == null) return;
 
 		ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
 		RowWrapper rowWrapper = new RowDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
@@ -240,39 +241,37 @@ public abstract class Database {
 	 */
 	@Nullable
 	public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
-		final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
 
-		TableWrapper tableWrapper = this.getTable(tableName);
-		if (tableWrapper == null) {
-			LogMsg.warn("Could not find table " + tableName);
-			return null;
-		}
 		if (!openConnection()) {
 			LogMsg.warn("Could not open connection.");
 			return null;
 		}
+
+		TableWrapper tableWrapper = this.getTable(tableName);
+
+		if (tableWrapper == null) {
+			LogMsg.warn("Could not find table " + tableName);
+			return null;
+		}
+
+		final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
 		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 
-		try {
-			preparedStatement = connection.prepareStatement(sqlCommandComposer.selectTable());
-			resultSet = preparedStatement.executeQuery();
-			while (resultSet.next()) {
-				Map<String, Object> dataFromDB = this.getDataFromDB(resultSet, tableWrapper);
-				T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-				Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
-				if (primaryValue == null)
-					LogMsg.warn("This table '" + tableName + "' with the primary key '" + tableWrapper.getPrimaryRow().getColumnName() + "' has null value. Please ensure that this is not a mistake.");
-				loadDataWrappers.add(new LoadDataWrapper<>(primaryValue, deserialize));
+		this.getPreparedStatement(sqlCommandComposer.selectTable(), statementWrapper -> {
+			try (ResultSet resultSet = ((PreparedStatement) statementWrapper).executeQuery()) {
+				while (resultSet.next()) {
+					Map<String, Object> dataFromDB = this.getDataFromDB(resultSet, tableWrapper);
+					T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+					Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
+					loadDataWrappers.add(new LoadDataWrapper<>(primaryValue, deserialize));
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}finally {
+				this.closeConnection();
 			}
-
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			this.close(preparedStatement, resultSet);
-		}
+		});
 		return loadDataWrappers;
 	}
 
@@ -301,21 +300,19 @@ public abstract class Database {
 		Map<String, Object> dataFromDB = new HashMap<>();
 		Validate.checkNotNull(columnValue, "Could not find column for " + primaryColumn + ". Because the column value is null.");
 
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
 		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-		try {
-			preparedStatement = this.connection.prepareStatement(sqlCommandComposer.selectRow(columnValue));
-			resultSet = preparedStatement.executeQuery();
-			if (resultSet.next())
-				dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			this.close(preparedStatement, resultSet);
-		}
+		this.getPreparedStatement(sqlCommandComposer.selectRow(columnValue), statementWrapper -> {
+			try (ResultSet resultSet = ((PreparedStatement) statementWrapper).executeQuery()) {
+				if (resultSet.next())
+					dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}finally {
+				this.closeConnection();
+			}
+		});
+
 		T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
 		Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
 
@@ -375,6 +372,124 @@ public abstract class Database {
 		final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
 		sqlCommandComposer.dropTable();
 		this.batchUpdate(Collections.singletonList(sqlCommandComposer), tableWrapper);
+	}
+
+	/**
+	 * This method removes rows older than the set threshold.
+	 *
+	 * @param tableName the table to find the rows to remove.
+	 * @param column    the name of the column to remove.
+	 * @param threshold the threshold where it should start to remove and below.
+	 */
+	public void removeBelowThreshold(@Nonnull final String tableName, @Nonnull final String column, char quotes, int threshold) {
+		runSQLCommand("DELETE FROM " + quotes + tableName + quotes + " WHERE " + column + " < " + threshold + ";");
+	}
+
+	/**
+	 * This method enables you to set up and execute custom SQL commands on a database table. This method use the batch
+	 * to effectively run several commands at the same time. While this method uses preparedStatement and parameterized
+	 * queries to reduce SQL injection risks (if you do not turn it off with {@link #setSecureQuery(boolean)}),
+	 * it is crucial for you to follow safe practices:
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * * Don't pass unsanitized user input directly into SQL commands. Always validate and sanitize
+	 * any user-provided values before using them in SQL commands.
+	 * </p>
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * * You need to be aware of the potentially security risks of running your own custom SQL
+	 * commands, and only give access to trusted individuals only.
+	 * </p>
+	 *
+	 * @param commands The SQL command or commands you want to run
+	 */
+	public void runSQLCommand(@Nonnull final String... commands) {
+		if (commands == null)
+			return;
+
+		List<SqlCommandComposer> sqlComposer = new ArrayList<>();
+		TableWrapper tableWrapper = TableWrapper.of("", TableRow.of("", ""));
+
+		for (String command : commands) {
+			final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
+			sqlCommandComposer.setCustomCommand(command);
+			sqlComposer.add(sqlCommandComposer);
+		}
+		this.batchUpdate(sqlComposer, tableWrapper);
+	}
+
+	/**
+	 * This method enables you to set up and execute custom SQL commands on a database and returns PreparedStatement. While this method uses
+	 * preparedStatement and parameterized queries to reduce SQL injection risks (if you do not turn it off with
+	 * {@link #setSecureQuery(boolean)}), it is crucial for you to follow safe practices:
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * * Don't pass unsanitized user input directly into SQL commands. Always validate and sanitize
+	 * any user-provided values before using them in SQL commands.
+	 * </p>
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * * You need to be aware of the potentially security risks of running your own custom SQL
+	 * commands, and only give access to trusted individuals only.
+	 * </p>
+	 * <p>&nbsp;</p>
+	 * Throws SQLException if a database access error occurs or this method is called on a
+	 * closed connection. Alternatively the command is not correctly setup.
+	 *
+	 * @param command  the statement or SQL command you want to run.
+	 * @param function the function that will be applied to the command.
+	 * @param <T>      The type you want the method to return.
+	 * @return the value you set as the lambda should return or null if something did go wrong.
+	 */
+	@Nullable
+	public <T> T getPreparedStatement(@Nonnull final String command, final Function<statement, T> function) {
+		if (!openConnection()) {
+			LogMsg.warn("Could not open connection.");
+			return null;
+		}
+		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
+			return function.apply((statement) preparedStatement);
+		} catch (SQLException e) {
+			LogMsg.warn("could not execute this command: " + command, e);
+		} finally {
+			this.closeConnection();
+		}
+		return null;
+	}
+
+	/**
+	 * This method enables you to set up and execute custom SQL commands on a database and returns PreparedStatement. While this method uses
+	 * preparedStatement and parameterized queries to reduce SQL injection risks (if you do not turn it off with
+	 * {@link #setSecureQuery(boolean)}), it is crucial for you to follow safe practices:
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * * Don't pass unsanitized user input directly into SQL commands. Always validate and sanitize
+	 * any user-provided values before using them in SQL commands.
+	 * </p>
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * * You need to be aware of the potentially security risks of running your own custom SQL
+	 * commands, and only give access to trusted individuals only.
+	 * </p>
+	 * <p>&nbsp;</p>
+	 * Throws SQLException if a database access error occurs or this method is called on a
+	 * closed connection. Alternatively the command is not correctly setup.
+	 *
+	 * @param command  the statement or SQL command you want to run.
+	 * @param consumer the consumer that will be applied to the command.
+	 */
+	public void getPreparedStatement(@Nonnull final String command, final Consumer<statement> consumer) {
+		if (!openConnection()) {
+			LogMsg.warn("Could not open connection.");
+			return;
+		}
+		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
+			consumer.accept((statement) preparedStatement);
+		} catch (SQLException e) {
+			LogMsg.warn("could not execute this command: " + command, e);
+		} finally {
+			this.closeConnection();
+		}
 	}
 
 	public boolean doRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
@@ -456,10 +571,8 @@ public abstract class Database {
 
 	protected void close(final PreparedStatement preparedStatement, final ResultSet resultSet) {
 		try {
-			if (preparedStatement != null)
-				preparedStatement.close();
-			if (resultSet != null)
-				resultSet.close();
+			if (preparedStatement != null) preparedStatement.close();
+			if (resultSet != null) resultSet.close();
 		} catch (final SQLException ex) {
 			ex.printStackTrace();
 			/*LogMsg.close(CCH.getInstance(), ex);*/
@@ -502,10 +615,9 @@ public abstract class Database {
 		if (updatedTableColumns == null || updatedTableColumns.getColumns().isEmpty()) return;
 		// Remove the columns we don't want anymore from the table's list of columns
 
-		if (this.removeColumns != null)
-			for (final String removed : this.removeColumns) {
-				existingColumns.remove(removed);
-			}
+		if (this.removeColumns != null) for (final String removed : this.removeColumns) {
+			existingColumns.remove(removed);
+		}
 		final String columnsSeparated = getColumnsFromTable(updatedTableColumns.getColumns().values());
 		if (!openConnection()) return;
 
@@ -518,8 +630,7 @@ public abstract class Database {
 		createTable.execute();
 
 		// Populating the table with the data
-		final PreparedStatement moveData = connection.prepareStatement("INSERT INTO " + tableName + "(" + TextUtils(existingColumns) + ") SELECT "
-				+ TextUtils(existingColumns) + " FROM " + tableName + "_old;");
+		final PreparedStatement moveData = connection.prepareStatement("INSERT INTO " + tableName + "(" + TextUtils(existingColumns) + ") SELECT " + TextUtils(existingColumns) + " FROM " + tableName + "_old;");
 		moveData.execute();
 
 		final PreparedStatement removeOldTable = connection.prepareStatement("DROP TABLE " + tableName + "_old;");
@@ -632,8 +743,7 @@ public abstract class Database {
 
 		if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
 			commandComposer.updateTable(rowWrapper.getPrimaryKeyValue());
-		else
-			commandComposer.replaceIntoTable();
+		else commandComposer.replaceIntoTable();
 
 		return commandComposer;
 	}
@@ -688,8 +798,7 @@ public abstract class Database {
 	}
 
 	public boolean openConnection() {
-		if (isClosed())
-			this.connection = connect();
+		if (isClosed()) this.connection = connect();
 		return this.connection != null;
 	}
 
@@ -712,7 +821,7 @@ public abstract class Database {
 		try {
 			return this.connection == null || this.connection.isClosed();
 		} catch (SQLException e) {
-			LogMsg.warn("Could not check if the connection is closed ", e);
+			LogMsg.warn("Something went wrong, when check if the connection is closed.", e);
 			return false;
 		}
 	}
@@ -767,8 +876,7 @@ public abstract class Database {
 			return primaryRow.getColumnName();
 
 		for (String column : tableWrapper.getColumns().keySet()) {
-			if (column.equalsIgnoreCase(columnName))
-				return column;
+			if (column.equalsIgnoreCase(columnName)) return column;
 		}
 		// If no matching column name is found, return the original name from the columnName.
 		return columnName;
@@ -801,13 +909,10 @@ public abstract class Database {
 			LogMsg.warn("Could not open connection.");
 			return;
 		}
-		if (sqls.size() == 0)
-			return;
+		if (sqls.size() == 0) return;
 
-		if (this.secureQuery)
-			this.executePrepareBatch(sqls, resultSetType, resultSetConcurrency);
-		else
-			this.executeBatch(sqls, resultSetType, resultSetConcurrency);
+		if (this.secureQuery) this.executePrepareBatch(sqls, resultSetType, resultSetConcurrency);
+		else this.executeBatch(sqls, resultSetType, resultSetConcurrency);
 	}
 
 	protected final void executePrepareBatch(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
@@ -816,88 +921,83 @@ public abstract class Database {
 		new Timer().scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-				if (batchUpdateGoingOn)
-					LogMsg.warn("Still executing, DO NOT SHUTDOWN YOUR SERVER.");
-				else
-					cancel();
+				if (batchUpdateGoingOn) LogMsg.warn("Still executing, DO NOT SHUTDOWN YOUR SERVER.");
+				else cancel();
 			}
 		}, 1000 * 30, 1000 * 30);
 		if (processedCount > 10_000) {
-			LogMsg.warn("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE "
-					+ (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
+			LogMsg.warn("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
 		}
-		for (SqlCommandComposer sql : batchList) {
+		try {
+			for (SqlCommandComposer sql : batchList) {
 
-			try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
-				// Populate the statement with data where the key is the row identifier (id).
-				for (Entry<Integer, Object> column : sql.getColumns().entrySet()) {
-					statement.setObject(column.getKey(), column.getValue());
+				try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
+					// Populate the statement with data where the key is the row identifier (id).
+					for (Entry<Integer, Object> column : sql.getColumns().entrySet()) {
+						statement.setObject(column.getKey(), column.getValue());
+					}
+					// Adding the current set of parameters to the batch
+					statement.addBatch();
+					statement.executeBatch();
+				} catch (SQLException e) {
+					// Handle the exception for a specific statement
+					LogMsg.warn("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\"");
+					LogMsg.warn("Values that could not be executed: '" + sql.getColumns().values() + "'", e);
 				}
-				// Adding the current set of parameters to the batch
-				statement.addBatch();
-				statement.executeBatch();
-			} catch (SQLException e) {
-				// Handle the exception for a specific statement
-				LogMsg.warn("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\"");
-				LogMsg.warn("Values that could not be executed: '" + sql.getColumns().values() + "'", e);
-			} finally {
-				batchUpdateGoingOn = false;
 			}
+		} finally {
+			batchUpdateGoingOn = false;
 		}
 	}
 
 	protected final void executeBatch(@Nonnull final List<SqlCommandComposer> batchOfSQL, int resultSetType, int resultSetConcurrency) {
 
-		if (!hasStartWriteToDb)
-			try {
-				hasStartWriteToDb = true;
-				final Statement statement = this.connection.createStatement(resultSetType, resultSetConcurrency);
-				final int processedCount = batchOfSQL.size();
+		if (!hasStartWriteToDb) try {
+			hasStartWriteToDb = true;
+			final Statement statement = this.connection.createStatement(resultSetType, resultSetConcurrency);
+			final int processedCount = batchOfSQL.size();
 
-				// Prevent automatically sending db instructions
-				this.connection.setAutoCommit(false);
+			// Prevent automatically sending db instructions
+			this.connection.setAutoCommit(false);
 
-				for (final SqlCommandComposer sql : batchOfSQL)
-					statement.addBatch(sql.getQueryCommand());
-				if (processedCount > 10_000)
-					LogMsg.warn("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE "
-							+ (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
+			for (final SqlCommandComposer sql : batchOfSQL)
+				statement.addBatch(sql.getQueryCommand());
+			if (processedCount > 10_000)
+				LogMsg.warn("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
 
-				// Set the flag to start time notifications timer
-				batchUpdateGoingOn = true;
+			// Set the flag to start time notifications timer
+			batchUpdateGoingOn = true;
 
-				// Notify console that progress still is being made
-				new Timer().scheduleAtFixedRate(new TimerTask() {
+			// Notify console that progress still is being made
+			new Timer().scheduleAtFixedRate(new TimerTask() {
 
-					@Override
-					public void run() {
-						if (batchUpdateGoingOn)
-							LogMsg.warn("Still executing, DO NOT SHUTDOWN YOUR SERVER.");
-						else
-							cancel();
-					}
-				}, 1000 * 30, 1000 * 30);
-				// Execute
-				statement.executeBatch();
-
-				// This will block the thread
-				this.connection.commit();
-
-			} catch (final Throwable t) {
-				t.printStackTrace();
-
-			} finally {
-				try {
-					this.connection.setAutoCommit(true);
-					this.closeConnection();
-
-				} catch (final SQLException ex) {
-					ex.printStackTrace();
+				@Override
+				public void run() {
+					if (batchUpdateGoingOn) LogMsg.warn("Still executing, DO NOT SHUTDOWN YOUR SERVER.");
+					else cancel();
 				}
-				hasStartWriteToDb = false;
-				// Even in case of failure, cancel
-				batchUpdateGoingOn = false;
+			}, 1000 * 30, 1000 * 30);
+			// Execute
+			statement.executeBatch();
+
+			// This will block the thread
+			this.connection.commit();
+
+		} catch (final Throwable t) {
+			t.printStackTrace();
+
+		} finally {
+			try {
+				this.connection.setAutoCommit(true);
+				this.closeConnection();
+
+			} catch (final SQLException ex) {
+				ex.printStackTrace();
 			}
+			hasStartWriteToDb = false;
+			// Even in case of failure, cancel
+			batchUpdateGoingOn = false;
+		}
 	}
 
 	public abstract boolean isHasCastException();

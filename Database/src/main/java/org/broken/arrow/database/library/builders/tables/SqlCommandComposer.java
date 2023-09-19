@@ -236,11 +236,20 @@ public final class SqlCommandComposer {
 	}
 
 	/**
-	 * Creates the command for update the row.
+	 * Execute your own set command. You can use {table} and
+	 * {primary_row} placeholders and it will replace it with
+	 * the table and ColumnName.
 	 *
-	 * @param record the record match in the database to update.
-	 * @return the constructed SQL command for the database.
+	 * @param command the sql command. You need to always validate and sanitize if you
+	 *                use values players can set.
 	 */
+	public void setCustomCommand(String command) {
+		if (tableWrapper.getPrimaryRow() != null) {
+			queryCommand = command;
+			preparedSQLBatch.insert(0,queryCommand);
+		}
+	}
+
 	/**
 	 * Creates the command for update the row.
 	 *

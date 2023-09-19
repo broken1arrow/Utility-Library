@@ -16,7 +16,7 @@ import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 import java.util.List;
 
-public class PostgreSQL extends Database {
+public class PostgreSQL extends Database<PreparedStatement> {
 
 	private final ConnectionSettings preferences;
 	private final boolean isHikariAvailable;

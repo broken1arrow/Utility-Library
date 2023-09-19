@@ -10,11 +10,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class SQLite extends Database {
+public class SQLite extends Database<PreparedStatement> {
 
 	private final String parent;
 	private final String child;

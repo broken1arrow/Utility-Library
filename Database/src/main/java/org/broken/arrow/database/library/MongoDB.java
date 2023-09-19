@@ -32,8 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-public class MongoDB extends Database {
+public class MongoDB extends Database <MongoCollection<Document>>{
 
 	private final String startSQLUrl;
 	private final String driver;
@@ -203,6 +205,57 @@ public class MongoDB extends Database {
 		return loadDataWrapper;
 	}
 
+	@Override
+	public void runSQLCommand(@Nonnull final String... commands) {
+		throw new UnsupportedOperationException("This function is not implemented for this class yet." + this);
+	}
+
+	/**
+	 * This method function argument returns a {@link com.mongodb.client.MongoCollection} with the class {@link org.bson.Document} .
+	 * You can use for example {@link com.mongodb.client.MongoCollection#find(org.bson.conversions.Bson)} to filter
+	 * the result or get everything inside the table if filter is not set.
+	 *
+	 * Check the MongoDB documentations for more help https://www.mongodb.com/docs/manual/
+	 *
+	 * @param tableName the table name set.
+	 * @param function the function that will be applied to the command.
+	 * @param <T>  The type you want the method to return.
+	 * @return the value you set as the lambda should return or null if something did go wrong..
+	 */
+	@Override
+	@Nullable
+	public <T>T getPreparedStatement(@Nonnull final String tableName, Function<MongoCollection<Document> , T> function) {
+		if (!openConnection()) return null;
+		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
+		MongoCollection<Document> collection = database.getCollection(tableName);
+		try {
+			return function.apply(collection);
+		}finally {
+			closeConnection();
+		}
+	}
+
+	/**
+	 * This methods consumer returns a {@link com.mongodb.client.MongoCollection} with the class {@link org.bson.Document} .
+	 * You can use for example {@link com.mongodb.client.MongoCollection#find(org.bson.conversions.Bson)} to filter
+	 * the result or get everything inside the table or get everything inside the table if filter is not set.
+	 * 
+	 * Check the MongoDB documentations for more help https://www.mongodb.com/docs/manual/
+	 *
+	 * @param tableName the table name set.
+	 * @param consumer the function that will be applied to the command.
+	 */
+	@Override
+	public void getPreparedStatement(@Nonnull final String tableName, Consumer<MongoCollection<Document>> consumer) {
+		if (!openConnection()) return;
+		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
+		MongoCollection<Document> collection = database.getCollection(tableName);
+		try {
+			consumer.accept(collection);
+		}finally {
+			closeConnection();
+		}
+	}
 	@Override
 	public Connection connect() {
 		//if (this.mongoClient != null) return null;

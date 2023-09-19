@@ -10,11 +10,12 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class H2DB extends Database {
+public class H2DB extends Database<PreparedStatement> {
 
 	private final String parent;
 	private final String child;
