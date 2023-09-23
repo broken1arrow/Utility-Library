@@ -408,7 +408,7 @@ public abstract class Database<statement> {
 			return;
 
 		List<SqlCommandComposer> sqlComposer = new ArrayList<>();
-		TableWrapper tableWrapper = TableWrapper.of("", TableRow.of("", ""));
+		TableWrapper tableWrapper = TableWrapper.of("EMPTY", TableRow.of("", ""));
 
 		for (String command : commands) {
 			final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
