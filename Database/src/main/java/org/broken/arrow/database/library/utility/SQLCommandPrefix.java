@@ -8,10 +8,6 @@ public enum SQLCommandPrefix {
 	 */
 	SELECT("SELECT"),
 	/**
-	 * Used to add new records (rows) into a table.
-	 */
-	INSERT_INTO("INSERT INTO"),
-	/**
 	 * Used to modify existing records in a table.
 	 */
 	UPDATE("UPDATE"),
@@ -48,8 +44,15 @@ public enum SQLCommandPrefix {
 	 * or update an existing row in a table based on a unique key.
 	 */
 	REPLACE_INTO("REPLACE INTO"),
-
-
+	/**
+	 * This is same as REPLACE INTO for non MySQL databases, this is used to either insert a new row
+	 * or update an existing row in a table based on a unique key.
+	 */
+	MERGE_INTO("MERGE INTO"),
+	/**
+	 * Used to add new records (rows) into a table.
+	 */
+	INSERT_INTO("INSERT INTO"),
 	/**
 	 * The SET clause is used in an UPDATE statement to specify the new values for columns in
 	 * existing rows that meet the WHERE clause's condition.
@@ -87,7 +90,7 @@ public enum SQLCommandPrefix {
 	 */
 	HAVING("HAVING"),
 	/**
-	 *  Used to sort the result set based on one or more columns.
+	 * Used to sort the result set based on one or more columns.
 	 */
 	ORDER_BY("ORDER BY"),
 	/**
@@ -125,6 +128,15 @@ public enum SQLCommandPrefix {
 
 	SQLCommandPrefix(final String key) {
 		this.key = key;
+	}
+
+	public static boolean contains(Object text) {
+		for (SQLCommandPrefix value : values()) {
+			if (value.getKey().contains(text + "")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public String getKey() {

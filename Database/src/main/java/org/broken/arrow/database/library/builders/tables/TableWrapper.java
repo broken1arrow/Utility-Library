@@ -49,7 +49,7 @@ public final class TableWrapper {
 	 * @return a TableWrapper object that allows you to add columns and define properties for the table.
 	 */
 	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow) {
-		return of(tableName, primaryRow, -1).getTableWrapper();
+		return of(tableName, primaryRow, -1);
 	}
 
 	/**
@@ -63,7 +63,7 @@ public final class TableWrapper {
 	 * @return TableWrapper class you need then add columns to your table.
 	 */
 	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow, final int valueLength) {
-		return new TableWrapper(tableName, primaryRow, valueLength).getTableWrapper();
+		return new TableWrapper(tableName, primaryRow, valueLength);
 	}
 
 	/**

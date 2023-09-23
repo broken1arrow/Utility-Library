@@ -2,11 +2,14 @@ package org.broken.arrow.database.library.builders.tables;
 
 import org.broken.arrow.database.library.Database;
 import org.broken.arrow.database.library.builders.RowWrapper;
+import org.broken.arrow.database.library.builders.SqlQueryBuilder;
+import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +25,8 @@ public final class SqlCommandComposer {
 	private final TableWrapper tableWrapper;
 	private final RowWrapper rowWrapper;
 	private final Database<?> database;
-	private final Map<Integer, Object> columns = new HashMap<>();
+	private SqlQueryBuilder queryBuilder;
+	private final Map<Integer, Object> columnsWithCachedData = new HashMap<>();
 	private Set<String> columnsToUpdate;
 	private final StringBuilder preparedSQLBatch = new StringBuilder();
 	private String queryCommand = "";
@@ -43,8 +47,8 @@ public final class SqlCommandComposer {
 		return rowWrapper;
 	}
 
-	public Map<Integer, Object> getColumns() {
-		return columns;
+	public Map<Integer, Object> getColumnsWithCachedData() {
+		return Collections.unmodifiableMap(columnsWithCachedData);
 	}
 
 	public String getPreparedSQLBatch() {
@@ -66,7 +70,7 @@ public final class SqlCommandComposer {
 	 * <p>
 	 * Note that the returned string has not been checked for potential SQL injection or
 	 * other security vulnerabilities. It is recommended to use {@link #getPreparedSQLBatch()}
-	 * and {@link #getColumns()} in conjunction with the preparedStatement method to ensure
+	 * and {@link #getColumnsWithCachedData()} in conjunction with the preparedStatement method to ensure
 	 * safer query execution.
 	 * </p>
 	 *
@@ -244,10 +248,40 @@ public final class SqlCommandComposer {
 	 *                use values players can set.
 	 */
 	public void setCustomCommand(String command) {
-		if (tableWrapper.getPrimaryRow() != null) {
-			queryCommand = command;
-			preparedSQLBatch.insert(0,queryCommand);
+		if (this.tableWrapper.getPrimaryRow() != null) {
+			this.queryCommand = command;
+			preparedSQLBatch.insert(0, queryCommand);
 		}
+	}
+
+	/**
+	 * Execute your own set command. You can use {table} and
+	 * {primary_row} placeholders and it will replace it with
+	 * the table and ColumnName.
+	 *
+	 * @param queryBuilder the sql queryBuilder instance with your set query
+	 *                     to be executed.
+	 */
+	public void setSqlQueryBuilder(SqlQueryBuilder queryBuilder) {
+		this.queryBuilder = queryBuilder;
+		if (queryBuilder != null) {
+			String query = queryBuilder.getQuery();
+			if (query == null)
+				this.queryBuilder = queryBuilder.build();
+			query = this.queryBuilder.getQuery();
+			if (query == null) {
+				LogMsg.warn("The query command is not set or not setup");
+				return;
+			}
+			SqlQueryBuilder queryBuild = this.queryBuilder;
+			Map<String, Object> columnValueMap = queryBuild.getColumnValueMap();
+			if (!columnValueMap.isEmpty()){
+				//this.columnsWithCachedData.put()
+			}
+				preparedSQLBatch.insert(0, query);
+
+		}
+		preparedSQLBatch.insert(0, queryCommand);
 	}
 
 	/**
@@ -293,9 +327,9 @@ public final class SqlCommandComposer {
 					.append(columnName)
 					.append(quote)
 					.append(" = ?,");
-			this.columns.put(index++, value);
+			this.columnsWithCachedData.put(index++, value);
 		}
-		this.columns.put(index, record);
+		this.columnsWithCachedData.put(index, record);
 		prepareColumnsToUpdate.setLength(prepareColumnsToUpdate.length() - 1);
 		preparedSQLBatch.append("UPDATE ")
 				.append(quote)
@@ -340,7 +374,7 @@ public final class SqlCommandComposer {
 		values.append("'");
 		values.append(primaryKeyColumnValue);
 		values.append(tableRowMap.size() > 0 ? "'," : "' ");
-		this.columns.put(1, primaryKeyColumnValue);
+		this.columnsWithCachedData.put(1, primaryKeyColumnValue);
 		prepareValues.append("?,");
 		int index = 2;
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
@@ -359,7 +393,7 @@ public final class SqlCommandComposer {
 
 			values.append(setQuote ? "'" : "").append(value).insert(values.length(), values.length() == 0 ? "" : setQuote ? "," : "',");
 			prepareValues.append("?,");
-			this.columns.put(index++, value);
+			this.columnsWithCachedData.put(index++, value);
 		}
 		columns.setLength(columns.length() - 1);
 		values.setLength(values.length() - 1);
