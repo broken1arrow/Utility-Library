@@ -29,7 +29,7 @@ public final class TableWrapper {
 
 	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow primaryRow, final int valueLength) {
 		Validate.checkNotEmpty(tableName, "Table name is empty.");
-		Validate.checkNotEmpty(primaryRow, "Primary key is empty, if you not set this you can't have unique rows in the database.");
+		//Validate.checkNotNull(primaryRow, "Primary key should empty, if you not set this you can't have unique rows in the database.");
 		this.supportQuery = false;
 		this.tableName = tableName;
 		this.primaryRow = primaryRow;
