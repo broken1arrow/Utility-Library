@@ -268,7 +268,7 @@ public abstract class Database<statement> {
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
-			}finally {
+			} finally {
 				this.closeConnection();
 			}
 		});
@@ -308,7 +308,7 @@ public abstract class Database<statement> {
 					dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
 			} catch (SQLException e) {
 				e.printStackTrace();
-			}finally {
+			} finally {
 				this.closeConnection();
 			}
 		});
@@ -932,17 +932,22 @@ public abstract class Database<statement> {
 			for (SqlCommandComposer sql : batchList) {
 
 				try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
-					// Populate the statement with data where the key is the row identifier (id).
-					for (Entry<Integer, Object> column : sql.getColumns().entrySet()) {
-						statement.setObject(column.getKey(), column.getValue());
+					boolean valuesSet = false;
+					if (!sql.getColumnsWithCachedData().isEmpty()) {
+						// Populate the statement with data where the key is the row identifier (id).
+						for (Entry<Integer, Object> column : sql.getColumnsWithCachedData().entrySet()) {
+							statement.setObject(column.getKey(), column.getValue());
+							valuesSet = true;
+						}
 					}
-					// Adding the current set of parameters to the batch
-					statement.addBatch();
+					if (valuesSet)
+						// Adding the current set of parameters to the batch
+						statement.addBatch();
 					statement.executeBatch();
 				} catch (SQLException e) {
 					// Handle the exception for a specific statement
 					LogMsg.warn("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\"");
-					LogMsg.warn("Values that could not be executed: '" + sql.getColumns().values() + "'", e);
+					LogMsg.warn("Values that could not be executed: '" + sql.getColumnsWithCachedData().values() + "'", e);
 				}
 			}
 		} finally {
