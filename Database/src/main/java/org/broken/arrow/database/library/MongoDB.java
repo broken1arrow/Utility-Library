@@ -15,6 +15,7 @@ import com.mongodb.client.result.UpdateResult;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
+import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
@@ -206,7 +207,7 @@ public class MongoDB extends Database <MongoCollection<Document>>{
 	}
 
 	@Override
-	public void runSQLCommand(@Nonnull final String... commands) {
+	public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
 		throw new UnsupportedOperationException("This function is not implemented for this class yet." + this);
 	}
 

@@ -4,12 +4,14 @@ import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.RowDataWrapper;
 import org.broken.arrow.database.library.builders.RowWrapper;
+import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
 import org.broken.arrow.database.library.utility.DatabaseType;
+import org.broken.arrow.database.library.utility.SQLCommandPrefix;
 import org.broken.arrow.database.library.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
@@ -382,7 +384,10 @@ public abstract class Database<statement> {
 	 * @param threshold the threshold where it should start to remove and below.
 	 */
 	public void removeBelowThreshold(@Nonnull final String tableName, @Nonnull final String column, char quotes, int threshold) {
-		runSQLCommand("DELETE FROM " + quotes + tableName + quotes + " WHERE " + column + " < " + threshold + ";");
+		runSQLCommand(new SqlQueryBuilder(quotes + tableName + quotes)
+				.setExecutionsType(SQLCommandPrefix.DELETE_FROM,'*')
+				.where( column + " < " + threshold )
+				.build());
 	}
 
 	/**
@@ -401,21 +406,21 @@ public abstract class Database<statement> {
 	 * commands, and only give access to trusted individuals only.
 	 * </p>
 	 *
-	 * @param commands The SQL command or commands you want to run
+	 * @param sqlQueryBuilders The SQL command or commands you want to run
 	 */
-	public void runSQLCommand(@Nonnull final String... commands) {
-		if (commands == null)
+	public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
+		if (sqlQueryBuilders == null)
 			return;
 
 		List<SqlCommandComposer> sqlComposer = new ArrayList<>();
-		TableWrapper tableWrapper = TableWrapper.of("EMPTY", TableRow.of("", ""));
-
-		for (String command : commands) {
+		TableWrapper tableWrapper = null;
+		for (SqlQueryBuilder command : sqlQueryBuilders) {
+			tableWrapper = TableWrapper.of(command, TableRow.of("", ""));
 			final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-			sqlCommandComposer.setCustomCommand(command);
+			sqlCommandComposer.executeCustomCommand();
 			sqlComposer.add(sqlCommandComposer);
 		}
-		this.batchUpdate(sqlComposer, tableWrapper);
+		this.batchUpdate(sqlComposer,  tableWrapper);
 	}
 
 	/**
