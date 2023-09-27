@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library.builders.tables;
 
 
+import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.log.Validate;
 import org.broken.arrow.database.library.log.Validate.CatchExceptions;
 
@@ -17,6 +18,7 @@ public final class TableWrapper {
 	private String quoteColumnKey = "`";
 	private final int primaryKeyLength;
 	private final boolean supportQuery;
+	private SqlQueryBuilder sqlQueryBuilder;
 	private final Map<String, TableRow> columns = new LinkedHashMap<>();
 
 	private TableWrapper() {
@@ -64,6 +66,40 @@ public final class TableWrapper {
 	 */
 	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow, final int valueLength) {
 		return new TableWrapper(tableName, primaryRow, valueLength);
+	}
+
+	/**
+	 * Creates a new TableWrapper object to build a database command for creating a table.
+	 * Use the provided methods to add columns and define table properties. You can then call {@link SqlCommandComposer#createTable()}
+	 * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
+	 * <p>
+	 * Note: if you set up a Mysql database is it recommended you also set the length of the primary column value.
+	 *
+	 * @param sqlQueryBuilder the prebuilt command.
+	 * @param primaryRow      the key that serves as the primary key. If not set, duplicate records may be added.
+	 * @return a TableWrapper object that allows you to add columns and define properties for the table.
+	 */
+	public static TableWrapper of(@Nonnull final SqlQueryBuilder sqlQueryBuilder, @Nonnull TableRow primaryRow) {
+		TableWrapper tableWrapper = of(sqlQueryBuilder.getTableName(), primaryRow, -1);
+		String query = sqlQueryBuilder.getQuery();
+		tableWrapper.sqlQueryBuilder = query == null ? sqlQueryBuilder.build() : sqlQueryBuilder;
+		return tableWrapper;
+	}
+
+	/**
+	 * Creates a new TableWrapper object to build a database command for creating a table.
+	 * Use the provided methods to add columns and define table properties. You can then call {@link SqlCommandComposer#createTable()}
+	 * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
+	 *
+	 * @param sqlQueryBuilder the prebuilt command.
+	 * @param primaryRow      the key that serves as the primary key. If not set, duplicate records may be added.
+	 * @param valueLength     length of the value for primary key (used for text,varchar and similar in SQL database).
+	 * @return TableWrapper class you need then add columns to your table.
+	 */
+	public static TableWrapper of(@Nonnull final SqlQueryBuilder sqlQueryBuilder, @Nonnull TableRow primaryRow, final int valueLength) {
+		TableWrapper tableWrapper = of(sqlQueryBuilder.getTableName(), primaryRow, valueLength);
+		tableWrapper.sqlQueryBuilder = sqlQueryBuilder;
+		return tableWrapper;
 	}
 
 	/**
@@ -189,6 +225,10 @@ public final class TableWrapper {
 	@Deprecated
 	public String getQuote() {
 		return quoteColumnKey;
+	}
+
+	public SqlQueryBuilder getSqlQueryBuilder() {
+		return sqlQueryBuilder;
 	}
 
 	/**

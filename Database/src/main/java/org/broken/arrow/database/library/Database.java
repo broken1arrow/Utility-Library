@@ -875,9 +875,10 @@ public abstract class Database<statement> {
 		if (primaryRow != null && primaryRow.getColumnName().equalsIgnoreCase(columnName))
 			return primaryRow.getColumnName();
 
-		for (String column : tableWrapper.getColumns().keySet()) {
-			if (column.equalsIgnoreCase(columnName)) return column;
-		}
+		if (!tableWrapper.getColumns().isEmpty())
+			for (String column : tableWrapper.getColumns().keySet()) {
+				if (column.equalsIgnoreCase(columnName)) return column;
+			}
 		// If no matching column name is found, return the original name from the columnName.
 		return columnName;
 	}
@@ -901,6 +902,48 @@ public abstract class Database<statement> {
 
 	public MethodReflectionUtils getMethodReflectionUtils() {
 		return methodReflectionUtils;
+	}
+
+	/**
+	 * Checks the ResultSet for any found columns in the provided 'columns' mapping and maps them to the correct column indices.
+	 * The corresponding values are then set in the map together with the correct indices.
+	 *
+	 * @param rsmd         the ResultSetMetaData returned from the database to check the metadata.
+	 * @param columns      a mapping of column names to values to check and set in the map.
+	 * @param tableWrapper provides information about the columns and primary row.
+	 * @return A map with set indices and their corresponding values.
+	 * @throws SQLException if a database access error occurs.
+	 */
+	@Nonnull
+	public Map<Integer, Object> mapColumnsToIndices(final ResultSetMetaData rsmd, Map<String, Object> columns, final TableWrapper tableWrapper) throws SQLException {
+		if (columns.isEmpty()) return new HashMap<>();
+
+		final int columnCount = rsmd.getColumnCount();
+
+		final Map<Integer, Object> columnsSet = new HashMap<>();
+		for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+			String columnName = rsmd.getColumnName(columnIndex);
+			Object value = findValueForColumn(columns, tableWrapper, columnName);
+
+			if (value != null) {
+				columnsSet.put(columnIndex, value);
+			}
+		}
+		return columnsSet;
+	}
+
+	public Object findValueForColumn(Map<String, Object> columns,TableWrapper tableWrapper, String columnName) {
+		TableRow primaryRow = tableWrapper.getPrimaryRow();
+		if (primaryRow != null && primaryRow.getColumnName().equalsIgnoreCase(columnName))
+			return primaryRow.getColumnName();
+
+		for (Entry<String, Object> columnEntry : columns.entrySet()) {
+			String columnKey = columnEntry.getKey();
+			if (columnKey.equalsIgnoreCase(columnName)) {
+				return columnEntry.getValue();
+			}
+		}
+		return null;
 	}
 
 	protected final void batchUpdate(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
@@ -933,9 +976,11 @@ public abstract class Database<statement> {
 
 				try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
 					boolean valuesSet = false;
-					if (!sql.getColumnsWithCachedData().isEmpty()) {
+					Map<Integer, Object> mapColumnsToIndices = mapColumnsToIndices(statement.getMetaData(), sql.getCachedDataByColumn(), sql.getTableWrapper());
+
+					if (!mapColumnsToIndices.isEmpty()) {
 						// Populate the statement with data where the key is the row identifier (id).
-						for (Entry<Integer, Object> column : sql.getColumnsWithCachedData().entrySet()) {
+						for (Entry<Integer, Object> column : mapColumnsToIndices.entrySet()) {
 							statement.setObject(column.getKey(), column.getValue());
 							valuesSet = true;
 						}
@@ -947,7 +992,7 @@ public abstract class Database<statement> {
 				} catch (SQLException e) {
 					// Handle the exception for a specific statement
 					LogMsg.warn("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\"");
-					LogMsg.warn("Values that could not be executed: '" + sql.getColumnsWithCachedData().values() + "'", e);
+					LogMsg.warn("Values that could not be executed: '" + sql.getCachedDataByColumn().values() + "'", e);
 				}
 			}
 		} finally {

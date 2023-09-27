@@ -14,17 +14,17 @@ import java.util.Map;
  * <p>&nbsp;</p>
  * Usage Example:
  * <pre>{@code
- * SqlQueryBuilder builder = new SqlQueryBuilder();
+ * SqlQueryBuilder builder = new SqlQueryBuilder("tableName");
  * String query = builder
  *     .setExecutionsType(SQLCommandPrefix.SELECT, '*')
- *     .from("tableName")
+ *     .from()
  *     .where("column_name = 'value'")
  *     .build()
  *     .getQuery();
  * //or alternatively like this for example:
  * String query1 = builder
  *     .setExecutionsType(SQLCommandPrefix.SELECT, '*')
- *     .from("tableName")
+ *     .from()
  *     .where("column_name < threshold")
  *     .build()
  *     .getQuery();
@@ -43,13 +43,14 @@ import java.util.Map;
  * to specify the columns and values.
  * </p>
  * <p>
- * - For SELECT and DELETE queries, use {@link #from(String)} and optionally {@link #where(String)} to set the table and conditions.
+ * - For SELECT and DELETE queries, use {@link #from()} and optionally {@link #where(String)} to set the table and conditions.
  * </p>
  *
  * @see SQLCommandPrefix
  */
 public class SqlQueryBuilder {
 	private String executionsType;
+	private final String tableName;
 	private String fromClause;
 	private String whereClause;
 	private String query;
@@ -60,8 +61,9 @@ public class SqlQueryBuilder {
 	private Map<String, Object> columnValueMap;
 
 
-	public SqlQueryBuilder() {
+	public SqlQueryBuilder(String tableName) {
 		this.executionsType = "";
+		this.tableName = tableName;
 		this.fromClause = "";
 		this.whereClause = "";
 		this.query = "";
@@ -103,11 +105,10 @@ public class SqlQueryBuilder {
 	/**
 	 * Sets the target table for the SQL query, specifying the table name.
 	 *
-	 * @param tableName The name of the table to query or modify.
 	 * @return The SqlQueryBuilder instance for method chaining.
 	 */
-	public SqlQueryBuilder from(String tableName) {
-		this.fromClause = "FROM " + tableName;
+	public SqlQueryBuilder from() {
+		this.fromClause = "FROM " + this.tableName;
 		return this;
 	}
 
@@ -232,7 +233,8 @@ public class SqlQueryBuilder {
 	 * Sets parameterized values for the SQL query, specifying one or more values.
 	 * For INSERT and UPDATE queries, this method specifies the values corresponding to columns.
 	 *
-	 * @param valuesToSet Specify the amount of values to set, need to match amount of columns set.
+	 * @param valuesToSet Specify the amount of values to set, need to match amount of columns you plan to alter
+	 *                    in the database.
 	 * @return The SqlQueryBuilder instance for method chaining.
 	 */
 	private SqlQueryBuilder parameterizedOfValues(int valuesToSet) {
@@ -254,7 +256,7 @@ public class SqlQueryBuilder {
 	/**
 	 * Retrieves the column-value map set by {@link #setParameterizedValues(java.util.Map)}.
 	 *
-	 * @return The column-value map.
+	 * @return The column-value map or empty if the map is not set.
 	 */
 	public Map<String, Object> getColumnValueMap() {
 		if (columnValueMap != null)
@@ -269,6 +271,15 @@ public class SqlQueryBuilder {
 	 */
 	public String getQuery() {
 		return query;
+	}
+
+	/**
+	 * Get the table name.
+	 *
+	 * @return the table name.
+	 */
+	public String getTableName() {
+		return tableName;
 	}
 
 	/**
