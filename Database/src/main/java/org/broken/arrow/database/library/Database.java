@@ -18,6 +18,7 @@ import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSeriali
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -39,13 +40,14 @@ import java.util.function.Function;
 
 public abstract class Database<statement> {
 
+	private final Map<String, TableWrapper> tables = new HashMap<>();
+	final Map<String, Map<String, Integer>> cachedColumnsIndex = new HashMap<>();
+	private Set<String> removeColumns = new HashSet<>();
 	protected Connection connection;
 	private final MethodReflectionUtils methodReflectionUtils = new MethodReflectionUtils();
 	protected boolean batchUpdateGoingOn = false;
-	private final Map<String, TableWrapper> tables = new HashMap<>();
 	protected boolean hasStartWriteToDb = false;
 	private final DatabaseType databaseType;
-	private Set<String> removeColumns = new HashSet<>();
 	private char quote = '`';
 	private String characterSet = "";
 	private boolean secureQuery = true;
@@ -384,9 +386,11 @@ public abstract class Database<statement> {
 	 * @param threshold the threshold where it should start to remove and below.
 	 */
 	public void removeBelowThreshold(@Nonnull final String tableName, @Nonnull final String column, char quotes, int threshold) {
-		runSQLCommand(new SqlQueryBuilder(quotes + tableName + quotes)
-				.setExecutionsType(SQLCommandPrefix.DELETE_FROM,'*')
-				.where( column + " < " + threshold )
+		runSQLCommand(new SqlQueryBuilder(SQLCommandPrefix.DELETE,  quotes + tableName + quotes)
+				.selectColumns(' ')
+				.from()
+				.where(column + " < ?")
+				.putColumnData(1,column,threshold)
 				.build());
 	}
 
@@ -420,7 +424,7 @@ public abstract class Database<statement> {
 			sqlCommandComposer.executeCustomCommand();
 			sqlComposer.add(sqlCommandComposer);
 		}
-		this.batchUpdate(sqlComposer,  tableWrapper);
+		this.batchUpdate(sqlComposer, tableWrapper);
 	}
 
 	/**
@@ -913,34 +917,64 @@ public abstract class Database<statement> {
 	 * Checks the ResultSet for any found columns in the provided 'columns' mapping and maps them to the correct column indices.
 	 * The corresponding values are then set in the map together with the correct indices.
 	 *
-	 * @param rsmd         the ResultSetMetaData returned from the database to check the metadata.
+	 * @param resultSets,  the result set from the PreparedStatement returned from the database to check the metadata.
 	 * @param columns      a mapping of column names to values to check and set in the map.
-	 * @param tableWrapper provides information about the columns and primary row.
+	 * @param tableWrapper provides information about the columns and primary row if it is set.
 	 * @return A map with set indices and their corresponding values.
 	 * @throws SQLException if a database access error occurs.
 	 */
 	@Nonnull
-	public Map<Integer, Object> mapColumnsToIndices(final ResultSetMetaData rsmd, Map<String, Object> columns, final TableWrapper tableWrapper) throws SQLException {
+	public Map<Integer, Object> mapColumnsToIndices(final ResultSet resultSets, Map<String, Object> columns, final TableWrapper tableWrapper) throws SQLException {
 		if (columns.isEmpty()) return new HashMap<>();
-
-		final int columnCount = rsmd.getColumnCount();
+		DatabaseMetaData metaData = connection.getMetaData();
+		//ResultSet resultSet = metaData.getColumns(null, null, tableWrapper.getTableName(), null);
+		//System.out.println("resultSet next " + resultSet.next());
+		Map<String, Integer> cachedColumns = cachedColumnsIndex.get(tableWrapper.getTableName());
+		if (cachedColumns != null) {
+			return cachedColumns(columns, cachedColumns);
+		} else
+			cachedColumns = new HashMap<>();
 
 		final Map<Integer, Object> columnsSet = new HashMap<>();
-		for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-			String columnName = rsmd.getColumnName(columnIndex);
-			Object value = findValueForColumn(columns, tableWrapper, columnName);
+		try (final PreparedStatement preparedStatement = this.connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableWrapper.getTableName() + this.getQuote() + ";")) {
+			ResultSet resultSet = preparedStatement.executeQuery();
+			try {
+				resultSet.next();
+			} catch (SQLException exception) {
+				LogMsg.warn("Could not access the first result from the resultSet", exception);
+			}
+			ResultSetMetaData metaDataFromDatabase = resultSet.getMetaData();
+			final int columnCount = metaDataFromDatabase.getColumnCount();
+			for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+				String columnName = metaDataFromDatabase.getColumnName(columnIndex);
+				System.out.println("columnName " + columnName);
+				Object value = findValueForColumn(columns, columnName);
 
+				if (value != null) {
+					columnsSet.put(columnIndex, value);
+				}
+				cachedColumns.put(columnName, columnIndex);
+			}
+		} finally {
+			cachedColumnsIndex.put(tableWrapper.getTableName(), cachedColumns);
+		}
+		return columnsSet;
+	}
+
+	public Map<Integer, Object> cachedColumns(Map<String, Object> columns, Map<String, Integer> cachedColumns) {
+		final Map<Integer, Object> columnsSet = new HashMap<>();
+
+		for (Entry<String, Integer> columnEntity : cachedColumns.entrySet()) {
+
+			Object value = findValueForColumn(columns, columnEntity.getKey());
 			if (value != null) {
-				columnsSet.put(columnIndex, value);
+				columnsSet.put(columnEntity.getValue(), value);
 			}
 		}
 		return columnsSet;
 	}
 
-	public Object findValueForColumn(Map<String, Object> columns,TableWrapper tableWrapper, String columnName) {
-		TableRow primaryRow = tableWrapper.getPrimaryRow();
-		if (primaryRow != null && primaryRow.getColumnName().equalsIgnoreCase(columnName))
-			return primaryRow.getColumnName();
+	public Object findValueForColumn(Map<String, Object> columns, String columnName) {
 
 		for (Entry<String, Object> columnEntry : columns.entrySet()) {
 			String columnKey = columnEntry.getKey();
@@ -978,14 +1012,15 @@ public abstract class Database<statement> {
 		}
 		try {
 			for (SqlCommandComposer sql : batchList) {
-
+				Map<Integer, Object> cachedDataByColumn = sql.getCachedDataByColumn();
 				try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
 					boolean valuesSet = false;
-					Map<Integer, Object> mapColumnsToIndices = mapColumnsToIndices(statement.getMetaData(), sql.getCachedDataByColumn(), sql.getTableWrapper());
 
-					if (!mapColumnsToIndices.isEmpty()) {
+					//Map<Integer, Object> mapColumnsToIndices = mapColumnsToIndices(null, sql.getCachedDataByColumn(), sql.getTableWrapper());
+				//	System.out.println("mapColumnsToIndices " + mapColumnsToIndices);
+					if (!cachedDataByColumn.isEmpty()) {
 						// Populate the statement with data where the key is the row identifier (id).
-						for (Entry<Integer, Object> column : mapColumnsToIndices.entrySet()) {
+						for (Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
 							statement.setObject(column.getKey(), column.getValue());
 							valuesSet = true;
 						}
@@ -997,7 +1032,7 @@ public abstract class Database<statement> {
 				} catch (SQLException e) {
 					// Handle the exception for a specific statement
 					LogMsg.warn("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\"");
-					LogMsg.warn("Values that could not be executed: '" + sql.getCachedDataByColumn().values() + "'", e);
+					LogMsg.warn("Values that could not be executed: '" + cachedDataByColumn.values() + "'", e);
 				}
 			}
 		} finally {

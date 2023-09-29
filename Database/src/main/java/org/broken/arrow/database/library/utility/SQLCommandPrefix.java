@@ -14,7 +14,7 @@ public enum SQLCommandPrefix {
 	/**
 	 * Used to remove records from a table.
 	 */
-	DELETE_FROM("DELETE FROM"),
+	DELETE("DELETE"),
 	/**
 	 * Used to create a new table in the database.
 	 */
@@ -43,16 +43,19 @@ public enum SQLCommandPrefix {
 	 * In some database systems like MySQL, this is used to either insert a new row
 	 * or update an existing row in a table based on a unique key.
 	 */
-	REPLACE_INTO("REPLACE INTO"),
+	REPLACE("REPLACE"),
 	/**
 	 * This is same as REPLACE INTO for non MySQL databases, this is used to either insert a new row
 	 * or update an existing row in a table based on a unique key.
 	 */
-	MERGE_INTO("MERGE INTO"),
+	MERGE("MERGE"),
 	/**
 	 * Used to add new records (rows) into a table.
 	 */
-	INSERT_INTO("INSERT INTO"),
+	INSERT("INSERT"),
+
+
+
 	/**
 	 * The SET clause is used in an UPDATE statement to specify the new values for columns in
 	 * existing rows that meet the WHERE clause's condition.

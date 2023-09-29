@@ -26,7 +26,7 @@ public final class SqlCommandComposer {
 	private final RowWrapper rowWrapper;
 	private final Database<?> database;
 	private SqlQueryBuilder queryBuilder;
-	private final Map<String, Object> cachedDataByColumn = new HashMap<>();
+	private final Map<Integer, Object> cachedDataByColumn = new HashMap<>();
 	private Set<String> columnsToUpdate;
 	private final StringBuilder preparedSQLBatch = new StringBuilder();
 	private String queryCommand = "";
@@ -52,7 +52,7 @@ public final class SqlCommandComposer {
 	 *
 	 * @return An unmodifiable map with the column name as the key and the associated data as the value.
 	 */
-	public Map<String, Object> getCachedDataByColumn() {
+	public Map<Integer, Object> getCachedDataByColumn() {
 		return Collections.unmodifiableMap(cachedDataByColumn);
 	}
 
@@ -262,7 +262,7 @@ public final class SqlCommandComposer {
 	/**
 	 * If you have set your own command. You can execute this method to
 	 * set the command and retrieve it from the {@link #getPreparedSQLBatch()}.
-	 *
+	 * <p>
 	 * If you parameterized the values, you then get the map with set indices and
 	 * values here {@link #getCachedDataByColumn()}
 	 */
@@ -274,9 +274,10 @@ public final class SqlCommandComposer {
 				LogMsg.warn("The query command is not set or not properly setup.");
 				return;
 			}
-			Map<String, Object> columnValueMap = queryBuilder.getColumnValueMap();
+			Map<Integer, ColumnWrapper> columnValueMap = queryBuilder.getIndexCachedWithValue();
 			if (!columnValueMap.isEmpty()) {
-				this.cachedDataByColumn.putAll(columnValueMap);
+				columnValueMap.forEach((key, value) ->
+						this.cachedDataByColumn.put(key, value.getColumnValue()));
 			}
 			queryCommand = query;
 			preparedSQLBatch.insert(0, query);
@@ -326,9 +327,9 @@ public final class SqlCommandComposer {
 					.append(columnName)
 					.append(quote)
 					.append(" = ?,");
-			this.cachedDataByColumn.put(columnName, value);
+			this.cachedDataByColumn.put(index++, value);
 		}
-		this.cachedDataByColumn.put(rowWrapper.getPrimaryKey(), record);
+		this.cachedDataByColumn.put(index, record);
 		prepareColumnsToUpdate.setLength(prepareColumnsToUpdate.length() - 1);
 		preparedSQLBatch.append("UPDATE ")
 				.append(quote)
@@ -373,7 +374,7 @@ public final class SqlCommandComposer {
 		values.append("'");
 		values.append(primaryKeyColumnValue);
 		values.append(tableRowMap.size() > 0 ? "'," : "' ");
-		this.cachedDataByColumn.put(saveWrapper.getPrimaryKey(), primaryKeyColumnValue);
+		this.cachedDataByColumn.put(1, primaryKeyColumnValue);
 		prepareValues.append("?,");
 		int index = 2;
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
@@ -392,7 +393,7 @@ public final class SqlCommandComposer {
 
 			values.append(setQuote ? "'" : "").append(value).insert(values.length(), values.length() == 0 ? "" : setQuote ? "," : "',");
 			prepareValues.append("?,");
-			this.cachedDataByColumn.put(columnName, value);
+			this.cachedDataByColumn.put(index++, value);
 		}
 		columns.setLength(columns.length() - 1);
 		values.setLength(values.length() - 1);
