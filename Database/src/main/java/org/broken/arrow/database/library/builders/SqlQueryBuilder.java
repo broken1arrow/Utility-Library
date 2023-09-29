@@ -50,17 +50,21 @@ import java.util.Map.Entry;
  * @see SQLCommandPrefix
  */
 public class SqlQueryBuilder {
-	private String executionsType;
-	private final String tableName;
-	private String fromClause;
-	private String whereClause;
-	private String query;
-	private String wildcard;
-	private StringBuilder updateBuilder;
+
+	private Map<Integer, ColumnWrapper> indexCachedWithValue;
+
 	private StringBuilder builtColumnsWithValues;
 	private StringBuilder joinClause;
+	private StringBuilder updateBuilder;
 	private StringBuilder orderByClause;
-	private Map<Integer, ColumnWrapper> indexCachedWithValue;
+
+	private final String executionsType;
+	private final String tableName;
+	private String clauseBeforeTable;
+	private String query;
+	private String whereClause;
+	private String wildcard;
+
 
 	/**
 	 * Create the instance for the SQL query, such as SELECT, INSERT, UPDATE, or DELETE.
@@ -71,7 +75,7 @@ public class SqlQueryBuilder {
 	public SqlQueryBuilder(final SQLCommandPrefix executionsType, String tableName) {
 		this.executionsType = executionsType == null ? null : executionsType.getKey();
 		this.tableName = tableName;
-		this.fromClause = "";
+		this.clauseBeforeTable = tableName;
 		this.whereClause = "";
 		this.query = "";
 		this.wildcard ="";
@@ -90,7 +94,7 @@ public class SqlQueryBuilder {
 	public SqlQueryBuilder(final String executionsType, String tableName) {
 		this.executionsType = executionsType;
 		this.tableName = tableName;
-		this.fromClause = "";
+		this.clauseBeforeTable = "";
 		this.whereClause = "";
 		this.query = "";
 		this.wildcard ="";
@@ -133,7 +137,7 @@ public class SqlQueryBuilder {
 	 * @return The SqlQueryBuilder instance for method chaining.
 	 */
 	public SqlQueryBuilder withCustomClause(String fromClause) {
-		this.fromClause = fromClause == null ? "" : fromClause + this.tableName;
+		this.clauseBeforeTable = fromClause == null ? "" : fromClause + this.tableName;
 		return this;
 	}
 
@@ -151,7 +155,7 @@ public class SqlQueryBuilder {
 	 * @return The SqlQueryBuilder instance for method chaining.
 	 */
 	public SqlQueryBuilder into() {
-		this.fromClause = "INTO " + this.tableName;
+		this.clauseBeforeTable = "INTO " + this.tableName;
 		return this;
 	}
 
@@ -167,7 +171,7 @@ public class SqlQueryBuilder {
 	 * @return The SqlQueryBuilder instance for method chaining.
 	 */
 	public SqlQueryBuilder from() {
-		this.fromClause = "FROM " + this.tableName;
+		this.clauseBeforeTable = "FROM " + this.tableName;
 		return this;
 	}
 
@@ -230,7 +234,7 @@ public class SqlQueryBuilder {
 			int index = 1;
 			if ("UPDATE".equalsIgnoreCase(this.executionsType) || "update".contains(this.executionsType)) {
 				StringBuilder prepareColumnsToUpdate = new StringBuilder();
-				prepareColumnsToUpdate.append(" SET ");
+				prepareColumnsToUpdate.append("SET ");
 				for (Entry<String, Object> entry : columnValueMap.entrySet()) {
 					final String columnName = entry.getKey();
 					final Object value = entry.getValue();
@@ -271,7 +275,7 @@ public class SqlQueryBuilder {
 		if (columnValueMap != null && !columnValueMap.isEmpty()) {
 			if ("UPDATE".equalsIgnoreCase(this.executionsType) || "update".contains(this.executionsType)) {
 				StringBuilder columns = new StringBuilder();
-				columns.append(" SET ");
+				columns.append("SET ");
 				for (Entry<String, Object> entry : columnValueMap.entrySet()) {
 					final String columnName = entry.getKey();
 					final Object value = entry.getValue();
@@ -358,18 +362,19 @@ public class SqlQueryBuilder {
 		if (!wildcard.isEmpty())
 			query.append(wildcard)
 					.append(" ");
+		if (clauseBeforeTable == null) {
+			return this;
+		}
+		query.append(clauseBeforeTable).append(" ");
+
 		if ( builtColumnsWithValues != null) {
 			query.append(builtColumnsWithValues);
 			this.query = query.toString();
 			return this;
 		}
-		if (fromClause == null && whereClause == null) {
-			return this;
-		}
-		query.append(fromClause).append(" ");
 
 		if (updateBuilder != null) {
-			query.append(updateBuilder);
+			query.append(updateBuilder).append(" ");
 		}
 		if (whereClause != null) {
 			query.append(whereClause);
@@ -441,7 +446,8 @@ public class SqlQueryBuilder {
 			columns.append(columnName).insert(columns.length(), columns.length() == 0 ? "" : ",");
 			values.append(value).insert(values.length(), values.length() == 0 ? "" : ",");
 		}
-		//columns.setLength(columns.length() - 1);
+		columns.setLength(columns.length() - 1);
+		values .setLength(values.length() - 1);
 		columns.insert(columns.length(), ") VALUES(" + values + ")");
 		return columns;
 	}
@@ -452,7 +458,7 @@ public class SqlQueryBuilder {
 			return false;
 		}
 
-		if (builtColumnsWithValues == null && fromClause == null && whereClause == null && updateBuilder == null) {
+		if (builtColumnsWithValues == null && clauseBeforeTable == null && whereClause == null && updateBuilder == null) {
 			LogMsg.warn("You need to set the column name or column names and value/values." +
 					"\nAlternatively specify from what table and set the where condition or conditions.");
 			return false;
@@ -468,7 +474,7 @@ public class SqlQueryBuilder {
 			return true;
 		}
 
-		if (fromClause == null && whereClause == null) {
+		if (clauseBeforeTable == null || whereClause == null) {
 			LogMsg.warn("You need to specify what table to set the data and the condition or conditions where to get the data from.");
 			return false;
 		}
