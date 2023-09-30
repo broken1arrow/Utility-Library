@@ -76,7 +76,7 @@ public class SqlQueryBuilder {
 	public SqlQueryBuilder(final Builder builder) {
 		this.executionsType = builder.executionsType == null ? null : builder.executionsType;
 		this.tableName = builder.tableName;
-		this.clauseBeforeTable = builder.tableName;
+		this.clauseBeforeTable = builder.clauseBeforeTable;
 		this.whereClause = builder.whereClause;
 		this.query = builder.query;
 		this.wildcard = builder.wildcard;
@@ -265,10 +265,10 @@ public class SqlQueryBuilder {
 
 		private final String executionsType;
 		private final String tableName;
-		private String clauseBeforeTable;
-		private String query;
-		private String whereClause;
-		private String wildcard;
+		private String clauseBeforeTable = "";
+		private final String query = "";
+		private String whereClause = "";
+		private String wildcard ="";
 
 		public Builder(final SQLCommandPrefix executionsType, String tableName) {
 			this(executionsType.getKey(), tableName);
@@ -277,6 +277,7 @@ public class SqlQueryBuilder {
 		public Builder(final String executionsType, final String tableName) {
 			this.executionsType = executionsType;
 			this.tableName = tableName;
+			this.clauseBeforeTable = tableName;
 		}
 
 		/**
