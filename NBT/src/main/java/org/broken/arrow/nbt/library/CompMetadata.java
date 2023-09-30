@@ -65,22 +65,23 @@ public final class CompMetadata {
 	 * </p>
 	 *
 	 * @param item  you want to set metadata on.
-	 * @param key   you want to set on this item.
-	 * @param value you want to set on this item.
-	 * @return clone of your item with metadata set.
+	 * @param key   The key you want to set on this item.
+	 * @param value The value you want to set on this item, it will try convert it
+	 *              to right class, if not fund it will be converted to string.
+	 * @return The original itemStack with the metadata set.
 	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull final String key, @Nonnull final Object value) {
 		Valid.checkNotNull(item, "Setting NBT tag got null item");
 
-		ItemStack clonedStack = new ItemStack(item);
-		return NBT.modify(clonedStack, writeItemNBT -> {
+		return NBT.modify(item, writeItemNBT -> {
 			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
 			if (compound != null) {
 				setNBTValue(compound, key, value);
 			}
-			return clonedStack;
+			return item;
 		});
+
 	}
 
 	/**
@@ -93,20 +94,18 @@ public final class CompMetadata {
 	 * </p>
 	 *
 	 * @param item     The ItemStack you want to set metadata on.
-	 * @param writeNBT The NBT data writer used to set metadata values.
-	 * @return A clone of your item with metadata set.
+	 * @param writeNBT The NBT data consumer to set several metadata values.
+	 * @return The original itemStack with the metadata set.
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull Consumer<NBTDataWriterWrapper> writeNBT) {
 		Valid.checkNotNull(item, "Setting NBT tag got null item");
 
-		ItemStack clonedStack = new ItemStack(item);
-
-		return NBT.modify(clonedStack, writeItemNBT -> {
+		return NBT.modify(item, writeItemNBT -> {
 			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
 			if (compound != null) {
 				writeNBT.accept(new NBTDataWriterWrapper(compound));
 			}
-			return clonedStack;
+			return item;
 		});
 	}
 
@@ -123,15 +122,14 @@ public final class CompMetadata {
 	 *
 	 * @param item   The item on which you want to set metadata.
 	 * @param nbtMap A map containing all the key-value pairs you want to set.
-	 * @return A clone of your item with the metadata set.
+	 * @return the original itemStack with the metadata set.
 	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
 	 */
 	public ItemStack setAllMetadata(@Nonnull final ItemStack item, @Nonnull final Map<String, Object> nbtMap) {
 		Valid.checkNotNull(item, "Setting NBT tag got null item");
 		Valid.checkNotNull(nbtMap, "The map with nbt should not be null");
 
-		ItemStack clonedStack = new ItemStack(item);
-		return NBT.modify(clonedStack, nbt -> {
+		return NBT.modify(item, nbt -> {
 			ReadWriteNBT compound = nbt.getOrCreateCompound(this.getCompoundKey());
 			if (compound != null) {
 				for (Entry<String, Object> entry : nbtMap.entrySet()) {
@@ -139,16 +137,8 @@ public final class CompMetadata {
 					setNBTValue(compound, entry.getKey(), value);
 				}
 			}
-			return clonedStack;
+			return item;
 		});
-	/*	for (Entry<String, Object> entry : nbtMap.entrySet()) {
-			Object value = entry.getValue();
-			if (value instanceof String)
-				tag.setString(entry.getKey(), (String) value);
-			else
-				tag.setObject(entry.getKey(), value);
-		}
-		return nbt.getItem();*/
 	}
 
 	/**
@@ -552,7 +542,7 @@ public final class CompMetadata {
 
 	/**
 	 * Note!!! This is not implemented.
-	 *
+	 * <p>
 	 * Due to lack of persistent metadata implementation until Minecraft 1.14.x, we
 	 * simply store them in a file during server restart and then apply as a
 	 * temporary metadata for the Bukkit entities.
