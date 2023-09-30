@@ -18,7 +18,6 @@ import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSeriali
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -913,78 +912,6 @@ public abstract class Database<statement> {
 		return methodReflectionUtils;
 	}
 
-	/**
-	 * Checks the ResultSet for any found columns in the provided 'columns' mapping and maps them to the correct column indices.
-	 * The corresponding values are then set in the map together with the correct indices.
-	 *
-	 * @param resultSets,  the result set from the PreparedStatement returned from the database to check the metadata.
-	 * @param columns      a mapping of column names to values to check and set in the map.
-	 * @param tableWrapper provides information about the columns and primary row if it is set.
-	 * @return A map with set indices and their corresponding values.
-	 * @throws SQLException if a database access error occurs.
-	 */
-	@Nonnull
-	public Map<Integer, Object> mapColumnsToIndices(final ResultSet resultSets, Map<String, Object> columns, final TableWrapper tableWrapper) throws SQLException {
-		if (columns.isEmpty()) return new HashMap<>();
-		DatabaseMetaData metaData = connection.getMetaData();
-		//ResultSet resultSet = metaData.getColumns(null, null, tableWrapper.getTableName(), null);
-		//System.out.println("resultSet next " + resultSet.next());
-		Map<String, Integer> cachedColumns = cachedColumnsIndex.get(tableWrapper.getTableName());
-		if (cachedColumns != null) {
-			return cachedColumns(columns, cachedColumns);
-		} else
-			cachedColumns = new HashMap<>();
-
-		final Map<Integer, Object> columnsSet = new HashMap<>();
-		try (final PreparedStatement preparedStatement = this.connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableWrapper.getTableName() + this.getQuote() + ";")) {
-			ResultSet resultSet = preparedStatement.executeQuery();
-			try {
-				resultSet.next();
-			} catch (SQLException exception) {
-				LogMsg.warn("Could not access the first result from the resultSet", exception);
-			}
-			ResultSetMetaData metaDataFromDatabase = resultSet.getMetaData();
-			final int columnCount = metaDataFromDatabase.getColumnCount();
-			for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-				String columnName = metaDataFromDatabase.getColumnName(columnIndex);
-				System.out.println("columnName " + columnName);
-				Object value = findValueForColumn(columns, columnName);
-
-				if (value != null) {
-					columnsSet.put(columnIndex, value);
-				}
-				cachedColumns.put(columnName, columnIndex);
-			}
-		} finally {
-			cachedColumnsIndex.put(tableWrapper.getTableName(), cachedColumns);
-		}
-		return columnsSet;
-	}
-
-	public Map<Integer, Object> cachedColumns(Map<String, Object> columns, Map<String, Integer> cachedColumns) {
-		final Map<Integer, Object> columnsSet = new HashMap<>();
-
-		for (Entry<String, Integer> columnEntity : cachedColumns.entrySet()) {
-
-			Object value = findValueForColumn(columns, columnEntity.getKey());
-			if (value != null) {
-				columnsSet.put(columnEntity.getValue(), value);
-			}
-		}
-		return columnsSet;
-	}
-
-	public Object findValueForColumn(Map<String, Object> columns, String columnName) {
-
-		for (Entry<String, Object> columnEntry : columns.entrySet()) {
-			String columnKey = columnEntry.getKey();
-			if (columnKey.equalsIgnoreCase(columnName)) {
-				return columnEntry.getValue();
-			}
-		}
-		return null;
-	}
-
 	protected final void batchUpdate(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
 		final ArrayList<SqlCommandComposer> sqls = new ArrayList<>(batchList);
 		if (!openConnection()) {
@@ -1015,9 +942,7 @@ public abstract class Database<statement> {
 				Map<Integer, Object> cachedDataByColumn = sql.getCachedDataByColumn();
 				try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
 					boolean valuesSet = false;
-
-					//Map<Integer, Object> mapColumnsToIndices = mapColumnsToIndices(null, sql.getCachedDataByColumn(), sql.getTableWrapper());
-				//	System.out.println("mapColumnsToIndices " + mapColumnsToIndices);
+					
 					if (!cachedDataByColumn.isEmpty()) {
 						// Populate the statement with data where the key is the row identifier (id).
 						for (Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
