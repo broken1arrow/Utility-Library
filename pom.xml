@@ -260,7 +260,7 @@
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <finalName>${project.name}-${project.version}</finalName>
-                            <filters>
+             <!--               <filters>
                                 <filter>
                                     <artifact>de.tr7zw:item-nbt-api-plugin</artifact>
                                     <excludes>
@@ -269,7 +269,7 @@
                                         <exclude>de/tr7zw/nbtapi/plugin/**</exclude>
                                     </excludes>
                                 </filter>
-                            </filters>
+                            </filters>-->
                             <artifactSet>
                                 <includes>
                                     <!-- <include>org.broken.arrow.library:NBT</include>-->
@@ -281,7 +281,7 @@
                             </artifactSet>
                             <relocations>
                                 <relocation>
-                                    <pattern>de.tr7zw</pattern>
+                                    <pattern>de.tr7zw.changeme.nbtapi</pattern>
                                     <shadedPattern>${project.groupId}.dependencies.nbt</shadedPattern>
                                 </relocation>
                             </relocations>

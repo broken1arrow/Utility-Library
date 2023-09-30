@@ -34,6 +34,7 @@ public class UpdateTitle {
 	 * @param player the player that open the inventory.
 	 * @param title  the title should be showed.
 	 */
+	@Deprecated
 	public static void update(final Player player, final JsonArray title) {
 
 		//update( player,  title, false);
@@ -130,6 +131,12 @@ public class UpdateTitle {
 			titleLogger.sendLOG(Level.WARNING, "The set NMS values: " + containerUtility);
 			return;
 		}
+		if (serverVersion <= 0){
+			titleLogger.sendLOG(Level.WARNING, "The server version is 0 or below " + serverVersion);
+			return;
+		}
+
+
 		if (player != null && containerUtility != null && serverVersion > 0)
 			try {
 				if (!titleUtility.isTitleSet())

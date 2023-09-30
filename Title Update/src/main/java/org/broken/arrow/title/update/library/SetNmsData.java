@@ -8,6 +8,7 @@ import org.broken.arrow.title.update.library.nms.modules.V_1_18_2_Inventory;
 import org.broken.arrow.title.update.library.nms.modules.V_1_18_Inventory;
 import org.broken.arrow.title.update.library.nms.modules.V_1_19_4_Inventory;
 import org.broken.arrow.title.update.library.nms.modules.V_1_19_Inventory;
+import org.broken.arrow.title.update.library.nms.modules.V_1_20_2_Inventory;
 import org.broken.arrow.title.update.library.nms.modules.V_1_20_Inventory;
 import org.bukkit.Bukkit;
 
@@ -54,9 +55,14 @@ public class SetNmsData {
 	@Nonnull
 	private ContainerUtility setNmsData(float serverVersion) {
 		InventoryNMS inventoryNMS;
+		System.out.println("serverVersion " + serverVersion);
 		switch ((int) Math.floor(serverVersion)) {
 			case 20:
-				inventoryNMS = new V_1_20_Inventory();
+				if (serverVersion > 20.1F)
+					inventoryNMS = new V_1_20_2_Inventory();
+				else
+					inventoryNMS = new V_1_20_Inventory();
+				System.out.println("inventoryNMS " + inventoryNMS);
 				break;
 			case 19:
 				if (serverVersion >= 19.4F) {
@@ -79,7 +85,10 @@ public class SetNmsData {
 				if (serverVersion < 14.0F) {
 					inventoryNMS = new V_1_12_Inventory();
 				} else {
-					inventoryNMS = new V_1_16_Inventory();
+					if (serverVersion > 19)
+						inventoryNMS = new V_1_20_Inventory();
+					else
+						inventoryNMS = new V_1_16_Inventory();
 				}
 		}
 		return new ContainerUtility(inventoryNMS, serverVersion);

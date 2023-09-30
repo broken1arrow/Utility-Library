@@ -49,7 +49,7 @@ public class ContainerUtility {
 		//final Object entityPlayer = player.getClass().getMethod("getHandle").invoke(player);
 		Object entityPlayer = handle.invoke(player);
 		Class<?> entityPlayerClass = entityPlayer.getClass();
-		// inside net.minecraft.world.entity.player and class EntityHuman do you have this field
+		// inside net.minecraft.world.entity.player and class EntityHuman do you have this field for Container class
 		final Object activeContainer = entityPlayerClass.getField(inventoryNMS.getContainerField()).get(entityPlayer);
 		// inside net.minecraft.world.inventory and class Container do you have this field newer version it is currently "j"
 		final Object windowId = activeContainer.getClass().getField(inventoryNMS.getWindowId()).get(activeContainer);
@@ -76,7 +76,11 @@ public class ContainerUtility {
 			inventoryTitle = chatSerialMethod.invoke(null, title);
 			packetInstance = packetConstructor.newInstance(windowId, fieldName, inventoryTitle, inventorySize);
 		}
-		//final Object handles = handle.invoke(player);
+		System.out.println("windowId " + windowId);
+		System.out.println("fieldName " + fieldName);
+		System.out.println("inventoryTitle " + inventoryTitle);
+		System.out.println("inventorySize " + inventorySize);
+
 		final Object playerConnect = playerConnection.get(entityPlayer);
 		// net.minecraft.server.network.PlayerConnection
 		final Method packet = packetConnectionClass.getMethod(inventoryNMS.getSendPacketName(), packetClass);

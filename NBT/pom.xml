@@ -62,25 +62,6 @@
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <finalName>${project.name}-${project.version}</finalName>
-                            <filters>
-                                <!-- <filter>
-                                     <artifact>*:*</artifact>
-                                     <excludes>
-                                         <exclude>de/tr7zw/nbtinjector/**</exclude>
-                                         <exclude>de/tr7zw/nbtapi/plugin/**</exclude>
-                                     </excludes>
-                                 </filter>-->
-                                <filter>
-                                    <artifact>de.tr7zw:item-nbt-api-plugin</artifact>
-                                    <excludes>
-                                        <exclude>plugin.yml</exclude>
-                                        <exclude>de/tr7zw/nbtinjector/**</exclude>
-                                        <exclude>de/tr7zw/nbtapi/plugin/**</exclude>
-                                        <exclude>META-INF/MANIFEST.MF/**</exclude>
-                                        <exclude>META-INF/maven/**</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
                             <artifactSet>
                                 <includes>
                                     <include>de.tr7zw:item-nbt-api</include>
@@ -88,7 +69,7 @@
                             </artifactSet>
                             <relocations>
                                 <relocation>
-                                    <pattern>de.tr7zw</pattern>
+                                    <pattern>de.tr7zw.changeme.nbtapi</pattern>
                                     <shadedPattern>${project.groupId}.dependencies.nbt</shadedPattern>
                                 </relocation>
                             </relocations>

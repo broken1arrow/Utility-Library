@@ -942,7 +942,7 @@ public abstract class Database<statement> {
 				Map<Integer, Object> cachedDataByColumn = sql.getCachedDataByColumn();
 				try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
 					boolean valuesSet = false;
-					
+
 					if (!cachedDataByColumn.isEmpty()) {
 						// Populate the statement with data where the key is the row identifier (id).
 						for (Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {

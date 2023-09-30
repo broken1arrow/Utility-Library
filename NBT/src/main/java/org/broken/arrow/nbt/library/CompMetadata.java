@@ -75,7 +75,7 @@ public final class CompMetadata {
 
 		ItemStack clonedStack = new ItemStack(item);
 		return NBT.modify(clonedStack, writeItemNBT -> {
-			ReadWriteNBT compound = writeItemNBT.getCompound(this.getCompoundKey());
+			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
 			if (compound != null) {
 				setNBTValue(compound, key, value);
 			}
@@ -102,7 +102,7 @@ public final class CompMetadata {
 		ItemStack clonedStack = new ItemStack(item);
 
 		return NBT.modify(clonedStack, writeItemNBT -> {
-			ReadWriteNBT compound = writeItemNBT.getCompound(this.getCompoundKey());
+			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
 			if (compound != null) {
 				writeNBT.accept(new NBTDataWriterWrapper(compound));
 			}
@@ -132,7 +132,7 @@ public final class CompMetadata {
 
 		ItemStack clonedStack = new ItemStack(item);
 		return NBT.modify(clonedStack, nbt -> {
-			ReadWriteNBT compound = nbt.getCompound(this.getCompoundKey());
+			ReadWriteNBT compound = nbt.getOrCreateCompound(this.getCompoundKey());
 			if (compound != null) {
 				for (Entry<String, Object> entry : nbtMap.entrySet()) {
 					Object value = entry.getValue();
