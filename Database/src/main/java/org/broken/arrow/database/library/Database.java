@@ -386,7 +386,7 @@ public abstract class Database<statement> {
 	 * @param threshold the threshold where it should start to remove and below.
 	 */
 	public void removeBelowThreshold(@Nonnull final String tableName, @Nonnull final String column, char quotes, int threshold) {
-		runSQLCommand(new SqlQueryBuilder(SQLCommandPrefix.DELETE,  quotes + tableName + quotes)
+		runSQLCommand(new SqlQueryBuilder.Builder(SQLCommandPrefix.DELETE,  quotes + tableName + quotes)
 				.selectColumns(' ')
 				.from()
 				.where(column + " < ?")

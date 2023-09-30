@@ -27,7 +27,8 @@ import java.util.Map.Entry;
  * String query1 = builder
  *     .selectColumns('*')
  *     .from()
- *     .where("column_name < threshold")
+ *     .where("column_name < ?")
+ *     .putColumnData(1, "column_name", 5)
  *     .build()
  *     .getQuery();
  * }</pre>
@@ -37,287 +38,58 @@ import java.util.Map.Entry;
  * - This class performs basic error checks during query construction and provides warnings if essential components are missing.
  * </p>
  * <p>
- * - It is essential to set the execution type, such as SELECT, INSERT, etc., using {@link #selectColumns(char)}.
+ * - It is essential to set the execution type, such as SELECT, INSERT, etc., using {@link org.broken.arrow.database.library.builders.SqlQueryBuilder.Builder#selectColumns(char)}.
  * </p>
  * <p>
- * - For INSERT and UPDATE queries, ensure you call {@link #setValues(java.util.Map)} or {@link #setParameterizedValues(java.util.Map)}.
+ * - For INSERT,REPLACE or MERGE and UPDATE queries, ensure you call {@link org.broken.arrow.database.library.builders.SqlQueryBuilder.Builder#into()} or {@link org.broken.arrow.database.library.builders.SqlQueryBuilder.Builder#update()}.
  * to specify the columns and values.
  * </p>
  * <p>
- * - For SELECT and DELETE queries, use {@link #from()} and optionally {@link #where(String)} to set the table and conditions.
+ * - For SELECT and DELETE queries, use {@link org.broken.arrow.database.library.builders.SqlQueryBuilder.Builder#from()} and optionally {@link org.broken.arrow.database.library.builders.SqlQueryBuilder.Builder#where(String)} to set the table and conditions.
  * </p>
  *
  * @see SQLCommandPrefix
  */
 public class SqlQueryBuilder {
 
-	private Map<Integer, ColumnWrapper> indexCachedWithValue;
+	private final Map<Integer, ColumnWrapper> indexCachedWithValue;
 
-	private StringBuilder builtColumnsWithValues;
-	private StringBuilder joinClause;
-	private StringBuilder updateBuilder;
-	private StringBuilder orderByClause;
+	private final StringBuilder builtColumnsWithValues;
+	private final StringBuilder joinClause;
+	private final StringBuilder updateBuilder;
+	private final StringBuilder orderByClause;
 
 	private final String executionsType;
 	private final String tableName;
-	private String clauseBeforeTable;
+	private final String clauseBeforeTable;
 	private String query;
-	private String whereClause;
-	private String wildcard;
+	private final String whereClause;
+	private final String wildcard;
 
 
 	/**
 	 * Create the instance for the SQL query, such as SELECT, INSERT, UPDATE, or DELETE.
 	 *
-	 * @param executionsType The SQL command execution type (e.g., SELECT, INSERT, UPDATE, DELETE).
-	 * @param tableName      The table name you want to execute the command inside.
-	 */
-	public SqlQueryBuilder(final SQLCommandPrefix executionsType, String tableName) {
-		this.executionsType = executionsType == null ? null : executionsType.getKey();
-		this.tableName = tableName;
-		this.clauseBeforeTable = tableName;
-		this.whereClause = "";
-		this.query = "";
-		this.wildcard ="";
-		this.builtColumnsWithValues = null;
-		this.joinClause = null;
-		this.orderByClause = null;
-		this.indexCachedWithValue = null;
-	}
+	 * @param builder The builder for the command.
 
-	/**
-	 * Create the instance for the SQL query, such as SELECT, INSERT, UPDATE, or DELETE.
-	 *
-	 * @param executionsType The SQL command execution type (e.g., SELECT, INSERT, UPDATE, DELETE).
-	 * @param tableName      The table name you want to execute the command inside.
 	 */
-	public SqlQueryBuilder(final String executionsType, String tableName) {
-		this.executionsType = executionsType;
-		this.tableName = tableName;
-		this.clauseBeforeTable = "";
-		this.whereClause = "";
-		this.query = "";
-		this.wildcard ="";
-		this.builtColumnsWithValues = null;
-		this.joinClause = null;
-		this.orderByClause = null;
-		this.indexCachedWithValue = null;
-	}
-
-	/**
-	 * Specify the wildcard character for selecting all columns or type columns you want to get.
-	 *
-	 * @param wildcard The wildcard character for selecting all columns (e.g., '*') or the name of the
-	 *                 column.
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder selectColumns(final String wildcard) {
-		this.wildcard = wildcard == null? "" : wildcard;
-		return this;
-	}
-
-	/**
-	 * Specify the wildcard character for selecting all columns.
-	 *
-	 * @param wildcard The wildcard character for selecting all columns (e.g., '*') or the name of the
-	 *                 column.
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder selectColumns(final char wildcard) {
-		this.wildcard = wildcard + "";
-		return this;
-	}
-
-	/**
-	 * Specifies a custom target table for the SQL query, allowing you to set your own for example FROM or INTO clause
-	 * in front of the table name.
-	 *
-	 * @param fromClause The custom FROM or INTO clause to be appended to the table name.
-	 *                   If not needed, you can provide an empty string or null.
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder withCustomClause(String fromClause) {
-		this.clauseBeforeTable = fromClause == null ? "" : fromClause + this.tableName;
-		return this;
-	}
-
-	/**
-	 * Sets the target table for the SQL query, specifying the table name
-	 * and the into statement.
-	 * And used for REPLACE_INTO,MERGE_INTO and INSERT_INTO
-	 *
-	 * <p>&nbsp;</p>
-	 * <p>
-	 * This method is used to tell where as example below:
-	 * "INSERT INTO tableName (column1, column2, column3) VALUES (value1, value2, value3);".
-	 * </p>
-	 *
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder into() {
-		this.clauseBeforeTable = "INTO " + this.tableName;
-		return this;
-	}
-
-	/**
-	 * Sets the from target table for the SQL query, specifying the table name
-	 * and the from statement.
-	 * <p>&nbsp;</p>
-	 * <p>
-	 * This method is used to set the from where as example below:
-	 * "DELETE FROM tableName WHERE column1 = value (alternatively a placeholder) ?".
-	 * </p>
-	 *
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder from() {
-		this.clauseBeforeTable = "FROM " + this.tableName;
-		return this;
-	}
-
-	/**
-	 * Sets the WHERE clause for the SQL query, specifying a condition.
-	 *
-	 * @param condition The condition to apply in the WHERE clause.
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder where(String condition) {
-		if (condition != null && !condition.isEmpty()) {
-			this.whereClause = "WHERE " + condition;
-		}
-		return this;
-	}
-
-	/**
-	 * Adds a JOIN clause to the SQL query.
-	 *
-	 * @param tableName The name of the table to join.
-	 * @param condition The join condition.
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder join(String tableName, String condition) {
-		if (joinClause == null) {
-			joinClause = new StringBuilder();
-		} else {
-			joinClause.append(" ");
-		}
-		joinClause.append("JOIN ").append(tableName).append(" ON ").append(condition);
-		return this;
-	}
-
-	/**
-	 * Adds an ORDER BY clause to the SQL query.
-	 *
-	 * @param columnName The name of the column by which to order the results.
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder orderBy(String columnName) {
-		if (orderByClause == null) {
-			orderByClause = new StringBuilder();
-		} else {
-			orderByClause.append(", ");
-		}
-		orderByClause.append(columnName);
-		return this;
+	public SqlQueryBuilder(final Builder builder) {
+		this.executionsType = builder.executionsType == null ? null : builder.executionsType;
+		this.tableName = builder.tableName;
+		this.clauseBeforeTable = builder.tableName;
+		this.whereClause = builder.whereClause;
+		this.query = builder.query;
+		this.wildcard = builder.wildcard;
+		this.updateBuilder = builder.updateBuilder;
+		this.builtColumnsWithValues = builder.builtColumnsWithValues;
+		this.joinClause = builder.joinClause;
+		this.orderByClause = builder.orderByClause;
+		this.indexCachedWithValue = builder.indexCachedWithValue;
 	}
 
 
 	/**
-	 * Sets parameterized values for the SQL query using a map of column-value pairs.
-	 * For INSERT and UPDATE queries, this method specifies both columns and values.
-	 *
-	 * @param columnValueMap A map containing column names as keys and corresponding values.
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder setParameterizedValues(Map<String, Object> columnValueMap) {
-		if (columnValueMap != null && !columnValueMap.isEmpty()) {
-			int index = 1;
-			if ("UPDATE".equalsIgnoreCase(this.executionsType) || "update".contains(this.executionsType)) {
-				StringBuilder prepareColumnsToUpdate = new StringBuilder();
-				prepareColumnsToUpdate.append("SET ");
-				for (Entry<String, Object> entry : columnValueMap.entrySet()) {
-					final String columnName = entry.getKey();
-					final Object value = entry.getValue();
-					prepareColumnsToUpdate.append(columnName).append(" = ?,");
-					this.putColumnData(index++, columnName, value);
-				}
-				prepareColumnsToUpdate.setLength(prepareColumnsToUpdate.length() - 1);
-				this.updateBuilder = prepareColumnsToUpdate;
-				return this;
-			}
-
-			StringBuilder columnBuilder = new StringBuilder();
-			columnBuilder.append("(");
-			for (Entry<String, Object> column : columnValueMap.entrySet()) {
-				columnBuilder.append(column.getKey()).append(",");
-				this.putColumnData(index++, column.getKey(), column.getValue());
-			}
-			columnBuilder.setLength(columnBuilder.length() - 1);
-			columnBuilder.append(") ");
-			int size = columnValueMap.keySet().size();
-			if (size > 0) {
-				StringBuilder values = this.merge(true, size);
-				columnBuilder.insert(columnBuilder.length(), values);
-				this.builtColumnsWithValues = columnBuilder;
-			}
-		}
-		return this;
-	}
-
-	/**
-	 * Sets values for the SQL query using a map of column-value pairs.
-	 * For INSERT and UPDATE queries, this method specifies both columns and values.
-	 *
-	 * @param columnValueMap A map containing column names as keys and corresponding values.
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder setValues(Map<String, Object> columnValueMap) {
-		if (columnValueMap != null && !columnValueMap.isEmpty()) {
-			if ("UPDATE".equalsIgnoreCase(this.executionsType) || "update".contains(this.executionsType)) {
-				StringBuilder columns = new StringBuilder();
-				columns.append("SET ");
-				for (Entry<String, Object> entry : columnValueMap.entrySet()) {
-					final String columnName = entry.getKey();
-					final Object value = entry.getValue();
-					columns.append(columnName);
-					if (columns.length() == 0) {
-						columns.append(" = ").append(value == null ? null : "'" + value + "'");
-					} else {
-						columns.append(" = ").append(value == null ? null + "," : "'" + value + "', ");
-					}
-				}
-				columns.setLength(columns.length() - 1);
-				this.updateBuilder = columns;
-				return this;
-			}
-			this.builtColumnsWithValues = mergeObjectsFromMap(columnValueMap);
-
-		}
-		return this;
-	}
-
-	/**
-	 * Caches the value and column name with an index in a parameterized SQL command.
-	 * <p>&nbsp;</p>
-	 * <p>
-	 * This method is useful when you have a preset command like:
-	 * "INSERT INTO tableName (column1, column2, column3) VALUES (?, ?, ?)".
-	 * </p>
-	 *
-	 * @param index      The index of the value where the corresponding column name is set.
-	 * @param columnName The name of the column to be set with the given index.
-	 * @param value      The value that will be set in the database.
-	 * @return The SqlQueryBuilder instance for method chaining.
-	 */
-	public SqlQueryBuilder putColumnData(int index, String columnName, Object value) {
-		if (this.indexCachedWithValue == null)
-			this.indexCachedWithValue = new HashMap<>();
-		this.indexCachedWithValue.put(index, new ColumnWrapper(columnName, value));
-		return this;
-	}
-
-	/**
-	 * Retrieves the column-value map set by {@link #setParameterizedValues(java.util.Map)}.
+	 * Retrieves the column-value map set by {@link org.broken.arrow.database.library.builders.SqlQueryBuilder.SqlCommandPartBuilder#setParameterizedValues(java.util.Map)}.
 	 *
 	 * @return The column-value map or empty if the map is not set.
 	 */
@@ -367,8 +139,9 @@ public class SqlQueryBuilder {
 		}
 		query.append(clauseBeforeTable).append(" ");
 
-		if ( builtColumnsWithValues != null) {
+		if (builtColumnsWithValues != null) {
 			query.append(builtColumnsWithValues);
+			query.append(";");
 			this.query = query.toString();
 			return this;
 		}
@@ -385,7 +158,7 @@ public class SqlQueryBuilder {
 		if (orderByClause != null) {
 			query.append(orderByClause);
 		}
-
+		query.append(";");
 		this.query = query.toString();
 		return this;
 	}
@@ -398,7 +171,7 @@ public class SqlQueryBuilder {
 	 * @param objectsToMerge The objects to be merged into a StringBuilder.
 	 * @return The StringBuilder containing the formatted values, like this: (object1, object2, object3).
 	 */
-	private StringBuilder mergeObjects(boolean placeholder, Object... objectsToMerge) {
+	private static StringBuilder mergeObjects(boolean placeholder, Object... objectsToMerge) {
 		return merge(placeholder, -1, objectsToMerge);
 	}
 
@@ -411,7 +184,7 @@ public class SqlQueryBuilder {
 	 * @param objectsToMerge The objects to be merged into a StringBuilder.
 	 * @return The StringBuilder containing the formatted values, like this: (object1, object2, object3).
 	 */
-	private StringBuilder merge(boolean placeholder, int size, Object... objectsToMerge) {
+	private static StringBuilder merge(boolean placeholder, int size, Object... objectsToMerge) {
 		StringBuilder objectBuilder = new StringBuilder();
 		objectBuilder.append("(");
 		int valuesToSet = placeholder && size > 0 && (objectsToMerge == null || objectsToMerge.length == 0) ? size : objectsToMerge.length;
@@ -435,7 +208,7 @@ public class SqlQueryBuilder {
 	 * @param mapOfObjects The map of objects to be merged into a StringBuilder.
 	 * @return The StringBuilder containing the formatted values, like this: (object1, object2, object3).
 	 */
-	private StringBuilder mergeObjectsFromMap(Map<String, Object> mapOfObjects) {
+	private static StringBuilder mergeObjectsFromMap(Map<String, Object> mapOfObjects) {
 		StringBuilder columns = new StringBuilder();
 		StringBuilder values = new StringBuilder();
 
@@ -447,7 +220,7 @@ public class SqlQueryBuilder {
 			values.append(value).insert(values.length(), values.length() == 0 ? "" : ",");
 		}
 		columns.setLength(columns.length() - 1);
-		values .setLength(values.length() - 1);
+		values.setLength(values.length() - 1);
 		columns.insert(columns.length(), ") VALUES(" + values + ")");
 		return columns;
 	}
@@ -481,4 +254,292 @@ public class SqlQueryBuilder {
 
 		return true;
 	}
+
+	public static class Builder {
+
+		private Map<Integer, ColumnWrapper> indexCachedWithValue;
+		private StringBuilder builtColumnsWithValues;
+		private StringBuilder joinClause;
+		private StringBuilder updateBuilder;
+		private StringBuilder orderByClause;
+
+		private final String executionsType;
+		private final String tableName;
+		private String clauseBeforeTable;
+		private String query;
+		private String whereClause;
+		private String wildcard;
+
+		public Builder(final SQLCommandPrefix executionsType, String tableName) {
+			this(executionsType.getKey(), tableName);
+		}
+
+		public Builder(final String executionsType, final String tableName) {
+			this.executionsType = executionsType;
+			this.tableName = tableName;
+		}
+
+		/**
+		 * Specify the wildcard character for selecting all columns or type columns you want to get.
+		 *
+		 * @param wildcard The wildcard character for selecting all columns (e.g., '*') or the name of the
+		 *                 column.
+		 * @return The SqlQueryBuilder instance for method chaining.
+		 */
+		public Builder selectColumns(final String wildcard) {
+			this.wildcard = wildcard == null ? "" : wildcard;
+			return this;
+		}
+
+		/**
+		 * Specify the wildcard character for selecting all columns.
+		 *
+		 * @param wildcard The wildcard character for selecting all columns (e.g., '*') or the name of the
+		 *                 column.
+		 * @return The SqlQueryBuilder instance for method chaining.
+		 */
+		public Builder selectColumns(final char wildcard) {
+			this.wildcard = wildcard + "";
+			return this;
+		}
+
+		/**
+		 * Specifies a custom target table for the SQL query, allowing you to set your own for example FROM or INTO clause
+		 * in front of the table name.
+		 *
+		 * @param fromClause The custom FROM or INTO clause to be appended to the table name.
+		 *                   If not needed, you can provide an empty string or null.
+		 * @return The SqlQueryBuilder instance for method chaining.
+		 */
+		public Builder withCustomClause(String fromClause) {
+			this.clauseBeforeTable = fromClause == null ? "" : fromClause + this.tableName;
+			return this;
+		}
+
+		/**
+		 * Sets the target table for the SQL query, specifying the table name
+		 * and it is used for the update statement.
+		 * <p>&nbsp;</p>
+		 * <p>
+		 * This method is used to tell where as example below:
+		 * "UPDATE tableName SET (column1, column2, column3) VALUES (value1, value2, value3);".
+		 * </p>
+		 *
+		 * @return The SqlCommandPartBuilder instance.
+		 */
+		public SqlCommandPartBuilder update() {
+			return new SqlCommandPartBuilder(this);
+		}
+
+		/**
+		 * Sets the target table for the SQL query, specifying the table name
+		 * and the into statement.
+		 * And used for REPLACE_INTO,MERGE_INTO and INSERT_INTO
+		 * <p>&nbsp;</p>
+		 * <p>
+		 * This method is used to tell where as example below:
+		 * "INSERT INTO tableName (column1, column2, column3) VALUES (value1, value2, value3);".
+		 * </p>
+		 *
+		 * @return The SqlCommandPartBuilder instance.
+		 */
+		public SqlCommandPartBuilder into() {
+			this.clauseBeforeTable = "INTO " + this.tableName;
+			return new SqlCommandPartBuilder(this);
+		}
+
+		/**
+		 * Sets the from target table for the SQL query, specifying the table name
+		 * and the from statement.
+		 * <p>&nbsp;</p>
+		 * <p>
+		 * This method is used to set the from where as example below:
+		 * "DELETE FROM tableName WHERE column1 = value (alternatively a placeholder) ?".
+		 * </p>
+		 *
+		 * @return The SqlQueryBuilder instance for method chaining.
+		 */
+		public Builder from() {
+			this.clauseBeforeTable = "FROM " + this.tableName;
+			return this;
+		}
+
+		/**
+		 * Sets the WHERE clause for the SQL query, specifying a condition.
+		 *
+		 * @param condition The condition to apply in the WHERE clause.
+		 * @return The SqlQueryBuilder instance for method chaining.
+		 */
+		public Builder where(String condition) {
+			if (condition != null && !condition.isEmpty()) {
+				this.whereClause = "WHERE " + condition;
+			}
+			return this;
+		}
+
+		/**
+		 * Adds a JOIN clause to the SQL query.
+		 *
+		 * @param tableName The name of the table to join.
+		 * @param condition The join condition.
+		 * @return The SqlQueryBuilder instance for method chaining.
+		 */
+		public Builder join(String tableName, String condition) {
+			if (joinClause == null) {
+				joinClause = new StringBuilder();
+			} else {
+				joinClause.append(" ");
+			}
+			joinClause.append("JOIN ").append(tableName).append(" ON ").append(condition);
+			return this;
+		}
+
+		/**
+		 * Adds an ORDER BY clause to the SQL query.
+		 *
+		 * @param columnName The name of the column by which to order the results.
+		 * @return The SqlQueryBuilder instance for method chaining.
+		 */
+		public Builder orderBy(String columnName) {
+			if (orderByClause == null) {
+				orderByClause = new StringBuilder();
+			} else {
+				orderByClause.append(", ");
+			}
+			orderByClause.append(columnName);
+			return this;
+		}
+
+
+		/**
+		 * Caches the value and column name with an index in a parameterized SQL command.
+		 * <p>&nbsp;</p>
+		 * <p>
+		 * This method is useful when you have a preset command like:
+		 * "INSERT INTO tableName (column1, column2, column3) VALUES (?, ?, ?)".
+		 * </p>
+		 *
+		 * @param index      The index of the value where the corresponding column name is set.
+		 * @param columnName The name of the column to be set with the given index.
+		 * @param value      The value that will be set in the database.
+		 * @return The SqlQueryBuilder instance for method chaining.
+		 */
+		public Builder putColumnData(int index, String columnName, Object value) {
+			if (this.indexCachedWithValue == null)
+				this.indexCachedWithValue = new HashMap<>();
+			this.indexCachedWithValue.put(index, new ColumnWrapper(columnName, value));
+			return this;
+		}
+
+		public SqlQueryBuilder build() {
+			return new SqlQueryBuilder(this).build();
+		}
+	}
+
+	/**
+	 * This class is for create update or insert,replace or merge
+	 * formatted cloumns with the values set or ? placeholders.
+	 * <p>&nbsp;</p>
+	 * Example of the formatting is:
+	 * <div>
+	 * <ul>
+	 * <li>(column1, column2, column3) VALUES (?, ?, ?)</li>
+	 * <li>SET (column1, column2, column3) VALUES (?, ?, ?)</li>
+	 * </ul>
+	 * </div>
+	 */
+	public static class SqlCommandPartBuilder {
+		Builder builder;
+
+		public SqlCommandPartBuilder(final Builder builder) {
+			this.builder = builder;
+		}
+
+		/**
+		 * Sets parameterized values for the SQL query using a map of column-value pairs.
+		 * For INSERT and UPDATE queries, this method specifies both columns and values.
+		 *
+		 * @param columnValueMap A map containing column names as keys and corresponding values.
+		 * @return The SqlCommandPartBuilder instance for method chaining.
+		 */
+		public SqlCommandPartBuilder setParameterizedValues(Map<String, Object> columnValueMap) {
+			String executionsType = builder.executionsType;
+			if (columnValueMap != null && !columnValueMap.isEmpty()) {
+				int index = 1;
+				if ("UPDATE".equalsIgnoreCase(executionsType) || "update".contains(executionsType)) {
+					StringBuilder prepareColumnsToUpdate = new StringBuilder();
+					prepareColumnsToUpdate.append("SET ");
+					for (Entry<String, Object> entry : columnValueMap.entrySet()) {
+						final String columnName = entry.getKey();
+						final Object value = entry.getValue();
+						prepareColumnsToUpdate.append(columnName).append(" = ?,");
+						builder.putColumnData(index++, columnName, value);
+					}
+					prepareColumnsToUpdate.setLength(prepareColumnsToUpdate.length() - 1);
+					builder.updateBuilder = prepareColumnsToUpdate;
+					return this;
+				}
+
+				StringBuilder columnBuilder = new StringBuilder();
+				columnBuilder.append("(");
+				for (Entry<String, Object> column : columnValueMap.entrySet()) {
+					columnBuilder.append(column.getKey()).append(",");
+					builder.putColumnData(index++, column.getKey(), column.getValue());
+				}
+				columnBuilder.setLength(columnBuilder.length() - 1);
+				columnBuilder.append(") ");
+				int size = columnValueMap.keySet().size();
+				if (size > 0) {
+					StringBuilder values = merge(true, size);
+					columnBuilder.insert(columnBuilder.length(), values);
+					builder.builtColumnsWithValues = columnBuilder;
+				}
+			}
+			return this;
+		}
+
+		/**
+		 * Sets values for the SQL query using a map of column-value pairs.
+		 * For INSERT and UPDATE queries, this method specifies both columns and values.
+		 *
+		 * @param columnValueMap A map containing column names as keys and corresponding values.
+		 * @return The SqlQueryBuilder instance for method chaining.
+		 */
+		public SqlCommandPartBuilder setValues(Map<String, Object> columnValueMap) {
+			String executionsType = builder.executionsType;
+
+			if (columnValueMap != null && !columnValueMap.isEmpty()) {
+				if ("UPDATE".equalsIgnoreCase(executionsType) || "update".contains(executionsType)) {
+					StringBuilder columns = new StringBuilder();
+					columns.append("SET ");
+					for (Entry<String, Object> entry : columnValueMap.entrySet()) {
+						final String columnName = entry.getKey();
+						final Object value = entry.getValue();
+						columns.append(columnName);
+						if (columns.length() == 0) {
+							columns.append(" = ").append(value == null ? null : "'" + value + "'");
+						} else {
+							columns.append(" = ").append(value == null ? null + "," : "'" + value + "', ");
+						}
+					}
+					columns.setLength(columns.length() - 1);
+					builder.updateBuilder = columns;
+					return this;
+				}
+				builder.builtColumnsWithValues = mergeObjectsFromMap(columnValueMap);
+
+			}
+			return this;
+		}
+
+		/**
+		 * Build and return the SqlQueryBuilder.
+		 *
+		 * @return the SqlQueryBuilder instance with the built command.
+		 */
+		public SqlQueryBuilder build() {
+			return builder.build();
+		}
+	}
+
 }
