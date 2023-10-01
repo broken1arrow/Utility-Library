@@ -629,22 +629,27 @@ public abstract class Database<statement> {
 		final String columnsSeparated = getColumnsFromTable(updatedTableColumns.getColumns().values());
 		if (!openConnection()) return;
 
-		// Rename the old table, so we can remove old name and rename columns.
-		final PreparedStatement alterTable = connection.prepareStatement("ALTER TABLE " + tableName + " RENAME TO " + tableName + "_old;");
-		// Creating the table on its new format (no redundant columns)
-		final PreparedStatement createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnsSeparated + ");");
+		PreparedStatement moveData = null;
+		PreparedStatement alterTable = null;
+		PreparedStatement createTable = null;
+		PreparedStatement removeOldTable = null;
+		try {    // Rename the old table, so we can remove old name and rename columns.
+			alterTable = connection.prepareStatement("ALTER TABLE " + tableName + " RENAME TO " + tableName + "_old;");
+			// Creating the table on its new format (no redundant columns)
+			createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnsSeparated + ");");
 
-		alterTable.execute();
-		createTable.execute();
+			alterTable.execute();
+			createTable.execute();
 
-		// Populating the table with the data
-		final PreparedStatement moveData = connection.prepareStatement("INSERT INTO " + tableName + "(" + TextUtils(existingColumns) + ") SELECT " + TextUtils(existingColumns) + " FROM " + tableName + "_old;");
-		moveData.execute();
+			// Populating the table with the data
+			moveData = connection.prepareStatement("INSERT INTO " + tableName + "(" + TextUtils(existingColumns) + ") SELECT " + TextUtils(existingColumns) + " FROM " + tableName + "_old;");
+			moveData.execute();
 
-		final PreparedStatement removeOldTable = connection.prepareStatement("DROP TABLE " + tableName + "_old;");
-		removeOldTable.execute();
-
-		close(moveData, alterTable, createTable, removeOldTable);
+			removeOldTable = connection.prepareStatement("DROP TABLE " + tableName + "_old;");
+			removeOldTable.execute();
+		} finally {
+			close(moveData, alterTable, createTable, removeOldTable);
+		}
 	}
 
 	protected void createMissingColumns(final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
@@ -656,8 +661,7 @@ public abstract class Database<statement> {
 			TableRow tableRow = entry.getValue();
 			if (removeColumns.contains(columnName)) continue;
 			if (existingColumns.contains(columnName.toLowerCase())) continue;
-			try {
-				final PreparedStatement statement = connection.prepareStatement("ALTER TABLE " + this.getQuote() + tableWrapper.getTableName() + this.getQuote() + " ADD " + this.getQuote() + columnName + this.getQuote() + " " + tableRow.getDatatype() + ";");
+			try (final PreparedStatement statement = connection.prepareStatement("ALTER TABLE " + this.getQuote() + tableWrapper.getTableName() + this.getQuote() + " ADD " + this.getQuote() + columnName + this.getQuote() + " " + tableRow.getDatatype() + ";")) {
 				statement.execute();
 			} catch (final SQLException throwable) {
 				throwable.printStackTrace();
@@ -714,10 +718,10 @@ public abstract class Database<statement> {
 	}
 
 	private void checkIfTableExist(String tableName, String columName) {
-		try {
-			if (this.connection == null) return;
+		if (this.connection == null) return;
 
-			final PreparedStatement preparedStatement = this.connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?");
+		try (final PreparedStatement preparedStatement = this.connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?");) {
+
 			preparedStatement.setString(1, "");
 			final ResultSet resultSet = preparedStatement.executeQuery();
 			close(preparedStatement, resultSet);
@@ -933,10 +937,9 @@ public abstract class Database<statement> {
 				if (batchUpdateGoingOn) LogMsg.warn("Still executing, DO NOT SHUTDOWN YOUR SERVER.");
 				else cancel();
 			}
-		}, 1000 * 30, 1000 * 30);
-		if (processedCount > 10_000) {
-			LogMsg.warn("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
-		}
+		}, 1000 * 30L, 1000 * 30L);
+		if (processedCount > 10_000)
+			this.printPressesCount(processedCount);
 		try {
 			for (SqlCommandComposer sql : batchList) {
 				Map<Integer, Object> cachedDataByColumn = sql.getCachedDataByColumn();
@@ -978,7 +981,7 @@ public abstract class Database<statement> {
 			for (final SqlCommandComposer sql : batchOfSQL)
 				statement.addBatch(sql.getQueryCommand());
 			if (processedCount > 10_000)
-				LogMsg.warn("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
+				this.printPressesCount(processedCount);
 
 			// Set the flag to start time notifications timer
 			batchUpdateGoingOn = true;
@@ -991,7 +994,7 @@ public abstract class Database<statement> {
 					if (batchUpdateGoingOn) LogMsg.warn("Still executing, DO NOT SHUTDOWN YOUR SERVER.");
 					else cancel();
 				}
-			}, 1000 * 30, 1000 * 30);
+			}, 1000 * 30L, 1000 * 30L);
 			// Execute
 			statement.executeBatch();
 
@@ -1016,5 +1019,10 @@ public abstract class Database<statement> {
 	}
 
 	public abstract boolean isHasCastException();
+
+	public void printPressesCount(int processedCount){
+		if (processedCount > 10_000)
+			LogMsg.warn("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
+	}
 
 }
