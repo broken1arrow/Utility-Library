@@ -258,6 +258,7 @@ public final class CompMetadata {
 	 * @param key   to get the metadata on item.
 	 * @param <T>   type of class the value
 	 * @return metadata value.
+	 * @deprecated use {@link #getMetadata(org.bukkit.inventory.ItemStack, String)}
 	 */
 	@Deprecated
 	@Nullable
@@ -402,7 +403,7 @@ public final class CompMetadata {
 	// ----------------------------------------------------------------------------------------
 
 	/**
-	 * Return true if the given itemstack has the given key stored at its compound
+	 * Return true if the given itemStack has the given key stored at its compound
 	 * tag
 	 *
 	 * @param item you want to check.
@@ -469,7 +470,7 @@ public final class CompMetadata {
 	 *
 	 * @param player you want to check
 	 * @param tag    you want to check if player have.
-	 * @return true if playe has it.
+	 * @return true if player has it.
 	 */
 	public boolean hasTempMetadata(final Entity player, final String tag) {
 		return player.hasMetadata(createTempMetadataKey(tag));
@@ -618,7 +619,7 @@ public final class CompMetadata {
 		 * save("Block", this.blockMetadataMap); } }
 		 *
 		 * private void applySavedMetadata(final List<String> metadata, final
-		 * Metadatable entity) { synchronized (LOCK) { for (final String metadataLine :
+		 * Meta table entity) { synchronized (LOCK) { for (final String metadataLine :
 		 * metadata) { if (metadataLine.isEmpty()) continue;
 		 *
 		 * final String[] lines = metadataLine.split(DELIMITER);
