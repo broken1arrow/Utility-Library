@@ -9,6 +9,7 @@ import org.broken.arrow.nbt.library.utility.NBTDataWriterWrapper;
 import org.broken.arrow.nbt.library.utility.NBTValueWrapper;
 import org.broken.arrow.nbt.library.utility.ServerVersion;
 import org.broken.arrow.nbt.library.utility.Valid;
+import org.broken.arrow.nbt.library.utility.Valid.CatchExceptions;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.BlockState;
@@ -25,6 +26,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.broken.arrow.nbt.library.utility.ConvertObjectType.setNBTValue;
 import static org.broken.arrow.nbt.library.utility.ServerVersion.isHasScoreboardTags;
@@ -243,11 +245,12 @@ public final class CompMetadata {
 	 */
 	@Nullable
 	public String getMetadata(@Nonnull final ItemStack itemStack, @Nonnull final String key) {
-		NBTValueWrapper nbtWrapper = getMetadata(itemStack);
-		if (nbtWrapper != null) {
-			return nbtWrapper.getString(key);
-		}
-		return null;
+		return this.getMetadata(itemStack,nbtWrapper -> {
+			if (nbtWrapper != null) {
+				return nbtWrapper.getString(key);
+			}
+			return null;
+		});
 	}
 
 	/**
@@ -294,11 +297,13 @@ public final class CompMetadata {
 	 * </p>
 	 * <p>&nbsp;</p>
 	 *
-	 * @param item The item from which to retrieve metadata.
+	 * @param item     The item from which to retrieve metadata.
+	 * @param function The function that return NBT values you can read on your item
+	 *                 and have your own return type.
 	 * @return The NBTValueWrapper instance if the compound key was found and applied, null otherwise.
 	 */
 	@Nullable
-	public NBTValueWrapper getMetadata(@Nonnull final ItemStack item) {
+	public <T> T getMetadata(@Nonnull final ItemStack item, Function<NBTValueWrapper, T> function) {
 		Valid.checkNotNull(item, "Reading NBT tag got null item");
 		if (item.getType() == Material.AIR)
 			return null;
@@ -309,10 +314,43 @@ public final class CompMetadata {
 			if (hasTag) {
 				ReadableNBT compound = nbt.getCompound(compoundTag);
 				if (compound != null) {
-					return new NBTValueWrapper(compound);
+					T returnedObject = function.apply(new NBTValueWrapper(compound));
+					if (returnedObject instanceof NBTValueWrapper)
+						throw new CatchExceptions("You can't return NBTValueWrapper instance, because it will be closed after this call.");
+					return returnedObject;
 				}
 			}
 			return null;
+		});
+	}
+
+	/**
+	 * Retrieve specific NBT data from an item's compound tag.
+	 * <p>&nbsp;</p>
+	 * <p>
+	 * This method gives you access to retrieve multiple set tags inside
+	 * the compound tag without creating a new {@link NBTItem} instance for
+	 * every retrieval of a value.
+	 * </p>
+	 * <p>&nbsp;</p>
+	 *
+	 * @param item     The item from which to retrieve metadata.
+	 * @param consumer The consumer that return NBT values you can read on your item.
+	 */
+	public void getMetadata(@Nonnull final ItemStack item, Consumer<NBTValueWrapper> consumer) {
+		Valid.checkNotNull(item, "Reading NBT tag got null item");
+		if (item.getType() == Material.AIR)
+			return;
+
+		final String compoundTag = getCompoundKey();
+		NBT.get(item, nbt -> {
+			final boolean hasTag = nbt.hasTag(compoundTag);
+			if (hasTag) {
+				ReadableNBT compound = nbt.getCompound(compoundTag);
+				if (compound != null) {
+					consumer.accept(new NBTValueWrapper(compound));
+				}
+			}
 		});
 	}
 
