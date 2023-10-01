@@ -158,10 +158,8 @@ public abstract class Database<statement> {
 		}
 
 		for (DataWrapper dataWrapper : dataWrapperList) {
-			if (dataWrapper == null) continue;
-
 			TableRow primaryRow = tableWrapper.getPrimaryRow();
-			if (primaryRow == null) continue;
+			if (dataWrapper == null || primaryRow == null) continue;
 
 			RowWrapper saveWrapper = new RowDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
 
@@ -1005,10 +1003,10 @@ public abstract class Database<statement> {
 			} finally {
 				try {
 					this.connection.setAutoCommit(true);
-					this.closeConnection();
-
 				} catch (final SQLException ex) {
 					ex.printStackTrace();
+				}finally {
+					this.closeConnection();
 				}
 				hasStartWriteToDb = false;
 				// Even in case of failure, cancel
