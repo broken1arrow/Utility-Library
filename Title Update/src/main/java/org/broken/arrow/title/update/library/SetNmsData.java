@@ -55,7 +55,6 @@ public class SetNmsData {
 	@Nonnull
 	private ContainerUtility setNmsData(float serverVersion) {
 		InventoryNMS inventoryNMS;
-		System.out.println("serverVersion " + serverVersion);
 		switch ((int) Math.floor(serverVersion)) {
 			case 20:
 				if (serverVersion > 20.1F)
