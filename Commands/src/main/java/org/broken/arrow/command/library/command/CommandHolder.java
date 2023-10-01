@@ -271,27 +271,12 @@ public abstract class CommandHolder implements CommandHandler {
 			if (s == null) continue;
 
 			if (s instanceof Iterable)
-				for (final Object iterable : (Iterable<?>) s) {
-					if (iterable instanceof Player)
-						clone.add(((Player) iterable).getName());
-					else
-						clone.add(iterable instanceof Enum ? iterable.toString().toLowerCase() : iterable.toString());
-				}
+				iterableObject(clone,  s);
 				// Trick: Automatically parse enum constants
 			else if (s instanceof Enum[])
-				for (final Object iterable : ((Enum[]) s)[0].getClass().getEnumConstants())
-					clone.add(iterable.toString().toLowerCase());
-
+				addEnums(clone,  s);
 			else {
-				if (s instanceof Player)
-					clone.add(((Player) s).getName());
-				else {
-					final boolean lowercase = s instanceof Enum;
-					final String parsed = s.toString();
-
-					if (!"".equals(parsed))
-						clone.add(lowercase ? parsed.toLowerCase() : parsed);
-				}
+				addString(clone,  s);
 			}
 		}
 		return complete(partialName, clone);
@@ -324,5 +309,28 @@ public abstract class CommandHolder implements CommandHandler {
 		Collections.sort(tab);
 
 		return tab;
+	}
+	private <T> void iterableObject(List<String> clone, T s){
+		for (final Object iterable : (Iterable<?>) s) {
+			if (iterable instanceof Player)
+				clone.add(((Player) iterable).getName());
+			else
+				clone.add(iterable instanceof Enum ? iterable.toString().toLowerCase() : iterable.toString());
+		}
+	}
+	private <T> void addEnums(List<String> clone, T s){
+		for (final Object iterable : ((Enum[]) s)[0].getClass().getEnumConstants())
+			clone.add(iterable.toString().toLowerCase());
+	}
+	private <T> void addString(List<String> clone, T s){
+		if (s instanceof Player)
+			clone.add(((Player) s).getName());
+		else {
+			final boolean lowercase = s instanceof Enum;
+			final String parsed = s.toString();
+
+			if (!"".equals(parsed))
+				clone.add(lowercase ? parsed.toLowerCase() : parsed);
+		}
 	}
 }

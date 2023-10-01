@@ -46,7 +46,7 @@ public class MenuUtility<T> {
 	private final Logger logger = Logger.getLogger("Menu-Utility");
 
 	protected MenuCacheKey menuCacheKey;
-	private final MenuCache menuCache = MenuCache.getInstance();
+	private final MenuCache menuCache;
 	private final List<MenuButtonI<T>> buttonsToUpdate = new ArrayList<>();
 	private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
 	private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
@@ -107,6 +107,7 @@ public class MenuUtility<T> {
 		this.menuOpenSound = Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull() == null ? Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BASEDRUM").orNull() : Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull();
 		this.uniqueKey = "";
 		this.menuAPI = RegisterMenuAPI.getMenuAPI();
+		this.menuCache =  this.menuAPI.getMenuCache();
 	}
 
 	/**
@@ -294,7 +295,7 @@ public class MenuUtility<T> {
 	 * @return list of slot number or empty if not find data or if cache is null.
 	 */
 	@Nonnull
-	public Set<Integer> getButtonSlots(final MenuDataUtility<T> menuDataUtility, final MenuButtonI<?> menuButton) {
+	public Set<Integer> getButtonSlots(final MenuDataUtility<T> menuDataUtility, final MenuButtonI<T> menuButton) {
 		final Set<Integer> slots = new HashSet<>();
 		if (menuDataUtility == null) return slots;
 		final int menuButtonId = menuButton.getId();
@@ -631,7 +632,7 @@ public class MenuUtility<T> {
 	}
 
 	private MenuUtility<?> getMenuCache() {
-		return menuCache.getMenuInCache(this.menuCacheKey);
+		return menuCache.getMenuInCache(this.menuCacheKey,this.getClass());
 	}
 
 	/**

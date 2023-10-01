@@ -76,10 +76,6 @@ public class ContainerUtility {
 			inventoryTitle = chatSerialMethod.invoke(null, title);
 			packetInstance = packetConstructor.newInstance(windowId, fieldName, inventoryTitle, inventorySize);
 		}
-		System.out.println("windowId " + windowId);
-		System.out.println("fieldName " + fieldName);
-		System.out.println("inventoryTitle " + inventoryTitle);
-		System.out.println("inventorySize " + inventorySize);
 
 		final Object playerConnect = playerConnection.get(entityPlayer);
 		// net.minecraft.server.network.PlayerConnection

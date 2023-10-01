@@ -160,9 +160,6 @@ public final class Component {
 		private boolean obfuscated;
 		private boolean reset;
 
-		public Builder() {
-		}
-
 		/**
 		 * Text/message you whant to add.
 		 *

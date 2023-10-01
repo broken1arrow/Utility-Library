@@ -78,7 +78,6 @@ public class SqlQueryBuilder {
 		this.tableName = builder.tableName;
 		this.clauseBeforeTable = builder.clauseBeforeTable;
 		this.whereClause = builder.whereClause;
-		this.query = builder.query;
 		this.wildcard = builder.wildcard;
 		this.updateBuilder = builder.updateBuilder;
 		this.builtColumnsWithValues = builder.builtColumnsWithValues;
@@ -262,11 +261,9 @@ public class SqlQueryBuilder {
 		private StringBuilder joinClause;
 		private StringBuilder updateBuilder;
 		private StringBuilder orderByClause;
-
 		private final String executionsType;
 		private final String tableName;
 		private String clauseBeforeTable = "";
-		private final String query = "";
 		private String whereClause = "";
 		private String wildcard ="";
 

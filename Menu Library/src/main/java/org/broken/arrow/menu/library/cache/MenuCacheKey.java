@@ -18,8 +18,8 @@ public final class MenuCacheKey {
 	/**
 	 * Create new key for the cache.
 	 *
-	 * @param location the location you want to conect the menu to.
-	 * @param key      you can also set unicqe key, but only needed if you want
+	 * @param location the location you want to connect the menu to.
+	 * @param key      you can also set unique key, but only needed if you want
 	 *                 have several menus on same location.
 	 */
 	public MenuCacheKey(@Nonnull final Location location, @Nullable final String key) {
@@ -54,7 +54,7 @@ public final class MenuCacheKey {
 	 * and the key set in this instance is null then this will also return false.
 	 *
 	 * @param location location of the menu.
-	 * @param key      set this if this menu shall have unicqe key besides location.
+	 * @param key      set this if this menu shall have unique key besides location.
 	 * @return true if either location or location and key match.
 	 */
 	public boolean equals(@Nonnull final Location location, @Nullable final String key) {
@@ -66,10 +66,18 @@ public final class MenuCacheKey {
 		}
 		return getLocation().equals(location);
 	}
-	// Implement equals() and hashCode() methods to ensure
-	// that two instances of this class with the same location
-	// and key are considered equal and have the same hash code
 
+	/**
+	 * Checks if the object equals this instance and if not
+	 * it will then check if the values match.
+	 *
+	 * Recommend you use {@link #equals(org.bukkit.Location, String)} if
+	 * you only set a location or the key is not set.
+	 *
+	 *
+	 * @param obj the MenuCacheKey instance to check if it match this instance.
+	 * @return This return true if either the instance match or key and location match.
+	 */
 	@Override
 	public boolean equals(final Object obj) {
 		if (obj == this) {

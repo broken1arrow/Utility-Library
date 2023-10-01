@@ -39,6 +39,7 @@ import static org.broken.arrow.menu.library.utility.ServerVersion.v1_19_4;
 
 public class RegisterMenuAPI {
 	private static RegisterMenuAPI menuAPI;
+	private final MenuCache menuCache;
 	private final Plugin plugin;
 	private Metadata playerMeta;
 	private RegisterNbtAPI nbtApi;
@@ -60,6 +61,7 @@ public class RegisterMenuAPI {
 	public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
 		this.plugin = plugin;
 		menuAPI = this;
+		menuCache = new MenuCache();
 		if (this.plugin == null) {
 			logger.log(Level.WARNING, "You have not set a plugin.");
 			logger.log(Level.WARNING, "If you're unsure how to use this library, " +
@@ -127,6 +129,10 @@ public class RegisterMenuAPI {
 		return nbtApi;
 	}
 
+	public MenuCache getMenuCache() {
+		return menuCache;
+	}
+
 	public boolean isNotFoundUpdateTitleClazz() {
 		return notFoundUpdateTitle;
 	}
@@ -148,7 +154,7 @@ public class RegisterMenuAPI {
 
 	private class MenuHolderListener implements Listener {
 
-		private final MenuCache menuCache = MenuCache.getInstance();
+		private final MenuCache menuCache = getMenuCache();
 		private final Map<UUID, SwapData> cacheData = new HashMap<>();
 
 		@EventHandler(priority = EventPriority.LOW)
@@ -354,7 +360,7 @@ public class RegisterMenuAPI {
 			if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
 				menuUtility = getPlayerMeta().getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
 			} else {
-				menuUtility = menuCache.getMenuInCache(menukey);
+				menuUtility = menuCache.getMenuInCache(menukey,MenuUtility.class);
 			}
 			return menuUtility;
 		}

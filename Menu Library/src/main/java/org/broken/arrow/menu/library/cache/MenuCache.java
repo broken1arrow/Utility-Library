@@ -15,9 +15,8 @@ import java.util.Map;
  * and you also get the benefit several players can use same menu at the
  * same time.
  */
-public enum MenuCache {
+public final class MenuCache {
 
-	instance;
 	private final Map<MenuCacheKey, MenuUtility<?>> menusCached = new HashMap<>();
 
 	/**
@@ -43,9 +42,25 @@ public enum MenuCache {
 	 * @return a cached createMenus.
 	 */
 	@Nullable
-	public MenuUtility<?> getMenuInCache(final Object object) {
-		if (object instanceof MenuCacheKey)
-			return this.menusCached.get(object);
+	@SuppressWarnings("unchecked")
+	public <T> T getMenuInCache(final Object object) {
+		return (T) getMenuInCache(object, MenuUtility.class);
+	}
+
+	/**
+	 * The {@link MenuCacheKey} class is used as a key you need
+	 * provide right instance of the class.
+	 *
+	 * @param object the MenuCacheKey object.
+	 * @param clazz  The class for the value you want to retrieve. This class only store
+	 *               MenuUtility instances, so no other class will be accepted.
+	 * @return a cached createMenus.
+	 */
+	@Nullable
+	public <T> T getMenuInCache(final Object object, Class<T> clazz) {
+		if (object instanceof MenuCacheKey && clazz == MenuUtility.class) {
+			return clazz.cast(this.menusCached.get(object));
+		}
 		return null;
 	}
 
@@ -53,7 +68,7 @@ public enum MenuCache {
 	 * Get {@link MenuCacheKey} class if it exist in the cache.
 	 *
 	 * @param location the location of the menu.
-	 * @param key      uniqe key of this menu or null if this is only one menu on this location.
+	 * @param key      unique key of this menu or null if this is only one menu on this location.
 	 * @return a cached createMenus.
 	 */
 	@Nullable
@@ -72,14 +87,17 @@ public enum MenuCache {
 	 * @return the menu cached or null if it not exist.
 	 */
 	@Nullable
-	public MenuUtility<?> getMenuInCache(@Nonnull final MenuCacheKey key) {
-		return this.menusCached.get(key);
+	public <T> T getMenuInCache(@Nonnull final MenuCacheKey key, Class<T> clazz) {
+		MenuUtility<?> cachedMenu = this.menusCached.get(key);
+		if (clazz.isInstance(cachedMenu))
+			return clazz.cast(cachedMenu);
+		return null;
 	}
 
 	/**
 	 * Remove menu from cache.
 	 *
-	 * @param object the key you want to remove.
+	 * @param object the MenuCacheKey you want to remove.
 	 * @return true if it could find the menu.
 	 */
 	public boolean removeMenuCached(final Object object) {
@@ -116,9 +134,18 @@ public enum MenuCache {
 		return Collections.unmodifiableMap(this.menusCached);
 	}
 
-	public static MenuCache getInstance() {
-		return instance;
+	@Override
+	public boolean equals(final Object o) {
+		if (this == o) return true;
+		if (!(o instanceof MenuCache)) return false;
+		final MenuCache menuCache = (MenuCache) o;
+
+		return menusCached.equals(menuCache.menusCached);
 	}
 
+	@Override
+	public int hashCode() {
+		return menusCached.hashCode();
+	}
 
 }

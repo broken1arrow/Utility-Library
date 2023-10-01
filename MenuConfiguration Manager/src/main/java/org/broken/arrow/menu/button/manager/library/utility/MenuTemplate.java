@@ -34,10 +34,7 @@ public class MenuTemplate {
 		this.menuTitle = menuTitle;
 		this.fillSlots = fillSlots;
 		this.menuButtons = menuButtons;
-		if (fillSlots != null && !fillSlots.isEmpty())
-			this.amountOfButtons = calculateAmountOfButtons(menuButtons);
-		else
-			this.amountOfButtons = calculateAmountOfButtons(menuButtons);
+		this.amountOfButtons = calculateAmountOfButtons(menuButtons);
 		this.sound = SpigotSound.getSound(sound);
 	}
 
