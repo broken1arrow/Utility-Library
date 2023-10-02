@@ -33,9 +33,9 @@ public final class BlockVisualizerCache {
 		this.entityModifications = new EntityModifications(blockVisualize.getServerVersion());
 	}
 
-	public void visualize(@Nullable final Player viwer, @Nonnull final Block block, @Nonnull final Function<VisualizeData> visualizeDataFunction) {
+	public void visualize(@Nullable final Player viewer, @Nonnull final Block block, @Nonnull final Function<VisualizeData> visualizeDataFunction) {
 		if (block == null) {
-			throw new NullPointerException("block is marked non-null but is null");
+			this.throwErrorBlockNull();
 		} else {
 			if (isVisualized(block)) {
 				stopVisualizing(block);
@@ -44,26 +44,10 @@ public final class BlockVisualizerCache {
 			Validate.checkBoolean(isVisualized(block), "Block at " + block.getLocation() + " already visualized");
 			final Location location = block.getLocation();
 			VisualizeData visualizeData = visualizeDataFunction.apply();
-
 			visualizeData.setFallingBlock(entityModifications.spawnFallingBlock(location, visualizeData.getMask(), visualizeData.getText()));
-			//final VisualizeData visualizeData = new VisualizeData(viwer, falling, text, mask);
 
 			final Iterator<Player> players = block.getWorld().getPlayers().iterator();
-			if (viwer == null) {
-				while (players.hasNext()) {
-					final Player player = players.next();
-					visualizeData.addPlayersAllowed(player);
-					sendBlockChange(2, player, location, this.blockVisualize.getServerVersion() < 9.0 ? visualizeData.getMask() : Material.BARRIER);
-				}
-			} else {
-				while (players.hasNext()) {
-					final Player player = players.next();
-					if (visualizeData.getPermission() == null || player.hasPermission(visualizeData.getPermission()) || player.getUniqueId().equals(viwer.getUniqueId())) {
-						visualizeData.addPlayersAllowed(player);
-						sendBlockChange(2, player, location, this.blockVisualize.getServerVersion() < 9.0 ? visualizeData.getMask() : Material.BARRIER);
-					}
-				}
-			}
+			this.setVisualData(visualizeData,location, players,viewer);
 			visualizedBlocks.put(location, visualizeData);
 		}
 	}
@@ -74,7 +58,7 @@ public final class BlockVisualizerCache {
 
 	public void stopVisualizing(@Nonnull final Block block) {
 		if (block == null) {
-			throw new NullPointerException("block is marked non-null but is null");
+			this.throwErrorBlockNull();
 		} else {
 			Validate.checkBoolean(!isVisualized(block), "Block at " + block.getLocation() + " not visualized");
 			final VisualizeData visualizeData = visualizedBlocks.remove(block.getLocation());
@@ -107,10 +91,11 @@ public final class BlockVisualizerCache {
 
 	public boolean isVisualized(@Nonnull final Block block) {
 		if (block == null) {
-			throw new NullPointerException("block is marked non-null but is null");
+			this.throwErrorBlockNull();
 		} else {
 			return visualizedBlocks.containsKey(block.getLocation());
 		}
+		return false;
 	}
 
 	private void setCustomName(final Entity en, final String name) {
@@ -163,8 +148,29 @@ public final class BlockVisualizerCache {
 
 	}
 
+	private void setVisualData(VisualizeData visualizeData,Location location,Iterator<Player> players,Player viewer){
+		if (viewer == null) {
+			while (players.hasNext()) {
+				final Player player = players.next();
+				visualizeData.addPlayersAllowed(player);
+				sendBlockChange(2, player, location, this.blockVisualize.getServerVersion() < 9.0 ? visualizeData.getMask() : Material.BARRIER);
+			}
+		} else {
+			while (players.hasNext()) {
+				final Player player = players.next();
+				if (visualizeData.getPermission() == null || player.hasPermission(visualizeData.getPermission()) || player.getUniqueId().equals(viewer.getUniqueId())) {
+					visualizeData.addPlayersAllowed(player);
+					sendBlockChange(2, player, location, this.blockVisualize.getServerVersion() < 9.0 ? visualizeData.getMask() : Material.BARRIER);
+				}
+			}
+		}
+	}
+
 	public VisualTask getVisualTask() {
 		return this.visualTask;
 	}
 
+	public void throwErrorBlockNull() throws NullPointerException {
+		throw new NullPointerException("block is marked non-null but is null");
+	}
 }

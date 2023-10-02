@@ -53,8 +53,8 @@ public class BlockVisualize {
 	 * @param visualizeData    A function that provides the visualization data.
 	 * @param shallBeVisualize Specifies whether the block should be visualized.
 	 */
-	public void visulizeBlock(final Block block, final Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
-		visulizeBlock(null, block, visualizeData, shallBeVisualize);
+	public void visualizeBlock(final Block block, final Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
+		visualizeBlock(null, block, visualizeData, shallBeVisualize);
 	}
 
 	/**
@@ -65,24 +65,24 @@ public class BlockVisualize {
 	 * @param visualizeData    A function that provides the visualization data.
 	 * @param shallBeVisualize Specifies whether the block should be visualized.
 	 */
-	public void visulizeBlock(final Player player, final Block block, Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
-		BlockVisualizerCache blockVisualizerCache = this.blockVisualizerCache;
-		if (blockVisualizerCache == null)
-			blockVisualizerCache = new BlockVisualizerCache(plugin, this);
-		if (!blockVisualizerCache.isVisualized(block) && shallBeVisualize)
-			blockVisualizerCache.visualize(player, block,
+	public void visualizeBlock(final Player player, final Block block, Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
+		BlockVisualizerCache blockVisualizer = this.blockVisualizerCache;
+		if (blockVisualizer == null)
+			blockVisualizer = new BlockVisualizerCache(plugin, this);
+		if (!blockVisualizer.isVisualized(block) && shallBeVisualize)
+			blockVisualizer.visualize(player, block,
 					visualizeData);
 
-		else if (blockVisualizerCache.isVisualized(block) && shallBeVisualize) {
-			blockVisualizerCache.stopVisualizing(block);
-			blockVisualizerCache.visualize(player, block,
+		else if (blockVisualizer.isVisualized(block) && shallBeVisualize) {
+			blockVisualizer.stopVisualizing(block);
+			blockVisualizer.visualize(player, block,
 					visualizeData);
 
-		} else if (blockVisualizerCache.isVisualized(block)) {
-			blockVisualizerCache.stopVisualizing(block);
+		} else if (blockVisualizer.isVisualized(block)) {
+			blockVisualizer.stopVisualizing(block);
 		}
-		this.blockVisualizerCache = blockVisualizerCache;
-		blockVisualizerCache.getVisualTask().start();
+		this.blockVisualizerCache = blockVisualizer;
+		blockVisualizer.getVisualTask().start();
 	}
 
 	/**

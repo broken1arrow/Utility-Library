@@ -4,6 +4,7 @@ import org.broken.arrow.visualization.library.BlockVisualizerCache;
 import org.broken.arrow.visualization.library.builders.VisualizeData;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -49,21 +50,27 @@ public final class VisualTask extends BukkitRunnable {
 		for (final Entry<Location, VisualizeData> visualizeBlocks : visualizeBlocks.entrySet()) {
 			final Location location = visualizeBlocks.getKey();
 			final VisualizeData visualizeData = visualizeBlocks.getValue();
-			if (location.getBlock().getType() == Material.AIR) {
-				if (visualizeData.isRemoveIfAir()) {
-					if (blockVisualizerCache.isVisualized(location.getBlock()))
-						blockVisualizerCache.stopVisualizing(location.getBlock());
-				}
-				if (visualizeData.isStopIfAir())
+			Block block = location.getBlock();
+			if (!checkIfBlockIsAir(visualizeData,block)) {
 					continue;
 			}
 
-
 			if (visualizeData.getViwer() == null)
 				for (final Player player : visualizeData.getPlayersAllowed())
-					blockVisualizerCache.visualize(player, location.getBlock(), () -> visualizeData);
+					blockVisualizerCache.visualize(player, block, () -> visualizeData);
 			else
-				blockVisualizerCache.visualize(visualizeData.getViwer(), location.getBlock(), () -> visualizeData);
+				blockVisualizerCache.visualize(visualizeData.getViwer(), block, () -> visualizeData);
 		}
+	}
+
+	private boolean checkIfBlockIsAir(VisualizeData visualizeData,Block block){
+		if (block.getType() == Material.AIR) {
+			if (visualizeData.isRemoveIfAir()) {
+				if (blockVisualizerCache.isVisualized(block))
+					blockVisualizerCache.stopVisualizing(block);
+			}
+			return !visualizeData.isStopIfAir();
+		}
+		return true;
 	}
 }
