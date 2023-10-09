@@ -266,7 +266,7 @@ public final class CompMetadata {
 	@Deprecated
 	@Nullable
 	public <T> T getMetadata(@Nonnull final ItemStack item, @Nonnull Class<T> clazz, @Nonnull final String key) {
-		Valid.checkNotNull(item, "Reading NBT tag got null item");
+		Valid.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			// if (item == null || CompMaterial.isAir(item.getType()))
 			return null;
@@ -304,7 +304,7 @@ public final class CompMetadata {
 	 */
 	@Nullable
 	public <T> T getMetadata(@Nonnull final ItemStack item, Function<NBTValueWrapper, T> function) {
-		Valid.checkNotNull(item, "Reading NBT tag got null item");
+		Valid.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			return null;
 
@@ -338,7 +338,7 @@ public final class CompMetadata {
 	 * @param consumer The consumer that return NBT values you can read on your item.
 	 */
 	public void getMetadata(@Nonnull final ItemStack item, Consumer<NBTValueWrapper> consumer) {
-		Valid.checkNotNull(item, "Reading NBT tag got null item");
+		Valid.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			return;
 
@@ -577,6 +577,10 @@ public final class CompMetadata {
 
 	private boolean hasNameSpacedKey(final TileState tile, final String key) {
 		return tile.getPersistentDataContainer().has(new NamespacedKey(plugin, key), PersistentDataType.STRING);
+	}
+
+	private String setMessageItemNull(){
+		return"Reading NBT tag got null item";
 	}
 
 	/**

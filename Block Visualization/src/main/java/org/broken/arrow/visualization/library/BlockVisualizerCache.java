@@ -47,7 +47,7 @@ public final class BlockVisualizerCache {
 			visualizeData.setFallingBlock(entityModifications.spawnFallingBlock(location, visualizeData.getMask(), visualizeData.getText()));
 
 			final Iterator<Player> players = block.getWorld().getPlayers().iterator();
-			this.setVisualData(visualizeData,location, players,viewer);
+			this.setVisualData(visualizeData, location, players, viewer);
 			visualizedBlocks.put(location, visualizeData);
 		}
 	}
@@ -148,22 +148,25 @@ public final class BlockVisualizerCache {
 
 	}
 
-	private void setVisualData(VisualizeData visualizeData,Location location,Iterator<Player> players,Player viewer){
+	private void setVisualData(VisualizeData visualizeData, Location location, Iterator<Player> players, Player viewer) {
 		if (viewer == null) {
 			while (players.hasNext()) {
 				final Player player = players.next();
-				visualizeData.addPlayersAllowed(player);
-				sendBlockChange(2, player, location, this.blockVisualize.getServerVersion() < 9.0 ? visualizeData.getMask() : Material.BARRIER);
+				this.setPlayersInCache(visualizeData, location, player);
 			}
 		} else {
 			while (players.hasNext()) {
 				final Player player = players.next();
 				if (visualizeData.getPermission() == null || player.hasPermission(visualizeData.getPermission()) || player.getUniqueId().equals(viewer.getUniqueId())) {
-					visualizeData.addPlayersAllowed(player);
-					sendBlockChange(2, player, location, this.blockVisualize.getServerVersion() < 9.0 ? visualizeData.getMask() : Material.BARRIER);
+					this.setPlayersInCache(visualizeData, location, player);
 				}
 			}
 		}
+	}
+
+	private void setPlayersInCache(final VisualizeData visualizeData, final Location location, final Player player) {
+		visualizeData.addPlayersAllowed(player);
+		sendBlockChange(2, player, location, this.blockVisualize.getServerVersion() < 9.0 ? visualizeData.getMask() : Material.BARRIER);
 	}
 
 	public VisualTask getVisualTask() {

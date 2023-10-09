@@ -158,23 +158,7 @@ public final class TextTranslator {
 					component = new Component.Builder();
 
 				}
-				if (format.equals(ChatColors.BOLD.getName())) {
-					component.bold(true);
-				} else if (format.equals(ChatColors.ITALIC.getName())) {
-					component.italic(true);
-				} else if (format.equals(ChatColors.UNDERLINE.getName())) {
-					component.underline(true);
-				} else if (format.equals(ChatColors.STRIKETHROUGH.getName())) {
-					component.strikethrough(true);
-				} else if (format.equals(ChatColors.MAGIC.getName())) {
-					component.obfuscated(true);
-				} else if (format.equals(ChatColors.RESET.getName())) {
-					format = defaultColor;
-					component.reset(true);
-					component.colorCode(format);
-				} else {
-					component.colorCode(format);
-				}
+				setColor(defaultColor, component, format);
 				continue;
 			}
 			builder.append(letter);
@@ -191,6 +175,7 @@ public final class TextTranslator {
 		}
 		return component.build().toJson();
 	}
+
 
 	/**
 	 * Type your message/string text here. you use
@@ -321,23 +306,7 @@ public final class TextTranslator {
 					jsonArray.add(component.build().toJson());
 					component = new Component.Builder();
 				}
-				if (format == ChatColors.BOLD) {
-					component.bold(true);
-				} else if (format == ChatColors.ITALIC) {
-					component.italic(true);
-				} else if (format == ChatColors.UNDERLINE) {
-					component.underline(true);
-				} else if (format == ChatColors.STRIKETHROUGH) {
-					component.strikethrough(true);
-				} else if (format == ChatColors.MAGIC) {
-					component.obfuscated(true);
-				} else if (format == ChatColors.RESET) {
-					format = defaultColor;
-					component.reset(true);
-					component.colorCode(format.getName());
-				} else {
-					component.colorCode(format.getName());
-				}
+				TextTranslator.getInstance().setColor(defaultColor != null ?defaultColor.getName():"", component, format.getName());
 				continue;
 			}
 			int pos = message.indexOf(' ', i);
@@ -378,6 +347,26 @@ public final class TextTranslator {
 			return jsonObject;
 		}
 		return component.build().toJson();
+	}
+
+	private void setColor(final String defaultColor, final Builder component, String format) {
+		if (format.equals(ChatColors.BOLD.getName())) {
+			component.bold(true);
+		} else if (format.equals(ChatColors.ITALIC.getName())) {
+			component.italic(true);
+		} else if (format.equals(ChatColors.UNDERLINE.getName())) {
+			component.underline(true);
+		} else if (format.equals(ChatColors.STRIKETHROUGH.getName())) {
+			component.strikethrough(true);
+		} else if (format.equals(ChatColors.MAGIC.getName())) {
+			component.obfuscated(true);
+		} else if (format.equals(ChatColors.RESET.getName())) {
+			format = defaultColor;
+			component.reset(true);
+			component.colorCode(format);
+		} else {
+			component.colorCode(format);
+		}
 	}
 
 	public enum GradientType {

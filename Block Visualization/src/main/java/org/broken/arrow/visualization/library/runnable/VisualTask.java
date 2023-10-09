@@ -65,8 +65,7 @@ public final class VisualTask extends BukkitRunnable {
 
 	private boolean checkIfBlockIsAir(VisualizeData visualizeData,Block block){
 		if (block.getType() == Material.AIR) {
-			if (visualizeData.isRemoveIfAir()) {
-				if (blockVisualizerCache.isVisualized(block))
+			if (visualizeData.isRemoveIfAir() && blockVisualizerCache.isVisualized(block)) {
 					blockVisualizerCache.stopVisualizing(block);
 			}
 			return !visualizeData.isStopIfAir();

@@ -25,6 +25,8 @@ public class TextGradientUtil {
 	private static final Pattern GRADIENT_PATTERN = Pattern.compile("(<#[a-fA-F0-9]{6}:#[a-fA-F0-9]{6}>)");
 	private final GradientType type;
 	private final String text;
+	private boolean firstMatch;
+	private static String deliminator = "_,_";
 
 	public TextGradientUtil(GradientType type, String text) {
 		this.type = type;
@@ -38,30 +40,49 @@ public class TextGradientUtil {
 	 */
 	public String[] splitOnGradient() {
 		String text = this.text;
-		boolean firstMatch = false;
+		this.firstMatch = false;
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < text.length(); i++) {
-			char textToChar = text.charAt(i);
-			if (textToChar == 'g' && i + 8 < text.length()) {
-				StringBuilder build = new StringBuilder();
-				boolean isgradient = false;
-				for (int check = (i > 0 ? i - 1 : 0); check < text.length(); check++) {
-					build.append(text.charAt(check));
-					isgradient = build.indexOf(this.type.getType() + "<") >= 0;
-					if (isgradient)
-						break;
-					if (check > 8 + i)
-						break;
-				}
-				if (isgradient)
-					if (!firstMatch)
-						firstMatch = true;
-					else
-						builder.append("_,_");
+			char currentChar = text.charAt(i);
+			if (currentChar == 'g' && i + 8 < text.length()) {
+				firstMatch = processGradientMatch(text,  builder, i);
 			}
-			builder.append(textToChar);
+			builder.append(currentChar);
 		}
-		return builder.toString().split("_,_");
+		return builder.toString().split(deliminator);
+	}
+
+	/**
+	 * Check if it first match or second match.
+	 * @param text the text you want to add.
+	 * @param builder to build the text
+	 * @param currentIndex index where it should check in the string after the color.
+	 * @return true if it first match.
+	 */
+	private boolean processGradientMatch(final String text, final StringBuilder builder, final int currentIndex) {
+		boolean firstMatch = this.firstMatch;
+		boolean isGradient = nextGradientMatch(text, currentIndex);
+		if (isGradient)
+			if (!firstMatch)
+				firstMatch = true;
+			else {
+				builder.append(deliminator);
+			}
+		return firstMatch;
+	}
+
+	private boolean nextGradientMatch(final String text, final int currentIndex) {
+		boolean isGradient = false;
+		StringBuilder build = new StringBuilder();
+		for (int check = (currentIndex > 0 ? currentIndex - 1 : 0); check < text.length(); check++) {
+			build.append(text.charAt(check));
+			isGradient = build.indexOf(this.type.getType() + "<") >= 0;
+			if (isGradient)
+				break;
+			if (check > 8 + currentIndex)
+				break;
+		}
+		return isGradient;
 	}
 
 	/**
@@ -282,24 +303,7 @@ public class TextGradientUtil {
 			char letter = letters[i];
 			if ((letter == org.bukkit.ChatColor.COLOR_CHAR || letter == COLOR_AMPERSAND) && i + 1 < letters.length) {
 				final char decoration = Character.toLowerCase(letters[i + 1]);
-
-				if (decoration == 'k')
-					lastDecoration = "&k";
-
-				else if (decoration == 'l')
-					lastDecoration = "&l";
-
-				else if (decoration == 'm')
-					lastDecoration = "&m";
-
-				else if (decoration == 'n')
-					lastDecoration = "&n";
-
-				else if (decoration == 'o')
-					lastDecoration = "&o";
-
-				else if (decoration == 'r')
-					lastDecoration = "";
+				lastDecoration = getColorCode(lastDecoration, decoration);
 				i++;
 				continue;
 			}
@@ -310,6 +314,27 @@ public class TextGradientUtil {
 			builder.append(isEmpty ? "" : "<").append(isEmpty ? "" : stepColor).append(isEmpty ? "" : ">").append(lastDecoration).append(letter);
 		}
 		return builder.toString();
+	}
+
+	private String getColorCode(String lastDecoration, final char decoration) {
+		if (decoration == 'k')
+			lastDecoration = "&k";
+
+		else if (decoration == 'l')
+			lastDecoration = "&l";
+
+		else if (decoration == 'm')
+			lastDecoration = "&m";
+
+		else if (decoration == 'n')
+			lastDecoration = "&n";
+
+		else if (decoration == 'o')
+			lastDecoration = "&o";
+
+		else if (decoration == 'r')
+			lastDecoration = "";
+		return lastDecoration;
 	}
 
 	public int getLastGradientMatch(String message) {
@@ -391,6 +416,16 @@ public class TextGradientUtil {
 				return convertColorToHex(Color.getHSBColor((float) hue, (float) saturation, (float) brightness));
 			}
 		};
+	}
+
+	/**
+	 * Change the default string used to split gradients
+	 *
+	 * @param deliminator the text string should be used for split the message
+	 *                       at the gradients.
+	 */
+	public static void setDeliminator(final String deliminator) {
+		TextGradientUtil.deliminator = deliminator;
 	}
 
 	public double[] quadratic(double from, double to, int max, boolean mode) {

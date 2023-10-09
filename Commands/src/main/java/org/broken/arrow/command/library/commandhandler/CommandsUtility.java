@@ -38,40 +38,27 @@ public class CommandsUtility extends Command {
 			this.sendMessage(sender, commandLabel, args);
 		}
 		if (args.length > 0) {
-			final List<String> descriptions = commandRegister.getDescriptions();
-			if (args.length == 1)
-				if (descriptions != null && !descriptions.isEmpty() && (Arrays.toString(args).endsWith("?]") || Arrays.toString(args).endsWith("help]"))) {
-					for (String description : descriptions)
-						sender.sendMessage(placeholders(description, commandLabel, null));
-					return false;
-				}
 
+			if (!this.sendDescriptions(sender, commandLabel,args))
+				return false;
 			final CommandBuilder executor = commandRegister.getCommandBuilder(args[0]);
 			if (executor != null) {
 				if (executor.getDescription() != null && (Arrays.toString(args).endsWith("?]") || Arrays.toString(args).endsWith("help]"))) {
 					sender.sendMessage(placeholders(executor.getDescription(), commandLabel, executor));
 					return false;
 				}
-				if (!checkPermission(sender, executor)) {
-					String permissionMessage = executor.getPermissionMessage();
-					if (permissionMessage != null)
-						sender.sendMessage(colors(placeholders(permissionMessage, commandLabel, executor)));
-					return false;
-				}
+				if (sendNoPermission(sender, commandLabel, executor)) return false;
 
 				CommandHolder holder = executor.getExecutor();
-
 				boolean executeCommand = holder.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
 
-				if (executor.getUsageMessages() != null && !executeCommand)
-					for (final String usage : executor.getUsageMessages()) {
-						sender.sendMessage(colors(placeholders(usage, commandLabel, executor)));
-					}
+				sendUsageMessage(sender, commandLabel, executor, executeCommand);
 
 			}
 		}
 		return false;
 	}
+
 
 	@Nonnull
 	@Override
@@ -119,6 +106,15 @@ public class CommandsUtility extends Command {
 		return tab;
 	}
 
+	public void sendSubDescription(final CommandSender sender, final String commandLabel) {
+		for (final CommandBuilder subcommand : commandRegister.getCommands()) {
+			if (subcommand.isHideLabel() && !checkPermission(sender, subcommand)) {
+				continue;
+			}
+			if (subcommand.getDescription() == null || subcommand.getDescription().isEmpty()) continue;
+			sender.sendMessage(placeholders(subcommand.getDescription(), commandLabel, subcommand));
+		}
+	}
 	private void sendMessage(final CommandSender sender, final String commandLabel, @Nonnull final String[] args) {
 
 		final List<String> helpPrefixMessage = commandRegister.getPrefixMessage();
@@ -132,17 +128,7 @@ public class CommandsUtility extends Command {
 			sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, null)));
 
 		} else if (commandLabelMessage != null && !commandLabelMessage.isEmpty()) {
-			for (final CommandBuilder subcommand : commandRegister.getCommands()) {
-				if (subcommand.isHideLabel() && !checkPermission(sender, subcommand)) {
-					continue;
-				}
-				if (!checkPermission(sender, subcommand) && labelMessageNoPerms != null && !labelMessageNoPerms.isEmpty()) {
-					sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, subcommand)));
-				}
-				if (checkPermission(sender, subcommand)) {
-					sender.sendMessage(colors(placeholders(commandLabelMessage, commandLabel, subcommand)));
-				}
-			}
+			sendToSender(sender, commandLabel, commandLabelMessage, labelMessageNoPerms);
 		}
 		final List<String> helpSuffixMessage = commandRegister.getSuffixMessage();
 		if (helpSuffixMessage != null && !helpSuffixMessage.isEmpty())
@@ -150,13 +136,17 @@ public class CommandsUtility extends Command {
 				sender.sendMessage(colors(suffixMessage));
 	}
 
-	public void sendSubDescription(final CommandSender sender, final String commandLabel) {
+	private void sendToSender(final CommandSender sender, final String commandLabel, final String commandLabelMessage, final String labelMessageNoPerms) {
 		for (final CommandBuilder subcommand : commandRegister.getCommands()) {
 			if (subcommand.isHideLabel() && !checkPermission(sender, subcommand)) {
 				continue;
 			}
-			if (subcommand.getDescription() == null || subcommand.getDescription().isEmpty()) continue;
-			sender.sendMessage(placeholders(subcommand.getDescription(), commandLabel, subcommand));
+			if (!checkPermission(sender, subcommand) && labelMessageNoPerms != null && !labelMessageNoPerms.isEmpty()) {
+				sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, subcommand)));
+			}
+			if (checkPermission(sender, subcommand)) {
+				sender.sendMessage(colors(placeholders(commandLabelMessage, commandLabel, subcommand)));
+			}
 		}
 	}
 
@@ -170,5 +160,32 @@ public class CommandsUtility extends Command {
 	public String colors(final String message) {
 		if (message == null) return "";
 		return TextTranslator.toSpigotFormat(message);
+	}
+
+	private boolean sendNoPermission(@Nonnull final CommandSender sender, @Nonnull final String commandLabel,@Nonnull final CommandBuilder executor) {
+		if (!checkPermission(sender, executor)) {
+			String permissionMessage = executor.getPermissionMessage();
+			if (permissionMessage != null)
+				sender.sendMessage(colors(placeholders(permissionMessage, commandLabel, executor)));
+			return true;
+		}
+		return false;
+	}
+	private boolean sendDescriptions(CommandSender sender,String commandLabel,String[] args){
+		final List<String> descriptions = commandRegister.getDescriptions();
+		if (args.length == 1) {
+			if (descriptions != null && !descriptions.isEmpty() && (Arrays.toString(args).endsWith("?]") || Arrays.toString(args).endsWith("help]"))) {
+				for (String description : descriptions)
+					sender.sendMessage(placeholders(description, commandLabel, null));
+				return false;
+			}
+		}
+		return true;
+	}
+	private void sendUsageMessage(@Nonnull final CommandSender sender, @Nonnull final String commandLabel,@Nonnull final CommandBuilder executor, final boolean executeCommand) {
+		if (executor.getUsageMessages() != null && !executeCommand)
+			for (final String usage : executor.getUsageMessages()) {
+				sender.sendMessage(colors(placeholders(usage, commandLabel, executor)));
+			}
 	}
 }
