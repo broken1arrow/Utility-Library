@@ -707,28 +707,34 @@ public class CreateItemStack {
 	}
 
 	@Nonnull
-	private ItemStack getItemStack(ItemStack itemStack, final RegisterNbtAPI nbtApi) {
+	private ItemStack getItemStack(@Nonnull ItemStack itemStack, final RegisterNbtAPI nbtApi) {
 		if (!isAir(itemStack.getType())) {
 			if (nbtApi != null) {
 				final Map<String, Object> metadataMap = this.getMetadataMap();
 				if (metadataMap != null)
 					itemStack = nbtApi.getCompMetadata().setAllMetadata(itemStack, metadataMap);
 			}
+
 			final ItemMeta itemMeta = itemStack.getItemMeta();
-			if (itemMeta != null) {
-				if (this.displayName != null) {
-					itemMeta.setDisplayName(translateColors(this.displayName));
-				}
-				if (this.lore != null && !this.lore.isEmpty()) {
-					itemMeta.setLore(translateColors(this.lore));
-				}
-				addItemMeta(itemMeta);
-			}
+			setMetadata(itemMeta);
 			itemStack.setItemMeta(itemMeta);
+
 			if (!this.keepAmount)
 				itemStack.setAmount(this.amountOfItems <= 0 ? 1 : this.amountOfItems);
 		}
 		return itemStack;
+	}
+
+	private void setMetadata(final ItemMeta itemMeta) {
+		if (itemMeta != null) {
+			if (this.displayName != null) {
+				itemMeta.setDisplayName(translateColors(this.displayName));
+			}
+			if (this.lore != null && !this.lore.isEmpty()) {
+				itemMeta.setLore(translateColors(this.lore));
+			}
+			addItemMeta(itemMeta);
+		}
 	}
 
 	/**

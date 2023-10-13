@@ -165,10 +165,8 @@ public class RegisterMenuAPI {
 			if (event.getClickedInventory() == null)
 				return;
 			ItemStack clickedItem = event.getCurrentItem();
-			final ItemStack cursor = event.getCursor();
 
 			final MenuUtility<?> menuUtility = getMenuHolder(player);
-
 			if (menuUtility == null) return;
 
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu())) return;
@@ -340,15 +338,19 @@ public class RegisterMenuAPI {
 						clickedItem = new ItemStack(Material.AIR);
 					menuUtility.onClick(menuButton, player, clickedPos, event.getClick(), clickedItem);
 
-					if (ServerVersion.newerThan(ServerVersion.v1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
-						final SwapData data = cacheData.get(player.getUniqueId());
-						ItemStack item = null;
-						if (data != null) {
-							item = data.getItemInOfBeforeOpenMenuHand();
-						}
-						cacheData.put(player.getUniqueId(), new SwapData(true, item));
-					}
+					onOffHandClick(event, player);
 				}
+			}
+		}
+
+		private void onOffHandClick(final InventoryClickEvent event, final Player player) {
+			if (ServerVersion.newerThan(ServerVersion.v1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
+				final SwapData data = cacheData.get(player.getUniqueId());
+				ItemStack item = null;
+				if (data != null) {
+					item = data.getItemInOfBeforeOpenMenuHand();
+				}
+				cacheData.put(player.getUniqueId(), new SwapData(true, item));
 			}
 		}
 

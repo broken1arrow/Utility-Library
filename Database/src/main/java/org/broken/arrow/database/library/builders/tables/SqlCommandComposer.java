@@ -7,6 +7,7 @@ import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.log.Validate;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -330,20 +331,17 @@ public final class SqlCommandComposer {
 	}
 
 	private int setColumData(Object value,final StringBuilder prepareColumnsToUpdate, final StringBuilder columns, int index, final String columnName, final TableRow column) {
-		final char quote = this.quote;
+		final char quoteColumnName = this.quote;
 
-		if (value == null && column.isNotNull())
-			value = "";
-		if (value == null && column.getDefaultValue() != null)
-			value = column.getDefaultValue();
-		columns.append(quote)
+		value = getValue(value, column);
+		columns.append(quoteColumnName)
 				.append(columnName)
-				.append(quote);
+				.append(quoteColumnName);
 		columns.append(" = ").append(value == null ? null + "," : "'" + value + "', ");
 
-		prepareColumnsToUpdate.append(quote)
+		prepareColumnsToUpdate.append(quoteColumnName)
 				.append(columnName)
-				.append(quote)
+				.append(quoteColumnName)
 				.append(" = ?,");
 		this.cachedDataByColumn.put(index++, value);
 		return index;
@@ -362,16 +360,16 @@ public final class SqlCommandComposer {
 		final TableWrapper tableWrapper = this.getTableWrapper();
 		final Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
 		final RowWrapper saveWrapper = getColumnWrapper();
-		final char quote = this.quote;
+		final char quoteColumnName = this.quote;
 
 		Validate.checkBoolean(saveWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table or no records get updated.");
 		Object primaryKeyColumnValue = saveWrapper.getPrimaryKeyValue();
 		Validate.checkNotNull(primaryKeyColumnValue, "Value for primary key can't be null.");
 
 		columns.append("(")
-				.append(quote)
+				.append(quoteColumnName)
 				.append(saveWrapper.getPrimaryKey())
-				.append(quote)
+				.append(quoteColumnName)
 				.append(tableRowMap.size() > 0 ? "," : " ");
 
 		values.append("'");
@@ -391,26 +389,32 @@ public final class SqlCommandComposer {
 	}
 
 	private void mergeColumns(final StringBuilder columns, final StringBuilder values, final StringBuilder prepareValues, final Map<String, TableRow> tableRowMap, final RowWrapper saveWrapper) {
-		final char quote = this.quote;
+		final char quoteColumnName = this.quote;
 		int index = 2;
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
 			final String columnName = entry.getKey();
 			final TableRow column = entry.getValue();
 
-			columns.append((columns.length() == 0) ? "(" : "").append(quote).append(columnName).append(quote).insert(columns.length(), columns.length() == 0 ? "" : ",");
+			columns.append((columns.length() == 0) ? "(" : "").append(quoteColumnName).append(columnName).append(quoteColumnName).insert(columns.length(), columns.length() == 0 ? "" : ",");
 			Object value = saveWrapper.getColumnValue(columnName);
-			if (value == null && column.isNotNull())
-				value = "";
-			if (value == null && column.getDefaultValue() != null)
-				value = column.getDefaultValue();
+			value = getValue(value, column);
 			boolean setQuote = value != null;
-			if (column.getDatatype().equalsIgnoreCase("INTEGER"))
+			if (!column.getDatatype().equalsIgnoreCase("VARCHAR"))
 				setQuote = false;
 
 			values.append(setQuote ? "'" : "").append(value).insert(values.length(), values.length() == 0 ? "" : setQuote ? "," : "',");
 			prepareValues.append("?,");
 			this.cachedDataByColumn.put(index++, value);
 		}
+	}
+
+	@Nullable
+	private Object getValue(Object value, final TableRow column) {
+		if (value == null && column.isNotNull())
+			value = "";
+		if (value == null && column.getDefaultValue() != null)
+			value = column.getDefaultValue();
+		return value;
 	}
 
 }

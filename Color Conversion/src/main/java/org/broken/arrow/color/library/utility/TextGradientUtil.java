@@ -60,16 +60,16 @@ public class TextGradientUtil {
 	 * @return true if it first match.
 	 */
 	private boolean processGradientMatch(final String text, final StringBuilder builder, final int currentIndex) {
-		boolean firstMatch = this.firstMatch;
+		boolean match = this.firstMatch;
 		boolean isGradient = nextGradientMatch(text, currentIndex);
 		if (isGradient) {
-			if (!firstMatch) {
-				firstMatch = true;
+			if (!match) {
+				match = true;
 			} else {
 				builder.append(deliminator);
 			}
 		}
-		return firstMatch;
+		return match;
 	}
 
 	private boolean nextGradientMatch(final String text, final int currentIndex) {

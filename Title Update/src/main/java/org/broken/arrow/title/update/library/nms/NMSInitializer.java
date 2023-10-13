@@ -43,6 +43,7 @@ public interface NMSInitializer {
 	 * Retrieve the PlayerConnection class.
 	 *
 	 * @return the method that returns PlayerConnection instance.
+	 * @throws ClassNotFoundException If the Containers class cannot be found.
 	 */
 	Class<?> getPlayerConnectionClass() throws ClassNotFoundException;
 
