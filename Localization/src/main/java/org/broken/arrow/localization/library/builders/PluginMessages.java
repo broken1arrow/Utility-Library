@@ -20,7 +20,7 @@ import java.util.Map.Entry;
 public class PluginMessages implements ConfigurationSerializable {
 
 	private final Map<String, List<String>> messages;
-	private final PluginMessages pluginMessages;
+	private final PluginMessages instance;
 	private String pluginName;
 	private String prefixDecor;
 	private String suffixDecor;
@@ -32,7 +32,7 @@ public class PluginMessages implements ConfigurationSerializable {
 	 */
 	private PluginMessages(Map<String, List<String>> messages) {
 		this.messages = messages;
-		this.pluginMessages = this;
+		this.instance = this;
 	}
 
 	/**
@@ -64,8 +64,8 @@ public class PluginMessages implements ConfigurationSerializable {
 	 * @return the PluginMessages instance associated with this object.
 	 */
 	@Nonnull
-	public PluginMessages getPluginMessages() {
-		return pluginMessages;
+	public PluginMessages getInstance() {
+		return instance;
 	}
 
 	/**

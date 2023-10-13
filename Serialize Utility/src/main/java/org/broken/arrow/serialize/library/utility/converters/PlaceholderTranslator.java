@@ -73,9 +73,9 @@ public class PlaceholderTranslator {
 	public static String translatePlaceholders(Pair<String, String> replacements, String rawText, Object... placeholders) {
 		if (placeholders != null)
 			for (int i = 0; i < placeholders.length; i++) {
-				if (placeholders[i] instanceof List)
+				if (rawText == null || placeholders[i] instanceof List)
 					continue;
-				if (rawText == null) continue;
+
 				rawText = rawText.replace("{" + i + "}", placeholders[i] != null ? placeholders[i].toString() : "");
 			}
 		if (replacements != null)

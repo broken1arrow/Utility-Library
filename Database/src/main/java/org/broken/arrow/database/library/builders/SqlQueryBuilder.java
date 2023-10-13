@@ -71,7 +71,6 @@ public class SqlQueryBuilder {
 	 * Create the instance for the SQL query, such as SELECT, INSERT, UPDATE, or DELETE.
 	 *
 	 * @param builder The builder for the command.
-
 	 */
 	public SqlQueryBuilder(final Builder builder) {
 		this.executionsType = builder.executionsType == null ? null : builder.executionsType;
@@ -265,7 +264,7 @@ public class SqlQueryBuilder {
 		private final String tableName;
 		private String clauseBeforeTable = "";
 		private String whereClause = "";
-		private String wildcard ="";
+		private String wildcard = "";
 
 		public Builder(final SQLCommandPrefix executionsType, String tableName) {
 			this(executionsType.getKey(), tableName);
@@ -514,11 +513,7 @@ public class SqlQueryBuilder {
 						final String columnName = entry.getKey();
 						final Object value = entry.getValue();
 						columns.append(columnName);
-						if (columns.length() == 0) {
-							columns.append(" = ").append(value == null ? null : "'" + value + "'");
-						} else {
-							columns.append(" = ").append(value == null ? null + "," : "'" + value + "', ");
-						}
+						columns.append(" = ").append(value == null ? null + "," : "'" + value + "', ");
 					}
 					columns.setLength(columns.length() - 1);
 					builder.updateBuilder = columns;

@@ -309,25 +309,8 @@ public final class SqlCommandComposer {
 			if (columnsToUpdate != null && !columnsToUpdate.isEmpty() && !columnsToUpdate.contains(columnName)) {
 				continue;
 			}
-
 			Object value = rowWrapper.getColumnValue(columnName);
-			if (value == null && column.isNotNull())
-				value = "";
-			if (value == null && column.getDefaultValue() != null)
-				value = column.getDefaultValue();
-			columns.append(quote)
-					.append(columnName)
-					.append(quote);
-			if (columns.length() == 0) {
-				columns.append(" = ").append(value == null ? null : "'" + value + "'");
-			} else {
-				columns.append(" = ").append(value == null ? null + "," : "'" + value + "', ");
-			}
-			prepareColumnsToUpdate.append(quote)
-					.append(columnName)
-					.append(quote)
-					.append(" = ?,");
-			this.cachedDataByColumn.put(index++, value);
+			index = setColumData(value, prepareColumnsToUpdate, columns, index, columnName, column);
 		}
 		this.cachedDataByColumn.put(index, record);
 		prepareColumnsToUpdate.setLength(prepareColumnsToUpdate.length() - 1);
@@ -344,6 +327,26 @@ public final class SqlCommandComposer {
 				.append(";");
 		columns.setLength(columns.length() - 2);
 		return "UPDATE " + quote + tableWrapper.getTableName() + quote + " SET " + columns + " WHERE " + quote + rowWrapper.getPrimaryKey() + quote + " = " + quote + record + quote + ";";
+	}
+
+	private int setColumData(Object value,final StringBuilder prepareColumnsToUpdate, final StringBuilder columns, int index, final String columnName, final TableRow column) {
+		final char quote = this.quote;
+
+		if (value == null && column.isNotNull())
+			value = "";
+		if (value == null && column.getDefaultValue() != null)
+			value = column.getDefaultValue();
+		columns.append(quote)
+				.append(columnName)
+				.append(quote);
+		columns.append(" = ").append(value == null ? null + "," : "'" + value + "', ");
+
+		prepareColumnsToUpdate.append(quote)
+				.append(columnName)
+				.append(quote)
+				.append(" = ?,");
+		this.cachedDataByColumn.put(index++, value);
+		return index;
 	}
 
 	/**
@@ -376,6 +379,19 @@ public final class SqlCommandComposer {
 		values.append(tableRowMap.size() > 0 ? "'," : "' ");
 		this.cachedDataByColumn.put(1, primaryKeyColumnValue);
 		prepareValues.append("?,");
+		this.mergeColumns(columns, values, prepareValues, tableRowMap, saveWrapper);
+
+		columns.setLength(columns.length() - 1);
+		values.setLength(values.length() - 1);
+		prepareValues.setLength(prepareValues.length() - 1);
+		preparedSQLBatch.append(columns).append(") VALUES (").append(prepareValues).append(")");
+		columns.insert(columns.length(), ") VALUES(" + values + ")");
+
+		return columns;
+	}
+
+	private void mergeColumns(final StringBuilder columns, final StringBuilder values, final StringBuilder prepareValues, final Map<String, TableRow> tableRowMap, final RowWrapper saveWrapper) {
+		final char quote = this.quote;
 		int index = 2;
 		for (Entry<String, TableRow> entry : tableRowMap.entrySet()) {
 			final String columnName = entry.getKey();
@@ -395,13 +411,6 @@ public final class SqlCommandComposer {
 			prepareValues.append("?,");
 			this.cachedDataByColumn.put(index++, value);
 		}
-		columns.setLength(columns.length() - 1);
-		values.setLength(values.length() - 1);
-		prepareValues.setLength(prepareValues.length() - 1);
-		preparedSQLBatch.append(columns).append(") VALUES (").append(prepareValues).append(")");
-		columns.insert(columns.length(), ") VALUES(" + values + ")");
-
-		return columns;
 	}
 
 }

@@ -65,20 +65,7 @@ public class MessagesUtility {
 		if (pluginName == null)
 			pluginName = "";
 		if (!messages.isEmpty()) {
-			boolean addPreSuffix = messages.size() > 1;
-			if (addPreSuffix && pluginMessages.getPrefixDecor() != null) {
-				String prefixMsg = PlaceholderTranslator.translatePlaceholders(pluginMessages.getPrefixDecor(), pluginName);
-				sendPlainMessage(level, player, prefixMsg);
-			}
-			for (String message : messages) {
-				if (message == null) continue;
-				message = PlaceholderTranslator.translatePlaceholders((addPreSuffix ? "" : pluginName) + message, placeholders);
-				sendPlainMessage(level, player, message);
-			}
-			if (addPreSuffix && pluginMessages.getSuffixDecor() != null) {
-				String suffixMsg = PlaceholderTranslator.translatePlaceholders(pluginMessages.getSuffixDecor(), pluginName);
-				sendPlainMessage(level, player, suffixMsg);
-			}
+			sendPlainMessage(level, player, pluginMessages, messages, pluginName, placeholders);
 		}
 	}
 
@@ -128,6 +115,22 @@ public class MessagesUtility {
 				player.sendMessage(TextTranslator.toSpigotFormat(message));
 			else
 				player.sendRawMessage(TextTranslator.toSpigotFormat(message));
+		}
+	}
+	private void sendPlainMessage(@Nullable final Level level, @Nullable final Player player, final PluginMessages pluginMessages, final List<String> messages, final String pluginName, @Nullable final Object[] placeholders) {
+		boolean addPreSuffix = messages.size() > 1;
+		if (addPreSuffix && pluginMessages.getPrefixDecor() != null) {
+			String prefixMsg = PlaceholderTranslator.translatePlaceholders(pluginMessages.getPrefixDecor(), pluginName);
+			sendPlainMessage(level, player, prefixMsg);
+		}
+		for (String message : messages) {
+			if (message == null) continue;
+			message = PlaceholderTranslator.translatePlaceholders((addPreSuffix ? "" : pluginName) + message, placeholders);
+			sendPlainMessage(level, player, message);
+		}
+		if (addPreSuffix && pluginMessages.getSuffixDecor() != null) {
+			String suffixMsg = PlaceholderTranslator.translatePlaceholders(pluginMessages.getSuffixDecor(), pluginName);
+			sendPlainMessage(level, player, suffixMsg);
 		}
 	}
 }

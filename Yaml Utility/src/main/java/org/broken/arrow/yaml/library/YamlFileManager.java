@@ -299,7 +299,7 @@ public abstract class YamlFileManager {
 	public final void save(final String fileToSave) {
 		if (this.singleFile) {
 			final File singleFile = new File(this.getFullPath());
-			saveData(singleFile);
+			this.saveData(singleFile);
 			return;
 		}
 		
@@ -309,26 +309,31 @@ public abstract class YamlFileManager {
 
 		if (dataFolder.exists() && listOfFiles != null) {
 			if (fileToSave != null) {
-				if (!checkFolderExist(fileToSave, listOfFiles)) {
-					final File newDataFolder = new File(dataFolder, fileToSave + "." + this.getExtension());
-					try {
-						newDataFolder.createNewFile();
-					} catch (final IOException e) {
-						e.printStackTrace();
-					} finally {
-						saveData(newDataFolder);
-					}
-				} else {
-					for (final File file : listOfFiles) {
-						if (getNameOfFile(file.getName()).equals(fileToSave)) {
-							saveData(file);
-						}
-					}
-				}
-			} else
+				this.saveSpecificFile(fileToSave, dataFolder, listOfFiles);
+			} else {
 				for (final File file : listOfFiles) {
 					saveData(file);
 				}
+			}
+		}
+	}
+
+	private void saveSpecificFile(final String fileToSave, final File dataFolder, final File[] listOfFiles) {
+		if (!checkFolderExist(fileToSave, listOfFiles)) {
+			final File newDataFolder = new File(dataFolder, fileToSave + "." + this.getExtension());
+			try {
+				newDataFolder.createNewFile();
+			} catch (final IOException e) {
+				e.printStackTrace();
+			} finally {
+				saveData(newDataFolder);
+			}
+		} else {
+			for (final File file : listOfFiles) {
+				if (getNameOfFile(file.getName()).equals(fileToSave)) {
+					saveData(file);
+				}
+			}
 		}
 	}
 
@@ -719,25 +724,36 @@ public abstract class YamlFileManager {
 					e.printStackTrace();
 				}
 			} else if (url.getProtocol().equals("jar")) {
-
-				final String dirname = isSingleFile() ? directoryName : directoryName + "/";
-				final String path = url.getPath();
-				final String jarPath = path.substring(5, path.indexOf("!"));
-				try (final JarFile jar = new JarFile(URLDecoder.decode(jarPath, StandardCharsets.UTF_8.name()))) {
-					final Enumeration<JarEntry> entries = jar.entries();
-					while (entries.hasMoreElements()) {
-						final JarEntry entry = entries.nextElement();
-						final String filePath = entry.getName();
-						if (filePath.startsWith(dirname) && filePath.endsWith(this.getExtension())) {
-							filenames.add(filePath);
-						}
-					}
-				} catch (final IOException e) {
-					e.printStackTrace();
-				}
+				getFileFromJar(directoryName, filenames, url);
 			}
 		}
 		return filenames;
+	}
+
+	/**
+	 * Retrieve the file from your plugin.jar and will sort out al files that don't match the
+	 * directory or file nane.
+	 *
+	 * @param directoryName the name on the directory you want to get all files from or a file name for only get one file.
+	 * @param filenames the list to add the name of the files you want to add.
+	 * @param url The URL path to your plugin.jar resources that contains your files you want to get.
+	 */
+	private void getFileFromJar(final String directoryName, final List<String> filenames, final URL url) {
+		final String dirname = isSingleFile() ? directoryName : directoryName + "/";
+		final String path = url.getPath();
+		final String jarPath = path.substring(5, path.indexOf("!"));
+		try (final JarFile jar = new JarFile(URLDecoder.decode(jarPath, StandardCharsets.UTF_8.name()))) {
+			final Enumeration<JarEntry> entries = jar.entries();
+			while (entries.hasMoreElements()) {
+				final JarEntry entry = entries.nextElement();
+				final String filePath = entry.getName();
+				if (filePath.startsWith(dirname) && filePath.endsWith(this.getExtension())) {
+					filenames.add(filePath);
+				}
+			}
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void createMissingFile() {

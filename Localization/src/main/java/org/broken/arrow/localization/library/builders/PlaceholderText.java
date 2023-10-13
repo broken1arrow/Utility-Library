@@ -17,7 +17,7 @@ import java.util.Map.Entry;
 public class PlaceholderText implements ConfigurationSerializable {
 
 	final Map<String, String> placeholders;
-	private final PlaceholderText placeholderText;
+	private final PlaceholderText instance;
 	private final TimePlaceholders timePlaceholders;
 
 	/**
@@ -29,7 +29,7 @@ public class PlaceholderText implements ConfigurationSerializable {
 	public PlaceholderText(@Nonnull Map<String, String> placeholders, @Nullable TimePlaceholders timePlaceholders) {
 		this.placeholders = placeholders;
 		this.timePlaceholders = timePlaceholders;
-		this.placeholderText = this;
+		this.instance = this;
 	}
 
 	/**
@@ -61,8 +61,8 @@ public class PlaceholderText implements ConfigurationSerializable {
 	 *
 	 * @return the PlaceholderText instance associated with this object
 	 */
-	public PlaceholderText getPlaceholderText() {
-		return placeholderText;
+	public PlaceholderText getInstance() {
+		return instance;
 	}
 
 	/**

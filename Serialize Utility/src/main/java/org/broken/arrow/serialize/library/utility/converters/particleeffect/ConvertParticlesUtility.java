@@ -1,6 +1,7 @@
 package org.broken.arrow.serialize.library.utility.converters.particleeffect;
 
 import org.broken.arrow.serialize.library.utility.Pair;
+import org.broken.arrow.serialize.library.utility.converters.particleeffect.ParticleEffect.Builder;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Material;
@@ -218,29 +219,46 @@ public class ConvertParticlesUtility {
 		int amountOfParticles = particleEffectWrapper.getAmountOfParticles();
 		float extra = particleEffectWrapper.getExtra();
 
-		ParticleEffect.Builder builder = null;
-		if (serverVersion >= 9)
-			if (object instanceof Particle) {
-				final Particle part = (Particle) object;
-				builder = new ParticleEffect.Builder(part, part.getDataType());
+		ParticleEffect.Builder builder;
+		if (serverVersion >= 9 && !(object instanceof Effect))
+			builder = buildParticle(object, particleData, firstColor, secondColor, amountOfParticles, extra);
+		else
+			builder = buildEffect(object, particleData, firstColor, secondColor, amountOfParticles, extra);
 
-				if (part.name().equals("BLOCK_MARKER")) {
-					builder.setMaterial(Material.BARRIER);
-				}
-				setBuilderExtraDataParticle(builder, particleData, part);
-				if (firstColor != null && part.name().equals("REDSTONE")) {
-					if (secondColor != null)
-						builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, extra));
-					else
-						builder.setDustOptions(new ParticleDustOptions(firstColor, extra));
-				} else {
-					builder.setExtra(extra);
-				}
-				builder.setCount(amountOfParticles);
+		if (object == null || builder == null)
+			return null;
+
+		return builder.build();
+	}
+
+	private static Builder buildParticle(final Object object, final Object particleData, final String firstColor, final String secondColor, final int amountOfParticles, final float extra) {
+		Builder builder = null;
+		if (object instanceof Particle) {
+			final Particle part = (Particle) object;
+			 builder = new ParticleEffect.Builder(part, part.getDataType());
+
+			if (part.name().equals("BLOCK_MARKER")) {
+				builder.setMaterial(Material.BARRIER);
 			}
+			setBuilderExtraDataParticle(builder, particleData, part);
+			if (firstColor != null && part.name().equals("REDSTONE")) {
+				if (secondColor != null)
+					builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, extra));
+				else
+					builder.setDustOptions(new ParticleDustOptions(firstColor, extra));
+			} else {
+				builder.setExtra(extra);
+			}
+			builder.setCount(amountOfParticles);
+		}
+		return builder;
+	}
+
+	private static Builder buildEffect(final Object object, final Object particleData, final String firstColor, final String secondColor, final int amountOfParticles, final float extra) {
+		Builder builder = null;
 		if (object instanceof Effect) {
 			final Effect part = (Effect) object;
-			builder = new ParticleEffect.Builder(part, part.getData() != null ? part.getData() : Void.class);
+			builder = new Builder(part, part.getData() != null ? part.getData() : Void.class);
 			if (firstColor != null && part.name().equals("REDSTONE")) {
 				if (secondColor != null)
 					builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, extra));
@@ -252,10 +270,7 @@ public class ConvertParticlesUtility {
 			setBuilderExtraDataEffect(builder, particleData, part);
 			builder.setCount(amountOfParticles);
 		}
-		if (object == null || builder == null)
-			return null;
-
-		return builder.build();
+		return builder;
 	}
 
 	/**

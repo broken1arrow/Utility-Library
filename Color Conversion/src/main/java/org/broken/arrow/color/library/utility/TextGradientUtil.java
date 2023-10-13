@@ -62,12 +62,13 @@ public class TextGradientUtil {
 	private boolean processGradientMatch(final String text, final StringBuilder builder, final int currentIndex) {
 		boolean firstMatch = this.firstMatch;
 		boolean isGradient = nextGradientMatch(text, currentIndex);
-		if (isGradient)
-			if (!firstMatch)
+		if (isGradient) {
+			if (!firstMatch) {
 				firstMatch = true;
-			else {
+			} else {
 				builder.append(deliminator);
 			}
+		}
 		return firstMatch;
 	}
 
@@ -77,9 +78,7 @@ public class TextGradientUtil {
 		for (int check = (currentIndex > 0 ? currentIndex - 1 : 0); check < text.length(); check++) {
 			build.append(text.charAt(check));
 			isGradient = build.indexOf(this.type.getType() + "<") >= 0;
-			if (isGradient)
-				break;
-			if (check > 8 + currentIndex)
+			if (isGradient || check > 8 + currentIndex)
 				break;
 		}
 		return isGradient;

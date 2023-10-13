@@ -193,25 +193,7 @@ public class ParticleCreator {
 		if (this.extra >= 0.0)
 			radius = (int) Math.floor(this.extra);
 		if (this.dataType != Void.class) {
-			if (player != null) {
-				if (this.dataType == Material.class)
-					this.player.playEffect(location, this.effect, this.effectAccessor.getMaterial());
-				if (this.dataType == MaterialData.class)
-					this.player.playEffect(location, this.effect, this.effectAccessor.getMaterialData());
-				if (this.dataType == BlockFace.class)
-					this.player.playEffect(location, this.effect, this.effectAccessor.getBlockFace());
-				if (this.dataType == Potion.class)
-					this.player.playEffect(location, this.effect, this.effectAccessor.getPotion());
-			} else {
-				if (this.dataType == Material.class)
-					this.world.playEffect(location, this.effect, this.effectAccessor, radius);
-				if (this.dataType == MaterialData.class)
-					this.world.playEffect(location, this.effect, this.effectAccessor.getMaterialData(), radius);
-				if (this.dataType == BlockFace.class)
-					this.world.playEffect(location, this.effect, this.effectAccessor.getBlockFace(), radius);
-				if (this.dataType == Potion.class)
-					this.world.playEffect(location, this.effect, this.effectAccessor.getPotion(), radius);
-			}
+			spawn(location, radius);
 		} else {
 			if (this.effect.getData() != null) {
 				logger.warning("You have to set the data for this effect. The type of data you must implement this class " + this.effect.getData());
@@ -240,21 +222,7 @@ public class ParticleCreator {
 				logger.warning("You have to set the data for this effect. The type of data you must implement this class '" + this.particle.getDataType() + "'");
 				return false;
 			}
-			if (player != null) {
-				if (this.dataType == BlockData.class) {
-					player.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, blockData);
-				}
-				if (this.dataType == ItemStack.class) {
-					player.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, new ItemStack(material));
-				}
-			} else {
-				if (this.dataType == BlockData.class) {
-					this.world.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, blockData);
-				}
-				if (this.dataType == ItemStack.class) {
-					this.world.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, new ItemStack(material));
-				}
-			}
+			spawn(material, blockData);
 			return true;
 		} else if (this.dataType == Void.class) {
 			if (player != null) {
@@ -264,5 +232,45 @@ public class ParticleCreator {
 			return true;
 		}
 		return false;
+	}
+
+	private void spawn(final Material material, final BlockData blockData) {
+		if (player != null) {
+			if (this.dataType == BlockData.class) {
+				player.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, blockData);
+			}
+			if (this.dataType == ItemStack.class) {
+				player.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, new ItemStack(material));
+			}
+		} else {
+			if (this.dataType == BlockData.class) {
+				this.world.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, blockData);
+			}
+			if (this.dataType == ItemStack.class) {
+				this.world.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, new ItemStack(material));
+			}
+		}
+	}
+
+	private void spawn(final Location location, final int radius) {
+		if (player != null) {
+			if (this.dataType == Material.class)
+				this.player.playEffect(location, this.effect, this.effectAccessor.getMaterial());
+			if (this.dataType == MaterialData.class)
+				this.player.playEffect(location, this.effect, this.effectAccessor.getMaterialData());
+			if (this.dataType == BlockFace.class)
+				this.player.playEffect(location, this.effect, this.effectAccessor.getBlockFace());
+			if (this.dataType == Potion.class)
+				this.player.playEffect(location, this.effect, this.effectAccessor.getPotion());
+		} else {
+			if (this.dataType == Material.class)
+				this.world.playEffect(location, this.effect, this.effectAccessor, radius);
+			if (this.dataType == MaterialData.class)
+				this.world.playEffect(location, this.effect, this.effectAccessor.getMaterialData(), radius);
+			if (this.dataType == BlockFace.class)
+				this.world.playEffect(location, this.effect, this.effectAccessor.getBlockFace(), radius);
+			if (this.dataType == Potion.class)
+				this.world.playEffect(location, this.effect, this.effectAccessor.getPotion(), radius);
+		}
 	}
 }

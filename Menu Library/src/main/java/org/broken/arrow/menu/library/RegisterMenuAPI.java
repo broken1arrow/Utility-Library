@@ -22,6 +22,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -172,47 +173,7 @@ public class RegisterMenuAPI {
 
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu())) return;
 
-			if (!menuUtility.isAddedButtonsCacheEmpty()) {
-				final int clickedSlot = event.getSlot();
-				final int clickedPos = menuUtility.getSlot(clickedSlot);
-
-				if (!menuUtility.isAllowShiftClick() && event.getClick().isShiftClick()) {
-					event.setCancelled(true);
-					return;
-				}
-				if (menuUtility.isSlotsYouCanAddItems()) {
-					if (menuUtility.getFillSpace().contains(clickedPos))
-						return;
-					else if (event.getClickedInventory().getType() != InventoryType.PLAYER)
-						event.setCancelled(true);
-				} else {
-					if (event.getClickedInventory().getType() == InventoryType.PLAYER)
-						if (event.getClick().isShiftClick()) {
-							event.setCancelled(true);
-						} else
-							event.setCancelled(true);
-					if (cursor != null && cursor.getType() != Material.AIR)
-						event.setCancelled(true);
-				}
-				final MenuButtonI<?> menuButton = getClickedButton(menuUtility, clickedItem, clickedPos);
-				if (menuButton != null) {
-					event.setCancelled(true);
-		/*			final Object object = menuUtility.getObjectFromList(clickedPos);
-					final Object objectData = object != null && !object.equals("") ? object : clickedItem;*/
-					if (clickedItem == null)
-						clickedItem = new ItemStack(Material.AIR);
-					menuUtility.onClick(menuButton, player, clickedPos, event.getClick(), clickedItem);
-
-					if (ServerVersion.newerThan(ServerVersion.v1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
-						final SwapData data = cacheData.get(player.getUniqueId());
-						ItemStack item = null;
-						if (data != null) {
-							item = data.getItemInOfBeforeOpenMenuHand();
-						}
-						cacheData.put(player.getUniqueId(), new SwapData(true, item));
-					}
-				}
-			}
+			whenPlayerClick(event, player, clickedItem, menuUtility);
 		}
 
 		@EventHandler(priority = EventPriority.LOW)
@@ -274,27 +235,9 @@ public class RegisterMenuAPI {
 			if (!menuUtility.isAddedButtonsCacheEmpty()) {
 				final int size = event.getView().getTopInventory().getSize();
 
-				for (final int clickedSlot : event.getRawSlots()) {
-					if (clickedSlot > size)
-						continue;
-
-					final int clickedPos = menuUtility.getSlot(clickedSlot);
-
-					final ItemStack cursor = checkIfNull(event.getCursor(), event.getOldCursor());
-					if (menuUtility.isSlotsYouCanAddItems()) {
-						if (menuUtility.getFillSpace().contains(clickedSlot))
-							return;
-						else
-							event.setCancelled(true);
-					} else {
-						event.setCancelled(true);
-					}
-					if (getClickedButton(menuUtility, cursor, clickedPos) == null)
-						event.setCancelled(true);
-				}
+				checkMenuForDrag(event, menuUtility, size);
 			}
 		}
-
 
 		public MenuButtonI<?> getClickedButton(final MenuUtility<?> menusData, final ItemStack item, final int clickedPos) {
 			final MenuDataUtility<?> menuData = menusData.getMenuData(menusData.getPageNumber());
@@ -384,5 +327,73 @@ public class RegisterMenuAPI {
 			}
 		}
 
+		private void whenPlayerClick(final InventoryClickEvent event, final Player player, ItemStack clickedItem, final MenuUtility<?> menuUtility) {
+			if (!menuUtility.isAddedButtonsCacheEmpty()) {
+				final int clickedSlot = event.getSlot();
+				final int clickedPos = menuUtility.getSlot(clickedSlot);
+				Inventory clickedInventory = event.getClickedInventory();
+				if (checkMenuIsValid(event, menuUtility, clickedPos, clickedInventory)) return;
+				final MenuButtonI<?> menuButton = getClickedButton(menuUtility, clickedItem, clickedPos);
+				if (menuButton != null) {
+					event.setCancelled(true);
+					if (clickedItem == null)
+						clickedItem = new ItemStack(Material.AIR);
+					menuUtility.onClick(menuButton, player, clickedPos, event.getClick(), clickedItem);
+
+					if (ServerVersion.newerThan(ServerVersion.v1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
+						final SwapData data = cacheData.get(player.getUniqueId());
+						ItemStack item = null;
+						if (data != null) {
+							item = data.getItemInOfBeforeOpenMenuHand();
+						}
+						cacheData.put(player.getUniqueId(), new SwapData(true, item));
+					}
+				}
+			}
+		}
+
+		private boolean checkMenuIsValid(final InventoryClickEvent event, final MenuUtility<?> menuUtility, final int clickedPos, final Inventory clickedInventory) {
+			final ItemStack cursor = event.getCursor();
+			if (!menuUtility.isAllowShiftClick() && event.getClick().isShiftClick()) {
+				event.setCancelled(true);
+				return true;
+			}
+			if (menuUtility.isSlotsYouCanAddItems()) {
+				if (menuUtility.getFillSpace().contains(clickedPos))
+					return true;
+				else if (clickedInventory.getType() != InventoryType.PLAYER)
+					event.setCancelled(true);
+			} else {
+				if (clickedInventory.getType() == InventoryType.PLAYER)
+					if (event.getClick().isShiftClick()) {
+						event.setCancelled(true);
+					} else
+						event.setCancelled(true);
+				if (cursor != null && cursor.getType() != Material.AIR)
+					event.setCancelled(true);
+			}
+			return false;
+		}
+
+		private void checkMenuForDrag(final InventoryDragEvent event, final MenuUtility<?> menuUtility, final int size) {
+			for (final int clickedSlot : event.getRawSlots()) {
+				if (clickedSlot > size)
+					continue;
+
+				final int clickedPos = menuUtility.getSlot(clickedSlot);
+
+				final ItemStack cursor = checkIfNull(event.getCursor(), event.getOldCursor());
+				if (menuUtility.isSlotsYouCanAddItems()) {
+					if (menuUtility.getFillSpace().contains(clickedSlot))
+						return;
+					else
+						event.setCancelled(true);
+				} else {
+					event.setCancelled(true);
+				}
+				if (getClickedButton(menuUtility, cursor, clickedPos) == null)
+					event.setCancelled(true);
+			}
+		}
 	}
 }
