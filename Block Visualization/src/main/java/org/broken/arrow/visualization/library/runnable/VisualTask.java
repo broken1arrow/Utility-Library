@@ -47,9 +47,9 @@ public final class VisualTask extends BukkitRunnable {
 			stop();
 			return;
 		}
-		for (final Entry<Location, VisualizeData> visualizeBlocks : visualizeBlocks.entrySet()) {
-			final Location location = visualizeBlocks.getKey();
-			final VisualizeData visualizeData = visualizeBlocks.getValue();
+		for (final Entry<Location, VisualizeData> visualizeBlock : visualizeBlocks.entrySet()) {
+			final Location location = visualizeBlock.getKey();
+			final VisualizeData visualizeData = visualizeBlock.getValue();
 			Block block = location.getBlock();
 			if (!checkIfBlockIsAir(visualizeData,block)) {
 					continue;

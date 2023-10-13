@@ -58,7 +58,7 @@ public class CreateItemStack {
 	private final String displayName;
 	private String color;
 	private DyeColor bannerBaseColor;
-	private final List<String> lore;
+	private final List<String> loreList;
 	private final Map<Enchantment, Tuple<Integer, Boolean>> enchantments = new HashMap<>();
 	private final List<ItemFlag> visibleItemFlags = new ArrayList<>();
 	private final List<ItemFlag> flagsToHide = new ArrayList<>();
@@ -89,7 +89,7 @@ public class CreateItemStack {
 		this.item = itemBuilder.getItem();
 		this.itemArray = itemBuilder.getItemArray();
 		this.displayName = itemBuilder.getDisplayName();
-		this.lore = itemBuilder.getLore();
+		this.loreList = itemBuilder.getLore();
 		this.nbtApi = itemCreator.getNbtApi();
 	}
 
@@ -692,7 +692,6 @@ public class CreateItemStack {
 	private ItemStack createItem(final ItemStack itemstack) {
 		if (itemstack == null) return new ItemStack(Material.AIR);
 		ItemStack itemStackNew = itemstack;
-		final RegisterNbtAPI nbtApi = this.nbtApi;
 		if (!this.keepOldMeta) {
 			itemStackNew = new ItemStack(itemstack.getType());
 			if (this.keepAmount)
@@ -702,7 +701,7 @@ public class CreateItemStack {
 			itemStackNew = new ItemStack(itemStackNew);
 		}
 
-		itemStackNew = getItemStack(itemStackNew, nbtApi);
+		itemStackNew = getItemStack(itemStackNew, this.nbtApi);
 		return itemStackNew;
 	}
 
@@ -711,7 +710,7 @@ public class CreateItemStack {
 		if (!isAir(itemStack.getType())) {
 			if (nbtApi != null) {
 				final Map<String, Object> metadataMap = this.getMetadataMap();
-				if (metadataMap != null)
+				if (metadataMap != null && !metadataMap.isEmpty())
 					itemStack = nbtApi.getCompMetadata().setAllMetadata(itemStack, metadataMap);
 			}
 
@@ -730,8 +729,8 @@ public class CreateItemStack {
 			if (this.displayName != null) {
 				itemMeta.setDisplayName(translateColors(this.displayName));
 			}
-			if (this.lore != null && !this.lore.isEmpty()) {
-				itemMeta.setLore(translateColors(this.lore));
+			if (this.loreList != null && !this.loreList.isEmpty()) {
+				itemMeta.setLore(translateColors(this.loreList));
 			}
 			addItemMeta(itemMeta);
 		}
@@ -960,7 +959,7 @@ public class CreateItemStack {
 	private Map<String, Object> getMetadataMap() {
 		if (metadata != null)
 			return metadata.getMetaDataMap();
-		return null;
+		return new HashMap<>();
 	}
 
 

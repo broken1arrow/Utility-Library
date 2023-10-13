@@ -131,8 +131,7 @@ public class PostgreSQL extends Database<PreparedStatement> {
 		String user = preferences.getUser();
 		String password = preferences.getPassword();
 
-		try {
-			Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password);
+		try (Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password);) {
 			try (PreparedStatement checkStatement = createDatabase.prepareStatement("SELECT 1 FROM pg_database WHERE datname = ?")) {
 				checkStatement.setString(1, databaseName);
 				try (ResultSet resultSet = checkStatement.executeQuery()) {

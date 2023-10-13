@@ -161,7 +161,7 @@ public class PluginMessages implements ConfigurationSerializable {
 		if (object instanceof List) {
 			return (List<String>) object;
 		}
-		return null;
+		return new ArrayList<>();
 	}
 
 }

@@ -3,12 +3,16 @@ package org.broken.arrow.color.library.utility;
 import org.broken.arrow.color.library.ChatColors;
 
 import java.awt.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.broken.arrow.color.library.ChatColors.COLOR_AMPERSAND;
 
 public class StringUtility {
+
+	static final Logger LOG = Logger.getLogger(StringUtility.class.getName());
 
 	/**
 	 * Convert RGB to hex.
@@ -118,7 +122,7 @@ public class StringUtility {
 					Integer.valueOf(blue + blue, 16));
 		}
 		if (colorStr.length() < 7) {
-			System.out.println("[RBG-TextGradientUtil] This `" + colorStr + "` hex color is not valid, set color to white.");
+			LOG.log(Level.INFO,"This `" + colorStr + "` hex color is not valid, set color to white.");
 			return new Color(Color.WHITE.getRGB());
 		}
 		return new Color(
@@ -146,8 +150,8 @@ public class StringUtility {
 	}
 
 	public static Double[] checkPortions(Color[] colorList, Double[] portionsList) {
-		if (colorList == null || portionsList == null) return null;
-		if (colorList.length == portionsList.length) return null;
+		if (colorList == null || portionsList == null) return new Double[0];
+		if (colorList.length == portionsList.length) return new Double[0];
 		double num = 0.0;
 		for (int i = 0; i < portionsList.length; i++) {
 			Double number = portionsList[i];

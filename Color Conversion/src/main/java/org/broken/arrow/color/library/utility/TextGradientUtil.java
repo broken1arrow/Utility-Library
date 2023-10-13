@@ -39,13 +39,13 @@ public class TextGradientUtil {
 	 * @return An array of strings obtained by splitting the input text on gradient matches, excluding the first match.
 	 */
 	public String[] splitOnGradient() {
-		String text = this.text;
+		String originalText = this.text;
 		this.firstMatch = false;
 		StringBuilder builder = new StringBuilder();
-		for (int i = 0; i < text.length(); i++) {
-			char currentChar = text.charAt(i);
-			if (currentChar == 'g' && i + 8 < text.length()) {
-				firstMatch = processGradientMatch(text,  builder, i);
+		for (int i = 0; i < originalText.length(); i++) {
+			char currentChar = originalText.charAt(i);
+			if (currentChar == 'g' && i + 8 < originalText.length()) {
+				firstMatch = processGradientMatch(originalText,  builder, i);
 			}
 			builder.append(currentChar);
 		}
@@ -92,11 +92,11 @@ public class TextGradientUtil {
 	 * @return A string with gradient colors applied to each letter as specified to either next color or length of the string.
 	 */
 	public String convertToMultiGradients(String text) {
-		GradientType type = this.type;
-		if (type != null) {
+		GradientType gradientType = this.type;
+		if (gradientType != null) {
 			Double[] portionsList = null;
 
-			int startIndex = text.indexOf(type.getType());
+			int startIndex = text.indexOf(gradientType.getType());
 			String subColor = text.substring(startIndex);
 			int subIndex = subColor.indexOf("<");
 			int multi_balance = subColor.indexOf("_portion");
@@ -119,7 +119,7 @@ public class TextGradientUtil {
 			int nextEnd = getNextColor(text.substring(end + 1));
 			if (startIndex > 0)
 				builder.append(text, 0, startIndex);
-			builder.append(multiRgbGradient(type, text.substring(Math.max(startIndex, 0), end > 0 ? end : text.length()), colorList, checkPortions(colorList, portionsList)));
+			builder.append(multiRgbGradient(gradientType, text.substring(Math.max(startIndex, 0), end > 0 ? end : text.length()), colorList, checkPortions(colorList, portionsList)));
 			if (end > 0)
 				builder.append(text, Math.max(end, 0), text.length());
 			return builder.toString();
@@ -202,7 +202,7 @@ public class TextGradientUtil {
 			return (colors.length == 1 ? "<" + convertColorToHex(colors[0]) + ">" + str : str);
 		}
 		final Double[] p;
-		if (portions == null) {
+		if (portions == null || portions.length == 0) {
 			p = new Double[colors.length - 1];
 			Arrays.fill(p, 1 / (double) p.length);
 		} else {

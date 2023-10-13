@@ -87,7 +87,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 		if (!shallCacheItems) {
 			addItemsToCache();
 		}
-		reddrawInventory();
+		redrawInventory();
 
 		final Inventory menu = loadInventory(player, loadToCahe);
 		if (menu == null) return;

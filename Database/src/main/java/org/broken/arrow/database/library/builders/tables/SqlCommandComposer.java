@@ -94,24 +94,24 @@ public final class SqlCommandComposer {
 	 * @return string with prepared query to run on your database.
 	 */
 	public String createTable() {
-		TableWrapper tableWrapper = this.getTableWrapper();
+		TableWrapper tableData = this.getTableWrapper();
 		final StringBuilder columns = new StringBuilder();
-		TableRow primaryKey = tableWrapper.getPrimaryRow();
-		Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
-		char quote = this.quote;
+		TableRow primaryKey = tableData.getPrimaryRow();
+		Map<String, TableRow> tableRowMap = tableData.getColumns();
+		char quoteColumnName = this.quote;
 
 		Validate.checkBoolean(primaryKey == null || primaryKey.getColumnName() == null || primaryKey.getColumnName().equals("non"), "You need set primaryKey, for create a table.");
 
-		columns.append(quote).append(primaryKey.getColumnName())
-				.append(quote)
+		columns.append(quoteColumnName).append(primaryKey.getColumnName())
+				.append(quoteColumnName)
 				.append(" ")
 				.append(primaryKey.getDatatype());
 
 		for (final Entry<String, TableRow> entry : tableRowMap.entrySet()) {
 			TableRow column = entry.getValue();
-			columns.append((columns.length() == 0) ? "" : ", ").append(quote)
+			columns.append((columns.length() == 0) ? "" : ", ").append(quoteColumnName)
 					.append(entry.getKey())
-					.append(quote)
+					.append(quoteColumnName)
 					.append(" ").append(column.getDatatype());
 
 			if (column.isAutoIncrement())
@@ -124,15 +124,15 @@ public final class SqlCommandComposer {
 				columns.append(" DEFAULT ").append("'").append(column.getDefaultValue()).append("'");
 		}
 		columns.append(", PRIMARY KEY (")
-				.append(quote)
+				.append(quoteColumnName)
 				.append(primaryKey.getColumnName())
-				.append(quote);
-		if (tableWrapper.getPrimaryKeyLength() > 0)
-			columns.append("(").append(tableWrapper.getPrimaryKeyLength()).append("))");
+				.append(quoteColumnName);
+		if (tableData.getPrimaryKeyLength() > 0)
+			columns.append("(").append(tableData.getPrimaryKeyLength()).append("))");
 		else
 			columns.append(")");
 
-		String string = "CREATE TABLE IF NOT EXISTS " + quote + tableWrapper.getTableName() + quote + " (" + columns + ")" + (!database.getCharacterSet().isEmpty() ? " " + database.getCharacterSet() : "" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
+		String string = "CREATE TABLE IF NOT EXISTS " + quoteColumnName + tableData.getTableName() + quoteColumnName + " (" + columns + ")" + (!database.getCharacterSet().isEmpty() ? " " + database.getCharacterSet() : "" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
 		return string;
 	}
 
@@ -142,9 +142,9 @@ public final class SqlCommandComposer {
 	 * @return string with prepared query to run on your database.
 	 */
 	public String replaceIntoTable() {
-		TableWrapper tableWrapper = this.getTableWrapper();
-		queryCommand = "REPLACE INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + this.merge() + ";";
-		preparedSQLBatch.insert(0, "REPLACE INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + " ");
+		TableWrapper tableData = this.getTableWrapper();
+		queryCommand = "REPLACE INTO " + this.quote + tableData.getTableName() + this.quote + " " + this.merge() + ";";
+		preparedSQLBatch.insert(0, "REPLACE INTO " + this.quote + tableData.getTableName() + this.quote + " " + " ");
 		return queryCommand;
 	}
 
@@ -154,9 +154,9 @@ public final class SqlCommandComposer {
 	 * @return string with prepared query to run on your database.
 	 */
 	public String insertIntoTable() {
-		TableWrapper tableWrapper = this.getTableWrapper();
-		queryCommand = "INSERT INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + this.merge() + ";";
-		preparedSQLBatch.insert(0, "INSERT INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + " ");
+		TableWrapper tableData = this.getTableWrapper();
+		queryCommand = "INSERT INTO " + this.quote + tableData.getTableName() + this.quote + " " + this.merge() + ";";
+		preparedSQLBatch.insert(0, "INSERT INTO " + this.quote + tableData.getTableName() + this.quote + " " + " ");
 		return queryCommand;
 	}
 
@@ -168,9 +168,9 @@ public final class SqlCommandComposer {
 	 * @return string with prepared query to run on your database.
 	 */
 	public String mergeIntoTable() {
-		TableWrapper tableWrapper = this.getTableWrapper();
-		queryCommand = "MERGE INTO " + this.quote + tableWrapper.getTableName() + this.quote + " " + this.merge() + ";";
-		preparedSQLBatch.insert(0, "MERGE INTO " + this.quote + tableWrapper.getTableName() + this.quote + " ");
+		TableWrapper tableData = this.getTableWrapper();
+		queryCommand = "MERGE INTO " + this.quote + tableData.getTableName() + this.quote + " " + this.merge() + ";";
+		preparedSQLBatch.insert(0, "MERGE INTO " + this.quote + tableData.getTableName() + this.quote + " ");
 		return queryCommand;
 	}
 
@@ -205,8 +205,8 @@ public final class SqlCommandComposer {
 	 * @return the constructed SQL command for get the table.
 	 */
 	public String selectTable() {
-		TableWrapper tableWrapper = this.getTableWrapper();
-		return "SELECT * FROM " + this.quote + tableWrapper.getTableName() + this.quote + ";";
+		TableWrapper tableData = this.getTableWrapper();
+		return "SELECT * FROM " + this.quote + tableData.getTableName() + this.quote + ";";
 	}
 
 	/**
@@ -216,11 +216,11 @@ public final class SqlCommandComposer {
 	 * @return the constructed SQL command for get the table.
 	 */
 	public String selectRow(String primaryValue) {
-		TableWrapper tableWrapper = this.getTableWrapper();
-		TableRow primaryKey = tableWrapper.getPrimaryRow();
+		TableWrapper tableData = this.getTableWrapper();
+		TableRow primaryKey = tableData.getPrimaryRow();
 		Validate.checkBoolean(primaryKey == null || primaryKey.getColumnName() == null || primaryKey.getColumnName().equals("non"), "You need set primaryKey, for create a table.");
 
-		return "SELECT * FROM " + this.quote + tableWrapper.getTableName() + this.quote + " WHERE " + this.quote + primaryKey.getColumnName() + this.quote + " = '" + primaryValue + "';";
+		return "SELECT * FROM " + this.quote + tableData.getTableName() + this.quote + " WHERE " + this.quote + primaryKey.getColumnName() + this.quote + " = '" + primaryValue + "';";
 	}
 
 	/**
@@ -229,10 +229,10 @@ public final class SqlCommandComposer {
 	 * @param value the primary key value you want to remove from database.
 	 */
 	public void removeRow(final String value) {
-		final TableWrapper tableWrapper = this.getTableWrapper();
+		final TableWrapper tableData = this.getTableWrapper();
 		final RowWrapper rowWrapper = getColumnWrapper();
-		Validate.checkBoolean(rowWrapper.getPrimaryKey().isEmpty(), "You need set primaryKey, for drop the column in this table." + tableWrapper.getTableName());
-		queryCommand = "DELETE FROM " + this.quote + tableWrapper.getTableName() + this.quote + " WHERE " + this.quote + rowWrapper.getPrimaryKey() + this.quote + " = '" + value + "';";
+		Validate.checkBoolean(rowWrapper.getPrimaryKey().isEmpty(), "You need set primaryKey, for drop the column in this table." + tableData.getTableName());
+		queryCommand = "DELETE FROM " + this.quote + tableData.getTableName() + this.quote + " WHERE " + this.quote + rowWrapper.getPrimaryKey() + this.quote + " = '" + value + "';";
 		preparedSQLBatch.insert(0, queryCommand);
 	}
 
@@ -240,15 +240,13 @@ public final class SqlCommandComposer {
 	 * Remove this table from the database.
 	 */
 	public void dropTable() {
-		TableWrapper tableWrapper = this.getTableWrapper();
-		queryCommand = "DROP TABLE " + this.quote + tableWrapper.getTableName() + this.quote + ";";
+		TableWrapper tableData = this.getTableWrapper();
+		queryCommand = "DROP TABLE " + this.quote + tableData.getTableName() + this.quote + ";";
 		preparedSQLBatch.insert(0, queryCommand);
 	}
 
 	/**
-	 * Execute your own set command. You can use {table} and
-	 * {primary_row} placeholders and it will replace it with
-	 * the table and ColumnName.
+	 * Execute your own set command.
 	 *
 	 * @param command the sql command. You need to always validate and sanitize if you
 	 *                use values players can set.
@@ -292,9 +290,9 @@ public final class SqlCommandComposer {
 	 * @return the constructed SQL command for the database.
 	 */
 	private String createUpdateCommand(Object record) {
-		final TableWrapper tableWrapper = this.getTableWrapper();
+		final TableWrapper tableData = this.getTableWrapper();
 		final RowWrapper rowWrapper = getColumnWrapper();
-		final Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
+		final Map<String, TableRow> tableRowMap = tableData.getColumns();
 		final char quote = this.quote;
 		Validate.checkNotNull(rowWrapper, "The RowWrapper instance you try to save is null, for this record: " + record);
 		Validate.checkBoolean(rowWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table.");
@@ -317,7 +315,7 @@ public final class SqlCommandComposer {
 		prepareColumnsToUpdate.setLength(prepareColumnsToUpdate.length() - 1);
 		preparedSQLBatch.append("UPDATE ")
 				.append(quote)
-				.append(tableWrapper.getTableName())
+				.append(tableData.getTableName())
 				.append(quote).append(" SET ")
 				.append(prepareColumnsToUpdate).append(" WHERE ")
 				.append(quote)
@@ -327,7 +325,7 @@ public final class SqlCommandComposer {
 				.append(" ? ")
 				.append(";");
 		columns.setLength(columns.length() - 2);
-		return "UPDATE " + quote + tableWrapper.getTableName() + quote + " SET " + columns + " WHERE " + quote + rowWrapper.getPrimaryKey() + quote + " = " + quote + record + quote + ";";
+		return "UPDATE " + quote + tableData.getTableName() + quote + " SET " + columns + " WHERE " + quote + rowWrapper.getPrimaryKey() + quote + " = " + quote + record + quote + ";";
 	}
 
 	private int setColumData(Object value,final StringBuilder prepareColumnsToUpdate, final StringBuilder columns, int index, final String columnName, final TableRow column) {
@@ -357,8 +355,8 @@ public final class SqlCommandComposer {
 		final StringBuilder columns = new StringBuilder();
 		final StringBuilder values = new StringBuilder();
 		final StringBuilder prepareValues = new StringBuilder();
-		final TableWrapper tableWrapper = this.getTableWrapper();
-		final Map<String, TableRow> tableRowMap = tableWrapper.getColumns();
+		final TableWrapper tableData = this.getTableWrapper();
+		final Map<String, TableRow> tableRowMap = tableData.getColumns();
 		final RowWrapper saveWrapper = getColumnWrapper();
 		final char quoteColumnName = this.quote;
 

@@ -35,7 +35,7 @@ public class CommandsUtility extends Command {
 	@Override
 	public boolean execute(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] args) {
 		if (args.length == 0) {
-			this.sendMessage(sender, commandLabel, args);
+			this.sendMessage(sender, commandLabel);
 		}
 		if (args.length > 0) {
 
@@ -115,7 +115,7 @@ public class CommandsUtility extends Command {
 			sender.sendMessage(placeholders(subcommand.getDescription(), commandLabel, subcommand));
 		}
 	}
-	private void sendMessage(final CommandSender sender, final String commandLabel, @Nonnull final String[] args) {
+	private void sendMessage(final CommandSender sender, final String commandLabel) {
 
 		final List<String> helpPrefixMessage = commandRegister.getPrefixMessage();
 		if (helpPrefixMessage != null && !helpPrefixMessage.isEmpty())

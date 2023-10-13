@@ -84,9 +84,9 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 		final Conversable conversing = context.getForWhom();
 
 		final Object source = event.getSource();
-		final boolean timeout = (boolean) context.getAllSessionData().getOrDefault("FLP#TIMEOUT", false);
+		final boolean hasTimeout = (boolean) context.getAllSessionData().getOrDefault("FLP#TIMEOUT", false);
 
-		// Remove the session data so that they are invisible to other plugnis
+		// Remove the session data so that they are invisible to other plugins
 		context.getAllSessionData().remove("FLP#TIMEOUT");
 
 		if (source instanceof CustomConversation) {
@@ -96,7 +96,7 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 				lastPrompt.onConversationEnd(this, event);
 		}
 
-		onConversationEnd(event, timeout);
+		onConversationEnd(event, hasTimeout);
 	/*	if (conversing instanceof Player) {
 			final Player player = (Player) conversing;
 

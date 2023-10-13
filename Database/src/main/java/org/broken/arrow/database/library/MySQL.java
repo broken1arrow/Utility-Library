@@ -126,13 +126,12 @@ public class MySQL extends Database<PreparedStatement> {
 		String user = mysqlPreference.getUser();
 		String password = mysqlPreference.getPassword();
 
-		try {
-			Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password);
+		try (Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password)){
 
 			PreparedStatement create = createDatabase.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName);
 			create.execute();
 			close(create);
-			createDatabase.close();
+		//	createDatabase.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

@@ -9,12 +9,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents a template for a menu, containing information about the menu's title, button positions, button data, and sound.
  */
 public class MenuTemplate {
 
+	private Logger LOG = Logger.getLogger(MenuTemplate.class.getName());
 	private final String menuTitle;
 	private final List<Integer> fillSlots;
 
@@ -62,7 +65,7 @@ public class MenuTemplate {
 		if (size < 36) return 36;
 		if (size < 45) return 45;
 		if (size > 54)
-			System.out.println("This menu " + menu + " has set bigger inventory size an it can handle, your set size " + size + ". will defult to 54.");
+			LOG.log(Level.INFO,"This menu " + menu + " has set bigger inventory size an it can handle, your set size " + size + ". will defult to 54.");
 		return 54;
 	}
 

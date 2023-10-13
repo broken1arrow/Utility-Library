@@ -323,7 +323,7 @@ public class MenuUtility<T> {
 	 */
 	@Deprecated
 	public List<MenuButtonI<T>> getButtons() {
-		return null;
+		return new ArrayList<>();
 	}
 
 	/**
@@ -571,19 +571,19 @@ public class MenuUtility<T> {
 	}
 
 	protected void changePage(final boolean nextPage) {
-		int pageNumber = this.pageNumber;
+		int page = this.pageNumber;
 
-		if (nextPage) pageNumber += 1;
-		else pageNumber -= 1;
-		if (pageNumber < 0) {
-			pageNumber = this.getRequiredPages() - 1;
-		} else if (pageNumber >= this.getRequiredPages()) {
-			pageNumber = 0;
+		if (nextPage) page += 1;
+		else page -= 1;
+		if (page < 0) {
+			page = this.getRequiredPages() - 1;
+		} else if (page >= this.getRequiredPages()) {
+			page = 0;
 		}
-		if (pageNumber == -1) {
-			pageNumber = 0;
+		if (page == -1) {
+			page = 0;
 		}
-		this.pageNumber = pageNumber;
+		this.pageNumber = page;
 
 		this.updateButtons();
 		this.updateTittle();
@@ -593,7 +593,7 @@ public class MenuUtility<T> {
 		this.slotIndex = this.getPageNumber() * numberOfFillitems;
 		addItemsToCache(this.getPageNumber());
 		this.slotIndex = 0;
-		reddrawInventory();
+		redrawInventory();
 		updateTimeButtons();
 	}
 
@@ -671,13 +671,13 @@ public class MenuUtility<T> {
 	}*/
 
 	protected void setLocationMetaOnPlayer(final Player player, final Location location) {
-		String uniqueKey = this.uniqueKey;
-		if (uniqueKey != null && uniqueKey.isEmpty()) {
+		String key = this.uniqueKey;
+		if (key != null && key.isEmpty()) {
 			this.uniqueKey = this.getClass().getName();
-			uniqueKey = this.uniqueKey;
+			key = this.uniqueKey;
 		}
-		menuCacheKey = this.menuCache.getMenuCacheKey(location, uniqueKey);
-		if (menuCacheKey == null) menuCacheKey = new MenuCacheKey(location, uniqueKey);
+		menuCacheKey = this.menuCache.getMenuCacheKey(location, key);
+		if (menuCacheKey == null) menuCacheKey = new MenuCacheKey(location, key);
 		menuAPI.getPlayerMeta().setPlayerLocationMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION, menuCacheKey);
 	}
 
@@ -737,17 +737,17 @@ public class MenuUtility<T> {
 
 	private double amountOfPages() {
 		final List<?> fillItems = this.getListOfFillItems();
-		final List<Integer> fillSpace = this.getFillSpace();
+		final List<Integer> fillSlots = this.getFillSpace();
 		if (this.itemsPerPage > 0) {
 			if (this.itemsPerPage > this.inventorySize)
 				this.logger.log(Level.SEVERE, "Items per page are biger an Inventory size, items items per page " + this.itemsPerPage + ". Inventory size " + this.inventorySize, new Throwable().fillInStackTrace());
-			if (!fillSpace.isEmpty()) {
-				return (double) fillSpace.size() / this.itemsPerPage;
+			if (!fillSlots.isEmpty()) {
+				return (double) fillSlots.size() / this.itemsPerPage;
 			} else if (fillItems != null && !fillItems.isEmpty()) return (double) fillItems.size() / this.itemsPerPage;
 			else return (double) this.pagesOfButtonsData.size() / this.itemsPerPage;
 		}
 		if (fillItems != null && !fillItems.isEmpty()) {
-			return (double) fillItems.size() / (fillSpace.isEmpty() ? this.inventorySize - 9 : fillSpace.size());
+			return (double) fillItems.size() / (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size());
 		} else return (double) this.pagesOfButtonsData.size() / this.inventorySize;
 	}
 
@@ -842,12 +842,12 @@ public class MenuUtility<T> {
 		else return null;
 	}
 
-	protected void reddrawInventory() {
+	protected void redrawInventory() {
 		if (this.getMenu() == null || this.inventorySize > this.getMenu().getSize()) this.inventory = createInventory();
 
-		final int fillSpace = !getFillSpace().isEmpty() ? getFillSpace().size() : this.getMenu().getSize();
+		final int fillSlots = !getFillSpace().isEmpty() ? getFillSpace().size() : this.getMenu().getSize();
 
-		for (int i = getFillSpace().stream().findFirst().orElse(0); i < fillSpace; i++) {
+		for (int i = getFillSpace().stream().findFirst().orElse(0); i < fillSlots; i++) {
 			this.getMenu().setItem(i, new ItemStack(Material.AIR));
 		}
 

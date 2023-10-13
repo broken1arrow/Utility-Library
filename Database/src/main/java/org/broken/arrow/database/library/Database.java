@@ -218,7 +218,8 @@ public abstract class Database<statement> {
 			this.printFailFindTable(tableName);
 			return;
 		}
-		if (dataWrapper == null) return;
+		if (!checkIfNotNull(dataWrapper)) return;
+
 
 		ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
 		RowWrapper rowWrapper = new RowDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
@@ -410,8 +411,7 @@ public abstract class Database<statement> {
 	 * @param sqlQueryBuilders The SQL command or commands you want to run
 	 */
 	public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
-		if (sqlQueryBuilders == null)
-			return;
+		if (!checkIfNotNull(sqlQueryBuilders)) return;
 
 		List<SqlCommandComposer> sqlComposer = new ArrayList<>();
 		TableWrapper tableWrapper = null;
@@ -421,6 +421,8 @@ public abstract class Database<statement> {
 			sqlCommandComposer.executeCustomCommand();
 			sqlComposer.add(sqlCommandComposer);
 		}
+		if (tableWrapper == null)
+			tableWrapper = TableWrapper.of("table", TableRow.of("", ""));
 		this.batchUpdate(sqlComposer, tableWrapper);
 	}
 
@@ -1027,5 +1029,9 @@ public abstract class Database<statement> {
 
 	public void printFailFindTable(String tableName) {
 		LogMsg.warn("Could not find table " + tableName);
+	}
+
+	public boolean checkIfNotNull(Object object) {
+		return object != null;
 	}
 }

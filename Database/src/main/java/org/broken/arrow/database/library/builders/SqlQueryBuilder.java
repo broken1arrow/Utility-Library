@@ -124,40 +124,40 @@ public class SqlQueryBuilder {
 	public SqlQueryBuilder build() {
 		if (!validate())
 			return this;
-		StringBuilder query = new StringBuilder();
+		StringBuilder buildQuery = new StringBuilder();
 
-		query.append(executionsType)
+		buildQuery.append(executionsType)
 				.append(" ");
 
 		if (!wildcard.isEmpty())
-			query.append(wildcard)
+			buildQuery.append(wildcard)
 					.append(" ");
 		if (clauseBeforeTable == null) {
 			return this;
 		}
-		query.append(clauseBeforeTable).append(" ");
+		buildQuery.append(clauseBeforeTable).append(" ");
 
 		if (builtColumnsWithValues != null) {
-			query.append(builtColumnsWithValues);
-			query.append(";");
-			this.query = query.toString();
+			buildQuery.append(builtColumnsWithValues);
+			buildQuery.append(";");
+			this.query = buildQuery.toString();
 			return this;
 		}
 
 		if (updateBuilder != null) {
-			query.append(updateBuilder).append(" ");
+			buildQuery.append(updateBuilder).append(" ");
 		}
 		if (whereClause != null) {
-			query.append(whereClause);
+			buildQuery.append(whereClause);
 		}
 		if (joinClause != null) {
-			query.append(joinClause);
+			buildQuery.append(joinClause);
 		}
 		if (orderByClause != null) {
-			query.append(orderByClause);
+			buildQuery.append(orderByClause);
 		}
-		query.append(";");
-		this.query = query.toString();
+		buildQuery.append(";");
+		this.query = buildQuery.toString();
 		return this;
 	}
 
