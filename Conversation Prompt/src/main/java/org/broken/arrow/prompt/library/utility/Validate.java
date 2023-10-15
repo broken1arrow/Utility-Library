@@ -2,6 +2,9 @@ package org.broken.arrow.prompt.library.utility;
 
 public class Validate {
 
+	private Validate() {
+	}
+
 	public static void checkNotNull(final Object checkNull) {
 		if (checkNull == null)
 			throw new CatchExceptions("Object is null ");

@@ -43,18 +43,6 @@ public class EntityModifications {
 	}
 
 	public void apply(@Nonnull final Object instance, final boolean key) {
-	/*	if (instance instanceof FallingBlock) {
-			FallingBlock entity = ((FallingBlock) instance);
-			if (ServerVersion.olderThan(ServerVersion.v1_13)) {
-				menulibrary.dependencies.nbt.nbtapi.NBTEntity nbtEntity = new menulibrary.dependencies.nbt.nbtapi.NBTEntity((Entity) instance);
-				nbtEntity.setInteger("NoGravity", key ? 0 : 1);
-				entity.setGlowing(key);
-			}else {
-				System.out.println("instance  fffffff");
-				entity.setGravity(!key);
-				entity.setGlowing(key);
-			}
-		}*/
 		if (instance instanceof Entity) {
 			final Entity entity = ((Entity) instance);
 			if (this.serverVersion < 13) {
@@ -62,6 +50,21 @@ public class EntityModifications {
 				nbtEntity.setInteger("NoGravity", !key ? 0 : 1);
 				entity.setGlowing(key);
 			} else {
+				entity.setGravity(!key);
+				entity.setGlowing(key);
+			}
+		}
+		setGravAndGlow(instance, key);
+	}
+
+	private void setGravAndGlow(@Nonnull final Object instance, final boolean key) {
+		if (instance instanceof FallingBlock) {
+			FallingBlock entity = ((FallingBlock) instance);
+			if (this.serverVersion < 13) {
+				NBTEntity nbtEntity = new NBTEntity((Entity) instance);
+				nbtEntity.setInteger("NoGravity", key ? 0 : 1);
+				entity.setGlowing(key);
+			}else {
 				entity.setGravity(!key);
 				entity.setGlowing(key);
 			}

@@ -15,7 +15,7 @@ import java.util.function.Function;
 public abstract class CommandHolder implements CommandHandler {
 
 	private final String commandLabel;
-	private String[] args;
+	private String[] arguments;
 	private CommandSender sender;
 
 	/**
@@ -25,7 +25,7 @@ public abstract class CommandHolder implements CommandHandler {
 	 *
 	 * @param commandLabel the prefix you want as sublable.
 	 */
-	public CommandHolder(final String commandLabel) {
+	protected CommandHolder(final String commandLabel) {
 		this.commandLabel = commandLabel;
 
 	}
@@ -64,7 +64,7 @@ public abstract class CommandHolder implements CommandHandler {
 
 	@Override
 	public final boolean executeCommand(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs) {
-		this.args = cmdArgs;
+		this.arguments = cmdArgs;
 		this.sender = sender;
 		return onCommand(sender, commandLabel, cmdArgs);
 	}
@@ -72,7 +72,7 @@ public abstract class CommandHolder implements CommandHandler {
 	@Nullable
 	@Override
 	public final List<String> executeTabComplete(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] cmdArgs) {
-		args = cmdArgs;
+		arguments = cmdArgs;
 		this.sender = sender;
 		return this.onTabComplete(sender, commandLabel, cmdArgs);
 	}
@@ -118,7 +118,7 @@ public abstract class CommandHolder implements CommandHandler {
 	}
 
 	/**
-	 * Copies and returns the arguments {@link #args} from the given range
+	 * Copies and returns the arguments {@link #arguments} from the given range
 	 * to their end joined by spaces.
 	 *
 	 * @param from The starting index of the args array from which the joining operation will begin.
@@ -126,7 +126,7 @@ public abstract class CommandHolder implements CommandHandler {
 	 */
 	@Nonnull
 	protected final String joinArgs(final int from) {
-		return joinArgs(from, args.length);
+		return joinArgs(from, arguments.length);
 	}
 
 	/**
@@ -137,7 +137,7 @@ public abstract class CommandHolder implements CommandHandler {
 	 */
 	@Nonnull
 	public String joinRange(final int startIndex) {
-		return joinRange(startIndex, args.length);
+		return joinRange(startIndex, arguments.length);
 	}
 
 	/**
@@ -163,7 +163,7 @@ public abstract class CommandHolder implements CommandHandler {
 	@Nonnull
 	public String joinRange(final int start, final int stop, final String delimiter) {
 		final StringBuilder joined = new StringBuilder();
-		String[] args = this.args;
+		String[] args = this.arguments;
 		if (args != null)
 			for (int i = start; i < range(stop, 0, args.length); i++)
 				joined.append((joined.length() == 0) ? "" : delimiter).append(args[i]);
@@ -182,7 +182,7 @@ public abstract class CommandHolder implements CommandHandler {
 	@Nonnull
 	protected final String joinArgs(final int from, final int to) {
 		final StringBuilder message = new StringBuilder();
-		String[] args = this.args;
+		String[] args = this.arguments;
 		if (args != null)
 			for (int i = from; i < args.length && i < to; i++)
 				message.append(args[i]).append(i + 1 == args.length ? "" : " ");
@@ -197,11 +197,11 @@ public abstract class CommandHolder implements CommandHandler {
 	/**
 	 * Convenience method for returning the last word in arguments
 	 *
-	 * @return the last in the {@link #args} array.
+	 * @return the last in the {@link #arguments} array.
 	 */
 	@Nonnull
 	protected final String getLastArg() {
-		String[] args = this.args;
+		String[] args = this.arguments;
 		if (args != null)
 			return args.length > 0 ? args[args.length - 1] : "";
 		return "";
@@ -220,7 +220,7 @@ public abstract class CommandHolder implements CommandHandler {
 	@SafeVarargs
 	protected final <T> List<String> completeLastWord(final T... suggestions) {
 		String lastArg = null;
-		String[] args = this.args;
+		String[] args = this.arguments;
 		if (args != null)
 			lastArg = args.length > 0 ? args[args.length - 1] : "";
 		return complete(lastArg, suggestions);
@@ -240,7 +240,7 @@ public abstract class CommandHolder implements CommandHandler {
 	protected final <T> List<String> completeLastWord(final Iterable<T> suggestions, final Function<T, String> toString) {
 		final List<String> list = new ArrayList<>();
 		String lastArg = null;
-		String[] args = this.args;
+		String[] args = this.arguments;
 		if (args != null)
 			lastArg = args.length > 0 ? args[args.length - 1] : "";
 		for (final T suggestion : suggestions)

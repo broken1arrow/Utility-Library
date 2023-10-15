@@ -99,12 +99,12 @@ public class TextGradientUtil {
 			int startIndex = text.indexOf(gradientType.getType());
 			String subColor = text.substring(startIndex);
 			int subIndex = subColor.indexOf("<");
-			int multi_balance = subColor.indexOf("_portion");
+			int multiBalance = subColor.indexOf("_portion");
 			int endOfColor = subColor.indexOf(">");
 
 			text = getStringStriped(text, startIndex, endOfColor);
-			if (multi_balance > 0) {
-				String portion = subColor.substring(multi_balance);
+			if (multiBalance > 0) {
+				String portion = subColor.substring(multiBalance);
 				int end = portion.indexOf(">");
 				portionsList = Arrays.stream(getValuesInside(portion, end)).map(Double::parseDouble).toArray(Double[]::new);
 				text = text.replace(portion.substring(0, end + 1), "");
@@ -112,11 +112,8 @@ public class TextGradientUtil {
 			Color[] colorList = Arrays.stream(getMultiColors(subColor, subIndex)).map(StringUtility::hexToRgb).toArray(Color[]::new);
 			text = text.replace(subColor.substring(0, text.length()), "");
 
-
-			//MultiGradients multiGradients = new MultiGradients(striped, colorList, portionsList);
 			StringBuilder builder = new StringBuilder();
 			int end = getNextColor(text);
-			int nextEnd = getNextColor(text.substring(end + 1));
 			if (startIndex > 0)
 				builder.append(text, 0, startIndex);
 			builder.append(multiRgbGradient(gradientType, text.substring(Math.max(startIndex, 0), end > 0 ? end : text.length()), colorList, checkPortions(colorList, portionsList)));
@@ -225,6 +222,11 @@ public class TextGradientUtil {
 						interpolator));
 			strIndex += p[i] * str.length();
 		}
+		setMultiGradient(type, str, colors, builder, strIndex);
+		return builder.toString();
+	}
+
+	private void setMultiGradient(final GradientType type, final String str, final Color[] colors, final StringBuilder builder, final int strIndex) {
 		if (strIndex < str.length()) {
 			if (type == GradientType.SIMPLE_GRADIENT_PATTERN)
 				builder.append(this.applyGradient(
@@ -237,7 +239,6 @@ public class TextGradientUtil {
 						this.getHSBGradient(colors[colors.length - 1], colors[colors.length - 1]),
 						(from, to, max) -> quadratic(from, to, str.length(), true)));
 		}
-		return builder.toString();
 	}
 
 	private String multiHsvQuadraticGradient(String str, boolean first) {
@@ -303,7 +304,6 @@ public class TextGradientUtil {
 			if ((letter == org.bukkit.ChatColor.COLOR_CHAR || letter == COLOR_AMPERSAND) && i + 1 < letters.length) {
 				final char decoration = Character.toLowerCase(letters[i + 1]);
 				lastDecoration = getColorCode(lastDecoration, decoration);
-				i++;
 				continue;
 			}
 

@@ -12,7 +12,7 @@ import static org.broken.arrow.color.library.ChatColors.COLOR_AMPERSAND;
 
 public class StringUtility {
 
-	static final Logger LOG = Logger.getLogger(StringUtility.class.getName());
+	private static final Logger LOG = Logger.getLogger(StringUtility.class.getName());
 
 	/**
 	 * Convert RGB to hex.

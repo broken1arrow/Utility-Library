@@ -284,7 +284,7 @@ public class CommandRegister implements CommandRegistering {
 	 */
 	@Override
 	public CommandRegister registerMainCommand(String fallbackPrefix, String mainCommand) {
-		return this.registerMainCommand(fallbackPrefix, mainCommand, "", "", new String[]{});
+		return this.registerMainCommand(fallbackPrefix, mainCommand, "", "", new String[0]);
 	}
 
 	/**

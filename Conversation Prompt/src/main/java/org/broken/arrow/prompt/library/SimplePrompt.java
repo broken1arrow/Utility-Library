@@ -91,7 +91,6 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 	protected final Player getPlayer(@Nonnull final ConversationContext ctx) {
 		if (!(ctx.getForWhom() instanceof Player))
 			return null;
-		//Validate.checkBoolean(!(ctx.getForWhom() instanceof Player), "Convertible is not a player but: " + ctx.getForWhom());
 		return (Player) ctx.getForWhom();
 	}
 

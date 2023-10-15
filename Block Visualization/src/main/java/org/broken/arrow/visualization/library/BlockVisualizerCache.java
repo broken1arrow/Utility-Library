@@ -103,8 +103,7 @@ public final class BlockVisualizerCache {
 			en.setCustomNameVisible(true);
 			if (name != null && !name.equals(""))
 				en.setCustomName(TextTranslator.toSpigotFormat(name));
-		} catch (final NoSuchMethodError ignored) {
-		}
+		} catch (final NoSuchMethodError ignored) {}
 
 	}
 

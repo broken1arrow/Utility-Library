@@ -194,7 +194,7 @@ public final class TextTranslator {
 		while (matcher.find()) {
 			String match = matcher.group(0);
 			int firstPos = match.indexOf("#");
-			if (!(match.length() >= 9))
+			if (match.length() <= 9)
 				messageCopy = messageCopy.replace(match, "&x&" + match.charAt(firstPos + 1) + "&" + match.charAt(firstPos + 1) + "&" + match.charAt(firstPos + 2) + "&" + match.charAt(firstPos + 2) + "&" + match.charAt(firstPos + 3) + "&" + match.charAt(firstPos + 3));
 			else
 				messageCopy = messageCopy.replace(match, "&x&" + match.charAt(firstPos + 1) + "&" + match.charAt(firstPos + 2) + "&" + match.charAt(firstPos + 3) + "&" + match.charAt(firstPos + 4) + "&" + match.charAt(firstPos + 5) + "&" + match.charAt(firstPos + 6));

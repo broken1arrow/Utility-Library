@@ -108,13 +108,18 @@ public class CommandsUtility extends Command {
 
 	public void sendSubDescription(final CommandSender sender, final String commandLabel) {
 		for (final CommandBuilder subcommand : commandRegister.getCommands()) {
-			if (subcommand.isHideLabel() && !checkPermission(sender, subcommand)) {
-				continue;
-			}
-			if (subcommand.getDescription() == null || subcommand.getDescription().isEmpty()) continue;
+			if (isSendLabelMessage(sender, subcommand)) continue;
 			sender.sendMessage(placeholders(subcommand.getDescription(), commandLabel, subcommand));
 		}
 	}
+
+	private boolean isSendLabelMessage(final CommandSender sender, final CommandBuilder subcommand) {
+		if (subcommand.isHideLabel() && !checkPermission(sender, subcommand)) {
+			return true;
+		}
+		return subcommand.getDescription() == null || subcommand.getDescription().isEmpty();
+	}
+
 	private void sendMessage(final CommandSender sender, final String commandLabel) {
 
 		final List<String> helpPrefixMessage = commandRegister.getPrefixMessage();

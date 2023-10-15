@@ -32,7 +32,7 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 	 *
 	 * @param plugin Your plugin instance.
 	 */
-	public SimpleConversation(final Plugin plugin) {
+	protected SimpleConversation(final Plugin plugin) {
 		this.plugin = plugin;
 	}
 
