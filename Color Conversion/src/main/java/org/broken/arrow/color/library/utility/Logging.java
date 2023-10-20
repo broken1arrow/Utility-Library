@@ -33,9 +33,9 @@ public final class Logging {
 	public void log(Level level, Exception exception, Supplier<Builder> msg) {
 		Builder logMessageBuilder = msg.get();
 		if (level != null) {
-			if (exception != null) log.log(level, logMessageBuilder.setPlaceholders(), exception);
+			if (exception != null) log.log(level, logMessageBuilder.getMessage(), exception);
 
-			else log.log(level, logMessageBuilder.setPlaceholders());
+			else log.log(level, logMessageBuilder.getMessage());
 		}
 		logMessageBuilder.reset();
 	}
@@ -59,6 +59,13 @@ public final class Logging {
 		private Builder setPlaceholders(final String... placeholders) {
 			this.placeholders = placeholders;
 			return this;
+		}
+
+		public String getMessage() {
+			if (placeholders == null) {
+				return message;
+			}
+			return setPlaceholders();
 		}
 
 		private String setPlaceholders() {

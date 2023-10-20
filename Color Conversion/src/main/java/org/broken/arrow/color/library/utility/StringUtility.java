@@ -27,13 +27,13 @@ public class StringUtility {
 	/**
 	 * Check if it valid color symbol.
 	 *
-	 * @param message check color symbol.
+	 * @param letter check color symbol.
 	 * @return true if it is valid color symbol.
 	 */
-	public static boolean checkIfColor(char message) {
+	public static boolean checkIfColor(char letter) {
 
-		for (String color : ChatColors.ALL_CODES)
-			if (color.equals(String.valueOf(message)))
+		for (char color : ChatColors.getAllColorCodes())
+			if (color == letter)
 				return true;
 		return false;
 	}
@@ -75,7 +75,7 @@ public class StringUtility {
 		if (index + 1 > message.length()) return -1;
 
 		char charColor = message.charAt(index + 1);
-		for (char color : ChatColors.ALL_CHAR_COLOR_CODES)
+		for (char color : ChatColors.getAllCharColorCodes())
 			if (color == charColor)
 				return index;
 		return -1;
@@ -120,7 +120,7 @@ public class StringUtility {
 					Integer.valueOf(blue + blue, 16));
 		}
 		if (colorStr.length() < 7) {
-			LOG.log(() -> Logging.of("This `{0}` hex color is not valid, set color to white.", colorStr));
+			LOG.log(() -> Logging.of("This `" + colorStr + "` hex color is not valid, set color to white."));
 			return new Color(Color.WHITE.getRGB());
 		}
 		return new Color(
