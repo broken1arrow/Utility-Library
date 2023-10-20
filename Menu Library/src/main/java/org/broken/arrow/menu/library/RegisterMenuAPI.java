@@ -301,7 +301,7 @@ public class RegisterMenuAPI {
 			if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
 				menuUtility = getPlayerMeta().getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
 			} else {
-				menuUtility = menuCache.getMenuInCache(menukey,MenuUtility.class);
+				menuUtility = menuCache.getMenuInCache(menukey, MenuUtility.class);
 			}
 			return menuUtility;
 		}
@@ -391,15 +391,14 @@ public class RegisterMenuAPI {
 					event.setCancelled(true);
 			}
 		}
-	}
-
-	private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
-		if (clickedInventory.getType() == InventoryType.PLAYER)
-			if (event.getClick().isShiftClick()) {
+		private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
+			if (clickedInventory.getType() == InventoryType.PLAYER)
+				if (event.getClick().isShiftClick()) {
+					event.setCancelled(true);
+				} else
+					event.setCancelled(true);
+			if (cursor != null && cursor.getType() != Material.AIR)
 				event.setCancelled(true);
-			} else
-				event.setCancelled(true);
-		if (cursor != null && cursor.getType() != Material.AIR)
-			event.setCancelled(true);
+		}
 	}
 }

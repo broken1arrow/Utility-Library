@@ -14,8 +14,12 @@ public final class Logging {
 		log = Logger.getLogger(clazz.getName());
 	}
 
+	/**
+	 * will as default only send the message under info tag.
+	 * @param msg the message builder.
+	 */
 	public void log(Supplier<Builder> msg) {
-		this.log(null, null, msg);
+		this.log(Level.INFO, null, msg);
 	}
 
 	public void log(Exception exception, Supplier<Builder> msg) {
@@ -28,11 +32,11 @@ public final class Logging {
 
 	public void log(Level level, Exception exception, Supplier<Builder> msg) {
 		Builder logMessageBuilder = msg.get();
-		if (exception != null)
-			log.log(level != null ? level : Level.INFO, logMessageBuilder.setPlaceholders(), exception);
-		else
-			log.log(level != null ? level : Level.INFO, logMessageBuilder.setPlaceholders());
+		if (level != null) {
+			if (exception != null) log.log(level, logMessageBuilder.setPlaceholders(), exception);
 
+			else log.log(level, logMessageBuilder.setPlaceholders());
+		}
 		logMessageBuilder.reset();
 	}
 
