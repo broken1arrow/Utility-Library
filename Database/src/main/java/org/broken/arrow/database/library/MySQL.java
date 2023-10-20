@@ -131,7 +131,6 @@ public class MySQL extends Database<PreparedStatement> {
 			PreparedStatement create = createDatabase.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName);
 			create.execute();
 			close(create);
-		//	createDatabase.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

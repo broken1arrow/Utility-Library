@@ -439,12 +439,6 @@ public class ConfigUpdater {
 		if (keys.length == 1) {
 			if (value instanceof Map)
 				return root;
-	   /*     if (value == null) {
-                Map<Object, Object>  map= new HashMap<>();
-                map.put(key,"{}");
-                System.out.println("key " + key);
-                return  map;
-            }*/
 			throw new IllegalArgumentException("Ignored sections must be a ConfigurationSection not a value!");
 		}
 

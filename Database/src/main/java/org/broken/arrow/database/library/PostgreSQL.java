@@ -144,7 +144,6 @@ public class PostgreSQL extends Database<PreparedStatement> {
 					createStatement.executeUpdate();
 				}
 			}
-			createDatabase.close();
 		} catch (
 				SQLException e) {
 			e.printStackTrace();

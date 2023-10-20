@@ -3,8 +3,6 @@ package org.broken.arrow.color.library.utility;
 import org.broken.arrow.color.library.ChatColors;
 
 import java.awt.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,7 +10,7 @@ import static org.broken.arrow.color.library.ChatColors.COLOR_AMPERSAND;
 
 public class StringUtility {
 
-	private static final Logger LOG = Logger.getLogger(StringUtility.class.getName());
+	private static final Logging LOG = new Logging(StringUtility.class);
 
 	/**
 	 * Convert RGB to hex.
@@ -122,7 +120,7 @@ public class StringUtility {
 					Integer.valueOf(blue + blue, 16));
 		}
 		if (colorStr.length() < 7) {
-			LOG.log(Level.INFO,"This `" + colorStr + "` hex color is not valid, set color to white.");
+			LOG.log(() -> Logging.of("This `{0}` hex color is not valid, set color to white.", colorStr));
 			return new Color(Color.WHITE.getRGB());
 		}
 		return new Color(

@@ -61,7 +61,6 @@ public class SetNmsData {
 					inventoryNMS = new V_1_20_2_Inventory();
 				else
 					inventoryNMS = new V_1_20_Inventory();
-				System.out.println("inventoryNMS " + inventoryNMS);
 				break;
 			case 19:
 				if (serverVersion >= 19.4F) {

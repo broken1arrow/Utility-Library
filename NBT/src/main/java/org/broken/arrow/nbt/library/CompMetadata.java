@@ -317,7 +317,7 @@ public final class CompMetadata {
 					T returnedObject = function.apply(new NBTValueWrapper(compound));
 					if (returnedObject instanceof NBTValueWrapper)
 						throw new CatchExceptions("You can't return NBTValueWrapper instance, because it will be closed after this call.");
-					return returnedObject;
+					return getOrNull (returnedObject);
 				}
 			}
 			return null;
@@ -579,12 +579,17 @@ public final class CompMetadata {
 		return tile.getPersistentDataContainer().has(new NamespacedKey(plugin, key), PersistentDataType.STRING);
 	}
 
-	private String setMessageItemNull(){
+	/**
+	 * Sets the message when item is null.
+	 *
+	 * @return the message to set when item is null.
+	 */
+	public String setMessageItemNull(){
 		return"Reading NBT tag got null item";
 	}
 
 	/**
-	 * Note!!! This is not implemented.
+	 * Note!!! This is not yet implemented.
 	 * <p>
 	 * Due to lack of persistent metadata implementation until Minecraft 1.14.x, we
 	 * simply store them in a file during server restart and then apply as a

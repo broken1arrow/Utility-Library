@@ -366,13 +366,7 @@ public class RegisterMenuAPI {
 				else if (clickedInventory.getType() != InventoryType.PLAYER)
 					event.setCancelled(true);
 			} else {
-				if (clickedInventory.getType() == InventoryType.PLAYER)
-					if (event.getClick().isShiftClick()) {
-						event.setCancelled(true);
-					} else
-						event.setCancelled(true);
-				if (cursor != null && cursor.getType() != Material.AIR)
-					event.setCancelled(true);
+				checkInventoryType(event, clickedInventory, cursor);
 			}
 			return false;
 		}
@@ -397,5 +391,15 @@ public class RegisterMenuAPI {
 					event.setCancelled(true);
 			}
 		}
+	}
+
+	private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
+		if (clickedInventory.getType() == InventoryType.PLAYER)
+			if (event.getClick().isShiftClick()) {
+				event.setCancelled(true);
+			} else
+				event.setCancelled(true);
+		if (cursor != null && cursor.getType() != Material.AIR)
+			event.setCancelled(true);
 	}
 }

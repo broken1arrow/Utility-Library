@@ -920,11 +920,11 @@ public class CreateItemStack {
 
 
 	private List<String> translateColors(final List<String> rawLore) {
-		final List<String> loreList = new ArrayList<>();
+		final List<String> listOfLore = new ArrayList<>();
 		for (final String lore : rawLore)
 			if (lore != null)
-				loreList.add(TextTranslator.toSpigotFormat(lore));
-		return loreList;
+				listOfLore.add(TextTranslator.toSpigotFormat(lore));
+		return listOfLore;
 	}
 
 	private String translateColors(final String rawSingleLine) {

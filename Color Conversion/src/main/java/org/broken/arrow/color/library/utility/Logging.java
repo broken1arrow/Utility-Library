@@ -1,0 +1,81 @@
+package org.broken.arrow.color.library.utility;
+
+import javax.annotation.Nonnull;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public final class Logging {
+
+	private final Logger log;
+	private static final Builder logBuilder = new Builder();
+
+	public Logging(@Nonnull Class<?> clazz) {
+		log = Logger.getLogger(clazz.getName());
+	}
+
+	public void log(Supplier<Builder> msg) {
+		this.log(null, null, msg);
+	}
+
+	public void log(Exception exception, Supplier<Builder> msg) {
+		this.log(Level.WARNING, exception, msg);
+	}
+
+	public void log(Level level, Supplier<Builder> msg) {
+		this.log(level, null, msg);
+	}
+
+	public void log(Level level, Exception exception, Supplier<Builder> msg) {
+		Builder logMessageBuilder = msg.get();
+		if (exception != null)
+			log.log(level != null ? level : Level.INFO, logMessageBuilder.setPlaceholders(), exception);
+		else
+			log.log(level != null ? level : Level.INFO, logMessageBuilder.setPlaceholders());
+
+		logMessageBuilder.reset();
+	}
+
+	public static Builder of(final String msg, final String... placeholders) {
+		return logBuilder.setMessage(msg).setPlaceholders(placeholders);
+	}
+
+	public static final class Builder {
+		private String message;
+		private String[] placeholders;
+
+		private Builder() {
+		}
+
+		private Builder setMessage(final String msg) {
+			this.message = msg;
+			return this;
+		}
+
+		private Builder setPlaceholders(final String... placeholders) {
+			this.placeholders = placeholders;
+			return this;
+		}
+
+		private String setPlaceholders() {
+			if (placeholders == null) {
+				return message;
+			}
+
+			StringBuilder msg = new StringBuilder(message);
+			for (int i = 0; i < placeholders.length; i++) {
+				String placeholder = placeholders[i];
+				int startIndex = msg.indexOf("{" + i + "}");
+				if (startIndex >= 0) {
+					msg.replace(startIndex, startIndex + 3, placeholder != null ? placeholder : "");
+				}
+			}
+			return msg.toString();
+		}
+
+		private void reset() {
+			message = null;
+			placeholders = null;
+		}
+	}
+}
