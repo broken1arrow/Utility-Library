@@ -63,9 +63,7 @@ public class MenuTemplate {
 		if (size < 36) return 36;
 		if (size < 45) return 45;
 		if (size > 54)
-			LOG.log(() -> Logging.of("This menu '{0}' has set bigger inventory size an it can handle, your set size '{1}'. Will set it to default value 54."
-							,menu,size)
-					);
+			LOG.log(() -> Logging.of("This menu '" + menu + "' has set bigger inventory size an it can handle, your set size '" + size + "'. Will set it to default value 54."));
 		return 54;
 	}
 
