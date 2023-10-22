@@ -1,4 +1,4 @@
-package org.broken.arrow.menu.button.manager.library.utility;
+package org.broken.arrow.logging.library;
 
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
@@ -40,13 +40,13 @@ public final class Logging {
 		logMessageBuilder.reset();
 	}
 
-	public static Builder of(final String msg, final Object... placeholders) {
+	public static Builder of(final String msg, final String... placeholders) {
 		return logBuilder.setMessage(msg).setPlaceholders(placeholders);
 	}
 
 	public static final class Builder {
 		private String message;
-		private Object[] placeholders;
+		private String[] placeholders;
 
 		private Builder() {
 		}
@@ -56,7 +56,7 @@ public final class Logging {
 			return this;
 		}
 
-		private Builder setPlaceholders(final Object... placeholders) {
+		private Builder setPlaceholders(final String... placeholders) {
 			this.placeholders = placeholders;
 			return this;
 		}
@@ -67,6 +67,7 @@ public final class Logging {
 			}
 			return setPlaceholders();
 		}
+
 		private String setPlaceholders() {
 			if (placeholders == null) {
 				return message;
@@ -74,10 +75,10 @@ public final class Logging {
 
 			StringBuilder msg = new StringBuilder(message);
 			for (int i = 0; i < placeholders.length; i++) {
-				Object placeholder = placeholders[i];
+				String placeholder = placeholders[i];
 				int startIndex = msg.indexOf("{" + i + "}");
 				if (startIndex >= 0) {
-					msg.replace(startIndex, startIndex + 3, placeholder != null ? placeholder + "" : "");
+					msg.replace(startIndex, startIndex + 3, placeholder != null ? placeholder : "");
 				}
 			}
 			return msg.toString();

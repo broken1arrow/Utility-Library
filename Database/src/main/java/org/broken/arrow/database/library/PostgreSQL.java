@@ -77,10 +77,8 @@ public class PostgreSQL extends Database<PreparedStatement> {
 		Validate.checkNotNull(preferences, "You need to set preferences for the database");
 		Connection connection = null;
 		try {
-			if (this.connection == null || this.connection.isClosed()) {
-				if (!hasCastException) {
-					connection = this.setupConnection();
-				}
+			if ((this.connection == null || this.connection.isClosed()) && !hasCastException) {
+				connection = this.setupConnection();
 			}
 		} catch (SQLRecoverableException exception) {
 			hasCastException = true;

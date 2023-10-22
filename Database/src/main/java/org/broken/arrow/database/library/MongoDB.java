@@ -36,7 +36,7 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class MongoDB extends Database <MongoCollection<Document>>{
+public class MongoDB extends Database<MongoCollection<Document>> {
 
 	private final String startSQLUrl;
 	private final String driver;
@@ -60,7 +60,7 @@ public class MongoDB extends Database <MongoCollection<Document>>{
 	public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, final String... columns) {
 		final TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
-			LogMsg.warn("Could not find table " + tableName);
+			this.printFailFindTable(tableName);
 			return;
 		}
 		if (!openConnection()) return;
@@ -96,7 +96,7 @@ public class MongoDB extends Database <MongoCollection<Document>>{
 	public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
 		final TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
-			LogMsg.warn("Could not find table " + tableName);
+			this.printFailFindTable(tableName);
 			return;
 		}
 		if (!openConnection()) return;
@@ -127,7 +127,7 @@ public class MongoDB extends Database <MongoCollection<Document>>{
 	public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
-			LogMsg.warn("Could not find table " + tableName);
+			this.printFailFindTable(tableName);
 			return null;
 		}
 		if (!openConnection()) return null;
@@ -168,7 +168,7 @@ public class MongoDB extends Database <MongoCollection<Document>>{
 	public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, final String columnValue) {
 		TableWrapper tableWrapper = this.getTable(tableName);
 		if (tableWrapper == null) {
-			LogMsg.warn("Could not find table " + tableName);
+			this.printFailFindTable(tableName);
 			return null;
 		}
 		if (!openConnection()) {
@@ -208,30 +208,30 @@ public class MongoDB extends Database <MongoCollection<Document>>{
 
 	@Override
 	public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
-		throw new UnsupportedOperationException("This function is not implemented for this class yet." + this);
+		throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
 	}
 
 	/**
 	 * This method function argument returns a {@link com.mongodb.client.MongoCollection} with the class {@link org.bson.Document} .
 	 * You can use for example {@link com.mongodb.client.MongoCollection#find(org.bson.conversions.Bson)} to filter
 	 * the result or get everything inside the table if filter is not set.
-	 *
+	 * <p>
 	 * Check the MongoDB documentations for more help https://www.mongodb.com/docs/manual/
 	 *
 	 * @param tableName the table name set.
-	 * @param function the function that will be applied to the command.
-	 * @param <T>  The type you want the method to return.
+	 * @param function  the function that will be applied to the command.
+	 * @param <T>       The type you want the method to return.
 	 * @return the value you set as the lambda should return or null if something did go wrong..
 	 */
 	@Override
 	@Nullable
-	public <T>T getPreparedStatement(@Nonnull final String tableName, Function<MongoCollection<Document> , T> function) {
+	public <T> T getPreparedStatement(@Nonnull final String tableName, Function<MongoCollection<Document>, T> function) {
 		if (!openConnection()) return null;
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		MongoCollection<Document> collection = database.getCollection(tableName);
 		try {
 			return function.apply(collection);
-		}finally {
+		} finally {
 			closeConnection();
 		}
 	}
@@ -240,11 +240,11 @@ public class MongoDB extends Database <MongoCollection<Document>>{
 	 * This methods consumer returns a {@link com.mongodb.client.MongoCollection} with the class {@link org.bson.Document} .
 	 * You can use for example {@link com.mongodb.client.MongoCollection#find(org.bson.conversions.Bson)} to filter
 	 * the result or get everything inside the table or get everything inside the table if filter is not set.
-	 * 
+	 * <p>
 	 * Check the MongoDB documentations for more help https://www.mongodb.com/docs/manual/
 	 *
 	 * @param tableName the table name set.
-	 * @param consumer the function that will be applied to the command.
+	 * @param consumer  the function that will be applied to the command.
 	 */
 	@Override
 	public void getPreparedStatement(@Nonnull final String tableName, Consumer<MongoCollection<Document>> consumer) {
@@ -253,13 +253,13 @@ public class MongoDB extends Database <MongoCollection<Document>>{
 		MongoCollection<Document> collection = database.getCollection(tableName);
 		try {
 			consumer.accept(collection);
-		}finally {
+		} finally {
 			closeConnection();
 		}
 	}
+
 	@Override
 	public Connection connect() {
-		//if (this.mongoClient != null) return null;
 		String databaseName = preferences.getDatabaseName();
 		String hostAddress = preferences.getHostAddress();
 		String port = preferences.getPort();
@@ -267,9 +267,8 @@ public class MongoDB extends Database <MongoCollection<Document>>{
 		String password = preferences.getPassword();
 		String extra = preferences.getQuery();
 		String credentials = "";
-		if (user != null && password != null)
-			if (!user.isEmpty() && !password.isEmpty())
-				credentials = user + ":" + password + "@";
+		if (user != null && password != null && !user.isEmpty() && !password.isEmpty())
+			credentials = user + ":" + password + "@";
 
 		ConnectionString connection = new ConnectionString(startSQLUrl + credentials + hostAddress + ":" + port + "/" + databaseName + extra);
 

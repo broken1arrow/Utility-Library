@@ -44,15 +44,10 @@ public class SQLite extends Database<PreparedStatement> {
 			if (this.connection != null && !this.connection.isClosed()) {
 				return this.connection;
 			}
-			//Class.forName("org.sqlite.JDBC");
 			return setupConnection();
-			//return DriverManager.getConnection("jdbc:sqlite:" + dbFile);
-
 		} catch (final SQLException ex) {
-			LogMsg.warn("SQLite exception on initialize", ex);
-		} /*catch (final ClassNotFoundException ex) {
-			LogMsg.warn("You need the SQLite JBDC library. Google it. Put it in /lib folder.", ex);
-		}*/
+			LogMsg.warn("Fail to connect to SQLITE database", ex);
+		}
 		return null;
 	}
 

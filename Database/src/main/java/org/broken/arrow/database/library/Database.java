@@ -37,7 +37,7 @@ import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class Database<statement> {
+public abstract class Database<Type> {
 
 	private final Map<String, TableWrapper> tables = new HashMap<>();
 	final Map<String, Map<String, Integer>> cachedColumnsIndex = new HashMap<>();
@@ -444,19 +444,19 @@ public abstract class Database<statement> {
 	 * Throws SQLException if a database access error occurs or this method is called on a
 	 * closed connection. Alternatively the command is not correctly setup.
 	 *
-	 * @param command  the statement or SQL command you want to run.
+	 * @param command  the Type or SQL command you want to run.
 	 * @param function the function that will be applied to the command.
 	 * @param <T>      The type you want the method to return.
 	 * @return the value you set as the lambda should return or null if something did go wrong.
 	 */
 	@Nullable
-	public <T> T getPreparedStatement(@Nonnull final String command, final Function<statement, T> function) {
+	public <T> T getPreparedStatement(@Nonnull final String command, final Function<Type, T> function) {
 		if (!openConnection()) {
 			this.printFailToOpen();
 			return null;
 		}
 		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
-			return function.apply((statement) preparedStatement);
+			return function.apply((Type) preparedStatement);
 		} catch (SQLException e) {
 			LogMsg.warn("could not execute this command: " + command, e);
 		} finally {
@@ -483,16 +483,16 @@ public abstract class Database<statement> {
 	 * Throws SQLException if a database access error occurs or this method is called on a
 	 * closed connection. Alternatively the command is not correctly setup.
 	 *
-	 * @param command  the statement or SQL command you want to run.
+	 * @param command  the Type or SQL command you want to run.
 	 * @param consumer the consumer that will be applied to the command.
 	 */
-	public void getPreparedStatement(@Nonnull final String command, final Consumer<statement> consumer) {
+	public void getPreparedStatement(@Nonnull final String command, final Consumer<Type> consumer) {
 		if (!openConnection()) {
 			this.printFailToOpen();
 			return;
 		}
 		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
-			consumer.accept((statement) preparedStatement);
+			consumer.accept((Type) preparedStatement);
 		} catch (SQLException e) {
 			LogMsg.warn("could not execute this command: " + command, e);
 		} finally {
@@ -742,7 +742,7 @@ public abstract class Database<statement> {
 	 * @param rowWrapper  The current row's column data.
 	 * @param shallUpdate Specifies whether the table should be updated.
 	 * @param columns     If not null and not empty, updates the existing row with these columns if it exists.
-	 * @return The SqlCommandComposer instance with the finish SQL command for either use for prepare statement or not.
+	 * @return The SqlCommandComposer instance with the finish SQL command for either use for prepare Type or not.
 	 */
 	protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
 		SqlCommandComposer commandComposer = new SqlCommandComposer(rowWrapper, this);
@@ -943,7 +943,7 @@ public abstract class Database<statement> {
 					boolean valuesSet = false;
 
 					if (!cachedDataByColumn.isEmpty()) {
-						// Populate the statement with data where the key is the row identifier (id).
+						// Populate the Type with data where the key is the row identifier (id).
 						for (Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
 							statement.setObject(column.getKey(), column.getValue());
 							valuesSet = true;
@@ -955,7 +955,7 @@ public abstract class Database<statement> {
 
 					statement.executeBatch();
 				} catch (SQLException e) {
-					// Handle the exception for a specific statement
+					// Handle the exception for a specific Type
 					LogMsg.warn("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\"");
 					LogMsg.warn("Values that could not be executed: '" + cachedDataByColumn.values() + "'", e);
 				}
