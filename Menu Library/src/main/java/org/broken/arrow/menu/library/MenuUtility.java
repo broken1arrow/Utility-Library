@@ -2,6 +2,8 @@ package org.broken.arrow.menu.library;
 
 import com.google.common.base.Enums;
 import com.google.gson.JsonObject;
+import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
@@ -9,7 +11,6 @@ import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.ServerVersion;
-import org.broken.arrow.menu.library.utility.Validate;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -35,7 +36,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  */
 
 public class MenuUtility<T> {
-	private final Logger logger = Logger.getLogger("Menu-Utility");
+	private final Logging logger = new Logging(MenuUtility.class);
 
 	protected MenuCacheKey menuCacheKey;
 	private final MenuCache menuCache;
@@ -740,7 +740,7 @@ public class MenuUtility<T> {
 		final List<Integer> fillSlots = this.getFillSpace();
 		if (this.itemsPerPage > 0) {
 			if (this.itemsPerPage > this.inventorySize)
-				this.logger.log(Level.SEVERE, "Items per page are biger an Inventory size, items items per page " + this.itemsPerPage + ". Inventory size " + this.inventorySize, new Throwable().fillInStackTrace());
+				this.logger.log(Level.WARNING,  () -> Logging.of("Items per page are biger an Inventory size, items items per page " + this.itemsPerPage + ". Inventory size " + this.inventorySize));
 			if (!fillSlots.isEmpty()) {
 				return (double) fillSlots.size() / this.itemsPerPage;
 			} else if (fillItems != null && !fillItems.isEmpty()) return (double) fillItems.size() / this.itemsPerPage;
@@ -870,13 +870,13 @@ public class MenuUtility<T> {
 		if (this.getInventoryType() != null)
 			return Bukkit.createInventory(null, this.getInventoryType(), menuTitle != null ? menuTitle : "");
 		if (!(this.inventorySize == 5 || this.inventorySize % 9 == 0))
-			this.logger.log(Level.WARNING, "wrong inverntory size , you has put in " + this.inventorySize + " it need to be valid number.");
+			this.logger.log(Level.WARNING,  () -> Logging.of( "wrong inventory size , you has put in " + this.inventorySize + " it need to be valid number."));
 		if (this.inventorySize == 5)
 			return Bukkit.createInventory(null, InventoryType.HOPPER, menuTitle != null ? menuTitle : "");
 		return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, menuTitle != null ? menuTitle : "");
 	}
 
-	private long getupdateTime(final MenuButtonI<T> menuButton) {
+	private long getUpdateTime(final MenuButtonI<T> menuButton) {
 		if (menuButton.setUpdateTime() == -1) return getUpdateTime();
 		return menuButton.setUpdateTime();
 	}
@@ -893,7 +893,7 @@ public class MenuUtility<T> {
 					if (timeleft != null && timeleft == -1) continue;
 
 					if (timeleft == null || timeleft == 0)
-						putTimeWhenUpdatesButtons(menuButton, counter + getupdateTime(menuButton));
+						putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
 					else if (counter >= timeleft) {
 						getMenuData(getPageNumber());
 						final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
@@ -912,12 +912,12 @@ public class MenuUtility<T> {
 
 			private boolean updateButtonsData(final MenuButtonI<T> menuButton, final MenuDataUtility<T> menuDataUtility, final Set<Integer> itemSlots) {
 				if (itemSlots.isEmpty())
-					putTimeWhenUpdatesButtons(menuButton, counter + getupdateTime(menuButton));
+					putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
 				else {
 					if (getMenu() == null) return true;
 					final Iterator<Integer> slotList = itemSlots.iterator();
 					setButtons(menuButton, menuDataUtility, slotList);
-					putTimeWhenUpdatesButtons(menuButton, counter + getupdateTime(menuButton));
+					putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
 				}
 				return false;
 			}

@@ -6,7 +6,7 @@ import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import org.broken.arrow.logging.library.Validate;
-import org.broken.arrow.logging.library.Validate.CatchExceptions;
+import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 import org.broken.arrow.nbt.library.utility.NBTDataWriterWrapper;
 import org.broken.arrow.nbt.library.utility.NBTValueWrapper;
 import org.broken.arrow.nbt.library.utility.ServerVersion;
@@ -316,7 +316,7 @@ public final class CompMetadata {
 				if (compound != null) {
 					T returnedObject = function.apply(new NBTValueWrapper(compound));
 					if (returnedObject instanceof NBTValueWrapper)
-						throw new CatchExceptions("You can't return NBTValueWrapper instance, because it will be closed after this call.");
+						throw new ValidateExceptions("You can't return NBTValueWrapper instance, because it will be closed after this call.");
 					return getOrNull (returnedObject);
 				}
 			}

@@ -3,7 +3,7 @@ package org.broken.arrow.database.library.builders.tables;
 
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.logging.library.Validate;
-import org.broken.arrow.logging.library.Validate.CatchExceptions;
+import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -22,7 +22,7 @@ public final class TableWrapper {
 	private final Map<String, TableRow> columns = new LinkedHashMap<>();
 
 	private TableWrapper() {
-		throw new CatchExceptions("You should not attempt to create empty constructor");
+		throw new ValidateExceptions("You should not attempt to create empty constructor");
 	}
 
 	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow tableRow) {

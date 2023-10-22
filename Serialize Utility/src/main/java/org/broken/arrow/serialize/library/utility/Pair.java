@@ -6,13 +6,13 @@ public class Pair<First, Second> {
 	private final First firstValue;
 	private final Second secondValue;
 
-	public Pair(final First firstValue, final Second secondValue) {
-		this.firstValue = firstValue;
-		this.secondValue = secondValue;
+	public Pair(final First first, final Second second) {
+		this.firstValue = first;
+		this.secondValue = second;
 	}
 
-	public static <First, Second> Pair<First, Second> of(final First firstValue, final Second secondValue) {
-		return new Pair<>(firstValue, secondValue);
+	public static <First, Second> Pair<First, Second> of(final First first, final Second second) {
+		return new Pair<>(first, second);
 	}
 
 	public First getFirst() {

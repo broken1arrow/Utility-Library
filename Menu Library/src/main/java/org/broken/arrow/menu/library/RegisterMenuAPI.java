@@ -1,6 +1,7 @@
 package org.broken.arrow.menu.library;
 
 import org.broken.arrow.itemcreator.library.ItemCreator;
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
@@ -33,12 +34,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static org.broken.arrow.menu.library.utility.ServerVersion.v1_19_4;
 
 
 public class RegisterMenuAPI {
+	private final Logging logger = new Logging(RegisterMenuAPI.class);
 	private static RegisterMenuAPI menuAPI;
 	private final MenuCache menuCache;
 	private final Plugin plugin;
@@ -49,7 +48,7 @@ public class RegisterMenuAPI {
 	private SendMsgDuplicatedItems messages;
 	private boolean notFoundItemCreator;
 	private boolean notFoundUpdateTitle;
-	private final Logger logger = Logger.getLogger("Register_MenuAPI");
+
 
 	private RegisterMenuAPI() {
 		throw new UnsupportedOperationException("You need specify your main class");
@@ -64,24 +63,23 @@ public class RegisterMenuAPI {
 		menuAPI = this;
 		menuCache = new MenuCache();
 		if (this.plugin == null) {
-			logger.log(Level.WARNING, "You have not set a plugin.");
-			logger.log(Level.WARNING, "If you're unsure how to use this library, " +
-					"contact plugin developer for assistance.");
+			logger.log(Level.WARNING, () -> Logging.of("You have not set a plugin."));
+			logger.log(Level.WARNING, () -> Logging.of("If you're unsure how to use this library, " +
+					"contact plugin developer for assistance."));
 			return;
 		}
 		try {
 			UpdateTitle.update(null, "");
 		} catch (NoClassDefFoundError ignore) {
-			logger.log(Level.INFO, "Important: Dynamic change menu titles not available.");
-			logger.log(Level.INFO, "To enable the option to change the menu title while the menu is open,");
-			logger.log(Level.INFO, "please make sure you have imported the Title Update module into your plugin.");
-			logger.log(Level.INFO, "Without the Title Update module, you won't be able to dynamically update");
-			logger.log(Level.INFO, "the menu title while the menu is open.");
-			logger.log(Level.INFO, "If you're unsure how to import the module, please refer to the documentation");
-			logger.log(Level.INFO, "or contact plugin developer for assistance.");
+			logger.log(() -> Logging.of("Important: Dynamic change menu titles not available."));
+			logger.log(() -> Logging.of("To enable the option to change the menu title while the menu is open,"));
+			logger.log(() -> Logging.of("please make sure you have imported the Title Update module into your plugin."));
+			logger.log(() -> Logging.of("Without the Title Update module, you won't be able to dynamically update"));
+			logger.log(() -> Logging.of("the menu title while the menu is open."));
+			logger.log(() -> Logging.of("If you're unsure how to import the module, please refer to the documentation"));
+			logger.log(() -> Logging.of("or contact plugin developer for assistance."));
 			notFoundUpdateTitle = true;
 		}
-		//ServerVersion.setServerVersion(plugin);
 		versionCheck();
 		registerMenuEvent(plugin);
 		this.checkItemsInsideMenu = new CheckItemsInsideMenu(this);
@@ -100,14 +98,11 @@ public class RegisterMenuAPI {
 	}
 
 	private void versionCheck() {
-		logger.log(Level.INFO, "Now starting MenuApi. Any errors will be shown below.");
-		if (ServerVersion.newerThan(v1_19_4)) {
-			logger.log(Level.WARNING, "It is not tested on versions beyond 1.19.4");
-		}
+		logger.log(() -> Logging.of("Now starting MenuApi. Any errors will be shown below."));
 	}
 
 	public void getLogger(final Level level, final String messsage) {
-		logger.log(level, messsage);
+		logger.log(level, () -> Logging.of(messsage));
 	}
 
 	public Plugin getPlugin() {
@@ -391,6 +386,7 @@ public class RegisterMenuAPI {
 					event.setCancelled(true);
 			}
 		}
+
 		private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
 			if (clickedInventory.getType() == InventoryType.PLAYER)
 				if (event.getClick().isShiftClick()) {

@@ -1,11 +1,12 @@
 package org.broken.arrow.visualization.library;
 
 import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 import org.broken.arrow.visualization.library.builders.VisualizeData;
 import org.broken.arrow.visualization.library.runnable.VisualTask;
 import org.broken.arrow.visualization.library.utility.EntityModifications;
 import org.broken.arrow.visualization.library.utility.Function;
-import org.broken.arrow.visualization.library.utility.Validate;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -173,6 +174,6 @@ public final class BlockVisualizerCache {
 	}
 
 	public void throwErrorBlockNull() throws NullPointerException {
-		throw new NullPointerException("block is marked non-null but is null");
+		throw new ValidateExceptions("block is marked non-null but is null");
 	}
 }

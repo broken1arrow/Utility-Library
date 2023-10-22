@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library.utility.serialize;
 
 import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -20,7 +21,7 @@ public class MethodReflectionUtils {
 			Validate.checkBoolean(!Modifier.isStatic(method.getModifiers()), "deserialize method need to be static");
 			return clazz.cast(method.invoke(method, params));
 		} catch (final IllegalAccessException | InvocationTargetException ex) {
-			throw new Validate.CatchExceptions(ex, "Could not invoke static method " + methodName + " with params " + Arrays.toString(params));
+			throw new ValidateExceptions(ex, "Could not invoke static method " + methodName + " with params " + Arrays.toString(params));
 		}
 	}
 

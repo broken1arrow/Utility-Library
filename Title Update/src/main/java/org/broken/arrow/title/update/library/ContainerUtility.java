@@ -1,9 +1,9 @@
 package org.broken.arrow.title.update.library;
 
 import com.google.gson.JsonObject;
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.title.update.library.nms.InventoryNMS;
-import org.broken.arrow.title.update.library.utility.TitleLogger;
 import org.broken.arrow.title.update.library.utility.TitleUtility;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -15,7 +15,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 
+import static org.broken.arrow.logging.library.Logging.of;
+
 public class ContainerUtility {
+	private static final Logging logger = new Logging(ContainerUtility.class);
 	private Class<?> packetClass;
 	private Method handle;
 	private Field playerConnection;
@@ -27,11 +30,9 @@ public class ContainerUtility {
 	private Constructor<?> packetConstructor;
 	private final float serverVersion;
 	private final InventoryNMS inventoryNMS;
-	private final TitleLogger titleLogger;
-
 
 	protected ContainerUtility(final InventoryNMS inventoryNMS, final float serverVersion) {
-		titleLogger = new TitleLogger(ContainerUtility.class);
+
 		this.serverVersion = serverVersion;
 		this.inventoryNMS = inventoryNMS;
 		loadClasses(serverVersion);
@@ -61,7 +62,7 @@ public class ContainerUtility {
 
 		String fieldName = inventoryNMS.getContainerFieldName(inventory);
 		if (fieldName == null || fieldName.isEmpty()) {
-			titleLogger.sendLOG(Level.WARNING,"Could not update title for this inventory: " + inventory);
+			logger.log(Level.WARNING,()-> of("Could not update title for this inventory: " + inventory));
 			return;
 		}
 
@@ -106,7 +107,7 @@ public class ContainerUtility {
 			this.packetConstructor = inventoryNMS.getPacketPlayOutOpenWindow();
 
 		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException exception) {
-			this.titleLogger.sendLOG(exception, Level.WARNING, "An error occurred while updating the inventory title: ");
+			logger.log(Level.WARNING,exception,()-> of( "An error occurred while updating the inventory title: "));
 		}
 	}
 

@@ -1,6 +1,7 @@
 package org.broken.arrow.serialize.library.utility.converters.particleeffect;
 
-import org.broken.arrow.serialize.library.utility.Validate;
+
+import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.converters.SpigotBlockFace;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.bukkit.Effect;

@@ -48,7 +48,7 @@ public class CreateItemStack {
 	static Logger logger;
 
 	static {
-		logger = Logger.getLogger("itemcreator");
+		logger = Logger.getLogger(CreateItemStack.class.getName());
 	}
 
 	private static ConvertToItemStack convertItems;

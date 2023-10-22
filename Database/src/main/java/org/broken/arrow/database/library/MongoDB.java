@@ -71,20 +71,7 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		MongoCollection<Document> collection = database.getCollection(tableName);
 		for (DataWrapper dataWrapper : dataWrapperList) {
-			Document document = new Document("_id", dataWrapper.getPrimaryValue());
-			Bson filter = Filters.eq("_id", dataWrapper.getPrimaryValue());
-
-			for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
-				TableRow column = tableWrapper.getColumn(entry.getKey());
-
-				if (column == null) continue;
-				Bson updatedRow = Updates.set(entry.getKey(), entry.getValue());
-				UpdateResult updateResult = collection.updateOne(filter, updatedRow);
-				if (updateResult.getMatchedCount() == 0)
-					document.append(entry.getKey(), entry.getValue());
-			}
-			if (document.size() > 1)
-				collection.insertOne(document);
+			saveData(dataWrapper, tableWrapper, collection);
 		}
 
 		// Close the MongoDB connection
@@ -107,20 +94,7 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		MongoCollection<Document> collection = database.getCollection(tableName);
 
-		Document document = new Document("_id", dataWrapper.getPrimaryValue());
-		Bson filter = Filters.eq("_id", dataWrapper.getPrimaryValue());
-
-		for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
-			TableRow column = tableWrapper.getColumn(entry.getKey());
-
-			if (column == null) continue;
-			Bson updatedRow = Updates.set(entry.getKey(), entry.getValue());
-			UpdateResult updateResult = collection.updateOne(filter, updatedRow);
-			if (updateResult.getMatchedCount() == 0)
-				document.append(entry.getKey(), entry.getValue());
-		}
-		if (document.size() > 1)
-			collection.insertOne(document);
+		saveData(dataWrapper, tableWrapper, collection);
 
 		// Close the MongoDB connection
 		this.closeConnection();
@@ -302,6 +276,22 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 
 	}
 
+	private void saveData(final DataWrapper dataWrapper, final TableWrapper tableWrapper, final MongoCollection<Document> collection) {
+		Document document = new Document("_id", dataWrapper.getPrimaryValue());
+		Bson filter = Filters.eq("_id", dataWrapper.getPrimaryValue());
+
+		for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
+			TableRow column = tableWrapper.getColumn(entry.getKey());
+
+			if (column == null) continue;
+			Bson updatedRow = Updates.set(entry.getKey(), entry.getValue());
+			UpdateResult updateResult = collection.updateOne(filter, updatedRow);
+			if (updateResult.getMatchedCount() == 0)
+				document.append(entry.getKey(), entry.getValue());
+		}
+		if (document.size() > 1)
+			collection.insertOne(document);
+	}
 	@Override
 	public boolean openConnection() {
 		if (isClosed())

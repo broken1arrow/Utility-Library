@@ -7,32 +7,32 @@ public class Validate {
 
 	public static void checkNotNull(final Object checkNull) {
 		if (checkNull == null)
-			throw new CatchExceptions("Object is null ");
+			throw new ValidateExceptions("Object is null ");
 	}
 
 	public static void checkNotNull(final Object checkNull, final String s) {
 		if (checkNull == null)
-			throw new CatchExceptions(s);
+			throw new ValidateExceptions(s);
 	}
 
 	public static void checkNotEmpty(final Object checkNull, final String s) {
 		if (checkNull != null && checkNull.equals(""))
-			throw new CatchExceptions(s);
+			throw new ValidateExceptions(s);
 		if (checkNull == null)
-			throw new CatchExceptions(s);
+			throw new ValidateExceptions(s);
 	}
 
 	public static void checkBoolean(final boolean b, final String s) {
 		if (b)
-			throw new CatchExceptions(s);
+			throw new ValidateExceptions(s);
 	}
 
-	public static class CatchExceptions extends RuntimeException {
+	public static class ValidateExceptions extends RuntimeException {
 
-		public CatchExceptions(final Throwable throwable, final String message) {
+		public ValidateExceptions(final Throwable throwable, final String message) {
 			super(message, throwable);
 		}
-		public CatchExceptions(final String message) {
+		public ValidateExceptions(final String message) {
 			super(message);
 		}
 	}

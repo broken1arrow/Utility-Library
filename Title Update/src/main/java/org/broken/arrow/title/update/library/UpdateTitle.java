@@ -2,7 +2,7 @@ package org.broken.arrow.title.update.library;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.broken.arrow.title.update.library.utility.TitleLogger;
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.title.update.library.utility.TitleUtility;
 import org.bukkit.entity.Player;
 
@@ -10,17 +10,19 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.logging.Level;
 
+import static org.broken.arrow.logging.library.Logging.of;
+
 
 public class UpdateTitle {
+	private static final Logging logger = new Logging(UpdateTitle.class);
 	private static boolean hasCastEx;
 	private static final float serverVersion;
-	private static final TitleLogger titleLogger;
+
 
 	@Nullable
 	private static final ContainerUtility containerUtility;
 
 	static {
-		titleLogger = new TitleLogger(UpdateTitle.class);
 		synchronized (UpdateTitle.class) {
 			SetNmsData nmsData = new SetNmsData();
 			serverVersion = nmsData.getServerVersion();
@@ -127,12 +129,12 @@ public class UpdateTitle {
 
 	private static void update(final Player player, @Nonnull final TitleUtility titleUtility) {
 		if (hasCastEx) {
-			titleLogger.sendLOG(Level.WARNING, "There was an error while updating the title. Please contact the developer for assistance.");
-			titleLogger.sendLOG(Level.WARNING, "The set NMS values: " + containerUtility);
+			logger.log(Level.WARNING, ()-> of("There was an error while updating the title. Please contact the developer for assistance."));
+			logger.log(Level.WARNING, ()-> of("The set NMS values: " + containerUtility));
 			return;
 		}
 		if (serverVersion <= 0){
-			titleLogger.sendLOG(Level.WARNING, "The server version is 0 or below " + serverVersion);
+			logger.log(Level.WARNING, ()-> of( "The server version is 0 or below " + serverVersion));
 			return;
 		}
 
@@ -140,12 +142,11 @@ public class UpdateTitle {
 		if (player != null && containerUtility != null && serverVersion > 0)
 			try {
 				if (!titleUtility.isTitleSet())
-					titleLogger.sendLOG(Level.WARNING, "Title is not set, so can't update the title.");
+					logger.log(Level.WARNING, ()-> of(  "Title is not set, so can't update the title."));
 				else
 					containerUtility.updateInventory(player, titleUtility);
 			} catch (Exception exception) {
-				titleLogger.sendLOG(Level.WARNING, "There was an error while updating the title. Please contact the developer for assistance.");
-				titleLogger.sendLOG(exception, Level.WARNING, "");
+				logger.log(Level.WARNING, exception,()-> of(  "There was an error while updating the title. Please contact the developer for assistance."));
 				hasCastEx = true;
 			}
 	}
