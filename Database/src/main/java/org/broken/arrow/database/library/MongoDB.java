@@ -19,6 +19,7 @@ import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.bson.Document;
@@ -34,9 +35,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.logging.Level;
+
+import static org.broken.arrow.logging.library.Logging.of;
 
 public class MongoDB extends Database<MongoCollection<Document>> {
 
+	private final Logging LOG = new Logging( MongoDB.class);
 	private final String startSQLUrl;
 	private final String driver;
 	private final ConnectionSettings preferences;
@@ -156,7 +161,7 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 				loadDataWrappers.add(new LoadDataWrapper<>(id, deserialize));
 			}
 		} else {
-			LogMsg.info("Could not find any row within this table " + tableName);
+			LOG.log(()->of("Could not find any row within this table " + tableName));
 		}
 		this.closeConnection();
 		return loadDataWrappers;
@@ -171,7 +176,7 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 			return null;
 		}
 		if (!openConnection()) {
-			LogMsg.warn("Could not open connection.");
+			LOG.log(Level.WARNING,()->of("Could not open connection."));
 			return null;
 		}
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
@@ -198,7 +203,7 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 				loadDataWrapper = new LoadDataWrapper<>(id, deserialize);
 			}
 		} else {
-			LogMsg.info("Could not find any row with this value " + columnValue);
+			LOG.log(()-> of("Could not find any row with this value " + columnValue));
 		}
 		// Close the MongoDB connection
 		this.closeConnection();

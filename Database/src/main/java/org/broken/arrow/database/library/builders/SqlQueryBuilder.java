@@ -2,11 +2,15 @@ package org.broken.arrow.database.library.builders;
 
 import org.broken.arrow.database.library.builders.tables.ColumnWrapper;
 import org.broken.arrow.database.library.utility.SQLCommandPrefix;
+import org.broken.arrow.logging.library.Logging;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+
+import static org.broken.arrow.logging.library.Logging.of;
 
 /**
  * A flexible and versatile SQL query builder for constructing SQL queries in a structured and fluent manner.
@@ -51,6 +55,7 @@ import java.util.Map.Entry;
  */
 public class SqlQueryBuilder {
 
+	private final Logging LOG = new Logging(SqlQueryBuilder.class);
 	private final Map<Integer, ColumnWrapper> indexCachedWithValue;
 
 	private final StringBuilder builtColumnsWithValues;
@@ -224,13 +229,13 @@ public class SqlQueryBuilder {
 
 	private boolean validate() {
 		if (executionsType == null || executionsType.isEmpty()) {
-			LogMsg.warn("You need to set the executionsType");
+			LOG.log(Level.WARNING,() -> of("You need to set the executionsType"));
 			return false;
 		}
 
 		if (builtColumnsWithValues == null && clauseBeforeTable == null && whereClause == null && updateBuilder == null) {
-			LogMsg.warn("You need to set the column name or column names and value/values." +
-					"\nAlternatively specify from what table and set the where condition or conditions.");
+			LOG.log(Level.WARNING,() -> of("You need to set the column name or column names and value/values." +
+					"\nAlternatively specify from what table and set the where condition or conditions."));
 			return false;
 		}
 		if (builtColumnsWithValues != null && updateBuilder == null)
@@ -238,14 +243,14 @@ public class SqlQueryBuilder {
 
 		if (updateBuilder != null) {
 			if (whereClause == null) {
-				LogMsg.warn("You need to specify where it should update the data");
+				LOG.log(Level.WARNING,() -> of("You need to specify where it should update the data"));
 				return false;
 			}
 			return true;
 		}
 
 		if (clauseBeforeTable == null || whereClause == null) {
-			LogMsg.warn("You need to specify what table to set the data and the condition or conditions where to get the data from.");
+			LOG.log(Level.WARNING,() -> of("You need to specify what table to set the data and the condition or conditions where to get the data from."));
 			return false;
 		}
 

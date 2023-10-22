@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library.builders;
 
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.logging.library.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

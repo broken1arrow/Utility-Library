@@ -4,6 +4,7 @@ import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 
 import javax.annotation.Nonnull;
@@ -15,8 +16,11 @@ import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 import java.util.List;
 
+import static org.broken.arrow.logging.library.Logging.of;
+
 public class PostgreSQL extends Database<PreparedStatement> {
 
+	private final Logging LOG = new Logging(PostgreSQL.class);
 	private final ConnectionSettings preferences;
 	private final boolean isHikariAvailable;
 	private final String startSQLUrl;
@@ -81,7 +85,7 @@ public class PostgreSQL extends Database<PreparedStatement> {
 			}
 		} catch (SQLRecoverableException exception) {
 			hasCastException = true;
-			LogMsg.warn("Could not connect to the database. Check your database connection.", exception);
+			LOG.log(exception, () -> of("Could not connect to the database. Check your database connection."));
 
 		} catch (SQLException throwable) {
 			throwable.printStackTrace();

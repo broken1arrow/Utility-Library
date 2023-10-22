@@ -3,6 +3,7 @@ package org.broken.arrow.database.library;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 
 import javax.annotation.Nonnull;
@@ -14,8 +15,10 @@ import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 import java.util.List;
 
-public class MySQL extends Database<PreparedStatement> {
+import static org.broken.arrow.logging.library.Logging.of;
 
+public class MySQL extends Database<PreparedStatement> {
+	private final Logging LOG = new Logging(MySQL.class);
 	private final ConnectionSettings mysqlPreference;
 	private final String startSQLUrl;
 	private final String driver;
@@ -81,7 +84,7 @@ public class MySQL extends Database<PreparedStatement> {
 			}
 		} catch (SQLRecoverableException exception) {
 			hasCastException = true;
-			LogMsg.warn("Could not connect to the database. Check your database connection.", exception);
+			LOG.log(exception, () -> of("Could not connect to the database. Check your database connection."));
 
 		} catch (SQLException throwable) {
 			throwable.printStackTrace();
@@ -123,7 +126,7 @@ public class MySQL extends Database<PreparedStatement> {
 		String user = mysqlPreference.getUser();
 		String password = mysqlPreference.getPassword();
 
-		try (Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password)){
+		try (Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password)) {
 
 			PreparedStatement create = createDatabase.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName);
 			create.execute();

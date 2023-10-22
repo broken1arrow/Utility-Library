@@ -3,6 +3,8 @@ package org.broken.arrow.database.library.builders.tables;
 import org.broken.arrow.database.library.Database;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
+import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.logging.library.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,12 +17,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
+
+import static org.broken.arrow.logging.library.Logging.of;
 
 /**
  * This class help you to wrap your command.
  */
 public final class SqlCommandComposer {
-
+	private final Logging LOG = new Logging(SqlCommandComposer.class);
 	private final TableWrapper tableWrapper;
 	private final RowWrapper rowWrapper;
 	private final Database<?> database;
@@ -268,7 +273,7 @@ public final class SqlCommandComposer {
 		if (queryBuilder != null) {
 			String query = queryBuilder.getQuery();
 			if (query == null) {
-				LogMsg.warn("The query command is not set or not properly setup.");
+				LOG.log(Level.WARNING,()-> of("The query command is not set or not properly setup."));
 				return;
 			}
 			Map<Integer, ColumnWrapper> columnValueMap = queryBuilder.getIndexCachedWithValue();

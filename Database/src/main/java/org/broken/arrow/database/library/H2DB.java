@@ -4,6 +4,7 @@ import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.logging.library.Logging;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -14,8 +15,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class H2DB extends Database<PreparedStatement> {
+import static org.broken.arrow.logging.library.Logging.of;
 
+public class H2DB extends Database<PreparedStatement> {
+	private final Logging LOG = new Logging(H2DB.class);
 	private final String parent;
 	private final String child;
 	private final boolean isHikariAvailable;
@@ -38,7 +41,7 @@ public class H2DB extends Database<PreparedStatement> {
 		try {
 			return setupConnection();
 		} catch (SQLException e) {
-			LogMsg.warn("File write error: " + parent, e);
+			LOG.log(e,()-> of("File write error: " + parent));
 			e.printStackTrace();
 		}
 		return null;
