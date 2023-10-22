@@ -8,11 +8,11 @@ import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
-import org.broken.arrow.database.library.log.LogMsg;
-import org.broken.arrow.database.library.log.Validate;
 import org.broken.arrow.database.library.utility.DatabaseType;
 import org.broken.arrow.database.library.utility.SQLCommandPrefix;
 import org.broken.arrow.database.library.utility.serialize.MethodReflectionUtils;
+import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -36,9 +36,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.logging.Level;
+
+import static org.broken.arrow.logging.library.Logging.of;
 
 public abstract class Database<Type> {
-
+	private final Logging LOG = new Logging(Database.class);
 	private final Map<String, TableWrapper> tables = new HashMap<>();
 	final Map<String, Map<String, Integer>> cachedColumnsIndex = new HashMap<>();
 	private Set<String> removeColumns = new HashSet<>();
@@ -458,7 +461,7 @@ public abstract class Database<Type> {
 		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
 			return function.apply((Type) preparedStatement);
 		} catch (SQLException e) {
-			LogMsg.warn("could not execute this command: " + command, e);
+			LOG.log(e,() -> of("could not execute this command: " + command));
 		} finally {
 			this.closeConnection();
 		}
@@ -494,7 +497,7 @@ public abstract class Database<Type> {
 		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
 			consumer.accept((Type) preparedStatement);
 		} catch (SQLException e) {
-			LogMsg.warn("could not execute this command: " + command, e);
+			LOG.log( e,() -> of("could not execute this command: " + command));
 		} finally {
 			this.closeConnection();
 		}
@@ -522,7 +525,7 @@ public abstract class Database<Type> {
 			resultSet = preparedStatement.executeQuery();
 			return resultSet.next();
 		} catch (SQLException e) {
-			LogMsg.warn("Could not search for your the row with this value '" + primaryKeyValue + "' from this table '" + tableName + "'", e);
+			LOG.log( e,() -> of("Could not search for your the row with this value '" + primaryKeyValue + "' from this table '" + tableName + "'"));
 		} finally {
 			this.close(preparedStatement, resultSet);
 		}
@@ -582,7 +585,7 @@ public abstract class Database<Type> {
 			if (preparedStatement != null) preparedStatement.close();
 			if (resultSet != null) resultSet.close();
 		} catch (final SQLException ex) {
-			LogMsg.warn("Fail to close connection.", ex);
+			LOG.log( ex,() -> of("Fail to close connection."));
 		}
 	}
 
@@ -705,8 +708,9 @@ public abstract class Database<Type> {
 			checkIfTableExist(tableName, wrapper.getColumnName());
 			return true;
 		} catch (final SQLException e) {
-			LogMsg.warn("Something not working when try create this table: '" + tableName + "'");
-			LogMsg.warn("With this command: " + table, e);
+			LOG.log( () -> of("Something not working when try create this table: '" + tableName + "'"));
+			final String finalTable = table;
+			LOG.log( e,() -> of("With this command: " + finalTable));
 			return false;
 		} finally {
 			close(statement);
@@ -723,7 +727,7 @@ public abstract class Database<Type> {
 			close(preparedStatement, resultSet);
 
 		} catch (final SQLException ex) {
-			LogMsg.warn("Unable to retrieve connection ", ex);
+			LOG.log( ex,() -> of("Unable to retrieve connection "));
 		}
 	}
 
@@ -829,7 +833,7 @@ public abstract class Database<Type> {
 		try {
 			return this.connection == null || this.connection.isClosed();
 		} catch (SQLException e) {
-			LogMsg.warn("Something went wrong, when check if the connection is closed.", e);
+			LOG.log( e,() -> of("Something went wrong, when check if the connection is closed."));
 			return false;
 		}
 	}
@@ -904,7 +908,7 @@ public abstract class Database<Type> {
 		try {
 			Class.forName(path);
 		} catch (ClassNotFoundException e) {
-			LogMsg.info("Could not load this driver: " + path);
+			LOG.log( () -> of("Could not load this driver: " + path));
 		}
 	}
 
@@ -930,7 +934,7 @@ public abstract class Database<Type> {
 		new Timer().scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-				if (batchUpdateGoingOn) LogMsg.warn("Still executing, DO NOT SHUTDOWN YOUR SERVER.");
+				if (batchUpdateGoingOn) LOG.log( () -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
 				else cancel();
 			}
 		}, 1000 * 30L, 1000 * 30L);
@@ -956,8 +960,8 @@ public abstract class Database<Type> {
 					statement.executeBatch();
 				} catch (SQLException e) {
 					// Handle the exception for a specific Type
-					LogMsg.warn("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\"");
-					LogMsg.warn("Values that could not be executed: '" + cachedDataByColumn.values() + "'", e);
+					LOG.log(Level.WARNING,() -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
+					LOG.log( e,() -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
 				}
 			}
 		} finally {
@@ -989,7 +993,7 @@ public abstract class Database<Type> {
 
 					@Override
 					public void run() {
-						if (batchUpdateGoingOn) LogMsg.warn("Still executing, DO NOT SHUTDOWN YOUR SERVER.");
+						if (batchUpdateGoingOn) LOG.log(Level.WARNING,() -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
 						else cancel();
 					}
 				}, 1000 * 30L, 1000 * 30L);
@@ -1007,7 +1011,7 @@ public abstract class Database<Type> {
 					this.connection.setAutoCommit(true);
 				} catch (final SQLException ex) {
 					ex.printStackTrace();
-				}finally {
+				} finally {
 					this.closeConnection();
 				}
 				hasStartWriteToDb = false;
@@ -1020,15 +1024,15 @@ public abstract class Database<Type> {
 
 	public void printPressesCount(int processedCount) {
 		if (processedCount > 10_000)
-			LogMsg.warn("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
+			LOG.log( () -> of(("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.")));
 	}
 
 	public void printFailToOpen() {
-		LogMsg.warn("Could not open connection.");
+		LOG.log(Level.WARNING,() -> of("Could not open connection."));
 	}
 
 	public void printFailFindTable(String tableName) {
-		LogMsg.warn("Could not find table " + tableName);
+		LOG.log(Level.WARNING,() -> of("Could not find table " + tableName));
 	}
 
 	public boolean checkIfNotNull(Object object) {

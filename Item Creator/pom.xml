@@ -40,6 +40,11 @@
             <artifactId>NBT</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.broken.arrow.library</groupId>
+            <artifactId>Log_and_Validate</artifactId>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

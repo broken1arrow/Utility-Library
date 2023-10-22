@@ -16,6 +16,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.broken.arrow.library</groupId>
+            <artifactId>Log_and_Validate</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
             <scope>provided</scope>
@@ -23,6 +28,7 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

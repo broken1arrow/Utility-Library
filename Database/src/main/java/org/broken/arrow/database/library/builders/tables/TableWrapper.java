@@ -2,8 +2,8 @@ package org.broken.arrow.database.library.builders.tables;
 
 
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
-import org.broken.arrow.database.library.log.Validate;
-import org.broken.arrow.database.library.log.Validate.CatchExceptions;
+import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.logging.library.Validate.CatchExceptions;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

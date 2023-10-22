@@ -3,8 +3,7 @@ package org.broken.arrow.database.library;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
-import org.broken.arrow.database.library.log.LogMsg;
-import org.broken.arrow.database.library.log.Validate;
+import org.broken.arrow.logging.library.Validate;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;

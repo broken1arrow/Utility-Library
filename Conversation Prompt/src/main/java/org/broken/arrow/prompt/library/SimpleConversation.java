@@ -1,10 +1,10 @@
 package org.broken.arrow.prompt.library;
 
+import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.prompt.library.utility.CustomCanceller;
 import org.broken.arrow.prompt.library.utility.CustomConversation;
 import org.broken.arrow.prompt.library.utility.SimpleCanceller;
 import org.broken.arrow.prompt.library.utility.SimplePrefix;
-import org.broken.arrow.prompt.library.utility.Validate;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.conversations.ConversationAbandonedListener;

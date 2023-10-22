@@ -1,7 +1,6 @@
 package org.broken.arrow.database.library.builders;
 
 import org.broken.arrow.database.library.builders.tables.ColumnWrapper;
-import org.broken.arrow.database.library.log.LogMsg;
 import org.broken.arrow.database.library.utility.SQLCommandPrefix;
 
 import java.util.Collections;

@@ -3,8 +3,6 @@ package org.broken.arrow.database.library.builders.tables;
 import org.broken.arrow.database.library.Database;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
-import org.broken.arrow.database.library.log.LogMsg;
-import org.broken.arrow.database.library.log.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

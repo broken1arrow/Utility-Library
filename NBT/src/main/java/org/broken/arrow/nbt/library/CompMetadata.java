@@ -5,11 +5,11 @@ import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
+import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.logging.library.Validate.CatchExceptions;
 import org.broken.arrow.nbt.library.utility.NBTDataWriterWrapper;
 import org.broken.arrow.nbt.library.utility.NBTValueWrapper;
 import org.broken.arrow.nbt.library.utility.ServerVersion;
-import org.broken.arrow.nbt.library.utility.Valid;
-import org.broken.arrow.nbt.library.utility.Valid.CatchExceptions;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.BlockState;
@@ -74,7 +74,7 @@ public final class CompMetadata {
 	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull final String key, @Nonnull final Object value) {
-		Valid.checkNotNull(item, "Setting NBT tag got null item");
+		Validate.checkNotNull(item, "Setting NBT tag got null item");
 
 		return NBT.modify(item, writeItemNBT -> {
 			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
@@ -100,7 +100,7 @@ public final class CompMetadata {
 	 * @return The original itemStack with the metadata set.
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull Consumer<NBTDataWriterWrapper> writeNBT) {
-		Valid.checkNotNull(item, "Setting NBT tag got null item");
+		Validate.checkNotNull(item, "Setting NBT tag got null item");
 
 		return NBT.modify(item, writeItemNBT -> {
 			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
@@ -128,8 +128,8 @@ public final class CompMetadata {
 	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
 	 */
 	public ItemStack setAllMetadata(@Nonnull final ItemStack item, @Nonnull final Map<String, Object> nbtMap) {
-		Valid.checkNotNull(item, "Setting NBT tag got null item");
-		Valid.checkNotNull(nbtMap, "The map with nbt should not be null");
+		Validate.checkNotNull(item, "Setting NBT tag got null item");
+		Validate.checkNotNull(nbtMap, "The map with nbt should not be null");
 
 		return NBT.modify(item, nbt -> {
 			ReadWriteNBT compound = nbt.getOrCreateCompound(this.getCompoundKey());
@@ -161,7 +161,7 @@ public final class CompMetadata {
 	 * @param value  you want to set on this entity.
 	 */
 	public void setMetadata(@Nonnull final Entity entity, @Nonnull final String key, @Nonnull final String value) {
-		Valid.checkNotNull(entity);
+		Validate.checkNotNull(entity);
 
 		final String tag = format(key, value);
 
@@ -184,12 +184,12 @@ public final class CompMetadata {
 	 * @param value      you want to set on this tileEntity.
 	 */
 	public void setMetadata(@Nonnull final BlockState tileEntity, @Nonnull final String key, @Nonnull final String value) {
-		Valid.checkNotNull(tileEntity);
-		Valid.checkNotNull(key);
-		Valid.checkNotNull(value);
+		Validate.checkNotNull(tileEntity);
+		Validate.checkNotNull(key);
+		Validate.checkNotNull(value);
 
 		if (ServerVersion.atLeast(ServerVersion.v1_14)) {
-			Valid.checkBoolean(tileEntity instanceof TileState,
+			Validate.checkBoolean(tileEntity instanceof TileState,
 					"BlockState must be instance of a TileState not " + tileEntity);
 
 			setNameSpacedKey((TileState) tileEntity, key, value);
@@ -266,7 +266,7 @@ public final class CompMetadata {
 	@Deprecated
 	@Nullable
 	public <T> T getMetadata(@Nonnull final ItemStack item, @Nonnull Class<T> clazz, @Nonnull final String key) {
-		Valid.checkNotNull(item, this.setMessageItemNull());
+		Validate.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			// if (item == null || CompMaterial.isAir(item.getType()))
 			return null;
@@ -304,7 +304,7 @@ public final class CompMetadata {
 	 */
 	@Nullable
 	public <T> T getMetadata(@Nonnull final ItemStack item, Function<NBTValueWrapper, T> function) {
-		Valid.checkNotNull(item, this.setMessageItemNull());
+		Validate.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			return null;
 
@@ -338,7 +338,7 @@ public final class CompMetadata {
 	 * @param consumer The consumer that return NBT values you can read on your item.
 	 */
 	public void getMetadata(@Nonnull final ItemStack item, Consumer<NBTValueWrapper> consumer) {
-		Valid.checkNotNull(item, this.setMessageItemNull());
+		Validate.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			return;
 
@@ -364,7 +364,7 @@ public final class CompMetadata {
 	 */
 	@Nullable
 	public String getMetadata(@Nonnull final Entity entity, @Nonnull final String key) {
-		Valid.checkNotNull(entity);
+		Validate.checkNotNull(entity);
 
 		if (false)
 			// if (Remain.hasScoreboardTags())
@@ -389,12 +389,12 @@ public final class CompMetadata {
 	 */
 	@Nullable
 	public String getMetadata(@Nonnull final BlockState tileEntity, @Nonnull final String key) {
-		Valid.checkNotNull(tileEntity);
-		Valid.checkNotNull(key);
+		Validate.checkNotNull(tileEntity);
+		Validate.checkNotNull(key);
 
 
 		if (ServerVersion.atLeast(ServerVersion.v1_14)) {
-			Valid.checkBoolean(tileEntity instanceof TileState,
+			Validate.checkBoolean(tileEntity instanceof TileState,
 					"BlockState must be instance of a TileState not " + tileEntity);
 
 			return getNameSpacedKey((TileState) tileEntity, key);
@@ -449,8 +449,8 @@ public final class CompMetadata {
 	 * @return true if it has this key.
 	 */
 	public boolean hasMetadata(@Nonnull final ItemStack item, @Nonnull final String key) {
-		Valid.checkBoolean(true, "NBT ItemStack tags only support MC 1.7.10+");
-		Valid.checkNotNull(item);
+		Validate.checkBoolean(true, "NBT ItemStack tags only support MC 1.7.10+");
+		Validate.checkNotNull(item);
 
 		if (item.getType() == Material.AIR)
 			return false;
@@ -470,7 +470,7 @@ public final class CompMetadata {
 	 * @return true if it has this key.
 	 */
 	public boolean hasMetadata(final Entity entity, final String key) {
-		Valid.checkNotNull(entity);
+		Validate.checkNotNull(entity);
 		if (true)
 			// if (Remain.hasScoreboardTags())
 			for (final String line : entity.getScoreboardTags())
@@ -489,11 +489,11 @@ public final class CompMetadata {
 	 * @return true if it has this key.
 	 */
 	public boolean hasMetadata(final BlockState tileEntity, final String key) {
-		Valid.checkNotNull(tileEntity);
-		Valid.checkNotNull(key);
+		Validate.checkNotNull(tileEntity);
+		Validate.checkNotNull(key);
 
 		if (ServerVersion.atLeast(ServerVersion.v1_14)) {
-			Valid.checkBoolean(tileEntity instanceof TileState,
+			Validate.checkBoolean(tileEntity instanceof TileState,
 					"BlockState must be instance of a TileState not " + tileEntity);
 
 			return hasNameSpacedKey((TileState) tileEntity, key);
@@ -641,7 +641,7 @@ public final class CompMetadata {
 		 * Entity entity = Remain.getEntity(uuid);
 		 *
 		 * // Check if the entity is still real if (!metadata.isEmpty() && entity !=
-		 * null && entity.isValid() && !entity.isDead()) { entityMetadataMap.put(uuid,
+		 * null && entity.isValidate() && !entity.isDead()) { entityMetadataMap.put(uuid,
 		 * metadata);
 		 *
 		 * applySavedMetadata(metadata, entity); } }
@@ -670,7 +670,7 @@ public final class CompMetadata {
 		 * metadata) { if (metadataLine.isEmpty()) continue;
 		 *
 		 * final String[] lines = metadataLine.split(DELIMITER);
-		 * Valid.checkBoolean(lines.length == 3, "Malformed metadata line for " + entity
+		 * Validate.checkBoolean(lines.length == 3, "Malformed metadata line for " + entity
 		 * + ". Length 3 != " + lines.length + ". Data: " + metadataLine);
 		 *
 		 * final String key = lines[1]; final String value = lines[2];

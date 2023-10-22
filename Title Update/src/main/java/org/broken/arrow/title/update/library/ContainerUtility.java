@@ -1,10 +1,10 @@
 package org.broken.arrow.title.update.library;
 
 import com.google.gson.JsonObject;
+import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.title.update.library.nms.InventoryNMS;
 import org.broken.arrow.title.update.library.utility.TitleLogger;
 import org.broken.arrow.title.update.library.utility.TitleUtility;
-import org.broken.arrow.title.update.library.utility.Validate;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 

@@ -1,6 +1,7 @@
 package org.broken.arrow.prompt.library;
 
-import org.broken.arrow.prompt.library.utility.Validate;
+
+import org.broken.arrow.logging.library.Validate;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.conversations.ConversationContext;
 import org.bukkit.conversations.Prompt;
