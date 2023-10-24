@@ -25,7 +25,7 @@ import static org.broken.arrow.logging.library.Logging.of;
  * This class help you to wrap your command.
  */
 public final class SqlCommandComposer {
-	private final Logging LOG = new Logging(SqlCommandComposer.class);
+	private final Logging log = new Logging(SqlCommandComposer.class);
 	private final TableWrapper tableWrapper;
 	private final RowWrapper rowWrapper;
 	private final Database<?> database;
@@ -273,7 +273,7 @@ public final class SqlCommandComposer {
 		if (queryBuilder != null) {
 			String query = queryBuilder.getQuery();
 			if (query == null) {
-				LOG.log(Level.WARNING,()-> of("The query command is not set or not properly setup."));
+				log.log(Level.WARNING,()-> of("The query command is not set or not properly setup."));
 				return;
 			}
 			Map<Integer, ColumnWrapper> columnValueMap = queryBuilder.getIndexCachedWithValue();

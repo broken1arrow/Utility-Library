@@ -18,7 +18,7 @@ import java.util.List;
 import static org.broken.arrow.logging.library.Logging.of;
 
 public class MySQL extends Database<PreparedStatement> {
-	private final Logging LOG = new Logging(MySQL.class);
+	private final Logging log = new Logging(MySQL.class);
 	private final ConnectionSettings mysqlPreference;
 	private final String startSQLUrl;
 	private final String driver;
@@ -84,7 +84,7 @@ public class MySQL extends Database<PreparedStatement> {
 			}
 		} catch (SQLRecoverableException exception) {
 			hasCastException = true;
-			LOG.log(exception, () -> of("Could not connect to the database. Check your database connection."));
+			log.log(exception, () -> of("Could not connect to the database. Check your database connection."));
 
 		} catch (SQLException throwable) {
 			throwable.printStackTrace();

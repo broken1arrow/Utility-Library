@@ -41,7 +41,7 @@ import java.util.logging.Level;
 import static org.broken.arrow.logging.library.Logging.of;
 
 public abstract class Database<Type> {
-	private final Logging LOG = new Logging(Database.class);
+	private final Logging log = new Logging(Database.class);
 	private final Map<String, TableWrapper> tables = new HashMap<>();
 	final Map<String, Map<String, Integer>> cachedColumnsIndex = new HashMap<>();
 	private Set<String> removeColumns = new HashSet<>();
@@ -461,7 +461,7 @@ public abstract class Database<Type> {
 		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
 			return function.apply((Type) preparedStatement);
 		} catch (SQLException e) {
-			LOG.log(e,() -> of("could not execute this command: " + command));
+			log.log(e,() -> of("could not execute this command: " + command));
 		} finally {
 			this.closeConnection();
 		}
@@ -497,7 +497,7 @@ public abstract class Database<Type> {
 		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
 			consumer.accept((Type) preparedStatement);
 		} catch (SQLException e) {
-			LOG.log( e,() -> of("could not execute this command: " + command));
+			log.log( e,() -> of("could not execute this command: " + command));
 		} finally {
 			this.closeConnection();
 		}
@@ -525,7 +525,7 @@ public abstract class Database<Type> {
 			resultSet = preparedStatement.executeQuery();
 			return resultSet.next();
 		} catch (SQLException e) {
-			LOG.log( e,() -> of("Could not search for your the row with this value '" + primaryKeyValue + "' from this table '" + tableName + "'"));
+			log.log( e,() -> of("Could not search for your the row with this value '" + primaryKeyValue + "' from this table '" + tableName + "'"));
 		} finally {
 			this.close(preparedStatement, resultSet);
 		}
@@ -585,7 +585,7 @@ public abstract class Database<Type> {
 			if (preparedStatement != null) preparedStatement.close();
 			if (resultSet != null) resultSet.close();
 		} catch (final SQLException ex) {
-			LOG.log( ex,() -> of("Fail to close connection."));
+			log.log( ex,() -> of("Fail to close connection."));
 		}
 	}
 
@@ -708,9 +708,9 @@ public abstract class Database<Type> {
 			checkIfTableExist(tableName, wrapper.getColumnName());
 			return true;
 		} catch (final SQLException e) {
-			LOG.log( () -> of("Something not working when try create this table: '" + tableName + "'"));
+			log.log( () -> of("Something not working when try create this table: '" + tableName + "'"));
 			final String finalTable = table;
-			LOG.log( e,() -> of("With this command: " + finalTable));
+			log.log( e,() -> of("With this command: " + finalTable));
 			return false;
 		} finally {
 			close(statement);
@@ -727,7 +727,7 @@ public abstract class Database<Type> {
 			close(preparedStatement, resultSet);
 
 		} catch (final SQLException ex) {
-			LOG.log( ex,() -> of("Unable to retrieve connection "));
+			log.log( ex,() -> of("Unable to retrieve connection "));
 		}
 	}
 
@@ -833,7 +833,7 @@ public abstract class Database<Type> {
 		try {
 			return this.connection == null || this.connection.isClosed();
 		} catch (SQLException e) {
-			LOG.log( e,() -> of("Something went wrong, when check if the connection is closed."));
+			log.log( e,() -> of("Something went wrong, when check if the connection is closed."));
 			return false;
 		}
 	}
@@ -908,7 +908,7 @@ public abstract class Database<Type> {
 		try {
 			Class.forName(path);
 		} catch (ClassNotFoundException e) {
-			LOG.log( () -> of("Could not load this driver: " + path));
+			log.log( () -> of("Could not load this driver: " + path));
 		}
 	}
 
@@ -934,7 +934,7 @@ public abstract class Database<Type> {
 		new Timer().scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-				if (batchUpdateGoingOn) LOG.log( () -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
+				if (batchUpdateGoingOn) log.log( () -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
 				else cancel();
 			}
 		}, 1000 * 30L, 1000 * 30L);
@@ -960,8 +960,8 @@ public abstract class Database<Type> {
 					statement.executeBatch();
 				} catch (SQLException e) {
 					// Handle the exception for a specific Type
-					LOG.log(Level.WARNING,() -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
-					LOG.log( e,() -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
+					log.log(Level.WARNING,() -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
+					log.log( e,() -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
 				}
 			}
 		} finally {
@@ -992,7 +992,7 @@ public abstract class Database<Type> {
 
 					@Override
 					public void run() {
-						if (batchUpdateGoingOn) LOG.log(Level.WARNING,() -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
+						if (batchUpdateGoingOn) log.log(Level.WARNING,() -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
 						else cancel();
 					}
 				}, 1000 * 30L, 1000 * 30L);
@@ -1023,15 +1023,15 @@ public abstract class Database<Type> {
 
 	public void printPressesCount(int processedCount) {
 		if (processedCount > 10_000)
-			LOG.log( () -> of(("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.")));
+			log.log( () -> of(("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.")));
 	}
 
 	public void printFailToOpen() {
-		LOG.log(Level.WARNING,() -> of("Could not open connection."));
+		log.log(Level.WARNING,() -> of("Could not open connection."));
 	}
 
 	public void printFailFindTable(String tableName) {
-		LOG.log(Level.WARNING,() -> of("Could not find table " + tableName));
+		log.log(Level.WARNING,() -> of("Could not find table " + tableName));
 	}
 
 	public boolean checkIfNotNull(Object object) {

@@ -20,7 +20,7 @@ import static org.broken.arrow.logging.library.Logging.of;
 
 public class PostgreSQL extends Database<PreparedStatement> {
 
-	private final Logging LOG = new Logging(PostgreSQL.class);
+	private final Logging log = new Logging(PostgreSQL.class);
 	private final ConnectionSettings preferences;
 	private final boolean isHikariAvailable;
 	private final String startSQLUrl;
@@ -85,7 +85,7 @@ public class PostgreSQL extends Database<PreparedStatement> {
 			}
 		} catch (SQLRecoverableException exception) {
 			hasCastException = true;
-			LOG.log(exception, () -> of("Could not connect to the database. Check your database connection."));
+			log.log(exception, () -> of("Could not connect to the database. Check your database connection."));
 
 		} catch (SQLException throwable) {
 			throwable.printStackTrace();

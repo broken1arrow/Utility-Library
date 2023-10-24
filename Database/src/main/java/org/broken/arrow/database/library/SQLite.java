@@ -18,7 +18,7 @@ import java.util.List;
 import static org.broken.arrow.logging.library.Logging.of;
 
 public class SQLite extends Database<PreparedStatement> {
-	private final Logging LOG = new Logging(SQLite.class);
+	private final Logging log = new Logging(SQLite.class);
 	private final String parent;
 	private final String child;
 	private final boolean isHikariAvailable;
@@ -48,7 +48,7 @@ public class SQLite extends Database<PreparedStatement> {
 			}
 			return setupConnection();
 		} catch (final SQLException ex) {
-			LOG.log(ex,() -> of("Fail to connect to SQLITE database"));
+			log.log(ex,() -> of("Fail to connect to SQLITE database"));
 		}
 		return null;
 	}

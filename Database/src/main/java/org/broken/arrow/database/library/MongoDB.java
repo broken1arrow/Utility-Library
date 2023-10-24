@@ -41,7 +41,7 @@ import static org.broken.arrow.logging.library.Logging.of;
 
 public class MongoDB extends Database<MongoCollection<Document>> {
 
-	private final Logging LOG = new Logging( MongoDB.class);
+	private final Logging log = new Logging( MongoDB.class);
 	private final String startSQLUrl;
 	private final String driver;
 	private final ConnectionSettings preferences;
@@ -135,7 +135,7 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 				loadDataWrappers.add(new LoadDataWrapper<>(id, deserialize));
 			}
 		} else {
-			LOG.log(()->of("Could not find any row within this table " + tableName));
+			log.log(()->of("Could not find any row within this table " + tableName));
 		}
 		this.closeConnection();
 		return loadDataWrappers;
@@ -150,7 +150,7 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 			return null;
 		}
 		if (!openConnection()) {
-			LOG.log(Level.WARNING,()->of("Could not open connection."));
+			log.log(Level.WARNING,()->of("Could not open connection."));
 			return null;
 		}
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
@@ -177,7 +177,7 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 				loadDataWrapper = new LoadDataWrapper<>(id, deserialize);
 			}
 		} else {
-			LOG.log(()-> of("Could not find any row with this value " + columnValue));
+			log.log(()-> of("Could not find any row with this value " + columnValue));
 		}
 		// Close the MongoDB connection
 		this.closeConnection();

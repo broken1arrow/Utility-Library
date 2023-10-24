@@ -55,7 +55,7 @@ import static org.broken.arrow.logging.library.Logging.of;
  */
 public class SqlQueryBuilder {
 
-	private final Logging LOG = new Logging(SqlQueryBuilder.class);
+	private final Logging log = new Logging(SqlQueryBuilder.class);
 	private final Map<Integer, ColumnWrapper> indexCachedWithValue;
 
 	private final StringBuilder builtColumnsWithValues;
@@ -229,12 +229,12 @@ public class SqlQueryBuilder {
 
 	private boolean validate() {
 		if (executionsType == null || executionsType.isEmpty()) {
-			LOG.log(Level.WARNING,() -> of("You need to set the executionsType"));
+			log.log(Level.WARNING,() -> of("You need to set the executionsType"));
 			return false;
 		}
 
 		if (builtColumnsWithValues == null && clauseBeforeTable == null && whereClause == null && updateBuilder == null) {
-			LOG.log(Level.WARNING,() -> of("You need to set the column name or column names and value/values." +
+			log.log(Level.WARNING,() -> of("You need to set the column name or column names and value/values." +
 					"\nAlternatively specify from what table and set the where condition or conditions."));
 			return false;
 		}
@@ -243,14 +243,14 @@ public class SqlQueryBuilder {
 
 		if (updateBuilder != null) {
 			if (whereClause == null) {
-				LOG.log(Level.WARNING,() -> of("You need to specify where it should update the data"));
+				log.log(Level.WARNING,() -> of("You need to specify where it should update the data"));
 				return false;
 			}
 			return true;
 		}
 
 		if (clauseBeforeTable == null || whereClause == null) {
-			LOG.log(Level.WARNING,() -> of("You need to specify what table to set the data and the condition or conditions where to get the data from."));
+			log.log(Level.WARNING,() -> of("You need to specify what table to set the data and the condition or conditions where to get the data from."));
 			return false;
 		}
 

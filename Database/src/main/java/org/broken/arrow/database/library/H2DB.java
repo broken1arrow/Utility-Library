@@ -18,7 +18,7 @@ import java.util.List;
 import static org.broken.arrow.logging.library.Logging.of;
 
 public class H2DB extends Database<PreparedStatement> {
-	private final Logging LOG = new Logging(H2DB.class);
+	private final Logging log = new Logging(H2DB.class);
 	private final String parent;
 	private final String child;
 	private final boolean isHikariAvailable;
@@ -41,7 +41,7 @@ public class H2DB extends Database<PreparedStatement> {
 		try {
 			return setupConnection();
 		} catch (SQLException e) {
-			LOG.log(e,()-> of("File write error: " + parent));
+			log.log(e,()-> of("File write error: " + parent));
 			e.printStackTrace();
 		}
 		return null;
