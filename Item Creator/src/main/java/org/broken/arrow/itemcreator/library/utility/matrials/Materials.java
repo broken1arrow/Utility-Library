@@ -132,81 +132,81 @@ public enum Materials {
 	BLACK_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 15)),
 
 	OAK_LOG(createWoodItemStack("LOG", "OAK")),
-	SPRUCE_LOG(createWoodItemStack("LOG", "SPRUCE")),
-	BIRCH_LOG(createWoodItemStack("LOG", "BIRCH")),
-	JUNGLE_LOG(createWoodItemStack("LOG", "JUNGLE")),
-	ACACIA_LOG(createWoodItemStack("LOG_2", (short) 0, "ACACIA")),
-	DARK_OAK_LOG(createWoodItemStack("LOG_2", (short) 1, "DARK_OAK")),
+	SPRUCE_LOG(createWoodItemStack("LOG", Constants.SPRUCE)),
+	BIRCH_LOG(createWoodItemStack("LOG", Constants.BIRCH)),
+	JUNGLE_LOG(createWoodItemStack("LOG", Constants.JUNGLE)),
+	ACACIA_LOG(createWoodItemStack("LOG_2", (short) 0, Constants.ACACIA)),
+	DARK_OAK_LOG(createWoodItemStack("LOG_2", (short) 1, Constants.DARK_OAK)),
 
 	OAK_PLANKS(createWoodItemStack("WOOD", "OAK")),
-	SPRUCE_PLANKS(createWoodItemStack("WOOD", "SPRUCE")),
-	BIRCH_PLANKS(createWoodItemStack("WOOD", "BIRCH")),
-	JUNGLE_PLANKS(createWoodItemStack("WOOD", "JUNGLE")),
-	ACACIA_PLANKS(createWoodItemStack("WOOD", "ACACIA")),
-	DARK_OAK_PLANKS(createWoodItemStack("WOOD", "DARK_OAK")),
+	SPRUCE_PLANKS(createWoodItemStack("WOOD", Constants.SPRUCE)),
+	BIRCH_PLANKS(createWoodItemStack("WOOD", Constants.BIRCH)),
+	JUNGLE_PLANKS(createWoodItemStack("WOOD", Constants.JUNGLE)),
+	ACACIA_PLANKS(createWoodItemStack("WOOD", Constants.ACACIA)),
+	DARK_OAK_PLANKS(createWoodItemStack("WOOD", Constants.DARK_OAK)),
 
-	OAK_SLAB(createWoodItemStack("WOOD_STEP", "OAK")),
-	SPRUCE_SLAB(createWoodItemStack("WOOD_STEP", "SPRUCE")),
-	BIRCH_SLAB(createWoodItemStack("WOOD_STEP", "BIRCH")),
-	JUNGLE_SLAB(createWoodItemStack("WOOD_STEP", "JUNGLE")),
-	ACACIA_SLAB(createWoodItemStack("WOOD_STEP", "ACACIA")),
-	DARK_OAK_SLAB(createWoodItemStack("WOOD_STEP", "DARK_OAK")),
+	OAK_SLAB(createWoodItemStack(Constants.WOOD_STEP, "OAK")),
+	SPRUCE_SLAB(createWoodItemStack(Constants.WOOD_STEP, Constants.SPRUCE)),
+	BIRCH_SLAB(createWoodItemStack(Constants.WOOD_STEP, Constants.BIRCH)),
+	JUNGLE_SLAB(createWoodItemStack(Constants.WOOD_STEP, Constants.JUNGLE)),
+	ACACIA_SLAB(createWoodItemStack(Constants.WOOD_STEP, Constants.ACACIA)),
+	DARK_OAK_SLAB(createWoodItemStack(Constants.WOOD_STEP, Constants.DARK_OAK)),
 
 	OAK_STAIRS(createWoodItemStack("WOOD_STAIRS", "OAK")),
-	SPRUCE_STAIRS(createWoodItemStack("SPRUCE_WOOD_STAIRS", "SPRUCE")),
-	BIRCH_STAIRS(createWoodItemStack("BIRCH_WOOD_STAIRS", "BIRCH")),
-	JUNGLE_STAIRS(createWoodItemStack("JUNGLE_WOOD_STAIRS", "JUNGLE")),
-	ACACIA_STAIRS(createWoodItemStack("ACACIA_STAIRS", "ACACIA")),
-	DARK_OAK_STAIRS(createWoodItemStack("DARK_OAK_STAIRS", "DARK_OAK")),
+	SPRUCE_STAIRS(createWoodItemStack("SPRUCE_WOOD_STAIRS", Constants.SPRUCE)),
+	BIRCH_STAIRS(createWoodItemStack("BIRCH_WOOD_STAIRS", Constants.BIRCH)),
+	JUNGLE_STAIRS(createWoodItemStack("JUNGLE_WOOD_STAIRS", Constants.JUNGLE)),
+	ACACIA_STAIRS(createWoodItemStack("ACACIA_STAIRS", Constants.ACACIA)),
+	DARK_OAK_STAIRS(createWoodItemStack("DARK_OAK_STAIRS", Constants.DARK_OAK)),
 
 	OAK_DOOR(createWoodItemStack("WOOD_DOOR", (short) 0, "OAK")),
-	SPRUCE_DOOR(createWoodItemStack("SPRUCE_DOOR_ITEM", (short) 0, "SPRUCE")),
-	BIRCH_DOOR(createWoodItemStack("BIRCH_DOOR_ITEM", (short) 0, "BIRCH")),
-	JUNGLE_DOOR(createWoodItemStack("JUNGLE_DOOR_ITEM", (short) 0, "JUNGLE")),
-	ACACIA_DOOR(createWoodItemStack("ACACIA_DOOR_ITEM", (short) 0, "ACACIA")),
-	DARK_OAK_DOOR(createWoodItemStack("DARK_OAK_DOOR_ITEM", (short) 0, "DARK_OAK")),
+	SPRUCE_DOOR(createWoodItemStack("SPRUCE_DOOR_ITEM", (short) 0, Constants.SPRUCE)),
+	BIRCH_DOOR(createWoodItemStack("BIRCH_DOOR_ITEM", (short) 0, Constants.BIRCH)),
+	JUNGLE_DOOR(createWoodItemStack("JUNGLE_DOOR_ITEM", (short) 0, Constants.JUNGLE)),
+	ACACIA_DOOR(createWoodItemStack("ACACIA_DOOR_ITEM", (short) 0, Constants.ACACIA)),
+	DARK_OAK_DOOR(createWoodItemStack("DARK_OAK_DOOR_ITEM", (short) 0, Constants.DARK_OAK)),
 
-	OAK_FENCE(createWoodItemStack("FENCE", (short) 0, "OAK")),
-	SPRUCE_FENCE(createWoodItemStack("FENCE", (short) 0, "SPRUCE")),
-	BIRCH_FENCE(createWoodItemStack("FENCE", (short) 0, "BIRCH")),
-	JUNGLE_FENCE(createWoodItemStack("FENCE", (short) 0, "JUNGLE")),
-	ACACIA_FENCE(createWoodItemStack("FENCE", (short) 0, "ACACIA")),
-	DARK_OAK_FENCE(createWoodItemStack("FENCE", (short) 0, "DARK_OAK")),
+	OAK_FENCE(createWoodItemStack(Constants.FENCE, (short) 0, "OAK")),
+	SPRUCE_FENCE(createWoodItemStack(Constants.FENCE, (short) 0, Constants.SPRUCE)),
+	BIRCH_FENCE(createWoodItemStack(Constants.FENCE, (short) 0, Constants.BIRCH)),
+	JUNGLE_FENCE(createWoodItemStack(Constants.FENCE, (short) 0, Constants.JUNGLE)),
+	ACACIA_FENCE(createWoodItemStack(Constants.FENCE, (short) 0, Constants.ACACIA)),
+	DARK_OAK_FENCE(createWoodItemStack(Constants.FENCE, (short) 0, Constants.DARK_OAK)),
 
-	OAK_FENCE_GATE(createWoodItemStack("FENCE_GATE", (short) 0, "OAK")),
-	SPRUCE_FENCE_GATE(createWoodItemStack("FENCE_GATE", (short) 0, "SPRUCE")),
-	BIRCH_FENCE_GATE(createWoodItemStack("FENCE_GATE", (short) 0, "BIRCH")),
-	JUNGLE_FENCE_GATE(createWoodItemStack("FENCE_GATE", (short) 0, "JUNGLE")),
-	ACACIA_FENCE_GATE(createWoodItemStack("FENCE_GATE", (short) 0, "ACACIA")),
-	DARK_OAK_FENCE_GATE(createWoodItemStack("FENCE_GATE", (short) 0, "DARK_OAK")),
+	OAK_FENCE_GATE(createWoodItemStack(Constants.FENCE_GATE, (short) 0, "OAK")),
+	SPRUCE_FENCE_GATE(createWoodItemStack(Constants.FENCE_GATE, (short) 0, Constants.SPRUCE)),
+	BIRCH_FENCE_GATE(createWoodItemStack(Constants.FENCE_GATE, (short) 0, Constants.BIRCH)),
+	JUNGLE_FENCE_GATE(createWoodItemStack(Constants.FENCE_GATE, (short) 0, Constants.JUNGLE)),
+	ACACIA_FENCE_GATE(createWoodItemStack(Constants.FENCE_GATE, (short) 0, Constants.ACACIA)),
+	DARK_OAK_FENCE_GATE(createWoodItemStack(Constants.FENCE_GATE, (short) 0, Constants.DARK_OAK)),
 
-	OAK_BUTTON(createWoodItemStack("WOOD_BUTTON", (short) 0, "OAK")),
-	SPRUCE_BUTTON(createWoodItemStack("WOOD_BUTTON", (short) 0, "SPRUCE")),
-	BIRCH_BUTTON(createWoodItemStack("WOOD_BUTTON", (short) 0, "BIRCH")),
-	JUNGLE_BUTTON(createWoodItemStack("WOOD_BUTTON", (short) 0, "JUNGLE")),
-	ACACIA_BUTTON(createWoodItemStack("WOOD_BUTTON", (short) 0, "ACACIA")),
-	DARK_OAK_BUTTON(createWoodItemStack("WOOD_BUTTON", (short) 0, "DARK_OAK")),
+	OAK_BUTTON(createWoodItemStack(Constants.WOOD_BUTTON, (short) 0, "OAK")),
+	SPRUCE_BUTTON(createWoodItemStack(Constants.WOOD_BUTTON, (short) 0, Constants.SPRUCE)),
+	BIRCH_BUTTON(createWoodItemStack(Constants.WOOD_BUTTON, (short) 0, Constants.BIRCH)),
+	JUNGLE_BUTTON(createWoodItemStack(Constants.WOOD_BUTTON, (short) 0, Constants.JUNGLE)),
+	ACACIA_BUTTON(createWoodItemStack(Constants.WOOD_BUTTON, (short) 0, Constants.ACACIA)),
+	DARK_OAK_BUTTON(createWoodItemStack(Constants.WOOD_BUTTON, (short) 0, Constants.DARK_OAK)),
 
-	OAK_LEAVES(createWoodItemStack("LEAVES", "OAK")),
-	SPRUCE_LEAVES(createWoodItemStack("LEAVES", "SPRUCE")),
-	BIRCH_LEAVES(createWoodItemStack("LEAVES", "BIRCH")),
-	JUNGLE_LEAVES(createWoodItemStack("LEAVES", "JUNGLE")),
-	ACACIA_LEAVES(createWoodItemStack("LEAVES_2", (short) 0, "ACACIA")),
-	DARK_OAK_LEAVES(createWoodItemStack("LEAVES_2", (short) 1, "DARK_OAK")),
+	OAK_LEAVES(createWoodItemStack(Constants.LEAVES, "OAK")),
+	SPRUCE_LEAVES(createWoodItemStack(Constants.LEAVES, Constants.SPRUCE)),
+	BIRCH_LEAVES(createWoodItemStack(Constants.LEAVES, Constants.BIRCH)),
+	JUNGLE_LEAVES(createWoodItemStack(Constants.LEAVES, Constants.JUNGLE)),
+	ACACIA_LEAVES(createWoodItemStack("LEAVES_2", (short) 0, Constants.ACACIA)),
+	DARK_OAK_LEAVES(createWoodItemStack("LEAVES_2", (short) 1, Constants.DARK_OAK)),
 
-	OAK_SAPLING(createWoodItemStack("SAPLING", "OAK")),
-	SPRUCE_SAPLING(createWoodItemStack("SAPLING", "SPRUCE")),
-	BIRCH_SAPLING(createWoodItemStack("SAPLING", "BIRCH")),
-	JUNGLE_SAPLING(createWoodItemStack("SAPLING", "JUNGLE")),
-	ACACIA_SAPLING(createWoodItemStack("SAPLING", (short) 0, "ACACIA")),
-	DARK_OAK_SAPLING(createWoodItemStack("SAPLING", (short) 1, "DARK_OAK")),
+	OAK_SAPLING(createWoodItemStack(Constants.SAPLING, "OAK")),
+	SPRUCE_SAPLING(createWoodItemStack(Constants.SAPLING, Constants.SPRUCE)),
+	BIRCH_SAPLING(createWoodItemStack(Constants.SAPLING, Constants.BIRCH)),
+	JUNGLE_SAPLING(createWoodItemStack(Constants.SAPLING, Constants.JUNGLE)),
+	ACACIA_SAPLING(createWoodItemStack(Constants.SAPLING, (short) 0, Constants.ACACIA)),
+	DARK_OAK_SAPLING(createWoodItemStack(Constants.SAPLING, (short) 1, Constants.DARK_OAK)),
 
-	OAK_SIGN(createWoodItemStack("SIGN", "OAK")),
-	SPRUCE_SIGN(createWoodItemStack("SIGN", "SPRUCE")),
-	BIRCH_SIGN(createWoodItemStack("SIGN", "BIRCH")),
-	JUNGLE_SIGN(createWoodItemStack("SIGN", "JUNGLE")),
-	ACACIA_SIGN(createWoodItemStack("SIGN", (short) 0, "ACACIA")),
-	DARK_OAK_SIGN(createWoodItemStack("SIGN", (short) 1, "DARK_OAK")),
+	OAK_SIGN(createWoodItemStack(Constants.SIGN, "OAK")),
+	SPRUCE_SIGN(createWoodItemStack(Constants.SIGN, Constants.SPRUCE)),
+	BIRCH_SIGN(createWoodItemStack(Constants.SIGN, Constants.BIRCH)),
+	JUNGLE_SIGN(createWoodItemStack(Constants.SIGN, Constants.JUNGLE)),
+	ACACIA_SIGN(createWoodItemStack(Constants.SIGN, (short) 0, Constants.ACACIA)),
+	DARK_OAK_SIGN(createWoodItemStack(Constants.SIGN, (short) 1, Constants.DARK_OAK)),
 
 	CLOCK(createStack("WATCH")),
 	CRAFTING_TABLE(createStack("WORKBENCH")),
@@ -219,30 +219,30 @@ public enum Materials {
 	FIREWORK_STAR(createStack("FIREWORK_CHARGE")),
 	GRASS_BLOCK(createStack("GRASS")),
 
-	COD(createStack("RAW_FISH", (short) 0)),
-	SALMON(createStack("RAW_FISH", (short) 1)),
-	TROPICAL_FISH(createStack("RAW_FISH", (short) 2)),
-	PUFFERFISH(createStack("RAW_FISH", (short) 3)),
+	COD(createStack(Constants.RAW_FISH, (short) 0)),
+	SALMON(createStack(Constants.RAW_FISH, (short) 1)),
+	TROPICAL_FISH(createStack(Constants.RAW_FISH, (short) 2)),
+	PUFFERFISH(createStack(Constants.RAW_FISH, (short) 3)),
 	COOKED_COD(createStack("COOKED_FISH", (short) 0)),
 	COOKED_SALMON(createStack("COOKED_FISH", (short) 1)),
 
 	SMOOTH_STONE_SLAB(createStack("STEP")),
 	CRACKED_STONE_BRICKS(createStack("SMOOTH_BRICK")),
 
-	ANDESITE(createStack("STONE", (short) 5)),
-	POLISHED_ANDESITE(createStack("STONE", (short) 6)),
-	DIORITE(createStack("STONE", (short) 3)),
-	POLISHED_DIORITE(createStack("STONE", (short) 4)),
-	GRANITE(createStack("STONE", (short) 1)),
-	POLISHED_GRANITE(createStack("STONE", (short) 2)),
+	ANDESITE(createStack(Constants.STONE, (short) 5)),
+	POLISHED_ANDESITE(createStack(Constants.STONE, (short) 6)),
+	DIORITE(createStack(Constants.STONE, (short) 3)),
+	POLISHED_DIORITE(createStack(Constants.STONE, (short) 4)),
+	GRANITE(createStack(Constants.STONE, (short) 1)),
+	POLISHED_GRANITE(createStack(Constants.STONE, (short) 2)),
 
 	GOLDEN_HELMET(createStack("GOLD_HELMET")),
 	GOLDEN_CHESTPLATE(createStack("GOLD_CHESTPLATE")),
 	GOLDEN_LEGGINGS(createStack("GOLD_LEGGINGS")),
 	GOLDEN_BOOTS(createStack("GOLD_BOOTS")),
 
-	INK_SAC(createStack(Constants.INK_SACK, getDye("BLACK_DYE"))),
-	GLOW_INK_SAC(createStack(Constants.INK_SACK, getDye("BLACK_DYE"))),
+	INK_SAC(createStack(Constants.INK_SACK, getDye(Constants.BLACK_DYE))),
+	GLOW_INK_SAC(createStack(Constants.INK_SACK, getDye(Constants.BLACK_DYE))),
 	COCOA_BEANS(createStack(Constants.INK_SACK, getDye("BROWN_DYE"))),
 	WHITE_DYE(createStack(Constants.INK_SACK, getDye("WHITE_DYE"))),
 	ORANGE_DYE(createStack(Constants.INK_SACK, getDye("ORANGE_DYE"))),
@@ -259,7 +259,7 @@ public enum Materials {
 	BROWN_DYE(createStack(Constants.INK_SACK, getDye("BROWN_DYE"))),
 	GREEN_DYE(createStack(Constants.INK_SACK, getDye("GREEN_DYE"))),
 	RED_DYE(createStack(Constants.INK_SACK, getDye("RED_DYE"))),
-	BLACK_DYE(createStack(Constants.INK_SACK, getDye("BLACK_DYE"))),
+	BLACK_DYE(createStack(Constants.INK_SACK, getDye(Constants.BLACK_DYE))),
 	BONE_MEAL(createStack(Constants.INK_SACK, getDye("WHITE_DYE"))),
 
 	BAT_SPAWN_EGG(createSpawnEgg(EntityType.BAT)),
@@ -330,6 +330,8 @@ public enum Materials {
 	ZOMBIFIED_PIGLIN_SPAWN_EGG(createSpawnEgg("PIG_ZOMBIE")),
 	ZOMBIE_PIGMAN_SPAWN(createSpawnEgg("PIG_ZOMBIE")),
 	;
+
+
 	private static final Map<String, Materials> STACKS = new HashMap<>();
 
 	private final ItemStack itemStack;
@@ -422,19 +424,19 @@ public enum Materials {
 		if (itemName.startsWith("OAK")) {
 			return 0;
 		}
-		if (itemName.startsWith("SPRUCE")) {
+		if (itemName.startsWith(Constants.SPRUCE)) {
 			return 1;
 		}
-		if (itemName.startsWith("BIRCH")) {
+		if (itemName.startsWith(Constants.BIRCH)) {
 			return 2;
 		}
-		if (itemName.startsWith("JUNGLE")) {
+		if (itemName.startsWith(Constants.JUNGLE)) {
 			return 3;
 		}
-		if (itemName.startsWith("ACACIA")) {
+		if (itemName.startsWith(Constants.ACACIA)) {
 			return 4;
 		}
-		if (itemName.startsWith("DARK_OAK")) {
+		if (itemName.startsWith(Constants.DARK_OAK)) {
 			return 5;
 		}
 		return -1;
@@ -549,5 +551,20 @@ public enum Materials {
 		public static final String CONCRETE_POWDER = "CONCRETE_POWDER";
 		public static final String STAINED_CLAY = "STAINED_CLAY";
 		public static final String INK_SACK = "INK_SACK";
+		public static final String WOOD_STEP = "WOOD_STEP";
+		public static final String SPRUCE = "SPRUCE";
+		private static final String BIRCH = "BIRCH";
+		public static final String JUNGLE = "JUNGLE";
+		public static final String ACACIA= "ACACIA";
+		private static final String STONE = "STONE";
+		private static final String RAW_FISH = "RAW_FISH";
+		private static final String FENCE = "FENCE";
+		private static final String FENCE_GATE = "FENCE_GATE";
+		private static final String WOOD_BUTTON = "WOOD_BUTTON";
+		private static final String LEAVES = "LEAVES";
+		private static final String SAPLING = "SAPLING";
+		private static final String SIGN = "SIGN";
+		private static final String BLACK_DYE = "BLACK_DYE";
+		private static final String DARK_OAK = "DARK_OAK";
 	}
 }
