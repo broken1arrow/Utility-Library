@@ -1,5 +1,7 @@
 package org.broken.arrow.serialize.library.utility.serialize;
 
+import org.broken.arrow.logging.library.Validate;
+
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -21,7 +23,7 @@ public class MethodReflectionUtils {
 	 * @param methodName The name of the static method.
 	 * @param params     Additional parameters required by the deserialization method.
 	 * @return The deserialized object of type T.
-	 * @throws Validate.CatchExceptions If the static method could not be invoked.
+	 * @throws Validate.ValidateExceptions If the static method could not be invoked.
 	 */
 	public static <T extends ConfigurationSerializable> T invokeStaticMethodByName(final Class<T> clazz, final String methodName, final Object... params) {
 		Method method = getMethod(clazz, methodName, Map.class);
@@ -37,7 +39,7 @@ public class MethodReflectionUtils {
 	 * @param method The method to invoke.
 	 * @param params Additional parameters required by the deserialization method.
 	 * @return The deserialized object of type T.
-	 * @throws Validate.CatchExceptions If the static method could not be invoked.
+	 * @throws Validate.ValidateExceptions If the static method could not be invoked.
 	 */
 	public static <T extends ConfigurationSerializable> T invokeStaticMethod(final Class<T> clazz, final Method method, final Object... params) {
 		if (method == null) return null;
@@ -45,7 +47,7 @@ public class MethodReflectionUtils {
 			Validate.checkBoolean(!Modifier.isStatic(method.getModifiers()), method + " need to be static");
 			return clazz.cast(method.invoke(method, params));
 		} catch (final IllegalAccessException | InvocationTargetException ex) {
-			throw new Validate.CatchExceptions(ex, "Could not invoke static method " + method + " with params " + Arrays.toString(params));
+			throw new Validate.ValidateExceptions(ex, "Could not invoke static method " + method + " with params " + Arrays.toString(params));
 		}
 	}
 
