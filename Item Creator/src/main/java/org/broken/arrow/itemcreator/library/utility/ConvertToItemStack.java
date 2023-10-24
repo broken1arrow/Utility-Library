@@ -9,6 +9,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import javax.annotation.Nullable;
 import java.util.Locale;
 
+import static org.broken.arrow.itemcreator.library.utility.matrials.Materials.checkColor;
+
 /**
  * This class convert object to itemStack (if the object can be translated), It also check if you
  * input string enum of a item. First check and translate it to right item depending
@@ -109,59 +111,4 @@ public class ConvertToItemStack {
 		return Materials.getItemStack(item,  amount);
 	}
 
-	public short checkColor(String color) {
-		int end;
-		if (color.startsWith("LIGHT")) {
-			end = color.indexOf("_S");
-			if (end < 0)
-				end = color.indexOf("_G");
-			if (end < 0)
-				end = color.indexOf("_P");
-			if (end < 0)
-				end = color.indexOf("_C");
-			if (end < 0)
-				end = color.indexOf("_W");
-		} else
-			end = color.indexOf('_');
-		if (end < 0)
-			end = color.length();
-		color = color.substring(0, end);
-
-		switch (color) {
-			case "WHITE":
-				return 0;
-			case "ORANGE":
-				return 1;
-			case "MAGENTA":
-				return 2;
-			case "LIGHT_BLUE":
-				return 3;
-			case "YELLOW":
-				return 4;
-			case "LIME":
-				return 5;
-			case "PINK":
-				return 6;
-			case "GRAY":
-				return 7;
-			case "LIGHT_GRAY":
-				return 8;
-			case "CYAN":
-				return 9;
-			case "PURPLE":
-				return 10;
-			case "BLUE":
-				return 11;
-			case "BROWN":
-				return 12;
-			case "GREEN":
-				return 13;
-			case "RED":
-				return 14;
-			case "BLACK":
-				return 15;
-			default:
-				return -1;
-		}
-	}
 }

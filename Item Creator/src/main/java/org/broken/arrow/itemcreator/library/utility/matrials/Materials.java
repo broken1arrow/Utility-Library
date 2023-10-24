@@ -442,7 +442,7 @@ public enum Materials {
 		return -1;
 	}
 
-	private static short checkColor(String color) {
+	public static short checkColor(String color) {
 		int end;
 		if (color.startsWith("LIGHT")) {
 			end = color.indexOf("_S");
