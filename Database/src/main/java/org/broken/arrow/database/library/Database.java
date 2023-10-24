@@ -56,11 +56,11 @@ public abstract class Database<Type> {
 
 	protected Database() {
 		if (this instanceof SQLite) {
-			this.databaseType = DatabaseType.SQLite;
+			this.databaseType = DatabaseType.SQLITE;
 			return;
 		}
 		if (this instanceof MySQL) {
-			this.databaseType = DatabaseType.MySQL;
+			this.databaseType = DatabaseType.MYSQL;
 			return;
 		}
 		if (this instanceof H2DB) {
@@ -68,15 +68,15 @@ public abstract class Database<Type> {
 			return;
 		}
 		if (this instanceof PostgreSQL) {
-			this.databaseType = DatabaseType.PostgreSQL;
+			this.databaseType = DatabaseType.POSTGRESQL;
 			quote = ' ';
 			return;
 		}
 		if (this instanceof MongoDB) {
-			this.databaseType = DatabaseType.MongoDB;
+			this.databaseType = DatabaseType.MONGO_DB;
 			return;
 		}
-		this.databaseType = DatabaseType.Unknown;
+		this.databaseType = DatabaseType.UNKNOWN;
 	}
 
 	/**
@@ -972,9 +972,8 @@ public abstract class Database<Type> {
 	protected final void executeBatch(@Nonnull final List<SqlCommandComposer> batchOfSQL, int resultSetType, int resultSetConcurrency) {
 
 		if (!hasStartWriteToDb)
-			try {
+			try (final Statement statement = this.connection.createStatement(resultSetType, resultSetConcurrency)){
 				hasStartWriteToDb = true;
-				final Statement statement = this.connection.createStatement(resultSetType, resultSetConcurrency);
 				final int processedCount = batchOfSQL.size();
 
 				// Prevent automatically sending db instructions

@@ -128,9 +128,10 @@ public class MySQL extends Database<PreparedStatement> {
 
 		try (Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password)) {
 
-			PreparedStatement create = createDatabase.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName);
-			create.execute();
-			close(create);
+			try (PreparedStatement create = createDatabase.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName)) {
+				create.execute();
+				close(create);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

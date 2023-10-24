@@ -2,10 +2,10 @@ package org.broken.arrow.database.library.utility;
 
 public enum DatabaseType {
 
-	SQLite,
-	MySQL,
-	PostgreSQL,
+	SQLITE,
+	MYSQL,
+	POSTGRESQL,
 	H2,
-	MongoDB,
-	Unknown,
+	MONGO_DB,
+	UNKNOWN,
 }

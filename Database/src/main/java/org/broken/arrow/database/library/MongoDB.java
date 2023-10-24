@@ -273,7 +273,7 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 
 	@Override
 	protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
-
+		throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
 	}
 
 	private void saveData(final DataWrapper dataWrapper, final TableWrapper tableWrapper, final MongoCollection<Document> collection) {

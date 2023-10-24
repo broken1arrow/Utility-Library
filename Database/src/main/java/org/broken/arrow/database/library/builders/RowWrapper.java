@@ -63,6 +63,7 @@ public class RowWrapper {
 	 * @param columnValue the value to be set for the specified column.
 	 */
 	public void putColumn(String columnName, Object columnValue) {
+		throw new UnsupportedOperationException("You need to implement this in a extended class.");
 	}
 
 	/**
