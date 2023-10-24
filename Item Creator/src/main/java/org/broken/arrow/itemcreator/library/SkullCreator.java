@@ -30,6 +30,9 @@ import java.util.UUID;
  */
 public class SkullCreator {
 
+	private static final String PLAYER_HEAD = "PLAYER_HEAD";
+	private static final String BLOCK = "block";
+	private static final String NAME = "name";
 	private static boolean legacy;
 	private static boolean warningPosted = false;
 
@@ -37,6 +40,7 @@ public class SkullCreator {
 	private static Field blockProfileField;
 	private static Method metaSetProfileMethod;
 	private static Field metaProfileField;
+
 
 	// Check if it legacy version, means before 1.13.
 	static {
@@ -55,7 +59,7 @@ public class SkullCreator {
 	 */
 	public static ItemStack createSkull() {
 		try {
-			return new ItemStack(Material.valueOf("PLAYER_HEAD"));
+			return new ItemStack(Material.valueOf(PLAYER_HEAD));
 		} catch (IllegalArgumentException e) {
 			return new ItemStack(getMaterial("SKULL_ITEM"), 1, (byte) 3);
 		}
@@ -113,7 +117,7 @@ public class SkullCreator {
 	@Deprecated
 	public static ItemStack itemWithName(ItemStack item, String name) {
 		notNull(item, "item");
-		notNull(name, "name");
+		notNull(name, NAME);
 
 		SkullMeta meta = (SkullMeta) item.getItemMeta();
 		meta.setOwner(name);
@@ -184,8 +188,8 @@ public class SkullCreator {
 	 */
 	@Deprecated
 	public static void blockWithName(Block block, String name) {
-		notNull(block, "block");
-		notNull(name, "name");
+		notNull(block, BLOCK);
+		notNull(name, NAME);
 
 		Skull state = (Skull) block.getState();
 		state.setOwningPlayer(Bukkit.getOfflinePlayer(name));
@@ -199,7 +203,7 @@ public class SkullCreator {
 	 * @param id    The player to set it to.
 	 */
 	public static void blockWithUuid(Block block, UUID id) {
-		notNull(block, "block");
+		notNull(block, BLOCK);
 		notNull(id, "id");
 
 		setToSkull(block);
@@ -215,7 +219,7 @@ public class SkullCreator {
 	 * @param url   The mojang URL to set it to use.
 	 */
 	public static void blockWithUrl(Block block, String url) {
-		notNull(block, "block");
+		notNull(block, BLOCK);
 		notNull(url, "url");
 
 		blockWithBase64(block, urlToBase64(url));
@@ -228,7 +232,7 @@ public class SkullCreator {
 	 * @param base64 The base64 to set it to use.
 	 */
 	public static void blockWithBase64(Block block, String base64) {
-		notNull(block, "block");
+		notNull(block, BLOCK);
 		notNull(base64, "base64");
 
 		setToSkull(block);
@@ -241,7 +245,7 @@ public class SkullCreator {
 		checkLegacy();
 
 		try {
-			block.setType(Material.valueOf("PLAYER_HEAD"), false);
+			block.setType(Material.valueOf(PLAYER_HEAD), false);
 		} catch (IllegalArgumentException e) {
 			block.setType(Material.valueOf("SKULL"), false);
 			Skull state = (Skull) block.getState();
@@ -320,7 +324,7 @@ public class SkullCreator {
 		try {
 			// if both of these succeed, then we are running
 			// in a legacy api, but on a modern (1.13+) server.
-			Material.class.getDeclaredField("PLAYER_HEAD");
+			Material.class.getDeclaredField(PLAYER_HEAD);
 			Material.valueOf("SKULL");
 
 			if (!warningPosted) {
