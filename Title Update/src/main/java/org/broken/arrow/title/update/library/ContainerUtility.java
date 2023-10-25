@@ -32,7 +32,6 @@ public class ContainerUtility {
 	private final InventoryNMS inventoryNMS;
 
 	protected ContainerUtility(final InventoryNMS inventoryNMS, final float serverVersion) {
-
 		this.serverVersion = serverVersion;
 		this.inventoryNMS = inventoryNMS;
 		loadClasses(serverVersion);

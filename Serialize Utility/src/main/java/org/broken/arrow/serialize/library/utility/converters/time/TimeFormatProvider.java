@@ -20,7 +20,7 @@ public interface TimeFormatProvider {
 	 * @return a formatted time string representing the given time components.
 	 */
 	@Nonnull
-	default String convertTime(Long days, Long hours, Long minutes, Long seconds) {
+	default String convertTime(long days, long hours, long minutes, long seconds) {
 		StringBuilder builder = new StringBuilder();
 
 		builder.append(formatDay(days));

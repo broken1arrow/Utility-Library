@@ -4,6 +4,9 @@ import org.bukkit.block.BlockFace;
 
 public class SpigotBlockFace {
 
+	private SpigotBlockFace() {
+	}
+
 	/**
 	 * Get the block face from string.
 	 *

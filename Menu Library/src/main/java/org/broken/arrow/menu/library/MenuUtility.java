@@ -76,6 +76,8 @@ public class MenuUtility<T> {
 	protected boolean useColorConversion;
 
 	protected int taskid;
+	protected int animateButtonTime = 20;
+
 	protected int slotIndex;
 	private int numberOfFillitems;
 	private int requiredPages;
@@ -84,6 +86,7 @@ public class MenuUtility<T> {
 	protected int itemsPerPage = this.inventorySize;
 	protected int pageNumber;
 	protected int updateTime;
+
 	protected int animateTitleTime = 5;
 	private int taskidAnimateTitle;
 
@@ -107,7 +110,7 @@ public class MenuUtility<T> {
 		this.menuOpenSound = Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull() == null ? Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BASEDRUM").orNull() : Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull();
 		this.uniqueKey = "";
 		this.menuAPI = RegisterMenuAPI.getMenuAPI();
-		this.menuCache =  this.menuAPI.getMenuCache();
+		this.menuCache = this.menuAPI.getMenuCache();
 	}
 
 	/**
@@ -632,7 +635,7 @@ public class MenuUtility<T> {
 	}
 
 	private MenuUtility<?> getMenuCache() {
-		return menuCache.getMenuInCache(this.menuCacheKey,this.getClass());
+		return menuCache.getMenuInCache(this.menuCacheKey, this.getClass());
 	}
 
 	/**
@@ -730,7 +733,6 @@ public class MenuUtility<T> {
 			menuAPI.getPlayerMeta().setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN, this);
 			final MenuUtility<?> menuUtility = menuAPI.getPlayerMeta().getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
 			if (menuUtility != null) menu = menuUtility.getMenu();
-
 		}
 		return menu;
 	}
@@ -740,7 +742,7 @@ public class MenuUtility<T> {
 		final List<Integer> fillSlots = this.getFillSpace();
 		if (this.itemsPerPage > 0) {
 			if (this.itemsPerPage > this.inventorySize)
-				this.logger.log(Level.WARNING,  () -> Logging.of("Items per page are biger an Inventory size, items items per page " + this.itemsPerPage + ". Inventory size " + this.inventorySize));
+				this.logger.log(Level.WARNING, () -> Logging.of("Items per page are biger an Inventory size, items items per page " + this.itemsPerPage + ". Inventory size " + this.inventorySize));
 			if (!fillSlots.isEmpty()) {
 				return (double) fillSlots.size() / this.itemsPerPage;
 			} else if (fillItems != null && !fillItems.isEmpty()) return (double) fillItems.size() / this.itemsPerPage;
@@ -791,7 +793,7 @@ public class MenuUtility<T> {
 		return menuDataUtility;
 	}
 
-	private void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot,final int slotIndexOld, final T objectFromListOfFillItems, final boolean isFillButton) {
+	private void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int slotIndexOld, final T objectFromListOfFillItems, final boolean isFillButton) {
 		final MenuButtonI<T> menuButton = getMenuButtonAtSlot(slot, slotIndexOld, objectFromListOfFillItems);
 		final ItemStack result = getItemAtSlot(menuButton, slot, slotIndexOld, objectFromListOfFillItems);
 
@@ -870,7 +872,7 @@ public class MenuUtility<T> {
 		if (this.getInventoryType() != null)
 			return Bukkit.createInventory(null, this.getInventoryType(), menuTitle != null ? menuTitle : "");
 		if (!(this.inventorySize == 5 || this.inventorySize % 9 == 0))
-			this.logger.log(Level.WARNING,  () -> Logging.of( "wrong inventory size , you has put in " + this.inventorySize + " it need to be valid number."));
+			this.logger.log(Level.WARNING, () -> Logging.of("wrong inventory size , you has put in " + this.inventorySize + " it need to be valid number."));
 		if (this.inventorySize == 5)
 			return Bukkit.createInventory(null, InventoryType.HOPPER, menuTitle != null ? menuTitle : "");
 		return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, menuTitle != null ? menuTitle : "");
@@ -882,65 +884,7 @@ public class MenuUtility<T> {
 	}
 
 	protected void updateButtonsInList() {
-		taskid = new BukkitRunnable() {
-			private int counter = 0;
-
-			@Override
-			public void run() {
-				for (final MenuButtonI<T> menuButton : getButtonsToUpdate()) {
-
-					final Long timeleft = getTimeWhenUpdatesButton(menuButton);
-					if (timeleft != null && timeleft == -1) continue;
-
-					if (timeleft == null || timeleft == 0)
-						putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
-					else if (counter >= timeleft) {
-						getMenuData(getPageNumber());
-						final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
-						if (menuDataUtility == null) {
-							cancel();
-							return;
-						}
-
-						final Set<Integer> itemSlots = getItemSlotsMap(menuDataUtility, menuButton);
-
-						if (updateButtonsData(menuButton, menuDataUtility, itemSlots)) return;
-					}
-				}
-				counter++;
-			}
-
-			private boolean updateButtonsData(final MenuButtonI<T> menuButton, final MenuDataUtility<T> menuDataUtility, final Set<Integer> itemSlots) {
-				if (itemSlots.isEmpty())
-					putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
-				else {
-					if (getMenu() == null) return true;
-					final Iterator<Integer> slotList = itemSlots.iterator();
-					setButtons(menuButton, menuDataUtility, slotList);
-					putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
-				}
-				return false;
-			}
-
-			private void setButtons(final MenuButtonI<T> menuButton, final MenuDataUtility<T> menuDataUtility, final Iterator<Integer> slotList) {
-				while (slotList.hasNext()) {
-					final Integer slot = slotList.next();
-
-					final ButtonData<T> buttonData = menuDataUtility.getButton(getSlot(slot));
-					if (buttonData == null) continue;
-
-					final ItemStack menuItem = getMenuItem(menuButton, buttonData, slot);
-					final ButtonData<T> newButtonData = new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject());
-
-					menuDataUtility.putButton(getSlot(slot), newButtonData, menuDataUtility.getFillMenuButton(getSlot(slot)));
-					//	menuDataMap.put(getSlot(slot), new ButtonData(menuItem, buttonData.getMenuButton(), buttonData.getObject()));
-
-					putAddedButtonsCache(getPageNumber(), menuDataUtility);
-					getMenu().setItem(slot, menuItem);
-					slotList.remove();
-				}
-			}
-		}.runTaskTimer(menuAPI.getPlugin(), 1L, 20L).getTaskId();
+		taskid = new RunButtonAnimation().runTask(this.animateButtonTime);
 	}
 
 	@Nullable
@@ -988,22 +932,20 @@ public class MenuUtility<T> {
 		return slotList;
 	}
 
-	protected void animateTitle() {
+	protected void runAnimateTitle() {
 		Function<?> task = getAnimateTitle();
 		if (task == null) return;
 		this.taskidAnimateTitle = new BukkitRunnable() {
 			@Override
 			public void run() {
 				Object text = task.apply();
-				if (text == null || (ServerVersion.atLeast(ServerVersion.v1_9) && this.isCancelled())) {
+				if (text == null || (ServerVersion.atLeast(ServerVersion.V1_9) && this.isCancelled())) {
 					this.cancel();
 					updateTittle();
 					return;
 				}
-				if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz()) {
-					if (!menuAPI.isNotFoundUpdateTitleClazz())
+				if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz() && !menuAPI.isNotFoundUpdateTitleClazz()) {
 						updateTitle(text);
-					//UpdateTittleContainers.update(player, text);
 				}
 			}
 		}.runTaskTimerAsynchronously(menuAPI.getPlugin(), 1, 20 + this.animateTitleTime).getTaskId();
@@ -1034,4 +976,68 @@ public class MenuUtility<T> {
 		if (text instanceof JsonObject)
 			UpdateTitle.update(player, (JsonObject) text);
 	}
+
+	private class RunButtonAnimation extends BukkitRunnable {
+		private int counter = 0;
+
+		public int runTask(long delay){
+			return runTaskTimer(menuAPI.getPlugin(), 1L, delay).getTaskId();
+		}
+
+		@Override
+		public void run() {
+			for (final MenuButtonI<T> menuButton : getButtonsToUpdate()) {
+
+				final Long timeLeft = getTimeWhenUpdatesButton(menuButton);
+				if (timeLeft != null && timeLeft == -1) continue;
+
+				if (timeLeft == null || timeLeft == 0)
+					putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
+				else if (counter >= timeLeft) {
+					getMenuData(getPageNumber());
+					final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
+					if (menuDataUtility == null) {
+						cancel();
+						return;
+					}
+
+					final Set<Integer> itemSlots = getItemSlotsMap(menuDataUtility, menuButton);
+
+					if (updateButtonsData(menuButton, menuDataUtility, itemSlots)) return;
+				}
+			}
+			counter++;
+		}
+
+		private boolean updateButtonsData(final MenuButtonI<T> menuButton, final MenuDataUtility<T> menuDataUtility, final Set<Integer> itemSlots) {
+			if (itemSlots.isEmpty())
+				putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
+			else {
+				if (getMenu() == null) return true;
+				final Iterator<Integer> slotList = itemSlots.iterator();
+				setButtons(menuButton, menuDataUtility, slotList);
+				putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
+			}
+			return false;
+		}
+
+		private void setButtons(final MenuButtonI<T> menuButton, final MenuDataUtility<T> menuDataUtility, final Iterator<Integer> slotList) {
+			while (slotList.hasNext()) {
+				final Integer slot = slotList.next();
+
+				final ButtonData<T> buttonData = menuDataUtility.getButton(getSlot(slot));
+				if (buttonData == null) continue;
+
+				final ItemStack menuItem = getMenuItem(menuButton, buttonData, slot);
+				final ButtonData<T> newButtonData = new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject());
+
+				menuDataUtility.putButton(getSlot(slot), newButtonData, menuDataUtility.getFillMenuButton(getSlot(slot)));
+
+				putAddedButtonsCache(getPageNumber(), menuDataUtility);
+				getMenu().setItem(slot, menuItem);
+				slotList.remove();
+			}
+		}
+	}
+
 }

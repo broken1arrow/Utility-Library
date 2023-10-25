@@ -90,9 +90,9 @@ public final class MenuDataUtility<T> {
 	}
 
 	@Nullable
-	public MenuButtonI<?> getMenuButton(final int slot) {
-		ButtonData<?> buttonData = this.getButton(slot);
-		MenuButtonI<?> menuButton = null;
+	public MenuButtonI<T> getMenuButton(final int slot) {
+		ButtonData<T> buttonData = this.getButton(slot);
+		MenuButtonI<T> menuButton = null;
 		if (buttonData != null) {
 			menuButton = buttonData.getMenuButton();
 			if (menuButton == null)

@@ -10,7 +10,7 @@ public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
 	/**
 	 * Create menu instance with out any aguments. Recomend you set menu size.
 	 */
-	public GenericMenuHolder() {
+	protected GenericMenuHolder() {
 		this(null, null, false);
 	}
 
@@ -21,7 +21,7 @@ public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
 	 * @param fillItems List of items you want parse inside gui on one or several pages.
 	 */
 
-	public GenericMenuHolder(final List<T> fillItems) {
+	protected GenericMenuHolder(final List<T> fillItems) {
 		this(null, fillItems, false);
 	}
 
@@ -30,7 +30,7 @@ public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
 	 *
 	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link MenuUtility#getMenuButtonsCache()} to cache it own class.
 	 */
-	public GenericMenuHolder(final boolean shallCacheItems) {
+	protected GenericMenuHolder(final boolean shallCacheItems) {
 		this(null, null, shallCacheItems);
 	}
 
@@ -40,7 +40,7 @@ public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
 	 * @param fillSlots Witch slots you want fill with items.
 	 * @param fillItems List of items you want parse inside gui on one or several pages.
 	 */
-	public GenericMenuHolder(final List<Integer> fillSlots, final List<T> fillItems) {
+	protected GenericMenuHolder(final List<Integer> fillSlots, final List<T> fillItems) {
 		this(fillSlots, fillItems, false);
 	}
 
@@ -51,7 +51,7 @@ public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
 	 * @param fillItems       List of items you want parse inside gui.
 	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link MenuUtility#getMenuButtonsCache()} to cache it own class.
 	 */
-	public GenericMenuHolder(final List<Integer> fillSlots, final List<T> fillItems, final boolean shallCacheItems) {
+	protected GenericMenuHolder(final List<Integer> fillSlots, final List<T> fillItems, final boolean shallCacheItems) {
 		super(fillSlots, fillItems, shallCacheItems);
 	}
 

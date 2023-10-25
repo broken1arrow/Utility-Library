@@ -36,7 +36,10 @@ import java.util.stream.Collectors;
  * Note: If an object does not have a known serialization method, a SerializeFailedException will be thrown.
  */
 public final class DataSerializer {
-	private static final float serverVersion;
+	private static final float SERVER_VERSION;
+
+	private DataSerializer() {
+	}
 
 	static {
 		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
@@ -55,7 +58,7 @@ public final class DataSerializer {
 			firstNumber = firstString;
 			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
 		}
-		serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+		SERVER_VERSION = Float.parseFloat(firstNumber + "." + secondNumber);
 	}
 	
 	/**
@@ -66,89 +69,100 @@ public final class DataSerializer {
 	 * @throws SerializeFailedException If the serialization fails due to an unsupported data type or serialization error.
 	 */
 	public static Object serialize(final Object obj) {
-		if (obj == null)
+		if (obj == null) {
 			return null;
+		}
 
-		else if (obj instanceof ChatColor)
-			return ((ChatColor) obj).name();
-
-		else if (obj instanceof net.md_5.bungee.api.ChatColor) {
-			final net.md_5.bungee.api.ChatColor color = ((net.md_5.bungee.api.ChatColor) obj);
-
-			return serverVersion >= 16.0 ? color.toString() : color.name();
-		} else if (obj instanceof Location)
+		if (obj instanceof ChatColor) {
+			return serializeChatColor((ChatColor) obj);
+		} else if (obj instanceof net.md_5.bungee.api.ChatColor) {
+			return serializeBungeeChatColor((net.md_5.bungee.api.ChatColor) obj);
+		} else if (obj instanceof Location) {
 			return LocationSerializer.serializeLocYaw((Location) obj);
-
-		else if (obj instanceof UUID)
+		} else if (obj instanceof UUID || obj instanceof Enum<?>) {
 			return obj.toString();
-
-		else if (obj instanceof Enum<?>)
-			return obj.toString();
-
-		else if (obj instanceof CommandSender)
+		} else if (obj instanceof CommandSender) {
 			return ((CommandSender) obj).getName();
-
-		else if (obj instanceof World)
+		} else if (obj instanceof World) {
 			return ((World) obj).getName();
-
-		else if (obj instanceof PotionEffect)
+		} else if (obj instanceof PotionEffect) {
 			return ((PotionEffect) obj).serialize();
-
-		else if (obj instanceof java.awt.Color)
+		} else if (obj instanceof java.awt.Color) {
 			return "#" + ((java.awt.Color) obj).getRGB();
-
-		else if (obj instanceof BaseComponent)
+		} else if (obj instanceof BaseComponent) {
 			return toJson((BaseComponent) obj);
-
-		else if (obj instanceof BaseComponent[])
+		} else if (obj instanceof BaseComponent[]) {
 			return toJson((BaseComponent[]) obj);
-
-		else if (obj instanceof HoverEvent) {
-			final HoverEvent event = (HoverEvent) obj;
-			final Map<String, Object> serialize = new HashMap<>();
-			serialize.put("Action", event.getAction().name());
-			serialize.put("Value", Arrays.stream(event.getValue().clone()).map(BaseComponent::toString).collect(Collectors.toList()));
-			return serialize;
+		} else if (obj instanceof HoverEvent) {
+			return serializeHoverEvent((HoverEvent) obj);
 		} else if (obj instanceof ClickEvent) {
-			final ClickEvent event = (ClickEvent) obj;
-			final Map<String, Object> serialize = new HashMap<>();
-			serialize.put("Action", event.getAction().name());
-			serialize.put("Value", event.getValue());
-			return serialize;
+			return serializeClickEvent((ClickEvent) obj);
 		} else if (obj instanceof Iterable || obj.getClass().isArray()) {
-			final List<Object> serialized = new ArrayList<>();
-
-			if (obj instanceof Iterable)
-				for (final Object element : (Iterable<?>) obj)
-					serialized.add(serialize(element));
-			else
-				for (final Object element : (Object[]) obj)
-					serialized.add(serialize(element));
-
-			return serialized;
+			return serializeIterableOrArray(obj);
 		} else if (obj instanceof Map) {
-			final Map<?, ?> oldMap = (Map<?, ?>) obj;
-			final Map<Object, Object> newMap = new LinkedHashMap<>();
-
-			for (final Map.Entry<?, ?> entry : oldMap.entrySet())
-				newMap.put(serialize(entry.getKey()), serialize(entry.getValue()));
-
-			return newMap;
-		} else if (obj instanceof Integer || obj instanceof Double || obj instanceof Float || obj instanceof Long || obj instanceof Short
-				|| obj instanceof String || obj instanceof Boolean || obj instanceof ItemStack || obj instanceof MemorySection
-				|| obj instanceof Pattern)
+			return serializeMap(obj);
+		} else if (obj instanceof Integer || obj instanceof Double || obj instanceof Float ||
+				obj instanceof Long || obj instanceof Short || obj instanceof String ||
+				obj instanceof Boolean || obj instanceof ItemStack || obj instanceof MemorySection ||
+				obj instanceof Pattern) {
 			return obj;
-
-		else if (obj instanceof org.bukkit.configuration.serialization.ConfigurationSerializable)
+		} else if (obj instanceof org.bukkit.configuration.serialization.ConfigurationSerializable) {
 			return ((org.bukkit.configuration.serialization.ConfigurationSerializable) obj).serialize();
-		else if (obj instanceof ConfigurationSerializable)
+		} else if (obj instanceof ConfigurationSerializable) {
 			return ((ConfigurationSerializable) obj).serialize();
+		}
+		throw new SerializeFailedException("Does not know how to serialize " +
+				obj.getClass().getSimpleName() + "! Does it extend ConfigSerializable? Data: " + obj);
+	}
 
-		throw new SerializeFailedException("Does not know how to serialize " + obj.getClass().getSimpleName() + "! Does it extends ConfigSerializable? Data: " + obj);
+	private static Object serializeChatColor(ChatColor chatColor) {
+		return chatColor.name();
+	}
+
+	private static Object serializeBungeeChatColor(net.md_5.bungee.api.ChatColor chatColor) {
+		return SERVER_VERSION >= 16.0 ? chatColor.toString() : chatColor.name();
+	}
+
+	private static Object serializeHoverEvent(HoverEvent event) {
+		Map<String, Object> serialize = new HashMap<>();
+		serialize.put("Action", event.getAction().name());
+		serialize.put("Value", Arrays.stream(event.getValue().clone()).map(BaseComponent::toString).collect(Collectors.toList()));
+		return serialize;
+	}
+
+	private static Object serializeClickEvent(ClickEvent event) {
+		Map<String, Object> serialize = new HashMap<>();
+		serialize.put("Action", event.getAction().name());
+		serialize.put("Value", event.getValue());
+		return serialize;
+	}
+
+	private static Object serializeIterableOrArray(Object obj) {
+		List<Object> serialized = new ArrayList<>();
+		if (obj instanceof Iterable) {
+			for (Object element : (Iterable<?>) obj) {
+				serialized.add(serialize(element));
+			}
+		} else {
+			for (Object element : (Object[]) obj) {
+				serialized.add(serialize(element));
+			}
+		}
+		return serialized;
+	}
+
+	private static Object serializeMap(Object obj) {
+		Map<?, ?> oldMap = (Map<?, ?>) obj;
+		Map<Object, Object> newMap = new LinkedHashMap<>();
+
+		for (Map.Entry<?, ?> entry : oldMap.entrySet()) {
+			newMap.put(serialize(entry.getKey()), serialize(entry.getValue()));
+		}
+		return newMap;
 	}
 
 	private static String toJson(final BaseComponent... comps) {
-		if (serverVersion < 8.8)
+		if (SERVER_VERSION < 8.8)
 			return "{}";
 		String json;
 		try {

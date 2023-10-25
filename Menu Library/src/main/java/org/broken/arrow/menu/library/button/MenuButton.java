@@ -4,7 +4,7 @@ public abstract class MenuButton implements MenuButtonI<Object> {
 	private static int counter = 0;
 	private final int id;
 
-	public MenuButton() {
+	protected MenuButton() {
 		this.id = counter++;
 	}
 

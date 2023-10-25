@@ -11,7 +11,10 @@ import java.util.List;
  * the position of the value in the placeholders array.
  */
 public class PlaceholderTranslator {
-	
+
+	private PlaceholderTranslator() {
+	}
+
 	/**
 	 * Translates placeholders in a list of lore strings by replacing them with corresponding values.
 	 * The placeholders are replaced in the order specified by the placeholders array.
@@ -39,11 +42,13 @@ public class PlaceholderTranslator {
 		List<String> clonedlores = new ArrayList<>(lores);
 		List<String> list = new ArrayList<>();
 		for (String lore : clonedlores) {
-			if (!checkListForPlaceholdersAndTranslate(lores, lore, placeholders))
-				if (replacements != null)
+			if (!checkListForPlaceholdersAndTranslate(lores, lore, placeholders)) {
+				if (replacements != null) {
 					list.add(translatePlaceholders(replacements, lore, placeholders));
-				else
+				} else {
 					list.add(translatePlaceholders(lore, placeholders));
+				}
+			}
 		}
 		return list;
 	}
@@ -127,13 +132,15 @@ public class PlaceholderTranslator {
 	 * @return The text with boolean replacements.
 	 */
 	private static String replaceBoolens(String text, Pair<String, String> replacements) {
-		if (text != null)
-			if (text.contains("true"))
+		if (text != null) {
+			if (text.contains("true")) {
 				return text.replace("true", replacements.getFirst());
-			else if (text.contains("false"))
+			} else if (text.contains("false")) {
 				return text.replace("false", replacements.getSecond());
-			else
+			} else {
 				return text;
+			}
+		}
 		return "";
 	}
 

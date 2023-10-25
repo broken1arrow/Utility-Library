@@ -55,12 +55,12 @@ public class ItemStackCounters {
 		int countItems = 0;
 		for (ItemStack itemStack : inventoryItems.getContents()) {
 			if (onlyNoFullItems) {
-				if (!(itemStack.getAmount() == itemStack.getMaxStackSize())) {
-					if (itemStack != null && itemStack.isSimilar(item) && !(itemStack.getType() == Material.AIR)) {
+				if (itemStack.getAmount() != itemStack.getMaxStackSize()) {
+					if (itemStack != null && itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
 						countItems += itemStack.getAmount();
 					}
 				}
-			} else if (itemStack != null && itemStack.isSimilar(item) && !(itemStack.getType() == Material.AIR)) {
+			} else if (itemStack != null && itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
 				countItems += itemStack.getAmount();
 			}
 		}

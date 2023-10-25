@@ -5,7 +5,7 @@ public abstract class GenericMenuButton<T> implements MenuButtonI<T> {
 	private static int counter = 0;
 	private final int id;
 
-	public GenericMenuButton() {
+	protected GenericMenuButton() {
 		this.id = counter++;
 	}
 

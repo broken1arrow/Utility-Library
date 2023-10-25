@@ -66,7 +66,7 @@ public class CreateItemStack {
 	private final List<PotionEffect> portionEffects = new ArrayList<>();
 	private final List<FireworkEffect> fireworkEffects = new ArrayList<>();
 	private final RegisterNbtAPI nbtApi;
-	private MetaDataWraper metadata;
+	private MetaDataWrapper metadata;
 	private int amountOfItems;
 	private int red = -1;
 	private int green = -1;
@@ -378,18 +378,18 @@ public class CreateItemStack {
 	 * @return this class.
 	 */
 	public CreateItemStack setItemMetaData(final String itemMetaKey, final Object itemMetaValue, final boolean keepclazz) {
-		metadata = MetaDataWraper.of().add(itemMetaKey, itemMetaValue, keepclazz);
+		metadata = MetaDataWrapper.of().add(itemMetaKey, itemMetaValue, keepclazz);
 		return this;
 	}
 
 	/**
-	 * Set your metadata on the item. Use {@link MetaDataWraper} class.
+	 * Set your metadata on the item. Use {@link MetaDataWrapper} class.
 	 * To set key and value.
 	 *
 	 * @param wrapper values from MetaDataWrapper.
 	 * @return this class.
 	 */
-	public CreateItemStack setItemMetaDataList(final MetaDataWraper wrapper) {
+	public CreateItemStack setItemMetaDataList(final MetaDataWrapper wrapper) {
 		metadata = wrapper;
 		return this;
 	}
@@ -403,7 +403,7 @@ public class CreateItemStack {
 	 */
 	public CreateItemStack setItemMetaDataList(final Map<String, Object> itemMetaMap) {
 		if (itemMetaMap != null && !itemMetaMap.isEmpty()) {
-			final MetaDataWraper wrapper = MetaDataWraper.of();
+			final MetaDataWrapper wrapper = MetaDataWrapper.of();
 			for (final Map.Entry<String, Object> itemData : itemMetaMap.entrySet()) {
 				wrapper.add(itemData.getKey(), itemData.getValue());
 			}
@@ -952,7 +952,7 @@ public class CreateItemStack {
 		return TextTranslator.toSpigotFormat(textTranslate);
 	}
 
-	private MetaDataWraper getMetadata() {
+	private MetaDataWrapper getMetadata() {
 		return metadata;
 	}
 

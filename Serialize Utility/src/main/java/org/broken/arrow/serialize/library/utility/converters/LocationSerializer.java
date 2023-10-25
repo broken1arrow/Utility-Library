@@ -9,6 +9,11 @@ import org.bukkit.World;
  */
 public class LocationSerializer {
 
+	private static final String locationPattern = "[-+]?\\d+";
+
+	private LocationSerializer() {
+	}
+
 	/**
 	 * Serializes a Location object into a string representation including yaw and pitch.
 	 *
@@ -57,7 +62,7 @@ public class LocationSerializer {
 				final World bukkitWorld = Bukkit.getWorld(world);
 				if (bukkitWorld == null)
 					return null;
-				if (!parts[1].matches("[-+]?\\d+") && !parts[2].matches("[-+]?\\d+") && !parts[3].matches("[-+]?\\d+"))
+				if (!parts[1].matches(locationPattern) && !parts[2].matches(locationPattern) && !parts[3].matches(locationPattern))
 					return null;
 				else {
 					final int x = Integer.parseInt(parts[1]);

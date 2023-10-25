@@ -15,6 +15,9 @@ import java.io.IOException;
  */
 public class Base64ItemStackConverter {
 
+	private Base64ItemStackConverter() {
+	}
+
 	/**
 	 * Serializes an array of ItemStacks to a Base64 string representation.
 	 * This method is based on {@link #itemStackArrayFromBase64(String)}.

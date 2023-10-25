@@ -3,11 +3,11 @@ package org.broken.arrow.itemcreator.library;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class MetaDataWraper {
+public final class MetaDataWrapper {
 	private final Map<String, Object> itemMetaMap = new LinkedHashMap<>();
 
-	public static MetaDataWraper of() {
-		return new MetaDataWraper();
+	public static MetaDataWrapper of() {
+		return new MetaDataWrapper();
 	}
 
 	/**
@@ -20,7 +20,7 @@ public final class MetaDataWraper {
 	 * @return this class
 	 */
 
-	public MetaDataWraper add(String key, Object value) {
+	public MetaDataWrapper add(String key, Object value) {
 		return add(key, value, false);
 	}
 
@@ -32,7 +32,7 @@ public final class MetaDataWraper {
 	 * @param keepClazzData true if it shall keep all data on the item or false to convert value to string.
 	 * @return this class
 	 */
-	public MetaDataWraper add(String key, Object value, boolean keepClazzData) {
+	public MetaDataWrapper add(String key, Object value, boolean keepClazzData) {
 		itemMetaMap.put(key, (keepClazzData ? value : value + ""));
 		return this;
 	}

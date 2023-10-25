@@ -34,7 +34,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * @param fillItems       List of items you want parse inside gui.
 	 * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
 	 */
-	public HolderUtility(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
+	protected HolderUtility(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
 		super(fillSlots, fillItems, shallCacheItems);
 	}
 
@@ -183,7 +183,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	public void setAnimateTitle(final int time, final Function<String> function) {
 		this.animateTitleTime = time;
 		this.animateTitle = function;
-		this.animateTitle();
+		this.runAnimateTitle();
 	}
 
 	/**
@@ -227,7 +227,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	public void setAnimateTitleJson(final int time, final Function<JsonObject> function) {
 		this.animateTitleTime = time;
 		this.animateTitleJson = function;
-		this.animateTitle();
+		this.runAnimateTitle();
 	}
 
 	/**
@@ -407,7 +407,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 				if (buttonData == null) return;
 
 				final ItemStack itemStack = getMenuItem(menuButton, buttonData, buttonSlot, true);
-				//final ItemStack itemStack = getMenuItem(menuButton, menuDataUtility.getButton(getSlot(buttonSlot)), buttonSlot, true);
 				this.getMenu().setItem(buttonSlot, itemStack);
 				menuDataUtility.putButton(this.getSlot(buttonSlot), new ButtonData<>(itemStack, menuButton, buttonData.getObject()), menuDataUtility.getFillMenuButton(this.getSlot(buttonSlot)));
 			}

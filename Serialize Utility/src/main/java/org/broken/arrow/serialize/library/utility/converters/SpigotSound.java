@@ -8,6 +8,9 @@ import org.bukkit.Sound;
 
 public class SpigotSound {
 
+	private SpigotSound() {
+	}
+
 	/**
 	 * Get the sound from string.
 	 *

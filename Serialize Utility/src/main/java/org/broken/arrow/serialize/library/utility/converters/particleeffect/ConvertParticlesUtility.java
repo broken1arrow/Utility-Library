@@ -22,8 +22,11 @@ import java.util.logging.Logger;
  */
 public class ConvertParticlesUtility {
 
-	private static final float serverVersion;
+	private static final float SERVER_VERSION;
 	private static final Logger logger = Logger.getLogger(ConvertParticlesUtility.class.getName());
+
+	private ConvertParticlesUtility() {
+	}
 
 	static {
 		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
@@ -42,7 +45,7 @@ public class ConvertParticlesUtility {
 			firstNumber = firstString;
 			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
 		}
-		serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+		SERVER_VERSION = Float.parseFloat(firstNumber + "." + secondNumber);
 	}
 
 	/**
@@ -205,7 +208,7 @@ public class ConvertParticlesUtility {
 		Object particle = particleEffectWrapper.getParticle();
 		if (particle == null) return null;
 		Object object;
-		if (serverVersion < 9) {
+		if (SERVER_VERSION < 9) {
 			object = getEffect(String.valueOf(particle));
 		} else {
 			object = getParticle(String.valueOf(particle));
@@ -220,7 +223,7 @@ public class ConvertParticlesUtility {
 		float extra = particleEffectWrapper.getExtra();
 
 		ParticleEffect.Builder builder;
-		if (serverVersion >= 9 && !(object instanceof Effect))
+		if (SERVER_VERSION >= 9 && !(object instanceof Effect))
 			builder = buildParticle(object, particleData, firstColor, secondColor, amountOfParticles, extra);
 		else
 			builder = buildEffect(object, particleData, firstColor, secondColor, amountOfParticles, extra);
@@ -317,8 +320,7 @@ public class ConvertParticlesUtility {
 	 */
 	public static String replaceBarrier(final String particle) {
 
-		if (serverVersion >= 17)
-			if (particle.equals("BARRIER"))
+		if (SERVER_VERSION >= 17 && particle.equals("BARRIER"))
 				return "BLOCK_MARKER";
 		return particle;
 	}

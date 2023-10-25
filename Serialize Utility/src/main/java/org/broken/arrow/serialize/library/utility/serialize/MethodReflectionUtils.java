@@ -15,6 +15,9 @@ import java.util.Map;
  */
 public class MethodReflectionUtils {
 
+	private MethodReflectionUtils() {
+	}
+
 	/**
 	 * Deserialize an object by invoking the specified static method on a class.
 	 *

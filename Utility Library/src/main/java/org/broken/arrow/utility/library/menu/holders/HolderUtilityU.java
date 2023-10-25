@@ -150,7 +150,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 	public void setAnimateTitle(final int time, final Function<String> function) {
 		this.animateTitleTime = time;
 		this.animateTitle = function;
-		this.animateTitle();
+		this.runAnimateTitle();
 	}
 
 	/**

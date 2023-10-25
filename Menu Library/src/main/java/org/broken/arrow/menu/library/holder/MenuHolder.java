@@ -14,7 +14,7 @@ public class MenuHolder extends HolderUtility<Object> {
 	/**
 	 * Create menu instance with out any aguments. Recomend you set menu size.
 	 */
-	public MenuHolder() {
+	protected MenuHolder() {
 		this(null, null, false);
 	}
 
@@ -25,7 +25,7 @@ public class MenuHolder extends HolderUtility<Object> {
 	 * @param fillItems List of items you want parse inside gui on one or several pages.
 	 */
 
-	public MenuHolder(final List<?> fillItems) {
+	protected MenuHolder(final List<?> fillItems) {
 		this(null, fillItems, false);
 	}
 
@@ -34,7 +34,7 @@ public class MenuHolder extends HolderUtility<Object> {
 	 *
 	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link MenuUtility#getMenuButtonsCache()} to cache it own class.
 	 */
-	public MenuHolder(final boolean shallCacheItems) {
+	protected MenuHolder(final boolean shallCacheItems) {
 		this(null, null, shallCacheItems);
 	}
 
@@ -44,7 +44,7 @@ public class MenuHolder extends HolderUtility<Object> {
 	 * @param fillSlots Witch slots you want fill with items.
 	 * @param fillItems List of items you want parse inside gui on one or several pages.
 	 */
-	public MenuHolder(final List<Integer> fillSlots, final List<?> fillItems) {
+	protected MenuHolder(final List<Integer> fillSlots, final List<?> fillItems) {
 		this(fillSlots, fillItems, false);
 	}
 
@@ -55,8 +55,8 @@ public class MenuHolder extends HolderUtility<Object> {
 	 * @param fillItems       List of items you want parse inside gui.
 	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link MenuUtility#getMenuButtonsCache()} to cache it own class.
 	 */
-	public MenuHolder(final List<Integer> fillSlots, final List<?> fillItems, final boolean shallCacheItems) {
+	protected MenuHolder(final List<Integer> fillSlots, final List<?> fillItems, final boolean shallCacheItems) {
 		super(fillSlots, (List<Object>) fillItems, shallCacheItems);
 	}
-	
+
 }

@@ -2,11 +2,11 @@ package org.broken.arrow.serialize.library.utility;
 
 import java.util.Objects;
 
-public class Pair<First, Second> {
-	private final First firstValue;
-	private final Second secondValue;
+public class Pair<K, V> {
+	private final K firstValue;
+	private final V secondValue;
 
-	public Pair(final First first, final Second second) {
+	public Pair(final K first, final V second) {
 		this.firstValue = first;
 		this.secondValue = second;
 	}
@@ -15,11 +15,11 @@ public class Pair<First, Second> {
 		return new Pair<>(first, second);
 	}
 
-	public First getFirst() {
+	public K getFirst() {
 		return this.firstValue;
 	}
 
-	public Second getSecond() {
+	public V getSecond() {
 		return this.secondValue;
 	}
 

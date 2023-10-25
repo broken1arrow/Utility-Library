@@ -2,6 +2,7 @@ package org.broken.arrow.itemcreator.library;
 
 
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
+import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 import org.broken.arrow.nbt.library.RegisterNbtAPI;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -15,6 +16,10 @@ public class ItemCreator {
 
 	private final RegisterNbtAPI nbtApi;
 	private float serverVersion;
+
+	private ItemCreator() {
+		throw new ValidateExceptions("should not use empty constructor");
+	}
 
 	public ItemCreator(Plugin plugin) {
 		this(plugin, false);
@@ -129,10 +134,10 @@ public class ItemCreator {
 		return createItemStackAsOne(itemstack != null ? itemstack : new ItemStack(Material.AIR));
 	}
 
-	public static ItemStack createItemStackAsOne(final ItemStack itemstacks) {
+	public static ItemStack createItemStackAsOne(final ItemStack itemStack) {
 		ItemStack itemstack = null;
-		if (itemstacks != null && !itemstacks.getType().equals(Material.AIR)) {
-			itemstack = itemstacks.clone();
+		if (itemStack != null && !itemStack.getType().equals(Material.AIR)) {
+			itemstack = itemStack.clone();
 			final ItemMeta meta = itemstack.getItemMeta();
 			itemstack.setItemMeta(meta);
 			itemstack.setAmount(1);
@@ -140,10 +145,10 @@ public class ItemCreator {
 		return itemstack != null ? itemstack : new ItemStack(Material.AIR);
 	}
 
-	public static ItemStack[] createItemStackAsOne(final ItemStack[] itemstacks) {
+	public static ItemStack[] createItemStackAsOne(final ItemStack[] itemStacks) {
 		ItemStack itemstack = null;
-		if (itemstacks != null) {
-			for (final ItemStack item : itemstacks)
+		if (itemStacks != null) {
+			for (final ItemStack item : itemStacks)
 				if (!(item.getType() == Material.AIR)) {
 					itemstack = item.clone();
 					final ItemMeta meta = itemstack.getItemMeta();

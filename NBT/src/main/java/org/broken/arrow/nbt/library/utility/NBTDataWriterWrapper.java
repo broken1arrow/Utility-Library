@@ -141,7 +141,7 @@ public final class NBTDataWriterWrapper {
 	 * @param item The ItemStack value to set.
 	 */
 	public void setItemStack(String key, ItemStack item) {
-
+		this.readWriteNBT.setItemStack(key, item);
 	}
 
 	/**
@@ -151,7 +151,7 @@ public final class NBTDataWriterWrapper {
 	 * @param items The ItemStack array value to set.
 	 */
 	public void setItemStackArray(String key, ItemStack[] items) {
-
+		this.readWriteNBT.setItemStackArray(key, items);
 	}
 
 	/**

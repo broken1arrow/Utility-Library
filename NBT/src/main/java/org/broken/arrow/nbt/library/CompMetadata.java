@@ -9,7 +9,7 @@ import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 import org.broken.arrow.nbt.library.utility.NBTDataWriterWrapper;
 import org.broken.arrow.nbt.library.utility.NBTValueWrapper;
-import org.broken.arrow.nbt.library.utility.ServerVersion;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.BlockState;
@@ -28,8 +28,8 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static org.broken.arrow.nbt.library.RegisterNbtAPI.isHasScoreboardTags;
 import static org.broken.arrow.nbt.library.utility.ConvertObjectType.setNBTValue;
-import static org.broken.arrow.nbt.library.utility.ServerVersion.isHasScoreboardTags;
 
 
 /**
@@ -47,12 +47,34 @@ public final class CompMetadata {
 	 * The tag delimiter
 	 */
 	private static final String DELIMITER = "%-%";
+	private static final float SERVER_VERSION;
 	private final Plugin plugin;
+	private final String message = "Reading NBT tag got null item";
+	private final String itemIsNull = "Setting NBT tag got null item";
+	private final String blockState = "BlockState must be instance of a TileState not ";
 
 	public CompMetadata(Plugin plugin) {
 		this.plugin = plugin;
 	}
 
+	static {
+		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
+		final String firstNumber;
+		String secondNumber;
+		final String firstString = versionPieces[1];
+		if (firstString.contains("-")) {
+			firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
+
+			secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
+			final int index = secondNumber.toUpperCase().indexOf("R");
+			if (index >= 0) secondNumber = secondNumber.substring(index + 1);
+		} else {
+			final String secondString = versionPieces[2];
+			firstNumber = firstString;
+			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
+		}
+		SERVER_VERSION = Float.parseFloat(firstNumber + "." + secondNumber);
+	}
 	// ----------------------------------------------------------------------------------------
 	// Setting metadata
 	// ----------------------------------------------------------------------------------------
@@ -74,7 +96,7 @@ public final class CompMetadata {
 	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull final String key, @Nonnull final Object value) {
-		Validate.checkNotNull(item, "Setting NBT tag got null item");
+		Validate.checkNotNull(item, itemIsNull);
 
 		return NBT.modify(item, writeItemNBT -> {
 			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
@@ -100,7 +122,7 @@ public final class CompMetadata {
 	 * @return The original itemStack with the metadata set.
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull Consumer<NBTDataWriterWrapper> writeNBT) {
-		Validate.checkNotNull(item, "Setting NBT tag got null item");
+		Validate.checkNotNull(item, itemIsNull);
 
 		return NBT.modify(item, writeItemNBT -> {
 			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
@@ -128,7 +150,7 @@ public final class CompMetadata {
 	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
 	 */
 	public ItemStack setAllMetadata(@Nonnull final ItemStack item, @Nonnull final Map<String, Object> nbtMap) {
-		Validate.checkNotNull(item, "Setting NBT tag got null item");
+		Validate.checkNotNull(item, itemIsNull);
 		Validate.checkNotNull(nbtMap, "The map with nbt should not be null");
 
 		return NBT.modify(item, nbt -> {
@@ -188,9 +210,9 @@ public final class CompMetadata {
 		Validate.checkNotNull(key);
 		Validate.checkNotNull(value);
 
-		if (ServerVersion.atLeast(ServerVersion.v1_14)) {
+		if (SERVER_VERSION >= 1.14F) {
 			Validate.checkBoolean(tileEntity instanceof TileState,
-					"BlockState must be instance of a TileState not " + tileEntity);
+					blockState + tileEntity);
 
 			setNameSpacedKey((TileState) tileEntity, key, value);
 			tileEntity.update();
@@ -366,14 +388,14 @@ public final class CompMetadata {
 	public String getMetadata(@Nonnull final Entity entity, @Nonnull final String key) {
 		Validate.checkNotNull(entity);
 
-		if (false)
-			// if (Remain.hasScoreboardTags())
+		if (isHasScoreboardTags()) {
 			for (final String line : entity.getScoreboardTags()) {
 				final String tag = getTag(line, key);
 
 				if (tag != null && !tag.isEmpty())
 					return tag;
 			}
+		}
 
 		final String value = entity.hasMetadata(key) ? entity.getMetadata(key).get(0).asString() : null;
 
@@ -393,9 +415,9 @@ public final class CompMetadata {
 		Validate.checkNotNull(key);
 
 
-		if (ServerVersion.atLeast(ServerVersion.v1_14)) {
+		if (SERVER_VERSION >= 1.14F) {
 			Validate.checkBoolean(tileEntity instanceof TileState,
-					"BlockState must be instance of a TileState not " + tileEntity);
+					blockState + tileEntity);
 
 			return getNameSpacedKey((TileState) tileEntity, key);
 		}
@@ -492,9 +514,9 @@ public final class CompMetadata {
 		Validate.checkNotNull(tileEntity);
 		Validate.checkNotNull(key);
 
-		if (ServerVersion.atLeast(ServerVersion.v1_14)) {
+		if (SERVER_VERSION >= 1.14F) {
 			Validate.checkBoolean(tileEntity instanceof TileState,
-					"BlockState must be instance of a TileState not " + tileEntity);
+					blockState + tileEntity);
 
 			return hasNameSpacedKey((TileState) tileEntity, key);
 		}
@@ -585,7 +607,7 @@ public final class CompMetadata {
 	 * @return the message to set when item is null.
 	 */
 	public String setMessageItemNull(){
-		return"Reading NBT tag got null item";
+		return message;
 	}
 
 	/**

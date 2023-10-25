@@ -143,7 +143,6 @@ public class RegisterMenuAPI {
 
 	private void registerMenuEvent(final Plugin plugin) {
 		final MenuHolderListener menuHolderListener = new MenuHolderListener();
-		//if (!getRegisteredListeners(plugin).stream().allMatch(registeredListener -> registeredListener.getListener().getClass().equals(menuHolderListener.getClass())))
 		Bukkit.getPluginManager().registerEvents(menuHolderListener, plugin);
 
 	}
@@ -175,7 +174,7 @@ public class RegisterMenuAPI {
 
 			final MenuUtility<?> menuUtility = getMenuHolder(player);
 			if (menuUtility == null) return;
-			if (ServerVersion.olderThan(ServerVersion.v1_15)) return;
+			if (ServerVersion.olderThan(ServerVersion.V1_15)) return;
 
 			this.cacheData.put(player.getUniqueId(), new SwapData(false, player.getInventory().getItemInOffHand()));
 		}
@@ -189,10 +188,11 @@ public class RegisterMenuAPI {
 
 			final SwapData data = cacheData.get(player.getUniqueId());
 			if (data != null && data.isPlayerUseSwapoffhand())
-				if (data.getItemInOfBeforeOpenMenuHand() != null && data.getItemInOfBeforeOpenMenuHand().getType() != Material.AIR)
+				if (data.getItemInOfBeforeOpenMenuHand() != null && data.getItemInOfBeforeOpenMenuHand().getType() != Material.AIR) {
 					player.getInventory().setItemInOffHand(data.getItemInOfBeforeOpenMenuHand());
-				else
+				} else {
 					player.getInventory().setItemInOffHand(null);
+				}
 			cacheData.remove(player.getUniqueId());
 
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu()))
@@ -205,16 +205,14 @@ public class RegisterMenuAPI {
 				if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
 					getPlayerMeta().removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
 				}
-				if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
-					if (menuUtility.isAutoClearCache()) {
-						if (menuUtility.getAmountOfViewers() < 1) {
-							menuCache.removeMenuCached(getPlayerMeta().getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION));
-						}
-					}
-					getPlayerMeta().removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
+				if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
+						menuUtility.isAutoClearCache() && menuUtility.getAmountOfViewers() < 1) {
+						menuCache.removeMenuCached(getPlayerMeta().getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION));
 				}
+				getPlayerMeta().removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
 			}
 		}
+
 
 		@EventHandler(priority = EventPriority.LOW)
 		public void onInventoryDragTop(final InventoryDragEvent event) {
@@ -248,13 +246,13 @@ public class RegisterMenuAPI {
 		}
 
 		public boolean isItemSimilar(final ItemStack item, final ItemStack clickedItem) {
-			if (item != null && clickedItem != null)
+			if (item != null && clickedItem != null) {
 				if (itemIsSimilar(item, clickedItem)) {
 					return true;
 				} else {
 					return item.isSimilar(clickedItem);
 				}
-
+			}
 			return false;
 		}
 
@@ -274,7 +272,7 @@ public class RegisterMenuAPI {
 		}
 
 		public short getDurability(final ItemStack itemstack, final ItemMeta itemMeta) {
-			if (ServerVersion.atLeast(ServerVersion.v1_13))
+			if (ServerVersion.atLeast(ServerVersion.V1_13))
 				return (itemMeta == null) ? 0 : (short) ((Damageable) itemMeta).getDamage();
 			return itemstack.getDurability();
 		}
@@ -339,7 +337,7 @@ public class RegisterMenuAPI {
 		}
 
 		private void onOffHandClick(final InventoryClickEvent event, final Player player) {
-			if (ServerVersion.newerThan(ServerVersion.v1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
+			if (ServerVersion.newerThan(ServerVersion.V1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
 				final SwapData data = cacheData.get(player.getUniqueId());
 				ItemStack item = null;
 				if (data != null) {
@@ -375,10 +373,11 @@ public class RegisterMenuAPI {
 
 				final ItemStack cursor = checkIfNull(event.getCursor(), event.getOldCursor());
 				if (menuUtility.isSlotsYouCanAddItems()) {
-					if (menuUtility.getFillSpace().contains(clickedSlot))
+					if (menuUtility.getFillSpace().contains(clickedSlot)) {
 						return;
-					else
+					} else {
 						event.setCancelled(true);
+					}
 				} else {
 					event.setCancelled(true);
 				}
@@ -388,13 +387,12 @@ public class RegisterMenuAPI {
 		}
 
 		private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
-			if (clickedInventory.getType() == InventoryType.PLAYER)
-				if (event.getClick().isShiftClick()) {
+			if (clickedInventory.getType() == InventoryType.PLAYER) {
 					event.setCancelled(true);
-				} else
-					event.setCancelled(true);
-			if (cursor != null && cursor.getType() != Material.AIR)
+			}
+			if (cursor != null && cursor.getType() != Material.AIR) {
 				event.setCancelled(true);
+			}
 		}
 	}
 }

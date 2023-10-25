@@ -1,7 +1,7 @@
 package org.broken.arrow.nbt.library;
 
 
-import org.broken.arrow.nbt.library.utility.ServerVersion;
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
 import java.util.logging.Level;
@@ -13,14 +13,26 @@ import static de.tr7zw.changeme.nbtapi.utils.MinecraftVersion.getVersion;
 public class RegisterNbtAPI {
 
 	private final CompMetadata compMetadata;
-
+	private static boolean hasScoreboardTags = true;
 	public RegisterNbtAPI(Plugin plugin, boolean turnOffLogger) {
 		Logger logger = Logger.getLogger("NBTAPI");
 		if (turnOffLogger)
 			logger.setLevel(Level.WARNING);
 		getVersion();
 		compMetadata = new CompMetadata(plugin);
-		ServerVersion.setServerVersion(plugin);
+		checkClassesExist();
+	}
+
+	public static void checkClassesExist() {
+		try {
+			Entity.class.getMethod("getScoreboardTags");
+		} catch (Throwable ignore) {
+			hasScoreboardTags = false;
+		}
+	}
+
+	public static boolean isHasScoreboardTags() {
+		return hasScoreboardTags;
 	}
 
 	/**

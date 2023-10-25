@@ -9,6 +9,9 @@ import java.util.UUID;
 
 public class ConvertObjectType {
 
+	private ConvertObjectType() {
+	}
+
 	/**
 	 * Sets an NBT value in the ReadWriteNBT compound. The value is cast to the appropriate class when retrieved from an entity or ItemStack.
 	 * If a matching NBT supported class is not found, the value will be cast to a string.

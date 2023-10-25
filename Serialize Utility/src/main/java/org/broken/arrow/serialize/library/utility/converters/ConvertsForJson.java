@@ -17,6 +17,9 @@ import java.util.UUID;
  */
 public class ConvertsForJson {
 
+	private ConvertsForJson() {
+	}
+
 	/**
 	 * Serializes a list to JSON format for easy storage in a database.
 	 * Use {@link #convertFromJsonList(Class, String)} to deserialize the JSON string back to a list.

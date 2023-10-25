@@ -1,6 +1,7 @@
 package org.broken.arrow.serialize.library.utility.converters.particleeffect;
 
 
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.converters.SpigotBlockFace;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
@@ -16,7 +17,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Logger;
+import java.util.logging.Level;
+
+import static org.broken.arrow.logging.library.Logging.of;
 
 /**
  * A simple wrapper class that provides support for serialization to file or other database.
@@ -26,7 +29,7 @@ import java.util.logging.Logger;
  */
 public final class ParticleEffect implements ConfigurationSerializable, ParticleEffectAccessor {
 
-	private static final Logger logger = Logger.getLogger(ParticleEffect.class.getName());
+	private static final Logging logger = new Logging(ParticleEffect.class);
 	private final Particle particle;
 	private final Effect effect;
 	private final Material material;
@@ -331,12 +334,12 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		 * The potion on the effect, this is used on
 		 * legacy versions below 1.13.
 		 *
-		 * @param Potion the potion set to this effect.
+		 * @param potion the potion set to this effect.
 		 * @return this instance.
 		 */
 
-		public Builder setPotion(final Potion Potion) {
-			this.potion = Potion;
+		public Builder setPotion(final Potion potion) {
+			this.potion = potion;
 			return this;
 		}
 
@@ -505,20 +508,15 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 			if (dataType.isInstance(material))
 				builder.setMaterialBlockData(material.createBlockData());
 		}
-		if (material == null) {
-			if (dataType.isInstance(Material.class)) {
-				logger.warning("you have to set the material for this particle effect, this particle use this class '" + dataType + "' .");
-			}
+		final Class<?> finalDataType = dataType;
+		if (material == null && dataType.isInstance(Material.class)) {
+			logger.log(Level.WARNING, () -> of("you have to set the material for this particle effect, this particle use this class '" + finalDataType + "' ."));
 		}
-		if (blockFace == null) {
-			if (dataType.isInstance(BlockFace.class)) {
-				logger.warning("you have to set the block face for this particle effect, from this class '" + dataType + "' .");
-			}
+		if (blockFace == null && dataType.isInstance(BlockFace.class)) {
+			logger.log(Level.WARNING, () -> of("you have to set the block face for this particle effect, from this class '" + finalDataType + "' ."));
 		}
-		if (potion == -1) {
-			if (dataType.isInstance(Potion.class)) {
-				logger.warning("you have to set the potion number for this particle effect, from this class '" + dataType + "' .");
-			}
+		if (potion == -1 && dataType.isInstance(Potion.class)) {
+			logger.log(Level.WARNING, () -> of("you have to set the potion number for this particle effect, from this class '" + finalDataType + "' ."));
 		}
 		BlockFace facing = SpigotBlockFace.getBlockFace(blockFace);
 		if (potion >= 0)
@@ -528,7 +526,6 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 				.setDustOptions(options)
 				.setExtra(data)
 				.build();
-
 
 		return builder.build();
 

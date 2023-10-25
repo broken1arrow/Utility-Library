@@ -5,10 +5,10 @@ package org.broken.arrow.serialize.library.utility.converters.time;
  */
 public class TimeFormattingUtils {
 
-	private static final long millisToSeconds = 1000;
-	private static final long millisToMinute = millisToSeconds * 60;
-	private static final long millisTohours = millisToMinute * 60;
-	private static final long millisToDays = millisTohours * 24;
+	private static final long MILLIS_TO_SECONDS = 1000;
+	private static final long MILLIS_TO_MINUTE = MILLIS_TO_SECONDS * 60;
+	private static final long MILLIS_TO_HOURS = MILLIS_TO_MINUTE * 60;
+	private static final long MILLIS_TO_DAYS = MILLIS_TO_HOURS * 24;
 	private final TimeFormatProvider timeFormatProvider;
 
 	/**
@@ -45,12 +45,12 @@ public class TimeFormattingUtils {
 		long min = 0;
 		long hours;
 		long days;
-		if (!((time - currentTime) / millisToSeconds % 60 == 0))
-			second = (time - currentTime) / millisToSeconds % 60;
-		if (!((time - currentTime) / millisToMinute % 60 == 0))
-			min = (time - currentTime) / millisToMinute % 60;
-		hours = (time - currentTime) / millisTohours % 24;
-		days = (time - currentTime) / millisToDays;
+		if (!((time - currentTime) / MILLIS_TO_SECONDS % 60 == 0))
+			second = (time - currentTime) / MILLIS_TO_SECONDS % 60;
+		if (!((time - currentTime) / MILLIS_TO_MINUTE % 60 == 0))
+			min = (time - currentTime) / MILLIS_TO_MINUTE % 60;
+		hours = (time - currentTime) / MILLIS_TO_HOURS % 24;
+		days = (time - currentTime) / MILLIS_TO_DAYS;
 		if (min < 0)
 			min = 0;
 		if (hours < 0)

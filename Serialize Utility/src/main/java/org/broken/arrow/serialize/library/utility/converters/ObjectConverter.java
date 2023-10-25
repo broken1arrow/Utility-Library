@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
  */
 public class ObjectConverter {
 
+	private ObjectConverter() {
+	}
+
 	/**
 	 * Casts an object to a specific number type.
 	 *
@@ -179,7 +182,7 @@ public class ObjectConverter {
 	 * @return a list of objects cast to the provided class; if any element cannot be cast, returns an empty list.
 	 */
 	public static <L> List<L> castList(final List<?> list, final Class<L> clazz) {
-		if (list == null) return null;
+		if (list == null) return new ArrayList<>();
 		return list.stream().filter(clazz::isInstance).map(clazz::cast).collect(Collectors.toList());
 	}
 
@@ -202,7 +205,7 @@ public class ObjectConverter {
 	 * @return a list of maps if the provided list contains map instances; otherwise, returns an empty list.
 	 */
 	public static List<Map<String, Object>> castListOfMaps(final List<?> list) {
-		if (list == null) return null;
+		if (list == null) return new ArrayList<>();
 		return list.stream()
 				.filter(Map.class::isInstance)
 				.map(Map.class::cast)
