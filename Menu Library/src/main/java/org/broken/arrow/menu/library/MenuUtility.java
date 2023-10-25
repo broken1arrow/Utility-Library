@@ -944,7 +944,7 @@ public class MenuUtility<T> {
 					updateTittle();
 					return;
 				}
-				if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz() && !menuAPI.isNotFoundUpdateTitleClazz()) {
+				if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz()) {
 						updateTitle(text);
 				}
 			}

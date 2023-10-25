@@ -9,7 +9,7 @@ import org.bukkit.World;
  */
 public class LocationSerializer {
 
-	private static final String locationPattern = "[-+]?\\d+";
+	private static final String LOCATION_PATTERN = "[-+]?\\d+";
 
 	private LocationSerializer() {
 	}
@@ -62,7 +62,7 @@ public class LocationSerializer {
 				final World bukkitWorld = Bukkit.getWorld(world);
 				if (bukkitWorld == null)
 					return null;
-				if (!parts[1].matches(locationPattern) && !parts[2].matches(locationPattern) && !parts[3].matches(locationPattern))
+				if (!parts[1].matches(LOCATION_PATTERN) && !parts[2].matches(LOCATION_PATTERN) && !parts[3].matches(LOCATION_PATTERN))
 					return null;
 				else {
 					final int x = Integer.parseInt(parts[1]);

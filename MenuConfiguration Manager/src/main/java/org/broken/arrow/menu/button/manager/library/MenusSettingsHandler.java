@@ -28,7 +28,7 @@ public class MenusSettingsHandler extends YamlFileManager {
 	private final Plugin pluginInstance;
 	private final int version = 1;
 	private final Map<String, MenuTemplate> templates = new HashMap<>();
-	private final String menu = "Menus.";
+	private static final String MENUS = "Menus.";
 
 	/**
 	 * Creates an instance of MenusSettingsHandler.
@@ -91,13 +91,13 @@ public class MenusSettingsHandler extends YamlFileManager {
 
 		if (configurationSection != null) {
 			for (final String key : configurationSection.getKeys(false)) {
-				final ConfigurationSection menuData = configuration.getConfigurationSection(menu + key + ".buttons");
+				final ConfigurationSection menuData = configuration.getConfigurationSection(MENUS + key + ".buttons");
 
-				String menuTitle = configuration.getString(menu + key + ".menu_settings.title");
+				String menuTitle = configuration.getString(MENUS + key + ".menu_settings.title");
 				if (menuTitle == null || menuTitle.isEmpty())
-					menuTitle = configuration.getString(menu + key + ".menu_settings.name");
-				final List<Integer> fillSpace = parseRange(configuration.getString(menu + key + ".menu_settings.fill-space"));
-				final String sound = configuration.getString(menu + key + ".menu_settings.sound");
+					menuTitle = configuration.getString(MENUS + key + ".menu_settings.name");
+				final List<Integer> fillSpace = parseRange(configuration.getString(MENUS + key + ".menu_settings.fill-space"));
+				final String sound = configuration.getString(MENUS + key + ".menu_settings.sound");
 
 				final Map<List<Integer>, MenuButtonData> menuButtonMap = getButtons(menuData, key);
 
@@ -142,7 +142,7 @@ public class MenusSettingsHandler extends YamlFileManager {
 		if (menuData == null) return menuButtonMap;
 
 		for (final String menuButtons : menuData.getKeys(false)) {
-			final MenuButtonData menuButton = this.getData(menu + key + ".buttons." + menuButtons, MenuButtonData.class);
+			final MenuButtonData menuButton = this.getData(MENUS + key + ".buttons." + menuButtons, MenuButtonData.class);
 			menuButtonMap.put(parseRange(menuButtons), menuButton);
 		}
 

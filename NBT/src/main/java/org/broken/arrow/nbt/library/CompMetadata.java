@@ -49,9 +49,9 @@ public final class CompMetadata {
 	private static final String DELIMITER = "%-%";
 	private static final float SERVER_VERSION;
 	private final Plugin plugin;
-	private final String message = "Reading NBT tag got null item";
-	private final String itemIsNull = "Setting NBT tag got null item";
-	private final String blockState = "BlockState must be instance of a TileState not ";
+	private static final String READING_NULL_ITEM = "Reading NBT tag got null item";
+	private static  final String ITEM_IS_NULL = "Setting NBT tag got null item";
+	private static  final String BLOCK_STATE = "BlockState must be instance of a TileState not ";
 
 	public CompMetadata(Plugin plugin) {
 		this.plugin = plugin;
@@ -96,7 +96,7 @@ public final class CompMetadata {
 	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull final String key, @Nonnull final Object value) {
-		Validate.checkNotNull(item, itemIsNull);
+		Validate.checkNotNull(item, ITEM_IS_NULL);
 
 		return NBT.modify(item, writeItemNBT -> {
 			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
@@ -122,7 +122,7 @@ public final class CompMetadata {
 	 * @return The original itemStack with the metadata set.
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull Consumer<NBTDataWriterWrapper> writeNBT) {
-		Validate.checkNotNull(item, itemIsNull);
+		Validate.checkNotNull(item, ITEM_IS_NULL);
 
 		return NBT.modify(item, writeItemNBT -> {
 			ReadWriteNBT compound = writeItemNBT.getOrCreateCompound(this.getCompoundKey());
@@ -150,7 +150,7 @@ public final class CompMetadata {
 	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
 	 */
 	public ItemStack setAllMetadata(@Nonnull final ItemStack item, @Nonnull final Map<String, Object> nbtMap) {
-		Validate.checkNotNull(item, itemIsNull);
+		Validate.checkNotNull(item, ITEM_IS_NULL);
 		Validate.checkNotNull(nbtMap, "The map with nbt should not be null");
 
 		return NBT.modify(item, nbt -> {
@@ -212,7 +212,7 @@ public final class CompMetadata {
 
 		if (SERVER_VERSION >= 1.14F) {
 			Validate.checkBoolean(tileEntity instanceof TileState,
-					blockState + tileEntity);
+					BLOCK_STATE + tileEntity);
 
 			setNameSpacedKey((TileState) tileEntity, key, value);
 			tileEntity.update();
@@ -417,7 +417,7 @@ public final class CompMetadata {
 
 		if (SERVER_VERSION >= 1.14F) {
 			Validate.checkBoolean(tileEntity instanceof TileState,
-					blockState + tileEntity);
+					BLOCK_STATE + tileEntity);
 
 			return getNameSpacedKey((TileState) tileEntity, key);
 		}
@@ -516,7 +516,7 @@ public final class CompMetadata {
 
 		if (SERVER_VERSION >= 1.14F) {
 			Validate.checkBoolean(tileEntity instanceof TileState,
-					blockState + tileEntity);
+					BLOCK_STATE + tileEntity);
 
 			return hasNameSpacedKey((TileState) tileEntity, key);
 		}
@@ -607,7 +607,7 @@ public final class CompMetadata {
 	 * @return the message to set when item is null.
 	 */
 	public String setMessageItemNull(){
-		return message;
+		return READING_NULL_ITEM;
 	}
 
 	/**
