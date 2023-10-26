@@ -1,11 +1,15 @@
 package org.broken.arrow.menu.library.utility;
 
+import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class ItemCreator {
 
+	private ItemCreator() {
+		throw new ValidateExceptions("should not use a constructor for a utility class");
+	}
 	public static ItemStack createItemStackAsOne(final ItemStack stack) {
 		ItemStack itemstack = null;
 		if (stack != null && !stack.getType().equals(Material.AIR)) {
@@ -25,12 +29,11 @@ public class ItemCreator {
 		int countItems = 0;
 		for (ItemStack itemStack : inventoryItems) {
 			if (onlyNoFullItems) {
-				if (!(itemStack.getAmount() == itemStack.getMaxStackSize())) {
-					if (itemStack != null && itemStack.isSimilar(item) && !(itemStack.getType() == Material.AIR)) {
+				if (itemStack != null && !(itemStack.getAmount() == itemStack.getMaxStackSize()) &&
+						itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
 						countItems += itemStack.getAmount();
-					}
 				}
-			} else if (itemStack != null && itemStack.isSimilar(item) && !(itemStack.getType() == Material.AIR)) {
+			} else if (itemStack != null && itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
 				countItems += itemStack.getAmount();
 			}
 		}

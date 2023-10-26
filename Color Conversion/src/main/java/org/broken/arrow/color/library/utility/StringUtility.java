@@ -13,6 +13,9 @@ public class StringUtility {
 
 	private static final Logging LOG = new Logging(StringUtility.class);
 
+	private StringUtility() {
+	}
+
 	/**
 	 * Convert RGB to hex.
 	 *

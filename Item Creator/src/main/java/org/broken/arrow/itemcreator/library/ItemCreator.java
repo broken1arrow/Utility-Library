@@ -1,6 +1,7 @@
 package org.broken.arrow.itemcreator.library;
 
 
+import org.broken.arrow.itemcreator.library.utility.ConvertToItemStack;
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
 import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 import org.broken.arrow.nbt.library.RegisterNbtAPI;
@@ -15,6 +16,7 @@ import java.util.List;
 public class ItemCreator {
 
 	private final RegisterNbtAPI nbtApi;
+	private ConvertToItemStack convertItems;
 	private float serverVersion;
 
 	private ItemCreator() {
@@ -44,6 +46,9 @@ public class ItemCreator {
 			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
 		}
 		this.serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+
+		if (convertItems == null)
+			convertItems = new ConvertToItemStack(serverVersion);
 	}
 
 	public RegisterNbtAPI getNbtApi() {
@@ -52,6 +57,10 @@ public class ItemCreator {
 
 	public float getServerVersion() {
 		return serverVersion;
+	}
+
+	public ConvertToItemStack getConvertItems() {
+		return convertItems;
 	}
 
 	/**
@@ -149,7 +158,7 @@ public class ItemCreator {
 		ItemStack itemstack = null;
 		if (itemStacks != null) {
 			for (final ItemStack item : itemStacks)
-				if (!(item.getType() == Material.AIR)) {
+				if (item.getType() != Material.AIR) {
 					itemstack = item.clone();
 					final ItemMeta meta = itemstack.getItemMeta();
 					itemstack.setItemMeta(meta);

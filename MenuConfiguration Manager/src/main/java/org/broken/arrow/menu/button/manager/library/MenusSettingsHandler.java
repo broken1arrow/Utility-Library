@@ -26,7 +26,6 @@ import java.util.stream.IntStream;
  */
 public class MenusSettingsHandler extends YamlFileManager {
 	private final Plugin pluginInstance;
-	private final int version = 1;
 	private final Map<String, MenuTemplate> templates = new HashMap<>();
 	private static final String MENUS = "Menus.";
 
@@ -122,19 +121,23 @@ public class MenusSettingsHandler extends YamlFileManager {
 				if (Objects.equals(subRange, "")) continue;
 				if (subRange.contains("-")) {
 					final String[] numbers = subRange.split("-");
-					if (numbers[0].isEmpty() || numbers[1].isEmpty()) {
-						slots.add(Integer.parseInt(subRange));
-						continue;
-					}
-					final int first = Integer.parseInt(numbers[0]);
-					final int second = Integer.parseInt(numbers[1]);
-					slots.addAll(IntStream.range(first, second + 1).boxed().collect(Collectors.toList()));
+					setSlots(slots, subRange, numbers);
 				} else slots.add(Integer.parseInt(subRange));
 			}
 		} catch (final NumberFormatException e) {
 			pluginInstance.getLogger().log(Level.WARNING, "Couldn't parse range " + range);
 		}
 		return slots;
+	}
+
+	private void setSlots(final List<Integer> slots, final String subRange, final String[] numbers) {
+		if (numbers[0].isEmpty() || numbers[1].isEmpty()) {
+			slots.add(Integer.parseInt(subRange));
+			return;
+		}
+		final int first = Integer.parseInt(numbers[0]);
+		final int second = Integer.parseInt(numbers[1]);
+		slots.addAll(IntStream.range(first, second + 1).boxed().collect(Collectors.toList()));
 	}
 
 	private Map<List<Integer>, MenuButtonData> getButtons(ConfigurationSection menuData, String key) {
@@ -151,7 +154,7 @@ public class MenusSettingsHandler extends YamlFileManager {
 
 	@Override
 	protected void saveDataToFile(final File file) {
-
+		// Not in use, because no data need to be set back to file.
 	}
 
 

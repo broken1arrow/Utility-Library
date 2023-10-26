@@ -62,6 +62,7 @@ public class RegisterMenuAPI {
 		this.plugin = plugin;
 		menuAPI = this;
 		menuCache = new MenuCache();
+		versionCheck();
 		if (this.plugin == null) {
 			logger.log(Level.WARNING, () -> Logging.of("You have not set a plugin."));
 			logger.log(Level.WARNING, () -> Logging.of("If you're unsure how to use this library, " +
@@ -80,7 +81,6 @@ public class RegisterMenuAPI {
 			logger.log(() -> Logging.of("or contact plugin developer for assistance."));
 			notFoundUpdateTitle = true;
 		}
-		versionCheck();
 		registerMenuEvent(plugin);
 		this.checkItemsInsideMenu = new CheckItemsInsideMenu(this);
 		this.playerMeta = new Metadata(plugin);
@@ -98,7 +98,8 @@ public class RegisterMenuAPI {
 	}
 
 	private void versionCheck() {
-		logger.log(() -> Logging.of("Now starting MenuApi. Any errors will be shown below."));
+		logger.log(() -> Logging.of("Now starting MenuApi,. Any errors will be shown below."));
+		ServerVersion.getCurrentServerVersion();
 	}
 
 	public void getLogger(final Level level, final String messsage) {
@@ -187,12 +188,13 @@ public class RegisterMenuAPI {
 			if (menuUtility == null) return;
 
 			final SwapData data = cacheData.get(player.getUniqueId());
-			if (data != null && data.isPlayerUseSwapoffhand())
+			if (data != null && data.isPlayerUseSwapoffhand()) {
 				if (data.getItemInOfBeforeOpenMenuHand() != null && data.getItemInOfBeforeOpenMenuHand().getType() != Material.AIR) {
 					player.getInventory().setItemInOffHand(data.getItemInOfBeforeOpenMenuHand());
 				} else {
 					player.getInventory().setItemInOffHand(null);
 				}
+			}
 			cacheData.remove(player.getUniqueId());
 
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu()))

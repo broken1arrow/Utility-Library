@@ -135,8 +135,7 @@ public final class SqlCommandComposer {
 		else
 			columns.append(")");
 
-		String string = "CREATE TABLE IF NOT EXISTS " + quoteColumnName + tableData.getTableName() + quoteColumnName + " (" + columns + ")" + (!database.getCharacterSet().isEmpty() ? " " + database.getCharacterSet() : "" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
-		return string;
+		return "CREATE TABLE IF NOT EXISTS " + quoteColumnName + tableData.getTableName() + quoteColumnName + " (" + columns + ")" + (!database.getCharacterSet().isEmpty() ? " " + database.getCharacterSet() : "" /*COLLATE=utf8mb4_unicode_520_ci*/) + ";";
 	}
 
 	/**
@@ -180,25 +179,26 @@ public final class SqlCommandComposer {
 	/**
 	 * Update data in your database from the provided record value, on columns you added. Will update old data on columns you added.
 	 *
-	 * @param record the record for the primary key you want to update.
+	 * @param sqlRecord the record for the primary key you want to update.
 	 */
-	public void updateTable(Object record) {
-		Validate.checkBoolean(record == null || record.toString().isEmpty(), "You need to set record value.You can't update the row without it.");
-		queryCommand = this.createUpdateCommand(record);
+	public void updateTable(Object sqlRecord) {
+		Validate.checkBoolean(sqlRecord == null || sqlRecord.toString().isEmpty(), "You need to set record value.You can't update the row without it.");
+		queryCommand = this.createUpdateCommand(sqlRecord);
 	}
 
 	/**
 	 * Update data in your database from the list of record values, on columns you added. Will update old data on columns you added.
 	 *
-	 * @param records the records for the primary key you want to update.
+	 * @param sqlRecords the records for the primary key you want to update.
 	 * @return list of prepared query's to run on your database.
+	 * @deprecated plan to be removed, because this is bad way to create sql commands from a record.
 	 */
 	@Deprecated
-	public List<String> updateTables(List<String> records) {
+	public List<String> updateTables(List<String> sqlRecords) {
 		List<String> list = new ArrayList<>();
-		Validate.checkBoolean(records == null || records.isEmpty(), "You need to set record value.You can't update the row without it.");
-		for (String record : records)
-			list.add(this.createUpdateCommand(record));
+		Validate.checkBoolean(sqlRecords == null || sqlRecords.isEmpty(), "You need to set record value.You can't update the row without it.");
+		for (String sqlRecord : sqlRecords)
+			list.add(this.createUpdateCommand(sqlRecord));
 		return list;
 	}
 
@@ -233,9 +233,9 @@ public final class SqlCommandComposer {
 	 */
 	public void removeRow(final String value) {
 		final TableWrapper tableData = this.getTableWrapper();
-		final RowWrapper rowWrapper = getColumnWrapper();
-		Validate.checkBoolean(rowWrapper.getPrimaryKey().isEmpty(), "You need set primaryKey, for drop the column in this table." + tableData.getTableName());
-		queryCommand = "DELETE FROM " + this.quote + tableData.getTableName() + this.quote + " WHERE " + this.quote + rowWrapper.getPrimaryKey() + this.quote + " = '" + value + "';";
+		final RowWrapper rows = getColumnWrapper();
+		Validate.checkBoolean(rows.getPrimaryKey().isEmpty(), "You need set primaryKey, for drop the column in this table." + tableData.getTableName());
+		queryCommand = "DELETE FROM " + this.quote + tableData.getTableName() + this.quote + " WHERE " + this.quote + rows.getPrimaryKey() + this.quote + " = '" + value + "';";
 		preparedSQLBatch.insert(0, queryCommand);
 	}
 
@@ -269,14 +269,14 @@ public final class SqlCommandComposer {
 	 * values here {@link #getCachedDataByColumn()}
 	 */
 	public void executeCustomCommand() {
-		SqlQueryBuilder queryBuilder = this.getTableWrapper().getSqlQueryBuilder();
-		if (queryBuilder != null) {
-			String query = queryBuilder.getQuery();
+		SqlQueryBuilder builder = this.getTableWrapper().getSqlQueryBuilder();
+		if (builder != null) {
+			String query = builder.getQuery();
 			if (query == null) {
 				log.log(Level.WARNING,()-> of("The query command is not set or not properly setup."));
 				return;
 			}
-			Map<Integer, ColumnWrapper> columnValueMap = queryBuilder.getIndexCachedWithValue();
+			Map<Integer, ColumnWrapper> columnValueMap = builder.getIndexCachedWithValue();
 			if (!columnValueMap.isEmpty()) {
 				columnValueMap.forEach((key, value) ->
 						this.cachedDataByColumn.put(key, value.getColumnValue()));
@@ -294,11 +294,11 @@ public final class SqlCommandComposer {
 	 */
 	private String createUpdateCommand(Object record) {
 		final TableWrapper tableData = this.getTableWrapper();
-		final RowWrapper rowWrapper = getColumnWrapper();
+		final RowWrapper rows = getColumnWrapper();
 		final Map<String, TableRow> tableRowMap = tableData.getColumns();
-		final char quote = this.quote;
-		Validate.checkNotNull(rowWrapper, "The RowWrapper instance you try to save is null, for this record: " + record);
-		Validate.checkBoolean(rowWrapper.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table.");
+		final char quoteColumn = this.quote;
+		Validate.checkNotNull(rows, "The RowWrapper instance you try to save is null, for this record: " + record);
+		Validate.checkBoolean(rows.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table.");
 		Validate.checkBoolean(record == null || record.equals(""), "You need to set record value for the primary key. When you want to update the row.");
 
 		final StringBuilder prepareColumnsToUpdate = new StringBuilder();
@@ -311,24 +311,24 @@ public final class SqlCommandComposer {
 			if (columnsToUpdate != null && !columnsToUpdate.isEmpty() && !columnsToUpdate.contains(columnName)) {
 				continue;
 			}
-			Object value = rowWrapper.getColumnValue(columnName);
+			Object value = rows.getColumnValue(columnName);
 			index = setColumData(value, prepareColumnsToUpdate, columns, index, columnName, column);
 		}
 		this.cachedDataByColumn.put(index, record);
 		prepareColumnsToUpdate.setLength(prepareColumnsToUpdate.length() - 1);
 		preparedSQLBatch.append("UPDATE ")
-				.append(quote)
+				.append(quoteColumn)
 				.append(tableData.getTableName())
-				.append(quote).append(" SET ")
+				.append(quoteColumn).append(" SET ")
 				.append(prepareColumnsToUpdate).append(" WHERE ")
-				.append(quote)
-				.append(rowWrapper.getPrimaryKey())
-				.append(quote)
+				.append(quoteColumn)
+				.append(rows.getPrimaryKey())
+				.append(quoteColumn)
 				.append(" = ")
 				.append(" ? ")
 				.append(";");
 		columns.setLength(columns.length() - 2);
-		return "UPDATE " + quote + tableData.getTableName() + quote + " SET " + columns + " WHERE " + quote + rowWrapper.getPrimaryKey() + quote + " = " + quote + record + quote + ";";
+		return "UPDATE " + quoteColumn + tableData.getTableName() + quoteColumn + " SET " + columns + " WHERE " + quoteColumn + rows.getPrimaryKey() + quoteColumn + " = " + quoteColumn + record + quoteColumn + ";";
 	}
 
 	private int setColumData(Object value,final StringBuilder prepareColumnsToUpdate, final StringBuilder columns, int index, final String columnName, final TableRow column) {

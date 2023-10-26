@@ -1,6 +1,6 @@
 package org.broken.arrow.menu.library.utility;
 
-import org.bukkit.plugin.Plugin;
+import org.bukkit.Bukkit;
 
 public enum ServerVersion {
 	V1_20_0((float) 20.0),
@@ -48,9 +48,8 @@ public enum ServerVersion {
 		return currentServerVersion - version.getVersion();
 	}
 
-	public static void setServerVersion(final Plugin plugin) {
-		if (currentServerVersion > 0) return;
-		final String[] strings = plugin.getServer().getBukkitVersion().split("\\.");
+	static {
+		final String[] strings = Bukkit.getBukkitVersion().split("\\.");
 		final String firstNumber;
 		String secondNumber;
 		final String firstString = strings[1];

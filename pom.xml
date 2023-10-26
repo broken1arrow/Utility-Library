@@ -267,19 +267,8 @@
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <finalName>${project.name}-${project.version}</finalName>
-             <!--               <filters>
-                                <filter>
-                                    <artifact>de.tr7zw:item-nbt-api-plugin</artifact>
-                                    <excludes>
-                                        <exclude>plugin.yml</exclude>
-                                        <exclude>de/tr7zw/nbtinjector/**</exclude>
-                                        <exclude>de/tr7zw/nbtapi/plugin/**</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>-->
                             <artifactSet>
                                 <includes>
-                                    <!-- <include>org.broken.arrow.library:NBT</include>-->
                                     <include>org.broken.arrow.library</include>
                                     <include>de.tr7zw:item-nbt-api</include>
                                 </includes>

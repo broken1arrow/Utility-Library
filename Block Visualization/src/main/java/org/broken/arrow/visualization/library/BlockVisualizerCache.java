@@ -1,6 +1,5 @@
 package org.broken.arrow.visualization.library;
 
-import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 import org.broken.arrow.visualization.library.builders.VisualizeData;
@@ -10,7 +9,6 @@ import org.broken.arrow.visualization.library.utility.Function;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -27,6 +25,7 @@ public final class BlockVisualizerCache {
 	private final VisualTask visualTask;
 	private final BlockVisualize blockVisualize;
 	private final EntityModifications entityModifications;
+
 
 	public BlockVisualizerCache(Plugin plugin, BlockVisualize blockVisualize) {
 		this.visualTask = new VisualTask(plugin, this, visualizedBlocks);
@@ -99,14 +98,6 @@ public final class BlockVisualizerCache {
 		return false;
 	}
 
-	private void setCustomName(final Entity en, final String name) {
-		try {
-			en.setCustomNameVisible(true);
-			if (name != null && !name.equals(""))
-				en.setCustomName(TextTranslator.toSpigotFormat(name));
-		} catch (final NoSuchMethodError ignored) {}
-
-	}
 
 	public void sendBlockChange(final int delayTicks, final Player player, final Location location, final Material material) {
 		if (delayTicks > 0) {

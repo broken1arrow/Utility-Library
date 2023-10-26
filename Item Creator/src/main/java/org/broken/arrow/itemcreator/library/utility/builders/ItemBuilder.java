@@ -93,7 +93,7 @@ public final class ItemBuilder {
 	 * Build your item. And call {@link CreateItemStack#makeItemStack()} or {@link CreateItemStack#makeItemStackArray()}
 	 * depending on if you want to create array of items or ony 1 stack.
 	 *
-	 * @return CreateItemUtily class with your data you have set.
+	 * @return CreateItemStack class with data already set in the constructor.
 	 */
 	public CreateItemStack build() {
 		return new CreateItemStack(this.itemCreator, this);

@@ -158,11 +158,11 @@ public abstract class YamlFileManager {
 			this.configUpdater = new ConfigUpdater(this.plugin, ignoredSections);
 		if (file == null)
 			file = new File(this.getFullPath());
-		String resourcePath = resource;
-		if (resourcePath == null)
-			resourcePath = this.resourcePath;
+		String resourcePathToFile = resource;
+		if (resourcePathToFile == null)
+			resourcePathToFile = this.resourcePath;
 		try {
-			this.configUpdater.update(getVersion(), resourcePath != null ? resourcePath : this.getPathWithExtension(), file);
+			this.configUpdater.update(getVersion(), resourcePathToFile != null ? resourcePathToFile : this.getPathWithExtension(), file);
 		} catch (final IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -175,8 +175,8 @@ public abstract class YamlFileManager {
 	 */
 	public void reload() {
 		try {
-			Set<String> filesFromResource = this.filesFromResource;
-			if (filesFromResource == null || filesFromResource.isEmpty()) {
+			Set<String> fromResource = this.filesFromResource;
+			if (fromResource == null || fromResource.isEmpty()) {
 				load(getAllFilesInPluginJar());
 			} else {
 				load(getFilesInPluginFolder(this.getPath()));
@@ -298,18 +298,18 @@ public abstract class YamlFileManager {
 	 */
 	public final void save(final String fileToSave) {
 		if (this.singleFile) {
-			final File singleFile = new File(this.getFullPath());
-			this.saveData(singleFile);
+			final File file = new File(this.getFullPath());
+			this.saveData(file);
 			return;
 		}
 		
-		final File dataFolder = new File(this.getDataFolder(), this.getPath());
-		if (!dataFolder.isDirectory()) return;
-		final File[] listOfFiles = dataFolder.listFiles();
+		final File folder = new File(this.getDataFolder(), this.getPath());
+		if (!folder.isDirectory()) return;
+		final File[] listOfFiles = folder.listFiles();
 
-		if (dataFolder.exists() && listOfFiles != null) {
+		if (folder.exists() && listOfFiles != null) {
 			if (fileToSave != null) {
-				this.saveSpecificFile(fileToSave, dataFolder, listOfFiles);
+				this.saveSpecificFile(fileToSave, folder, listOfFiles);
 			} else {
 				for (final File file : listOfFiles) {
 					saveData(file);
@@ -318,9 +318,9 @@ public abstract class YamlFileManager {
 		}
 	}
 
-	private void saveSpecificFile(final String fileToSave, final File dataFolder, final File[] listOfFiles) {
+	private void saveSpecificFile(final String fileToSave, final File folder, final File[] listOfFiles) {
 		if (!checkFolderExist(fileToSave, listOfFiles)) {
-			final File newDataFolder = new File(dataFolder, fileToSave + "." + this.getExtension());
+			final File newDataFolder = new File(folder, fileToSave + "." + this.getExtension());
 			try {
 				newDataFolder.createNewFile();
 			} catch (final IOException e) {
@@ -373,8 +373,8 @@ public abstract class YamlFileManager {
 	 * @return true if the file was successfully removed, false otherwise
 	 */
 	public boolean removeFile(final String fileName) {
-		final File dataFolder = new File(this.getPath(), fileName + "." + getExtension());
-		return dataFolder.delete();
+		final File folder = new File(this.getPath(), fileName + "." + getExtension());
+		return folder.delete();
 	}
 
 	/**
@@ -452,10 +452,10 @@ public abstract class YamlFileManager {
 		if (this.extension == null) {
 			return "yml";
 		} else {
-			String extension = this.extension;
-			if (extension.startsWith("."))
-				extension = extension.substring(1);
-			return extension;
+			String fileExtension = this.extension;
+			if (fileExtension.startsWith("."))
+				fileExtension = fileExtension.substring(1);
+			return fileExtension;
 		}
 	}
 
@@ -483,8 +483,8 @@ public abstract class YamlFileManager {
 	 * @return the full path to the file.
 	 */
 	public String getPathWithExtension() {
-		String path = this.getPath();
-		return (path == null || path.isEmpty() ? "" : path + "/") + this.getFileName() + "." + this.getExtension();
+		String filePath = this.getPath();
+		return (filePath == null || filePath.isEmpty() ? "" : filePath + "/") + this.getFileName() + "." + this.getExtension();
 	}
 
 	/**
@@ -600,8 +600,8 @@ public abstract class YamlFileManager {
 	public boolean checkFolderExist(final String fileToSave, final File[] dataFolders) {
 		if (fileToSave != null)
 			for (final File file : dataFolders) {
-				final String fileName = getNameOfFile(file.getName());
-				if (fileName.equals(fileToSave))
+				final String name = getNameOfFile(file.getName());
+				if (name.equals(fileToSave))
 					return true;
 			}
 		return false;
@@ -630,13 +630,13 @@ public abstract class YamlFileManager {
 				this.saveResource(this.resourcePath);
 			return new File(checkFile.getParent()).listFiles(file -> !file.isDirectory() && file.getName().equals(getFileName(this.getPathWithExtension())));
 		}
-		final File dataFolder = new File(this.getDataFolder(), directory);
-		if (!dataFolder.exists() && !directory.isEmpty())
-			dataFolder.mkdirs();
+		final File folder = new File(this.getDataFolder(), directory);
+		if (!folder.exists() && !directory.isEmpty())
+			folder.mkdirs();
 		if (this.filesFromResource != null)
-			createMissingFiles(dataFolder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension())));
+			createMissingFiles(folder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension())));
 
-		return dataFolder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension()));
+		return folder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension()));
 	}
 
 	public String getNameOfFile(String path) {
@@ -740,8 +740,9 @@ public abstract class YamlFileManager {
 	 */
 	private void getFileFromJar(final String directoryName, final List<String> filenames, final URL url) {
 		final String dirname = isSingleFile() ? directoryName : directoryName + "/";
-		final String path = url.getPath();
-		final String jarPath = path.substring(5, path.indexOf("!"));
+		final String urlPathToFile = url.getPath();
+		final String jarPath = urlPathToFile.substring(5, urlPathToFile.indexOf("!"));
+
 		try (final JarFile jar = new JarFile(URLDecoder.decode(jarPath, StandardCharsets.UTF_8.name()))) {
 			final Enumeration<JarEntry> entries = jar.entries();
 			while (entries.hasMoreElements()) {
@@ -770,7 +771,6 @@ public abstract class YamlFileManager {
 			this.filesFromResource.forEach(file -> {
 				if (file.endsWith(getExtension()))
 					this.saveResource(file);
-				//this.plugin.saveResource(file, false);
 			});
 			return;
 		}

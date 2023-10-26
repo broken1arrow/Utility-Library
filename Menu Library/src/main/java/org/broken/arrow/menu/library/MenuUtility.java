@@ -504,6 +504,7 @@ public class MenuUtility<T> {
 	 */
 
 	public void menuClose(final InventoryCloseEvent event, final MenuUtility<?> menu) {
+		//optional you can override this if you plan to do something when menu is closing.
 	}
 
 	/**
@@ -602,8 +603,7 @@ public class MenuUtility<T> {
 
 	protected void updateTimeButtons() {
 		boolean cancelTask = false;
-		if (this.taskid > 0)
-			if (Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
+		if (this.taskid > 0 && Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
 				Bukkit.getScheduler().cancelTask(this.taskid);
 				cancelTask = true;
 			}
@@ -617,17 +617,6 @@ public class MenuUtility<T> {
 		Object title = getTitle();
 		if (!menuAPI.isNotFoundUpdateTitleClazz())
 			this.updateTitle(title);
-	}
-
-	private Object toMenuCache(final Player player, final Location location) {
-		Object obj = null;
-		if (player != null && location != null) {
-			obj = location;
-		}
-		if (player != null && location == null) {
-			obj = player;
-		}
-		return obj;
 	}
 
 	private void saveMenuCache(@Nonnull final Location location) {
@@ -776,7 +765,6 @@ public class MenuUtility<T> {
 
 	@Nonnull
 	private MenuDataUtility<T> cacheMenuData(final int pageNumber) {
-		//final Map<Integer, ButtonData> addedButtons = new HashMap<>();
 		final MenuDataUtility<T> menuDataUtility = new MenuDataUtility<>();
 		for (int slot = 0; slot < this.inventorySize; slot++) {
 
@@ -803,7 +791,6 @@ public class MenuUtility<T> {
 			final ButtonData<T> buttonData = new ButtonData<>(result, shallAddMenuButton ? null : menuButton, objectFromListOfFillItems);
 
 			menuDataUtility.putButton(pageNumber * this.getInventorySize() + slot, buttonData, shallAddMenuButton ? menuButton : null);
-			//addedButtons.put(pageNumber * this.getInventorySize() + slot, new ButtonData(result, menuButton, objectFromlistOfFillItems));
 		}
 	}
 

@@ -222,33 +222,33 @@ public class TextGradientUtil {
 						interpolator));
 			strIndex += p[i] * str.length();
 		}
-		setMultiGradient(type, str, colors, builder, strIndex);
+		setMultiGradient(type,  interpolator ,str, colors, builder, strIndex);
 		return builder.toString();
 	}
 
-	private void setMultiGradient(final GradientType type, final String str, final Color[] colors, final StringBuilder builder, final int strIndex) {
+	private void setMultiGradient(final GradientType type,Interpolator interpolator, final String str, final Color[] colors, final StringBuilder builder, final int strIndex) {
 		if (strIndex < str.length()) {
 			if (type == GradientType.SIMPLE_GRADIENT_PATTERN)
 				builder.append(this.applyGradient(
 						str.substring(strIndex),
 						this.getRBGGradient(colors[colors.length - 1], colors[colors.length - 1]),
-						(from, to, max) -> quadratic(from, to, str.length(), true)));
+						(from, to, max) -> interpolator.quadratic(from, to, str.length(), true)));
 			if (type == GradientType.HSV_GRADIENT_PATTERN)
 				builder.append(this.applyGradient(
 						str.substring(strIndex),
 						this.getHSBGradient(colors[colors.length - 1], colors[colors.length - 1]),
-						(from, to, max) -> quadratic(from, to, str.length(), true)));
+						(from, to, max) -> interpolator.quadratic(from, to, str.length(), true)));
 		}
 	}
 
-	private String multiHsvQuadraticGradient(String str, boolean first) {
+	private String multiHsvQuadraticGradient(String str,Interpolator interpolator, boolean first) {
 		final StringBuilder builder = new StringBuilder();
 
 		builder.append(this.applyGradient(
 				str.substring(0, (int) (0.2 * str.length())),
 				this.getHSBGradient(Color.RED,
 				Color.GREEN),
-				(from, to, max) -> quadratic(from, to, max, first)
+				(from, to, max) -> interpolator.quadratic(from, to, max, first)
 		));
 
 		for (int i = (int) (0.2 * str.length()); i < (int) (0.8 * str.length()); i++) {
@@ -259,7 +259,7 @@ public class TextGradientUtil {
 				str.substring((int) (0.8 * str.length())),
 				this.getHSBGradient(Color.GREEN,
 				Color.RED),
-				(from, to, max) -> quadratic(from, to, max, !first)
+				(from, to, max) -> interpolator.quadratic(from, to, max, !first)
 		));
 
 		return builder.toString();
@@ -427,20 +427,4 @@ public class TextGradientUtil {
 		TextGradientUtil.deliminator = deliminator;
 	}
 
-	public double[] quadratic(double from, double to, int max, boolean mode) {
-		final double[] results = new double[max];
-		if (mode) {
-			double a = (to - from) / (max * max);
-			for (int i = 0; i < results.length; i++) {
-				results[i] = a * i * i + from;
-			}
-		} else {
-			double a = (from - to) / (max * max);
-			double b = -2 * a * max;
-			for (int i = 0; i < results.length; i++) {
-				results[i] = a * i * i + b * i + from;
-			}
-		}
-		return results;
-	}
 }

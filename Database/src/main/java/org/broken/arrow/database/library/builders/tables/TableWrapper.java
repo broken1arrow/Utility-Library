@@ -31,7 +31,6 @@ public final class TableWrapper {
 
 	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow primaryRow, final int valueLength) {
 		Validate.checkNotEmpty(tableName, "Table name is empty.");
-		//Validate.checkNotNull(primaryRow, "Primary key should empty, if you not set this you can't have unique rows in the database.");
 		this.supportQuery = false;
 		this.tableName = tableName;
 		this.primaryRow = primaryRow;
@@ -114,6 +113,7 @@ public final class TableWrapper {
 	 * @param supportQuery a flag indicating whether certain commands and settings are supported in the target SQL database.
 	 *                     Set to true to enable support, or false to disable it. This option is useful when you encounter errors.
 	 * @return a TableWrapper object that allows you to add columns and define properties for the table.
+	 * @deprecated not in use anymore. You set the usage of supportQuery in other ways.
 	 */
 	@Deprecated
 	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow, final boolean supportQuery) {
@@ -131,6 +131,7 @@ public final class TableWrapper {
 	 * @param supportQuery a flag indicating whether certain commands and settings are supported in the target SQL database.
 	 *                     Set to true to enable support, or false to disable it. This option is useful when you encounter errors.
 	 * @return TableWrapper class you need then add columns to your table.
+	 * @deprecated not in use anymore. You set the usage of supportQuery in other ways.
 	 */
 	@Deprecated
 	public static TableWrapper of(@Nonnull final String tableName, @Nonnull TableRow primaryRow, final int valueLength, final boolean supportQuery) {
@@ -221,6 +222,7 @@ public final class TableWrapper {
 	 * Get the type of quote, it currently uses.
 	 *
 	 * @return the type quote currently set.
+	 * @deprecated not needed any more.
 	 */
 	@Deprecated
 	public String getQuote() {
@@ -239,6 +241,7 @@ public final class TableWrapper {
 	 *
 	 * @param quoteToUse the quote around the columns name and on the table name.
 	 * @return instance of this class.
+	 * @deprecated not needed any more.
 	 */
 	@Deprecated
 	public TableWrapper setQuoteColumnKey(final String quoteToUse) {

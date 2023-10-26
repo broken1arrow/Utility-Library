@@ -2,6 +2,7 @@ package org.broken.arrow.visualization.library.utility;
 
 import de.tr7zw.changeme.nbtapi.NBTEntity;
 import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.logging.library.Logging;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -10,11 +11,14 @@ import org.bukkit.util.Vector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.logging.Level;
+
+import static org.broken.arrow.logging.library.Logging.of;
 
 public class EntityModifications {
 
 	private final float serverVersion;
-
+	private final Logging log = new Logging(EntityModifications.class);
 	public EntityModifications(float serverVersion) {
 		this.serverVersion = serverVersion;
 	}
@@ -32,12 +36,13 @@ public class EntityModifications {
 		}
 	}
 
-	public void setCustomName(final Entity en, final String name) {
+	public void setCustomName(@Nonnull final Entity en, final String name) {
 		try {
 			en.setCustomNameVisible(true);
 			if (name != null && !name.equals(""))
 				en.setCustomName(TextTranslator.toSpigotFormat(name));
 		} catch (final NoSuchMethodError ignored) {
+			log.log(Level.INFO,()-> of("Could not set name on the entity " + en.getName()));
 		}
 
 	}

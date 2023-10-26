@@ -16,8 +16,10 @@ import static org.broken.arrow.logging.library.Logging.of;
 public class UpdateTitle {
 	private static final Logging logger = new Logging(UpdateTitle.class);
 	private static boolean hasCastEx;
-	private static final float serverVersion;
+	private static final float SERVER_VERSION;
 
+	private UpdateTitle() {
+	}
 
 	@Nullable
 	private static final ContainerUtility containerUtility;
@@ -25,7 +27,7 @@ public class UpdateTitle {
 	static {
 		synchronized (UpdateTitle.class) {
 			SetNmsData nmsData = new SetNmsData();
-			serverVersion = nmsData.getServerVersion();
+			SERVER_VERSION = nmsData.getServerVersion();
 			containerUtility = nmsData.getContainerUtility();
 		}
 	}
@@ -38,8 +40,7 @@ public class UpdateTitle {
 	 */
 	@Deprecated
 	public static void update(final Player player, final JsonArray title) {
-
-		//update( player,  title, false);
+		//This method are not in use and don't know if it will ever be. update( player,  title, false);
 	}
 
 	/**
@@ -133,13 +134,13 @@ public class UpdateTitle {
 			logger.log(Level.WARNING, ()-> of("The set NMS values: " + containerUtility));
 			return;
 		}
-		if (serverVersion <= 0){
-			logger.log(Level.WARNING, ()-> of( "The server version is 0 or below " + serverVersion));
+		if (SERVER_VERSION <= 0){
+			logger.log(Level.WARNING, ()-> of( "The server version is 0 or below " + SERVER_VERSION));
 			return;
 		}
 
 
-		if (player != null && containerUtility != null && serverVersion > 0)
+		if (player != null && containerUtility != null && SERVER_VERSION > 0)
 			try {
 				if (!titleUtility.isTitleSet())
 					logger.log(Level.WARNING, ()-> of(  "Title is not set, so can't update the title."));
@@ -153,7 +154,7 @@ public class UpdateTitle {
 
 
 	public static float getServerVersion() {
-		return serverVersion;
+		return SERVER_VERSION;
 	}
 
 }

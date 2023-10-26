@@ -5,6 +5,7 @@ import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.itemcreator.library.utility.ConvertToItemStack;
 import org.broken.arrow.itemcreator.library.utility.Tuple;
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.nbt.library.RegisterNbtAPI;
 import org.bukkit.Color;
@@ -35,7 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -45,13 +45,9 @@ import java.util.logging.Logger;
  */
 
 public class CreateItemStack {
-	static Logger logger;
+	static Logging logger = new Logging(CreateItemStack.class);
 
-	static {
-		logger = Logger.getLogger(CreateItemStack.class.getName());
-	}
-
-	private static ConvertToItemStack convertItems;
+	private final ConvertToItemStack convertItems;
 	private final Object item;
 	private String rgb;
 	private final Iterable<?> itemArray;
@@ -84,8 +80,8 @@ public class CreateItemStack {
 
 	public CreateItemStack(final ItemCreator itemCreator, final ItemBuilder itemBuilder) {
 		this.serverVersion = itemCreator.getServerVersion();
-		if (convertItems == null)
-			convertItems = new ConvertToItemStack(serverVersion);
+		this.convertItems = itemCreator.getConvertItems();
+
 		this.item = itemBuilder.getItem();
 		this.itemArray = itemBuilder.getItemArray();
 		this.displayName = itemBuilder.getDisplayName();
@@ -308,7 +304,7 @@ public class CreateItemStack {
 	public CreateItemStack addEnchantments(final Map<Enchantment, Tuple<Integer, Boolean>> enchantmentMap, final boolean override) {
 		Validate.checkNotNull(enchantmentMap, "this map is null");
 		if (enchantmentMap.isEmpty())
-			logger.log(Level.INFO, "This map is empty so no enchantments will be added");
+			logger.log(()-> Logging. of("This map is empty so no enchantments will be added"));
 
 		enchantmentMap.forEach((key, value) -> {
 			if (!override)
@@ -339,7 +335,7 @@ public class CreateItemStack {
 		if (enchantment != null)
 			this.enchantments.put(enchantment, new Tuple<>(enchantmentLevel, levelRestriction));
 		else
-			logger.log(Level.INFO, "your enchantment: " + enchant + " ,are not valid.");
+			logger.log(()-> Logging. of(  "your enchantment: " + enchant + " ,are not valid."));
 
 		return this;
 	}
@@ -504,7 +500,7 @@ public class CreateItemStack {
 	 */
 	public CreateItemStack addPortionEffects(final List<PotionEffect> potionEffects) {
 		if (potionEffects.isEmpty()) {
-			logger.log(Level.INFO, "This list of portion effects is empty so no values will be added");
+			logger.log(()-> Logging. of( "This list of portion effects is empty so no values will be added"));
 			return this;
 		}
 
@@ -520,7 +516,7 @@ public class CreateItemStack {
 	 */
 	public CreateItemStack setPortionEffects(final List<PotionEffect> potionEffects) {
 		if (potionEffects.isEmpty()) {
-			logger.log(Level.INFO, "This list of portion effects is empty so no values will be added");
+			logger.log(()-> Logging. of(  "This list of portion effects is empty so no values will be added"));
 			return this;
 		}
 		portionEffects.clear();
@@ -553,8 +549,7 @@ public class CreateItemStack {
 			green = Integer.parseInt(colors[2]);
 			blue = Integer.parseInt(colors[1]);
 		} catch (final NumberFormatException exception) {
-			logger.log(Level.WARNING, "you don´t use numbers inside this " + rgb);
-			exception.printStackTrace();
+			logger.log(Level.WARNING,exception,()-> Logging. of( "you don´t use numbers inside this " + rgb));
 		}
 
 		return this;
@@ -803,7 +798,7 @@ public class CreateItemStack {
 			boolean haveEnchant = false;
 			for (final Map.Entry<Enchantment, Tuple<Integer, Boolean>> enchant : this.getEnchantments().entrySet()) {
 				if (enchant == null) {
-					logger.log(Level.INFO, "Your enchantment are null.");
+					logger.log(()-> Logging. of(  "Your enchantment are null."));
 					continue;
 				}
 				final Tuple<Integer, Boolean> level = enchant.getValue();
@@ -872,7 +867,7 @@ public class CreateItemStack {
 				return;
 			}
 			if (getRgb() == null || (getRed() < 0 && getGreen() < 0 && getBlue() < 0)) {
-				logger.log(Level.WARNING, "You have not set colors correctly, you have set this: " + getRgb() + " should be in this format Rgb: #,#,#");
+				logger.log(Level.WARNING,()-> Logging. of(  "You have not set colors correctly, you have set this: " + getRgb() + " should be in this format Rgb: #,#,#"));
 				return;
 			}
 			potionMeta.setColor(Color.fromBGR(getBlue(), getGreen(), getRed()));
@@ -887,7 +882,7 @@ public class CreateItemStack {
 
 		if (itemMeta instanceof FireworkEffectMeta) {
 			if (getRgb() == null || (getRed() < 0 && getGreen() < 0 && getBlue() < 0)) {
-				logger.log(Level.WARNING, "You have not set colors correctly, you have set this: " + getRgb() + " should be in this format Rgb: #,#,#");
+				logger.log(Level.WARNING,()-> Logging. of(  "You have not set colors correctly, you have set this: " + getRgb() + " should be in this format Rgb: #,#,#"));
 				return;
 			}
 			final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
@@ -931,11 +926,9 @@ public class CreateItemStack {
 		return TextTranslator.toSpigotFormat(rawSingleLine);
 	}
 
-
-	public static ConvertToItemStack getConvertItems() {
+	public ConvertToItemStack getConvertItems() {
 		return convertItems;
 	}
-
 
 	public static List<String> formatColors(final List<String> rawLore) {
 		final List<String> loreList = new ArrayList<>();

@@ -3,6 +3,8 @@ package org.broken.arrow.itemcreator.library;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.logging.library.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -30,6 +32,10 @@ import java.util.UUID;
  */
 public class SkullCreator {
 
+	private SkullCreator() {
+	}
+
+	private static final Logging LOG = new Logging(SkullCreator.class);
 	private static final String PLAYER_HEAD = "PLAYER_HEAD";
 	private static final String BLOCK = "block";
 	private static final String NAME = "name";
@@ -72,6 +78,7 @@ public class SkullCreator {
 	 * @return The head of the Player.
 	 * @deprecated names don't make for good identifiers.
 	 */
+	@Deprecated
 	public static ItemStack itemFromName(String name) {
 		return itemWithName(createSkull(), name);
 	}
@@ -138,7 +145,7 @@ public class SkullCreator {
 		notNull(id, "id");
 
 		SkullMeta meta = (SkullMeta) item.getItemMeta();
-		SetOwningPlayer(meta, Bukkit.getOfflinePlayer(id));
+		setOwningPlayer(meta, Bukkit.getOfflinePlayer(id));
 		item.setItemMeta(meta);
 
 		return item;
@@ -266,7 +273,7 @@ public class SkullCreator {
 		try {
 			actualUrl = new URI(url);
 		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
+			throw new Validate.ValidateExceptions(e, "Could not create the Base64 from the url");
 		}
 		String toEncode = "{\"textures\":{\"SKIN\":{\"url\":\"" + actualUrl + "\"}}}";
 		return Base64.getEncoder().encodeToString(toEncode.getBytes());
@@ -313,7 +320,7 @@ public class SkullCreator {
 				metaProfileField.set(meta, makeProfile(b64));
 
 			} catch (NoSuchFieldException | IllegalAccessException ex2) {
-				ex2.printStackTrace();
+				LOG.log(ex2,() -> Logging.of("Fail to get the profile"));
 			}
 		}
 	}
@@ -328,10 +335,11 @@ public class SkullCreator {
 			Material.valueOf("SKULL");
 
 			if (!warningPosted) {
-				Bukkit.getLogger().warning("SKULLCREATOR API - Using the legacy bukkit API with 1.13+ bukkit versions is not supported!");
+				LOG.log(() -> Logging.of("SKULLCREATOR API - Using the legacy bukkit API with 1.13+ bukkit versions is not supported!"));
 				warningPosted = true;
 			}
 		} catch (NoSuchFieldException | IllegalArgumentException ignored) {
+			//We don't need to know a error is thrown. This only checks so you don't use wrong API version.
 		}
 	}
 
@@ -339,17 +347,12 @@ public class SkullCreator {
 		try {
 			return Material.valueOf(name);
 		} catch (Exception e) {
-			if (name.equals("WORKBENCH"))
-				return Material.valueOf("CRAFTING_TABLE");
-			try {
-				return Material.matchMaterial("LEGACY_" + name);
-			} catch (Exception e2) {
-			}
+			LOG.log(() -> Logging.of("Could not find this material: " + name));
 		}
 		return null;
 	}
 
-	public static void SetOwningPlayer(SkullMeta meta, OfflinePlayer player) {
+	public static void setOwningPlayer(SkullMeta meta, OfflinePlayer player) {
 		try {
 			if (legacy) {
 				meta.setOwner(player.getName());
@@ -357,6 +360,7 @@ public class SkullCreator {
 				meta.setOwningPlayer(player);
 			}
 		} catch (Exception ignored) {
+			//We ignore the thrown error.
 		}
 	}
 

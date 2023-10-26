@@ -43,23 +43,23 @@ public class ContainerUtility {
 		Object title = titleUtility.getTitle(this.serverVersion);
 		Validate.checkNotNull(title, "Title should not be null");
 		final Inventory inventory = player.getOpenInventory().getTopInventory();
-		InventoryNMS inventoryNMS = this.inventoryNMS;
+		InventoryNMS nms = this.inventoryNMS;
 		final int inventorySize = inventory.getSize();
-		final boolean isOlder = serverVersion < 17;
+
 		//final Object entityPlayer = player.getClass().getMethod("getHandle").invoke(player);
 		Object entityPlayer = handle.invoke(player);
 		Class<?> entityPlayerClass = entityPlayer.getClass();
 		// inside net.minecraft.world.entity.player and class EntityHuman do you have this field for Container class
-		final Object activeContainer = entityPlayerClass.getField(inventoryNMS.getContainerField()).get(entityPlayer);
+		final Object activeContainer = entityPlayerClass.getField(nms.getContainerField()).get(entityPlayer);
 		// inside net.minecraft.world.inventory and class Container do you have this field newer version it is currently "j"
-		final Object windowId = activeContainer.getClass().getField(inventoryNMS.getWindowId()).get(activeContainer);
+		final Object windowId = activeContainer.getClass().getField(nms.getWindowId()).get(activeContainer);
 
 		final Method chatSerialMethod = this.chatComponentMethod; //.getMethod("a", String.class); //before 1.14-> .getMethod(serverVersion >= 9.0 ? "b" : "a", String.class);
 		final Object inventoryTitle;
 		final Object packetInstance;
 		final Object inventoryType;
 
-		String fieldName = inventoryNMS.getContainerFieldName(inventory);
+		String fieldName = nms.getContainerFieldName(inventory);
 		if (fieldName == null || fieldName.isEmpty()) {
 			logger.log(Level.WARNING,()-> of("Could not update title for this inventory: " + inventory));
 			return;
@@ -79,31 +79,31 @@ public class ContainerUtility {
 
 		final Object playerConnect = playerConnection.get(entityPlayer);
 		// net.minecraft.server.network.PlayerConnection
-		final Method packet = packetConnectionClass.getMethod(inventoryNMS.getSendPacketName(), packetClass);
+		final Method packet = packetConnectionClass.getMethod(nms.getSendPacketName(), packetClass);
 		packet.invoke(playerConnect, packetInstance);
 		// inside net.minecraft.world.inventory.Container do you have method a(Container container)
 		// This part make sure the inventory gets updated properly.
-		entityPlayerClass.getMethod(inventoryNMS.getUpdateInventoryMethodName(), containerClass).invoke(entityPlayer, activeContainer);
+		entityPlayerClass.getMethod(nms.getUpdateInventoryMethodName(), containerClass).invoke(entityPlayer, activeContainer);
 
 	}
 
 	private void loadClasses(final float serverVersion) {
 		try {
-			InventoryNMS inventoryNMS = this.inventoryNMS;
-			this.packetClass = inventoryNMS.getPacket();
-			this.handle = inventoryNMS.getPlayerHandle();
-			this.playerConnection = inventoryNMS.getPlayerConnection();
-			this.packetConnectionClass = inventoryNMS.getPlayerConnectionClass();
-			this.containersClass = inventoryNMS.getContainersClass();
-			this.containerClass = inventoryNMS.getContainerClass();
-			Class<?> chatBaseComponent = inventoryNMS.getChatSerializer();
+			InventoryNMS nms = this.inventoryNMS;
+			this.packetClass = nms.getPacket();
+			this.handle = nms.getPlayerHandle();
+			this.playerConnection = nms.getPlayerConnection();
+			this.packetConnectionClass = nms.getPlayerConnectionClass();
+			this.containersClass = nms.getContainersClass();
+			this.containerClass = nms.getContainerClass();
+			Class<?> chatBaseComponent = nms.getChatSerializer();
 			if (serverVersion < 17)
 				this.chatComponentMethod = chatBaseComponent.getMethod(serverVersion >= 9.0 ? "b" : "a", String.class);
 			else {
 				this.chatComponentMethod = chatBaseComponent.getMethod("a", String.class);
 				this.chatComponentMethodString = chatBaseComponent.getMethod("b", String.class);
 			}
-			this.packetConstructor = inventoryNMS.getPacketPlayOutOpenWindow();
+			this.packetConstructor = nms.getPacketPlayOutOpenWindow();
 
 		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException exception) {
 			logger.log(Level.WARNING,exception,()-> of( "An error occurred while updating the inventory title: "));

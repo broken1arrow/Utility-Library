@@ -93,6 +93,7 @@ public class V_1_16_Inventory implements InventoryNMS {
 							return "GENERIC_9X6";
 						break;
 				}
+				break;
 			case DISPENSER:
 			case DROPPER:
 				return "GENERIC_3X3";

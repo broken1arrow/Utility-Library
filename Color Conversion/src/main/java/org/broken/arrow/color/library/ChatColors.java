@@ -1,6 +1,7 @@
 package org.broken.arrow.color.library;
 
 import net.md_5.bungee.api.ChatColor;
+import org.broken.arrow.logging.library.Validate;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -182,7 +183,8 @@ public final class ChatColors {
 
 	public static ChatColors of(String string) {
 		if (string == null)
-			throw new RuntimeException("String can't be null");
+			throw new Validate.ValidateExceptions("String can't be null");
+
 		if (string.startsWith("#") && string.length() == 7) {
 			int rgb;
 			try {

@@ -5,6 +5,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemStackCounters {
+
+	private ItemStackCounters() {
+	}
+
 	/**
 	 * Count the amount of matched items in two item arrys.
 	 *
@@ -17,7 +21,7 @@ public class ItemStackCounters {
 
 		for (ItemStack itemStack : itemStacks)
 			for (ItemStack item : items)
-				if (itemStack != null && itemStack.isSimilar(item) && !(itemStack.getType() == Material.AIR)) {
+				if (itemStack != null && itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
 					countItems += itemStack.getAmount();
 				}
 		return countItems;
@@ -34,7 +38,7 @@ public class ItemStackCounters {
 	public static int countItemStacks(Inventory inventoryItems, ItemStack item) {
 		int countItems = 0;
 		for (ItemStack itemStack : inventoryItems.getContents())
-			if (itemStack != null && itemStack.isSimilar(item) && !(itemStack.getType() == Material.AIR)) {
+			if (itemStack != null && itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
 				countItems++;
 			}
 		return countItems;
@@ -55,10 +59,11 @@ public class ItemStackCounters {
 		int countItems = 0;
 		for (ItemStack itemStack : inventoryItems.getContents()) {
 			if (onlyNoFullItems) {
-				if (itemStack.getAmount() != itemStack.getMaxStackSize()) {
-					if (itemStack != null && itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
+				if (itemStack != null && itemStack.getType() != Material.AIR
+						&& itemStack.getAmount() != itemStack.getMaxStackSize()
+						&& itemStack.isSimilar(item)) {
 						countItems += itemStack.getAmount();
-					}
+
 				}
 			} else if (itemStack != null && itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
 				countItems += itemStack.getAmount();
@@ -78,7 +83,7 @@ public class ItemStackCounters {
 		int countItems = 0;
 		for (ItemStack itemStack : inventoryItems.getContents())
 			for (ItemStack item : itemStacks)
-				if (itemStack != null && itemStack.isSimilar(item) && !(itemStack.getType() == Material.AIR)) {
+				if (itemStack != null && itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
 					countItems += itemStack.getAmount();
 				}
 		return countItems;

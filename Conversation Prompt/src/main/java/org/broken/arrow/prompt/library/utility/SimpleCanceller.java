@@ -45,6 +45,7 @@ public final class SimpleCanceller implements ConversationCanceller {
 	 */
 	@Override
 	public void setConversation(@Nonnull final Conversation conversation) {
+		//This method is empty, for you must override this method to use it.
 
 	}
 

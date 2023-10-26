@@ -4,6 +4,9 @@ import java.util.Map;
 
 public class KeyUtils {
 
+	private KeyUtils() {
+	}
+
 	/**
 	 * Checks if the subKey is a sub path of the parentKey.
 	 *

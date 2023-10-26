@@ -178,12 +178,11 @@ public class CommandsUtility extends Command {
 	}
 	private boolean sendDescriptions(CommandSender sender,String commandLabel,String[] args){
 		final List<String> descriptions = commandRegister.getDescriptions();
-		if (args.length == 1) {
-			if (descriptions != null && !descriptions.isEmpty() && (Arrays.toString(args).endsWith("?]") || Arrays.toString(args).endsWith("help]"))) {
+		if (args.length == 1 && descriptions != null && !descriptions.isEmpty() &&
+				(Arrays.toString(args).endsWith("?]") || Arrays.toString(args).endsWith("help]"))) {
 				for (String description : descriptions)
 					sender.sendMessage(placeholders(description, commandLabel, null));
 				return false;
-			}
 		}
 		return true;
 	}

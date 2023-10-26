@@ -9,7 +9,7 @@ public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 	/**
 	 * Create menu instance with out any aguments. Recomend you set menu size.
 	 */
-	public GenericMenuHolderU() {
+	protected GenericMenuHolderU() {
 		this(null, null, false);
 	}
 
@@ -20,7 +20,7 @@ public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 	 * @param fillItems List of items you want parse inside gui on one or several pages.
 	 */
 
-	public GenericMenuHolderU(final List<T> fillItems) {
+	protected GenericMenuHolderU(final List<T> fillItems) {
 		this(null, fillItems, false);
 	}
 
@@ -29,7 +29,7 @@ public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 	 *
 	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link org.broken.arrow.menu.library.MenuUtility#getMenuButtonsCache()} to cache it own class.
 	 */
-	public GenericMenuHolderU(final boolean shallCacheItems) {
+	protected GenericMenuHolderU(final boolean shallCacheItems) {
 		this(null, null, shallCacheItems);
 	}
 
@@ -39,7 +39,7 @@ public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 	 * @param fillSlots Witch slots you want fill with items.
 	 * @param fillItems List of items you want parse inside gui on one or several pages.
 	 */
-	public GenericMenuHolderU(final List<Integer> fillSlots, final List<T> fillItems) {
+	protected GenericMenuHolderU(final List<Integer> fillSlots, final List<T> fillItems) {
 		this(fillSlots, fillItems, false);
 	}
 
@@ -50,7 +50,7 @@ public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 	 * @param fillItems       List of items you want parse inside gui.
 	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link org.broken.arrow.menu.library.MenuUtility#getMenuButtonsCache()} to cache it own class.
 	 */
-	public GenericMenuHolderU(final List<Integer> fillSlots, final List<T> fillItems, final boolean shallCacheItems) {
+	protected GenericMenuHolderU(final List<Integer> fillSlots, final List<T> fillItems, final boolean shallCacheItems) {
 		super(fillSlots, fillItems, shallCacheItems);
 	}
 
