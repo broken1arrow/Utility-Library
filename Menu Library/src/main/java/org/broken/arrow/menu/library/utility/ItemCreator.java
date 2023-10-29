@@ -29,7 +29,7 @@ public class ItemCreator {
 		int countItems = 0;
 		for (ItemStack itemStack : inventoryItems) {
 			if (onlyNoFullItems) {
-				if (itemStack != null && !(itemStack.getAmount() == itemStack.getMaxStackSize()) &&
+				if (itemStack != null && itemStack.getAmount() != itemStack.getMaxStackSize() &&
 						itemStack.isSimilar(item) && itemStack.getType() != Material.AIR) {
 						countItems += itemStack.getAmount();
 				}

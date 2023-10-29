@@ -31,13 +31,13 @@ public enum Materials {
 
 	WHITE_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 0)),
 	ORANGE_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 1)),
-	MAGENTA_STAINED_GLASS(createStack(Constants.STAINED_GLASS,(short) 2)),
-	LIGHT_BLUE_STAINED_GLASS(createStack(Constants.STAINED_GLASS,(short) 3)),
-	YELLOW_STAINED_GLASS(createStack(Constants.STAINED_GLASS,(short) 4)),
+	MAGENTA_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 2)),
+	LIGHT_BLUE_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 3)),
+	YELLOW_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 4)),
 	LIME_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 5)),
 	PINK_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 6)),
 	GRAY_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 7)),
-	LIGHT_GRAY_STAINED_GLASS(createStack(Constants.STAINED_GLASS,(short) 8)),
+	LIGHT_GRAY_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 8)),
 	CYAN_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 9)),
 	PURPLE_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 10)),
 	BLUE_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 11)),
@@ -46,90 +46,90 @@ public enum Materials {
 	RED_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 14)),
 	BLACK_STAINED_GLASS(createStack(Constants.STAINED_GLASS, (short) 15)),
 
-	WHITE_WOOL(createStack(Constants.WOOL,(short) 0)),
-	ORANGE_WOOL(createStack(Constants.WOOL,(short) 1)),
-	MAGENTA_WOOL(createStack(Constants.WOOL,(short) 2)),
-	LIGHT_BLUE_WOOL(createStack(Constants.WOOL,(short) 3)),
-	YELLOW_WOOL(createStack(Constants.WOOL,(short) 4)),
-	LIME_WOOL(createStack(Constants.WOOL,(short) 5)),
-	PINK_WOOL(createStack(Constants.WOOL,(short) 6)),
-	GRAY_WOOL(createStack(Constants.WOOL,(short) 7)),
-	LIGHT_GRAY_WOOL(createStack(Constants.WOOL,(short) 8)),
-	CYAN_WOOL(createStack(Constants.WOOL,(short) 9)),
-	PURPLE_WOOL(createStack(Constants.WOOL,(short) 10 )),
-	BLUE_WOOL(createStack(Constants.WOOL,(short) 11)),
-	BROWN_WOOL(createStack(Constants.WOOL,(short) 12)),
-	GREEN_WOOL(createStack(Constants.WOOL,(short) 13)),
-	RED_WOOL(createStack(Constants.WOOL,(short) 14)),
-	BLACK_WOOL(createStack(Constants.WOOL,(short) 15)),
+	WHITE_WOOL(createStack(Constants.WOOL, (short) 0)),
+	ORANGE_WOOL(createStack(Constants.WOOL, (short) 1)),
+	MAGENTA_WOOL(createStack(Constants.WOOL, (short) 2)),
+	LIGHT_BLUE_WOOL(createStack(Constants.WOOL, (short) 3)),
+	YELLOW_WOOL(createStack(Constants.WOOL, (short) 4)),
+	LIME_WOOL(createStack(Constants.WOOL, (short) 5)),
+	PINK_WOOL(createStack(Constants.WOOL, (short) 6)),
+	GRAY_WOOL(createStack(Constants.WOOL, (short) 7)),
+	LIGHT_GRAY_WOOL(createStack(Constants.WOOL, (short) 8)),
+	CYAN_WOOL(createStack(Constants.WOOL, (short) 9)),
+	PURPLE_WOOL(createStack(Constants.WOOL, (short) 10)),
+	BLUE_WOOL(createStack(Constants.WOOL, (short) 11)),
+	BROWN_WOOL(createStack(Constants.WOOL, (short) 12)),
+	GREEN_WOOL(createStack(Constants.WOOL, (short) 13)),
+	RED_WOOL(createStack(Constants.WOOL, (short) 14)),
+	BLACK_WOOL(createStack(Constants.WOOL, (short) 15)),
 
-	WHITE_CARPET(createStack(Constants.CARPET,(short) 0)),
-	ORANGE_CARPET(createStack(Constants.CARPET,(short) 1)),
-	MAGENTA_CARPET(createStack(Constants.CARPET,(short) 2)),
-	LIGHT_BLUE_CARPET(createStack(Constants.CARPET,(short) 3)),
-	YELLOW_CARPET(createStack(Constants.CARPET,(short) 4)),
-	LIME_CARPET(createStack(Constants.CARPET,(short) 5)),
-	PINK_CARPET(createStack(Constants.CARPET,(short) 6)),
-	GRAY_CARPET(createStack(Constants.CARPET,(short) 7)),
-	LIGHT_GRAY_CARPET(createStack(Constants.CARPET,(short) 8)),
-	CYAN_CARPET(createStack(Constants.CARPET,(short) 9)),
-	PURPLE_CARPET(createStack(Constants.CARPET,(short) 10)),
-	BLUE_CARPET(createStack(Constants.CARPET,(short) 11)),
-	BROWN_CARPET(createStack(Constants.CARPET,(short) 12)),
-	GREEN_CARPET(createStack(Constants.CARPET,(short) 13)),
-	RED_CARPET(createStack(Constants.CARPET,(short) 14)),
-	BLACK_CARPET(createStack(Constants.CARPET,(short) 15)),
+	WHITE_CARPET(createStack(Constants.CARPET, (short) 0)),
+	ORANGE_CARPET(createStack(Constants.CARPET, (short) 1)),
+	MAGENTA_CARPET(createStack(Constants.CARPET, (short) 2)),
+	LIGHT_BLUE_CARPET(createStack(Constants.CARPET, (short) 3)),
+	YELLOW_CARPET(createStack(Constants.CARPET, (short) 4)),
+	LIME_CARPET(createStack(Constants.CARPET, (short) 5)),
+	PINK_CARPET(createStack(Constants.CARPET, (short) 6)),
+	GRAY_CARPET(createStack(Constants.CARPET, (short) 7)),
+	LIGHT_GRAY_CARPET(createStack(Constants.CARPET, (short) 8)),
+	CYAN_CARPET(createStack(Constants.CARPET, (short) 9)),
+	PURPLE_CARPET(createStack(Constants.CARPET, (short) 10)),
+	BLUE_CARPET(createStack(Constants.CARPET, (short) 11)),
+	BROWN_CARPET(createStack(Constants.CARPET, (short) 12)),
+	GREEN_CARPET(createStack(Constants.CARPET, (short) 13)),
+	RED_CARPET(createStack(Constants.CARPET, (short) 14)),
+	BLACK_CARPET(createStack(Constants.CARPET, (short) 15)),
 
-	WHITE_CONCRETE(createStack(Constants.CONCRETE,(short) 0)),
-	ORANGE_CONCRETE(createStack(Constants.CONCRETE,(short) 1)),
-	MAGENTA_CONCRETE(createStack(Constants.CONCRETE,(short) 2)),
-	LIGHT_BLUE_CONCRETE(createStack(Constants.CONCRETE,(short) 3)),
-	YELLOW_CONCRETE(createStack(Constants.CONCRETE,(short) 4)),
-	LIME_CONCRETE(createStack(Constants.CONCRETE,(short) 5)),
-	PINK_CONCRETE(createStack(Constants.CONCRETE,(short) 6)),
-	GRAY_CONCRETE(createStack(Constants.CONCRETE,(short) 7)),
-	LIGHT_GRAY_CONCRETE(createStack(Constants.CONCRETE,(short) 8)),
-	CYAN_CONCRETE(createStack(Constants.CONCRETE,(short) 9)),
-	PURPLE_CONCRETE(createStack(Constants.CONCRETE,(short) 10)),
-	BLUE_CONCRETE(createStack(Constants.CONCRETE,(short) 11)),
-	BROWN_CONCRETE(createStack(Constants.CONCRETE,(short) 12)),
-	GREEN_CONCRETE(createStack(Constants.CONCRETE,(short) 13)),
-	RED_CONCRETE(createStack(Constants.CONCRETE,(short) 14)),
-	BLACK_CONCRETE(createStack(Constants.CONCRETE,(short) 15)),
+	WHITE_CONCRETE(createStack(Constants.CONCRETE, (short) 0)),
+	ORANGE_CONCRETE(createStack(Constants.CONCRETE, (short) 1)),
+	MAGENTA_CONCRETE(createStack(Constants.CONCRETE, (short) 2)),
+	LIGHT_BLUE_CONCRETE(createStack(Constants.CONCRETE, (short) 3)),
+	YELLOW_CONCRETE(createStack(Constants.CONCRETE, (short) 4)),
+	LIME_CONCRETE(createStack(Constants.CONCRETE, (short) 5)),
+	PINK_CONCRETE(createStack(Constants.CONCRETE, (short) 6)),
+	GRAY_CONCRETE(createStack(Constants.CONCRETE, (short) 7)),
+	LIGHT_GRAY_CONCRETE(createStack(Constants.CONCRETE, (short) 8)),
+	CYAN_CONCRETE(createStack(Constants.CONCRETE, (short) 9)),
+	PURPLE_CONCRETE(createStack(Constants.CONCRETE, (short) 10)),
+	BLUE_CONCRETE(createStack(Constants.CONCRETE, (short) 11)),
+	BROWN_CONCRETE(createStack(Constants.CONCRETE, (short) 12)),
+	GREEN_CONCRETE(createStack(Constants.CONCRETE, (short) 13)),
+	RED_CONCRETE(createStack(Constants.CONCRETE, (short) 14)),
+	BLACK_CONCRETE(createStack(Constants.CONCRETE, (short) 15)),
 
-	WHITE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 0)),
-	ORANGE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 1)),
-	MAGENTA_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 2)),
-	LIGHT_BLUE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 3)),
-	YELLOW_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 4)),
-	LIME_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 5)),
-	PINK_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 6)),
-	GRAY_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 7)),
-	LIGHT_GRAY_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 8)),
-	CYAN_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 9)),
-	PURPLE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 10)),
-	BLUE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 11)),
-	BROWN_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 12)),
-	GREEN_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 13)),
-	RED_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 14)),
-	BLACK_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER,(short) 15)),
+	WHITE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 0)),
+	ORANGE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 1)),
+	MAGENTA_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 2)),
+	LIGHT_BLUE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 3)),
+	YELLOW_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 4)),
+	LIME_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 5)),
+	PINK_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 6)),
+	GRAY_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 7)),
+	LIGHT_GRAY_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 8)),
+	CYAN_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 9)),
+	PURPLE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 10)),
+	BLUE_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 11)),
+	BROWN_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 12)),
+	GREEN_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 13)),
+	RED_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 14)),
+	BLACK_CONCRETE_POWDER(createStack(Constants.CONCRETE_POWDER, (short) 15)),
 
-	WHITE_STAINED_CLAY(createStack(Constants.STAINED_CLAY,(short) 0)),
-	ORANGE_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 1)),
-	MAGENTA_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 2)),
-	LIGHT_BLUE_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 3)),
-	YELLOW_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 4)),
-	LIME_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 5)),
-	PINK_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 6)),
-	GRAY_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 7)),
-	LIGHT_GRAY_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 8)),
-	CYAN_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 9)),
-	PURPLE_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 10)),
-	BLUE_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 11)),
-	BROWN_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 12)),
-	GREEN_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 13)),
-	RED_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 14)),
-	BLACK_TERRACOTTA(createStack(Constants.STAINED_CLAY,(short) 15)),
+	WHITE_STAINED_CLAY(createStack(Constants.STAINED_CLAY, (short) 0)),
+	ORANGE_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 1)),
+	MAGENTA_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 2)),
+	LIGHT_BLUE_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 3)),
+	YELLOW_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 4)),
+	LIME_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 5)),
+	PINK_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 6)),
+	GRAY_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 7)),
+	LIGHT_GRAY_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 8)),
+	CYAN_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 9)),
+	PURPLE_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 10)),
+	BLUE_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 11)),
+	BROWN_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 12)),
+	GREEN_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 13)),
+	RED_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 14)),
+	BLACK_TERRACOTTA(createStack(Constants.STAINED_CLAY, (short) 15)),
 
 	OAK_LOG(createWoodItemStack("LOG", "OAK")),
 	SPRUCE_LOG(createWoodItemStack("LOG", Constants.SPRUCE)),
@@ -198,8 +198,8 @@ public enum Materials {
 	SPRUCE_SAPLING(createWoodItemStack(Constants.SAPLING, Constants.SPRUCE)),
 	BIRCH_SAPLING(createWoodItemStack(Constants.SAPLING, Constants.BIRCH)),
 	JUNGLE_SAPLING(createWoodItemStack(Constants.SAPLING, Constants.JUNGLE)),
-	ACACIA_SAPLING(createWoodItemStack(Constants.SAPLING, (short) 0, Constants.ACACIA)),
-	DARK_OAK_SAPLING(createWoodItemStack(Constants.SAPLING, (short) 1, Constants.DARK_OAK)),
+	ACACIA_SAPLING(createWoodItemStack(Constants.SAPLING, (short) 4, Constants.ACACIA)),
+	DARK_OAK_SAPLING(createWoodItemStack(Constants.SAPLING, (short) 5, Constants.DARK_OAK)),
 
 	OAK_SIGN(createWoodItemStack(Constants.SIGN, "OAK")),
 	SPRUCE_SIGN(createWoodItemStack(Constants.SIGN, Constants.SPRUCE)),
@@ -265,10 +265,10 @@ public enum Materials {
 	BAT_SPAWN_EGG(createSpawnEgg(EntityType.BAT)),
 	BEE_SPAWN_EGG(createSpawnEgg("BEE")),
 	BLAZE_SPAWN_EGG(createSpawnEgg(EntityType.BLAZE)),
-	CAT_SPAWN_EGG(createSpawnEgg(EntityType.CAT)),
+	CAT_SPAWN_EGG(createSpawnEgg(EntityType.OCELOT, (short) -2)),
 	CAVE_SPIDER_SPAWN_EGG(createSpawnEgg(EntityType.CAVE_SPIDER)),
 	CHICKEN_SPAWN_EGG(createSpawnEgg(EntityType.CHICKEN)),
-	COD_SPAWN_EGG(createSpawnEgg(EntityType.COD)),
+	COD_SPAWN_EGG(createSpawnEgg("RAW_FISH", (short) 0)),
 	COW_SPAWN_EGG(createSpawnEgg(EntityType.COW)),
 	CREEPER_SPAWN_EGG(createSpawnEgg(EntityType.CREEPER)),
 	DOLPHIN_SPAWN_EGG(createSpawnEgg("DOLPHIN")),
@@ -290,7 +290,7 @@ public enum Materials {
 	MAGMA_CUBE_SPAWN_EGG(createSpawnEgg(EntityType.MAGMA_CUBE)),
 	MOOSHROOM_SPAWN_EGG(createSpawnEgg("MUSHROOM_COW")),
 	MULE_SPAWN_EGG(createSpawnEgg("MULE")),
-	OCELOT_SPAWN_EGG(createSpawnEgg("OCELOT")),
+	OCELOT_SPAWN_EGG(createSpawnEgg(EntityType.OCELOT)),
 	PANDA_SPAWN_EGG(createSpawnEgg("PANDA")),
 	PARROT_SPAWN_EGG(createSpawnEgg("PARROT")),
 	PHANTOM_SPAWN_EGG(createSpawnEgg("PHANTOM")),
@@ -299,22 +299,22 @@ public enum Materials {
 	PIGLIN_BRUTE_SPAWN_EGG(createSpawnEgg("PIGLIN_BRUTE")),
 	PILLAGER_SPAWN_EGG(createSpawnEgg("PILLAGER")),
 	POLAR_BEAR_SPAWN_EGG(createSpawnEgg("POLAR_BEAR")),
-	PUFFERFISH_SPAWN_EGG(createSpawnEgg(EntityType.PUFFERFISH)),
+	PUFFERFISH_SPAWN_EGG(createSpawnEgg("RAW_FISH", (short) 3)),
 	RABBIT_SPAWN_EGG(createSpawnEgg(EntityType.RABBIT)),
 	RAVAGER_SPAWN_EGG(createSpawnEgg("RAVAGER")),
-	SALMON_SPAWN_EGG(createSpawnEgg(EntityType.SALMON)),
+	SALMON_SPAWN_EGG(createSpawnEgg("RAW_FISH", (short) 1)),
 	SHEEP_SPAWN_EGG(createSpawnEgg(EntityType.SHEEP)),
 	SHULKER_SPAWN_EGG(createSpawnEgg("SHULKER")),
 	SILVERFISH_SPAWN_EGG(createSpawnEgg(EntityType.SILVERFISH)),
 	SKELETON_SPAWN_EGG(createSpawnEgg(EntityType.SKELETON)),
-	SKELETON_HORSE_SPAWN_EGG(createSpawnEgg(EntityType.SKELETON_HORSE)),
+	SKELETON_HORSE_SPAWN_EGG(createSpawnEgg("SKELETON_HORSE")),
 	SLIME_SPAWN_EGG(createSpawnEgg(EntityType.SLIME)),
 	SPIDER_SPAWN_EGG(createSpawnEgg(EntityType.SPIDER)),
 	SQUID_SPAWN_EGG(createSpawnEgg(EntityType.SQUID)),
 	STRAY_SPAWN_EGG(createSpawnEgg("STRAY")),
 	STRIDER_SPAWN_EGG(createSpawnEgg("STRIDER")),
 	TRADER_LLAMA_SPAWN_EGG(createSpawnEgg("TRADER_LLAMA ")),
-	TROPICAL_FISH_SPAWN_EGG(createSpawnEgg("TROPICAL_FISH")),
+	TROPICAL_FISH_SPAWN_EGG(createSpawnEgg("RAW_FISH", (short) 2)),
 	TURTLE_SPAWN_EGG(createSpawnEgg("TURTLE")),
 	VEX_SPAWN_EGG(createSpawnEgg("VEX")),
 	VILLAGER_SPAWN_EGG(createSpawnEgg(EntityType.VILLAGER)),
@@ -325,7 +325,7 @@ public enum Materials {
 	WOLF_SPAWN_EGG(createSpawnEgg(EntityType.WOLF)),
 	ZOGLIN_SPAWN_EGG(createSpawnEgg("ZOGLIN")),
 	ZOMBIE_SPAWN_EGG(createSpawnEgg(EntityType.ZOMBIE)),
-	ZOMBIE_HORSE_SPAWN_EGG(createSpawnEgg(EntityType.ZOMBIE_HORSE)),
+	ZOMBIE_HORSE_SPAWN_EGG(createSpawnEgg("ZOMBIE_HORSE")),
 	ZOMBIE_VILLAGER_SPAWN_EGG(createSpawnEgg("ZOMBIE_VILLAGER")),
 	ZOMBIFIED_PIGLIN_SPAWN_EGG(createSpawnEgg("PIG_ZOMBIE")),
 	ZOMBIE_PIGMAN_SPAWN(createSpawnEgg("PIG_ZOMBIE")),
@@ -409,14 +409,35 @@ public enum Materials {
 
 	}
 
+	public static ItemStack createSpawnEgg(String entityType, short entityDatatype) {
+		return (createSpawnEgg(EntityType.fromName(entityType), entityDatatype));
+	}
+
 	public static ItemStack createSpawnEgg(EntityType entityType) {
+		return createSpawnEgg(entityType, (short) -1);
+	}
+
+	public static ItemStack createSpawnEgg(EntityType entityType, short entityDatatype) {
+		if (entityType == EntityType.OCELOT && entityDatatype == (short) -2) {
+			EntityType type = EntityType.fromName("CAT");
+			if (type != null)
+				entityType = type;
+		}
 		Material material = Material.getMaterial("MONSTER_EGG");
 		if (material == null) return null;
-		ItemStack itemStack = new ItemStack(material, 1);
+		ItemStack itemStack;
+		if (entityDatatype > 0)
+			itemStack = new ItemStack(material, 1, entityDatatype);
+		else
+			itemStack = new ItemStack(material, 1);
+
 		SpawnEgg spawnEgg = (SpawnEgg) itemStack.getData();
 		if (spawnEgg == null) return itemStack;
 		if (entityType == null)
 			spawnEgg.setSpawnedType(EntityType.SHEEP);
+		else
+			spawnEgg.setSpawnedType(entityType);
+		itemStack.setData(spawnEgg);
 		return itemStack;
 	}
 
@@ -555,7 +576,7 @@ public enum Materials {
 		public static final String SPRUCE = "SPRUCE";
 		private static final String BIRCH = "BIRCH";
 		public static final String JUNGLE = "JUNGLE";
-		public static final String ACACIA= "ACACIA";
+		public static final String ACACIA = "ACACIA";
 		private static final String STONE = "STONE";
 		private static final String RAW_FISH = "RAW_FISH";
 		private static final String FENCE = "FENCE";

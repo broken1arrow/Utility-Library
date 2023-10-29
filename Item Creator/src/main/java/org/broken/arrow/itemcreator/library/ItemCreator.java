@@ -29,23 +29,7 @@ public class ItemCreator {
 
 	public ItemCreator(Plugin plugin, boolean turnOffLogger) {
 		nbtApi = new RegisterNbtAPI(plugin, turnOffLogger);
-		final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
-		final String firstNumber;
-		String secondNumber;
-		final String firstString = versionPieces[1];
-		if (firstString.contains("-")) {
-			firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
-
-			secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
-			final int index = secondNumber.toUpperCase().indexOf("R");
-			if (index >= 0)
-				secondNumber = secondNumber.substring(index + 1);
-		} else {
-			final String secondString = versionPieces[2];
-			firstNumber = firstString;
-			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
-		}
-		this.serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+		setServerVersion(plugin);
 
 		if (convertItems == null)
 			convertItems = new ConvertToItemStack(serverVersion);
@@ -178,4 +162,23 @@ public class ItemCreator {
 		return itemstack != null ? itemstack : new ItemStack(Material.AIR);
 	}
 
+	private void setServerVersion(final Plugin plugin) {
+		final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
+		final String firstNumber;
+		String secondNumber;
+		final String firstString = versionPieces[1];
+		if (firstString.contains("-")) {
+			firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
+
+			secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
+			final int index = secondNumber.toUpperCase().indexOf("R");
+			if (index >= 0)
+				secondNumber = secondNumber.substring(index + 1);
+		} else {
+			final String secondString = versionPieces[2];
+			firstNumber = firstString;
+			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
+		}
+		this.serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+	}
 }
