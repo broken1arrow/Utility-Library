@@ -27,7 +27,6 @@ import java.util.UUID;
  */
 public class CheckItemsInsideMenu {
 
-	//todo fix this to only create on instance? and add player to cache.
 	private final Map<UUID, Map<ItemStack, Integer>> duplicatedItems = new HashMap<>();
 	private boolean sendMsgPlayer = false;
 	private final List<Material> blacklistedItems = new ArrayList<>();

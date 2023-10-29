@@ -1,6 +1,7 @@
 package org.broken.arrow.yaml.library;
 
 
+import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.DataSerializer;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.serialize.library.utility.serialize.MethodReflectionUtils;
@@ -68,7 +69,7 @@ public abstract class YamlFileManager {
 	 * @param plugin the plugin associated with the file manager
 	 * @param path   the path to the file or folder where data will be stored
 	 */
-	public YamlFileManager(Plugin plugin, final String path) {
+	protected YamlFileManager(Plugin plugin, final String path) {
 		this(plugin, path, true, true);
 	}
 
@@ -80,9 +81,9 @@ public abstract class YamlFileManager {
 	 * @param singleFile         specifies whether the file manager operates on a single file or multiple files
 	 * @param shallGenerateFiles specifies whether default files should be generated
 	 */
-	public YamlFileManager(Plugin plugin, final String path, boolean singleFile, boolean shallGenerateFiles) {
+	protected YamlFileManager(Plugin plugin, final String path, boolean singleFile, boolean shallGenerateFiles) {
 		if (plugin == null)
-			throw new RuntimeException("The plugin is null");
+			throw new Validate.ValidateExceptions("The plugin is null");
 		this.singleFile = singleFile;
 		this.shallGenerateFiles = shallGenerateFiles;
 		this.plugin = plugin;
@@ -757,14 +758,6 @@ public abstract class YamlFileManager {
 		}
 	}
 
-	private void createMissingFile() {
-		final File checkFile = new File(this.getDataFolder(), this.getPathWithExtension());
-		if (checkFile.exists()) {
-			return;
-		}
-		this.saveResource(this.resourcePath);
-	}
-
 	private void createMissingFiles(final File[] listFiles) {
 		if (this.filesFromResource == null) return;
 		if (listFiles == null || listFiles.length < 1) {
@@ -787,14 +780,14 @@ public abstract class YamlFileManager {
 	}
 
 	private void saveResource(@Nonnull final String path) {
-		String resourcePath = path;
-		if (resourcePath.equals("")) {
+		String resourceFiles = path;
+		if (resourceFiles.equals("")) {
 			throw new IllegalArgumentException("ResourcePath cannot be empty.");
 		}
-		resourcePath = resourcePath.replace('\\', '/');
-		InputStream in = getResource(resourcePath);
+		resourceFiles = resourceFiles.replace('\\', '/');
+		InputStream in = getResource(resourceFiles);
 		if (in == null) {
-			plugin.getLogger().log(Level.SEVERE, "The embedded resource '" + resourcePath + "' cannot be found in " + path);
+			plugin.getLogger().log(Level.SEVERE, "The embedded resource '" + resourceFiles + "' cannot be found in " + path);
 			return;
 		}
 		File outFile = new File(dataFolder, this.getPath() + "/" + this.getFileName(path));

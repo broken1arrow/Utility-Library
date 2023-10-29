@@ -34,7 +34,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 	 * @param fillItems       List of items you want parse inside gui.
 	 * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
 	 */
-	public HolderUtilityU(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
+	protected HolderUtilityU(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
 		super(fillSlots, fillItems, shallCacheItems);
 	}
 
@@ -330,7 +330,6 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 				if (buttonData == null) return;
 
 				final ItemStack itemStack = getMenuItem(menuButton, buttonData, buttonSlot, true);
-				//final ItemStack itemStack = getMenuItem(menuButton, menuDataUtility.getButton(getSlot(buttonSlot)), buttonSlot, true);
 				this.getMenu().setItem(buttonSlot, itemStack);
 				menuDataUtility.putButton(this.getSlot(buttonSlot), new ButtonData<>(itemStack, menuButton, buttonData.getObject()), menuDataUtility.getFillMenuButton(this.getSlot(buttonSlot)));
 			}

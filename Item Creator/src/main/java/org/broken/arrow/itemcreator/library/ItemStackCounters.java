@@ -98,7 +98,7 @@ public class ItemStackCounters {
 	public static int countItemStacks(ItemStack[] itemStacks) {
 		int countItems = 0;
 		for (ItemStack item : itemStacks)
-			if (item != null && !(item.getType() == Material.AIR)) {
+			if (item != null && item.getType() != Material.AIR) {
 				countItems += item.getAmount();
 			}
 		return countItems;

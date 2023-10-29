@@ -945,13 +945,14 @@ public class CreateItemStack {
 		return TextTranslator.toSpigotFormat(textTranslate);
 	}
 
-	private MetaDataWrapper getMetadata() {
+	public MetaDataWrapper getMetadata() {
 		return metadata;
 	}
 
 	private Map<String, Object> getMetadataMap() {
-		if (metadata != null)
-			return metadata.getMetaDataMap();
+		MetaDataWrapper meta = getMetadata();
+		if (meta != null)
+			return meta.getMetaDataMap();
 		return new HashMap<>();
 	}
 

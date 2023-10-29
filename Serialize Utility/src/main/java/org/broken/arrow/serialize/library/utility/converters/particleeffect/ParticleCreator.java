@@ -112,12 +112,12 @@ public class ParticleCreator {
 	 * @return true if the particle effect was successfully spawned.
 	 */
 	public boolean create() {
-		final ParticleDustOptions particleDustOptions = this.particleDustOptions;
-		if (particleDustOptions != null) {
-			if (particleDustOptions.getToColor() != null)
-				spawnDustTransitionParticle(new Particle.DustTransition(particleDustOptions.getFromColor(), particleDustOptions.getToColor(), particleDustOptions.getSize()));
+		final ParticleDustOptions dustOptions = this.particleDustOptions;
+		if (dustOptions != null) {
+			if (dustOptions.getToColor() != null)
+				spawnDustTransitionParticle(new Particle.DustTransition(dustOptions.getFromColor(), dustOptions.getToColor(), dustOptions.getSize()));
 			else
-				spawnDustOptionsParticle(new Particle.DustOptions(particleDustOptions.getFromColor(), particleDustOptions.getSize()));
+				spawnDustOptionsParticle(new Particle.DustOptions(dustOptions.getFromColor(), dustOptions.getSize()));
 			return true;
 		} else
 			return checkTypeParticle();

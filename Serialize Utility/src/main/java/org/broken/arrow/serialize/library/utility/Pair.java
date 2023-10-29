@@ -11,8 +11,8 @@ public class Pair<K, V> {
 		this.secondValue = second;
 	}
 
-	public static <First, Second> Pair<First, Second> of(final First first, final Second second) {
-		return new Pair<>(first, second);
+	public static <K, V> Pair<K, V> of(final K k, final V v) {
+		return new Pair<>(k, v);
 	}
 
 	public K getFirst() {

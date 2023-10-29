@@ -40,7 +40,7 @@ import java.util.logging.Level;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public abstract class Database<Type> {
+public abstract class Database<V> {
 	private final Logging log = new Logging(Database.class);
 	private final Map<String, TableWrapper> tables = new HashMap<>();
 	final Map<String, Map<String, Integer>> cachedColumnsIndex = new HashMap<>();
@@ -286,7 +286,7 @@ public abstract class Database<Type> {
 	 * @param tableName   name of the table you want to get data from.
 	 * @param clazz       the class you have your static deserialize method.
 	 * @param columnValue the value of the primary key you want to find data from.
-	 * @param <T>         Type of class that extends ConfigurationSerializable .
+	 * @param <T>         V of class that extends ConfigurationSerializable .
 	 * @return one row you have in the table.
 	 */
 	@Nullable
@@ -447,19 +447,19 @@ public abstract class Database<Type> {
 	 * Throws SQLException if a database access error occurs or this method is called on a
 	 * closed connection. Alternatively the command is not correctly setup.
 	 *
-	 * @param command  the Type or SQL command you want to run.
+	 * @param command  the V or SQL command you want to run.
 	 * @param function the function that will be applied to the command.
 	 * @param <T>      The type you want the method to return.
 	 * @return the value you set as the lambda should return or null if something did go wrong.
 	 */
 	@Nullable
-	public <T> T getPreparedStatement(@Nonnull final String command, final Function<Type, T> function) {
+	public <T> T getPreparedStatement(@Nonnull final String command, final Function<V, T> function) {
 		if (!openConnection()) {
 			this.printFailToOpen();
 			return null;
 		}
 		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
-			return function.apply((Type) preparedStatement);
+			return function.apply((V) preparedStatement);
 		} catch (SQLException e) {
 			log.log(e,() -> of("could not execute this command: " + command));
 		} finally {
@@ -486,16 +486,16 @@ public abstract class Database<Type> {
 	 * Throws SQLException if a database access error occurs or this method is called on a
 	 * closed connection. Alternatively the command is not correctly setup.
 	 *
-	 * @param command  the Type or SQL command you want to run.
+	 * @param command  the V or SQL command you want to run.
 	 * @param consumer the consumer that will be applied to the command.
 	 */
-	public void getPreparedStatement(@Nonnull final String command, final Consumer<Type> consumer) {
+	public void getPreparedStatement(@Nonnull final String command, final Consumer<V> consumer) {
 		if (!openConnection()) {
 			this.printFailToOpen();
 			return;
 		}
 		try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
-			consumer.accept((Type) preparedStatement);
+			consumer.accept((V) preparedStatement);
 		} catch (SQLException e) {
 			log.log( e,() -> of("could not execute this command: " + command));
 		} finally {
@@ -746,7 +746,7 @@ public abstract class Database<Type> {
 	 * @param rowWrapper  The current row's column data.
 	 * @param shallUpdate Specifies whether the table should be updated.
 	 * @param columns     If not null and not empty, updates the existing row with these columns if it exists.
-	 * @return The SqlCommandComposer instance with the finish SQL command for either use for prepare Type or not.
+	 * @return The SqlCommandComposer instance with the finish SQL command for either use for prepare V or not.
 	 */
 	protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
 		SqlCommandComposer commandComposer = new SqlCommandComposer(rowWrapper, this);
@@ -777,7 +777,7 @@ public abstract class Database<Type> {
 	}
 
 	/**
-	 * Type of database set.
+	 * V of database set.
 	 *
 	 * @return the database type currently set.
 	 */
@@ -947,7 +947,7 @@ public abstract class Database<Type> {
 					boolean valuesSet = false;
 
 					if (!cachedDataByColumn.isEmpty()) {
-						// Populate the Type with data where the key is the row identifier (id).
+						// Populate the V with data where the key is the row identifier (id).
 						for (Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
 							statement.setObject(column.getKey(), column.getValue());
 							valuesSet = true;
@@ -959,7 +959,7 @@ public abstract class Database<Type> {
 
 					statement.executeBatch();
 				} catch (SQLException e) {
-					// Handle the exception for a specific Type
+					// Handle the exception for a specific V
 					log.log(Level.WARNING,() -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
 					log.log( e,() -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
 				}

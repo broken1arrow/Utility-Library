@@ -289,17 +289,17 @@ public final class SqlCommandComposer {
 	/**
 	 * Creates the command for update the row.
 	 *
-	 * @param record the record match in the database to update.
+	 * @param recordValue the record match in the database to update.
 	 * @return the constructed SQL command for the database.
 	 */
-	private String createUpdateCommand(Object record) {
+	private String createUpdateCommand(Object recordValue) {
 		final TableWrapper tableData = this.getTableWrapper();
 		final RowWrapper rows = getColumnWrapper();
 		final Map<String, TableRow> tableRowMap = tableData.getColumns();
 		final char quoteColumn = this.quote;
-		Validate.checkNotNull(rows, "The RowWrapper instance you try to save is null, for this record: " + record);
+		Validate.checkNotNull(rows, "The RowWrapper instance you try to save is null, for this record: " + recordValue);
 		Validate.checkBoolean(rows.getPrimaryKey().isEmpty(), "You need set primary key, for update records in the table.");
-		Validate.checkBoolean(record == null || record.equals(""), "You need to set record value for the primary key. When you want to update the row.");
+		Validate.checkBoolean(recordValue == null || recordValue.equals(""), "You need to set record value for the primary key. When you want to update the row.");
 
 		final StringBuilder prepareColumnsToUpdate = new StringBuilder();
 		final StringBuilder columns = new StringBuilder();
@@ -314,7 +314,7 @@ public final class SqlCommandComposer {
 			Object value = rows.getColumnValue(columnName);
 			index = setColumData(value, prepareColumnsToUpdate, columns, index, columnName, column);
 		}
-		this.cachedDataByColumn.put(index, record);
+		this.cachedDataByColumn.put(index, recordValue);
 		prepareColumnsToUpdate.setLength(prepareColumnsToUpdate.length() - 1);
 		preparedSQLBatch.append("UPDATE ")
 				.append(quoteColumn)
@@ -328,7 +328,7 @@ public final class SqlCommandComposer {
 				.append(" ? ")
 				.append(";");
 		columns.setLength(columns.length() - 2);
-		return "UPDATE " + quoteColumn + tableData.getTableName() + quoteColumn + " SET " + columns + " WHERE " + quoteColumn + rows.getPrimaryKey() + quoteColumn + " = " + quoteColumn + record + quoteColumn + ";";
+		return "UPDATE " + quoteColumn + tableData.getTableName() + quoteColumn + " SET " + columns + " WHERE " + quoteColumn + rows.getPrimaryKey() + quoteColumn + " = " + quoteColumn + recordValue + quoteColumn + ";";
 	}
 
 	private int setColumData(Object value,final StringBuilder prepareColumnsToUpdate, final StringBuilder columns, int index, final String columnName, final TableRow column) {
@@ -403,9 +403,23 @@ public final class SqlCommandComposer {
 			if (!column.getDatatype().equalsIgnoreCase("VARCHAR"))
 				setQuote = false;
 
-			values.append(setQuote ? "'" : "").append(value).insert(values.length(), values.length() == 0 ? "" : setQuote ? "," : "',");
+			setValueToBuilder(values, value, setQuote);
 			prepareValues.append("?,");
 			this.cachedDataByColumn.put(index++, value);
+		}
+	}
+
+	private void setValueToBuilder(final StringBuilder values, final Object value, final boolean setQuote) {
+		if (setQuote) {
+			values.append("'");
+		}
+		values.append(value);
+		if (values.length() > 0) {
+			if (setQuote) {
+				values.insert(values.length(), ",");
+			} else {
+				values.insert(values.length(), "',");
+			}
 		}
 	}
 
