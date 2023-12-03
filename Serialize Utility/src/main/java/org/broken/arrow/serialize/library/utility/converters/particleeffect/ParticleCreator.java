@@ -219,7 +219,7 @@ public class ParticleCreator {
 			Material material = this.effectAccessor.getMaterial();
 			BlockData blockData = this.effectAccessor.getMaterialBlockData();
 			if (blockData == null || material == null) {
-				logger.warning("You have to set the data for this effect. The type of data you must implement this class '" + this.particle.getDataType() + "'");
+				logger.warning("You have to set the data for this particle. The type of data you must implement this class '" + this.particle.getDataType() + "'");
 				return false;
 			}
 			spawn(material, blockData);

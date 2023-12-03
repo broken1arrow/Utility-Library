@@ -236,7 +236,16 @@ public final class SqlCommandComposer {
 		final RowWrapper rows = getColumnWrapper();
 		Validate.checkBoolean(rows.getPrimaryKey().isEmpty(), "You need set primaryKey, for drop the column in this table." + tableData.getTableName());
 		queryCommand = "DELETE FROM " + this.quote + tableData.getTableName() + this.quote + " WHERE " + this.quote + rows.getPrimaryKey() + this.quote + " = '" + value + "';";
-		preparedSQLBatch.insert(0, queryCommand);
+		preparedSQLBatch.append("DELETE FROM ")
+				.append(this.quote)
+				.append(tableData.getTableName())
+				.append(this.quote)
+				.append(" WHERE ")
+				.append(this.quote)
+				.append(rows.getPrimaryKey())
+				.append(this.quote)
+				.append(" = ? ;");
+		cachedDataByColumn.put(1,value);
 	}
 
 	/**
