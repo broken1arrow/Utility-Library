@@ -18,6 +18,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -505,6 +506,16 @@ public class MenuUtility<T> {
 
 	public void menuClose(final InventoryCloseEvent event, final MenuUtility<?> menu) {
 		//optional you can override this if you plan to do something when menu is closing.
+	}
+
+	/**
+	 * This event only triggers when player clicking outside of the inventory.
+	 *
+	 * @param event the event for clicking outside of the inventory
+	 * @param menu  class some are active when clicking.
+	 */
+	public void menuClickOutside(final InventoryClickEvent event, final MenuUtility<?> menu) {
+		//optional you can override this if you plan to do something when clicking outside of the menu.
 	}
 
 	/**

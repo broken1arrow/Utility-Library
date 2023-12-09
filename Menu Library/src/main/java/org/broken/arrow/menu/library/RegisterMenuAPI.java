@@ -209,7 +209,7 @@ public class RegisterMenuAPI {
 				}
 				if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
 						menuUtility.isAutoClearCache() && menuUtility.getAmountOfViewers() < 1) {
-						menuCache.removeMenuCached(getPlayerMeta().getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION));
+					menuCache.removeMenuCached(getPlayerMeta().getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION));
 				}
 				getPlayerMeta().removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
 			}
@@ -321,6 +321,9 @@ public class RegisterMenuAPI {
 		}
 
 		private void whenPlayerClick(final InventoryClickEvent event, final Player player, ItemStack clickedItem, final MenuUtility<?> menuUtility) {
+			if (event.getSlotType() == InventoryType.SlotType.OUTSIDE)
+				menuUtility.menuClickOutside(event, menuUtility);
+
 			if (!menuUtility.isAddedButtonsCacheEmpty()) {
 				final int clickedSlot = event.getSlot();
 				final int clickedPos = menuUtility.getSlot(clickedSlot);
@@ -390,7 +393,7 @@ public class RegisterMenuAPI {
 
 		private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
 			if (clickedInventory.getType() == InventoryType.PLAYER) {
-					event.setCancelled(true);
+				event.setCancelled(true);
 			}
 			if (cursor != null && cursor.getType() != Material.AIR) {
 				event.setCancelled(true);
