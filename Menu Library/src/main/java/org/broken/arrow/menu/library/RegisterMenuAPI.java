@@ -359,7 +359,7 @@ public class RegisterMenuAPI {
 				return true;
 			}
 			if (menuUtility.isSlotsYouCanAddItems()) {
-				if (menuUtility.getFillSpace().contains(clickedPos))
+				if (menuUtility.getFillSpace().contains(clickedPos) || menuUtility.getFillSpace().contains(event.getSlot()))
 					return true;
 				else if (clickedInventory.getType() != InventoryType.PLAYER)
 					event.setCancelled(true);
