@@ -6,6 +6,7 @@ import org.broken.arrow.serialize.library.DataSerializer;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.serialize.library.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.yaml.library.config.updater.ConfigUpdater;
+import org.broken.arrow.yaml.library.utillity.ConfigurationWrapper;
 import org.broken.arrow.yaml.library.utillity.Valid;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -232,10 +233,31 @@ public abstract class YamlFileManager {
 	/**
 	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
 	 *
-	 * @param path          the path to set the serialized data at
+	 * @param updateData    If true, the method updates the file with the serialized data and keeps the existing commits.
 	 * @param configuration the ConfigurationSerializable object to serialize and set
 	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
 	 */
+	public void setData(final boolean updateData, @Nonnull final ConfigurationWrapper configuration) {
+		File file = configuration.getFile() != null ? configuration.getFile() : this.currentConfigFile;
+		Valid.checkNotNull(file, "file can't be null");
+		Valid.checkNotNull(configuration.getPath(), "path can't be null");
+		Valid.checkNotNull(configuration, "Serialize utility can't be null, need provide a class instance some implements ConfigurationSerializeUtility");
+		Valid.checkBoolean(!configuration.getConfigurationsCache().isEmpty(), "Missing cached serialized data, can't serialize the class data.");
+
+		FileConfiguration config = configuration.applyToConfiguration();
+		this.saveToFile(file, config, updateData);
+	}
+
+	/**
+	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
+	 *
+	 * @param path          the path to set the serialized data at
+	 * @param configuration the ConfigurationSerializable object to serialize and set
+	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
+	 * @deprecated this is the old way to set data to file and it can't handle you want to set more than 1 value to file.
+	 * use {@link #setData(boolean, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
+	 */
+	@Deprecated
 	public void setData(@Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
 		this.setData(this.currentConfigFile, path, configuration);
 	}
@@ -247,7 +269,10 @@ public abstract class YamlFileManager {
 	 * @param updateData    If true, the method updates the file with the serialized data and keeps the existing commits.
 	 * @param configuration the ConfigurationSerializable object to serialize and set
 	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
+	 * @deprecated this is the old way to set data to file and it can't handle you want to set more than 1 value to file.
+	 * use {@link #setData(boolean, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
 	 */
+	@Deprecated
 	public void setData(@Nonnull final String path, final boolean updateData, @Nonnull final ConfigurationSerializable configuration) {
 		this.setData(this.currentConfigFile, path, updateData, configuration);
 	}
@@ -258,7 +283,10 @@ public abstract class YamlFileManager {
 	 * @param path          the path to set the serialized data at
 	 * @param configuration the ConfigurationSerializable object to serialize and set
 	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
+	 * @deprecated this is the old way to set data to file and it can't handle you want to set more than 1 value to file.
+	 * use {@link #setData(boolean, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
 	 */
+	@Deprecated
 	public void setData(@Nonnull final File file, @Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
 		this.setData(file, path, false, configuration);
 	}
@@ -271,7 +299,10 @@ public abstract class YamlFileManager {
 	 * @param updateData    If true, the method updates the file with the serialized data and keeps the existing commits.
 	 * @param configuration the ConfigurationSerializable object to serialize and set
 	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
+	 * @deprecated this is the old way to set data to file and it can't handle you want to set more than 1 value to file.
+	 * use {@link #setData(boolean, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
 	 */
+	@Deprecated
 	public void setData(@Nonnull final File file, @Nonnull final String path, final boolean updateData, @Nonnull final ConfigurationSerializable configuration) {
 		Valid.checkNotNull(file, "file can't be null");
 		Valid.checkNotNull(path, "path can't be null");
@@ -303,7 +334,7 @@ public abstract class YamlFileManager {
 			this.saveData(file);
 			return;
 		}
-		
+
 		final File folder = new File(this.getDataFolder(), this.getPath());
 		if (!folder.isDirectory()) return;
 		final File[] listOfFiles = folder.listFiles();
@@ -736,8 +767,8 @@ public abstract class YamlFileManager {
 	 * directory or file nane.
 	 *
 	 * @param directoryName the name on the directory you want to get all files from or a file name for only get one file.
-	 * @param filenames the list to add the name of the files you want to add.
-	 * @param url The URL path to your plugin.jar resources that contains your files you want to get.
+	 * @param filenames     the list to add the name of the files you want to add.
+	 * @param url           The URL path to your plugin.jar resources that contains your files you want to get.
 	 */
 	private void getFileFromJar(final String directoryName, final List<String> filenames, final URL url) {
 		final String dirname = isSingleFile() ? directoryName : directoryName + "/";
