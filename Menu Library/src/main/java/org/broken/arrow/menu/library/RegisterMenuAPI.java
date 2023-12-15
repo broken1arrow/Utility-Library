@@ -164,6 +164,9 @@ public class RegisterMenuAPI {
 			final MenuUtility<?> menuUtility = getMenuHolder(player);
 			if (menuUtility == null) return;
 
+			if (event.getSlotType() == InventoryType.SlotType.OUTSIDE)
+				menuUtility.menuClickOutside(event, menuUtility);
+			
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu())) return;
 
 			whenPlayerClick(event, player, clickedItem, menuUtility);
@@ -321,8 +324,6 @@ public class RegisterMenuAPI {
 		}
 
 		private void whenPlayerClick(final InventoryClickEvent event, final Player player, ItemStack clickedItem, final MenuUtility<?> menuUtility) {
-			if (event.getSlotType() == InventoryType.SlotType.OUTSIDE)
-				menuUtility.menuClickOutside(event, menuUtility);
 
 			if (!menuUtility.isAddedButtonsCacheEmpty()) {
 				final int clickedSlot = event.getSlot();
