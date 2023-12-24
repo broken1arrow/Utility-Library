@@ -4,6 +4,7 @@ import org.broken.arrow.localization.library.builders.Localization;
 import org.broken.arrow.localization.library.builders.PlaceholderText;
 import org.broken.arrow.localization.library.builders.PluginMessages;
 import org.broken.arrow.yaml.library.YamlFileManager;
+import org.broken.arrow.yaml.library.utillity.ConfigurationWrapper;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -31,8 +32,8 @@ public class LocalizationCache extends YamlFileManager {
 	}
 
 	@Override
-	protected void saveDataToFile(final File file) {
-     // we only load data, not set any new data to the file.
+	protected void saveDataToFile(final File file, final ConfigurationWrapper configurationWrapper) {
+             // we only load data, not set any new data to the file.
 	}
 
 	@Override

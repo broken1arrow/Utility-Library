@@ -103,9 +103,23 @@ public abstract class YamlFileManager {
 	/**
 	 * Subclasses must implement this method to save data to the specified file.
 	 *
-	 * @param file the file to which the data should be saved
+	 * @param file the file to which the data should be saved.
+	 * @deprecated Is replaced with {@link #saveDataToFile(java.io.File, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
 	 */
-	protected abstract void saveDataToFile(final File file);
+	@Deprecated
+	protected void saveDataToFile(final File file) {
+	}
+
+	/**
+	 * Subclasses must implement this method to save data to the specified file.
+	 *
+	 * @param file                 the file to which the data should be saved
+	 * @param configurationWrapper the wrapper that allows you to set the path individually
+	 *                             for every map or cached list. This capability enables you
+	 *                             to customize the save path for different data sets
+	 *                             within the same file.
+	 */
+	protected abstract void saveDataToFile(final File file, ConfigurationWrapper configurationWrapper);
 
 	/**
 	 * <p>
@@ -710,6 +724,8 @@ public abstract class YamlFileManager {
 	 * @param file the file to save.
 	 */
 	private void saveData(final File file) {
+		ConfigurationWrapper configurationWrapper = new ConfigurationWrapper(file);
+		saveDataToFile(file, configurationWrapper);
 		saveDataToFile(file);
 	}
 

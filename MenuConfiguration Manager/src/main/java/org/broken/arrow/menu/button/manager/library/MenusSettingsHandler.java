@@ -3,6 +3,7 @@ package org.broken.arrow.menu.button.manager.library;
 import org.broken.arrow.menu.button.manager.library.utility.MenuButtonData;
 import org.broken.arrow.menu.button.manager.library.utility.MenuTemplate;
 import org.broken.arrow.yaml.library.YamlFileManager;
+import org.broken.arrow.yaml.library.utillity.ConfigurationWrapper;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -153,7 +154,7 @@ public class MenusSettingsHandler extends YamlFileManager {
 	}
 
 	@Override
-	protected void saveDataToFile(final File file) {
+	protected void saveDataToFile(final File file, final ConfigurationWrapper configurationWrapper) {
 		// Not in use, because no data need to be set back to file.
 	}
 
