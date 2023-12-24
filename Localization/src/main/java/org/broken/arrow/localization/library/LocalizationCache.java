@@ -9,6 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class LocalizationCache extends YamlFileManager {
 	}
 
 	@Override
-	protected void saveDataToFile(final File file, final ConfigurationWrapper configurationWrapper) {
+	protected void saveDataToFile(final File file, @Nonnull final ConfigurationWrapper configurationWrapper) {
              // we only load data, not set any new data to the file.
 	}
 

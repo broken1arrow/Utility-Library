@@ -154,7 +154,7 @@ public class MenusSettingsHandler extends YamlFileManager {
 	}
 
 	@Override
-	protected void saveDataToFile(final File file, final ConfigurationWrapper configurationWrapper) {
+	protected void saveDataToFile(final File file, @Nonnull final ConfigurationWrapper configurationWrapper) {
 		// Not in use, because no data need to be set back to file.
 	}
 

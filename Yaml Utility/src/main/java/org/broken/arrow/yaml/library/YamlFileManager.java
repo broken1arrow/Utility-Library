@@ -119,7 +119,7 @@ public abstract class YamlFileManager {
 	 *                             to customize the save path for different data sets
 	 *                             within the same file.
 	 */
-	protected abstract void saveDataToFile(final File file, ConfigurationWrapper configurationWrapper);
+	protected abstract void saveDataToFile(@Nonnull final File file,@Nonnull final ConfigurationWrapper configurationWrapper);
 
 	/**
 	 * <p>
@@ -723,7 +723,7 @@ public abstract class YamlFileManager {
 	 *
 	 * @param file the file to save.
 	 */
-	private void saveData(final File file) {
+	private void saveData(@Nonnull final File file) {
 		ConfigurationWrapper configurationWrapper = new ConfigurationWrapper(file);
 		saveDataToFile(file, configurationWrapper);
 		saveDataToFile(file);
