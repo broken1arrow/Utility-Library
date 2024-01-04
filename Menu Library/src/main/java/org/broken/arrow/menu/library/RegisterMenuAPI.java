@@ -62,7 +62,7 @@ public class RegisterMenuAPI {
 		this.plugin = plugin;
 		menuAPI = this;
 		menuCache = new MenuCache();
-		versionCheck();
+		versionCheck(turnOffLogger);
 		if (this.plugin == null) {
 			logger.log(Level.WARNING, () -> Logging.of("You have not set a plugin."));
 			logger.log(Level.WARNING, () -> Logging.of("If you're unsure how to use this library, " +
@@ -97,13 +97,14 @@ public class RegisterMenuAPI {
 		return menuAPI;
 	}
 
-	private void versionCheck() {
-		logger.log(() -> Logging.of("Now starting MenuApi,. Any errors will be shown below."));
+	private void versionCheck(boolean turnOffLogger) {
+		if (!turnOffLogger)
+			logger.log(() -> Logging.of("Now starting MenuApi.. Any errors will be shown below."));
 		ServerVersion.getCurrentServerVersion();
 	}
 
-	public void getLogger(final Level level, final String messsage) {
-		logger.log(level, () -> Logging.of(messsage));
+	public void getLogger(final Level level, final String message) {
+		logger.log(level, () -> Logging.of(message));
 	}
 
 	public Plugin getPlugin() {
@@ -114,6 +115,7 @@ public class RegisterMenuAPI {
 		return playerMeta;
 	}
 
+	@Nullable
 	public ItemCreator getItemCreator() {
 		return itemCreator;
 	}
@@ -122,6 +124,7 @@ public class RegisterMenuAPI {
 		return checkItemsInsideMenu;
 	}
 
+	@Nullable
 	public RegisterNbtAPI getNbtApi() {
 		return nbtApi;
 	}
@@ -166,7 +169,7 @@ public class RegisterMenuAPI {
 
 			if (event.getSlotType() == InventoryType.SlotType.OUTSIDE)
 				menuUtility.menuClickOutside(event, menuUtility);
-			
+
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu())) return;
 
 			whenPlayerClick(event, player, clickedItem, menuUtility);
