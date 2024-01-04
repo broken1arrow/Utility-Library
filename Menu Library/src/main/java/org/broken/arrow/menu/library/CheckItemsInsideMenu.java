@@ -11,6 +11,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +45,7 @@ public class CheckItemsInsideMenu {
 	 * @param blacklistedItems list of items some are not allowed.
 	 */
 	public void setBlacklistedItems(final List<String> blacklistedItems) {
+		this.blacklistedItems.clear();
 		if (blacklistedItems == null) return;
 		for (String item : blacklistedItems) {
 			Material material = convertString(item);
@@ -58,7 +60,7 @@ public class CheckItemsInsideMenu {
 	 */
 
 	public List<Integer> getSlotsToCheck() {
-		return slotsToCheck;
+		return Collections.unmodifiableList(slotsToCheck);
 	}
 
 	/**
@@ -67,6 +69,7 @@ public class CheckItemsInsideMenu {
 	 * @param slotsToCheck slots you want to check.
 	 */
 	public void setSlotsToCheck(final int... slotsToCheck) {
+		this.slotsToCheck.clear();
 		if (slotsToCheck != null)
 			for (final int slot : slotsToCheck)
 				this.slotsToCheck.add(slot);
@@ -78,6 +81,7 @@ public class CheckItemsInsideMenu {
 	 * @param slotsToCheck slots you want to check.
 	 */
 	public void setSlotsToCheck(final List<Integer> slotsToCheck) {
+		this.slotsToCheck.clear();
 		if (slotsToCheck != null)
 			this.slotsToCheck.addAll(slotsToCheck);
 	}
