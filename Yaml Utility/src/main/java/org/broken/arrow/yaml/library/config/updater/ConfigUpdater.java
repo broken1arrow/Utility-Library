@@ -72,7 +72,7 @@ public class ConfigUpdater {
 	 * @throws IOException if an I/O error occurs while updating the file
 	 */
 	public void update(int version, final String resourceName, final File toUpdate) throws IOException {
-		Valid.checkBoolean(toUpdate.exists(), "The toUpdate file doesn't exist!");
+		Valid.checkBoolean(toUpdate.exists(), "The file you want to update doesn't exist! The file '" + toUpdate + "'");
 
 		final InputStream resource = this.plugin.getResource(resourceName);
 		Valid.checkNotNull(resource, "the file " + resourceName + " not exist in plugin jar.");
