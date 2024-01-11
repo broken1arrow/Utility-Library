@@ -127,10 +127,16 @@ public class UpdateTitle {
 
 		if (SERVER_VERSION > 20.2F) {
 			InventoryView inventoryView = player.getOpenInventory();
-			if (defaultConvertColor)
-				inventoryView.setTitle(TextTranslator.toSpigotFormat(title));
-			else
-				inventoryView.setTitle(title);
+			try {
+				if (defaultConvertColor)
+					inventoryView.setTitle(TextTranslator.toSpigotFormat(title));
+				else
+					inventoryView.setTitle(title);
+			} catch (IllegalArgumentException e) {
+				logger.log(Level.INFO, () -> Logging.of("Could not render this inventory: " + inventoryView.getType()));
+			} catch (Exception exception) {
+				logger.log(Level.WARNING, exception, () -> Logging.of("Something was not working when update the title: " + inventoryView.getType()));
+			}
 			return;
 		}
 
