@@ -30,7 +30,7 @@ public class CheckItemsInsideMenu {
 
 	private final Map<UUID, Map<ItemStack, Integer>> duplicatedItems = new HashMap<>();
 	private boolean sendMsgPlayer = false;
-	private final List<Material> blacklistedItems = new ArrayList<>();
+	private List<Material> blacklistedItems;
 	private final List<Integer> slotsToCheck = new ArrayList<>();
 	private final RegisterMenuAPI registerMenuAPI;
 	private boolean checkDuplicates;
@@ -43,14 +43,32 @@ public class CheckItemsInsideMenu {
 	 * set blacklisted items player not shall add to inventory/menu.
 	 *
 	 * @param blacklistedItems list of items some are not allowed.
+	 * @deprecated will be replaced of the other method that only accepts list of materials.
+	 * Use the method in MenuUtility class here: {@link org.broken.arrow.menu.library.MenuUtility#getCheckItemsInsideMenu(java.util.List)}
 	 */
+	@Deprecated
 	public void setBlacklistedItems(final List<String> blacklistedItems) {
-		this.blacklistedItems.clear();
 		if (blacklistedItems == null) return;
+		if (this.blacklistedItems == null)
+			this.blacklistedItems = new ArrayList<>();
+		else
+			this.blacklistedItems.clear();
+
 		for (String item : blacklistedItems) {
 			Material material = convertString(item);
 			this.blacklistedItems.add(material);
 		}
+	}
+
+	/**
+	 * Set blacklisted items player not shall add to inventory/menu.
+	 * This will change name after the old method is removed.
+	 *
+	 * @param blacklistedItems list of items some are not allowed.
+	 */
+	public void setBlacklistedItemsNew(final List<Material> blacklistedItems) {
+		if (blacklistedItems == null) return;
+		this.blacklistedItems = blacklistedItems;
 	}
 
 	/**
@@ -153,7 +171,7 @@ public class CheckItemsInsideMenu {
 		this.checkDuplicates = shallCheckDuplicates;
 		final Map<Integer, ItemStack> inventoryItems = new HashMap<>();
 		ItemStack[] itemStacks = inv.getContents();
-		int inventorySize = this.getSlotsToCheck().isEmpty() ? inv.getSize() - 9: inv.getSize();
+		int inventorySize = this.getSlotsToCheck().isEmpty() ? inv.getSize() - 9 : inv.getSize();
 
 		for (int slot = 0; slot < inventorySize; slot++) {
 			if (!this.getSlotsToCheck().isEmpty() && !this.getSlotsToCheck().contains(slot)) {
@@ -242,7 +260,7 @@ public class CheckItemsInsideMenu {
 
 	private boolean checkItemAreOnBlacklist(final ItemStack itemStack) {
 		final List<Material> itemStacks = blacklistedItems;
-		if (itemStack != null && !itemStacks.isEmpty())
+		if (itemStack != null && itemStacks != null && !itemStacks.isEmpty())
 			for (final Material item : itemStacks) {
 				if (item == itemStack.getType() && new ItemStack(item).isSimilar(itemStack))
 					return true;

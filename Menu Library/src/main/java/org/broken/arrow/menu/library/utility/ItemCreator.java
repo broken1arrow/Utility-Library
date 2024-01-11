@@ -1,6 +1,7 @@
 package org.broken.arrow.menu.library.utility;
 
 import org.broken.arrow.logging.library.Validate.ValidateExceptions;
+import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -38,5 +39,17 @@ public class ItemCreator {
 			}
 		}
 		return countItems;
+	}
+
+	public static Material convertString(RegisterMenuAPI registerMenuAPI,final String name) {
+		if (name == null) return null;
+		Material material = Material.getMaterial(name.toUpperCase());
+		if (material != null) {
+			return material;
+		} else {
+			if (!registerMenuAPI.isNotFoundItemCreator())
+				return registerMenuAPI.getItemCreator().of(name).makeItemStack().getType();
+		}
+		return null;
 	}
 }

@@ -38,6 +38,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 
+import static org.broken.arrow.menu.library.utility.ItemCreator.convertString;
+
 
 /**
  * Contains methods to create menu as you want it. Recomend you extends #MenuHolder to get all methods needed.
@@ -48,6 +50,7 @@ public class MenuUtility<T> {
 
 	protected MenuCacheKey menuCacheKey;
 	private final MenuCache menuCache;
+	private final CheckItemsInsideMenu checkItemsInsideMenu;
 	private final List<MenuButtonI<T>> buttonsToUpdate = new ArrayList<>();
 	private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
 	private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
@@ -80,7 +83,7 @@ public class MenuUtility<T> {
 	protected int animateButtonTime = 20;
 
 	protected int slotIndex;
-	private int numberOfFillitems;
+	private int numberOfFillItems;
 	private int requiredPages;
 	private int manuallySetPages = -1;
 	protected int inventorySize;
@@ -89,7 +92,7 @@ public class MenuUtility<T> {
 	protected int updateTime;
 
 	protected int animateTitleTime = 5;
-	private int taskidAnimateTitle;
+	private int taskIdAnimateTitle;
 
 	/**
 	 * Create menu instance.
@@ -112,6 +115,7 @@ public class MenuUtility<T> {
 		this.uniqueKey = "";
 		this.menuAPI = RegisterMenuAPI.getMenuAPI();
 		this.menuCache = this.menuAPI.getMenuCache();
+		this.checkItemsInsideMenu = new CheckItemsInsideMenu(menuAPI);
 	}
 
 	/**
@@ -561,8 +565,29 @@ public class MenuUtility<T> {
 	 *
 	 * @return A CheckItemsInsideMenu instance for collect the menu's inventory items.
 	 */
+	@Nonnull
 	public CheckItemsInsideMenu getCheckItemsInsideMenu() {
-		return this.menuAPI.getCheckItemsInsideInventory();
+		return this.getCheckItemsInsideMenu(null);
+	}
+
+	/**
+	 * Retrieves an instance of CheckItemsInsideMenu, which allows you to process the items inside the menu's
+	 * inventory. You can use this instance, for example, to collect and save the items added by the player
+	 * to the menu to a cache or for other specific purposes.
+	 *
+	 * @return A CheckItemsInsideMenu instance for collect the menu's inventory items.
+	 */
+	@Nonnull
+	public CheckItemsInsideMenu getCheckItemsInsideMenu(@Nullable List<String> blackListedMaterials) {
+		if (blackListedMaterials != null) {
+			List<Material> materials = new ArrayList<>();
+			for (String item : blackListedMaterials) {
+				Material material = convertString(menuAPI, item);
+				materials.add(material);
+			}
+			this.checkItemsInsideMenu.setBlacklistedItemsNew(materials);
+		}
+		return this.checkItemsInsideMenu;
 	}
 
 	//========================================================
@@ -605,7 +630,7 @@ public class MenuUtility<T> {
 	}
 
 	protected void updateButtons() {
-		this.slotIndex = this.getPageNumber() * numberOfFillitems;
+		this.slotIndex = this.getPageNumber() * numberOfFillItems;
 		addItemsToCache(this.getPageNumber());
 		this.slotIndex = 0;
 		redrawInventory();
@@ -615,9 +640,9 @@ public class MenuUtility<T> {
 	protected void updateTimeButtons() {
 		boolean cancelTask = false;
 		if (this.taskid > 0 && Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
-				Bukkit.getScheduler().cancelTask(this.taskid);
-				cancelTask = true;
-			}
+			Bukkit.getScheduler().cancelTask(this.taskid);
+			cancelTask = true;
+		}
 		if (cancelTask) {
 			updateButtonsInList();
 			this.getTimeWhenUpdatesButtons().clear();
@@ -706,8 +731,8 @@ public class MenuUtility<T> {
 		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
 			Bukkit.getScheduler().cancelTask(this.taskid);
 		}
-		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskidAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskidAnimateTitle)) {
-			Bukkit.getScheduler().cancelTask(this.taskidAnimateTitle);
+		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskIdAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskIdAnimateTitle)) {
+			Bukkit.getScheduler().cancelTask(this.taskIdAnimateTitle);
 		}
 	}
 
@@ -768,7 +793,7 @@ public class MenuUtility<T> {
 
 		for (int i = 0; i < this.requiredPages; i++) {
 			addedButtons = addItemsToCache(i);
-			if (i == 0) numberOfFillitems = this.slotIndex;
+			if (i == 0) numberOfFillItems = this.slotIndex;
 		}
 		this.slotIndex = 0;
 		return addedButtons;
@@ -933,7 +958,7 @@ public class MenuUtility<T> {
 	protected void runAnimateTitle() {
 		Function<?> task = getAnimateTitle();
 		if (task == null) return;
-		this.taskidAnimateTitle = new BukkitRunnable() {
+		this.taskIdAnimateTitle = new BukkitRunnable() {
 			@Override
 			public void run() {
 				Object text = task.apply();
@@ -943,7 +968,7 @@ public class MenuUtility<T> {
 					return;
 				}
 				if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz()) {
-						updateTitle(text);
+					updateTitle(text);
 				}
 			}
 		}.runTaskTimerAsynchronously(menuAPI.getPlugin(), 1, 20 + this.animateTitleTime).getTaskId();
@@ -954,8 +979,8 @@ public class MenuUtility<T> {
 		if (task == null) return;
 		this.animateTitle = null;
 		this.animateTitleJson = null;
-		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskidAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskidAnimateTitle)) {
-			Bukkit.getScheduler().cancelTask(this.taskidAnimateTitle);
+		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskIdAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskIdAnimateTitle)) {
+			Bukkit.getScheduler().cancelTask(this.taskIdAnimateTitle);
 		}
 		updateTittle();
 	}
@@ -978,7 +1003,7 @@ public class MenuUtility<T> {
 	private class RunButtonAnimation extends BukkitRunnable {
 		private int counter = 0;
 
-		public int runTask(long delay){
+		public int runTask(long delay) {
 			return runTaskTimer(menuAPI.getPlugin(), 1L, delay).getTaskId();
 		}
 
