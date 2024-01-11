@@ -246,16 +246,27 @@ public abstract class YamlFileManager {
 
 	/**
 	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
+	 * This method will not keep the existing commits in the file.
+	 *
+	 * @param configuration the ConfigurationSerializable object to serialize and set
+	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
+	 */
+	public void setData(@Nonnull final ConfigurationWrapper configuration) {
+		this.setData(false, configuration);
+	}
+	
+	/**
+	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
 	 *
 	 * @param updateData    If true, the method updates the file with the serialized data and keeps the existing commits.
 	 * @param configuration the ConfigurationSerializable object to serialize and set
 	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
 	 */
 	public void setData(final boolean updateData, @Nonnull final ConfigurationWrapper configuration) {
+		Valid.checkNotNull(configuration, "Serialize utility can't be null, need provide a class instance some implements ConfigurationSerializeUtility");
 		File file = configuration.getFile() != null ? configuration.getFile() : this.currentConfigFile;
 		Valid.checkNotNull(file, "file can't be null");
 		Valid.checkNotNull(configuration.getPath(), "path can't be null");
-		Valid.checkNotNull(configuration, "Serialize utility can't be null, need provide a class instance some implements ConfigurationSerializeUtility");
 		Valid.checkBoolean(!configuration.getConfigurationsCache().isEmpty(), "Missing cached serialized data, can't serialize the class data.");
 
 		FileConfiguration config = configuration.applyToConfiguration();
