@@ -11,7 +11,7 @@ import java.util.UUID;
  * This class provides methods to set string, integer, double, byte, short, long, float, byte array,
  * integer array, boolean, ItemStack, ItemStack array, and UUID values.
  */
-public final class NBTDataWriterWrapper {
+public final class NBTDataWriterWrapper extends NBTReaderWrapper {
 
 	private final ReadWriteNBT readWriteNBT;
 
@@ -21,6 +21,7 @@ public final class NBTDataWriterWrapper {
 	 * @param readWriteNBT The ReadWriteNBT instance used for interacting with NBT data.
 	 */
 	public NBTDataWriterWrapper(ReadWriteNBT readWriteNBT) {
+		super(readWriteNBT);
 		this.readWriteNBT = readWriteNBT;
 	}
 

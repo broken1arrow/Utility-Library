@@ -8,7 +8,7 @@ import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 import org.broken.arrow.nbt.library.utility.NBTDataWriterWrapper;
-import org.broken.arrow.nbt.library.utility.NBTValueWrapper;
+import org.broken.arrow.nbt.library.utility.NBTReaderWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -93,7 +93,7 @@ public final class CompMetadata {
 	 * @param value The value you want to set on this item, it will try convert it
 	 *              to right class, if not fund it will be converted to string.
 	 * @return The original itemStack with the metadata set.
-	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
+	 * @see org.broken.arrow.nbt.library.utility.NBTReaderWrapper
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull final String key, @Nonnull final Object value) {
 		Validate.checkNotNull(item, ITEM_IS_NULL);
@@ -147,7 +147,7 @@ public final class CompMetadata {
 	 * @param item   The item on which you want to set metadata.
 	 * @param nbtMap A map containing all the key-value pairs you want to set.
 	 * @return the original itemStack with the metadata set.
-	 * @see org.broken.arrow.nbt.library.utility.NBTValueWrapper
+	 * @see org.broken.arrow.nbt.library.utility.NBTReaderWrapper
 	 */
 	public ItemStack setAllMetadata(@Nonnull final ItemStack item, @Nonnull final Map<String, Object> nbtMap) {
 		Validate.checkNotNull(item, ITEM_IS_NULL);
@@ -322,10 +322,10 @@ public final class CompMetadata {
 	 * @param item     The item from which to retrieve metadata.
 	 * @param function The function that return NBT values you can read on your item
 	 *                 and have your own return type.
-	 * @return The NBTValueWrapper instance if the compound key was found and applied, null otherwise.
+	 * @return The NBTReaderWrapper instance if the compound key was found and applied, null otherwise.
 	 */
 	@Nullable
-	public <T> T getMetadata(@Nonnull final ItemStack item, Function<NBTValueWrapper, T> function) {
+	public <T> T getMetadata(@Nonnull final ItemStack item, Function<NBTReaderWrapper, T> function) {
 		Validate.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			return null;
@@ -336,9 +336,9 @@ public final class CompMetadata {
 			if (hasTag) {
 				ReadableNBT compound = nbt.getCompound(compoundTag);
 				if (compound != null) {
-					T returnedObject = function.apply(new NBTValueWrapper(compound));
-					if (returnedObject instanceof NBTValueWrapper)
-						throw new ValidateExceptions("You can't return NBTValueWrapper instance, because it will be closed after this call.");
+					T returnedObject = function.apply(new NBTReaderWrapper(compound));
+					if (returnedObject instanceof NBTReaderWrapper)
+						throw new ValidateExceptions("You can't return NBTReaderWrapper instance, because it will be closed after this call.");
 					return getOrNull (returnedObject);
 				}
 			}
@@ -359,7 +359,7 @@ public final class CompMetadata {
 	 * @param item     The item from which to retrieve metadata.
 	 * @param consumer The consumer that return NBT values you can read on your item.
 	 */
-	public void getMetadata(@Nonnull final ItemStack item, Consumer<NBTValueWrapper> consumer) {
+	public void getMetadata(@Nonnull final ItemStack item, Consumer<NBTReaderWrapper> consumer) {
 		Validate.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			return;
@@ -370,7 +370,7 @@ public final class CompMetadata {
 			if (hasTag) {
 				ReadableNBT compound = nbt.getCompound(compoundTag);
 				if (compound != null) {
-					consumer.accept(new NBTValueWrapper(compound));
+					consumer.accept(new NBTReaderWrapper(compound));
 				}
 			}
 		});

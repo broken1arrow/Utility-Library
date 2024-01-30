@@ -20,11 +20,11 @@ import java.util.UUID;
  * </p>
  * <p>&nbsp;</p>
  */
-public final class NBTValueWrapper {
+public class NBTReaderWrapper {
 
 	private final ReadableNBT readableNBT;
 
-	public NBTValueWrapper(ReadableNBT readableNBT) {
+	public NBTReaderWrapper(ReadableNBT readableNBT) {
 		this.readableNBT = readableNBT;
 	}
 
