@@ -119,7 +119,7 @@ public abstract class YamlFileManager {
 	 *                             to customize the save path for different data sets
 	 *                             within the same file.
 	 */
-	protected abstract void saveDataToFile(@Nonnull final File file,@Nonnull final ConfigurationWrapper configurationWrapper);
+	protected abstract void saveDataToFile(@Nonnull final File file, @Nonnull final ConfigurationWrapper configurationWrapper);
 
 	/**
 	 * <p>
@@ -230,13 +230,19 @@ public abstract class YamlFileManager {
 		if (clazz == null) return null;
 		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 		final Map<String, Object> fileData = new HashMap<>();
+
 		final ConfigurationSection configurationSection = config.getConfigurationSection(path);
-		if (configurationSection != null)
-			for (final String data : configurationSection.getKeys(true)) {
-				final Object object = config.get(path + "." + data);
-				if (object instanceof MemorySection) continue;
-				fileData.put(data, object);
+		if (configurationSection != null) {
+			for (final String yamlKeys : configurationSection.getKeys(true)) {
+				final Object object = config.get(path + "." + yamlKeys);
+				if (object instanceof ConfigurationSection && yamlKeys.contains("map?.")) {
+					setToMap(fileData, yamlKeys, (ConfigurationSection) object);
+				}
+				if (!(object instanceof MemorySection) && !yamlKeys.contains("map?.")) {
+					fileData.put(yamlKeys, object);
+				}
 			}
+		}
 		Method deserializeMethod = MethodReflectionUtils.getMethod(clazz, "deserialize", Map.class);
 		if (deserializeMethod == null)
 			deserializeMethod = MethodReflectionUtils.getMethod(clazz, "valueOf", Map.class);
@@ -254,9 +260,10 @@ public abstract class YamlFileManager {
 	public void setData(@Nonnull final ConfigurationWrapper configuration) {
 		this.setData(false, configuration);
 	}
-	
+
 	/**
 	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
+	 * Then save the values to the file.
 	 *
 	 * @param updateData    If true, the method updates the file with the serialized data and keeps the existing commits.
 	 * @param configuration the ConfigurationSerializable object to serialize and set
@@ -883,5 +890,23 @@ public abstract class YamlFileManager {
 		} catch (IOException ex) {
 			return null;
 		}
+	}
+
+	private void setToMap(final Map<String, Object> fileData, final String path, final ConfigurationSection configurationSection) {
+		String key = path.replace("map?.", "");
+		int firstIndexOf = key.lastIndexOf(".");
+		if (firstIndexOf > 0)
+			key = key.substring(firstIndexOf + 1);
+		Object objectMap = fileData.get(key);
+		Map<String, Object> nestedMap = new HashMap<>();
+		if (objectMap instanceof Map)
+			nestedMap = (Map<String, Object>) objectMap;
+
+		for (String nestedKey : configurationSection.getKeys(false)) {
+			Object nestedValue = configurationSection.get(nestedKey);
+			if (nestedValue instanceof MemorySection) continue;
+			nestedMap.put(nestedKey.replace("map?.", ""), nestedValue);
+		}
+		fileData.put(key, nestedMap);
 	}
 }

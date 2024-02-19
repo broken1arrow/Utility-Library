@@ -18,7 +18,7 @@ import java.util.Map;
 public interface ConfigurationSerializable {
 
 	/**
-	 * Serializes the PluginMessages object to a map of key-value pairs.
+	 * Serializes the data object to a map of key-value pairs.
 	 *
 	 * @return a map containing the serialized data
 	 */
