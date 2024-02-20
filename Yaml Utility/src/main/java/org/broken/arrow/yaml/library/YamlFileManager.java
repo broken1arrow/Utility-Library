@@ -893,10 +893,18 @@ public abstract class YamlFileManager {
 	}
 
 	private void setToMap(final Map<String, Object> fileData, final String path, final ConfigurationSection configurationSection) {
-		String key = path.replace("map?.", "");
-		int firstIndexOf = key.lastIndexOf(".");
-		if (firstIndexOf > 0)
-			key = key.substring(firstIndexOf + 1);
+		String key = path;
+		int firstPathAfterMap = path.lastIndexOf("map?.") + 5;
+
+		String lastPart = "";
+		if (firstPathAfterMap > 0) {
+			key = key.substring(firstPathAfterMap);
+			int lastIndexOf = key.lastIndexOf(".");
+			if (lastIndexOf > 0) {
+				lastPart = key.substring(lastIndexOf + 1);
+				key = key.substring(0, lastIndexOf);
+			}
+		}
 		Object objectMap = fileData.get(key);
 		Map<String, Object> nestedMap = new HashMap<>();
 		if (objectMap instanceof Map)
@@ -905,8 +913,21 @@ public abstract class YamlFileManager {
 		for (String nestedKey : configurationSection.getKeys(false)) {
 			Object nestedValue = configurationSection.get(nestedKey);
 			if (nestedValue instanceof MemorySection) continue;
-			nestedMap.put(nestedKey.replace("map?.", ""), nestedValue);
+			setNestedPath(lastPart, nestedMap, nestedKey, nestedValue);
 		}
 		fileData.put(key, nestedMap);
+	}
+
+	private void setNestedPath(final String lastPart, final Map<String, Object> nestedMap, final String nestedKey, final Object nestedValue) {
+		if (!lastPart.isEmpty()) {
+			Object innerPath = nestedMap.get(lastPart);
+			if (innerPath instanceof Map || innerPath == null) {
+				if (innerPath == null)
+					innerPath = new LinkedHashMap<>();
+				((Map<String, Object>) innerPath).put(nestedKey.replace("map?.", ""), nestedValue);
+				nestedMap.put(lastPart, innerPath);
+			}
+		} else
+			nestedMap.put(nestedKey.replace("map?.", ""), nestedValue);
 	}
 }
