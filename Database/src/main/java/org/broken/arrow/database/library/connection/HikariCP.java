@@ -1,4 +1,4 @@
-package org.broken.arrow.database.library;
+package org.broken.arrow.database.library.connection;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -23,6 +23,18 @@ public class HikariCP {
 	public Connection getConnection(String driverConnection) throws SQLException {
 		String databaseName = mysqlPreference.getDatabaseName();
 		String hostAddress = mysqlPreference.getHostAddress();
+		HikariConfig config = getHikariConfig(driverConnection, hostAddress, databaseName);
+
+		/*		config.addDataSourceProperty("cachePrepStmts", "true");
+		config.addDataSourceProperty("prepStmtCacheSize", "250");
+		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");*/
+		this.hikari = new HikariDataSource(config);
+		turnOfLogs();
+		return this.hikari.getConnection();
+	}
+
+	@Nonnull
+	private HikariConfig getHikariConfig(String driverConnection, String hostAddress, String databaseName) {
 		String port = mysqlPreference.getPort();
 		String user = mysqlPreference.getUser();
 		String password = mysqlPreference.getPassword();
@@ -34,13 +46,7 @@ public class HikariCP {
 		config.setUsername(user);
 		config.setPassword(password);
 		config.setDriverClassName(this.driver);
-
-		/*		config.addDataSourceProperty("cachePrepStmts", "true");
-		config.addDataSourceProperty("prepStmtCacheSize", "250");
-		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");*/
-		this.hikari = new HikariDataSource(config);
-		turnOfLogs();
-		return this.hikari.getConnection();
+		return config;
 	}
 
 	public Connection getFileConnection(String driverConnection) throws SQLException {

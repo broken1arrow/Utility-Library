@@ -3,6 +3,7 @@ package org.broken.arrow.database.library;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 
@@ -17,7 +18,7 @@ import java.util.List;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public class MySQL extends Database<PreparedStatement> {
+public class MySQL extends Database {
 	private final Logging log = new Logging(MySQL.class);
 	private final ConnectionSettings mysqlPreference;
 	private final String startSQLUrl;

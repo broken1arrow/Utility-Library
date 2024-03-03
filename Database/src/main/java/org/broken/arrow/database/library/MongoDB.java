@@ -4,11 +4,7 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerApi;
 import com.mongodb.ServerApiVersion;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
@@ -19,6 +15,7 @@ import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.database.library.utility.PreparedStatementWrapper;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
@@ -39,7 +36,7 @@ import java.util.logging.Level;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public class MongoDB extends Database<MongoCollection<Document>> {
+public class MongoDB extends Database{
 
 	private final Logging log = new Logging( MongoDB.class);
 	private final String startSQLUrl;
@@ -203,12 +200,12 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 	 */
 	@Override
 	@Nullable
-	public <T> T getPreparedStatement(@Nonnull final String tableName, Function<MongoCollection<Document>, T> function) {
+	public <T> T getPreparedStatement(@Nonnull final String tableName, Function<PreparedStatementWrapper, T> function) {
 		if (!openConnection()) return null;
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		MongoCollection<Document> collection = database.getCollection(tableName);
 		try {
-			return function.apply(collection);
+			return function.apply(new PreparedStatementWrapper(collection));
 		} finally {
 			closeConnection();
 		}
@@ -225,12 +222,12 @@ public class MongoDB extends Database<MongoCollection<Document>> {
 	 * @param consumer  the function that will be applied to the command.
 	 */
 	@Override
-	public void getPreparedStatement(@Nonnull final String tableName, Consumer<MongoCollection<Document>> consumer) {
+	public void getPreparedStatement(@Nonnull final String tableName, Consumer<PreparedStatementWrapper> consumer) {
 		if (!openConnection()) return;
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		MongoCollection<Document> collection = database.getCollection(tableName);
 		try {
-			consumer.accept(collection);
+			consumer.accept(new PreparedStatementWrapper(collection));
 		} finally {
 			closeConnection();
 		}

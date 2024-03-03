@@ -28,7 +28,7 @@ public final class SqlCommandComposer {
 	private final Logging log = new Logging(SqlCommandComposer.class);
 	private final TableWrapper tableWrapper;
 	private final RowWrapper rowWrapper;
-	private final Database<?> database;
+	private final Database database;
 	private SqlQueryBuilder queryBuilder;
 	private final Map<Integer, Object> cachedDataByColumn = new HashMap<>();
 	private Set<String> columnsToUpdate;
@@ -36,7 +36,7 @@ public final class SqlCommandComposer {
 	private String queryCommand = "";
 	private final char quote;
 
-	public SqlCommandComposer(@Nonnull final RowWrapper rowWrapper, Database<?> database) {
+	public SqlCommandComposer(@Nonnull final RowWrapper rowWrapper, Database database) {
 		this.tableWrapper = rowWrapper.getTableWrapper();
 		this.rowWrapper = rowWrapper;
 		this.database = database;

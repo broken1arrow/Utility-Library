@@ -4,20 +4,20 @@ import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.logging.library.Logging;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public class H2DB extends Database<PreparedStatement> {
+public class H2DB extends Database {
 	private final Logging log = new Logging(H2DB.class);
 	private final String parent;
 	private final String child;

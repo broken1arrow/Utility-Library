@@ -5,7 +5,7 @@
     <option name="WORKING_DIRECTORY" value="$USER_HOME$/Desktop" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="org.broken.arrow.database.library.*" />
+        <option name="PATTERN" value="org.broken.arrow.database.library.connection.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
