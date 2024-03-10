@@ -943,13 +943,14 @@ public abstract class Database {
             this.printPressesCount(processedCount);
         try {
             this.connection.setAutoCommit(false);
+            int batchSize = 1;
             for (SqlCommandComposer sql : batchList) {
                 Map<Integer, Object> cachedDataByColumn = sql.getCachedDataByColumn();
                 try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
                     boolean valuesSet = false;
 
                     if (!cachedDataByColumn.isEmpty()) {
-                        // Populate the V with data where the key is the row identifier (id).
+                        // Populate the batch with data where the key is the row identifier (id).
                         for (Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
                             statement.setObject(column.getKey(), column.getValue());
                             valuesSet = true;
@@ -960,23 +961,23 @@ public abstract class Database {
                         statement.addBatch();
 
                     statement.executeBatch();
-                    if (batchList.size() > 1000)
+                    if (batchSize % 100 == 0)
                         this.connection.commit();
+                    batchSize++;
                 } catch (SQLException e) {
-                    // Handle the exception for a specific V
                     log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
                     log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
                     this.connection.commit();
                 }
             }
-            this.connection.commit();
         } catch (SQLException e) {
             log.log(Level.WARNING, e, () -> of("Could not set auto commit to false."));
         } finally {
             try {
+                this.connection.commit();
                 this.connection.setAutoCommit(true);
             } catch (final SQLException ex) {
-                log.log(Level.WARNING, ex, () -> of("Could not set auto commit to true."));
+                log.log(Level.WARNING, ex, () -> of("Could not set auto commit to true or commit last changes."));
             } finally {
                 this.closeConnection();
             }
