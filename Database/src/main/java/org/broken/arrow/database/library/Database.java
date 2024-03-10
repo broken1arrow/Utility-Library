@@ -960,20 +960,23 @@ public abstract class Database {
                         statement.addBatch();
 
                     statement.executeBatch();
-                    this.connection.commit();
+                    if (batchList.size() > 1000)
+                        this.connection.commit();
                 } catch (SQLException e) {
                     // Handle the exception for a specific V
                     log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
                     log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
+                    this.connection.commit();
                 }
             }
+            this.connection.commit();
         } catch (SQLException e) {
-            log.log(Level.WARNING,e, () -> of("Could not set auto commit to false."));
+            log.log(Level.WARNING, e, () -> of("Could not set auto commit to false."));
         } finally {
             try {
                 this.connection.setAutoCommit(true);
             } catch (final SQLException ex) {
-                log.log(Level.WARNING,ex, () -> of("Could not set auto commit to true."));
+                log.log(Level.WARNING, ex, () -> of("Could not set auto commit to true."));
             } finally {
                 this.closeConnection();
             }

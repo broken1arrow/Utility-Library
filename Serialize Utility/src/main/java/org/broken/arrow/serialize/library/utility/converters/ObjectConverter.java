@@ -60,16 +60,16 @@ public class ObjectConverter {
 		Object obj = object;
 		try {
 			if (clazz.isAssignableFrom(Long.class)) {
-				obj = Long.parseLong(object);
+				obj = Long.parseLong(object );
 			}
 			if (clazz.isAssignableFrom(Integer.class)) {
-				obj = Integer.parseInt(object);
+				obj = Integer.parseInt(object );
 			}
 			if (clazz.isAssignableFrom(Double.class)) {
-				obj = Double.parseDouble(object);
+				obj = Double.parseDouble(object );
 			}
 		} catch (NumberFormatException exception) {
-			Object obje = Integer.parseInt("0");
+			Object obje = Double.parseDouble("0.0");
 			return (T) obje;
 		}
 		return (T) obj;
