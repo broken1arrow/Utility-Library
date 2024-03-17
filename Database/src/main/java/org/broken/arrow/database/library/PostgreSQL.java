@@ -58,7 +58,8 @@ public class PostgreSQL extends Database {
 	 * @param createDatabase If it shall check and create the database if it not created yet.
 	 */
 	public PostgreSQL(@Nonnull ConnectionSettings preferences, boolean createDatabase, String hikariClazz) {
-		this.preferences = preferences;
+        super(preferences);
+        this.preferences = preferences;
 		this.isHikariAvailable = isHikariAvailable(hikariClazz);
 		this.startSQLUrl = "jdbc:postgresql://";
 
@@ -109,7 +110,7 @@ public class PostgreSQL extends Database {
 
 		if (isHikariAvailable) {
 			if (this.hikari == null)
-				this.hikari = new HikariCP(this.preferences, this.driver);
+				this.hikari = new HikariCP(this, this.driver);
 			connection = this.hikari.getConnection(startSQLUrl);
 		} else {
 			String databaseName = preferences.getDatabaseName();

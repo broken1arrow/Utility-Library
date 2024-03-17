@@ -18,70 +18,90 @@ import java.util.List;
 import static org.broken.arrow.logging.library.Logging.of;
 
 public class H2DB extends Database {
-	private final Logging log = new Logging(H2DB.class);
-	private final String parent;
-	private final String child;
-	private final boolean isHikariAvailable;
-	private HikariCP hikari;
+    private final Logging log = new Logging(H2DB.class);
+    private final String parent;
+    private final String child;
+    private final boolean isHikariAvailable;
+    private final File dbFile;
+    private HikariCP hikari;
 
-	public H2DB(@Nonnull final String parent, @Nonnull final String child) {
-		this("com.zaxxer.hikari.HikariConfig", parent, child);
-	}
+    public H2DB(@Nonnull final String parent, @Nonnull final String child) {
+        this("com.zaxxer.hikari.HikariConfig", parent, child);
+    }
 
-	public H2DB(@Nonnull final String hikariClazzPath, @Nonnull final String parent, @Nonnull final String child) {
-		this.parent = parent;
-		this.child = child;
-		this.loadDriver("org.h2.Driver");
-		this.isHikariAvailable = this.isHikariAvailable(hikariClazzPath);
-		connect();
-	}
+    public H2DB(@Nonnull final String hikariClazzPath, @Nonnull final String parent, @Nonnull final String child) {
+        this(hikariClazzPath, new DBPath(parent, child));
+    }
 
-	@Override
-	public Connection connect() {
-		try {
-			return setupConnection();
-		} catch (SQLException e) {
-			log.log(e,()-> of("File write error: " + parent));
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public H2DB(String hikariClazzPath, DBPath dbPath) {
+        super(new ConnectionSettings(dbPath.getDbFile().getPath()));
+        this.dbFile = dbPath.getDbFile();
+        this.parent = "";
+        this.child = "";
+        this.isHikariAvailable = isHikariAvailable(hikariClazzPath);
+        this.loadDriver("org.h2.Driver");
+        connect();
+    }
 
-	@Override
-	protected void batchUpdate(@Nonnull final List<SqlCommandComposer> batchList, @Nonnull final TableWrapper... tableWrappers) {
-		this.batchUpdate(batchList, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-	}
+    @Override
+    public Connection connect() {
+        try {
+            return setupConnection();
+        } catch (SQLException e) {
+            log.log(e, () -> of("File write error: " + parent));
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-	@Override
-	protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
-		SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(rowWrapper, this);
-		boolean columnsIsEmpty = columns == null || columns.length == 0;
-		sqlCommandComposer.setColumnsToUpdate(columns);
-		
-		if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
-			sqlCommandComposer.updateTable(rowWrapper.getPrimaryKeyValue());
-		else
-			sqlCommandComposer.mergeIntoTable();
-		return sqlCommandComposer;
-	}
+    @Override
+    protected void batchUpdate(@Nonnull final List<SqlCommandComposer> batchList, @Nonnull final TableWrapper... tableWrappers) {
+        this.batchUpdate(batchList, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+    }
 
-	public Connection setupConnection() throws SQLException {
-		Connection connection;
-		File dbFile;
-		if (this.parent != null && this.child == null) dbFile = new File(parent);
-		else dbFile = new File(this.parent, this.child);
-		if (this.isHikariAvailable) {
-			if (this.hikari == null) hikari = new HikariCP(new ConnectionSettings(dbFile.getPath()), "org.h2.Driver");
-			connection = this.hikari.getFileConnection("jdbc:h2:");
-		} else {
-			connection = DriverManager.getConnection("jdbc:h2:" + dbFile.getPath());
-		}
+    @Override
+    protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
+        SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(rowWrapper, this);
+        boolean columnsIsEmpty = columns == null || columns.length == 0;
+        sqlCommandComposer.setColumnsToUpdate(columns);
 
-		return connection;
-	}
+        if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
+            sqlCommandComposer.updateTable(rowWrapper.getPrimaryKeyValue());
+        else
+            sqlCommandComposer.mergeIntoTable();
+        return sqlCommandComposer;
+    }
 
-	@Override
-	public boolean isHasCastException() {
-		return false;
-	}
+    public Connection setupConnection() throws SQLException {
+        Connection connection;
+
+        if (this.isHikariAvailable) {
+            if (this.hikari == null) hikari = new HikariCP(this, "org.h2.Driver");
+            connection = this.hikari.getFileConnection("jdbc:h2:");
+        } else {
+            connection = DriverManager.getConnection("jdbc:h2:" + this.dbFile.getPath());
+        }
+
+        return connection;
+    }
+
+    @Override
+    public boolean isHasCastException() {
+        return false;
+    }
+
+    private static class DBPath {
+        private final File dbFile;
+
+        public DBPath(String parent, String child) {
+            if (parent != null && child == null)
+                dbFile = new File(parent);
+            else
+                dbFile = new File(parent, child);
+        }
+
+        public File getDbFile() {
+            return dbFile;
+        }
+    }
 }

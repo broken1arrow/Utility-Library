@@ -46,7 +46,8 @@ public class MongoDB extends Database{
 	private boolean isClosed;
 
 	public MongoDB(final ConnectionSettings preferences) {
-		this.preferences = preferences;
+        super(preferences);
+        this.preferences = preferences;
 		this.startSQLUrl = "mongodb://";
 		this.driver = "com.mongodb.Driver";
 		connect();

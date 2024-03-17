@@ -65,7 +65,8 @@ public class MySQL extends Database {
 	 * @param createDatabase  If it shall check and create the database if it not created yet.
 	 */
 	public MySQL(@Nonnull ConnectionSettings mysqlPreference, boolean createDatabase, String hikariClazz) {
-		this.mysqlPreference = mysqlPreference;
+        super(mysqlPreference);
+        this.mysqlPreference = mysqlPreference;
 		this.isHikariAvailable = isHikariAvailable(hikariClazz);
 		this.setCharacterSet("DEFAULT CHARSET=utf8mb4");
 		this.startSQLUrl = "jdbc:mysql://";
@@ -103,7 +104,7 @@ public class MySQL extends Database {
 
 		if (isHikariAvailable) {
 			if (this.hikari == null)
-				this.hikari = new HikariCP(this.mysqlPreference, this.driver);
+				this.hikari = new HikariCP(this, this.driver);
 			connection = this.hikari.getConnection(startSQLUrl);
 		} else {
 			String databaseName = mysqlPreference.getDatabaseName();
@@ -128,7 +129,6 @@ public class MySQL extends Database {
 		String password = mysqlPreference.getPassword();
 
 		try (Connection createDatabase = DriverManager.getConnection(startSQLUrl + hostAddress + ":" + port + "/?useSSL=false&useUnicode=yes&characterEncoding=UTF-8", user, password)) {
-
 			try (PreparedStatement create = createDatabase.prepareStatement("CREATE DATABASE IF NOT EXISTS " + databaseName)) {
 				create.execute();
 				close(create);

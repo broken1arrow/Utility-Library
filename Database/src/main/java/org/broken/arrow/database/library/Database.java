@@ -1,5 +1,6 @@
 package org.broken.arrow.database.library;
 
+import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.RowDataWrapper;
@@ -8,6 +9,7 @@ import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.utility.DatabaseType;
 import org.broken.arrow.database.library.utility.PreparedStatementWrapper;
 import org.broken.arrow.database.library.utility.SQLCommandPrefix;
@@ -47,37 +49,39 @@ public abstract class Database {
     final Map<String, Map<String, Integer>> cachedColumnsIndex = new HashMap<>();
     private Set<String> removeColumns = new HashSet<>();
     protected Connection connection;
+    private final ConnectionSettings connectionSettings;
     private final MethodReflectionUtils methodReflectionUtils = new MethodReflectionUtils();
     protected boolean batchUpdateGoingOn = false;
     protected boolean hasStartWriteToDb = false;
-    private final DatabaseType databaseType;
+    private DatabaseType databaseType = null;
     private char quote = '`';
     private String characterSet = "";
     private boolean secureQuery = true;
+    private int maximumPoolSize;
+    private long connectionTimeout;
+    private long idleTimeout;
 
-    protected Database() {
+    protected Database(ConnectionSettings connectionSettings) {
         if (this instanceof SQLite) {
             this.databaseType = DatabaseType.SQLITE;
-            return;
         }
         if (this instanceof MySQL) {
             this.databaseType = DatabaseType.MYSQL;
-            return;
         }
         if (this instanceof H2DB) {
             this.databaseType = DatabaseType.H2;
-            return;
         }
         if (this instanceof PostgreSQL) {
             this.databaseType = DatabaseType.POSTGRESQL;
             quote = ' ';
-            return;
         }
         if (this instanceof MongoDB) {
             this.databaseType = DatabaseType.MONGO_DB;
-            return;
         }
-        this.databaseType = DatabaseType.UNKNOWN;
+        if (this.databaseType == null)
+            this.databaseType = DatabaseType.UNKNOWN;
+
+        this.connectionSettings = connectionSettings;
     }
 
     /**
@@ -88,7 +92,7 @@ public abstract class Database {
     public abstract Connection connect();
 
     /**
-     * The batchUpdate method, override this method to self set the {@link #batchUpdate(java.util.List, int, int)} method.
+     * The batchUpdate method, override this method to self set the {@link #batchUpdate(List, int, int)} method.
      *
      * @param sqlComposer   list of instances that store the information for the command that will be executed.
      * @param tableWrappers the table wrapper involved in the execution of this event.
@@ -273,7 +277,7 @@ public abstract class Database {
                     loadDataWrappers.add(new LoadDataWrapper<>(primaryValue, deserialize));
                 }
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> Logging.of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
+                log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
             } finally {
                 this.closeConnection();
             }
@@ -313,7 +317,7 @@ public abstract class Database {
                 if (resultSet.next())
                     dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> Logging.of("Could not load the data. Check the stacktrace."));
+                log.log(Level.WARNING, e, () -> of("Could not load the data. Check the stacktrace."));
             } finally {
                 this.closeConnection();
             }
@@ -819,9 +823,12 @@ public abstract class Database {
         try {
             if (this.connection != null) {
                 this.connection.close();
+                this.connection = null;
+            } else {
+                log.log(Level.WARNING, () -> of("Could not close connection, because it is not set."));
             }
         } catch (final SQLException exception) {
-            exception.printStackTrace();
+            log.log(Level.WARNING, exception, () -> of("Something went wrong, when attempt to close connection."));
         }
     }
 
@@ -903,6 +910,75 @@ public abstract class Database {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Set the maximum size of the connection pool.
+     * <p>
+     * Note: Does currently only works with this connection pool {@link HikariCP}.
+     *
+     * @param poolSize the maximum size of the connection pool.
+     */
+    public void setMaximumPoolSize(final int poolSize) {
+        this.maximumPoolSize = poolSize;
+    }
+
+    /**
+     * Set the maximum time (in seconds) to wait for a connection to be established.
+     * <p>
+     * Note: Does currently only works with this connection pool {@link HikariCP}.
+     *
+     * @param timeout the maximum connection timeout in seconds.
+     */
+    public void setConnectionTimeout(final int timeout) {
+       this.connectionTimeout = timeout * 1000L;
+    }
+
+    /**
+     * Set the maximum time (in seconds) a connection can remain idle before it is eligible for eviction.
+     * <p>
+     * Note: Does currently only works with this connection pool {@link HikariCP}.
+     *
+     * @param idleTimeout the timeout in seconds.
+     */
+    public void setIdleTimeout(final int idleTimeout) {
+        this.idleTimeout = idleTimeout * 1000L;
+    }
+
+    /**
+     * Retrieve the current maximum size of the connection pool.
+     *
+     * @return the maximum size of the connection pool, or a default value if not explicitly set.
+     */
+    public int getMaximumPoolSize() {
+        return maximumPoolSize;
+    }
+
+    /**
+     * Retrieve the current connection timeout in milliseconds.
+     *
+     * @return the current connection timeout in milliseconds, or a default value if not explicitly set.
+     */
+    public long getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    /**
+     * Retrieve the current idle timeout in milliseconds.
+     *
+     * @return the current idle timeout in milliseconds, or a default value if not explicitly set.
+     */
+    public long getIdleTimeout() {
+        return idleTimeout;
+    }
+
+    /**
+     * Retrieve the settings used to connect to the database.
+     *
+     * @return the settings that should be used to connect.
+     */
+    public ConnectionSettings getConnectionSettings() {
+        return connectionSettings;
     }
 
     public void loadDriver(final String path) {
