@@ -14,7 +14,7 @@ public class SerializeUtility {
      *
      * @param dataMap the map containing data to be deserialized.
      * @param mapKey a function to deserialize map keys from String to type K.
-     * @param serializingData a function to deserialize map values from Map<String, Object> to type V.
+     * @param serializingData a function to deserialize map values from Map&#60;String, Object&#62; to type V.
      * @return a deserialized map with converted keys and values.
      * @param <K> the type of keys in the original map.
      * @param <V> the type of values in the original map.
@@ -27,7 +27,7 @@ public class SerializeUtility {
      * Serialize a map of generic key-value pairs using the provided function.
      *
      * @param dataMap the map containing data to be serialized.
-     * @param serializingData a function to serialize map values from type V to Map<String, Object>.
+     * @param serializingData a function to serialize map values from type V to Map&#60;String, Object&#62;.
      * @return a serialized map with converted keys and values.
      * @param <K> the type of keys in the original map.
      * @param <V> the type of values in the original map.
