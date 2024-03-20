@@ -9,7 +9,9 @@ import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
+import org.broken.arrow.menu.library.utility.FillItems;
 import org.broken.arrow.menu.library.utility.Function;
+import org.broken.arrow.menu.library.utility.MenuInteractionChecks;
 import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Bukkit;
@@ -54,9 +56,10 @@ public class MenuUtility<T> {
 	private final List<MenuButtonI<T>> buttonsToUpdate = new ArrayList<>();
 	private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
 	private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
+    private MenuInteractionChecks<T> menuInteractionChecks;
 
 	protected List<Integer> fillSpace;
-	private final List<T> listOfFillItems;
+	private FillItems<T> listOfFillItems;
 	protected Location location;
 	protected RegisterMenuAPI menuAPI;
 	private Inventory inventory;
@@ -103,7 +106,11 @@ public class MenuUtility<T> {
 	 */
 	public MenuUtility(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
 		this.fillSpace = fillSlots;
-		this.listOfFillItems = fillItems;
+        if (fillItems != null) {
+            this.listOfFillItems = new FillItems<>();
+            this.listOfFillItems.setFillItems(fillItems);
+        }
+        this.menuInteractionChecks = new MenuInteractionChecks<>(this);
 		this.shallCacheItems = shallCacheItems;
 		this.allowShiftClick = true;
 		this.autoClearCache = true;
@@ -179,9 +186,9 @@ public class MenuUtility<T> {
 	 * @return true if shiftclick shall be allowd.
 	 */
 
-	public boolean isAllowShiftClick() {
-		return allowShiftClick;
-	}
+    public boolean isAllowShiftClick() {
+        return allowShiftClick;
+    }
 
 	/**
 	 * If this is set to true, you can then add or remove items in the menu.
@@ -327,7 +334,7 @@ public class MenuUtility<T> {
 	/**
 	 * All buttons inside the menu.
 	 *
-	 * @return list of buttons some currently are registed.
+	 * @return list of buttons some currently are register.
 	 */
 	@Deprecated
 	public List<MenuButtonI<T>> getButtons() {
@@ -335,9 +342,9 @@ public class MenuUtility<T> {
 	}
 
 	/**
-	 * Get all buttons some shal update when menu is open.
+	 * Get all buttons some shall update when menu is open.
 	 *
-	 * @return list of buttons some shall be updated when invetory is open.
+	 * @return list of buttons some shall be updated when inventory is open.
 	 */
 	public List<MenuButtonI<T>> getButtonsToUpdate() {
 		return buttonsToUpdate;
@@ -356,7 +363,7 @@ public class MenuUtility<T> {
 	 * Get if several players to look inside the current inventory. If it's zero
 	 * then is only one player currently looking inside the inventory.
 	 *
-	 * @return amount of players curently looking in the inventory.
+	 * @return amount of players currently looking in the inventory.
 	 */
 	public int getAmountOfViewers() {
 		return (int) (this.getMenu() == null ? -1 : this.getMenu().getViewers().stream().filter(entity -> entity instanceof Player).count() - 1);
@@ -403,9 +410,9 @@ public class MenuUtility<T> {
 	 * @return 1 or amount it need to fit all items.
 	 */
 
-	public int getRequiredPages() {
-		return requiredPages;
-	}
+    public int getRequiredPages() {
+        return requiredPages;
+    }
 
 	/**
 	 * Get if this option is on or off.
@@ -434,19 +441,19 @@ public class MenuUtility<T> {
 	 * @return key you has used.
 	 */
 
-	public String getPlayerMetadataKey() {
-		return playerMetadataKey;
-	}
+    public String getPlayerMetadataKey() {
+        return playerMetadataKey;
+    }
 
-	/**
-	 * Get the Object/entity from the @link {@link #listOfFillItems}.
-	 *
-	 * @param clickedPos the curent pos player clicking on, you need also add the page player currently have open and inventory size.
-	 * @return Object/entity from the listOfFillItems list.
-	 */
-	public T getObjectFromList(final int clickedPos) {
-		return getAddedButtons(this.getPageNumber(), clickedPos).getObject();
-	}
+    /**
+     * Get the Object/entity from the @link {@link #listOfFillItems}.
+     *
+     * @param clickedPos the current pos player clicking on, you need also add the page player currently have open and inventory size.
+     * @return Object/entity from the listOfFillItems list.
+     */
+    public T getObjectFromList(final int clickedPos) {
+        return getAddedButtons(this.getPageNumber(), clickedPos).getObject();
+    }
 
 	/**
 	 * Get a array of slots some are used as fillslots.
@@ -458,15 +465,17 @@ public class MenuUtility<T> {
 		return fillSpace != null ? fillSpace : new ArrayList<>();
 	}
 
-	/**
-	 * Get list of fill items you added to menu.
-	 *
-	 * @return items you have added.
-	 */
-	@Nullable
-	public List<T> getListOfFillItems() {
-		return listOfFillItems;
-	}
+    /**
+     * Get list of fill items you added to menu.
+     *
+     * @return items you have added.
+     */
+    @Nullable
+    public List<T> getListOfFillItems() {
+        if (listOfFillItems == null) return null;
+
+        return listOfFillItems.getFillItems();
+    }
 
 	/**
 	 * Get inventory size.
@@ -474,9 +483,9 @@ public class MenuUtility<T> {
 	 * @return inventory size.
 	 */
 
-	public int getInventorySize() {
-		return inventorySize;
-	}
+    public int getInventorySize() {
+        return inventorySize;
+    }
 
 	/**
 	 * If this is set to true, it will not check whether the unique key is set and
@@ -497,9 +506,9 @@ public class MenuUtility<T> {
 	 * @return true if it shall clear menu after last viewer close gui.
 	 */
 
-	public boolean isAutoClearCache() {
-		return autoClearCache;
-	}
+    public boolean isAutoClearCache() {
+        return autoClearCache;
+    }
 
 	/**
 	 * When you close the menu
@@ -589,6 +598,17 @@ public class MenuUtility<T> {
 		}
 		return this.checkItemsInsideMenu;
 	}
+
+    /**
+     * Provides access to the internal checks for player interactions
+     * with the menu, such as clicking or dragging items.
+     *
+     * @return the MenuInteractionChecks instance for handling menu interactions.
+     */
+    public MenuInteractionChecks<T> getMenuInteractionChecks() {
+        return menuInteractionChecks;
+    }
+
 
 	//========================================================
 
@@ -709,9 +729,9 @@ public class MenuUtility<T> {
 		menuAPI.getPlayerMeta().setPlayerLocationMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION, menuCacheKey);
 	}
 
-	protected void setMetadataKey(final String setPlayerMetadataKey) {
-		this.playerMetadataKey = setPlayerMetadataKey;
-	}
+    protected void setMetadataKey(final String setPlayerMetadataKey) {
+        this.playerMetadataKey = setPlayerMetadataKey;
+    }
 
 	protected void onMenuOpenPlaySound() {
 		final Sound sound = this.menuOpenSound;
@@ -720,14 +740,12 @@ public class MenuUtility<T> {
 		this.player.playSound(player.getLocation(), sound, 1, 1);
 	}
 
-	/**
-	 * Do not use this method, use {@link #menuClose}
-	 *
-	 * @param event some get fierd.
-	 * @deprecated is only for internal use, do not override this.
-	 */
-	@Deprecated
-	protected final void onMenuClose(final InventoryCloseEvent event) {
+    /**
+     * This method close all running tasks, if it is set.
+     * <p>
+     * Note: this is only for internal use, don't try to override this.
+     */
+	protected final void closeTasks() {
 		if (Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
 			Bukkit.getScheduler().cancelTask(this.taskid);
 		}
@@ -1003,9 +1021,9 @@ public class MenuUtility<T> {
 	private class RunButtonAnimation extends BukkitRunnable {
 		private int counter = 0;
 
-		public int runTask(long delay) {
-			return runTaskTimer(menuAPI.getPlugin(), 1L, delay).getTaskId();
-		}
+        public int runTask(long delay) {
+            return runTaskTimer(menuAPI.getPlugin(), 1L, delay).getTaskId();
+        }
 
 		@Override
 		public void run() {
@@ -1024,7 +1042,7 @@ public class MenuUtility<T> {
 						return;
 					}
 
-					final Set<Integer> itemSlots = getItemSlotsMap(menuDataUtility, menuButton);
+                    final Set<Integer> itemSlots = getItemSlotsMap(menuDataUtility, menuButton);
 
 					if (updateButtonsData(menuButton, menuDataUtility, itemSlots)) return;
 				}

@@ -13,7 +13,7 @@ public class ButtonData<T> {
 	public ButtonData(final ItemStack itemStack, final MenuButtonI<T> menuButton, final T object) {
 		this.itemStack = itemStack;
 		this.menuButtonLinkedToThisItem = menuButton;
-		this.id = menuButton != null ? menuButton.getId() : 0;
+		this.id = menuButton != null ? menuButton.getId() : -1;
 		this.object = object;
 	}
 
@@ -36,9 +36,9 @@ public class ButtonData<T> {
 	}
 
 	/**
-	 * Get the uniqe id for this button.
+	 * Get the unique id for this button.
 	 *
-	 * @return the id or 0 if not set.
+	 * @return the id or -1 if not set.
 	 */
 
 	public int getId() {

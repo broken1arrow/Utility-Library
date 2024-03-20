@@ -172,7 +172,9 @@ public class RegisterMenuAPI {
 
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu())) return;
 
-			whenPlayerClick(event, player, clickedItem, menuUtility);
+            if (menuUtility.getMenuInteractionChecks().whenPlayerClick(event, player, clickedItem))
+                onOffHandClick(event, player);
+			//whenPlayerClick(event, player, clickedItem, menuUtility);
 		}
 
 		@EventHandler(priority = EventPriority.LOW)
@@ -206,7 +208,7 @@ public class RegisterMenuAPI {
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu()))
 				return;
 
-			menuUtility.onMenuClose(event);
+			menuUtility.closeTasks();
 			try {
 				menuUtility.menuClose(event, menuUtility);
 			} finally {
@@ -233,8 +235,8 @@ public class RegisterMenuAPI {
 
 			if (!menuUtility.isAddedButtonsCacheEmpty()) {
 				final int size = event.getView().getTopInventory().getSize();
-
-				checkMenuForDrag(event, menuUtility, size);
+                menuUtility.getMenuInteractionChecks().whenPlayerDrag(event, size);
+				//checkMenuForDrag(event, menuUtility, size);
 			}
 		}
 
@@ -326,9 +328,10 @@ public class RegisterMenuAPI {
 			}
 		}
 
-		private void whenPlayerClick(final InventoryClickEvent event, final Player player, ItemStack clickedItem, final MenuUtility<?> menuUtility) {
-
-			if (!menuUtility.isAddedButtonsCacheEmpty()) {
+   /*     private void whenPlayerClick(final InventoryClickEvent event, final Player player, ItemStack clickedItem, final MenuUtility<?> menuUtility) {
+            if (menuUtility.getMenuEvents().whenPlayerClick(event, player, clickedItem))
+                onOffHandClick(event, player);
+		*//*	if (!menuUtility.isAddedButtonsCacheEmpty()) {
 				final int clickedSlot = event.getSlot();
 				final int clickedPos = menuUtility.getSlot(clickedSlot);
 				Inventory clickedInventory = event.getClickedInventory();
@@ -342,8 +345,8 @@ public class RegisterMenuAPI {
 
 					onOffHandClick(event, player);
 				}
-			}
-		}
+			}*//*
+        }*/
 
 		private void onOffHandClick(final InventoryClickEvent event, final Player player) {
 			if (ServerVersion.newerThan(ServerVersion.V1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
@@ -373,6 +376,7 @@ public class RegisterMenuAPI {
 			return false;
 		}
 
+/*
 		private void checkMenuForDrag(final InventoryDragEvent event, final MenuUtility<?> menuUtility, final int size) {
 			for (final int clickedSlot : event.getRawSlots()) {
 				if (clickedSlot > size)
@@ -394,6 +398,7 @@ public class RegisterMenuAPI {
 					event.setCancelled(true);
 			}
 		}
+*/
 
 		private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
 			if (clickedInventory.getType() == InventoryType.PLAYER) {
