@@ -55,9 +55,32 @@ public class HikariCP {
 		/*		config.addDataSourceProperty("cachePrepStmts", "true");
 		config.addDataSourceProperty("prepStmtCacheSize", "250");
 		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");*/
-        this.hikari = new HikariDataSource(config);
+        if (this.hikari == null) {
+            synchronized (this) {
+                if (this.hikari == null)
+                    this.hikari = new HikariDataSource(config);
+            }
+        } else {
+            createPoolIfSetDataNotMatch(config);
+        }
         turnOfLogs();
         return this.hikari.getConnection();
+    }
+
+    private void createPoolIfSetDataNotMatch(HikariConfig config) {
+
+        boolean needRecreate = !this.hikari.getJdbcUrl().equals(config.getJdbcUrl()) ||
+                !this.hikari.getUsername().equals(config.getUsername()) ||
+                !this.hikari.getPassword().equals(config.getPassword());
+
+        if (needRecreate) {
+            synchronized (this) {
+                if (needRecreate) {
+                    this.hikari.close();
+                    this.hikari = new HikariDataSource(config);
+                }
+            }
+        }
     }
 
     @Nonnull
