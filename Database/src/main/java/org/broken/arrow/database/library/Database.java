@@ -60,6 +60,8 @@ public abstract class Database {
     private int maximumPoolSize;
     private long connectionTimeout;
     private long idleTimeout;
+    private long maxLifeTime;
+    private int minimumIdle;
 
     protected Database(ConnectionSettings connectionSettings) {
         if (this instanceof SQLite) {
@@ -931,7 +933,7 @@ public abstract class Database {
      * @param timeout the maximum connection timeout in seconds.
      */
     public void setConnectionTimeout(final int timeout) {
-       this.connectionTimeout = timeout * 1000L;
+        this.connectionTimeout = timeout * 1000L;
     }
 
     /**
@@ -943,6 +945,32 @@ public abstract class Database {
      */
     public void setIdleTimeout(final int idleTimeout) {
         this.idleTimeout = idleTimeout * 1000L;
+    }
+
+    /**
+     * The property controls the minimum number of idle connections that HikariCP tries to maintain in
+     * the pool, including both idle and in-use connections. If the idle connections dip below this
+     * value, HikariCP will make a best effort to restore them quickly and efficiently.
+     * <p>
+     * Note: Does currently only works with this connection pool {@link HikariCP}.
+     *
+     * @param minimumIdle the minimum number of idle connections in the pool to maintain
+     */
+    public void setMinimumIdle(int minimumIdle) {
+        this.minimumIdle = minimumIdle;
+    }
+
+    /**
+     * This property controls the maximum lifetime of a connection in the pool. When a connection reaches
+     * this timeout, even if recently used, it will be retired from the pool. An in-use connection
+     * will never be retired, only when it is idle will it be removed.
+     * <p>
+     * Note: Does currently only works with this connection pool {@link HikariCP}.
+     *
+     * @param maxLifeTime the maximum connection lifetime in seconds
+     */
+    public void setMaxLifeTime(long maxLifeTime) {
+        this.maxLifeTime = maxLifeTime * 1000L;
     }
 
     /**
@@ -970,6 +998,27 @@ public abstract class Database {
      */
     public long getIdleTimeout() {
         return idleTimeout;
+    }
+
+    /**
+     * Retrieve the minimum number of idle connections the pool tries to maintain,
+     * including both idle and in-use connections.
+     *
+     * @return the minimum number of connections in the pool.
+     */
+    public int getMinimumIdle() {
+        return minimumIdle;
+    }
+
+    /**
+     * This property controls the maximum lifetime of a connection in the pool. When a connection reaches
+     * this timeout, even if recently used, it will be retired from the pool. An in-use connection will
+     * never be retired, only when it is idle will it be removed.
+     *
+     * @return the maximum connection lifetime in milliseconds.
+     */
+    public long getMaxLifeTime() {
+        return maxLifeTime;
     }
 
     /**

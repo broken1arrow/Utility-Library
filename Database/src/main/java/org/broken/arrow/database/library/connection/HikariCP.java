@@ -46,11 +46,19 @@ public class HikariCP {
 
         long connectionTimeout = this.database.getConnectionTimeout();
         if (connectionTimeout > 0)
-            config.setConnectionTimeout(connectionTimeout); // 30_000 = 30 seconds
+            config.setConnectionTimeout(connectionTimeout);
 
         long idleTimeout = this.database.getIdleTimeout();
         if (idleTimeout > 0)
-            config.setIdleTimeout(idleTimeout); //600_000 = 10 minutes
+            config.setIdleTimeout(idleTimeout);
+
+        int minIdleTimeout = this.database.getMinimumIdle();
+        if (idleTimeout > 0)
+            config.setMinimumIdle(minIdleTimeout);
+
+        long maxLifeTime = this.database.getMaxLifeTime();
+        if (maxLifeTime > 0)
+            config.setMaxLifetime(maxLifeTime);
 
 		/*		config.addDataSourceProperty("cachePrepStmts", "true");
 		config.addDataSourceProperty("prepStmtCacheSize", "250");
