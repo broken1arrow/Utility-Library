@@ -5,6 +5,11 @@ import org.broken.arrow.menu.library.button.MenuButtonI;
 
 import java.util.List;
 
+/**
+ * This class will be replaced by  {@link MenuHolderPage}.
+ * @param <T>
+ */
+@Deprecated
 public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
 
 	/**

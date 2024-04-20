@@ -304,9 +304,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 
 	/**
 	 * Update only one button. Set this inside the {@link org.broken.arrow.menu.library.button.MenuButtonI#onClickInsideMenu(org.bukkit.entity.Player, org.bukkit.inventory.Inventory, org.bukkit.event.inventory.ClickType, org.bukkit.inventory.ItemStack, Object)}}
-	 * method and use this to tell what button some shal be updated.
-	 * <p>
-	 * You has to do this "this.YourClass.updateButton(MenuButtonI)" to acces this method.
+	 * method and use this to tell what button some shall be updated.
 	 *
 	 * @param menuButton the current button.
 	 */
@@ -353,7 +351,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 	 * @param ignoreItemCheck set to true and it will deny player from take items
 	 *                        , even if the item in inventory not match item you has set.
 	 */
-	public void setignoreItemCheck(final boolean ignoreItemCheck) {
+	public void setIgnoreItemCheck(final boolean ignoreItemCheck) {
 		this.ignoreItemCheck = ignoreItemCheck;
 	}
 

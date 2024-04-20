@@ -8,19 +8,19 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface MenuButtonI<T> {
+public interface  MenuButtonI<T> {
 
 
 	/**
 	 * when you click inside the menu.
 	 *
 	 * @param player      player some clicked in the menu.
-	 * @param menu        menu some are curently open.
-	 * @param click       clicktype (right,left or shift click)
+	 * @param menu        menu some are currently open.
+	 * @param click       click type (right,left or shift click)
 	 * @param clickedItem item some are clicked on
-	 * @param object      object some are clicked on (defult is it itemstack).
+	 * @param object      object some are clicked on (default is it itemstack).
 	 */
-	void onClickInsideMenu(@Nonnull final Player player, @Nonnull final Inventory menu, @Nonnull final ClickType click, @Nonnull final ItemStack clickedItem, final T object);
+	void onClickInsideMenu(@Nonnull final Player player, @Nonnull final Inventory menu, @Nonnull final ClickType click, @Nonnull final ItemStack clickedItem,@Nullable final T object);
 
 	/**
 	 * get the item some are added in your menu
@@ -71,7 +71,7 @@ public interface MenuButtonI<T> {
 	default boolean shouldUpdateButtons() {
 		return false;
 	}
-	
+
 	/**
 	 * The unique id for this instance.
 	 *

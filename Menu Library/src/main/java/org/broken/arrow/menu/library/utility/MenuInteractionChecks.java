@@ -33,7 +33,7 @@ public class MenuInteractionChecks<T> {
                 event.setCancelled(true);
                 if (clickedItem == null)
                     clickedItem = new ItemStack(Material.AIR);
-                this.menuUtility.onClick(menuButton, player, clickedPos, event.getClick(), clickedItem);
+                this.menuUtility.onClick(menuButton, player, clickedSlot, event.getClick(), clickedItem);
                 return true;
                 // onOffHandClick(event, player);
             }

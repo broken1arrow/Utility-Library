@@ -33,11 +33,26 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 	 * @param fillSlots       Witch slots you want fill with items.
 	 * @param fillItems       List of items you want parse inside gui.
 	 * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
+	 * @deprecated the list of fillSlots and fillItems will be removed.
 	 */
+	@Deprecated
 	protected HolderUtility(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
 		super(fillSlots, fillItems, shallCacheItems);
 	}
 
+	/**
+	 * Create menu instance.
+	 */
+	public HolderUtility() {
+		super(null, null, false);
+	}
+
+	/**
+	 * Create menu instance.
+	 */
+	public HolderUtility(final boolean shallCacheItems) {
+		super(null, null, shallCacheItems);
+	}
 
 	/**
 	 * When you close the menu
