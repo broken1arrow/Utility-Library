@@ -80,13 +80,13 @@ public class MenuInteractionChecks<T> {
 
     private boolean checkClickIsAllowed(final InventoryClickEvent event, final int clickedPos, final Inventory clickedInventory) {
         final ItemStack cursor = event.getCursor();
-        MenuUtility<?> menuUtility = this.menuUtility;
-        if (!menuUtility.isAllowShiftClick() && event.getClick().isShiftClick()) {
+        MenuUtility<?> menu = this.menuUtility;
+        if (!menu.isAllowShiftClick() && event.getClick().isShiftClick()) {
             event.setCancelled(true);
             return true;
         }
-        if (menuUtility.isSlotsYouCanAddItems()) {
-            if (menuUtility.getFillSpace().contains(clickedPos) || menuUtility.getFillSpace().contains(event.getSlot()))
+        if (menu.isSlotsYouCanAddItems()) {
+            if (menu.getFillSpace().contains(clickedPos) || menu.getFillSpace().contains(event.getSlot()))
                 return true;
             else if (clickedInventory.getType() != InventoryType.PLAYER)
                 event.setCancelled(true);
