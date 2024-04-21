@@ -92,7 +92,7 @@ public class BlockVisualize {
 	 * @return True if the block was being visualized and it was stopped, false otherwise.
 	 */
 	public boolean stopVisualizing(final Block block) {
-		if (blockVisualizerCache.isVisualized(block)) {
+		if (blockVisualizerCache != null && blockVisualizerCache.isVisualized(block)) {
 			blockVisualizerCache.stopVisualizing(block);
 			return true;
 		}
