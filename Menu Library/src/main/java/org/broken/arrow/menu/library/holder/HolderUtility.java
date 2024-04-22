@@ -5,13 +5,14 @@ import org.broken.arrow.menu.library.MenuMetadataKey;
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
-import org.broken.arrow.menu.library.button.MenuButtonI;
+import org.broken.arrow.menu.library.button.MenuButton;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.utility.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -49,6 +50,8 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
 	/**
 	 * Create menu instance.
+	 *
+	 * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
 	 */
 	public HolderUtility(final boolean shallCacheItems) {
 		super(null, null, shallCacheItems);
@@ -395,18 +398,18 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
 
 	/**
-	 * Update only one button. Set this inside the {@link MenuButtonI#onClickInsideMenu(Player, Inventory, org.bukkit.event.inventory.ClickType, org.bukkit.inventory.ItemStack, Object)}}
-	 * method and use this to tell what button some shal be updated.
+	 * Update only one button. Set this inside the {@link MenuButton#onClickInsideMenu(Player, Inventory, ClickType, ItemStack)}
+	 * method and use this to tell what button some shall be updated.
 	 * <p>
-	 * You has to do this "this.YourClass.updateButton(MenuButtonI)" to acces this method.
 	 *
 	 * @param menuButton the current button.
 	 */
-	public void updateButton(final MenuButtonI<T> menuButton) {
+	public void updateButton(final MenuButton menuButton) {
 		final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
 		final Set<Integer> buttonSlots = this.getButtonSlots(menuDataUtility, menuButton);
 
 		if (menuDataUtility != null && this.getMenu() != null) {
+			System.out.println("buttonSlots " + buttonSlots);
 			if (!buttonSlots.isEmpty()) {
 				for (final int slot : buttonSlots) {
 
@@ -418,6 +421,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 				}
 			} else {
 				final int buttonSlot = this.getButtonSlot(menuButton);
+				System.out.println("buttonSlot buttonSlot  " + buttonSlot );
 				final ButtonData<T> buttonData = menuDataUtility.getButton(this.getSlot(buttonSlot));
 				if (buttonData == null) return;
 

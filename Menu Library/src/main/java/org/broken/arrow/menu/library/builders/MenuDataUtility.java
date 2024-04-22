@@ -1,6 +1,6 @@
 package org.broken.arrow.menu.library.builders;
 
-import org.broken.arrow.menu.library.button.MenuButtonI;
+import org.broken.arrow.menu.library.button.MenuButton;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -11,15 +11,15 @@ import java.util.Map;
 public final class MenuDataUtility<T> {
 
 	private final Map<Integer, ButtonData<T>> buttons = new HashMap<>();
-	private Map<Integer, MenuButtonI<T>> fillMenuButtons;
-	private MenuButtonI<T> fillMenuButton;
+	private Map<Integer, MenuButton> fillMenuButtons;
+	private MenuButton fillMenuButton;
 
 	
 	public MenuDataUtility<T> putButton(final int slot, @Nonnull final ButtonData<T> buttonData) {
 		return putButton(slot, buttonData, this.getFillMenuButton());
 	}
 
-	public MenuDataUtility<T> putButton(final int slot, @Nonnull final ButtonData<T> buttonData, @Nullable final MenuButtonI<T> fillMenuButton) {
+	public MenuDataUtility<T> putButton(final int slot, @Nonnull final ButtonData<T> buttonData, @Nullable final MenuButton fillMenuButton) {
 		buttons.put(slot, buttonData);
 		if (fillMenuButton != null) {
 			if (this.getFillMenuButton() != null && this.getFillMenuButton().getId() != fillMenuButton.getId()) {
@@ -32,14 +32,14 @@ public final class MenuDataUtility<T> {
 		return this;
 	}
 
-	public MenuDataUtility<T> setFillMenuButton(final MenuButtonI<T> fillMenuButton) {
+	public MenuDataUtility<T> setFillMenuButton(final MenuButton fillMenuButton) {
 		this.fillMenuButton = fillMenuButton;
 		return this;
 	}
 
 	@Nullable
-	public MenuButtonI<T> getSimilarFillMenuButton(@Nullable final MenuButtonI<T> button) {
-		final MenuButtonI<T> menuButton = this.fillMenuButton;
+	public MenuButton getSimilarFillMenuButton(@Nullable final MenuButton button) {
+		final MenuButton menuButton = this.fillMenuButton;
 		if (menuButton == null || button == null) return null;
 		if (menuButton.getId() != button.getId()) return null;
 
@@ -47,12 +47,12 @@ public final class MenuDataUtility<T> {
 	}
 
 	@Nullable
-	public MenuButtonI<T> getFillMenuButton(@Nonnull MenuButtonI<T> menuButton) {
+	public MenuButton getFillMenuButton(@Nonnull MenuButton menuButton) {
 		if (this.getFillMenuButton() != null && this.getFillMenuButton().getId() == menuButton.getId()) {
 			return this.getFillMenuButton();
 		}
 		if (fillMenuButtons != null) {
-			for (MenuButtonI<T> button : getFillMenuButtons().values())
+			for (MenuButton button : getFillMenuButtons().values())
 				if (button.getId() == menuButton.getId())
 					return button;
 		}
@@ -60,8 +60,8 @@ public final class MenuDataUtility<T> {
 	}
 
 	@Nullable
-	public MenuButtonI<T> getFillMenuButton(int slot) {
-		MenuButtonI<T> menuButton = null;
+	public MenuButton getFillMenuButton(int slot) {
+		MenuButton menuButton = null;
 		if (fillMenuButtons != null)
 			menuButton = fillMenuButtons.get(slot);
 		if (menuButton == null)
@@ -70,7 +70,7 @@ public final class MenuDataUtility<T> {
 	}
 
 	@Nullable
-	private MenuButtonI<T> getFillMenuButton() {
+	private MenuButton getFillMenuButton() {
 		return fillMenuButton;
 	}
 
@@ -83,16 +83,16 @@ public final class MenuDataUtility<T> {
 		return Collections.unmodifiableMap(buttons);
 	}
 
-	public Map<Integer, MenuButtonI<T>> getFillMenuButtons() {
+	public Map<Integer, MenuButton> getFillMenuButtons() {
 		if (fillMenuButtons == null)
 			return new HashMap<>();
 		return Collections.unmodifiableMap(fillMenuButtons);
 	}
 
 	@Nullable
-	public MenuButtonI<T> getMenuButton(final int slot) {
+	public MenuButton getMenuButton(final int slot) {
 		ButtonData<T> buttonData = this.getButton(slot);
-		MenuButtonI<T> menuButton = null;
+		MenuButton menuButton = null;
 		if (buttonData != null) {
 			menuButton = buttonData.getMenuButton();
 			if (menuButton == null)

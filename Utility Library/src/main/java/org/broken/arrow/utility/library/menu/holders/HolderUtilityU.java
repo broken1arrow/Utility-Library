@@ -5,7 +5,7 @@ import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
-import org.broken.arrow.menu.library.button.MenuButtonI;
+import org.broken.arrow.menu.library.button.MenuButton;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.utility.Function;
 import org.bukkit.Bukkit;
@@ -52,7 +52,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 
 	/**
 	 * open menu and make one instance in cache.
-	 * Will be clered on server restart.
+	 * Will be cleared on server restart.
 	 *
 	 * @param menuAPI  Menu API instance.
 	 * @param player   some open menu.
@@ -303,12 +303,12 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 
 
 	/**
-	 * Update only one button. Set this inside the {@link org.broken.arrow.menu.library.button.MenuButtonI#onClickInsideMenu(org.bukkit.entity.Player, org.bukkit.inventory.Inventory, org.bukkit.event.inventory.ClickType, org.bukkit.inventory.ItemStack, Object)}}
+	 * Update only one button. Set this inside the {@link org.broken.arrow.menu.library.button.MenuButton#onClickInsideMenu(org.bukkit.entity.Player, org.bukkit.inventory.Inventory, org.bukkit.event.inventory.ClickType, org.bukkit.inventory.ItemStack)}}
 	 * method and use this to tell what button some shall be updated.
 	 *
 	 * @param menuButton the current button.
 	 */
-	public void updateButton(final MenuButtonI<T> menuButton) {
+	public void updateButton(final MenuButton menuButton) {
 		final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
 		final Set<Integer> buttonSlots = this.getButtonSlots(menuDataUtility, menuButton);
 

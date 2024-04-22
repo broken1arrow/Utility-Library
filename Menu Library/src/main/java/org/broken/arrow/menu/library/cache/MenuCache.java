@@ -39,7 +39,8 @@ public final class MenuCache {
 	 * provide right instance of the class.
 	 *
 	 * @param object the MenuCacheKey object.
-	 * @return a cached createMenus.
+	 * @param <T> generic type.
+     * @return a cached createMenus.
 	 */
 	@Nullable
 	@SuppressWarnings("unchecked")
@@ -54,6 +55,7 @@ public final class MenuCache {
 	 * @param object the MenuCacheKey object.
 	 * @param clazz  The class for the value you want to retrieve. This class only store
 	 *               MenuUtility instances, so no other class will be accepted.
+	 * @param <T> generic type.
 	 * @return a cached createMenus.
 	 */
 	@Nullable
@@ -84,6 +86,9 @@ public final class MenuCache {
 	 * provide right instance of the class.
 	 *
 	 * @param key the menu key to get the menu.
+	 * @param clazz  The class for the value you want to retrieve. This class only store
+	 *               MenuUtility instances, so no other class will be accepted.
+	 * @param <T> generic type.
 	 * @return the menu cached or null if it not exist.
 	 */
 	@Nullable

@@ -1,6 +1,6 @@
 package org.broken.arrow.utility.library.menu.holders;
 
-import org.broken.arrow.menu.library.button.MenuButtonI;
+import org.broken.arrow.menu.library.button.MenuButton;
 
 import java.util.List;
 
@@ -54,7 +54,7 @@ public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 		super(fillSlots, fillItems, shallCacheItems);
 	}
 
-	public MenuButtonI<T> menuButton(MenuButtonI<T> menuButton) {
+	public MenuButton menuButton(MenuButton menuButton) {
 		return menuButton;
 	}
 }

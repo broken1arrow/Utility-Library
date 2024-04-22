@@ -2,9 +2,6 @@ package org.broken.arrow.menu.library;
 
 import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.menu.library.builders.ButtonData;
-import org.broken.arrow.menu.library.builders.MenuDataUtility;
-import org.broken.arrow.menu.library.button.MenuButtonI;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.menu.library.utility.Metadata;
@@ -25,8 +22,6 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nullable;
@@ -240,56 +235,6 @@ public class RegisterMenuAPI {
 			}
 		}
 
-		public MenuButtonI<?> getClickedButton(final MenuUtility<?> menusData, final ItemStack item, final int clickedPos) {
-			final MenuDataUtility<?> menuData = menusData.getMenuData(menusData.getPageNumber());
-			if (menuData != null) {
-				final ButtonData<?> buttonData = menuData.getButton(clickedPos);
-				if (buttonData == null) return null;
-				if (menusData.isIgnoreItemCheck()) {
-					return menuData.getMenuButton(clickedPos);
-				}
-				if (isItemSimilar(buttonData.getItemStack(), item)) {
-					return menuData.getMenuButton(clickedPos);
-				}
-			}
-			return null;
-		}
-
-		public boolean isItemSimilar(final ItemStack item, final ItemStack clickedItem) {
-			if (item != null && clickedItem != null) {
-				if (itemIsSimilar(item, clickedItem)) {
-					return true;
-				} else {
-					return item.isSimilar(clickedItem);
-				}
-			}
-			return false;
-		}
-
-		public boolean itemIsSimilar(final ItemStack firstItem, final ItemStack secondItemStack) {
-
-			if (firstItem.getType() == secondItemStack.getType()) {
-				if (firstItem.hasItemMeta() && firstItem.getItemMeta() != null) {
-					final ItemMeta itemMeta1 = firstItem.getItemMeta();
-					final ItemMeta itemMeta2 = secondItemStack.getItemMeta();
-					if (!itemMeta1.equals(itemMeta2))
-						return false;
-					return getDurability(firstItem, itemMeta1) == getDurability(secondItemStack, itemMeta2);
-				}
-				return true;
-			}
-			return false;
-		}
-
-		public short getDurability(final ItemStack itemstack, final ItemMeta itemMeta) {
-			if (ServerVersion.atLeast(ServerVersion.V1_13))
-				return (itemMeta == null) ? 0 : (short) ((Damageable) itemMeta).getDamage();
-			return itemstack.getDurability();
-		}
-
-		public ItemStack checkIfNull(final ItemStack curentCursor, final ItemStack oldCursor) {
-			return curentCursor != null ? curentCursor : oldCursor != null ? oldCursor : new ItemStack(Material.AIR);
-		}
 
 		@Nullable
 		private MenuUtility<?> getMenuHolder(final Player player) {
@@ -328,26 +273,6 @@ public class RegisterMenuAPI {
 			}
 		}
 
-   /*     private void whenPlayerClick(final InventoryClickEvent event, final Player player, ItemStack clickedItem, final MenuUtility<?> menuUtility) {
-            if (menuUtility.getMenuEvents().whenPlayerClick(event, player, clickedItem))
-                onOffHandClick(event, player);
-		*//*	if (!menuUtility.isAddedButtonsCacheEmpty()) {
-				final int clickedSlot = event.getSlot();
-				final int clickedPos = menuUtility.getSlot(clickedSlot);
-				Inventory clickedInventory = event.getClickedInventory();
-				if (checkMenuIsValid(event, menuUtility, clickedPos, clickedInventory)) return;
-				final MenuButtonI<?> menuButton = getClickedButton(menuUtility, clickedItem, clickedPos);
-				if (menuButton != null) {
-					event.setCancelled(true);
-					if (clickedItem == null)
-						clickedItem = new ItemStack(Material.AIR);
-					menuUtility.onClick(menuButton, player, clickedPos, event.getClick(), clickedItem);
-
-					onOffHandClick(event, player);
-				}
-			}*//*
-        }*/
-
 		private void onOffHandClick(final InventoryClickEvent event, final Player player) {
 			if (ServerVersion.newerThan(ServerVersion.V1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
 				final SwapData data = cacheData.get(player.getUniqueId());
@@ -375,30 +300,6 @@ public class RegisterMenuAPI {
 			}
 			return false;
 		}
-
-/*
-		private void checkMenuForDrag(final InventoryDragEvent event, final MenuUtility<?> menuUtility, final int size) {
-			for (final int clickedSlot : event.getRawSlots()) {
-				if (clickedSlot > size)
-					continue;
-
-				final int clickedPos = menuUtility.getSlot(clickedSlot);
-
-				final ItemStack cursor = checkIfNull(event.getCursor(), event.getOldCursor());
-				if (menuUtility.isSlotsYouCanAddItems()) {
-					if (menuUtility.getFillSpace().contains(clickedSlot)) {
-						return;
-					} else {
-						event.setCancelled(true);
-					}
-				} else {
-					event.setCancelled(true);
-				}
-				if (getClickedButton(menuUtility, cursor, clickedPos) == null)
-					event.setCancelled(true);
-			}
-		}
-*/
 
 		private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
 			if (clickedInventory.getType() == InventoryType.PLAYER) {

@@ -1,12 +1,13 @@
 package org.broken.arrow.menu.library.holder;
 
 import org.broken.arrow.menu.library.builders.ButtonData;
-import org.broken.arrow.menu.library.button.GenericMenuButton;
-import org.broken.arrow.menu.library.button.MenuButtonI;
+import org.broken.arrow.menu.library.builders.MenuDataUtility;
+import org.broken.arrow.menu.library.button.MenuButton;
+import org.broken.arrow.menu.library.button.MenuButtonPage;
 import org.broken.arrow.menu.library.button.logic.ButtonUpdateAction;
-import org.broken.arrow.menu.library.utility.FillItems;
 import org.broken.arrow.menu.library.button.logic.FillMenuButton;
 import org.broken.arrow.menu.library.button.logic.OnRetrieveItem;
+import org.broken.arrow.menu.library.utility.FillItems;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
@@ -14,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,12 +32,11 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     private FillItems<T> listOfFillItems;
 
     /**
-     * Create menu instance. You have to set {@link #setFillSpace(java.util.List)} or it will as default fill
+     * Create menu instance. You have to set {@link #setFillSpace(List)} or it will as default fill
      * all slots but not 9 on the bottom.
      *
      * @param fillItems List of items you want parse inside gui on one or several pages.
      */
-
     protected MenuHolderPage(final List<T> fillItems) {
         this(null, fillItems, false);
     }
@@ -85,14 +86,14 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
      */
     @Nullable
     @Override
-    public MenuButtonI<T> getFillButtonAt(int slot) {
+    public MenuButton getFillButtonAt(int slot) {
+        if (slot == -1) return null;
+
         FillMenuButton<T> fillMenuButton = createFillMenuButton();
-
-        if (fillMenuButton != null) return new GenericMenuButton<T>() {
-
+        if (fillMenuButton != null) return new MenuButtonPage<T>() {
             @Override
-            public void onClickInsideMenu(@Nonnull Player player, @Nonnull Inventory menu, @Nonnull ClickType click, @Nonnull ItemStack clickedItem,@Nullable T notInUse) {
-                ButtonUpdateAction buttonUpdateAction = fillMenuButton.getClick().apply(player, menu, click, clickedItem, notInUse);//.apply(new FillMenuButton.OnClick<>(player, menu, click, clickedItem, object));
+            public void onClickInsideMenu(@Nonnull Player player, @Nonnull Inventory menu, @Nonnull ClickType click, @Nonnull ItemStack clickedItem, @Nullable T fillItem) {
+                ButtonUpdateAction buttonUpdateAction = fillMenuButton.getClick().apply(player, menu, click, clickedItem, fillItem);
 
                 switch (buttonUpdateAction) {
                     case ALL:
@@ -118,31 +119,40 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
             @Override
             public ItemStack getItem(int slot, @Nullable T notInUse) {
-                final T object = getFillItem(slot);
-                OnRetrieveItem<ItemStack, Integer, T> menuItem = fillMenuButton.getMenuFillItem();
-                return menuItem.apply(slot, object);
-            }
+                //final T object = getFillItem(slot);
 
-            @Override
-            public ItemStack getItem() {
-                return null;
+                OnRetrieveItem<ItemStack, Integer, T> menuItem = fillMenuButton.getMenuFillItem();
+                return menuItem.apply(slot, notInUse);
             }
         };
         return null;
     }
 
     @Override
-    public void onClick(@Nonnull MenuButtonI<T> menuButton, @Nonnull Player player, int clickedPos, @Nonnull ClickType clickType, @Nonnull ItemStack clickedItem) {
+    public void onClick(@Nonnull MenuButton menuButton, @Nonnull Player player, int clickedPos, @Nonnull ClickType clickType, @Nonnull ItemStack clickedItem) {
         int slot = clickedPos + (this.getPageNumber() * this.getNumberOfFillItems());
-        final T object = this.getFillItem(slot);
+
         if (this.getMenu() != null) {
-            menuButton.onClickInsideMenu(player, this.getMenu(), clickType, clickedItem, object);
+            if (menuButton instanceof MenuButtonPage) {
+                final T object = this.getFillItem(slot);
+                ((MenuButtonPage<T>) menuButton).onClickInsideMenu(player, this.getMenu(), clickType, clickedItem, object);
+            } else {
+                menuButton.onClickInsideMenu(player, this.getMenu(), clickType, clickedItem);
+            }
         }
     }
 
     @Nullable
     public FillItems<T> getListOfFillItem() {
         return listOfFillItems;
+    }
+
+    @Override
+    @Nullable
+    public List<T> getListOfFillItems() {
+        if (getListOfFillItem() != null)
+            return getListOfFillItem().getFillItems();
+        return new ArrayList<>();
     }
 
     @Nullable
@@ -172,19 +182,73 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     }
 
     @Override
+    protected void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
+        final int fillSlot = isLastFillSlot ? -1 : fillSlotIndex;
+
+        final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlot);
+        final ItemStack result = getItemAtSlot(menuButton, slot, fillSlot);
+
+        if (menuButton != null) {
+            T fillItem = getFillItem(fillSlot);
+            boolean shallAddMenuButton = !isLastFillSlot && isFillSlot(slot) && this.getListOfFillItems() != null && !this.getListOfFillItems().isEmpty();
+            if (menuButton.shouldUpdateButtons()) this.getButtonsToUpdate().add(menuButton);
+
+            final ButtonData<T> buttonData = new ButtonData<>(result, shallAddMenuButton ? null : menuButton, fillItem);
+
+            menuDataUtility.putButton(pageNumber * this.getInventorySize() + slot, buttonData, shallAddMenuButton ? menuButton : null);
+        }
+    }
+
+    @Override
+    protected ItemStack getItemAtSlot(final MenuButton menuButton, final int slot, final int fillSlot) {
+        if (menuButton == null) return null;
+
+        final List<Integer> fillSlots = this.fillSpace == null ? this.getFillSpace() : this.fillSpace;
+        ItemStack result = null;
+
+        if (fillSlots.contains(slot)) {
+            MenuButtonPage<T> menuButtonPage = getPagedMenuButton(menuButton);
+            T fillItem = getFillItem(fillSlot);
+
+            if (menuButtonPage != null) {
+                if (fillItem != null) result = menuButtonPage.getItem(fillItem);
+                if (result == null) result = menuButtonPage.getItem(fillSlot, fillItem);
+            }
+        }
+        if (result == null) result = menuButton.getItem();
+        if (result == null) result = menuButton.getItem(fillSlot);
+
+        return result;
+    }
+
+    @Override
     @Nullable
-    protected ItemStack getMenuItem(final MenuButtonI<T> menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
+    protected ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
         if (menuButton == null) return null;
 
         if (updateButton) {
             ItemStack itemStack = menuButton.getItem();
             if (itemStack != null) return itemStack;
-            itemStack = menuButton.getItem(cachedButtons.getObject());
-            if (itemStack != null) return itemStack;
-
-            itemStack = menuButton.getItem(slot + (this.getPageNumber() * this.getNumberOfFillItems()), cachedButtons.getObject());
+            MenuButtonPage<T> menuButtonPage = getPagedMenuButton(menuButton);
+            if (menuButtonPage != null) {
+                itemStack = menuButtonPage.getItem(cachedButtons.getObject());
+                if (itemStack != null) return itemStack;
+                itemStack = menuButtonPage.getItem(slot + (this.getPageNumber() * this.getNumberOfFillItems()), cachedButtons.getObject());
+            }
             return itemStack;
         }
         return null;
+    }
+
+    @Nullable
+    private MenuButtonPage<T> getPagedMenuButton(MenuButton menuButton) {
+        if (menuButton instanceof MenuButtonPage)
+            return (MenuButtonPage<T>) menuButton;
+        return null;
+    }
+
+    private boolean isFillSlot(final int slot) {
+        final List<Integer> fillSlots = this.fillSpace == null ? this.getFillSpace() : this.fillSpace;
+        return !fillSlots.isEmpty() && fillSlots.contains(slot);
     }
 }

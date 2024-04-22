@@ -3,7 +3,7 @@ package org.broken.arrow.menu.library.utility;
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
-import org.broken.arrow.menu.library.button.MenuButtonI;
+import org.broken.arrow.menu.library.button.MenuButton;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -28,7 +28,7 @@ public class MenuInteractionChecks<T> {
             final int clickedPos = this.menuUtility.getSlot(clickedSlot);
             Inventory clickedInventory = event.getClickedInventory();
             if (checkClickIsAllowed(event,  clickedPos, clickedInventory)) return false;
-            final MenuButtonI<T> menuButton = getClickedButton(clickedItem, clickedPos);
+            final MenuButton menuButton = getClickedButton(clickedItem, clickedPos);
             if (menuButton != null) {
                 event.setCancelled(true);
                 if (clickedItem == null)
@@ -63,7 +63,7 @@ public class MenuInteractionChecks<T> {
         }
     }
 
-    public MenuButtonI<T> getClickedButton(final ItemStack item, final int clickedPos) {
+    public MenuButton getClickedButton(final ItemStack item, final int clickedPos) {
         final MenuDataUtility<T> menuData = this.menuUtility.getMenuData(this.menuUtility.getPageNumber());
         if (menuData != null) {
             final ButtonData<?> buttonData = menuData.getButton(clickedPos);

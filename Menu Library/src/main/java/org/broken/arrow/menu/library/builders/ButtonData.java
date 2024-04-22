@@ -1,16 +1,16 @@
 package org.broken.arrow.menu.library.builders;
 
-import org.broken.arrow.menu.library.button.MenuButtonI;
+import org.broken.arrow.menu.library.button.MenuButton;
 import org.bukkit.inventory.ItemStack;
 
 public class ButtonData<T> {
 
 	private final ItemStack itemStack;
-	private final MenuButtonI<T> menuButtonLinkedToThisItem;
+	private final MenuButton menuButtonLinkedToThisItem;
 	private final int id;
 	private final T object;
 
-	public ButtonData(final ItemStack itemStack, final MenuButtonI<T> menuButton, final T object) {
+	public ButtonData(final ItemStack itemStack, final MenuButton menuButton, final T object) {
 		this.itemStack = itemStack;
 		this.menuButtonLinkedToThisItem = menuButton;
 		this.id = menuButton != null ? menuButton.getId() : -1;
@@ -31,7 +31,7 @@ public class ButtonData<T> {
 	 *
 	 * @return menuButton.
 	 */
-	public MenuButtonI<T> getMenuButton() {
+	public MenuButton getMenuButton() {
 		return menuButtonLinkedToThisItem;
 	}
 

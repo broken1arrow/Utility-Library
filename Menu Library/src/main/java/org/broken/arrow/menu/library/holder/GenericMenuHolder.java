@@ -1,13 +1,13 @@
 package org.broken.arrow.menu.library.holder;
 
 import org.broken.arrow.menu.library.MenuUtility;
-import org.broken.arrow.menu.library.button.MenuButtonI;
+import org.broken.arrow.menu.library.button.MenuButton;
 
 import java.util.List;
 
 /**
  * This class will be replaced by  {@link MenuHolderPage}.
- * @param <T>
+ * @param <T> the class type of the objects added to the list.
  */
 @Deprecated
 public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
@@ -60,7 +60,7 @@ public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
 		super(fillSlots, fillItems, shallCacheItems);
 	}
 
-	public MenuButtonI<T> menuButton(MenuButtonI<T> menuButton) {
+	public MenuButton menuButton(MenuButton menuButton) {
 		return menuButton;
 	}
 }
