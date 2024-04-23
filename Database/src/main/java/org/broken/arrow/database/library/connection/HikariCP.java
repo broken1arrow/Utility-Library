@@ -65,8 +65,7 @@ public class HikariCP {
 		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");*/
         if (this.hikari == null) {
             synchronized (this) {
-                if (this.hikari == null)
-                    this.hikari = new HikariDataSource(config);
+                this.hikari = new HikariDataSource(config);
             }
         } else {
             createPoolIfSetDataNotMatch(config);
@@ -77,7 +76,7 @@ public class HikariCP {
 
     private void createPoolIfSetDataNotMatch(HikariConfig config) {
 
-        boolean needRecreate = !this.hikari.getJdbcUrl().equals(config.getJdbcUrl()) ||
+       boolean needRecreate = !this.hikari.getJdbcUrl().equals(config.getJdbcUrl()) ||
                 !this.hikari.getUsername().equals(config.getUsername()) ||
                 !this.hikari.getPassword().equals(config.getPassword());
 
