@@ -12,31 +12,54 @@ import java.util.List;
 public class MenuHolder extends HolderUtility<Object> {
 
     /**
-     * Create menu instance with out any arguments. Recommend you set menu size.
+     * Creates a menu instance without any arguments. It is recommended to set the menu size using {@link #setMenuSize(int)},
+     * as the default size is set to zero. If you wish to fill the menu using methods other than slot numbers,
+     * such as filling multiple pages, consider using {@link MenuHolderPage} for better options. Alternatively, you can achieve similar results
+     * with this class by setting fill slots using {@link #setFillSpace(String)} or {@link #setFillSpace(List)} and manually set the number
+     * of pages using {@link #setManuallyAmountOfPages(int)}; otherwise, only one page will be used.
      */
     protected MenuHolder() {
-        this(null, null, false);
+        this(null, false);
     }
 
     /**
-     * Create menu instance. You have to set {@link #setFillSpace(java.util.List)} or it will as defult fill
-     * all slots but not 9 on the bottom.
+     * Creates a menu instance without any arguments. It is recommended to set the menu size using {@link #setMenuSize(int)},
+     * as the default size is set to zero. If you wish to fill the menu using methods other than slot numbers,
+     * such as filling multiple pages, consider using {@link MenuHolderPage} for better options. Alternatively, you can achieve similar results
+     * with this class by setting fill slots using {@link #setFillSpace(String)} or {@link #setFillSpace(List)} and manually set the number
+     * of pages using {@link #setManuallyAmountOfPages(int)}; otherwise, only one page will be used.
      *
-     * @param fillItems List of items you want parse inside gui on one or several pages.
-     * @deprecated the list of fillSlots and fillItems will be removed, use {@link MenuHolderPage} for set up paged menus.
+     * @param fillSlots Witch slots you want fill with items and you need to set the amount of pages.
      */
-    @Deprecated
-    protected MenuHolder(final List<?> fillItems) {
-        this(null, fillItems, false);
+
+    protected MenuHolder(final List<Integer> fillSlots) {
+        this(fillSlots, false);
     }
+
+    /**
+     * Creates a menu instance without any arguments. It is recommended to set the menu size using {@link #setMenuSize(int)},
+     * as the default size is set to zero. If you wish to fill the menu using methods other than slot numbers,
+     * such as filling multiple pages, consider using {@link MenuHolderPage} for better options. Alternatively, you can achieve similar results
+     * with this class by setting fill slots using {@link #setFillSpace(String)} or {@link #setFillSpace(List)} and manually set the number
+     * of pages using {@link #setManuallyAmountOfPages(int)}; otherwise, only one page will be used.
+     *
+     * @param fillSlots       Witch slots you want fill with items and you need to set the amount of pages.
+     * @param shallCacheItems Indicates whether items and slots should be cached in this class. If false,
+     *                              use {@link #getMenuButtonsCache()} to cache it in your own implementation.
+     */
+    protected MenuHolder(final List<Integer> fillSlots, boolean shallCacheItems) {
+        super(fillSlots, shallCacheItems);
+    }
+
 
     /**
      * Create menu instance.
      *
-     * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link MenuUtility#getMenuButtonsCache()} to cache it own class.
+     * @param shallCacheItems Indicates whether items and slots should be cached in this class. If false,
+     *                             use {@link #getMenuButtonsCache()} to cache it in your own implementation.
      */
     protected MenuHolder(final boolean shallCacheItems) {
-        this(null, null, shallCacheItems);
+        this(null,  shallCacheItems);
     }
 
     /**
@@ -48,7 +71,7 @@ public class MenuHolder extends HolderUtility<Object> {
      */
     @Deprecated
     protected MenuHolder(final List<Integer> fillSlots, final List<?> fillItems) {
-        this(fillSlots, fillItems, false);
+        this(fillSlots,null,  false);
     }
 
     /**
@@ -61,7 +84,7 @@ public class MenuHolder extends HolderUtility<Object> {
      */
     @Deprecated
     protected MenuHolder(final List<Integer> fillSlots, final List<?> fillItems, final boolean shallCacheItems) {
-        super(fillSlots, (List<Object>) fillItems, shallCacheItems);
+        super(fillSlots,  shallCacheItems);
     }
 
 }

@@ -12,6 +12,7 @@ public abstract class MenuButton {
 
 	private static int counter = 0;
 	private final int id;
+
 	public MenuButton() {
 		this.id = counter++;
 	}
@@ -35,7 +36,7 @@ public abstract class MenuButton {
 	public abstract ItemStack getItem();
 
     /**
-     * Retrieves the itemstack associated with the specified slot in your implementation.
+     * Retrieves the itemstack associated with the specified slot or index in your implementation.
      *
      * @param slot The slot number where the item is added. This number can exceed the inventory size.
      * @return The itemstack associated with the specified slot, or null if not the slot match.

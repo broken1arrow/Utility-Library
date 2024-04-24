@@ -46,7 +46,7 @@ import static org.broken.arrow.menu.library.utility.ItemCreator.convertString;
 
 
 /**
- * Contains methods to create menu as you want it. Recomend you extends #MenuHolder to get all methods needed.
+ * Contains methods to create menu as you want it. Recommend you extends {@link MenuHolder} or {@link MenuHolderPage} to get all methods needed.
  */
 
 public class MenuUtility<T> {
@@ -92,26 +92,51 @@ public class MenuUtility<T> {
     private int requiredPages;
     private int manuallySetPages = -1;
     protected int inventorySize;
-    protected int itemsPerPage = this.inventorySize;
+    protected int itemsPerPage = this.inventorySize - 9;
     protected int pageNumber;
     protected int updateTime;
 
     protected int animateTitleTime = 5;
     private int taskIdAnimateTitle;
+    protected int highestFillSlot;
 
     /**
      * Create menu instance.
      *
      * @param fillSlots       Witch slots you want fill with items.
      * @param fillItems       List of items you want parse inside gui.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
+     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.*
+     * @deprecated not in use any more.
      */
+    @Deprecated
     public MenuUtility(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
+        this(RegisterMenuAPI.getMenuAPI(), fillSlots, shallCacheItems);
+    }
+
+    /**
+     * Create menu instance.
+     *
+     * @param fillSlots       Witch slots you want fill with items.
+     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.*
+     */
+    public MenuUtility(@Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
+        this(RegisterMenuAPI.getMenuAPI(), fillSlots, shallCacheItems);
+    }
+
+    /**
+     * Creates a menu instance.
+     *
+     * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin. Use this constructor
+     *                        only if you are using the plugin and have not shaded it.
+     * @param fillSlots       The slots you want to fill with items. Can be null if not filling specific slots.
+     * @param shallCacheItems Indicates whether items and slots should be cached in this class. If false,
+     *                        use {@link #getMenuButtonsCache()} to cache it in your own implementation.
+     */
+    public MenuUtility(@Nonnull final RegisterMenuAPI menuAPI, @Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
         this.fillSpace = fillSlots;
-        if (fillItems != null) {
-            this.listOfFillItems = new FillItems<>();
-            this.listOfFillItems.setFillItems(fillItems);
-        }
+        if (fillSlots != null)
+            this.highestFillSlot = fillSlots.stream().mapToInt(Integer::intValue).max().orElse(-1);
+
         this.menuInteractionChecks = new MenuInteractionChecks<>(this);
         this.shallCacheItems = shallCacheItems;
         this.allowShiftClick = true;
@@ -271,16 +296,14 @@ public class MenuUtility<T> {
     }
 
     /**
-     * Get both object and itemstack for current page and slot.
-     * If you set @link {@link #getListOfFillItems()} in the constructor super,
-     * can you get the objects from the list too.
+     * Get itemstack for current page and slot.
      *
      * @param pageNumber with page you want to get.
      * @param slotIndex  the slot you want to get both the object and/or the itemstack stored in cache.
      * @return ButtonData with the set data or new instance with no set data.
      */
     @Nonnull
-    public ButtonData<T> getAddedButtons(final int pageNumber, final int slotIndex) {
+    public ButtonData<T> getAddedButton(final int pageNumber, final int slotIndex) {
         final Map<Integer, ButtonData<T>> data = getMenuButtons(pageNumber);
         if (data != null) {
             final ButtonData<T> buttonData = data.get(slotIndex);
@@ -318,17 +341,17 @@ public class MenuUtility<T> {
     public Set<Integer> getButtonSlots(final MenuDataUtility<T> menuDataUtility, final MenuButton menuButton) {
         final Set<Integer> slots = new HashSet<>();
         if (menuDataUtility == null) return slots;
-        final int MenuButtond = menuButton.getId();
+        final int menuButtonId = menuButton.getId();
 
         for (final Entry<Integer, ButtonData<T>> entry : menuDataUtility.getButtons().entrySet()) {
             final MenuButton cacheMenuButton = entry.getValue().getMenuButton();
             final MenuButton fillMenuButton = menuDataUtility.getFillMenuButton(menuButton);
             if (cacheMenuButton == null) {
-                if (fillMenuButton != null && fillMenuButton.getId() == MenuButtond) {
+                if (fillMenuButton != null && fillMenuButton.getId() == menuButtonId) {
                     slots.add(entry.getKey() - (this.getPageNumber() * this.getInventorySize()));
                 }
             } else {
-                if (MenuButtond == cacheMenuButton.getId()) {
+                if (menuButtonId == cacheMenuButton.getId()) {
                     slots.add(entry.getKey() - (this.getPageNumber() * this.getInventorySize()));
                 }
             }
@@ -386,9 +409,8 @@ public class MenuUtility<T> {
 
     /**
      * Set the number of pages manually. Note that it is important to ensure that the number of
-     * pages is appropriate for the size of the list of fill items {@link #getListOfFillItems()},
-     * setting the wrong number of pages can result in an insufficient or unnecessary amount of
-     * pages being displayed.
+     * pages is appropriate for the size of the items you want too display, setting the wrong
+     * number of pages can result in an insufficient or unnecessary amount of pages being displayed.
      * <p>
      * Please be sure to double-check your calculations when setting the number of pages.
      * <p>
@@ -464,9 +486,11 @@ public class MenuUtility<T> {
      *
      * @param clickedPos the current pos player clicking on, you need also add the page player currently have open and inventory size.
      * @return Object/entity from the listOfFillItems list.
+     * @deprecated not in use, use MenuHolderPage class instead.
      */
+    @Deprecated
     public T getObjectFromList(final int clickedPos) {
-        return getAddedButtons(this.getPageNumber(), clickedPos).getObject();
+        return getAddedButton(this.getPageNumber(), clickedPos).getObject();
     }
 
     /**
@@ -482,13 +506,11 @@ public class MenuUtility<T> {
     /**
      * Get list of fill items you added to menu.
      *
-     * @return items you have added.
+     * @return objects you have added to the menu.
      */
     @Nullable
     public List<T> getListOfFillItems() {
-        if (listOfFillItems == null) return null;
-
-        return listOfFillItems.getFillItems();
+        return null;
     }
 
     /**
@@ -622,6 +644,10 @@ public class MenuUtility<T> {
      */
     public MenuInteractionChecks<T> getMenuInteractionChecks() {
         return menuInteractionChecks;
+    }
+
+    public int getHighestFillSlot() {
+        return this.highestFillSlot;
     }
 
 
@@ -813,19 +839,15 @@ public class MenuUtility<T> {
     }
 
     protected double amountOfPages() {
-        final List<?> fillItems = this.getListOfFillItems();
         final List<Integer> fillSlots = this.getFillSpace();
         if (this.itemsPerPage > 0) {
             if (this.itemsPerPage > this.inventorySize)
                 this.logger.log(Level.WARNING, () -> Logging.of("Items per page are bigger an Inventory size, items items per page " + this.itemsPerPage + ". Inventory size " + this.inventorySize));
             if (!fillSlots.isEmpty()) {
                 return (double) fillSlots.size() / this.itemsPerPage;
-            } else if (fillItems != null && !fillItems.isEmpty()) return (double) fillItems.size() / this.itemsPerPage;
-            else return (double) this.pagesOfButtonsData.size() / this.itemsPerPage;
+            }
         }
-        if (fillItems != null && !fillItems.isEmpty()) {
-            return (double) fillItems.size() / (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size());
-        } else return (double) this.pagesOfButtonsData.size() / this.inventorySize;
+        return (double) (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size()) / this.itemsPerPage;
     }
 
     protected Map<Integer, ButtonData<T>> addItemsToCache(final int pageNumber) {
@@ -845,7 +867,6 @@ public class MenuUtility<T> {
             addedButtons = addItemsToCache(i);
             if (i == 0) numberOfFillItems = this.slotIndex;
         }
-        System.out.println("numberOfFillItems " + numberOfFillItems);
         this.slotIndex = 0;
         return addedButtons;
     }
@@ -856,16 +877,13 @@ public class MenuUtility<T> {
         int fillSlot = this.getFillSpace().stream().mapToInt(Integer::intValue).max().orElse(-1);
         for (int slot = 0; slot < this.inventorySize; slot++) {
 
-            boolean isFillButton = false;
-            if (!this.getFillSpace().isEmpty() && this.getFillSpace().contains(slot)) {
-                isFillButton = true;
-            }
+            boolean isFillButton = !this.getFillSpace().isEmpty() && this.getFillSpace().contains(slot);
 
-            this.setButton(pageNumber, menuDataUtility, slot, this.slotIndex,  slot > fillSlot);
+            this.setButton(pageNumber, menuDataUtility, slot, this.slotIndex, slot > fillSlot);
 
             if (isFillButton) {
                 this.slotIndex++;
-                fillSlot = this.slotIndex;
+                // fillSlot = this.slotIndex;
             }
         }
         return menuDataUtility;
@@ -879,7 +897,7 @@ public class MenuUtility<T> {
             if (menuButton.shouldUpdateButtons()) this.buttonsToUpdate.add(menuButton);
             final ButtonData<T> buttonData = new ButtonData<>(result, menuButton, null);
 
-            menuDataUtility.putButton(pageNumber * this.getInventorySize() + slot, buttonData, null);
+            menuDataUtility.putButton(this.getSlot(slot), buttonData, null);
         }
     }
 
@@ -971,7 +989,7 @@ public class MenuUtility<T> {
     }
 
     /**
-     * Get all slots same menu button is conected too.
+     * Get all slots same menu button is connected too.
      *
      * @param menuDataMap the map with all slots and menu data
      * @param menuButton  the menu buttons you want to match with.
@@ -988,8 +1006,8 @@ public class MenuUtility<T> {
 
             final MenuButton cacheMenuButton = addedButtons.getMenuButton();
             final MenuButton fillMenuButton = menuDataMap.getFillMenuButton(this.getSlot(slot));
-            final int MenuButtond = menuButton.getId();
-            if ((cacheMenuButton == null && fillMenuButton != null && fillMenuButton.getId() == MenuButtond) || (cacheMenuButton != null && Objects.equals(MenuButtond, cacheMenuButton.getId())))
+            final int menuButtonId = menuButton.getId();
+            if ((cacheMenuButton == null && fillMenuButton != null && fillMenuButton.getId() == menuButtonId) || (cacheMenuButton != null && Objects.equals(menuButtonId, cacheMenuButton.getId())))
                 slotList.add(slot);
         }
         return slotList;

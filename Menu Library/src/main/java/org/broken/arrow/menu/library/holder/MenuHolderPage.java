@@ -27,8 +27,7 @@ import java.util.List;
  * @param <T> the class type of the objects added to the list.
  */
 public abstract class MenuHolderPage<T> extends HolderUtility<T> {
-    @Nullable
-    protected List<Integer> fillSpace;
+
     private FillItems<T> listOfFillItems;
 
     /**
@@ -59,8 +58,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
      * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
      */
     protected MenuHolderPage(@Nullable List<Integer> fillSlots, @Nullable List<T> fillItems, boolean shallCacheItems) {
-        super(fillSlots, null, shallCacheItems);
-        this.fillSpace = fillSlots;
+        super(fillSlots, shallCacheItems);
         if (fillItems != null) {
             this.listOfFillItems = new FillItems<>();
             this.listOfFillItems.setFillItems(fillItems);
@@ -169,7 +167,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         if (getListOfFillItem() == null) return getManuallySetPages();
 
         final List<T> fillItems = this.getListOfFillItem().getFillItems();
-        final List<Integer> fillSlots = this.fillSpace == null ? this.getFillSpace() : this.fillSpace;
+        final List<Integer> fillSlots =  this.getFillSpace();
         if (this.itemsPerPage > 0) {
             if (!fillSlots.isEmpty()) {
                 return (double) fillSlots.size() / this.itemsPerPage;
@@ -194,8 +192,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             if (menuButton.shouldUpdateButtons()) this.getButtonsToUpdate().add(menuButton);
 
             final ButtonData<T> buttonData = new ButtonData<>(result, shallAddMenuButton ? null : menuButton, fillItem);
-
-            menuDataUtility.putButton(pageNumber * this.getInventorySize() + slot, buttonData, shallAddMenuButton ? menuButton : null);
+            menuDataUtility.putButton(this.getSlot(slot), buttonData, shallAddMenuButton ? menuButton : null);
         }
     }
 
@@ -203,7 +200,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     protected ItemStack getItemAtSlot(final MenuButton menuButton, final int slot, final int fillSlot) {
         if (menuButton == null) return null;
 
-        final List<Integer> fillSlots = this.fillSpace == null ? this.getFillSpace() : this.fillSpace;
+        final List<Integer> fillSlots = this.getFillSpace();
         ItemStack result = null;
 
         if (fillSlots.contains(slot)) {

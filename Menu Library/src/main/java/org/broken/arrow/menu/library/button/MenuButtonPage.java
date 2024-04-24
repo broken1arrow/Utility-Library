@@ -10,8 +10,7 @@ import javax.annotation.Nullable;
 
 public abstract class MenuButtonPage<T> extends MenuButton {
 
-    private static int counter = 0;
-    private final int id;
+    protected MenuButtonPage() {}
 
     @Override
     public void onClickInsideMenu(@Nonnull Player player, @Nonnull Inventory menu, @Nonnull ClickType click, @Nonnull ItemStack clickedItem) {
@@ -29,9 +28,6 @@ public abstract class MenuButtonPage<T> extends MenuButton {
      */
     public abstract void onClickInsideMenu(@Nonnull Player player, @Nonnull Inventory menu, @Nonnull ClickType click, @Nonnull ItemStack clickedItem, @Nullable T object);
 
-    protected MenuButtonPage() {
-        this.id = counter++;
-    }
 
     /**
      * Retrieves the item that is associated with the specified fill item.
@@ -55,6 +51,7 @@ public abstract class MenuButtonPage<T> extends MenuButton {
     public ItemStack getItem(int slot, @Nullable T fillItem) {
         return null;
     }
+
     @Nullable
     @Override
     public ItemStack getItem() {
