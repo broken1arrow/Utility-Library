@@ -475,8 +475,9 @@ public class MenuUtility<T> {
      * @return map with slot number (can be more than one inventory in number of buttons) and itemstack.
      */
     @Nonnull
+    @Deprecated
     public Map<Integer, ButtonData<T>> getMenuButtonsCache() {
-        return null;
+        return new HashMap<>();
     }
 
 
