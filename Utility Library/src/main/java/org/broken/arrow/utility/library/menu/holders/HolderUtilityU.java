@@ -12,7 +12,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -31,10 +30,9 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      * Create menu instance.
      *
      * @param fillSlots       Witch slots you want fill with items.
-     * @param fillItems       List of items you want parse inside gui.
      * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
      */
-    protected HolderUtilityU(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
+    protected HolderUtilityU(@Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
         super(fillSlots, shallCacheItems);
     }
 
@@ -43,32 +41,56 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      *
      * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin.
      * @param fillSlots       Witch slots you want fill with items.
-     * @param fillItems       List of items you want parse inside gui.
      * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
      */
-    protected HolderUtilityU(@Nonnull final RegisterMenuAPI menuAPI, @Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
+    protected HolderUtilityU(@Nonnull final RegisterMenuAPI menuAPI, @Nullable final List<Integer> fillSlots,  final boolean shallCacheItems) {
         super(menuAPI, fillSlots, shallCacheItems);
     }
 
     /**
-     * When you close the menu
+     * open menu and make one instance, will be removed
+     * when you close menu.
      *
-     * @param event close inventory
-     * @param menu  class some are now closed.
+     * @param player  some open menu.
      */
-
-    @Override
-    public void menuClose(final InventoryCloseEvent event, final MenuUtility<?> menu) {
+    public void menuOpen( @Nonnull final Player player) {
+        menuOpen(player, null, false);
     }
 
     /**
-     * open menu and make one instance in cache.
+     * Open menu and make one instance in cache.
+     * Will be cleared on server restart.
+     *
+     * @param player   some open menu.
+     * @param location location you open menu.
+     */
+    public void menuOpen( @Nonnull final Player player, @Nullable final Location location) {
+        menuOpen(player, location, true);
+    }
+
+    /**
+     * Open menu and make one instance. If you set location to null only one user
+     * for every instance.
+     *
+     * @param player     Player some open menu.
+     * @param location   Location where you open menu.
+     * @param loadToCache Ff it shall load menu to cache, if not it can create problems if several players open same
+     *                    menu instance and close or open new menu. The players left in the original menu can
+     *                    then take out the items.
+     */
+    public void menuOpen(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
+        menuOpen(null, player, location, loadToCache);
+    }
+    /**
+     * Open menu and make one instance in cache.
      * Will be cleared on server restart.
      *
      * @param menuAPI  Menu API instance.
      * @param player   some open menu.
      * @param location location you open menu.
+     * @deprecated no need to set the menu instance here, only in the constructor.
      */
+    @Deprecated
     public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player, @Nullable final Location location) {
         menuOpen(menuAPI, player, location, true);
     }
@@ -79,7 +101,9 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      *
      * @param menuAPI Menu API instance.
      * @param player  some open menu.
+     * @deprecated no need to set the menu instance here, only in the constructor.
      */
+    @Deprecated
     public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player) {
         menuOpen(menuAPI, player, null, false);
     }
@@ -91,23 +115,26 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      * @param menuAPI    Menu API instance.
      * @param player     Player some open menu.
      * @param location   Location where you open menu.
-     * @param loadToCahe Ff it shall load menu to cache.
+     * @param loadToCache Ff it shall load menu to cache.
+     * @deprecated no need to set the menu instance here, only in the constructor.
      */
-    public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player, @Nullable final Location location, final boolean loadToCahe) {
+    @Deprecated
+    public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
         this.player = player;
         this.location = location;
-        this.menuAPI = menuAPI;
-        if (menuAPI == null) {
+        if (menuAPI != null)
+            this.menuAPI = menuAPI;
+      /*  if (menuAPI == null) {
             Bukkit.getLogger().warning("[HolderUtilityU] Failed to retrieve MenuAPI instance. The MenuAPI instance cannot be null.");
             throw new NullPointerException("A NullPointerException occurred because the MenuAPI instance is not properly set. Please ensure that the MenuAPI instance is properly assigned.");
-        }
+        }*/
         player.closeInventory();
         if (!shallCacheItems) {
             addItemsToCache();
         }
         redrawInventory();
 
-        final Inventory menu = loadInventory(player, loadToCahe);
+        final Inventory menu = loadInventory(player, loadToCache);
         if (menu == null) return;
 
         player.openInventory(menu);

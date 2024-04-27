@@ -2,7 +2,6 @@ package org.broken.arrow.title.update.library;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.title.update.library.utility.TitleUtility;
 import org.bukkit.entity.Player;
@@ -54,6 +53,10 @@ public class UpdateTitle {
 	 * For titles with multiple colors set in the same text, use the "extra" key and
 	 * an empty "text" element outside the array at the end of the JSON.
 	 * </p>
+	 * Note: currently this method only works in 1.20.2 and below. Due to I change to
+	 * use spigot official way to update title so I have not added option to convert json to
+	 * a string spigot accepts.
+	 *
 	 * <p>
 	 * Example with multiple components:
 	 * </p>
@@ -125,21 +128,6 @@ public class UpdateTitle {
 	public static void update(final Player player, final String title, boolean defaultConvertColor) {
 		if (title == null) return;
 
-		if (SERVER_VERSION > 20.2F) {
-			InventoryView inventoryView = player.getOpenInventory();
-			try {
-				if (defaultConvertColor)
-					inventoryView.setTitle(TextTranslator.toSpigotFormat(title));
-				else
-					inventoryView.setTitle(title);
-			} catch (IllegalArgumentException e) {
-				logger.log(Level.INFO, () -> Logging.of("Could not render this inventory: " + inventoryView.getType()));
-			} catch (Exception exception) {
-				logger.log(Level.WARNING, exception, () -> Logging.of("Something was not working when update the title: " + inventoryView.getType()));
-			}
-			return;
-		}
-
 		TitleUtility titleUtility = new TitleUtility(defaultConvertColor);
 		titleUtility.setTitle(title);
 		update(player, titleUtility);
@@ -149,7 +137,9 @@ public class UpdateTitle {
 	private static void update(final Player player, @Nonnull final TitleUtility titleUtility) {
 		if (hasCastEx) {
 			logger.log(Level.WARNING, () -> of("There was an error while updating the title. Please contact the developer for assistance."));
-			logger.log(Level.WARNING, () -> of("The set NMS values: " + containerUtility));
+			if (SERVER_VERSION < 20.2F)
+				logger.log(Level.WARNING, () -> of("The set NMS values: " + containerUtility));
+
 			return;
 		}
 		if (SERVER_VERSION <= 0) {
@@ -157,7 +147,23 @@ public class UpdateTitle {
 			return;
 		}
 
+		if (SERVER_VERSION > 20.2F) {
+			if (player == null)
+				return;
+			InventoryView inventoryView = player.getOpenInventory();
+			try {
+				if (!titleUtility.isTitleSet())
+					logger.log(Level.WARNING, () -> of("Title is not set, so can't update the title."));
 
+				inventoryView.setTitle(titleUtility.getTitle(SERVER_VERSION) + "");
+			} catch (IllegalArgumentException e) {
+				logger.log(Level.INFO, () -> Logging.of("Could not render this inventory: " + inventoryView.getType()));
+			} catch (Exception exception) {
+				logger.log(Level.WARNING, exception, () -> Logging.of("Something was not working when update the title: " + inventoryView.getType()));
+				hasCastEx = true;
+			}
+			return;
+		}
 		if (player != null && containerUtility != null && SERVER_VERSION > 0)
 			try {
 				if (!titleUtility.isTitleSet())

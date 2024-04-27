@@ -35,9 +35,11 @@ public class FillMenuButton<T> {
      * the type of click the player performed, the itemstack, and the object associated with the specific slot.
      *
      * @param click the function instance you provide to update the button's type of action. It cannot be set to null.
+     * @return this instance.
      */
-    public void setClick(OnClick<ButtonUpdateAction, Player, Inventory, ClickType, ItemStack, T> click) {
+    public FillMenuButton<T> setClick(OnClick<ButtonUpdateAction, Player, Inventory, ClickType, ItemStack, T> click) {
         this.click = click;
+        return this;
     }
 
     /**
@@ -45,9 +47,11 @@ public class FillMenuButton<T> {
      * the object you added to the inventory. Keep in mind that it accepts null as a valid value for the object.
      *
      * @param menuFillItem the function instance you provide to specify the itemstack for a specific slot or to use the same item for all slots.
+     * @return this instance.
      */
-    public void setMenuFillItem(OnRetrieveItem<ItemStack, Integer, T> menuFillItem) {
+    public FillMenuButton<T> setMenuFillItem(OnRetrieveItem<ItemStack, Integer, T> menuFillItem) {
         this.menuFillItem = menuFillItem;
+        return this;
     }
 
     /**

@@ -23,7 +23,7 @@ public class MenuHolder extends HolderUtility<Object> {
     }
 
     /**
-     * Creates a menu instance without any arguments. It is recommended to set the menu size using {@link #setMenuSize(int)},
+     * Creates a menu instance. It is recommended to set the menu size using {@link #setMenuSize(int)},
      * as the default size is set to zero. If you wish to fill the menu using methods other than slot numbers,
      * such as filling multiple pages, consider using {@link MenuHolderPage} for better options. Alternatively, you can achieve similar results
      * with this class by setting fill slots using {@link #setFillSpace(String)} or {@link #setFillSpace(List)} and manually set the number
@@ -37,7 +37,7 @@ public class MenuHolder extends HolderUtility<Object> {
     }
 
     /**
-     * Creates a menu instance without any arguments. It is recommended to set the menu size using {@link #setMenuSize(int)},
+     * Creates a menu instance. It is recommended to set the menu size using {@link #setMenuSize(int)},
      * as the default size is set to zero. If you wish to fill the menu using methods other than slot numbers,
      * such as filling multiple pages, consider using {@link MenuHolderPage} for better options. Alternatively, you can achieve similar results
      * with this class by setting fill slots using {@link #setFillSpace(String)} or {@link #setFillSpace(List)} and manually set the number

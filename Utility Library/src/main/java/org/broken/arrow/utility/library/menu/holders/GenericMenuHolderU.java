@@ -3,7 +3,7 @@ package org.broken.arrow.utility.library.menu.holders;
 import org.broken.arrow.menu.library.button.MenuButton;
 
 import java.util.List;
-
+@Deprecated
 public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 
 	/**
@@ -51,7 +51,7 @@ public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link org.broken.arrow.menu.library.MenuUtility#getMenuButtonsCache()} to cache it own class.
 	 */
 	protected GenericMenuHolderU(final List<Integer> fillSlots, final List<T> fillItems, final boolean shallCacheItems) {
-		super(fillSlots, fillItems, shallCacheItems);
+		super(fillSlots,  shallCacheItems);
 	}
 
 	public MenuButton menuButton(MenuButton menuButton) {

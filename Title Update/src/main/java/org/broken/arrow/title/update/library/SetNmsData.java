@@ -21,6 +21,10 @@ public class SetNmsData {
 
 	public SetNmsData() {
 		serverVersion = setServerVersion();
+		if (serverVersion > 20.2F) {
+			containerUtility = null;
+			return;
+		}
 		containerUtility = setNmsData(serverVersion);
 	}
 

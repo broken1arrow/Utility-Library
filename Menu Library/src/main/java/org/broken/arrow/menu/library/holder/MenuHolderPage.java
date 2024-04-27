@@ -1,5 +1,6 @@
 package org.broken.arrow.menu.library.holder;
 
+import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButton;
@@ -58,7 +59,20 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
      * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
      */
     protected MenuHolderPage(@Nullable List<Integer> fillSlots, @Nullable List<T> fillItems, boolean shallCacheItems) {
-        super(fillSlots, shallCacheItems);
+        this(RegisterMenuAPI.getMenuAPI(), fillSlots, fillItems, shallCacheItems);
+    }
+
+    /**
+     * Create menu instance.
+     *
+     * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin. Use this constructor
+     *                        only if you are using the plugin and have not shaded it.
+     * @param fillSlots       Witch slots you want fill with items.
+     * @param fillItems       List of items you want parse inside gui.
+     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
+     */
+    protected MenuHolderPage(@Nonnull RegisterMenuAPI menuAPI, @Nullable List<Integer> fillSlots, @Nullable List<T> fillItems, boolean shallCacheItems) {
+        super(menuAPI, fillSlots, shallCacheItems);
         if (fillItems != null) {
             this.listOfFillItems = new FillItems<>();
             this.listOfFillItems.setFillItems(fillItems);
@@ -167,7 +181,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         if (getListOfFillItem() == null) return getManuallySetPages();
 
         final List<T> fillItems = this.getListOfFillItem().getFillItems();
-        final List<Integer> fillSlots =  this.getFillSpace();
+        final List<Integer> fillSlots = this.getFillSpace();
         if (this.itemsPerPage > 0) {
             if (!fillSlots.isEmpty()) {
                 return (double) fillSlots.size() / this.itemsPerPage;
