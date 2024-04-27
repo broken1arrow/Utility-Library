@@ -30,7 +30,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      * Create menu instance.
      *
      * @param fillSlots       Witch slots you want fill with items.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
+     * @param shallCacheItems if it shall cache items and slots in this class.
      */
     protected HolderUtilityU(@Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
         super(fillSlots, shallCacheItems);
@@ -41,7 +41,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      *
      * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin.
      * @param fillSlots       Witch slots you want fill with items.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
+     * @param shallCacheItems if it shall cache items and slots in this class.
      */
     protected HolderUtilityU(@Nonnull final RegisterMenuAPI menuAPI, @Nullable final List<Integer> fillSlots,  final boolean shallCacheItems) {
         super(menuAPI, fillSlots, shallCacheItems);
@@ -130,7 +130,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
         }*/
         player.closeInventory();
         if (!shallCacheItems) {
-            addItemsToCache();
+            setMenuItemsToAllPages();
         }
         redrawInventory();
 

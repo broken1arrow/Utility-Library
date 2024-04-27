@@ -23,57 +23,82 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * This utility class is used to create a menu from a Minecraft inventory. It extends MenuUtility and is parameterized by
+ * the type of object stored in the button cache and used throughout the class.
+ *
+ * @param <T> The type of object stored in the button cache and used in this class, including in {@link MenuHolderPage}.
+ */
 public abstract class HolderUtility<T> extends MenuUtility<T> {
+
 
     /**
      * Create menu instance.
      *
-     * @param fillSlots       Witch slots you want fill with items.
-     * @param fillItems       List of items you want parse inside gui.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
-     * @deprecated the list of fillSlots and fillItems will be removed.
+     * @param fillSlots       The slots to be filled with items.
+     * @param fillItems       The list of items to be parsed inside the GUI.
+     * @param shallCacheItems Set this to false items and slots should be cached in this class,
+     *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        this in own implementation.
+     * @deprecated This constructor will be removed in future versions.
+     * Use the constructors without the fillSlots and fillItems parameters instead.
      */
     @Deprecated
     protected HolderUtility(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
-        super(fillSlots,  shallCacheItems);
+        super(fillSlots, shallCacheItems);
     }
 
     /**
-     * Create menu instance.
+     * Constructs a menu instance without specifying fill slots and if it you shall cache the button items.
      */
     public HolderUtility() {
         super(null, false);
     }
 
+
     /**
      * Create menu instance.
      *
-     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
+     * @param shallCacheItems Set this to false items and slots should be cached in this class,
+     *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        this in own implementation.
      */
     public HolderUtility(final boolean shallCacheItems) {
         super(null, shallCacheItems);
     }
 
-
+    /**
+     * Constructs a menu instance with specified fill slots and an option to cache items and slots.
+     *
+     * @param fillSlots       The slots to be filled with items.
+     * @param shallCacheItems Set this to false items and slots should be cached in this class,
+     *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        this in own implementation.
+     */
     public HolderUtility(List<Integer> fillSlots, boolean shallCacheItems) {
         super(fillSlots, shallCacheItems);
     }
 
+
     /**
-     * Creates a menu instance.
+     * Constructs a menu instance with specified parameters.
+     * <p>
+     * </p>
+     * <strong>Note:</strong> Use this constructor only if you are not shading this library into your plugin.
      *
-     * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin. Use this constructor
-     *                        only if you are using the plugin and have not shaded it.
-     * @param fillSlots       The slots you want to fill with items. Can be null if not filling specific slots.
-     * @param shallCacheItems Indicates whether items and slots should be cached in this class. If false,
-     *                        use {@link #getMenuButtonsCache()} to cache it in your own implementation.
+     * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin.
+     * @param fillSlots       The slots to be filled with items. Can be null if not filling specific slots.
+     * @param shallCacheItems Set this to false items and slots should be cached in this class,
+     *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        this in own implementation.
      */
     public HolderUtility(RegisterMenuAPI menuAPI, List<Integer> fillSlots, boolean shallCacheItems) {
-        super(menuAPI,fillSlots,shallCacheItems);
+        super(menuAPI, fillSlots, shallCacheItems);
     }
 
     /**
@@ -122,7 +147,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         player.closeInventory();
 
         if (!shallCacheItems) {
-            addItemsToCache();
+            setMenuItemsToAllPages();
         }
         redrawInventory();
 

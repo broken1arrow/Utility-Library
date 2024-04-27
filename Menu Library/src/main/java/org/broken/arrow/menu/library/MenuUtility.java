@@ -105,7 +105,7 @@ public class MenuUtility<T> {
      *
      * @param fillSlots       Witch slots you want fill with items.
      * @param fillItems       List of items you want parse inside gui.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.*
+     * @param shallCacheItems if it shall cache items and slots in this class, other case override {@link #retrieveMenuButtons(int, Map)} to cache it own class.
      * @deprecated not in use any more.
      */
     @Deprecated
@@ -117,7 +117,7 @@ public class MenuUtility<T> {
      * Create menu instance.
      *
      * @param fillSlots       Witch slots you want fill with items.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.*
+     * @param shallCacheItems if it shall cache items and slots in this class, other case override {@link #retrieveMenuButtons(int, Map)} to cache it own class.
      */
     public MenuUtility(@Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
         this(RegisterMenuAPI.getMenuAPI(), fillSlots, shallCacheItems);
@@ -130,7 +130,7 @@ public class MenuUtility<T> {
      *                        only if you are using the plugin and have not shaded it.
      * @param fillSlots       The slots you want to fill with items. Can be null if not filling specific slots.
      * @param shallCacheItems Indicates whether items and slots should be cached in this class. If false,
-     *                        use {@link #getMenuButtonsCache()} to cache it in your own implementation.
+     *                        override {@link #retrieveMenuButtons(int, Map)} to cache it own class.
      */
     public MenuUtility(@Nonnull final RegisterMenuAPI menuAPI, @Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
         this.fillSpace = fillSlots;
@@ -187,6 +187,15 @@ public class MenuUtility<T> {
     @Nullable
     public MenuButton getFillButtonAt(final int slot) {
         return null;
+    }
+
+    /**
+     * Override this method if you want to cache the menu buttons in own class.
+     *
+     * @param pageNumber the page number
+     * @param buttons the menu buttons with the attached slots.
+     */
+    public void retrieveMenuButtons(int pageNumber, Map<Integer, ButtonData<T>> buttons) {
     }
 
     /**
@@ -467,7 +476,7 @@ public class MenuUtility<T> {
      */
     @Nonnull
     public Map<Integer, ButtonData<T>> getMenuButtonsCache() {
-        return addItemsToCache();
+        return null;
     }
 
 
@@ -692,7 +701,7 @@ public class MenuUtility<T> {
 
     protected void updateButtons() {
         this.slotIndex = this.getPageNumber() * numberOfFillItems;
-        addItemsToCache(this.getPageNumber());
+        putMenuItemsToCache(this.getPageNumber());
         this.slotIndex = 0;
         redrawInventory();
         updateTimeButtons();
@@ -850,25 +859,23 @@ public class MenuUtility<T> {
         return (double) (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size()) / this.itemsPerPage;
     }
 
-    protected Map<Integer, ButtonData<T>> addItemsToCache(final int pageNumber) {
-        final MenuDataUtility<T> menuDataUtility = cacheMenuData(pageNumber);
-        if (!this.shallCacheItems) {
-            this.putAddedButtonsCache(pageNumber, menuDataUtility);
-        }
-        return menuDataUtility.getButtons();
-    }
-
-    protected Map<Integer, ButtonData<T>> addItemsToCache() {
-        Map<Integer, ButtonData<T>> addedButtons = new HashMap<>();
+    protected void setMenuItemsToAllPages() {
         this.requiredPages = Math.max((int) Math.ceil(amountOfPages()), 1);
         if (this.manuallySetPages > 0) this.requiredPages = this.manuallySetPages;
 
         for (int i = 0; i < this.requiredPages; i++) {
-            addedButtons = addItemsToCache(i);
+            putMenuItemsToCache(i);
             if (i == 0) numberOfFillItems = this.slotIndex;
         }
         this.slotIndex = 0;
-        return addedButtons;
+    }
+
+    protected void putMenuItemsToCache(final int pageNumber) {
+        final MenuDataUtility<T> menuDataUtility = cacheMenuData(pageNumber);
+        if (!this.shallCacheItems) {
+            this.putAddedButtonsCache(pageNumber, menuDataUtility);
+        }
+        retrieveMenuButtons(pageNumber ,menuDataUtility.getButtons());
     }
 
     @Nonnull

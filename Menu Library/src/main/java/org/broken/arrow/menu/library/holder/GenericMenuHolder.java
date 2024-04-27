@@ -1,6 +1,5 @@
 package org.broken.arrow.menu.library.holder;
 
-import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.button.MenuButton;
 
 import java.util.List;
@@ -33,7 +32,7 @@ public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
 	/**
 	 * Create menu instance.
 	 *
-	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link MenuUtility#getMenuButtonsCache()} to cache it own class.
+	 * @param shallCacheItems set to true if you want to cache items and slots.
 	 */
 	protected GenericMenuHolder(final boolean shallCacheItems) {
 		this(null, null, shallCacheItems);
@@ -54,7 +53,7 @@ public abstract class GenericMenuHolder<T> extends HolderUtility<T> {
 	 *
 	 * @param fillSlots       Witch slots you want fill with items.
 	 * @param fillItems       List of items you want parse inside gui.
-	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link MenuUtility#getMenuButtonsCache()} to cache it own class.
+	 * @param shallCacheItems set to true if you want to cache items and slots.
 	 */
 	protected GenericMenuHolder(final List<Integer> fillSlots, final List<T> fillItems, final boolean shallCacheItems) {
 		super(fillSlots, fillItems, shallCacheItems);

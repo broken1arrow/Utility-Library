@@ -27,7 +27,7 @@ public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 	/**
 	 * Create menu instance.
 	 *
-	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link org.broken.arrow.menu.library.MenuUtility#getMenuButtonsCache()} to cache it own class.
+	 * @param shallCacheItems set to true if you want to cache items and slots.
 	 */
 	protected GenericMenuHolderU(final boolean shallCacheItems) {
 		this(null, null, shallCacheItems);
@@ -48,7 +48,7 @@ public abstract class GenericMenuHolderU<T> extends HolderUtilityU<T> {
 	 *
 	 * @param fillSlots       Witch slots you want fill with items.
 	 * @param fillItems       List of items you want parse inside gui.
-	 * @param shallCacheItems set to true if you want to cache items and slots, use this method {@link org.broken.arrow.menu.library.MenuUtility#getMenuButtonsCache()} to cache it own class.
+	 * @param shallCacheItems set to true if you want to cache items and slots.
 	 */
 	protected GenericMenuHolderU(final List<Integer> fillSlots, final List<T> fillItems, final boolean shallCacheItems) {
 		super(fillSlots,  shallCacheItems);

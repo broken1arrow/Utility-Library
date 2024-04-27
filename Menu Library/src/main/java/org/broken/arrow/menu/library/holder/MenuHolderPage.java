@@ -18,12 +18,17 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Set up one or several pages with special objects tied to a specific button.
- * If you do not override the amount of pages, it will automatically add the needed amount
- * of pages for the number of objects added and use your item/items as a placeholder for
- * the object.
+ * Represents a utility class for setting up one or several pages with special objects tied to specific buttons
+ * in a paged menu system. It also supports adding custom buttons in non-fill slots, which will be automatically
+ * replicated across all pages.
+ * <p></p>
+ * <p>
+ * If the number of pages is not explicitly overridden, this class will automatically add the necessary amount
+ * of pages based on the number of objects added, using the specified items as placeholders.
+ * </p>
  *
  * @param <T> the class type of the objects added to the list.
  */
@@ -32,44 +37,50 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     private FillItems<T> listOfFillItems;
 
     /**
-     * Create menu instance. You have to set {@link #setFillSpace(List)} or it will as default fill
-     * all slots but not 9 on the bottom.
+     * Constructs a paged menu instance specified list of objects. You need to
+     * set {@link #setFillSpace(List)} or {@link #setFillSpace(String)}; otherwise, it will automatically use
+     * all slots beside the last 9 slots in your menu.
      *
-     * @param fillItems List of items you want parse inside gui on one or several pages.
+     * @param fillItems The list of items to be displayed inside the GUI on one or several pages.
      */
     protected MenuHolderPage(final List<T> fillItems) {
         this(null, fillItems, false);
     }
 
     /**
-     * Create menu instance.
+     * Constructs a paged menu instance with specified fill slots and list of objects.
      *
-     * @param fillSlots Witch slots you want fill with items.
-     * @param fillItems List of items you want parse inside gui on one or several pages.
+     * @param fillSlots The slots to be filled with items on each page. Must not exceed the inventory size.
+     * @param fillItems The list of items to be displayed inside the GUI on one or several pages.
      */
     protected MenuHolderPage(final List<Integer> fillSlots, final List<T> fillItems) {
         this(fillSlots, fillItems, false);
     }
-
     /**
-     * Create menu instance.
+     * Constructs a paged menu instance with specified fill slots, items, and caching option.
      *
-     * @param fillSlots       Witch slots you want fill with items.
-     * @param fillItems       List of items you want parse inside gui.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
+     * @param fillSlots       The slots to be filled with items on each page.
+     * @param fillItems       The list of items to be displayed inside the GUI.
+     * @param shallCacheItems Set this to false if items and slots should be cached in this class;
+     *                        otherwise, override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        them in your own implementation.
      */
     protected MenuHolderPage(@Nullable List<Integer> fillSlots, @Nullable List<T> fillItems, boolean shallCacheItems) {
         this(RegisterMenuAPI.getMenuAPI(), fillSlots, fillItems, shallCacheItems);
     }
 
     /**
-     * Create menu instance.
+     * Constructs a paged menu instance with specified parameters.
+     * <p>
+     * </p>
+     * <strong>Note:</strong> Use this constructor if you are not shading this library into your plugin.
      *
-     * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin. Use this constructor
-     *                        only if you are using the plugin and have not shaded it.
-     * @param fillSlots       Witch slots you want fill with items.
-     * @param fillItems       List of items you want parse inside gui.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case use {@link #getMenuButtonsCache()} to cache it own class.
+     * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin.
+     * @param fillSlots       The slots to be filled with items on each page.
+     * @param fillItems       The list of items to be displayed inside the GUI.
+     * @param shallCacheItems Set this to false if items and slots should be cached in this class;
+     *                        otherwise, override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        them in your own implementation.
      */
     protected MenuHolderPage(@Nonnull RegisterMenuAPI menuAPI, @Nullable List<Integer> fillSlots, @Nullable List<T> fillItems, boolean shallCacheItems) {
         super(menuAPI, fillSlots, shallCacheItems);
@@ -85,7 +96,8 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
      * click action, the player and much more.
      *
      * @return A FillMenuButton instance defining the action to take when a player clicks on the item,
-     * the type of item to display for the player, and the item to use when updating the button.
+     * the type of item to display for the player, and the item to use when updating the button
+     * depending on the object you provide.
      */
     public abstract FillMenuButton<T> createFillMenuButton();
 
