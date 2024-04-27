@@ -23,7 +23,7 @@ public abstract class MenuHolderPageU<T> extends MenuHolderPage<T> {
     }
 
     /**
-     * Create paged menu instance.
+     * Constructs a paged menu instance with specified fill slots and list of objects.
      *
      * @param menuAPI   The instance of RegisterMenuAPI where you have registered your plugin.
      * @param fillSlots The list of items to be displayed inside the GUI.
