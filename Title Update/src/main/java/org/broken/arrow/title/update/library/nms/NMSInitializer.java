@@ -102,6 +102,7 @@ public interface NMSInitializer {
 	 * @return The fully qualified Bukkit package name.
 	 */
 	default String retrieveBukkitPackage(final String clazzName) {
+		//Use this instead to get bukkit class name Bukkit.getServer().getClass().getPackage().getName()
 		return "org.bukkit.craftbukkit." + Bukkit.getServer().getClass().toGenericString().split("\\.")[3] + "." + clazzName;
 	}
 
