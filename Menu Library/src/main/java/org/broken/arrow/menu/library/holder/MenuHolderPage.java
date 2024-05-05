@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +36,7 @@ import java.util.Map;
 public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
     private FillItems<T> listOfFillItems;
+    private Map<Integer, Integer> fillSlots = new HashMap<>();
 
     /**
      * Constructs a paged menu instance specified list of objects. You need to
@@ -56,6 +58,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     protected MenuHolderPage(final List<Integer> fillSlots, final List<T> fillItems) {
         this(fillSlots, fillItems, false);
     }
+
     /**
      * Constructs a paged menu instance with specified fill slots, items, and caching option.
      *
@@ -142,11 +145,11 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             }
 
             @Override
-            public ItemStack getItem(int slot, @Nullable T notInUse) {
+            public ItemStack getItem(int slot, @Nullable T fillItem) {
                 //final T object = getFillItem(slot);
 
                 OnRetrieveItem<ItemStack, Integer, T> menuItem = fillMenuButton.getMenuFillItem();
-                return menuItem.apply(slot, notInUse);
+                return menuItem.apply(slot, fillItem);
             }
         };
         return null;
@@ -154,8 +157,8 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
     @Override
     public void onClick(@Nonnull MenuButton menuButton, @Nonnull Player player, int clickedPos, @Nonnull ClickType clickType, @Nonnull ItemStack clickedItem) {
-        int slot = clickedPos + (this.getPageNumber() * this.getNumberOfFillItems());
-
+        //int slot = fillSlots.getOrDefault(clickedPos, -1) + (this.getPageNumber() * this.getNumberOfFillItems());
+        int slot = fillSlots.getOrDefault(clickedPos, -1);
         if (this.getMenu() != null) {
             if (menuButton instanceof MenuButtonPage) {
                 final T object = this.getFillItem(slot);
@@ -212,6 +215,10 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlot);
         final ItemStack result = getItemAtSlot(menuButton, slot, fillSlot);
 
+        if (pageNumber == getPageNumber() && fillSlot >= 0) {
+            this.fillSlots.put(slot, fillSlot);
+        }
+
         if (menuButton != null) {
             T fillItem = getFillItem(fillSlot);
             boolean shallAddMenuButton = !isLastFillSlot && isFillSlot(slot) && this.getListOfFillItems() != null && !this.getListOfFillItems().isEmpty();
@@ -237,6 +244,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
                 if (fillItem != null) result = menuButtonPage.getItem(fillItem);
                 if (result == null) result = menuButtonPage.getItem(fillSlot, fillItem);
             }
+
         }
         if (result == null) result = menuButton.getItem();
         if (result == null) result = menuButton.getItem(fillSlot);

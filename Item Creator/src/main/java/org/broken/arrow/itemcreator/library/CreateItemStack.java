@@ -907,7 +907,7 @@ public class CreateItemStack {
             itemMeta.setCustomModelData(this.getCustomModelData());
     }
 
-    private boolean isShowEnchantments() {
+    public boolean isShowEnchantments() {
         return showEnchantments;
     }
 
