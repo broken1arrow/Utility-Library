@@ -2,7 +2,6 @@ package org.broken.arrow.yaml.library;
 
 
 import org.broken.arrow.logging.library.Validate;
-import org.broken.arrow.serialize.library.SerializeUtility;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.serialize.library.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.yaml.library.config.updater.ConfigUpdater;
@@ -668,7 +667,6 @@ public abstract class YamlFileManager {
 	private void saveData(@Nonnull final File file) {
 		ConfigurationWrapper configurationWrapper = new ConfigurationWrapper(file);
 		saveDataToFile(file, configurationWrapper);
-		saveDataToFile(file);
 	}
 
 
