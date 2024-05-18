@@ -1,6 +1,7 @@
 package org.broken.arrow.command.library.command.builders;
 
 import org.broken.arrow.command.library.command.CommandHolder;
+import org.broken.arrow.command.library.command.CommandProperty;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -8,9 +9,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A utility class for building command objects with various properties.
- * CommandBuilder provides a fluent interface for configuring and creating command instances.
+ * A wrapper class for building a command from a class that extends {@link CommandHolder}.
+ * Here you set the properties for your command, such as subLabel, permission, description, permission message,
+ * usage message, and whether to hide the label. Some settings can be done in CommandHolder instead, for example,
+ * subLabel. If you don't set the label in the builder {@link Builder}, it will use the one set inside the CommandHolder class.
+ *
+ * @deprecated use only {@link CommandHolder}, this class only create unnecessary extra step.
  */
+@Deprecated
 public class CommandBuilder {
 
 	private final String subLabel;
@@ -116,7 +122,9 @@ public class CommandBuilder {
 
 	/**
 	 * The builder class for creating CommandBuilder instances.
+	 * @deprecated use only {@link CommandHolder}, this class only create unnecessary extra step.
 	 */
+	@Deprecated
 	public static class Builder {
 		private String subLabel;
 		private String description;
@@ -128,7 +136,7 @@ public class CommandBuilder {
 
 		public Builder(@Nonnull final CommandHolder executor) {
 			this.executor = executor;
-			this.subLabel = executor.getCommandLabel();
+			this.subLabel = executor.getCommandLabels().stream().findFirst().orElse("");
 		}
 
 		/**
@@ -220,9 +228,18 @@ public class CommandBuilder {
 		 * Builds and returns a new CommandBuilder instance.
 		 *
 		 * @return The newly created CommandBuilder instance.
+		 * @deprecated use only {@link CommandHolder}, this class only create unnecessary extra step.
 		 */
-		public CommandBuilder build() {
-			return new CommandBuilder(this);
+		@Deprecated
+		public CommandProperty build() {
+			CommandProperty commandProperty = new CommandProperty(this.subLabel);
+			commandProperty.setDescription(this.description);
+			commandProperty.setPermission(this.permission);
+			commandProperty.setPermissionMessage(this.permissionMessage);
+			commandProperty.setHideLabel(this.hideLabel);
+			commandProperty.setUsageMessages(this.usageMessages);
+
+			return commandProperty;
 		}
 	}
 

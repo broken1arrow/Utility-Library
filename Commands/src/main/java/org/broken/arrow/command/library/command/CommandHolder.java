@@ -11,23 +11,68 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
+/**
+ * The {@code CommandHolder} class serves as a base class for creating commands in your application.
+ * By extending this class, you can define specific commands and set their properties either directly
+ * in the extending class or alternatively when you register the subcommand using
+ * {@link org.broken.arrow.command.library.CommandRegister#registerSubCommand(CommandProperty)}.
+ * Since the properties return the {@code CommandProperty} class, you can add these methods directly
+ * into the {@code registerSubCommand} argument.
+ * <p>
+ * This class provides a structure for handling command execution and tab completion suggestions.
+ * Subclasses should override the {@code onCommand} method to run specific tasks and the {@code onTabComplete}
+ * method to provide guidelines for the expected arguments from the user.
+ * </p>
+ * <p>&nbsp;</p>
+ * <h2>Usage Example</h2>
+ * <pre>
+ * {@code
+ * public class MyCommand extends CommandHolder {
+ *
+ *     public MyCommand() {
+ *         super("command", "command2");
+ *     }
+ *
+ *     \u0000@Override
+ *     public boolean onCommand(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] cmdArgs) {
+ *         // Command execution logic here
+ *         return false;
+ *     }
+ *
+ *     \u0000@Nullable
+ *     \u0000@Override
+ *     public List<String> onTabComplete(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] cmdArgs) {
+ *         // Tab completion logic here
+ *         return new ArrayList<>();
+ *     }
+ * }
+ * }
+ * </pre>
+ *
+ * <p><b>Note:</b> Implementing the {@code onTabComplete} method is optional but recommended if you want to provide
+ * tab completion suggestions for your command and help users know what they should type.</p>
+ *
+ * @see CommandProperty
+ * @see org.broken.arrow.command.library.CommandRegister#registerSubCommand(CommandProperty)
+ */
+public abstract class CommandHolder extends CommandProperty {
 
-public abstract class CommandHolder implements CommandHandler {
-
-	private final String commandLabel;
+	//private String commandLabel;
 	private String[] arguments;
 	private CommandSender sender;
 
 	/**
-	 * Set the prefix for subcommand. Use | like this
-	 * first|second command to add two options for same
-	 * command.
+	 * Set the label for your subcommand. You can have several.
+	 * <p>
 	 *
-	 * @param commandLabel the prefix you want as sublable.
+	 * Note: that you need to at least set one label.
+	 *
+     * @param commandLabel The different labels for your command. At least one label must be provided.
+     * @throws IllegalArgumentException if no command labels are provided.
 	 */
-	protected CommandHolder(final String commandLabel) {
-		this.commandLabel = commandLabel;
-
+	protected CommandHolder(final String... commandLabel) {
+        super(commandLabel);
+        //this.commandLabel = commandLabel;
 	}
 
 	/**
@@ -78,29 +123,20 @@ public abstract class CommandHolder implements CommandHandler {
 	}
 
 	/**
-	 * Set the command label.
-	 *
-	 * @return the command label.
-	 */
-	public String getCommandLabel() {
-		return commandLabel;
-	}
-
-	/**
 	 * Attempts to get the sender as player, only works if the sender is actually a player,
 	 * otherwise we return null
 	 *
 	 * @return player or null.
 	 */
 	@Nullable
-	protected final Player getPlayer() {
+	public final Player getPlayer() {
 		return isPlayer(this.sender) ? (Player) this.sender : null;
 	}
 
 	/**
 	 * check if it is a player.
 	 *
-	 * @param sender ho some send the command.
+	 * @param sender Who some send the command.
 	 * @return true if it is a player.
 	 */
 	public final boolean isPlayer(final CommandSender sender) {
@@ -333,4 +369,5 @@ public abstract class CommandHolder implements CommandHandler {
 				clone.add(lowercase ? parsed.toLowerCase() : parsed);
 		}
 	}
+
 }

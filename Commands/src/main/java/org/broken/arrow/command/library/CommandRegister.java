@@ -1,11 +1,12 @@
 package org.broken.arrow.command.library;
 
 
-import org.broken.arrow.command.library.command.builders.CommandBuilder;
+import org.broken.arrow.command.library.command.CommandProperty;
+import org.broken.arrow.command.library.commandhandler.CommandExecutor;
 import org.broken.arrow.command.library.commandhandler.CommandRegistering;
-import org.broken.arrow.command.library.commandhandler.CommandsUtility;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandMap;
 
 import java.lang.reflect.Field;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A utility class for registering and managing command builders.
@@ -23,7 +25,7 @@ import java.util.Objects;
  */
 public class CommandRegister implements CommandRegistering {
 
-	private final List<CommandBuilder> commands = Collections.synchronizedList(new ArrayList<>());
+	private final List<CommandProperty> commands = Collections.synchronizedList(new ArrayList<>());
 	private String commandLabelMessage;
 	private String commandLabelMessageNoPerms;
 	private String commandLabelPermission;
@@ -32,29 +34,20 @@ public class CommandRegister implements CommandRegistering {
 	private boolean registeredMainCommand;
 	private List<String> descriptions;
 
-	/**
-	 * Registers a subcommand with the {@link CommandBuilder.Builder}.
-	 * If a sub-label is specified in the command builder, the command will be registered under that sub-label;
-	 * otherwise, it will be registered under the executor's command label.
-	 *
-	 * @param commandBuilder The command builder to register.
-	 */
+
 	@Override
-	public void registerSubCommand(final CommandBuilder commandBuilder) {
-		final String[] labelSplit;
-		if (commandBuilder.getSubLabel() == null) {
-			labelSplit = commandBuilder.getExecutor().getCommandLabel().split("\\|");
-		} else {
-			labelSplit = commandBuilder.getSubLabel().split("\\|");
-		}
-		if (collectCommands(commandBuilder, labelSplit)) {
-			return;
+	public CommandRegistering registerSubCommand(final CommandProperty commandBuilder) {
+		Set<String> commandLabels = commandBuilder.getCommandLabels();
+
+        if (collectCommands(commandBuilder, commandLabels)) {
+			return this;
 		}
 		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.equals(commandBuilder));
-		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getSubLabel().equals(commandBuilder.getSubLabel()));
+		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getCommandLabels().equals(commandBuilder.getCommandLabels()));
 		commands.add(commandBuilder);
-		commands.sort(Comparator.comparing(CommandBuilder::getSubLabel));
-	}
+		commands.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
+        return this;
+    }
 
 	/**
 	 * Returns the message to display as the command label.
@@ -70,12 +63,12 @@ public class CommandRegister implements CommandRegistering {
 	 * Sets the message to display as the command label.
 	 * Use {label} to replace it with the command name.
 	 *
-	 * @param commandLableMessage The command label message to set.
+	 * @param commandLabelMessage The command label message to set.
 	 * @return The CommandRegister instance.
 	 */
 	@Override
-	public CommandRegister setCommandLabelMessage(String commandLableMessage) {
-		this.commandLabelMessage = commandLableMessage;
+	public CommandRegistering setCommandLabelMessage(String commandLabelMessage) {
+		this.commandLabelMessage = commandLabelMessage;
 		return this;
 	}
 
@@ -93,10 +86,10 @@ public class CommandRegister implements CommandRegistering {
 	 * Sets the prefix messages to display in the command help using the provided string values.
 	 *
 	 * @param prefixMessage The prefix messages to set.
-	 * @return The CommandRegister instance.
+	 * @return The CommandRegistering instance.
 	 */
 	@Override
-	public CommandRegister setPrefixMessage(String... prefixMessage) {
+	public CommandRegistering setPrefixMessage(String... prefixMessage) {
 		this.prefixMessage = Arrays.asList(prefixMessage);
 		return this;
 	}
@@ -105,10 +98,10 @@ public class CommandRegister implements CommandRegistering {
 	 * Sets the prefix messages to display in the command help using the provided list of strings.
 	 *
 	 * @param prefixMessage The prefix messages to set.
-	 * @return The CommandRegister instance.
+	 * @return The CommandRegistering instance.
 	 */
 	@Override
-	public CommandRegister setPrefixMessage(List<String> prefixMessage) {
+	public CommandRegistering setPrefixMessage(List<String> prefixMessage) {
 		this.prefixMessage = prefixMessage;
 		return this;
 	}
@@ -127,10 +120,10 @@ public class CommandRegister implements CommandRegistering {
 	 * Sets the suffix messages to display in the command help using the provided string values.
 	 *
 	 * @param suffixMessage The suffix messages to set.
-	 * @return The CommandRegister instance.
+	 * @return The CommandRegistering instance.
 	 */
 	@Override
-	public CommandRegister setSuffixMessage(String... suffixMessage) {
+	public CommandRegistering setSuffixMessage(String... suffixMessage) {
 		this.suffixMessage = Arrays.asList(suffixMessage);
 		return this;
 	}
@@ -139,10 +132,10 @@ public class CommandRegister implements CommandRegistering {
 	 * Sets the suffix messages to display in the command using the provided list of strings.
 	 *
 	 * @param suffixMessage The suffix messages to set.
-	 * @return The CommandRegister instance.
+	 * @return The CommandRegistering instance.
 	 */
 	@Override
-	public CommandRegister setSuffixMessage(List<String> suffixMessage) {
+	public CommandRegistering setSuffixMessage(List<String> suffixMessage) {
 		this.suffixMessage = suffixMessage;
 		return this;
 	}
@@ -158,15 +151,8 @@ public class CommandRegister implements CommandRegistering {
 		return descriptions;
 	}
 
-	/**
-	 * Sets the description of the main command. The description could provide information about the main command
-	 * and/or brief explanation to the subcommands. Player then add a "?" or "help" at the end of the command to
-	 * request additional information about the command.
-	 *
-	 * @param descriptions The description message that explains what the command does.
-	 * @return The Builder instance.
-	 */
-	public CommandRegister setDescriptions(final String... descriptions) {
+	@Override
+	public CommandRegistering setDescriptions(final String... descriptions) {
 		this.descriptions = Arrays.asList(descriptions);
 		return this;
 	}
@@ -188,7 +174,7 @@ public class CommandRegister implements CommandRegistering {
 	 * @return this class.
 	 */
 	@Override
-	public CommandRegister setCommandLabelMessageNoPerms(String commandLabelMessage) {
+	public CommandRegistering setCommandLabelMessageNoPerms(String commandLabelMessage) {
 		this.commandLabelMessageNoPerms = commandLabelMessage;
 		return this;
 	}
@@ -210,7 +196,7 @@ public class CommandRegister implements CommandRegistering {
 	 * @return this class.
 	 */
 	@Override
-	public CommandRegister setCommandLabelPermission(final String commandLabelPermission) {
+	public CommandRegistering setCommandLabelPermission(final String commandLabelPermission) {
 		this.commandLabelPermission = commandLabelPermission;
 		return this;
 	}
@@ -219,7 +205,7 @@ public class CommandRegister implements CommandRegistering {
 		return registeredMainCommand;
 	}
 
-	public CommandRegister setRegisteredMainCommand(final boolean registeredMainCommand) {
+	public CommandRegistering setRegisteredMainCommand(final boolean registeredMainCommand) {
 		this.registeredMainCommand = registeredMainCommand;
 		return this;
 	}
@@ -231,7 +217,7 @@ public class CommandRegister implements CommandRegistering {
 	 */
 	@Override
 	public void unregisterSubCommand(String subLabel) {
-		commands.removeIf(commandBuilder -> commandBuilder.getSubLabel().equals(subLabel));
+		commands.forEach(commandBuilder -> commandBuilder.getCommandLabels().removeIf(label -> label.equals(subLabel)));
 	}
 
 	/**
@@ -241,7 +227,7 @@ public class CommandRegister implements CommandRegistering {
 	 * @return The list of sub commands.
 	 */
 	@Override
-	public List<CommandBuilder> getCommands() {
+	public List<CommandProperty> getCommands() {
 		return Collections.unmodifiableList(commands);
 	}
 
@@ -252,7 +238,7 @@ public class CommandRegister implements CommandRegistering {
 	 * @return The command builder with the specified sub-label, or null if not found.
 	 */
 	@Override
-	public CommandBuilder getCommandBuilder(String label) {
+	public CommandProperty getCommandBuilder(String label) {
 		return getCommandBuilder(label, false);
 	}
 
@@ -264,11 +250,11 @@ public class CommandRegister implements CommandRegistering {
 	 * @return The command builder with the specified sub-label, or null if not found.
 	 */
 	@Override
-	public CommandBuilder getCommandBuilder(String label, boolean startsWith) {
-		for (final CommandBuilder command : commands) {
-			if (startsWith && (label.isEmpty() || command.getSubLabel().startsWith(label)))
+	public CommandProperty getCommandBuilder(String label, boolean startsWith) {
+		for (final CommandProperty command : commands) {
+			if (startsWith && (label.isEmpty() || command.firstLabelMatch(label, true) != null))
 				return command;
-			if (command.getSubLabel().equalsIgnoreCase(label))
+			if (command.firstLabelMatch(label) != null)
 				return command;
 		}
 		return null;
@@ -280,10 +266,10 @@ public class CommandRegister implements CommandRegistering {
 	 *
 	 * @param fallbackPrefix The prefix to use if the normal command cannot be used.
 	 * @param mainCommand    The main command to register.
-	 * @return The CommandRegister instance.
+	 * @return The CommandRegistering instance.
 	 */
 	@Override
-	public CommandRegister registerMainCommand(String fallbackPrefix, String mainCommand) {
+	public CommandRegistering registerMainCommand(String fallbackPrefix, String mainCommand) {
 		return this.registerMainCommand(fallbackPrefix, mainCommand, "", "", new String[0]);
 	}
 
@@ -294,10 +280,10 @@ public class CommandRegister implements CommandRegistering {
 	 * @param fallbackPrefix The prefix to use if the normal command cannot be used.
 	 * @param mainCommand    The main command to register.
 	 * @param aliases        The aliases of the main command.
-	 * @return The CommandRegister instance.
+	 * @return The CommandRegistering instance.
 	 */
 	@Override
-	public CommandRegister registerMainCommand(String fallbackPrefix, String mainCommand, String... aliases) {
+	public CommandRegistering registerMainCommand(String fallbackPrefix, String mainCommand, String... aliases) {
 		return this.registerMainCommand(fallbackPrefix, mainCommand, "", "", aliases);
 	}
 
@@ -310,17 +296,17 @@ public class CommandRegister implements CommandRegistering {
 	 * @param description    The description of the main command.
 	 * @param usageMessage   The usage message of the main command.
 	 * @param aliases        The aliases of the main command.
-	 * @return The CommandRegister instance.
+	 * @return The CommandRegistering instance.
 	 */
 	@Override
-	public CommandRegister registerMainCommand(String fallbackPrefix, String mainCommand, String description, String usageMessage, String... aliases) {
+	public CommandRegistering registerMainCommand(String fallbackPrefix, String mainCommand, String description, String usageMessage, String... aliases) {
 		final String[] main = mainCommand.split("\\|");
 		if (registeredMainCommand) return this;
 		if (main.length > 1)
 			for (final String command : main)
-				this.register(fallbackPrefix, new CommandsUtility(this, command, description, usageMessage, Arrays.asList(aliases)));
+				this.register(fallbackPrefix, new CommandExecutor(this, command, description, usageMessage, Arrays.asList(aliases)));
 		else
-			this.register(fallbackPrefix, new CommandsUtility(this, mainCommand, description, usageMessage, Arrays.asList(aliases)));
+			this.register(fallbackPrefix, new CommandExecutor(this, mainCommand, description, usageMessage, Arrays.asList(aliases)));
 		registeredMainCommand = true;
 
 		return this;
@@ -336,17 +322,20 @@ public class CommandRegister implements CommandRegistering {
 	 * @return {@code true} if subcommands were collected, {@code false} otherwise.
 	 */
 	@Override
-	public boolean collectCommands(CommandBuilder commandBuilder, String[] commandLabels) {
-		if (commandLabels.length > 1) {
+	public boolean collectCommands(CommandProperty commandBuilder, Set<String> commandLabels) {
+		if (!commandLabels.isEmpty()) {
 			for (final String label : commandLabels) {
-				final CommandBuilder newCommandBuilder = commandBuilder.getBuilder().setSubLabel(label).build();
-				commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getSubLabel().equals(label));
-				commands.add(newCommandBuilder);
+				if (label == null)
+					throw new CommandException("&c" + "You can´t register a command with a label set to null.");
+				//commands.removeIf(oldCommandBuilder -> oldCommandBuilder.firstLabelMatch(label) != null);
+				commandBuilder.addCommandLabel(label);
+				//commands.add(commandBuilder);
 			}
-			commands.sort(Comparator.comparing(CommandBuilder::getSubLabel));
+			commands.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
 			return true;
+		} else {
+			throw new CommandException("&c" + "You can´t register a command without labels");
 		}
-		return false;
 	}
 
 	/**
