@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 public final class DataSerializer {
 	private static final float SERVER_VERSION;
 
+	private DataSerializer() {}
+
 	static {
 		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
 		final String firstNumber;

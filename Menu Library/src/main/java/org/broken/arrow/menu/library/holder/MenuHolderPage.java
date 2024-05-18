@@ -27,11 +27,84 @@ import java.util.Map;
  * replicated across all pages.
  * <p>&nbsp;</p>
  * <p>
- * If the number of pages is not explicitly overridden, this class will automatically add the necessary amount
+ * If the number of pages is not explicitly overridden, this class will automatically add the necessary number
  * of pages based on the number of objects added, using the specified items as placeholders.
  * </p>
  *
- * @param <T> the class type of the objects added to the list.
+ *
+ * <h2>Usage Example</h2>
+ * <pre>
+ * {@code
+ * public class PagedMenu extends MenuHolderPage<Player> {
+ *
+ *     private final MenuButton forward;
+ *     private final MenuButton previous;
+ *
+ *     public PagedMenu(Player player) {
+ *         super(Mainclass.getInstance().getMenuAPI(), new ArrayList<>(Bukkit.getOnlinePlayers()));
+ *         setMenuSize(45);
+ *         setTitle(() -> "Players in party - Page: " + (getPageNumber() + 1) + " / " + getRequiredPages());
+ *         // Which slots you want to fill with items.
+ *         setFillSpace("0-35");
+ *         // Add this if you want players to add or remove items from slots you set with setFillSpace().
+ *         // setSlotsYouCanAddItems();
+ *
+ *         previous = new MenuButton() {
+ *             \u0000@Override
+ *             public void onClickInsideMenu(Player player, Inventory menu, ClickType click, ItemStack clickedItem) {
+ *                 if (click.isLeftClick()) {
+ *                     previousPage();
+ *                 }
+ *             }
+ *
+ *             \u0000@Override
+ *             public ItemStack getItem() {
+ *                 return null;
+ *             }
+ *         };
+ *
+ *         forward = new MenuButton() {
+ *             \u0000@Override
+ *             public void onClickInsideMenu(Player player, Inventory menu, ClickType click, ItemStack clickedItem) {
+ *                 if (click.isLeftClick()) {
+ *                     nextPage();
+ *                 }
+ *             }
+ *
+ *             \u0000@Override
+ *             public ItemStack getItem() {
+ *                 return null;
+ *             }
+ *         };
+ *     }
+ *
+ *     \u0000@Override
+ *     public FillMenuButton<Player> createFillMenuButton() {
+ *         return new FillMenuButton<>((player, itemStacks, clickType, itemStack, playerFromList) -> {
+ *             if (playerFromList != null) {
+ *                 System.out.println("Clicked on player " + playerFromList.getName());
+ *             }
+ *             return ButtonUpdateAction.THIS;
+ *         }, (slot, player) -> {
+ *             return null;
+ *         });
+ *     }
+ *
+ *     \u0000@Override
+ *     public MenuButton getButtonAt(int slot) {
+ *         if (slot == 38) {
+ *             return forward;
+ *         }
+ *         if (slot == 35) {
+ *             return previous;
+ *         }
+ *         return null;
+ *     }
+ * }
+ * }
+ * </pre>
+ *
+ * @param <T> the type of objects added to the list.
  */
 public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 

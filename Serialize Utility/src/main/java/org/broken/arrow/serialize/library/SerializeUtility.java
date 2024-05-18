@@ -9,6 +9,9 @@ import java.util.function.Function;
  */
 public class SerializeUtility {
 
+    private SerializeUtility() {
+    }
+
     /**
      * Deserialize a map of generic key-value pairs using provided functions.
      *
@@ -57,13 +60,13 @@ public class SerializeUtility {
         }
 
         public Map<String, Object> serialize() {
-            Map<String, Object> map = new HashMap<>();
+            Map<String, Object> objectMap = new HashMap<>();
             this.getMap().forEach((key, value) -> {
                 if (value != null) {
-                    map.put(key.toString(), this.getSerializingData().apply(value));
+                    objectMap.put(key.toString(), this.getSerializingData().apply(value));
                 }
             });
-            return map;
+            return objectMap;
         }
 
         private Map<K, V> getMap() {

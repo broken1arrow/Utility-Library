@@ -35,7 +35,6 @@ public class MenuInteractionChecks<T> {
                     clickedItem = new ItemStack(Material.AIR);
                 this.menuUtility.onClick(menuButton, player, clickedSlot, event.getClick(), clickedItem);
                 return true;
-                // onOffHandClick(event, player);
             }
         }
         return false;

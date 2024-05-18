@@ -7,12 +7,48 @@ import java.util.Map;
  * This class handles single-page menus or paged menus if you implement the logic yourself.
  * <p>&nbsp;</p>
  * If you wish to fill the menu using methods other than slot numbers,
- * such as filling multiple pages, consider using {@link MenuHolderPage} for better alternative.
- * Such as you can interact with your objects directly without making your own logic.
+ * such as filling multiple pages, consider using {@link MenuHolderPage} for a better alternative.
+ * This allows you to interact with your objects directly without creating your own logic.
  * <p>&nbsp;</p>
  * Alternatively, you can achieve similar results with this class by setting fill slots using
  * {@link #setFillSpace(String)} or {@link #setFillSpace(List)} and manually setting the number
- * of pages using {@link #setManuallyAmountOfPages(int)}; otherwise, only one page will be used.
+ * of pages using {@link #setManuallyAmountOfPages(int)}. Otherwise, only one page will be used.
+ *
+ * <h2>Usage Example</h2>
+ * <pre>
+ * {@code
+ * public class MyMenu extends MenuHolder {
+ *
+ *     private final MenuButton exampleButton;
+ *
+ *     public MyMenu() {
+ *         setMenuSize(45);
+ *         setTitle("Menu Title");
+ *
+ *         exampleButton = new MenuButton() {
+ *             \u0000@Override
+ *             public void onClickInsideMenu(Player player, Inventory menu, ClickType click, ItemStack clickedItem) {
+ *                 // Actions to execute when clicking on the item.
+ *             }
+ *
+ *             \u0000@Override
+ *             public ItemStack getItem() {
+ *                 // Item to be returned by this button.
+ *                 return null;
+ *             }
+ *         };
+ *     }
+ *
+ *     \u0000@Override
+ *     public MenuButton getButtonAt(int slot) {
+ *         if (slot == 1) {
+ *             return exampleButton;
+ *         }
+ *         return null;
+ *     }
+ * }
+ * }
+ * </pre>
  */
 public class MenuHolder extends HolderUtility<Object> {
 
