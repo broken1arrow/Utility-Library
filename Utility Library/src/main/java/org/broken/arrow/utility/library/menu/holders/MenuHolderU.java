@@ -55,29 +55,7 @@ public class MenuHolderU extends HolderUtility<Object> {
     public MenuHolderU(@Nonnull RegisterMenuAPI menuAPI, final boolean shallCacheItems) {
         this(menuAPI, null, shallCacheItems);
     }
-
-    /**
-     * Create menu instance.
-     *
-     * @param fillItems List of items you want parse inside gui on one or several pages.
-     * @deprecated this is not in use any more.
-     */
-    @Deprecated
-    public MenuHolderU(final List<?> fillItems) {
-        this(null, null, false);
-    }
-    /**
-     * Create menu instance.
-     *
-     * @param fillSlots Witch slots you want fill with items.
-     * @param fillItems List of items you want parse inside gui on one or several pages.
-     * @deprecated this is not in use any more.
-     */
-    @Deprecated
-    public MenuHolderU(final List<Integer> fillSlots, final List<?> fillItems) {
-        this(null, fillSlots, false);
-    }
-
+    
     /**
      * Constructs a menu instance with specified fill slots, menuAPI instance and caching option.
      * It is recommended to set the menu size using {@link #setMenuSize(int)},

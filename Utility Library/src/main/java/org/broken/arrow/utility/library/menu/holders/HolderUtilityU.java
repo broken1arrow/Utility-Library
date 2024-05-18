@@ -79,55 +79,11 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      *                    then take out the items.
      */
     public void menuOpen(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
-        menuOpen(null, player, location, loadToCache);
-    }
-    /**
-     * Open menu and make one instance in cache.
-     * Will be cleared on server restart.
-     *
-     * @param menuAPI  Menu API instance.
-     * @param player   some open menu.
-     * @param location location you open menu.
-     * @deprecated no need to set the menu instance here, only in the constructor.
-     */
-    @Deprecated
-    public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player, @Nullable final Location location) {
-        menuOpen(menuAPI, player, location, true);
-    }
-
-    /**
-     * open menu and make one instance, will be removed
-     * when you close menu.
-     *
-     * @param menuAPI Menu API instance.
-     * @param player  some open menu.
-     * @deprecated no need to set the menu instance here, only in the constructor.
-     */
-    @Deprecated
-    public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player) {
-        menuOpen(menuAPI, player, null, false);
-    }
-
-    /**
-     * open menu and make one instance. If you set location to null, it will be removed
-     * when you close menu.
-     *
-     * @param menuAPI    Menu API instance.
-     * @param player     Player some open menu.
-     * @param location   Location where you open menu.
-     * @param loadToCache Ff it shall load menu to cache.
-     * @deprecated no need to set the menu instance here, only in the constructor.
-     */
-    @Deprecated
-    public void menuOpen(@Nonnull final RegisterMenuAPI menuAPI, @Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
         this.player = player;
         this.location = location;
         if (menuAPI != null)
             this.menuAPI = menuAPI;
-      /*  if (menuAPI == null) {
-            Bukkit.getLogger().warning("[HolderUtilityU] Failed to retrieve MenuAPI instance. The MenuAPI instance cannot be null.");
-            throw new NullPointerException("A NullPointerException occurred because the MenuAPI instance is not properly set. Please ensure that the MenuAPI instance is properly assigned.");
-        }*/
+
         player.closeInventory();
         if (!shallCacheItems) {
             setMenuItemsToAllPages();
@@ -147,6 +103,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
             updateButtonsInList();
         Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), this::updateTittle, 1);
     }
+
 
     /**
      * set invetory size
