@@ -81,8 +81,6 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
     public void menuOpen(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
         this.player = player;
         this.location = location;
-        if (menuAPI != null)
-            this.menuAPI = menuAPI;
 
         player.closeInventory();
         if (!shallCacheItems) {
@@ -106,7 +104,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 
 
     /**
-     * set invetory size
+     * Set the inventory size
      *
      * @param inventorySize size of this menu
      */

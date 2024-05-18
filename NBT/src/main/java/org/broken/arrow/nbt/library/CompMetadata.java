@@ -309,21 +309,22 @@ public final class CompMetadata {
 		return getOrNull(value);
 	}
 
-	/**
-	 * Retrieve specific NBT data from an item's compound tag.
-	 * <p>&nbsp;</p>
-	 * <p>
-	 * This method gives you access to retrieve multiple set tags inside
-	 * the compound tag without creating a new {@link NBTItem} instance for
-	 * every retrieval of a value.
-	 * </p>
-	 * <p>&nbsp;</p>
-	 *
-	 * @param item     The item from which to retrieve metadata.
-	 * @param function The function that return NBT values you can read on your item
-	 *                 and have your own return type.
-	 * @return The NBTReaderWrapper instance if the compound key was found and applied, null otherwise.
-	 */
+    /**
+     * Retrieve specific NBT data from an item's compound tag.
+     * <p>&nbsp;</p>
+     * <p>
+     * This method gives you access to retrieve multiple set tags inside
+     * the compound tag without creating a new {@link NBTItem} instance for
+     * every retrieval of a value.
+     * </p>
+     * <p>&nbsp;</p>
+     *
+     * @param item     The item from which to retrieve metadata.
+     * @param function The function that return NBT values you can read on your item
+     *                 and have your own return type.
+     * @param <T>      type of class the return value.
+     * @return The NBTReaderWrapper instance if the compound key was found and applied, null otherwise.
+     */
 	@Nullable
 	public <T> T getMetadata(@Nonnull final ItemStack item, Function<NBTReaderWrapper, T> function) {
 		Validate.checkNotNull(item, this.setMessageItemNull());

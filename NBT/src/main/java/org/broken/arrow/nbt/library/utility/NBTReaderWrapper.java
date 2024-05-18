@@ -280,9 +280,10 @@ public class NBTReaderWrapper {
 	 * {@code byte/Byte, short/Short, int/Integer, long/Long, float/Float, double/Double, byte[], int[]},
 	 * {@link String}, {@link java.util.UUID}
 	 *
-	 * @param key          key
-	 * @param defaultValue default non-null value
-	 * @return Stored or provided value
+	 * @param key          The key to retrive the set value.
+	 * @param defaultValue default non-null value.
+	 * @param <T>          the generic class type for the value.
+	 * @return Stored or provided value.
 	 */
 	public <T> T getOrDefault(final String key, final T defaultValue) {
 		return readableNBT.getOrDefault(key, defaultValue);
@@ -295,8 +296,9 @@ public class NBTReaderWrapper {
 	 * {@code Byte, Short, Integer, Long, Float, Double, byte[], int[]},
 	 * {@link String}, {@link java.util.UUID}
 	 *
-	 * @param key  key
-	 * @param type data type
+	 * @param key  The key to retrive the set value.
+	 * @param type The data type.
+	 * @param <T>  the generic class type for the value.
 	 * @return Stored or provided value
 	 */
 	public <T> T getOrNull(final String key, final Class<?> type) {
@@ -307,8 +309,9 @@ public class NBTReaderWrapper {
 	 * Get an Enum value that has been set via setEnum or setString(key,
 	 * value.name()). Passing null/invalid keys will return null.
 	 *
-	 * @param key  The key set for this value.
-	 * @param type the class for the enum.
+	 * @param key  The key to retrive the set value.
+	 * @param type The class for the enum.
+	 * @param <E>  The generic class type for the enum.
 	 * @return the enum set or null if could not cast the enum to that type of class.
 	 */
 	@Nullable

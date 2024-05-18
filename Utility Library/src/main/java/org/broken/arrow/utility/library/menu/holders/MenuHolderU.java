@@ -11,11 +11,11 @@ import java.util.Map;
 
 /**
  * This class handles single-page menus or paged menus if you implement the logic yourself.
- * <p></p>
+ * <p>&nbsp;</p>
  * If you wish to fill the menu using methods other than slot numbers,
  * such as filling multiple pages, consider using {@link MenuHolderPage} for better alternative.
  * Such as you can interact with your objects directly without making your own logic.
- * <p></p>
+ * <p>&nbsp;</p>
  * Alternatively, you can achieve similar results with this class by setting fill slots using
  * {@link #setFillSpace(String)} or {@link #setFillSpace(List)} and manually setting the number
  * of pages using {@link #setManuallyAmountOfPages(int)}; otherwise, only one page will be used.
@@ -55,7 +55,7 @@ public class MenuHolderU extends HolderUtility<Object> {
     public MenuHolderU(@Nonnull RegisterMenuAPI menuAPI, final boolean shallCacheItems) {
         this(menuAPI, null, shallCacheItems);
     }
-    
+
     /**
      * Constructs a menu instance with specified fill slots, menuAPI instance and caching option.
      * It is recommended to set the menu size using {@link #setMenuSize(int)},

@@ -25,7 +25,7 @@ import java.util.Map;
  * Represents a utility class for setting up one or several pages with special objects tied to specific buttons
  * in a paged menu system. It also supports adding custom buttons in non-fill slots, which will be automatically
  * replicated across all pages.
- * <p></p>
+ * <p>&nbsp;</p>
  * <p>
  * If the number of pages is not explicitly overridden, this class will automatically add the necessary amount
  * of pages based on the number of objects added, using the specified items as placeholders.
@@ -74,8 +74,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
     /**
      * Constructs a paged menu instance with specified parameters.
-     * <p>
-     * </p>
+     * <p>&nbsp;</p>
      * <strong>Note:</strong> Use this constructor if you are not shading this library into your plugin.
      *
      * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin.

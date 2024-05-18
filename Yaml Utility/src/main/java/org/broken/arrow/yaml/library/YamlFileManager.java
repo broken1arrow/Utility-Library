@@ -145,6 +145,8 @@ public abstract class YamlFileManager {
 
 	/**
 	 * Updates the configuration file.
+	 *
+	 * @param ignoredSections The sections to ignore when update the file.
 	 */
 	public final void update(final String... ignoredSections) {
 		this.update(null, null, ignoredSections);

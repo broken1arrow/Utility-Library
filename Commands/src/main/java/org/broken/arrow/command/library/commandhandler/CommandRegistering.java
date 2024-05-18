@@ -19,6 +19,7 @@ public interface CommandRegistering {
 	 * This method ensures that the command labels are neither empty nor null before registering.
 	 *
 	 * @param subCommand The sub-command to register. Must not be null and should have valid command labels.
+	 * @return Returns the class instance.
 	 * @throws CommandException if the command labels are empty or null.
 	 */
 	CommandRegistering registerSubCommand(CommandProperty subCommand);
@@ -28,6 +29,7 @@ public interface CommandRegistering {
 	 * This method ensures that the command labels are neither empty nor null before registering.
 	 *
 	 * @param subCommands The sub-commands to register. Must not be null and should have valid command labels.
+	 * @return Returns the class instance.
 	 * @throws CommandException if the command labels are empty or null.
 	 */
 	CommandRegistering registerSubCommands(CommandProperty... subCommands);
@@ -35,7 +37,7 @@ public interface CommandRegistering {
 	 * Use {label} to replace it with the command name and {perm} to get permission.
 	 *
 	 * @param commandLabelMessage the message send for every sub-command.
-	 * @return this class.
+     * @return Returns the class instance.
 	 */
 	CommandRegistering  setCommandLabelMessage(String commandLabelMessage);
 
@@ -43,7 +45,7 @@ public interface CommandRegistering {
 	 * Help message before the command suggestions.
 	 *
 	 * @param helpPrefixMessage the message send before.
-	 * @return this class.
+     * @return Returns the class instance.
 	 */
 	CommandRegistering  setPrefixMessage(String... helpPrefixMessage);
 
@@ -51,7 +53,7 @@ public interface CommandRegistering {
 	 * Help message before the command suggestions.
 	 *
 	 * @param helpPrefixMessage the message send before.
-	 * @return this class.
+     * @return Returns the class instance.
 	 */
 	CommandRegistering  setPrefixMessage(List<String> helpPrefixMessage);
 
@@ -59,7 +61,7 @@ public interface CommandRegistering {
 	 * Help message after the command suggestions.
 	 *
 	 * @param suffixMessage the message send before.
-	 * @return this class.
+     * @return Returns the class instance.
 	 */
 	CommandRegistering  setSuffixMessage(String... suffixMessage);
 
@@ -67,7 +69,7 @@ public interface CommandRegistering {
 	 * Help message after the command suggestions.
 	 *
 	 * @param helpSuffixMessage the message send before.
-	 * @return this class.
+     * @return Returns the class instance.
 	 */
 	CommandRegistering  setSuffixMessage(List<String> helpSuffixMessage);
 
@@ -85,7 +87,7 @@ public interface CommandRegistering {
 	 * Set the permission used.
 	 *
 	 * @param commandLabelPermission the permission
-	 * @return this class.
+     * @return Returns the class instance.
 	 */
 	CommandRegistering setCommandLabelPermission(String commandLabelPermission);
 
@@ -93,7 +95,7 @@ public interface CommandRegistering {
 	 * Use {label} to replace it with the command name and {perm} to get permission. Used if you not have permission.
 	 *
 	 * @param commandLabelMessage the message send for every subcommand.
-	 * @return this class.
+     * @return Returns the class instance.
 	 */
 	CommandRegistering  setCommandLabelMessageNoPerms(String commandLabelMessage);
 

@@ -152,7 +152,7 @@ public class CommandExecutor extends Command {
         }
     }
 
-    private boolean sendDescription(@Nonnull CommandSender sender, @Nonnull String commandLabel, String @Nonnull [] args, CommandProperty executor) {
+    private boolean sendDescription(@Nonnull CommandSender sender, @Nonnull String commandLabel,@Nonnull String[] args, CommandProperty executor) {
         if (executor.getDescription() != null) {
             String arguments = Arrays.toString(args);
 

@@ -391,6 +391,7 @@ public abstract class Database {
      *
      * @param tableName the table to find the rows to remove.
      * @param column    the name of the column to remove.
+     * @param quotes The quotes around the table name.
      * @param threshold the threshold where it should start to remove and below.
      */
     public void removeBelowThreshold(@Nonnull final String tableName, @Nonnull final String column, char quotes, int threshold) {

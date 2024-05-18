@@ -87,8 +87,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
     /**
      * Constructs a menu instance with specified parameters.
-     * <p>
-     * </p>
+     * <p>&nbsp;</p>
      * <strong>Note:</strong> Use this constructor only if you are not shading this library into your plugin.
      *
      * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin.

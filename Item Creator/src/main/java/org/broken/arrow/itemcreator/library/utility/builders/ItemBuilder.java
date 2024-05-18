@@ -34,8 +34,8 @@ public final class ItemBuilder {
 	 *
 	 * @param itemCreator the item creator instrace.
 	 * @param itemStack   item you want to create.
-	 * @param displayName name onb item.
-	 * @param lore        lore on item.
+	 * @param displayName The name on the item.
+	 * @param lore        The lore or null if you not want to set lore.
 	 */
 	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final ItemStack itemStack, final String displayName, final List<String> lore) {
 		this(itemCreator, null, itemStack, displayName, lore);
@@ -48,8 +48,8 @@ public final class ItemBuilder {
 	 *
 	 * @param itemCreator the item creator instrace.
 	 * @param matrial     you want to create.
-	 * @param displayName name onb item.
-	 * @param lore        lore on item.
+	 * @param displayName The name on the item.
+	 * @param lore        The lore or null if you not want to set lore.
 	 */
 	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final Material matrial, final String displayName, final List<String> lore) {
 		this(itemCreator, null, matrial, displayName, lore);
@@ -61,8 +61,8 @@ public final class ItemBuilder {
 	 *
 	 * @param itemCreator the item creator instrace.
 	 * @param stringItem  you want to create.
-	 * @param displayName name onb item.
-	 * @param lore        lore on item.
+	 * @param displayName The name on the item.
+	 * @param lore        The lore or null if you not want to set lore.
 	 */
 	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final String stringItem, final String displayName, final List<String> lore) {
 		this(itemCreator, null, stringItem, displayName, lore);
@@ -73,13 +73,26 @@ public final class ItemBuilder {
 	 * like enchants and metadata.
 	 *
 	 * @param itemCreator the item creator instrace.
-	 * @param itemArray   you want to create.
+	 * @param itemArray   The array you want to create.
+	 * @param displayName The name on the item.
+	 * @param lore        The lore or null if you not want to set lore.
 	 * @param <T>         type of items.
 	 */
 	public <T> ItemBuilder(@Nonnull final ItemCreator itemCreator, final Iterable<T> itemArray, final String displayName, final List<String> lore) {
 		this(itemCreator, itemArray, null, displayName, lore);
 	}
 
+	/**
+	 * Create array of itemStack´s, with name and lore. You can also add more
+	 * like enchants and metadata.
+	 *
+	 * @param itemCreator the item creator instrace.
+	 * @param itemArray   The array you want to create.
+	 * @param stringItem  The item you want to set the array too.
+	 * @param displayName The name on the item.
+	 * @param lore        The lore or null if you not want to set lore.
+	 * @param <T>         type of items.
+	 */
 	private <T> ItemBuilder(@Nonnull final ItemCreator itemCreator, final Iterable<T> itemArray, final Object stringItem, final String displayName, final List<String> lore) {
 		this.itemArray = itemArray;
 		this.item = stringItem;

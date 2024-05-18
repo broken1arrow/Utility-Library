@@ -169,6 +169,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper {
 	 * Set the Enum value as a compound under a given key.
 	 *
 	 * @param key   the key for retrieve this value.
+	 * @param <E>  The generic class type for the enum.
 	 * @param value the Enum value to set.
 	 */
 	public <E extends Enum<?>> void setEnum(String key, E value){
