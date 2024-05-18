@@ -43,14 +43,8 @@ public class CommandExecutor extends Command {
                 return false;
             final CommandProperty executor = commandRegister.getCommandBuilder(args[0]);
             if (executor != null) {
-                if (executor.getDescription() != null) {
-                    String arguments = Arrays.toString(args);
+                if (sendDescription(sender, commandLabel, args, executor)) return false;
 
-                    if (arguments.endsWith("?]") || arguments.endsWith("help]")) {
-                        sender.sendMessage(placeholders(executor.getDescription(), commandLabel, executor));
-                        return false;
-                    }
-                }
                 if (sendNoPermission(sender, commandLabel, executor)) return false;
 
                 boolean executeCommand = executor.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
@@ -156,6 +150,18 @@ public class CommandExecutor extends Command {
                 sender.sendMessage(colors(placeholders(commandLabelMessage, commandLabel, subcommand)));
             }
         }
+    }
+
+    private boolean sendDescription(@Nonnull CommandSender sender, @Nonnull String commandLabel, String @Nonnull [] args, CommandProperty executor) {
+        if (executor.getDescription() != null) {
+            String arguments = Arrays.toString(args);
+
+            if (arguments.endsWith("?]") || arguments.endsWith("help]")) {
+                sender.sendMessage(placeholders(executor.getDescription(), commandLabel, executor));
+                return true;
+            }
+        }
+        return false;
     }
 
     public String placeholders(final String message, final String commandLabel, final CommandProperty subcommand) {
