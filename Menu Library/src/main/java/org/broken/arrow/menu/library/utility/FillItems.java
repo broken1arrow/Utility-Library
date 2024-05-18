@@ -6,25 +6,25 @@ import java.util.List;
 
 public class FillItems<T> {
 
-    List<T> fillItems = new ArrayList<>();
+    List<T> fillItemsList = new ArrayList<>();
 
     public List<T> getFillItems() {
-        return Collections.unmodifiableList(fillItems);
+        return Collections.unmodifiableList(fillItemsList);
     }
 
     public T getFillItem(int index) {
-        if (this.fillItems.isEmpty())
+        List<T> fillItems = this.getFillItems();
+        if (fillItems.isEmpty())
             return null;
-        if (index >= this.fillItems.size())
+        if (index >= fillItems.size())
             return null;
         if (index < 0)
             return null;
-        List<T> fillItems = this.getFillItems();
         return fillItems.get(index);
     }
 
     public void remove(T item) {
-        fillItems.remove(item);
+        fillItemsList.remove(item);
     }
 
     /**
@@ -33,6 +33,6 @@ public class FillItems<T> {
      * @param fillItems list of items.
      */
     public void setFillItems(List<T> fillItems) {
-        this.fillItems = fillItems;
+        this.fillItemsList = fillItems;
     }
 }

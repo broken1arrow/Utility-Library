@@ -196,6 +196,7 @@ public class MenuUtility<T> {
      * @param buttons the menu buttons with the attached slots.
      */
     public void retrieveMenuButtons(int pageNumber, Map<Integer, ButtonData<T>> buttons) {
+        //override this class if you want to cache the buttons self.
     }
 
     /**

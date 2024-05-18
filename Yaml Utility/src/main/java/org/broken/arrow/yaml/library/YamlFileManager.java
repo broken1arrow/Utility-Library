@@ -314,6 +314,7 @@ public abstract class YamlFileManager {
 	/**
 	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
 	 *
+	 * @param file          the file to save the serialized data to.
 	 * @param path          the path to set the serialized data at
 	 * @param configuration the ConfigurationSerializable object to serialize and set
 	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails

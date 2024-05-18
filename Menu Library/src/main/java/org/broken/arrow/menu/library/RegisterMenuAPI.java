@@ -167,8 +167,9 @@ public class RegisterMenuAPI {
 
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu())) return;
 
-            if (menuUtility.getMenuInteractionChecks().whenPlayerClick(event, player, clickedItem))
-                onOffHandClick(event, player);
+            if (menuUtility.getMenuInteractionChecks().whenPlayerClick(event, player, clickedItem)) {
+				onOffHandClick(event, player);
+			}
 			//whenPlayerClick(event, player, clickedItem, menuUtility);
 		}
 

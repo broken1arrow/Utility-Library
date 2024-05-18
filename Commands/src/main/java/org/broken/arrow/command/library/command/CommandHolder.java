@@ -7,9 +7,11 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 /**
  * The {@code CommandHolder} class serves as a base class for creating commands in your application.
@@ -57,7 +59,6 @@ import java.util.function.Function;
  */
 public abstract class CommandHolder extends CommandProperty {
 
-	//private String commandLabel;
 	private String[] arguments;
 	private CommandSender sender;
 
@@ -72,7 +73,6 @@ public abstract class CommandHolder extends CommandProperty {
 	 */
 	protected CommandHolder(final String... commandLabel) {
         super(commandLabel);
-        //this.commandLabel = commandLabel;
 	}
 
 	/**
@@ -370,4 +370,24 @@ public abstract class CommandHolder extends CommandProperty {
 		}
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		if (!super.equals(o)) return false;
+
+		CommandHolder that = (CommandHolder) o;
+
+		// Probably incorrect - comparing Object[] arrays with Arrays.equals
+		if (!Arrays.equals(arguments, that.arguments)) return false;
+        return Objects.equals(sender, that.sender);
+    }
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + Arrays.hashCode(arguments);
+		result = 31 * result + (sender != null ? sender.hashCode() : 0);
+		return result;
+	}
 }
