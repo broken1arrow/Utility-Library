@@ -1071,30 +1071,11 @@ public abstract class Database {
             this.connection.setAutoCommit(false);
             int batchSize = 1;
             for (SqlCommandComposer sql : batchList) {
-                Map<Integer, Object> cachedDataByColumn = sql.getCachedDataByColumn();
-                try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
-                    boolean valuesSet = false;
+                this.setPreparedStatement(sql, resultSetType, resultSetConcurrency);
 
-                    if (!cachedDataByColumn.isEmpty()) {
-                        // Populate the batch with data where the key is the row identifier (id).
-                        for (Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
-                            statement.setObject(column.getKey(), column.getValue());
-                            valuesSet = true;
-                        }
-                    }
-                    if (valuesSet)
-                        // Adding the current set of parameters to the batch
-                        statement.addBatch();
-
-                    statement.executeBatch();
-                    if (batchSize % 100 == 0)
-                        this.connection.commit();
-                    batchSize++;
-                } catch (SQLException e) {
-                    log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
-                    log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
+                if (batchSize % 100 == 0)
                     this.connection.commit();
-                }
+                batchSize++;
             }
         } catch (SQLException e) {
             log.log(Level.WARNING, e, () -> of("Could not set auto commit to false."));
@@ -1179,5 +1160,26 @@ public abstract class Database {
 
     public boolean checkIfNotNull(Object object) {
         return object != null;
+    }
+
+    private final void setPreparedStatement(SqlCommandComposer sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+        Map<Integer, Object> cachedDataByColumn = sql.getCachedDataByColumn();
+        try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
+            boolean valuesSet = false;
+
+            if (!cachedDataByColumn.isEmpty()) {
+                for (Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
+                    statement.setObject(column.getKey(), column.getValue());
+                    valuesSet = true;
+                }
+            }
+            if (valuesSet)
+                statement.addBatch();
+            statement.executeBatch();
+        } catch (SQLException e) {
+            log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
+            log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
+            this.connection.commit();
+        }
     }
 }
