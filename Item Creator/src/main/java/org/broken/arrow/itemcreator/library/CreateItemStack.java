@@ -888,11 +888,11 @@ public class CreateItemStack {
             final FireworkEffect.Builder builder = FireworkEffect.builder();
             builder.withColor(Color.fromBGR(getBlue(), getGreen(), getRed()));
             if (this.getFireworkEffect() != null) {
-                FireworkEffect fireworkEffect = this.getFireworkEffect();
-                builder.flicker(fireworkEffect.hasFlicker())
-                        .with(fireworkEffect.getType())
-                        .trail(fireworkEffect.hasTrail())
-                        .withFade(fireworkEffect.getFadeColors());
+                FireworkEffect effect = this.getFireworkEffect();
+                builder.flicker(effect.hasFlicker())
+                        .with(effect.getType())
+                        .trail(effect.hasTrail())
+                        .withFade(effect.getFadeColors());
             }
             fireworkEffectMeta.setEffect(builder.build());
         }
