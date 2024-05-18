@@ -1,6 +1,6 @@
 package org.broken.arrow.yaml.library.utillity;
 
-import org.broken.arrow.serialize.library.DataSerializer;
+import org.broken.arrow.serialize.library.SerializeUtility;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -23,13 +23,13 @@ public class ConfigurationWrapper {
 
 	private final String path;
 	private final File file;
-	private final FileConfiguration config;
+	private final FileConfiguration configuration;
 	private final List<ConfigHelper> configurationCache;
 
 	/**
 	 * Creates a new ConfigurationWrapper instance with the specified file and an empty path.
 	 * This method provide option to set path {@link #addSerializableData(String, org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable)}
-	 * or alternatively set the path when serialize the data and use {@link #addAllSerializableData(String, java.util.List)}.
+	 * or alternatively set the path when serialize the data and use {@link #addAllSerializableData(List)}.
 	 *
 	 * @param file The file to save data to.
 	 */
@@ -40,7 +40,7 @@ public class ConfigurationWrapper {
 	/**
 	 * Creates a new ConfigurationWrapper instance with the specified file and path.
 	 * This method provide option to set path {@link #addSerializableData(String, org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable)}
-	 * or alternatively set the path when serialize the data and use {@link #addAllSerializableData(String, java.util.List)}.
+	 * or alternatively set the path when serialize the data and use {@link #addAllSerializableData(List)}.
 	 *
 	 * @param path the static path for this instance.
 	 * @param file The file to save data to.
@@ -49,7 +49,7 @@ public class ConfigurationWrapper {
 		this.file = file;
 		this.path = path;
 		this.configurationCache = new ArrayList<>();
-		this.config = new YamlConfiguration();
+		this.configuration = new YamlConfiguration();
 	}
 
 	/**
@@ -106,12 +106,11 @@ public class ConfigurationWrapper {
 	 * Adds a list of ConfigurationSerializable objects to the internal cache.
 	 * Each object is wrapped in a ConfigHelper instance with an optional path.
 	 *
-	 * @param path               Alternative to set a static path for every key.
 	 * @param configurationsList The list of ConfigurationSerializable objects to add.
 	 */
-	public void addAllSerializableData(String path, @Nonnull List<ConfigurationSerializable> configurationsList) {
+	public void addAllSerializableData(@Nonnull List<ConfigurationSerializable> configurationsList) {
 		Valid.checkNotNull(configurationsList, "The list can't be null, you need provide a list of Serializable data.");
-		final String finalAlternativePath = getPath(path);
+
 		configurationsList.forEach(config -> configurationCache.add(new ConfigHelper(config)));
 	}
 
@@ -135,23 +134,23 @@ public class ConfigurationWrapper {
 	public FileConfiguration applyToConfiguration() {
 		getConfigurationsCache().forEach(helper -> {
 			Map<String, Object> serializedData = helper.serialize();
-			String basePath = helper.isPathSet() ? helper.path : isPathSet() ? this.getPath() : "";
+			String basePath = getPath(helper);
 			serializedData.forEach((key, value) -> setToConfig(helper, basePath, key, value));
 		});
-		return config;
+		return configuration;
 	}
 
 	private void setToConfig(final ConfigHelper helper, final String basePath, final String key, final Object value) {
-		Object data = DataSerializer.serialize(value);
+		Object data = SerializeUtility.serialize(value);
 		String mapPath = "";
 
 		if (data instanceof Map) {
 			mapPath = ".map?";
 			for (Map.Entry<?, ?> entry : ((Map<?, ?>) data).entrySet()) {
-				config.set(basePath + (helper.isPathSet() ? "." : "") + key +  mapPath + "." + entry.getKey(), entry.getValue());
+				configuration.set(basePath + (helper.isPathSet() ? "." : "") + key +  mapPath + "." + entry.getKey(), entry.getValue());
 			}
 		} else
-			config.set(basePath + (helper.isPathSet() ? "." : "") + key +  mapPath, data);
+			configuration.set(basePath + (helper.isPathSet() ? "." : "") + key +  mapPath, data);
 
 	}
 
@@ -169,6 +168,13 @@ public class ConfigurationWrapper {
 			alternativePath = alternativePath + ".";
 		return alternativePath;
 	}
+
+    private String getPath(ConfigHelper helper) {
+        if (helper.isPathSet()) {
+            return helper.path;
+        }
+        return isPathSet() ? this.getPath() : "";
+    }
 
 	@Override
 	public boolean equals(final Object o) {
@@ -188,7 +194,7 @@ public class ConfigurationWrapper {
 		return result;
 	}
 
-	private static class ConfigHelper {
+	protected static class ConfigHelper {
 		private final String path;
 		private final ConfigurationSerializable configurationSerializable;
 

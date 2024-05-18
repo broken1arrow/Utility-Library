@@ -154,19 +154,17 @@ public class RegisterMenuAPI {
 		public void onMenuClicking(final InventoryClickEvent event) {
 			final Player player = (Player) event.getWhoClicked();
 
-			if (event.getClickedInventory() == null)
-				return;
+			if (event.getClickedInventory() == null) return;
 			ItemStack clickedItem = event.getCurrentItem();
 
 			final MenuUtility<?> menuUtility = getMenuHolder(player);
 			if (menuUtility == null) return;
 
-			if (event.getSlotType() == InventoryType.SlotType.OUTSIDE)
-				menuUtility.menuClickOutside(event, menuUtility);
+			if (event.getSlotType() == InventoryType.SlotType.OUTSIDE) menuUtility.menuClickOutside(event, menuUtility);
 
 			if (!event.getView().getTopInventory().equals(menuUtility.getMenu())) return;
 
-            if (menuUtility.getMenuInteractionChecks().whenPlayerClick(event, player, clickedItem)) {
+			if (menuUtility.getMenuInteractionChecks().whenPlayerClick(event, player, clickedItem)) {
 				onOffHandClick(event, player);
 			}
 		}

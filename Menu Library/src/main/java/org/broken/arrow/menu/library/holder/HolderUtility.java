@@ -38,25 +38,9 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
 
     /**
-     * Create menu instance.
-     *
-     * @param fillSlots       The slots to be filled with items.
-     * @param fillItems       The list of items to be parsed inside the GUI.
-     * @param shallCacheItems Set this to false items and slots should be cached in this class,
-     *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
-     *                        this in own implementation.
-     * @deprecated This constructor will be removed in future versions.
-     * Use the constructors without the fillSlots and fillItems parameters instead.
-     */
-    @Deprecated
-    protected HolderUtility(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
-        super(fillSlots, shallCacheItems);
-    }
-
-    /**
      * Constructs a menu instance without specifying fill slots and if it you shall cache the button items.
      */
-    public HolderUtility() {
+    protected HolderUtility() {
         super(null, false);
     }
 
@@ -68,7 +52,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
      *                        this in own implementation.
      */
-    public HolderUtility(final boolean shallCacheItems) {
+    protected HolderUtility(final boolean shallCacheItems) {
         super(null, shallCacheItems);
     }
 
@@ -80,7 +64,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
      *                        this in own implementation.
      */
-    public HolderUtility(List<Integer> fillSlots, boolean shallCacheItems) {
+    protected HolderUtility(List<Integer> fillSlots, boolean shallCacheItems) {
         super(fillSlots, shallCacheItems);
     }
 
@@ -96,7 +80,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
      *                        this in own implementation.
      */
-    public HolderUtility(RegisterMenuAPI menuAPI, List<Integer> fillSlots, boolean shallCacheItems) {
+    protected HolderUtility(RegisterMenuAPI menuAPI, List<Integer> fillSlots, boolean shallCacheItems) {
         super(menuAPI, fillSlots, shallCacheItems);
     }
 

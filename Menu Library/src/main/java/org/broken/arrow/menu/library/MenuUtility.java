@@ -11,7 +11,6 @@ import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.holder.MenuHolder;
 import org.broken.arrow.menu.library.holder.MenuHolderPage;
-import org.broken.arrow.menu.library.utility.FillItems;
 import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.MenuInteractionChecks;
 import org.broken.arrow.menu.library.utility.ServerVersion;
@@ -58,10 +57,9 @@ public class MenuUtility<T> {
     private final List<MenuButton> buttonsToUpdate = new ArrayList<>();
     private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
     private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
-    private MenuInteractionChecks<T> menuInteractionChecks;
+    private final MenuInteractionChecks<T> menuInteractionChecks;
 
     protected List<Integer> fillSpace;
-    private FillItems<T> listOfFillItems;
     protected Location location;
     protected RegisterMenuAPI menuAPI;
     private Inventory inventory;
@@ -99,19 +97,6 @@ public class MenuUtility<T> {
     protected int animateTitleTime = 5;
     private int taskIdAnimateTitle;
     protected int highestFillSlot;
-
-    /**
-     * Create menu instance.
-     *
-     * @param fillSlots       Witch slots you want fill with items.
-     * @param fillItems       List of items you want parse inside gui.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case override {@link #retrieveMenuButtons(int, Map)} to cache it own class.
-     * @deprecated not in use any more.
-     */
-    @Deprecated
-    public MenuUtility(@Nullable final List<Integer> fillSlots, @Nullable final List<T> fillItems, final boolean shallCacheItems) {
-        this(RegisterMenuAPI.getMenuAPI(), fillSlots, shallCacheItems);
-    }
 
     /**
      * Create menu instance.
@@ -163,19 +148,6 @@ public class MenuUtility<T> {
         return null;
     }
 
-    /**
-     * Register your fill buttons.
-     *
-     * @param object will return object you have added as fillitems.
-     * @return MenuButton you have set.
-     * @deprecated plan to remove this method and only use {@link #getButtonAt(int)} however
-     * when you use {@link MenuHolderPage} you don't use this two methods at all.
-     */
-    @Deprecated
-    @Nullable
-    public MenuButton getFillButtonAt(@Nonnull final T object) {
-        return null;
-    }
 
     /**
      * Register your fill buttons, this method will return number from 0 to
@@ -370,16 +342,6 @@ public class MenuUtility<T> {
     }
 
     /**
-     * All buttons inside the menu.
-     *
-     * @return list of buttons some currently are register.
-     */
-    @Deprecated
-    public List<MenuButton> getButtons() {
-        return new ArrayList<>();
-    }
-
-    /**
      * Get all buttons some shall update when menu is open.
      *
      * @return list of buttons some shall be updated when inventory is open.
@@ -469,19 +431,6 @@ public class MenuUtility<T> {
         return autoTitleCurrentPage;
     }
 
-
-    /**
-     * If you want to cache the items in own class.
-     *
-     * @return map with slot number (can be more than one inventory in number of buttons) and itemstack.
-     */
-    @Nonnull
-    @Deprecated
-    public Map<Integer, ButtonData<T>> getMenuButtonsCache() {
-        return new HashMap<>();
-    }
-
-
     /**
      * Get metadataKey some are set on player.
      *
@@ -492,17 +441,6 @@ public class MenuUtility<T> {
         return playerMetadataKey;
     }
 
-    /**
-     * Get the Object/entity from the @link {@link #listOfFillItems}.
-     *
-     * @param clickedPos the current pos player clicking on, you need also add the page player currently have open and inventory size.
-     * @return Object/entity from the listOfFillItems list.
-     * @deprecated not in use, use MenuHolderPage class instead.
-     */
-    @Deprecated
-    public T getObjectFromList(final int clickedPos) {
-        return getAddedButton(this.getPageNumber(), clickedPos).getObject();
-    }
 
     /**
      * Get a array of slots some are used as fillslots.
@@ -919,12 +857,6 @@ public class MenuUtility<T> {
         return result;
     }
 
-    private T getObjectFromListOfFillItems(final int slotIndex) {
-        final List<T> fillItems = this.getListOfFillItems();
-        if (fillItems != null && fillItems.size() > slotIndex) return fillItems.get(slotIndex);
-        else return null;
-    }
-
     protected void redrawInventory() {
         if (this.getMenu() == null || this.inventorySize > this.getMenu().getSize()) this.inventory = createInventory();
 
@@ -959,18 +891,9 @@ public class MenuUtility<T> {
         return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, menuTitle != null ? menuTitle : "");
     }
 
-    private long getUpdateTime(final MenuButton menuButton) {
-        if (menuButton.setUpdateTime() == -1) return getUpdateTime();
-        return menuButton.setUpdateTime();
-    }
 
     protected void updateButtonsInList() {
         taskid = new RunButtonAnimation().runTask(this.animateButtonTime);
-    }
-
-    @Nullable
-    private ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot) {
-        return getMenuItem(menuButton, cachedButtons, slot, menuButton.shouldUpdateButtons());
     }
 
     @Nullable
@@ -984,31 +907,6 @@ public class MenuUtility<T> {
             return itemStack;
         }
         return null;
-    }
-
-    /**
-     * Get all slots same menu button is connected too.
-     *
-     * @param menuDataMap the map with all slots and menu data
-     * @param menuButton  the menu buttons you want to match with.
-     * @return set of slots that match same menu button.
-     */
-    @Nonnull
-    private Set<Integer> getItemSlotsMap(final MenuDataUtility<T> menuDataMap, final MenuButton menuButton) {
-        final Set<Integer> slotList = new HashSet<>();
-        if (menuDataMap == null) return slotList;
-
-        for (int slot = 0; slot < this.inventorySize; slot++) {
-            final ButtonData<T> addedButtons = menuDataMap.getButtons().get(this.getSlot(slot));
-            if (addedButtons == null) continue;
-
-            final MenuButton cacheMenuButton = addedButtons.getMenuButton();
-            final MenuButton fillMenuButton = menuDataMap.getFillMenuButton(this.getSlot(slot));
-            final int menuButtonId = menuButton.getId();
-            if ((cacheMenuButton == null && fillMenuButton != null && fillMenuButton.getId() == menuButtonId) || (cacheMenuButton != null && Objects.equals(menuButtonId, cacheMenuButton.getId())))
-                slotList.add(slot);
-        }
-        return slotList;
     }
 
     protected void runAnimateTitle() {
@@ -1071,7 +969,7 @@ public class MenuUtility<T> {
                 if (timeLeft != null && timeLeft == -1) continue;
 
                 if (timeLeft == null || timeLeft == 0)
-                    putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
+                    putTimeWhenUpdatesButtons(menuButton, counter + getTime(menuButton));
                 else if (counter >= timeLeft) {
                     getMenuData(getPageNumber());
                     final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
@@ -1090,12 +988,12 @@ public class MenuUtility<T> {
 
         private boolean updateButtonsData(final MenuButton menuButton, final MenuDataUtility<T> menuDataUtility, final Set<Integer> itemSlots) {
             if (itemSlots.isEmpty())
-                putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
+                putTimeWhenUpdatesButtons(menuButton, counter + getTime(menuButton));
             else {
                 if (getMenu() == null) return true;
                 final Iterator<Integer> slotList = itemSlots.iterator();
                 setButtons(menuButton, menuDataUtility, slotList);
-                putTimeWhenUpdatesButtons(menuButton, counter + getUpdateTime(menuButton));
+                putTimeWhenUpdatesButtons(menuButton, counter + getTime(menuButton));
             }
             return false;
         }
@@ -1107,7 +1005,7 @@ public class MenuUtility<T> {
                 final ButtonData<T> buttonData = menuDataUtility.getButton(getSlot(slot));
                 if (buttonData == null) continue;
 
-                final ItemStack menuItem = getMenuItem(menuButton, buttonData, slot);
+                final ItemStack menuItem = getMenuItemStack(menuButton, buttonData, slot);
                 final ButtonData<T> newButtonData = new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject());
 
                 menuDataUtility.putButton(getSlot(slot), newButtonData, menuDataUtility.getFillMenuButton(getSlot(slot)));
@@ -1116,6 +1014,41 @@ public class MenuUtility<T> {
                 getMenu().setItem(slot, menuItem);
                 slotList.remove();
             }
+        }
+
+        private long getTime(final MenuButton menuButton) {
+            if (menuButton.setUpdateTime() == -1) return getUpdateTime();
+            return menuButton.setUpdateTime();
+        }
+
+        @Nullable
+        private ItemStack getMenuItemStack(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot) {
+            return getMenuItem(menuButton, cachedButtons, slot, menuButton.shouldUpdateButtons());
+        }
+
+        /**
+         * Get all slots same menu button is connected too.
+         *
+         * @param menuDataMap the map with all slots and menu data
+         * @param menuButton  the menu buttons you want to match with.
+         * @return set of slots that match same menu button.
+         */
+        @Nonnull
+        private Set<Integer> getItemSlotsMap(final MenuDataUtility<T> menuDataMap, final MenuButton menuButton) {
+            final Set<Integer> slotList = new HashSet<>();
+            if (menuDataMap == null) return slotList;
+
+            for (int slot = 0; slot < inventorySize; slot++) {
+                final ButtonData<T> addedButtons = menuDataMap.getButtons().get(getSlot(slot));
+                if (addedButtons == null) continue;
+
+                final MenuButton cacheMenuButton = addedButtons.getMenuButton();
+                final MenuButton fillMenuButton = menuDataMap.getFillMenuButton(getSlot(slot));
+                final int menuButtonId = menuButton.getId();
+                if ((cacheMenuButton == null && fillMenuButton != null && fillMenuButton.getId() == menuButtonId) || (cacheMenuButton != null && Objects.equals(menuButtonId, cacheMenuButton.getId())))
+                    slotList.add(slot);
+            }
+            return slotList;
         }
     }
 

@@ -40,27 +40,6 @@ public class CheckItemsInsideMenu {
 	}
 
 	/**
-	 * set blacklisted items player not shall add to inventory/menu.
-	 *
-	 * @param blacklistedItems list of items some are not allowed.
-	 * @deprecated will be replaced of the other method that only accepts list of materials.
-	 * Use the method in MenuUtility class here: {@link org.broken.arrow.menu.library.MenuUtility#getCheckItemsInsideMenu(java.util.List)}
-	 */
-	@Deprecated
-	public void setBlacklistedItems(final List<String> blacklistedItems) {
-		if (blacklistedItems == null) return;
-		if (this.blacklistedItems == null)
-			this.blacklistedItems = new ArrayList<>();
-		else
-			this.blacklistedItems.clear();
-
-		for (String item : blacklistedItems) {
-			Material material = convertString(item);
-			this.blacklistedItems.add(material);
-		}
-	}
-
-	/**
 	 * Set blacklisted items player not shall add to inventory/menu.
 	 * This will change name after the old method is removed.
 	 *

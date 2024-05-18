@@ -94,8 +94,12 @@ public class MenuInteractionChecks<T> {
         }
         return false;
     }
+
     public ItemStack checkIfNull(final ItemStack currentCursor, final ItemStack oldCursor) {
-        return currentCursor != null ? currentCursor : oldCursor != null ? oldCursor : new ItemStack(Material.AIR);
+        if (currentCursor != null) {
+            return currentCursor;
+        }
+        return oldCursor != null ? oldCursor : new ItemStack(Material.AIR);
     }
 
     private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {

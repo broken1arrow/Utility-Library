@@ -2,7 +2,7 @@ package org.broken.arrow.yaml.library;
 
 
 import org.broken.arrow.logging.library.Validate;
-import org.broken.arrow.serialize.library.DataSerializer;
+import org.broken.arrow.serialize.library.SerializeUtility;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.serialize.library.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.yaml.library.config.updater.ConfigUpdater;
@@ -98,16 +98,6 @@ public abstract class YamlFileManager {
 		final File folder = this.dataFolder;
 		if (!folder.exists())
 			folder.mkdir();
-	}
-
-	/**
-	 * Subclasses must implement this method to save data to the specified file.
-	 *
-	 * @param file the file to which the data should be saved.
-	 * @deprecated Is replaced with {@link #saveDataToFile(java.io.File, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
-	 */
-	@Deprecated
-	protected void saveDataToFile(final File file) {
 	}
 
 	/**
@@ -279,75 +269,6 @@ public abstract class YamlFileManager {
 		Valid.checkBoolean(!configuration.getConfigurationsCache().isEmpty(), "Missing cached serialized data, can't serialize the class data.");
 
 		FileConfiguration config = configuration.applyToConfiguration();
-		this.saveToFile(file, config, updateData);
-	}
-
-	/**
-	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
-	 *
-	 * @param path          the path to set the serialized data at
-	 * @param configuration the ConfigurationSerializable object to serialize and set
-	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
-	 * @deprecated this is the old way to set data to file and it can't handle you want to set more than 1 value to file.
-	 * use {@link #setData(boolean, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
-	 */
-	@Deprecated
-	public void setData(@Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
-		this.setData(this.currentConfigFile, path, configuration);
-	}
-
-	/**
-	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
-	 *
-	 * @param path          the path to set the serialized data at
-	 * @param updateData    If true, the method updates the file with the serialized data and keeps the existing commits.
-	 * @param configuration the ConfigurationSerializable object to serialize and set
-	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
-	 * @deprecated this is the old way to set data to file and it can't handle you want to set more than 1 value to file.
-	 * use {@link #setData(boolean, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
-	 */
-	@Deprecated
-	public void setData(@Nonnull final String path, final boolean updateData, @Nonnull final ConfigurationSerializable configuration) {
-		this.setData(this.currentConfigFile, path, updateData, configuration);
-	}
-
-	/**
-	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
-	 *
-	 * @param file          the file to save the serialized data to.
-	 * @param path          the path to set the serialized data at
-	 * @param configuration the ConfigurationSerializable object to serialize and set
-	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
-	 * @deprecated this is the old way to set data to file and it can't handle you want to set more than 1 value to file.
-	 * use {@link #setData(boolean, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
-	 */
-	@Deprecated
-	public void setData(@Nonnull final File file, @Nonnull final String path, @Nonnull final ConfigurationSerializable configuration) {
-		this.setData(file, path, false, configuration);
-	}
-
-	/**
-	 * Sets the serialized data of the specified ConfigurationSerializable object at the given path in the configuration.
-	 *
-	 * @param file          the file to save the serialized data to.
-	 * @param path          the path to set the serialized data at.
-	 * @param updateData    If true, the method updates the file with the serialized data and keeps the existing commits.
-	 * @param configuration the ConfigurationSerializable object to serialize and set
-	 * @throws IllegalArgumentException if the path or configuration object is null, or if the serialization fails
-	 * @deprecated this is the old way to set data to file and it can't handle you want to set more than 1 value to file.
-	 * use {@link #setData(boolean, org.broken.arrow.yaml.library.utillity.ConfigurationWrapper)}
-	 */
-	@Deprecated
-	public void setData(@Nonnull final File file, @Nonnull final String path, final boolean updateData, @Nonnull final ConfigurationSerializable configuration) {
-		Valid.checkNotNull(file, "file can't be null");
-		Valid.checkNotNull(path, "path can't be null");
-		Valid.checkNotNull(configuration, "Serialize utility can't be null, need provide a class instance some implements ConfigurationSerializeUtility");
-		Valid.checkNotNull(configuration.serialize(), "Missing serialize method or it is null, can't serialize the class data.");
-		FileConfiguration config = new YamlConfiguration();
-
-		for (final Map.Entry<String, Object> key : configuration.serialize().entrySet()) {
-			config.set(path + "." + key.getKey(), DataSerializer.serialize(key.getValue()));
-		}
 		this.saveToFile(file, config, updateData);
 	}
 

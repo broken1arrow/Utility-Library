@@ -33,11 +33,11 @@ import java.util.stream.Collectors;
  * hover events, click events, iterable collections, maps, integers, doubles, floats, longs, shorts, strings,
  * booleans, items, memory sections, patterns, and objects implementing the ConfigurationSerializable interface.
  * The class also handles serialization of Bukkit-specific types and custom serializable objects.
+ * <p>
  * Note: If an object does not have a known serialization method, a SerializeFailedException will be thrown.
- * @deprecated recommend use this class {@link SerializeUtility} this will only be used internally.
  */
-@Deprecated
-public final class DataSerializer {
+
+final class DataSerializer {
 	private static final float SERVER_VERSION;
 
 	private DataSerializer() {}

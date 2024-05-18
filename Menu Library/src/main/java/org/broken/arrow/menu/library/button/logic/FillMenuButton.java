@@ -21,7 +21,7 @@ public class FillMenuButton<T> {
     private long updateTime;
 
     public FillMenuButton() {
-        this((player, menu, click, clickedItem, fillObject) -> ButtonUpdateAction.NONE, (slot, itemStack) -> null);
+        this((player, menu, clickType, clickedItem, fillObject) -> ButtonUpdateAction.NONE, (slot, itemStack) -> null);
     }
 
     public FillMenuButton(OnClick<ButtonUpdateAction, Player, Inventory, ClickType, ItemStack, T> click,
