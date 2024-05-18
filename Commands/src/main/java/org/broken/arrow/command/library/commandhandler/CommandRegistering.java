@@ -18,11 +18,19 @@ public interface CommandRegistering {
 	 * Registers a subcommand using the labels provided by the {@link CommandProperty#getCommandLabels()} method.
 	 * This method ensures that the command labels are neither empty nor null before registering.
 	 *
-	 * @param commandBuilder The command builder to register. Must not be null and should have valid command labels.
+	 * @param subCommand The sub-command to register. Must not be null and should have valid command labels.
 	 * @throws CommandException if the command labels are empty or null.
 	 */
-	CommandRegistering registerSubCommand(CommandProperty commandBuilder);
+	CommandRegistering registerSubCommand(CommandProperty subCommand);
 
+	/**
+	 * Registers all subcommands using the labels provided by the {@link CommandProperty#getCommandLabels()} method.
+	 * This method ensures that the command labels are neither empty nor null before registering.
+	 *
+	 * @param subCommands The sub-commands to register. Must not be null and should have valid command labels.
+	 * @throws CommandException if the command labels are empty or null.
+	 */
+	CommandRegistering registerSubCommands(CommandProperty... subCommands);
 	/**
 	 * Use {label} to replace it with the command name and {perm} to get permission.
 	 *
@@ -110,6 +118,7 @@ public interface CommandRegistering {
 	 */
 	String getCommandLabelMessageNoPerms();
 
+
 	/**
 	 * Returns the message to display as the command label.
 	 *
@@ -173,5 +182,12 @@ public interface CommandRegistering {
 	 */
 	CommandRegistering  registerMainCommand(String fallbackPrefix, String mainCommand, String description, String usageMessage, String... aliases);
 
-	boolean collectCommands(CommandProperty commandBuilder, Set<String> commandLabels);
+	/**
+	 * Checks and add the subcommand from the specified command builder with the given command labels.
+	 *
+	 * @param subCommand The command builder to collect subcommands from.
+	 * @param commandLabels  The command labels to assign to the subcommands.
+	 * @return {@code true} if subcommands were collected, {@code false} otherwise.
+	 */
+	boolean addCommands(CommandProperty subCommand, Set<String> commandLabels);
 }

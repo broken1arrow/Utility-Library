@@ -36,16 +36,26 @@ public class CommandRegister implements CommandRegistering {
 
 
 	@Override
-	public CommandRegistering registerSubCommand(final CommandProperty commandBuilder) {
-		Set<String> commandLabels = commandBuilder.getCommandLabels();
+	public CommandRegistering registerSubCommand(final CommandProperty subCommand) {
+		Set<String> commandLabels = subCommand.getCommandLabels();
 
-        if (collectCommands(commandBuilder, commandLabels)) {
+        if (addCommands(subCommand, commandLabels)) {
 			return this;
 		}
-		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.equals(commandBuilder));
-		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getCommandLabels().equals(commandBuilder.getCommandLabels()));
-		commands.add(commandBuilder);
+		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.equals(subCommand));
+		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getCommandLabels().equals(subCommand.getCommandLabels()));
+		commands.add(subCommand);
 		commands.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
+		return this;
+    }
+
+    @Override
+    public CommandRegistering registerSubCommands(final CommandProperty... subCommands) {
+        if (subCommands == null)
+            return this;
+        for (CommandProperty registerSubCommand : subCommands) {
+            this.registerSubCommand(registerSubCommand);
+        }
         return this;
     }
 
@@ -312,25 +322,14 @@ public class CommandRegister implements CommandRegistering {
 		return this;
 	}
 
-	/**
-	 * Collects subcommands from the specified command builder with the given command labels.
-	 * If the command labels contain multiple labels separated by '|', the command builder will be registered
-	 * with each sub-label separately.
-	 *
-	 * @param commandBuilder The command builder to collect subcommands from.
-	 * @param commandLabels  The command labels to assign to the subcommands.
-	 * @return {@code true} if subcommands were collected, {@code false} otherwise.
-	 */
 	@Override
-	public boolean collectCommands(CommandProperty commandBuilder, Set<String> commandLabels) {
+	public boolean addCommands(CommandProperty subCommand, Set<String> commandLabels) {
 		if (!commandLabels.isEmpty()) {
 			for (final String label : commandLabels) {
 				if (label == null)
 					throw new CommandException("&c" + "You can´t register a command with a label set to null.");
-				//commands.removeIf(oldCommandBuilder -> oldCommandBuilder.firstLabelMatch(label) != null);
-				commandBuilder.addCommandLabel(label);
-				//commands.add(commandBuilder);
 			}
+			commands.add(subCommand);
 			commands.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
 			return true;
 		} else {
