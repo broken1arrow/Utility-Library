@@ -20,7 +20,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -170,7 +169,6 @@ public class RegisterMenuAPI {
             if (menuUtility.getMenuInteractionChecks().whenPlayerClick(event, player, clickedItem)) {
 				onOffHandClick(event, player);
 			}
-			//whenPlayerClick(event, player, clickedItem, menuUtility);
 		}
 
 		@EventHandler(priority = EventPriority.LOW)
@@ -232,7 +230,6 @@ public class RegisterMenuAPI {
 			if (!menuUtility.isAddedButtonsCacheEmpty()) {
 				final int size = event.getView().getTopInventory().getSize();
                 menuUtility.getMenuInteractionChecks().whenPlayerDrag(event, size);
-				//checkMenuForDrag(event, menuUtility, size);
 			}
 		}
 
@@ -282,32 +279,6 @@ public class RegisterMenuAPI {
 					item = data.getItemInOfBeforeOpenMenuHand();
 				}
 				cacheData.put(player.getUniqueId(), new SwapData(true, item));
-			}
-		}
-
-		private boolean checkMenuIsValid(final InventoryClickEvent event, final MenuUtility<?> menuUtility, final int clickedPos, final Inventory clickedInventory) {
-			final ItemStack cursor = event.getCursor();
-			if (!menuUtility.isAllowShiftClick() && event.getClick().isShiftClick()) {
-				event.setCancelled(true);
-				return true;
-			}
-			if (menuUtility.isSlotsYouCanAddItems()) {
-				if (menuUtility.getFillSpace().contains(clickedPos) || menuUtility.getFillSpace().contains(event.getSlot()))
-					return true;
-				else if (clickedInventory.getType() != InventoryType.PLAYER)
-					event.setCancelled(true);
-			} else {
-				checkInventoryType(event, clickedInventory, cursor);
-			}
-			return false;
-		}
-
-		private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
-			if (clickedInventory.getType() == InventoryType.PLAYER) {
-				event.setCancelled(true);
-			}
-			if (cursor != null && cursor.getType() != Material.AIR) {
-				event.setCancelled(true);
 			}
 		}
 	}

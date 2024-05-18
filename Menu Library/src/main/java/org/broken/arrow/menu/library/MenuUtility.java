@@ -773,19 +773,9 @@ public class MenuUtility<T> {
      * @param clickedItem the item clicked on.
      */
     public void onClick(MenuButton menuButton, Player player, int clickedPos, ClickType clickType, ItemStack clickedItem) {
-        //final T object = this.getObjectFromList(this.getSlot(clickedPos));
         if (this.getMenu() != null)
             menuButton.onClickInsideMenu(player, this.getMenu(), clickType, clickedItem);
     }
-
-/*	private boolean checkLastOpenMenu() {
-		if (getPreviousMenuholder(this.player) != null) {
-			if (hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_PREVIOUS))
-				removePlayerMenuMetadata(this.player, MenuMetadataKey.MENU_OPEN_PREVIOUS);
-			return false;
-		}
-		return true;
-	}*/
 
     protected void setLocationMetaOnPlayer(final Player player, final Location location) {
         String key = this.uniqueKey;
@@ -892,7 +882,6 @@ public class MenuUtility<T> {
 
             if (isFillButton) {
                 this.slotIndex++;
-                // fillSlot = this.slotIndex;
             }
         }
         return menuDataUtility;

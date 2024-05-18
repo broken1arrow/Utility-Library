@@ -36,7 +36,7 @@ import java.util.Map;
 public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
     private FillItems<T> listOfFillItems;
-    private Map<Integer, Integer> fillSlots = new HashMap<>();
+    private final Map<Integer, Integer> fillSlotsMapping = new HashMap<>();
 
     /**
      * Constructs a paged menu instance specified list of objects. You need to
@@ -145,8 +145,6 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
             @Override
             public ItemStack getItem(int slot, @Nullable T fillItem) {
-                //final T object = getFillItem(slot);
-
                 OnRetrieveItem<ItemStack, Integer, T> menuItem = fillMenuButton.getMenuFillItem();
                 return menuItem.apply(slot, fillItem);
             }
@@ -156,8 +154,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
     @Override
     public void onClick(@Nonnull MenuButton menuButton, @Nonnull Player player, int clickedPos, @Nonnull ClickType clickType, @Nonnull ItemStack clickedItem) {
-        //int slot = fillSlots.getOrDefault(clickedPos, -1) + (this.getPageNumber() * this.getNumberOfFillItems());
-        int slot = fillSlots.getOrDefault(clickedPos, -1);
+        int slot = fillSlotsMapping.getOrDefault(clickedPos, -1);
         if (this.getMenu() != null) {
             if (menuButton instanceof MenuButtonPage) {
                 final T object = this.getFillItem(slot);
@@ -215,7 +212,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         final ItemStack result = getItemAtSlot(menuButton, slot, fillSlot);
 
         if (pageNumber == getPageNumber() && fillSlot >= 0) {
-            this.fillSlots.put(slot, fillSlot);
+            this.fillSlotsMapping.put(slot, fillSlot);
         }
 
         if (menuButton != null) {
