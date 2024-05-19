@@ -165,34 +165,6 @@ public class SqlQueryBuilder {
 		return this;
 	}
 
-
-	/**
-	 * Merge the provided objects into a format suitable for a database command.
-	 *
-	 * @param placeholder    If true, uses '?' as a placeholder instead of the actual values.
-	 * @param size           The amount of times to run the loop when using a placeholder. If placeholder is false and
-	 *                       not greater than 0 or objects is provided, this parameter is ignored.
-	 * @param objectsToMerge The objects to be merged into a StringBuilder.
-	 * @return The StringBuilder containing the formatted values, like this: (object1, object2, object3).
-	 */
-	private static StringBuilder merge(boolean placeholder, int size, Object... objectsToMerge) {
-		StringBuilder objectBuilder = new StringBuilder();
-		objectBuilder.append("(");
-		int valuesToSet = placeholder && size > 0 && (objectsToMerge == null || objectsToMerge.length == 0) ? size : objectsToMerge.length;
-		for (int i = 0; i < valuesToSet; i++) {
-			if (placeholder) {
-				objectBuilder.append("?");
-			} else {
-				objectBuilder.append(objectsToMerge[i]);
-			}
-			if (i < valuesToSet - 1) {
-				objectBuilder.append(",");
-			}
-		}
-		objectBuilder.append(")");
-		return objectBuilder;
-	}
-
 	private boolean validate() {
 		if (executionsType == null || executionsType.isEmpty()) {
 			log.log(Level.WARNING,() -> of("You need to set the executionsType"));
@@ -405,7 +377,7 @@ public class SqlQueryBuilder {
 
 	/**
 	 * This class is for create update or insert,replace or merge
-	 * formatted cloumns with the values set or ? placeholders.
+	 * formatted columns with the values set or ? placeholders.
 	 * <p>&nbsp;</p>
 	 * Example of the formatting is:
 	 * <div>
@@ -518,6 +490,33 @@ public class SqlQueryBuilder {
 			return columns;
 		}
 
+
+		/**
+		 * Merge the provided objects into a format suitable for a database command.
+		 *
+		 * @param placeholder    If true, uses '?' as a placeholder instead of the actual values.
+		 * @param size           The amount of times to run the loop when using a placeholder. If placeholder is false and
+		 *                       not greater than 0 or objects is provided, this parameter is ignored.
+		 * @param objectsToMerge The objects to be merged into a StringBuilder.
+		 * @return The StringBuilder containing the formatted values, like this: (object1, object2, object3).
+		 */
+		private static StringBuilder merge(boolean placeholder, int size, Object... objectsToMerge) {
+			StringBuilder objectBuilder = new StringBuilder();
+			objectBuilder.append("(");
+			int valuesToSet = placeholder && size > 0 && (objectsToMerge == null || objectsToMerge.length == 0) ? size : objectsToMerge.length;
+			for (int i = 0; i < valuesToSet; i++) {
+				if (placeholder) {
+					objectBuilder.append("?");
+				} else {
+					objectBuilder.append(objectsToMerge[i]);
+				}
+				if (i < valuesToSet - 1) {
+					objectBuilder.append(",");
+				}
+			}
+			objectBuilder.append(")");
+			return objectBuilder;
+		}
 
 		/**
 		 * Build and return the SqlQueryBuilder.

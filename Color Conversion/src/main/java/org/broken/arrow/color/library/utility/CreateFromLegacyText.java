@@ -15,15 +15,16 @@ public class CreateFromLegacyText {
         if (message == null) {
             return createEmptyJsonObject();
         }
-
+        int i = 0;
         StringBuilder builder = new StringBuilder();
         Component.Builder component = new Component.Builder();
         JsonArray jsonArray = new JsonArray();
 
-        for (int i = 0; i < message.length(); i++) {
+        while (i < message.length()){
             char c = message.charAt(i);
             if (c == ChatColors.COLOR_CHAR || c == ChatColors.COLOR_AMPERSAND) {
-                if (++i >= message.length()) {
+                i++;
+                if (i >= message.length()) {
                     break;
                 }
                 c = message.charAt(i);
@@ -37,6 +38,7 @@ public class CreateFromLegacyText {
                 }
             }
             builder.append(c);
+            i++;
         }
 
         finalizeComponent(builder, component, jsonArray);
@@ -79,7 +81,7 @@ public class CreateFromLegacyText {
                 component,
                 format.getName()
         );
-        return c == 'x' ? 12 : 0;
+        return c == 'x' ? 13 : 0;
     }
 
     private static void addComponentToJsonArray(StringBuilder builder, Component.Builder component, JsonArray jsonArray) {
