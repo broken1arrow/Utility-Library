@@ -22,11 +22,9 @@ public class CreateFromLegacyText {
 
         while (i < message.length()){
             char c = message.charAt(i);
-            if (c == ChatColors.COLOR_CHAR || c == ChatColors.COLOR_AMPERSAND) {
+            if (i + 1 < message.length() && (c == ChatColors.COLOR_CHAR || c == ChatColors.COLOR_AMPERSAND)) {
                 i++;
-                if (i >= message.length()) {
-                    break;
-                }
+
                 c = message.charAt(i);
                 if (Character.isUpperCase(c)) {
                     c = Character.toLowerCase(c);
@@ -81,7 +79,7 @@ public class CreateFromLegacyText {
                 component,
                 format.getName()
         );
-        return c == 'x' ? 13 : 0;
+        return c == 'x' ? 13 : 1;
     }
 
     private static void addComponentToJsonArray(StringBuilder builder, Component.Builder component, JsonArray jsonArray) {
