@@ -21,7 +21,7 @@ public class KeyBuilder implements Cloneable {
 
 	private final FileConfiguration config;
 	private final char separator;
-	private final StringBuilder key;
+	private final StringBuilder keyBuilder;
 	private final List<String> defaultConfKeys;
 
 
@@ -34,14 +34,14 @@ public class KeyBuilder implements Cloneable {
 	public KeyBuilder(final FileConfiguration config, final char separator) {
 		this.config = config;
 		this.separator = separator;
-		this.key = new StringBuilder();
+		this.keyBuilder = new StringBuilder();
 		this.defaultConfKeys = new ArrayList<>(config.getKeys(true));
 	}
 
 	private KeyBuilder(final KeyBuilder keyBuilder) {
 		this.config = keyBuilder.config;
 		this.separator = keyBuilder.separator;
-		this.key = new StringBuilder(keyBuilder.toString());
+		this.keyBuilder = new StringBuilder(keyBuilder.toString());
 		this.defaultConfKeys = keyBuilder.defaultConfKeys;
 	}
 	
@@ -50,7 +50,7 @@ public class KeyBuilder implements Cloneable {
 	 * config does not contain the path, it removes the last part of the line
 	 * until it finds a valid path or becomes empty.
 	 *
-	 * @param line      the line to check if it belongs to the current path set in the {@link #key}.
+	 * @param line      the line to check if it belongs to the current path set in the {@link #keyBuilder}.
 	 * @param checkLine set to true to check if the path is valid in the config.
 	 */
 	public void parseLine(String line, boolean checkLine) {
@@ -65,19 +65,19 @@ public class KeyBuilder implements Cloneable {
 		if (checkLine) {
 			//Checks keyBuilder path against config to see if the path is valid.
 			//If the path doesn't exist in the config it keeps removing last key in keyBuilder.
-			while (this.key.length() > 0 && !config.contains(this.key.toString() + separator + key)) {
+			while (this.keyBuilder.length() > 0 && !config.contains(this.keyBuilder.toString() + separator + key)) {
 				removeLastKey();
 			}
 		}
 
 		//Add the separator if there is already a key inside keyBuilder
 		//If currentSplitLine[0] is 'key2' and keyBuilder contains 'key1' the result will be 'key1.' if '.' is the separator
-		if (this.key.length() > 0)
-			this.key.append(separator);
+		if (this.keyBuilder.length() > 0)
+			this.keyBuilder.append(separator);
 
 		//Appends the current key to keyBuilder
 		//If keyBuilder is 'key1.' and currentSplitLine[0] is 'key2' the resulting keyBuilder will be 'key1.key2' if separator is '.'
-		this.key.append(key);
+		this.keyBuilder.append(key);
 	}
 
 	/**
@@ -86,10 +86,10 @@ public class KeyBuilder implements Cloneable {
 	 * @return The last key in the KeyBuilder.
 	 */
 	public String getLastKey() {
-		if (this.key.length() == 0)
+		if (this.keyBuilder.length() == 0)
 			return "";
 
-		return this.key.toString().split("[" + separator + "]")[0];
+		return this.keyBuilder.toString().split("[" + separator + "]")[0];
 	}
 
 	/**
@@ -98,14 +98,14 @@ public class KeyBuilder implements Cloneable {
 	 * @return {@code true} if the KeyBuilder is empty, {@code false} otherwise.
 	 */
 	public boolean isEmpty() {
-		return this.key.length() == 0;
+		return this.keyBuilder.length() == 0;
 	}
 
 	/**
 	 * Clear the builder.
 	 */
 	public void clear() {
-		this.key.setLength(0);
+		this.keyBuilder.setLength(0);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class KeyBuilder implements Cloneable {
 	 * @return the key.
 	 */
 	public StringBuilder getKey() {
-		return this.key;
+		return this.keyBuilder;
 	}
 
 	public FileConfiguration getConfig() {
@@ -129,7 +129,7 @@ public class KeyBuilder implements Cloneable {
 	 * @return {@code true} if the KeyBuilder's path is a sub-key of the parent key, {@code false} otherwise.
 	 */
 	public boolean isSubKeyOf(final String parentKey) {
-		return KeyUtils.isSubKeyOf(parentKey, this.key.toString(), separator);
+		return KeyUtils.isSubKeyOf(parentKey, this.keyBuilder.toString(), separator);
 	}
 
 	/**
@@ -139,7 +139,7 @@ public class KeyBuilder implements Cloneable {
 	 * @return {@code true} if the subKey is a sub-key of the KeyBuilder's path, {@code false} otherwise.
 	 */
 	public boolean isSubKey(final String subKey) {
-		return KeyUtils.isSubKeyOf(this.key.toString(), subKey, separator);
+		return KeyUtils.isSubKeyOf(this.keyBuilder.toString(), subKey, separator);
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class KeyBuilder implements Cloneable {
 	 * @return {@code true} if the KeyBuilder's path represents a configuration section, {@code false} otherwise.
 	 */
 	public boolean isConfigSection() {
-		final String key = this.key.toString();
+		final String key = this.keyBuilder.toString();
 		return config.isConfigurationSection(key);
 	}
 
@@ -158,7 +158,7 @@ public class KeyBuilder implements Cloneable {
 	 * @return {@code true} if the KeyBuilder's path represents a configuration section or is empty, {@code false} otherwise.
 	 */
 	public boolean isConfigSectionOrEmpty() {
-		final String key = this.key.toString();
+		final String key = this.keyBuilder.toString();
 		ConfigurationSection configurationSection = config.getConfigurationSection(key);
 		return config.isConfigurationSection(key) && (configurationSection == null || !configurationSection.getKeys(false).isEmpty());
 	}
@@ -171,22 +171,22 @@ public class KeyBuilder implements Cloneable {
 	 * </p>
 	 */
 	public void removeLastKey() {
-		if (this.key.length() == 0)
+		if (this.keyBuilder.length() == 0)
 			return;
 
-		final String keyString = this.key.toString();
+		final String keyString = this.keyBuilder.toString();
 		//Must be enclosed in brackets in case a regex special character is the separator
 		final String[] split = keyString.split("[" + separator + "]");
 		//Makes sure begin index isn't < 0 (error). Occurs when there is only one key in the path
-		final int minIndex = Math.max(0, this.key.length() - split[split.length - 1].length() - 1);
-		this.key.replace(minIndex, this.key.length(), "");
+		final int minIndex = Math.max(0, this.keyBuilder.length() - split[split.length - 1].length() - 1);
+		this.keyBuilder.replace(minIndex, this.keyBuilder.length(), "");
 	}
 
 	/**
 	 * Appends a new line character to the provided StringBuilder.
 	 */
 	public void appendNewLine() {
-		if (this.key.length() > 0) this.key.append("\n");
+		if (this.keyBuilder.length() > 0) this.keyBuilder.append("\n");
 	}
 
 	/**
@@ -196,7 +196,7 @@ public class KeyBuilder implements Cloneable {
 	 */
 	@Override
 	public String toString() {
-		return this.key.toString();
+		return this.keyBuilder.toString();
 	}
 
 	/**

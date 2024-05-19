@@ -8,12 +8,10 @@ import org.broken.arrow.logging.library.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -185,23 +183,7 @@ public final class SqlCommandComposer {
 		Validate.checkBoolean(sqlRecord == null || sqlRecord.toString().isEmpty(), "You need to set record value.You can't update the row without it.");
 		queryCommand = this.createUpdateCommand(sqlRecord);
 	}
-
-	/**
-	 * Update data in your database from the list of record values, on columns you added. Will update old data on columns you added.
-	 *
-	 * @param sqlRecords the records for the primary key you want to update.
-	 * @return list of prepared query's to run on your database.
-	 * @deprecated plan to be removed, because this is bad way to create sql commands from a record.
-	 */
-	@Deprecated
-	public List<String> updateTables(List<String> sqlRecords) {
-		List<String> list = new ArrayList<>();
-		Validate.checkBoolean(sqlRecords == null || sqlRecords.isEmpty(), "You need to set record value.You can't update the row without it.");
-		for (String sqlRecord : sqlRecords)
-			list.add(this.createUpdateCommand(sqlRecord));
-		return list;
-	}
-
+	
 	/**
 	 * Select specific table.
 	 *

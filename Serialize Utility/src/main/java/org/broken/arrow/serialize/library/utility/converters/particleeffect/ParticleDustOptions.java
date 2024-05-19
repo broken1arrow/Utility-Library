@@ -122,8 +122,8 @@ public final class ParticleDustOptions implements ConfigurationSerializable {
 	 */
 	public static Color convertToColor(@Nonnull final String s) {
 		if (s.contains(",")) {
-			final String[] string;
-			final int size = (string = s.split(",")).length;
+			final String[] string = s.split(",");
+			final int size = string.length;
 			if (size == 3)
 				return fromRGB(numberCheck(string[0]), numberCheck(string[1]), numberCheck(string[2]));
 

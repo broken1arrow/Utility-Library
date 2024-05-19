@@ -26,7 +26,7 @@ public class RegisterNbtAPI {
 	public static void checkClassesExist() {
 		try {
 			Entity.class.getMethod("getScoreboardTags");
-		} catch (Throwable ignore) {
+		} catch (NoSuchMethodException | SecurityException ignore) {
 			hasScoreboardTags = false;
 		}
 	}

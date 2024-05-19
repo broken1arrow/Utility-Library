@@ -71,9 +71,6 @@ public class CreateFromLegacyText {
 
     private static int handleFormat(StringBuilder builder, Component.Builder component, JsonArray jsonArray,
                                     ChatColors defaultColor, ChatColors format, char c) {
-    /*    if (c == 'x') {
-            i += 12;
-        }*/
         if (builder.length() > 0) {
             addComponentToJsonArray(builder, component, jsonArray);
         }

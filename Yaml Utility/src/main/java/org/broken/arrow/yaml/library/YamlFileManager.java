@@ -111,20 +111,6 @@ public abstract class YamlFileManager {
 	protected abstract void saveDataToFile(@Nonnull final File file, @Nonnull final ConfigurationWrapper configurationWrapper);
 
 	/**
-	 * <p>
-	 * NOTE: this method is deprecated and will soon be removed.
-	 * Use {@link #loadSettingsFromYaml(File, FileConfiguration)}
-	 * </p>
-	 * Subclasses must implement this method to load settings from the specified YAML file.
-	 * The argument is most useful when you have a list of files to load.
-	 *
-	 * @param file the YAML file from which to load the settings.
-	 */
-	@Deprecated
-	protected void loadSettingsFromYaml(final File file) {
-	}
-
-	/**
 	 * Subclasses must implement this method to load settings from the specified YAML file.
 	 *
 	 * @param file         the YAML file from which to load the settings.
@@ -382,30 +368,7 @@ public abstract class YamlFileManager {
 				this.currentConfigFile = file;
 				this.currentConfig = customConfig;
 				loadSettingsFromYaml(file, customConfig);
-				loadSettingsFromYaml(file);
 			}
-	}
-
-	/**
-	 * Get the last loaded file configuration loaded. Not optimal to use
-	 * if you plan to load several files.
-	 *
-	 * @return the file configuration.
-	 */
-	@Deprecated
-	public FileConfiguration getCustomConfig() {
-		return currentConfig;
-	}
-
-	/**
-	 * Get the last loaded file. Not optimal to use
-	 * * if you plan to load several files.
-	 *
-	 * @return the last loaded file.
-	 */
-	@Deprecated
-	public File getCustomConfigFile() {
-		return currentConfigFile;
 	}
 
 	/**
@@ -680,7 +643,7 @@ public abstract class YamlFileManager {
 
 	public Map<String, Object> createFileFromResource(final String path) {
 		final InputStream inputStream = this.plugin.getResource(path);
-		if (inputStream == null) return null;
+		if (inputStream == null) return new HashMap<>();
 
 		final Map<String, Object> values = new LinkedHashMap<>();
 		final FileConfiguration newConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(inputStream));

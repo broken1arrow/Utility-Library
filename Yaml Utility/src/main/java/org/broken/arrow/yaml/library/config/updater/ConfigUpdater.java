@@ -288,8 +288,7 @@ public class ConfigUpdater {
 	 */
 	private void writeCommentIfExists(Map<String, String> comments, final BufferedWriter writer, final String fullKey, final String indents) throws IOException {
 		final String comment = comments.get(fullKey);
-		//final String comment = comments.get(fullKey);
-
+		
 		//Comments always end with new line (\n)
 		if (comment != null) {
 			//Replaces all '\n' with '\n' + indents except for the last one

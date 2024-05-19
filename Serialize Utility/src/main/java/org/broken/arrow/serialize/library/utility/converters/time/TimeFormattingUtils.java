@@ -45,9 +45,9 @@ public class TimeFormattingUtils {
 		long min = 0;
 		long hours;
 		long days;
-		if (!((time - currentTime) / MILLIS_TO_SECONDS % 60 == 0))
+		if ((time - currentTime) / MILLIS_TO_SECONDS % 60 != 0)
 			second = (time - currentTime) / MILLIS_TO_SECONDS % 60;
-		if (!((time - currentTime) / MILLIS_TO_MINUTE % 60 == 0))
+		if ((time - currentTime) / MILLIS_TO_MINUTE % 60 != 0)
 			min = (time - currentTime) / MILLIS_TO_MINUTE % 60;
 		hours = (time - currentTime) / MILLIS_TO_HOURS % 24;
 		days = (time - currentTime) / MILLIS_TO_DAYS;

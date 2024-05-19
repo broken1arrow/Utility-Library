@@ -5,7 +5,6 @@ import org.broken.arrow.prompt.library.utility.CustomCanceller;
 import org.broken.arrow.prompt.library.utility.CustomConversation;
 import org.broken.arrow.prompt.library.utility.SimpleCanceller;
 import org.broken.arrow.prompt.library.utility.SimplePrefix;
-import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.conversations.ConversationAbandonedListener;
 import org.bukkit.conversations.ConversationCanceller;
@@ -81,7 +80,7 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 	@Override
 	public void conversationAbandoned(@Nonnull final ConversationAbandonedEvent event) {
 		final ConversationContext context = event.getContext();
-		final Conversable conversing = context.getForWhom();
+		//final Conversable conversing = context.getForWhom();
 
 		final Object source = event.getSource();
 		final boolean hasTimeout = (boolean) context.getAllSessionData().getOrDefault("FLP#TIMEOUT", false);

@@ -99,7 +99,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 
         if (!getButtonsToUpdate().isEmpty())
             updateButtonsInList();
-        Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), this::updateTittle, 1);
+        Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), this::updateTitle, 1);
     }
 
 
@@ -266,7 +266,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 
         this.pageNumber = page;
         this.updateButtons();
-        this.updateTittle();
+        this.updateTitle();
         return true;
     }
 

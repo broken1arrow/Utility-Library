@@ -56,7 +56,8 @@ public class LocationSerializer {
 		} else if (!rawLoc.toString().contains(" ")) {
 			return null;
 		} else {
-			final int length = (parts = rawLoc.toString().split(" ")).length;
+			parts = rawLoc.toString().split(" ");
+			final int length = parts.length;
 			if (length == 4) {
 				final String world = parts[0];
 				final World bukkitWorld = Bukkit.getWorld(world);

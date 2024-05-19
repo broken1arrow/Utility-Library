@@ -40,10 +40,6 @@ public final class UtilityLibrary extends JavaPlugin {
 		getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version=" + getDescription().getVersion());
 	}
 
-	@Override
-	public void onDisable() {
-	}
-
 	/**
 	 * Retrieves the instance of the UtilityLibrary plugin.
 	 *

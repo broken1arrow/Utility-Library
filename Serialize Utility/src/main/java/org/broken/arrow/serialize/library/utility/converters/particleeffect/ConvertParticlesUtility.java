@@ -62,7 +62,7 @@ public class ConvertParticlesUtility {
 	 * @return A list of ParticleEffect instances.
 	 */
 	public static List<ParticleEffectAccessor> convertListOfParticles(final List<String> particles) {
-		if (particles == null) return null;
+		if (particles == null) return new ArrayList<>();
 
 		final List<ParticleEffectAccessor> particleList = new ArrayList<>();
 		for (final String particle : particles) {
@@ -87,7 +87,7 @@ public class ConvertParticlesUtility {
 	 * @return A list of ParticleEffect instances.
 	 */
 	public static List<ParticleEffectAccessor> convertListOfParticles(final Map<String, Object> particles) {
-		if (particles == null) return null;
+		if (particles == null) return new ArrayList<>();
 
 		final List<ParticleEffectAccessor> particleList = new ArrayList<>();
 		for (final Map.Entry<String, Object> particle : particles.entrySet()) {
@@ -115,7 +115,7 @@ public class ConvertParticlesUtility {
 	 * @return A list of ParticleEffect instances.
 	 */
 	public static List<ParticleEffectAccessor> convertListOfParticlesPair(final Map<String, Pair<String, String>> particles) {
-		if (particles == null) return null;
+		if (particles == null) return new ArrayList<>();
 		final List<ParticleEffectAccessor> particleList = new ArrayList<>();
 		for (final Map.Entry<String, Pair<String, String>> pairEntry : particles.entrySet()) {
 			final Pair<String, String> colors = pairEntry.getValue();

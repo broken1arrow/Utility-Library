@@ -1126,14 +1126,13 @@ public abstract class Database {
                 // This will block the thread
                 this.connection.commit();
 
-            } catch (final Throwable t) {
-                t.printStackTrace();
-
+            } catch (final Exception t) {
+                log.log( t,()-> of("Could not execute one or several batches."));
             } finally {
                 try {
                     this.connection.setAutoCommit(true);
                 } catch (final SQLException ex) {
-                    ex.printStackTrace();
+                    log.log( ex,()-> of("Could not set auto commit back to true."));
                 } finally {
                     this.closeConnection();
                 }

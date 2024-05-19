@@ -636,7 +636,7 @@ public class MenuUtility<T> {
         this.pageNumber = page;
 
         this.updateButtons();
-        this.updateTittle();
+        this.updateTitle();
     }
 
     protected void updateButtons() {
@@ -659,7 +659,7 @@ public class MenuUtility<T> {
         }
     }
 
-    protected void updateTittle() {
+    protected void updateTitle() {
         Object title = getTitle();
         if (!menuAPI.isNotFoundUpdateTitleClazz())
             this.updateTitle(title);
@@ -918,7 +918,7 @@ public class MenuUtility<T> {
                 Object text = task.apply();
                 if (text == null || (ServerVersion.atLeast(ServerVersion.V1_9) && this.isCancelled())) {
                     this.cancel();
-                    updateTittle();
+                    updateTitle();
                     return;
                 }
                 if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz()) {
@@ -936,7 +936,7 @@ public class MenuUtility<T> {
         if (Bukkit.getScheduler().isCurrentlyRunning(this.taskIdAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskIdAnimateTitle)) {
             Bukkit.getScheduler().cancelTask(this.taskIdAnimateTitle);
         }
-        updateTittle();
+        updateTitle();
     }
 
     public Function<?> getAnimateTitle() {
