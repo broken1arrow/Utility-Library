@@ -6,6 +6,8 @@ import org.broken.arrow.color.library.ChatColors;
 import org.broken.arrow.color.library.Component;
 import org.broken.arrow.color.library.TextTranslator;
 
+import javax.annotation.Nonnull;
+
 import static org.broken.arrow.color.library.utility.StringUtility.checkIfColor;
 
 public class CreateComponent {
@@ -36,7 +38,7 @@ public class CreateComponent {
                 checkChar = checkIfColor(msg);
 
                 if (msg == '#') {
-                    String hexString = message.substring(i + 1, i + 8);
+                    String hexString = getHexColorFromText(message, i);
                     checkChar = isValidHexCode(hexString);
                     if (checkChar) {
                         hex = new StringBuilder(hexString);
@@ -60,6 +62,16 @@ public class CreateComponent {
 
     private boolean isPotentialColorCode(String message, int i, char letter) {
         return i + 1 < message.length() && (letter == ChatColors.COLOR_CHAR || letter == ChatColors.COLOR_AMPERSAND || letter == '<');
+    }
+
+    @Nonnull
+    private String getHexColorFromText(String message, int i) {
+        String hexString = message.substring(i + 1, i + 8);
+        int lastIndex = hexString.indexOf('>');
+        if (lastIndex != -1) {
+            hexString = hexString.substring(0, lastIndex);
+        }
+        return hexString;
     }
 
     private boolean isValidHexCode(String hex) {
