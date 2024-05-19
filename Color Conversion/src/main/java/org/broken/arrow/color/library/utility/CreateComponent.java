@@ -13,32 +13,33 @@ import static org.broken.arrow.color.library.utility.StringUtility.checkIfColor;
 public class CreateComponent {
 
     private final TextTranslator textTranslator;
-
-    public CreateComponent(TextTranslator textTranslator) {
+    private String text = "";
+    public CreateComponent(TextTranslator textTranslator,String message) {
         this.textTranslator = textTranslator;
+        this.text = message;
     }
 
-    public JsonObject componentFormat(String message, String defaultColor) {
+    public JsonObject componentFormat(String defaultColor) {
         JsonArray jsonArray = new JsonArray();
         Component.Builder component = new Component.Builder();
-        message = textTranslator.checkStringForGradient(message);
+        this.text = textTranslator.checkStringForGradient(this.text);
 
         defaultColor = (defaultColor == null || defaultColor.isEmpty()) ? "white" : defaultColor;
 
-        StringBuilder builder = new StringBuilder(message.length());
+        StringBuilder builder = new StringBuilder(this.text.length());
         StringBuilder hex = new StringBuilder();
 
-        for (int i = 0; i < message.length(); i++) {
-            char letter = message.charAt(i);
+        for (int i = 0; i < this.text.length(); i++) {
+            char letter = this.text.charAt(i);
             boolean checkChar = false;
             boolean checkHex = false;
 
-            if (isPotentialColorCode(message, i, letter)) {
-                char msg = message.charAt(i + 1);
+            if (isPotentialColorCode(this.text, i, letter)) {
+                char msg = this.text.charAt(i + 1);
                 checkChar = checkIfColor(msg);
 
                 if (msg == '#') {
-                    String hexString = getHexColorFromText(message, i);
+                    String hexString = getHexColorFromText(this.text, i);
                     checkChar = isValidHexCode(hexString);
                     if (checkChar) {
                         hex = new StringBuilder(hexString);
@@ -48,7 +49,7 @@ public class CreateComponent {
             }
 
             if (checkChar) {
-                i += processColorCode(message, builder, component, jsonArray, defaultColor, i, checkHex, hex);
+                i += processColorCode( builder, component, jsonArray, defaultColor, i, checkHex, hex);
                 continue;
             }
 
@@ -78,10 +79,10 @@ public class CreateComponent {
         return StringUtility.isValidHexCode(hex);
     }
 
-    private int processColorCode(String message, StringBuilder builder, Component.Builder component, JsonArray jsonArray,
+    private int processColorCode( StringBuilder builder, Component.Builder component, JsonArray jsonArray,
                                  String defaultColor, int i, boolean checkHex, StringBuilder hex) {
-        if (++i >= message.length()) return i;
-        char letter = message.charAt(i);
+        if (++i >= this.text.length()) return i;
+        char letter = this.text.charAt(i);
 
         if (Character.isUpperCase(letter)) {
             letter = Character.toLowerCase(letter);

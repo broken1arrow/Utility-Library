@@ -95,8 +95,8 @@ public final class TextTranslator {
 	 * @return json object with the set colors.
 	 */
 	private JsonObject componentFormat(String message, String defaultColor) {
-		CreateComponent createComponent = new CreateComponent(this);
-		return createComponent.componentFormat(message,defaultColor);
+		CreateComponent createComponent = new CreateComponent(this,message);
+		return createComponent.componentFormat(defaultColor);
 	}
 
 

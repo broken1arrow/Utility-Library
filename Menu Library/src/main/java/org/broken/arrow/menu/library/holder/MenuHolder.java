@@ -97,29 +97,4 @@ public class MenuHolder extends HolderUtility<Object> {
         super(fillSlots, shallCacheItems);
     }
 
-    /**
-     * Create menu instance.
-     *
-     * @param fillSlots Witch slots you want fill with items.
-     * @param fillItems List of items you want parse inside gui on one or several pages.
-     * @deprecated the list of fillSlots and fillItems will be removed, use {@link MenuHolderPage} for set up paged menus.
-     */
-    @Deprecated
-    protected MenuHolder(final List<Integer> fillSlots, final List<?> fillItems) {
-        this(fillSlots, null, false);
-    }
-
-    /**
-     * Create menu instance.
-     *
-     * @param fillSlots       Witch slots you want fill with items.
-     * @param fillItems       List of items you want parse inside gui.
-     * @param shallCacheItems set to true if you want to cache items and slots.
-     * @deprecated the list of fillSlots and fillItems will be removed, use {@link MenuHolderPage} for set up paged menus.
-     */
-    @Deprecated
-    protected MenuHolder(final List<Integer> fillSlots, final List<?> fillItems, final boolean shallCacheItems) {
-        super(fillSlots, shallCacheItems);
-    }
-
 }
