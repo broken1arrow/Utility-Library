@@ -52,14 +52,14 @@ public class StringUtility {
 		// Regex to check valid hexadecimal color code.
 		String regex = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$";
 
-		// Compile the ReGex
-		Pattern pattern = Pattern.compile(regex);
-
 		// If the string is empty
 		// return false
 		if (str == null) {
 			return false;
 		}
+
+		// Compile the ReGex
+		Pattern pattern = Pattern.compile(regex);
 
 		// Pattern class contains matcher() method
 		// to find matching between given string

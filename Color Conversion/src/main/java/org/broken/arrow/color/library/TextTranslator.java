@@ -1,16 +1,14 @@
 package org.broken.arrow.color.library;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.color.library.Component.Builder;
+import org.broken.arrow.color.library.utility.CreateComponent;
+import org.broken.arrow.color.library.utility.CreateFromLegacyText;
 import org.broken.arrow.color.library.utility.TextGradientUtil;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.broken.arrow.color.library.utility.StringUtility.checkIfColor;
-import static org.broken.arrow.color.library.utility.StringUtility.isValidHexCode;
 
 public final class TextTranslator {
 	private static final Pattern HEX_PATTERN = Pattern.compile("(?<!\\\\\\\\)(<#[a-fA-F0-9]{6}>)|(?<!\\\\\\\\)(<#[a-fA-F0-9]{3}>)");
@@ -96,9 +94,10 @@ public final class TextTranslator {
 	 * @param defaultColor set default color when colors are not set in the message.
 	 * @return json object with the set colors.
 	 */
-
 	private JsonObject componentFormat(String message, String defaultColor) {
-		JsonArray jsonArray = new JsonArray();
+		CreateComponent createComponent = new CreateComponent(this);
+		return createComponent.componentFormat(message,defaultColor);
+	/*	JsonArray jsonArray = new JsonArray();
 		Component.Builder component = new Component.Builder();
 		message = checkStringForGradient(message);
 
@@ -173,7 +172,7 @@ public final class TextTranslator {
 			jsonObject.addProperty("text", "");
 			return jsonObject;
 		}
-		return component.build().toJson();
+		return component.build().toJson();*/
 	}
 
 
@@ -205,20 +204,20 @@ public final class TextTranslator {
 	/**
 	 * Check the string if it contains gradients.
 	 * <ul>
-	 * <li> For vanilla color codes <strong>& or §</strong> and the color code.</li>
-	 * <li> For hex <strong><#5e4fa2></strong> </li>
-	 * <li> For normal gradients <strong><#5e4fa2:#f79459></strong> </li>
-	 * <li> For hsv use <strong>gradients_hsv_<#5e4fa2:...></strong> add at least 2 colors or more</li>
-	 * <li> For use multicolor <strong>gradients_<#6B023E:...></strong>add at least 2 colors or more </li>
-	 * <li> For change balance between colors add this to the end of gradients or gradients_hsv <strong>_portion<0.2:0.6:0.2></strong>
-	 *  Like this <strong>gradients_<#6B023E:#3360B3:#fc9:#e76424>_portion<0.2:0.6:0.2></strong> ,
+	 * <li> For vanilla color codes <strong>&amp; or §</strong> and the color code.</li>
+	 * <li> For hex <strong>&lt;#5e4fa2&gt;</strong> </li>
+	 * <li> For normal gradients <strong>&lt;#5e4fa2:#f79459&gt;</strong> </li>
+	 * <li> For hsv use <strong>gradients_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
+	 * <li> For use multicolor <strong>gradients_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
+	 * <li> For change balance between colors add this to the end of gradients or gradients_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
+	 *  Like this <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
 	 *  If you not add this it will have even balance between colors.</li>
 	 * </ul>
 	 *
 	 * @param text to check.
 	 * @return the message translated if has any gradients or untouched.
 	 */
-	private String checkStringForGradient(final String text) {
+	public String checkStringForGradient(final String text) {
 		String messageCopy = text;
 		GradientType type = null;
 		TextGradientUtil textGradientUtil;
@@ -261,7 +260,9 @@ public final class TextTranslator {
 	 * @return A JSON object representing the formatted text.
 	 */
 	public static JsonObject fromLegacyText(String message, ChatColors defaultColor) {
-		if (message == null) {
+		return CreateFromLegacyText.fromLegacyText( message,defaultColor);
+
+	/*	if (message == null) {
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.addProperty("text", "");
 			return jsonObject;
@@ -313,7 +314,8 @@ public final class TextTranslator {
 			if (pos == -1) {
 				pos = message.length();
 			}
-/*			if (matcher.region(i, pos).find()) { //Web link handling
+*/
+		/*			if (matcher.region(i, pos).find()) { //Web link handling
 
 				if (builder.length() > 0) {
 					TextComponent old = component;
@@ -333,7 +335,7 @@ public final class TextTranslator {
 				i += pos - i - 1;
 				component = old;
 				continue;
-			}*/
+			}*//*
 			builder.append(c);
 		}
 
@@ -346,10 +348,10 @@ public final class TextTranslator {
 			jsonObject.addProperty("text", "");
 			return jsonObject;
 		}
-		return component.build().toJson();
+		return component.build().toJson();*/
 	}
 
-	private void setColor(final String defaultColor, final Builder component, String format) {
+	public void setColor(final String defaultColor, final Builder component, String format) {
 		if (format.equals(ChatColors.BOLD.getName())) {
 			component.bold(true);
 		} else if (format.equals(ChatColors.ITALIC.getName())) {
