@@ -1,7 +1,6 @@
 package org.broken.arrow.color.library.utility;
 
 import com.google.common.base.Preconditions;
-import org.broken.arrow.color.library.ChatColors;
 import org.broken.arrow.color.library.TextTranslator.GradientType;
 import org.broken.arrow.color.library.interpolate.GradientInterpolation;
 import org.broken.arrow.color.library.interpolate.Interpolator;
@@ -14,7 +13,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.broken.arrow.color.library.ChatColors.COLOR_AMPERSAND;
-import static org.broken.arrow.color.library.utility.StringUtility.*;
+import static org.broken.arrow.color.library.utility.StringUtility.checkPortions;
+import static org.broken.arrow.color.library.utility.StringUtility.convertColorToHex;
+import static org.broken.arrow.color.library.utility.StringUtility.getHexFromString;
+import static org.broken.arrow.color.library.utility.StringUtility.getMultiColors;
+import static org.broken.arrow.color.library.utility.StringUtility.getNextColor;
+import static org.broken.arrow.color.library.utility.StringUtility.getStringStriped;
+import static org.broken.arrow.color.library.utility.StringUtility.getValuesInside;
+import static org.broken.arrow.color.library.utility.StringUtility.hexToRgb;
 
 /**
  * Utility class for working with text gradients.
@@ -240,32 +246,6 @@ public class TextGradientUtil {
 						(from, to, max) -> interpolator.quadratic(from, to, str.length(), true)));
 		}
 	}
-
-	private String multiHsvQuadraticGradient(String str,Interpolator interpolator, boolean first) {
-		final StringBuilder builder = new StringBuilder();
-
-		builder.append(this.applyGradient(
-				str.substring(0, (int) (0.2 * str.length())),
-				this.getHSBGradient(Color.RED,
-				Color.GREEN),
-				(from, to, max) -> interpolator.quadratic(from, to, max, first)
-		));
-
-		for (int i = (int) (0.2 * str.length()); i < (int) (0.8 * str.length()); i++) {
-			builder.append(ChatColors.of(Color.GREEN)).append(str.charAt(i));
-		}
-
-		builder.append(this.applyGradient(
-				str.substring((int) (0.8 * str.length())),
-				this.getHSBGradient(Color.GREEN,
-				Color.RED),
-				(from, to, max) -> interpolator.quadratic(from, to, max, !first)
-		));
-
-		return builder.toString();
-
-	}
-
 
 	/**
 	 * Apply the gradient pattern to the given string using the specified color interpolator.

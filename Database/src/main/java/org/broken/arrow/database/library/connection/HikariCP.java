@@ -60,9 +60,6 @@ public class HikariCP {
         if (maxLifeTime > 0)
             config.setMaxLifetime(maxLifeTime);
 
-		/*		config.addDataSourceProperty("cachePrepStmts", "true");
-		config.addDataSourceProperty("prepStmtCacheSize", "250");
-		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");*/
         if (this.hikari == null) {
             synchronized (this) {
                 this.hikari = new HikariDataSource(config);
@@ -76,16 +73,14 @@ public class HikariCP {
 
     private void createPoolIfSetDataNotMatch(HikariConfig config) {
 
-       boolean needRecreate = !this.hikari.getJdbcUrl().equals(config.getJdbcUrl()) ||
+        boolean needRecreate = !this.hikari.getJdbcUrl().equals(config.getJdbcUrl()) ||
                 !this.hikari.getUsername().equals(config.getUsername()) ||
                 !this.hikari.getPassword().equals(config.getPassword());
 
         if (needRecreate) {
             synchronized (this) {
-                if (needRecreate) {
-                    this.hikari.close();
-                    this.hikari = new HikariDataSource(config);
-                }
+                this.hikari.close();
+                this.hikari = new HikariDataSource(config);
             }
         }
     }
@@ -115,10 +110,6 @@ public class HikariCP {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(driverConnection + hostAddress);
         config.setDriverClassName(this.driver);
-
-		/*		config.addDataSourceProperty("cachePrepStmts", "true");
-		config.addDataSourceProperty("prepStmtCacheSize", "250");
-		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");*/
         this.hikari = new HikariDataSource(config);
         turnOfLogs();
         return this.hikari.getConnection();

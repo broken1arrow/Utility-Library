@@ -170,17 +170,6 @@ public class SqlQueryBuilder {
 	 * Merge the provided objects into a format suitable for a database command.
 	 *
 	 * @param placeholder    If true, uses '?' as a placeholder instead of the actual values.
-	 * @param objectsToMerge The objects to be merged into a StringBuilder.
-	 * @return The StringBuilder containing the formatted values, like this: (object1, object2, object3).
-	 */
-	private static StringBuilder mergeObjects(boolean placeholder, Object... objectsToMerge) {
-		return merge(placeholder, -1, objectsToMerge);
-	}
-
-	/**
-	 * Merge the provided objects into a format suitable for a database command.
-	 *
-	 * @param placeholder    If true, uses '?' as a placeholder instead of the actual values.
 	 * @param size           The amount of times to run the loop when using a placeholder. If placeholder is false and
 	 *                       not greater than 0 or objects is provided, this parameter is ignored.
 	 * @param objectsToMerge The objects to be merged into a StringBuilder.
@@ -202,29 +191,6 @@ public class SqlQueryBuilder {
 		}
 		objectBuilder.append(")");
 		return objectBuilder;
-	}
-
-	/**
-	 * Merge the provided objects into a format suitable for a database command.
-	 *
-	 * @param mapOfObjects The map of objects to be merged into a StringBuilder.
-	 * @return The StringBuilder containing the formatted values, like this: (object1, object2, object3).
-	 */
-	private static StringBuilder mergeObjectsFromMap(Map<String, Object> mapOfObjects) {
-		StringBuilder columns = new StringBuilder();
-		StringBuilder values = new StringBuilder();
-
-		columns.append("(");
-		for (Entry<String, Object> entry : mapOfObjects.entrySet()) {
-			final String columnName = entry.getKey();
-			final Object value = entry.getValue();
-			columns.append(columnName).insert(columns.length(), columns.length() == 0 ? "" : ",");
-			values.append(value).insert(values.length(), values.length() == 0 ? "" : ",");
-		}
-		columns.setLength(columns.length() - 1);
-		values.setLength(values.length() - 1);
-		columns.insert(columns.length(), ") VALUES(" + values + ")");
-		return columns;
 	}
 
 	private boolean validate() {
@@ -528,6 +494,30 @@ public class SqlQueryBuilder {
 			}
 			return this;
 		}
+
+		/**
+		 * Merge the provided objects into a format suitable for a database command.
+		 *
+		 * @param mapOfObjects The map of objects to be merged into a StringBuilder.
+		 * @return The StringBuilder containing the formatted values, like this: (object1, object2, object3).
+		 */
+		private static StringBuilder mergeObjectsFromMap(Map<String, Object> mapOfObjects) {
+			StringBuilder columns = new StringBuilder();
+			StringBuilder values = new StringBuilder();
+
+			columns.append("(");
+			for (Entry<String, Object> entry : mapOfObjects.entrySet()) {
+				final String columnName = entry.getKey();
+				final Object value = entry.getValue();
+				columns.append(columnName).insert(columns.length(), columns.length() == 0 ? "" : ",");
+				values.append(value).insert(values.length(), values.length() == 0 ? "" : ",");
+			}
+			columns.setLength(columns.length() - 1);
+			values.setLength(values.length() - 1);
+			columns.insert(columns.length(), ") VALUES(" + values + ")");
+			return columns;
+		}
+
 
 		/**
 		 * Build and return the SqlQueryBuilder.

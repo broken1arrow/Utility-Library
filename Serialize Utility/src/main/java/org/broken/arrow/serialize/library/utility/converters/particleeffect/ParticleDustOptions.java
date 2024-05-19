@@ -128,8 +128,8 @@ public final class ParticleDustOptions implements ConfigurationSerializable {
 				return fromRGB(numberCheck(string[0]), numberCheck(string[1]), numberCheck(string[2]));
 
 		} else if (s.contains(" ")) {
-			final String[] string;
-			final int size = (string = s.split(" ")).length;
+			final String[] string = s.split(" ");
+			final int size = string.length;
 			if (size == 3)
 				return fromRGB(numberCheck(string[0]), numberCheck(string[1]), numberCheck(string[2]));
 		}

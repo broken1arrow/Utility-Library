@@ -20,6 +20,7 @@ public class CreateComponent {
     }
 
     public JsonObject componentFormat(String defaultColor) {
+        int i = 0;
         JsonArray jsonArray = new JsonArray();
         Component.Builder component = new Component.Builder();
         this.text = textTranslator.checkStringForGradient(this.text);
@@ -29,10 +30,9 @@ public class CreateComponent {
         StringBuilder builder = new StringBuilder(this.text.length());
         StringBuilder hex = new StringBuilder();
 
-        for (int i = 0; i < this.text.length(); i++) {
+        while (i < this.text.length()) {
             char letter = this.text.charAt(i);
             boolean checkChar = false;
-            boolean checkHex = false;
 
             if (isPotentialColorCode(this.text, i, letter)) {
                 char msg = this.text.charAt(i + 1);
@@ -43,17 +43,17 @@ public class CreateComponent {
                     checkChar = isValidHexCode(hexString);
                     if (checkChar) {
                         hex = new StringBuilder(hexString);
-                        checkHex = true;
                     }
                 }
             }
 
             if (checkChar) {
-                i += processColorCode( builder, component, jsonArray, defaultColor, i, checkHex, hex);
+                i += processColorCode( builder, component, jsonArray, defaultColor, i, hex);
+                hex.setLength(0);
                 continue;
             }
-
             builder.append(letter);
+            i++;
         }
 
         finalizeComponent(builder, component, jsonArray);
@@ -79,23 +79,24 @@ public class CreateComponent {
         return StringUtility.isValidHexCode(hex);
     }
 
-    private int processColorCode( StringBuilder builder, Component.Builder component, JsonArray jsonArray,
-                                 String defaultColor, int i, boolean checkHex, StringBuilder hex) {
-        if (++i >= this.text.length()) return i;
-        char letter = this.text.charAt(i);
+    private int processColorCode( final StringBuilder builder,final  Component.Builder component,final  JsonArray jsonArray,
+                                  final  String defaultColor,final int i,final StringBuilder hex) {
+        final int index = i + 1;
+        if (index >= this.text.length()) return index;
+        char letter = this.text.charAt(index);
 
         if (Character.isUpperCase(letter)) {
             letter = Character.toLowerCase(letter);
         }
-
-        String format = checkHex ? hex.toString() : getChatColorByChar(letter);
-        if (format == null) return i;
+        boolean isHex = hex.length() > 0;
+        String format = isHex ? hex.toString() : getChatColorByChar(letter);
+        if (format == null) return index;
 
         if (builder.length() > 0) {
-            addComponentToJsonArray(builder, component, jsonArray);
+            jsonArray.add(buildComponentToJson(builder, component));
         }
         textTranslator.setColor(defaultColor, component, format);
-        return checkHex ? format.length() + 1 : 1;
+        return isHex  ? format.length() + 2 : 1;
     }
 
     private String getChatColorByChar(char letter) {
@@ -106,10 +107,10 @@ public class CreateComponent {
         }
     }
 
-    private void addComponentToJsonArray(StringBuilder builder, Component.Builder component, JsonArray jsonArray) {
+    private JsonObject buildComponentToJson(StringBuilder builder, Component.Builder component) {
         component.message(builder.toString());
         builder.setLength(0);
-        jsonArray.add(component.build().toJson());
+        return component.build().toJson();
     }
 
     private void finalizeComponent(StringBuilder builder, Component.Builder component, JsonArray jsonArray) {

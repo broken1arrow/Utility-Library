@@ -625,7 +625,7 @@ public abstract class Database {
         }
     }
 
-    protected void dropColumn(final String createTableCmd, final List<String> existingColumns, final String tableName) throws SQLException {
+    protected void dropColumn(final List<String> existingColumns, final String tableName) throws SQLException {
 
         final TableWrapper updatedTableColumns = tables.get(tableName);
 

@@ -385,11 +385,6 @@ public enum Materials {
 		return null;
 	}
 
-	private static ItemStack createStack(@Nonnull String materialName, @Nonnull String colorName) {
-		final short color = checkColor(colorName);
-		return createStack(materialName, color);
-	}
-
 	private static ItemStack createWoodItemStack(final String materialName, final String itemName) {
 		return createWoodItemStack(materialName, (short) -1, itemName);
 	}

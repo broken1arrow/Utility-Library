@@ -52,6 +52,14 @@ public class PostgreSQL extends Database {
 
 	/**
 	 * Creates a new PostgreSQL instance with the given MySQL preferences.
+	 * <p>
+	 * This below is the suggested drivers, but they don't work.
+	 * this.driver = "com.impossibl.postgres.jdbc.PGDataSource";
+	 * this.driver = "org.postgresql.ds.PGConnectionPoolDataSource";
+	 * this.driver = "org.postgresql.xa.PGXADataSource";
+	 * this.driver = "org.postgresql.ds.PGSimpleDataSource";
+	 * <p>
+	 * The working driver is: "org.postgresql.Driver"
 	 *
 	 * @param preferences    The set preference information to connect to the database.
 	 * @param hikariClazz    If you shade the lib to your plugin, so for this api shall find it you need to set the path.
@@ -63,18 +71,11 @@ public class PostgreSQL extends Database {
 		this.isHikariAvailable = isHikariAvailable(hikariClazz);
 		this.startSQLUrl = "jdbc:postgresql://";
 
-		// This is other solutions I found online
-		// and this one seams to work.
 		this.loadDriver("org.postgresql.Driver");
 		this.driver = "org.postgresql.Driver";
-		// This below is the suggested drivers, but they don't work.
-		// this.driver = "com.impossibl.postgres.jdbc.PGDataSource";
-		// this.driver = "org.postgresql.ds.PGConnectionPoolDataSource";
-		// this.driver = "org.postgresql.xa.PGXADataSource";
-		//this.driver = "org.postgresql.ds.PGSimpleDataSource";
 		if (createDatabase)
 			createMissingDatabase();
-		connect();
+		this.connection = connect();
 	}
 
 	@Override

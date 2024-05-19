@@ -112,11 +112,6 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 			return acceptValidatedInput(context, input);
 
 		else {
-			final String failPrompt = getFailedValidationText(context, input);
-
-			/*if (failPrompt != null)
-				tellLater(1, context.getForWhom(), Variables.replace("&c" + failPrompt, getPlayer(context)));*/
-
 			// Redisplay this prompt to the user to re-collect input
 			return this;
 		}
@@ -125,7 +120,6 @@ public abstract class SimplePrompt extends ValidatingPrompt implements Cloneable
 	@Override
 	public SimplePrompt clone() {
 		try {
-			// TODO: copy mutable state here, so the clone can't change the internals of the original
 			return (SimplePrompt) super.clone();
 		} catch (final CloneNotSupportedException e) {
 			throw new AssertionError();

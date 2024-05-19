@@ -68,6 +68,10 @@ public final class SimpleCanceller implements ConversationCanceller {
 	@Nonnull
 	@Override
 	public ConversationCanceller clone() {
-		return new SimpleCanceller(cancelPhrases);
-	}
+        try {
+            return (SimpleCanceller) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

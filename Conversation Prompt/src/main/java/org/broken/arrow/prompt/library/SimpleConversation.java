@@ -80,7 +80,6 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 	@Override
 	public void conversationAbandoned(@Nonnull final ConversationAbandonedEvent event) {
 		final ConversationContext context = event.getContext();
-		//final Conversable conversing = context.getForWhom();
 
 		final Object source = event.getSource();
 		final boolean hasTimeout = (boolean) context.getAllSessionData().getOrDefault("FLP#TIMEOUT", false);
@@ -96,14 +95,6 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 		}
 
 		onConversationEnd(event, hasTimeout);
-	/*	if (conversing instanceof Player) {
-			final Player player = (Player) conversing;
-
-			(event.gracefulExit() ? CompSound.SUCCESSFUL_HIT : CompSound.NOTE_BASS).play(player, 1F, 1F);
-
-			if (menuToReturnTo != null && reopenMenu())
-				menuToReturnTo.newInstance().displayTo(player);
-		}*/
 	}
 
 	/**
