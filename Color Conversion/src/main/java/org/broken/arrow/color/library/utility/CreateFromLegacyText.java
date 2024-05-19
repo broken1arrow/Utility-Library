@@ -38,9 +38,7 @@ public class CreateFromLegacyText {
             builder.append(c);
             i++;
         }
-
         finalizeComponent(builder, component, jsonArray);
-
         return buildJsonObject(jsonArray, component);
     }
 
