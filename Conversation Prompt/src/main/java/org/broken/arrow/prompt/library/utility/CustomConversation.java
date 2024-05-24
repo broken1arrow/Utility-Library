@@ -57,7 +57,7 @@ public class CustomConversation extends Conversation {
 			}
 			// Save last prompt if it is our class
 			if (currentPrompt instanceof SimplePrompt)
-				lastSimplePrompt = ((SimplePrompt) currentPrompt).clone();
+				lastSimplePrompt = ((SimplePrompt) currentPrompt).copy();
 
 			if (!currentPrompt.blocksForInput(context)) {
 				currentPrompt = currentPrompt.acceptInput(context, null);

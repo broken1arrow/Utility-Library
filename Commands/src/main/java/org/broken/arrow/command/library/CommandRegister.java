@@ -19,9 +19,9 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * A utility class for registering and managing command builders.
- * CommandRegister provides methods for registering subcommands, setting command label messages and permissions,
- * retrieving command builders, and registering the main command.
+ * A utility class for registering and managing registered commands.The commandRegister provides
+ * methods for registering subcommands, setting command label messages and permissions,
+ * retrieving sub-commands, and registering the main command label.
  */
 public class CommandRegister implements CommandRegistering {
 

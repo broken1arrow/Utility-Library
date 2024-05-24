@@ -14,62 +14,65 @@ import java.util.List;
  * specified cancel phrases.
  */
 public final class SimpleCanceller implements ConversationCanceller {
-	private final List<String> cancelPhrases;
+    private final List<String> cancelPhrases;
 
-	/**
-	 * Constructs a SimpleCanceller with the specified cancel phrases.
-	 *
-	 * @param cancelPhrases The phrases that will trigger the cancellation of the conversation.
-	 * @throws IllegalArgumentException If the provided list of cancel phrases is empty.
-	 */
-	public SimpleCanceller(final String... cancelPhrases) {
-		this(Arrays.asList(cancelPhrases));
-	}
+    /**
+     * Constructs a SimpleCanceller with the specified cancel phrases.
+     *
+     * @param cancelPhrases The phrases that will trigger the cancellation of the conversation.
+     * @throws IllegalArgumentException If the provided list of cancel phrases is empty.
+     */
+    public SimpleCanceller(final String... cancelPhrases) {
+        this(Arrays.asList(cancelPhrases));
+    }
 
-	/**
-	 * Constructs a SimpleCanceller with the specified list of cancel phrases.
-	 *
-	 * @param cancelPhrases The list of phrases that will trigger the cancellation of the conversation.
-	 * @throws IllegalArgumentException If the provided list of cancel phrases is empty.
-	 */
-	public SimpleCanceller(final List<String> cancelPhrases) {
-		Validate.checkBoolean(cancelPhrases.isEmpty(), "Cancel phrases are empty for conversation cancel listener!");
+    /**
+     * Constructs a SimpleCanceller with the specified list of cancel phrases.
+     *
+     * @param cancelPhrases The list of phrases that will trigger the cancellation of the conversation.
+     * @throws IllegalArgumentException If the provided list of cancel phrases is empty.
+     */
+    public SimpleCanceller(final List<String> cancelPhrases) {
+        Validate.checkBoolean(cancelPhrases.isEmpty(), "Cancel phrases are empty for conversation cancel listener!");
 
-		this.cancelPhrases = cancelPhrases;
-	}
+        this.cancelPhrases = cancelPhrases;
+    }
 
-	/**
-	 * Sets the conversation for this canceller.
-	 *
-	 * @param conversation The conversation to be set.
-	 */
-	@Override
-	public void setConversation(@Nonnull final Conversation conversation) {
-		//This method is empty, for you must override this method to use it.
+    /**
+     * Sets the conversation for this canceller.
+     *
+     * @param conversation The conversation to be set.
+     */
+    @Override
+    public void setConversation(@Nonnull final Conversation conversation) {
+        //This method is empty, for you must override this method to use it.
 
-	}
+    }
 
-	/**
-	 * Determines whether the conversation should be canceled based on the input provided.
-	 *
-	 * @param context The conversation context.
-	 * @param input   The input received in the conversation.
-	 * @return {@code true} if the input matches any of the cancel phrases, otherwise {@code false}.
-	 */
-	@Override
-	public boolean cancelBasedOnInput(@Nonnull final ConversationContext context, @Nonnull final String input) {
-		for (final String phrase : this.cancelPhrases)
-			if (input.equalsIgnoreCase(phrase))
-				return true;
+    /**
+     * Determines whether the conversation should be canceled based on the input provided.
+     *
+     * @param context The conversation context.
+     * @param input   The input received in the conversation.
+     * @return {@code true} if the input matches any of the cancel phrases, otherwise {@code false}.
+     */
+    @Override
+    public boolean cancelBasedOnInput(@Nonnull final ConversationContext context, @Nonnull final String input) {
+        for (final String phrase : this.cancelPhrases)
+            if (input.equalsIgnoreCase(phrase))
+                return true;
 
-		return false;
-	}
+        return false;
+    }
 
-	@Nonnull
-	@Override
-	public ConversationCanceller clone() {
+    @Nonnull
+    @Override
+    public ConversationCanceller clone() {
         try {
-            return (SimpleCanceller) super.clone();
+            SimpleCanceller simpleCanceller = (SimpleCanceller) super.clone();
+            simpleCanceller.cancelPhrases.clear();
+            simpleCanceller.cancelPhrases.addAll(cancelPhrases);
+            return simpleCanceller;
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
