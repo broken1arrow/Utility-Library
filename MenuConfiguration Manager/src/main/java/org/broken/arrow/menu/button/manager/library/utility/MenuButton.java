@@ -21,14 +21,16 @@ public class MenuButton implements ConfigurationSerializable {
 	private final List<String> lore;
 	private final boolean glow;
 	private final String actionType;
+    private final String extra;
 
-	public MenuButton(final Builder builder) {
+    public MenuButton(final Builder builder) {
 		this.color = builder.color;
 		this.material = builder.material;
 		this.displayName = builder.displayName;
 		this.lore = builder.lore;
 		this.glow = builder.glow;
 		this.actionType = builder.buttonType;
+        this. extra = builder. extra;
 
 	}
 
@@ -52,6 +54,17 @@ public class MenuButton implements ConfigurationSerializable {
 	@Nullable
 	public DyeColor getColor() {
 		return color;
+	}
+
+	/**
+	 * Retrieves the custom value of the menu button. Certain materials such as heads texture need
+     * extra value to be set.
+	 *
+	 * @return the associated value or null if not set.
+	 */
+	@Nullable
+	public String getExtra() {
+		return extra;
 	}
 
 	/**
@@ -111,7 +124,8 @@ public class MenuButton implements ConfigurationSerializable {
 	public static class Builder {
 
 		private final String material;
-		private DyeColor color;
+        public String extra;
+        private DyeColor color;
 		private String displayName;
 		private List<String> lore;
 		private boolean glow;
@@ -186,10 +200,23 @@ public class MenuButton implements ConfigurationSerializable {
 			return this;
 		}
 
+        /**
+         * Extra if you want to add for example custom value like head
+         * or similar.
+         * @param extra the custom value for non normal data.
+         * @return the set string value.
+         */
+        public Builder setExtra(String extra) {
+            this.extra = extra;
+            return this;
+        }
+
 		public MenuButton build() {
 			return new MenuButton(this);
 		}
-	}
+
+
+    }
 
 	@Nonnull
 	@Override
@@ -200,39 +227,45 @@ public class MenuButton implements ConfigurationSerializable {
 		map.put("name", displayName);
 		map.put("lore", lore);
 		map.put("glow", glow);
+        map.put("extra", extra);
 		if (actionType != null) map.put("action_type", actionType);
 		return map;
 	}
 
-	public static MenuButton deserialize(final Map<String, Object> map) {
-		final String color = (String) map.get("color");
-		final String material = (String) map.get("material");
-		final String displayName = (String) map.get("name");
-		final List<String> lore = (List<String>) map.get("lore");
-		final boolean glow = (boolean) map.getOrDefault("glow", false);
-		final String actionType = (String) map.get("action_type");
-		final Builder builder = new Builder(material)
-				.setButtonType(actionType)
-				.setColor(dyeColor(color))
-				.setDisplayName(displayName)
-				.setGlow(glow)
-				.setLore(lore);
-		return builder.build();
-	}
+    public static MenuButton deserialize(final Map<String, Object> map) {
+        final String color = (String) map.get("color");
+        final String extra = (String) map.get("extra");
+        final String material = (String) map.get("material");
+        final String displayName = (String) map.get("name");
+        final List<String> lore = (List<String>) map.get("lore");
+        final boolean glow = (boolean) map.getOrDefault("glow", false);
+        final String actionType = (String) map.get("action_type");
+        DyeColor dyeColor = dyeColor(color);
 
-	@Override
-	public String toString() {
-		return "MenuButton{" +
-				"color=" + color +
-				", material='" + material + '\'' +
-				", displayName='" + displayName + '\'' +
-				", lore=" + lore +
-				", glow=" + glow +
-				", actionType='" + actionType + '\'' +
-				'}';
-	}
+        final Builder builder = new Builder(material)
+                .setButtonType(actionType)
+                .setColor(dyeColor)
+                .setDisplayName(displayName)
+                .setGlow(glow)
+                .setExtra(extra)
+                .setLore(lore);
+        return builder.build();
+    }
 
-	@Nullable
+    @Override
+    public String toString() {
+        return "MenuButton{" +
+                "color=" + color +
+                ", material='" + material + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", lore=" + lore +
+                ", glow=" + glow +
+                ", actionType='" + actionType + '\'' +
+                ", extra='" + extra + '\'' +
+                '}';
+    }
+
+    @Nullable
 	public static DyeColor dyeColor(final String dyeColor) {
 		final DyeColor[] dyeColors = DyeColor.values();
 
