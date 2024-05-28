@@ -67,21 +67,15 @@ public class BlockVisualize {
 	 */
 	public void visualizeBlock(final Player player, final Block block, Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
 		BlockVisualizerCache blockVisualizer = this.blockVisualizerCache;
-		if (blockVisualizer == null)
+		if (blockVisualizer == null) {
 			blockVisualizer = new BlockVisualizerCache(plugin, this);
-		if (!blockVisualizer.isVisualized(block) && shallBeVisualize)
-			blockVisualizer.visualize(player, block,
-					visualizeData);
-
-		else if (blockVisualizer.isVisualized(block) && shallBeVisualize) {
-			blockVisualizer.stopVisualizing(block);
-			blockVisualizer.visualize(player, block,
-					visualizeData);
-
-		} else if (blockVisualizer.isVisualized(block)) {
-			blockVisualizer.stopVisualizing(block);
+			this.blockVisualizerCache = blockVisualizer;
 		}
-		this.blockVisualizerCache = blockVisualizer;
+		if (shallBeVisualize)
+			blockVisualizer.visualize(player, block, visualizeData.apply());
+		else if (blockVisualizer.isVisualized(block)) {
+			blockVisualizer.stopVisualizing(block,visualizeData.apply());
+		}
 		blockVisualizer.getVisualTask().start();
 	}
 
@@ -93,7 +87,8 @@ public class BlockVisualize {
 	 */
 	public boolean stopVisualizing(final Block block) {
 		if (blockVisualizerCache != null && blockVisualizerCache.isVisualized(block)) {
-			blockVisualizerCache.stopVisualizing(block);
+			this.blockVisualizerCache.getVisualTask().removeVisualizeBlock(block.getLocation());
+			//blockVisualizerCache.stopVisualizing(block,visualizeData);
 			return true;
 		}
 		return false;

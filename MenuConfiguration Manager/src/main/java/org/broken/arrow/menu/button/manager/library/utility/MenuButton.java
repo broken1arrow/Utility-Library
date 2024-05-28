@@ -124,7 +124,7 @@ public class MenuButton implements ConfigurationSerializable {
 	public static class Builder {
 
 		private final String material;
-        public String extra;
+        private String extra;
         private DyeColor color;
 		private String displayName;
 		private List<String> lore;

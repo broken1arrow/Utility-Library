@@ -59,10 +59,10 @@ public class EntityModifications {
 				entity.setGlowing(key);
 			}
 		}
-		setGravAndGlow(instance, key);
+		setFallingBlockData(instance, key);
 	}
 
-	private void setGravAndGlow(@Nonnull final Object instance, final boolean key) {
+	private void setFallingBlockData(@Nonnull final Object instance, final boolean key) {
 		if (instance instanceof FallingBlock) {
 			FallingBlock entity = ((FallingBlock) instance);
 			if (this.serverVersion < 13) {
