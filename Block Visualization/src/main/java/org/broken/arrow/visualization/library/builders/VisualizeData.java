@@ -20,10 +20,6 @@ public final class VisualizeData {
     private boolean removeIfAir;
     private boolean stopVisualizeBlock;
 
-    public VisualizeData() {
-        this(null, new HashSet<>(), null, null);
-    }
-
     public VisualizeData(@Nonnull final Player viewer, @Nullable final String text, @Nonnull final Material mask) {
         this(viewer, new HashSet<>(), text, mask);
     }
