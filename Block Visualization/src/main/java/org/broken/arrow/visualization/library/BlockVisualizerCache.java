@@ -30,21 +30,20 @@ public final class BlockVisualizerCache {
     }
 
     public void visualize(@Nullable final Player viewer, @Nonnull final Block block, @Nonnull final VisualizeData visualizeData) {
-        if (block == null) {
-            this.throwErrorBlockNull();
-        } else {
-            boolean visualized = isVisualized(block);
-            if (visualized) {
-                visualizeData.removeFallingBlock();
-            }
-            //Validate.checkBoolean(visualized, "Block at " + block.getLocation() + " already visualized");
-            final Location location = block.getLocation();
-            visualizeData.setFallingBlock(entityModifications.spawnFallingBlock(location, visualizeData.getMask(), visualizeData.getText()));
+        this.throwErrorBlockNull(block );
 
-            final Iterator<Player> players = block.getWorld().getPlayers().iterator();
-            this.setVisualData(visualizeData, location, players, viewer);
-            visualTask.addQueuedVisualizeBlock(location, visualizeData);
+        boolean visualized = isVisualized(block);
+        if (visualized) {
+            visualizeData.removeFallingBlock();
         }
+        //Validate.checkBoolean(visualized, "Block at " + block.getLocation() + " already visualized");
+        final Location location = block.getLocation();
+        visualizeData.setFallingBlock(entityModifications.spawnFallingBlock(location, visualizeData.getMask(), visualizeData.getText()));
+
+        final Iterator<Player> players = block.getWorld().getPlayers().iterator();
+        this.setVisualData(visualizeData, location, players, viewer);
+        visualTask.addQueuedVisualizeBlock(location, visualizeData);
+
     }
 
     private void setVisualData(VisualizeData visualizeData, Location location, Iterator<Player> players, Player viewer) {
@@ -65,16 +64,15 @@ public final class BlockVisualizerCache {
 
 
     public void stopVisualizing(@Nonnull final Block block, VisualizeData visualizeData) {
-        if (block == null) {
-            this.throwErrorBlockNull();
-        } else {
-            Validate.checkBoolean(!isVisualized(block), "Block at " + block.getLocation() + " not visualized");
-            visualTask.removeVisualizeBlock(block.getLocation());
+        this.throwErrorBlockNull(block );
 
-            if (visualizeData != null) {
-                sendBlockChangePlayers(block, visualizeData, visualizeData::removeFallingBlock);
-            }
+        Validate.checkBoolean(!isVisualized(block), "Block at " + block.getLocation() + " not visualized");
+        visualTask.removeVisualizeBlock(block.getLocation());
+
+        if (visualizeData != null) {
+            sendBlockChangePlayers(block, visualizeData, visualizeData::removeFallingBlock);
         }
+
     }
 
     public void stopAll() {
@@ -92,18 +90,15 @@ public final class BlockVisualizerCache {
     }
 
     public boolean isVisualized(@Nonnull final Block block) {
-        if (block == null) {
-            this.throwErrorBlockNull();
-        } else {
-            return visualTask.containsVisualizeBlockKey(block.getLocation());
-        }
-        return false;
+        this.throwErrorBlockNull(block );
+
+        return visualTask.containsVisualizeBlockKey(block.getLocation());
     }
 
     public void sendBlockChangePlayers(@Nonnull Block block, VisualizeData visualizeData, Runnable runTask) {
         final Set<Player> playersAllowed = visualizeData.getPlayersAllowed();
         final Iterator<Player> players;
-        if (playersAllowed != null && !playersAllowed.isEmpty()) players = playersAllowed.iterator();
+        if (!playersAllowed.isEmpty()) players = playersAllowed.iterator();
         else players = block.getWorld().getPlayers().iterator();
         while (players.hasNext()) {
             final Player player = players.next();
@@ -161,7 +156,8 @@ public final class BlockVisualizerCache {
         return this.visualTask;
     }
 
-    public void throwErrorBlockNull() throws NullPointerException {
-        throw new ValidateExceptions("block is marked non-null but is null");
+    public void throwErrorBlockNull(Block b) throws NullPointerException {
+        if (b == null)
+            throw new ValidateExceptions("block is marked non-null but is null");
     }
 }
