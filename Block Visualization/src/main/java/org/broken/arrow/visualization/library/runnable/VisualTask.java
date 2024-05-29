@@ -2,6 +2,7 @@ package org.broken.arrow.visualization.library.runnable;
 
 import org.broken.arrow.visualization.library.BlockVisualizerCache;
 import org.broken.arrow.visualization.library.builders.VisualizeData;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -36,23 +37,24 @@ public final class VisualTask extends BukkitRunnable {
 
     public void start() {
         if (task == null) {
-            task = runTaskTimer(plugin, 0L, 20L);
+            task = Bukkit.getScheduler().runTaskTimer(plugin, (Runnable) this,0L, 20L);
             taskID = task.getTaskId();
         }
     }
 
     public void stop() {
-        this.cancel();
+        this.task.cancel();
     }
 
     public boolean isCancel() {
-        return this.isCancelled();
+        return this.task.isCancelled();
     }
 
     @Override
     public void run() {
         if (visualizeBlocks.isEmpty()) {
-            //stop();
+            stop();
+            this.task = null;
             return;
         }
 
