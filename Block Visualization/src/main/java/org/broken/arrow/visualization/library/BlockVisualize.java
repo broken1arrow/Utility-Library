@@ -71,10 +71,12 @@ public class BlockVisualize {
 			blockVisualizer = new BlockVisualizerCache(plugin, this);
 			this.blockVisualizerCache = blockVisualizer;
 		}
-		if (shallBeVisualize)
-			blockVisualizer.visualize(player, block, visualizeData.apply());
-		else if (blockVisualizer.isVisualized(block)) {
-			blockVisualizer.stopVisualizing(block,visualizeData.apply());
+		boolean isVisualized = blockVisualizer.isVisualized(block);
+		if (shallBeVisualize) {
+			if (!isVisualized)
+				blockVisualizer.visualize(player, block, visualizeData.apply());
+		} else if (isVisualized) {
+			blockVisualizer.stopVisualizing(block, visualizeData.apply());
 		}
 		blockVisualizer.getVisualTask().start();
 	}
