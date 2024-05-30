@@ -37,7 +37,7 @@ public final class VisualTask extends BukkitRunnable {
 
     public void start() {
         if (task == null) {
-            task = Bukkit.getScheduler().runTaskTimer(plugin, (Runnable) this,0L, 20L);
+            task = Bukkit.getScheduler().runTaskTimer(plugin, (Runnable) this, 0L, 20L);
             taskID = task.getTaskId();
         }
     }
@@ -65,12 +65,8 @@ public final class VisualTask extends BukkitRunnable {
                 final VisualizeData visualizeData = visualizeBlock.getValue();
                 Block block = location.getBlock();
 
-                if (visualizeData.isStopVisualizeBlock()) {
+                if (!checkIfBlockIsAir(visualizeData, block) || visualizeData.isStopVisualizeBlock()) {
                     remove.add(location);
-                    continue;
-                }
-
-                if (!checkIfBlockIsAir(visualizeData, block)) {
                     continue;
                 }
 
@@ -114,9 +110,6 @@ public final class VisualTask extends BukkitRunnable {
 
     private boolean checkIfBlockIsAir(VisualizeData visualizeData, Block block) {
         if (block.getType() == Material.AIR) {
-            if (visualizeData.isRemoveIfAir() && containsVisualizeBlockKey(block.getLocation())) {
-                blockVisualizerCache.stopVisualizing(block, visualizeData);
-            }
             return !visualizeData.isStopIfAir();
         }
         return true;

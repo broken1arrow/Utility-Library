@@ -15,6 +15,9 @@ import java.util.logging.Level;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
+/**
+ * Handle the logic around spawn in the block entity.
+ */
 public class EntityModifications {
 
 	private final float serverVersion;

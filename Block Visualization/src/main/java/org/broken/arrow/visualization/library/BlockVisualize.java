@@ -90,7 +90,6 @@ public class BlockVisualize {
 	public boolean stopVisualizing(final Block block) {
 		if (blockVisualizerCache != null && blockVisualizerCache.isVisualized(block)) {
 			this.blockVisualizerCache.getVisualTask().removeVisualizeBlock(block.getLocation());
-			//blockVisualizerCache.stopVisualizing(block,visualizeData);
 			return true;
 		}
 		return false;

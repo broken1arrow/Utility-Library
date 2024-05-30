@@ -36,7 +36,7 @@ public final class BlockVisualizerCache {
         if (visualized) {
             visualizeData.removeFallingBlock();
         }
-        //Validate.checkBoolean(visualized, "Block at " + block.getLocation() + " already visualized");
+
         final Location location = block.getLocation();
         visualizeData.setFallingBlock(entityModifications.spawnFallingBlock(location, visualizeData.getMask(), visualizeData.getText()));
 
@@ -158,6 +158,6 @@ public final class BlockVisualizerCache {
 
     public void throwErrorBlockNull(Block b) throws NullPointerException {
         if (b == null)
-            throw new ValidateExceptions("block is marked non-null but is null");
+            throw new ValidateExceptions("Block is marked non-null but is set to null.");
     }
 }
