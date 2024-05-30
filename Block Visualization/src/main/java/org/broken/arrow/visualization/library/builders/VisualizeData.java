@@ -87,6 +87,8 @@ public final class VisualizeData {
 
     /**
      * Sets the falling block associated with the visualization.
+     * <p>&nbsp;</p>
+     * <p><b>Note:</b> You don't need to set this value manually, as it will be set automatically.</p>
      *
      * @param fallingBlock the falling block to be set
      */
