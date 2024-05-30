@@ -23,7 +23,6 @@ public final class VisualizeData {
     private String permission;
     private final Material mask;
     private boolean stopIfAir;
-    private boolean removeIfAir;
     private boolean stopVisualizeBlock;
 
     /**
@@ -203,7 +202,6 @@ public final class VisualizeData {
         VisualizeData that = (VisualizeData) o;
 
         if (stopIfAir != that.stopIfAir) return false;
-        if (removeIfAir != that.removeIfAir) return false;
         if (stopVisualizeBlock != that.stopVisualizeBlock) return false;
         if (!Objects.equals(viewer, that.viewer)) return false;
         if (!playersAllowed.equals(that.playersAllowed)) return false;
@@ -222,7 +220,6 @@ public final class VisualizeData {
         result = 31 * result + (permission != null ? permission.hashCode() : 0);
         result = 31 * result + mask.hashCode();
         result = 31 * result + (stopIfAir ? 1 : 0);
-        result = 31 * result + (removeIfAir ? 1 : 0);
         result = 31 * result + (stopVisualizeBlock ? 1 : 0);
         return result;
     }
