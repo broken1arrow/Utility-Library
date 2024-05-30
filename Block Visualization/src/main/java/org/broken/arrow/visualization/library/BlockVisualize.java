@@ -9,6 +9,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * The BlockVisualize class provides functionality for visualizing blocks in the Minecraft server.
@@ -53,7 +54,7 @@ public class BlockVisualize {
 	 * @param visualizeData    A function that provides the visualization data.
 	 * @param shallBeVisualize Specifies whether the block should be visualized.
 	 */
-	public void visualizeBlock(final Block block, final Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
+	public void visualizeBlock(@Nonnull final Block block,@Nonnull final Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
 		visualizeBlock(null, block, visualizeData, shallBeVisualize);
 	}
 
@@ -65,7 +66,7 @@ public class BlockVisualize {
 	 * @param visualizeData    A function that provides the visualization data.
 	 * @param shallBeVisualize Specifies whether the block should be visualized.
 	 */
-	public void visualizeBlock(final Player player, final Block block, Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
+	public void visualizeBlock(@Nullable final Player player, @Nonnull final Block block, @Nonnull final Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
 		BlockVisualizerCache blockVisualizer = this.blockVisualizerCache;
 		if (blockVisualizer == null) {
 			blockVisualizer = new BlockVisualizerCache(plugin, this);

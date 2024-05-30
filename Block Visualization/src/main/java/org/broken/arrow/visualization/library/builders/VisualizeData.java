@@ -13,7 +13,8 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * This class store the data set for the visualize effect.
+ * This class stores the data set for visualizing a block glow
+ * and also optionally a text at the top of the block.
  */
 public final class VisualizeData {
     private final Player viewer;
@@ -28,9 +29,9 @@ public final class VisualizeData {
     /**
      * Constructs a new VisualizeData instance with the specified viewer, text, and mask.
      *
-     * @param viewer the player viewing the visualization
-     * @param text   the text associated with the visualization
-     * @param mask   the material mask used in the visualization
+     * @param viewer the player viewing the visualization.
+     * @param text   the text associated with the visualization.
+     * @param mask   the material mask used in the visualization.
      */
     public VisualizeData(@Nonnull final Player viewer, @Nullable final String text, @Nonnull final Material mask) {
         this(viewer, new HashSet<>(), text, mask);
@@ -39,10 +40,10 @@ public final class VisualizeData {
     /**
      * Constructs a new VisualizeData instance with the specified viewer, allowed players, text, and mask.
      *
-     * @param viewer         the player viewing the visualization
-     * @param playersAllowed the set of players allowed to see the visualization
-     * @param text           the text associated with the visualization
-     * @param mask           the material mask used in the visualization
+     * @param viewer         the player viewing the visualization.
+     * @param playersAllowed the set of players allowed to see the visualization.
+     * @param text           the text associated with the visualization.
+     * @param mask           the material mask used in the visualization.
      */
     public VisualizeData(@Nullable final Player viewer, @Nullable final Set<Player> playersAllowed, @Nullable final String text, @Nonnull final Material mask) {
         this.viewer = viewer;
@@ -54,7 +55,7 @@ public final class VisualizeData {
     /**
      * Sets whether to stop the visualization if the block is air.
      *
-     * @param stopIfAir true if the visualization should stop when the block is air, false otherwise
+     * @param stopIfAir true if the visualization should stop when the block is air, false otherwise.
      */
     public void setStopIfAir(final boolean stopIfAir) {
         this.stopIfAir = stopIfAir;
@@ -67,7 +68,7 @@ public final class VisualizeData {
      * Due to some limits, it will not be fully hidden from other players.
      * Only the glow effect will be shown for the players with the permission.
      *
-     * @param viewer the player to be added
+     * @param viewer the player to be added.
      */
     public void addPlayersAllowed(final Player viewer) {
         playersAllowed.add(viewer);
@@ -79,7 +80,7 @@ public final class VisualizeData {
      * Due to some limits, it will not be fully hidden from other players.
      * Only the glow effect will be shown for the players with the permission.
      *
-     * @param permission the permission string
+     * @param permission the permission string.
      */
     public void setPermission(final String permission) {
         this.permission = permission;
@@ -90,7 +91,7 @@ public final class VisualizeData {
      * <p>&nbsp;</p>
      * <p><b>Note:</b> You don't need to set this value manually, as it will be set automatically.</p>
      *
-     * @param fallingBlock the falling block to be set
+     * @param fallingBlock the falling block to be set.
      */
     public void setFallingBlock(final FallingBlock fallingBlock) {
         this.fallingBlock = fallingBlock;
@@ -112,7 +113,7 @@ public final class VisualizeData {
     /**
      * Gets the permission required to view the visualization.
      *
-     * @return the permission string, or null if no permission is set
+     * @return the permission string, or null if no permission is set.
      */
     @Nullable
     public String getPermission() {
@@ -124,7 +125,7 @@ public final class VisualizeData {
      * If it only one player that should see the
      * visualization.
      *
-     * @return the viewer, or null if not set
+     * @return the viewer, or null if not set.
      */
     @Nullable
     public Player getViewer() {
@@ -134,7 +135,7 @@ public final class VisualizeData {
     /**
      * Gets the set of players allowed to see the visualization.
      *
-     * @return the set of allowed players
+     * @return the set of allowed players.
      */
     @Nonnull
     public Set<Player> getPlayersAllowed() {
@@ -144,7 +145,7 @@ public final class VisualizeData {
     /**
      * Gets the falling block associated with the visualization.
      *
-     * @return the falling block, or null if not set
+     * @return the falling block, or null if not set.
      */
     public FallingBlock getFallingBlock() {
         return fallingBlock;
@@ -161,7 +162,7 @@ public final class VisualizeData {
     /**
      * Gets the text associated with the visualization.
      *
-     * @return the text, or null if no text is set
+     * @return the text, or null if no text is set.
      */
     @Nullable
     public String getText() {
@@ -171,7 +172,7 @@ public final class VisualizeData {
     /**
      * Gets the material mask that player sees in the visualization.
      *
-     * @return the material mask
+     * @return the material mask.
      */
     @Nonnull
     public Material getMask() {
@@ -181,7 +182,7 @@ public final class VisualizeData {
     /**
      * Checks if the visualization should stop when the block is air.
      *
-     * @return true if the visualization should stop, false otherwise
+     * @return true if the visualization should stop, false otherwise.
      */
     public boolean isStopIfAir() {
         return stopIfAir;
@@ -190,7 +191,7 @@ public final class VisualizeData {
     /**
      * Checks if the visualization should stop.
      *
-     * @return true if the visualization should stop, false otherwise
+     * @return true if the visualization should stop, false otherwise.
      */
     public boolean isStopVisualizeBlock() {
         return stopVisualizeBlock;
