@@ -11,7 +11,6 @@ import org.bukkit.Particle;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.material.MaterialData;
-import org.bukkit.potion.Potion;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -36,7 +35,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 	private final Class<? extends MaterialData> materialData;
 	private final BlockData materialBlockData;
 	private final BlockFace blockFace;
-	private final Potion potion;
+	private final PotionsData potion;
 	private final int count;
 	private final double offsetX;
 	private final double offsetY;
@@ -138,7 +137,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 	 */
 	@Override
 	@Nullable
-	public Potion getPotion() {
+	public PotionsData getPotion() {
 		return potion;
 	}
 
@@ -227,7 +226,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		private Class<? extends MaterialData> materialData;
 		private BlockData materialBlockData;
 		private BlockFace blockFace;
-		private Potion potion;
+		private PotionsData potion;
 		private int count;
 		private double offsetX;
 		private double offsetY;
@@ -338,7 +337,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		 * @return this instance.
 		 */
 
-		public Builder setPotion(final Potion potion) {
+		public Builder setPotion(final PotionsData potion) {
 			this.potion = potion;
 			return this;
 		}
@@ -515,12 +514,14 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		if (blockFace == null && dataType.isInstance(BlockFace.class)) {
 			logger.log(Level.WARNING, () -> of("you have to set the block face for this particle effect, from this class '" + finalDataType + "' ."));
 		}
-		if (potion == -1 && dataType.isInstance(Potion.class)) {
+		PotionsData potionsData = new PotionsData(null,potion);
+		if (potion == -1 && potionsData.checkDataType(dataType)) {
 			logger.log(Level.WARNING, () -> of("you have to set the potion number for this particle effect, from this class '" + finalDataType + "' ."));
 		}
 		BlockFace facing = SpigotBlockFace.getBlockFace(blockFace);
-		if (potion >= 0)
-			builder.setPotion(Potion.fromDamage(potion));
+		if (potion >= 0) {
+			builder.setPotion(potionsData);
+		}
 
 		builder.setBlockFace(facing)
 				.setDustOptions(options)

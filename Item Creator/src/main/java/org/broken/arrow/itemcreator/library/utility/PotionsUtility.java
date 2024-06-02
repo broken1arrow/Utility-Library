@@ -17,9 +17,13 @@ public class PotionsUtility {
     public void setPotion(PotionType potion) {
         try {
             potionMeta.setBasePotionType(potion);
-        } catch (Exception e) {
-            final PotionData potionData = new PotionData(potion);
-            potionMeta.setBasePotionData(potionData);
+        } catch (NoClassDefFoundError | NoSuchMethodError e) {
+            try {
+                final PotionData potionData = new PotionData(potion);
+                potionMeta.setBasePotionData(potionData);
+            } catch (NoClassDefFoundError ex) {
+                ex.printStackTrace();
+            }
         }
     }
 }

@@ -9,7 +9,6 @@ import org.bukkit.Particle;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.material.MaterialData;
-import org.bukkit.potion.Potion;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -335,8 +334,10 @@ public class ConvertParticlesUtility {
 				builder.setMaterialBlockData((BlockData) particleData);
 			if (particleData instanceof BlockFace)
 				builder.setBlockFace((BlockFace) particleData);
-			if (particleData instanceof Potion)
-				builder.setPotion((Potion) particleData);
+			PotionsData potionsData = new PotionsData(particleData);
+			if (potionsData.isPotion())
+				builder.setPotion(potionsData);
+
 		} else {
 			if (particleData != null)
 				logger.warning("You must set the extra data for this '" + part.name() + "' or the effect will not spawn. The class you should use is '" + part.getDataType() + "'");
@@ -352,8 +353,9 @@ public class ConvertParticlesUtility {
 				builder.setMaterialData((Class<? extends MaterialData>) particleData);
 			if (particleData instanceof BlockFace)
 				builder.setBlockFace((BlockFace) particleData);
-			if (particleData instanceof Potion)
-				builder.setPotion((Potion) particleData);
+			PotionsData potionsData = new PotionsData(particleData);
+			if (potionsData.isPotion())
+				builder.setPotion(potionsData);
 		} else {
 			if (particleData != null && effectData != null)
 				logger.warning("You must set the extra data for this '" + effect.name() + "' or the effect will not spawn. The class you should use is '" + effectData + "'");

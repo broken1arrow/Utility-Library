@@ -7,7 +7,6 @@ import org.bukkit.Particle;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.material.MaterialData;
-import org.bukkit.potion.Potion;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,12 +62,12 @@ public interface ParticleEffectAccessor {
 	BlockFace getBlockFace();
 
 	/**
-	 * Retrieves the potion associated with this ParticleEffect.
-	 *
-	 * @return the potion object, or null if not set or if this effect don't use this class.
-	 */
+     * Retrieves the potion associated with this ParticleEffect.
+     *
+     * @return the potion object, or null if not set or if this effect don't use this class.
+     */
 	@Nullable
-	Potion getPotion();
+    PotionsData getPotion();
 
 	/**
 	 * Retrieves the amount of particles associated with this ParticleEffect.
