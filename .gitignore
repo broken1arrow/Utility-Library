@@ -168,4 +168,7 @@ Temporary Items
 .apdisk
 
 # End of https://www.gitignore.io/api/osx,java,eclipse,intellij,maven
-/src/main/java/org/brokenarrow/storage/database/SerializDeserialzItemStackFromToDatabase.java
+.gradle/8.7/*
+.gradle
+*/build
+build/*

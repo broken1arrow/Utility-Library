@@ -34,7 +34,6 @@ public class CommandRegister implements CommandRegistering {
 	private boolean registeredMainCommand;
 	private List<String> descriptions;
 
-
 	@Override
 	public CommandRegistering registerSubCommand(final CommandProperty subCommand) {
 		Set<String> commandLabels = subCommand.getCommandLabels();
@@ -42,6 +41,7 @@ public class CommandRegister implements CommandRegistering {
         if (addCommands(subCommand, commandLabels)) {
 			return this;
 		}
+
 		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.equals(subCommand));
 		commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getCommandLabels().equals(subCommand.getCommandLabels()));
 		commands.add(subCommand);

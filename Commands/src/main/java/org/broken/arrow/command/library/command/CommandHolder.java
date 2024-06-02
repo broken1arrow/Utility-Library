@@ -65,8 +65,7 @@ public abstract class CommandHolder extends CommandProperty {
 
     /**
      * Set the label for your subcommand. You can have several.
-     * <p>
-     * <p>
+     * <p>&nbsp;</p>
      * Note: that you need to at least set one label.
      *
      * @param commandLabel The different labels for your command. At least one label must be provided.

@@ -1,6 +1,6 @@
-name: ${project.name}
-version: ${project.version}
-main: ${main.class}
+name: ${name}
+version: ${version}
+main: ${main}
 author: broken arrow
 api-version: 1.13
 libraries:

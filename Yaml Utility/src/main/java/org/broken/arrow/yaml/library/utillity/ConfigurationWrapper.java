@@ -218,7 +218,7 @@ public class ConfigurationWrapper {
 
 		/**
 		 * Serialize the data from the ConfigurationSerializable instance.
-		 * <p></p>
+		 * <p>&nbsp;</p>
 		 *
 		 * @return the map of data serialized or empty linked map.
 		 */
