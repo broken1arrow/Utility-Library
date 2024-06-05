@@ -7,8 +7,7 @@ You will find the full wiki here [utility library wiki](https://broken-arrow.git
 
 If you do want to use the Utility Library plugin, you can follow the instructions below. 
 
-Note because I change from Maven to Gradle will not below instructions work in versions after 0.100. Will update with new information soon. 
-In main time you must run this project locally if you want to use later versions.
+Note I solve the problem at least temporary, so use 0.103 or later. 
 
 
 ```xml
@@ -23,7 +22,7 @@ In main time you must run this project locally if you want to use later versions
 <dependencies>
 <dependency>
     <groupId>com.github.broken1arrow.Utility-Library</groupId>
-    <artifactId>Utility-Library</artifactId>
+    <artifactId>utility-library</artifactId>
     <version>latest</version>
     <scope>provided</scope>
 </dependency>
