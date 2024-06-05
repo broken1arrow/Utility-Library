@@ -40,6 +40,14 @@ public final class Logging {
 		logMessageBuilder.reset();
 	}
 
+	public void logError(Throwable exception, Supplier<Builder> msg) {
+		if (msg == null)
+			msg = Builder::new;
+
+		Builder logMessageBuilder = msg.get();
+		log.log(Level.WARNING , exception , logMessageBuilder::getMessage);
+	}
+
 	public static Builder of(final String msg, final String... placeholders) {
 		return logBuilder.setMessage(msg).setPlaceholders(placeholders);
 	}

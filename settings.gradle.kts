@@ -24,7 +24,7 @@ dependencyResolutionManagement {
  val shadowVersion = "8.1.1"
 
 
-rootProject.name = "Utility_Library"
+rootProject.name = "Utility-Library"
 include(":Title-Update")
 include(":Menu_Library")
 include(":Block-Visualization")

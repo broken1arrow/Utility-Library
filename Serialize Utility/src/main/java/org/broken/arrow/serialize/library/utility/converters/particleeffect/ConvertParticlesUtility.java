@@ -334,10 +334,10 @@ public class ConvertParticlesUtility {
 				builder.setMaterialBlockData((BlockData) particleData);
 			if (particleData instanceof BlockFace)
 				builder.setBlockFace((BlockFace) particleData);
+
 			PotionsData potionsData = new PotionsData(particleData);
 			if (potionsData.isPotion())
 				builder.setPotion(potionsData);
-
 		} else {
 			if (particleData != null)
 				logger.warning("You must set the extra data for this '" + part.name() + "' or the effect will not spawn. The class you should use is '" + part.getDataType() + "'");

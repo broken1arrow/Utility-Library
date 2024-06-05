@@ -51,7 +51,7 @@ tasks {
         }
     }
 
-    val shadowJar by getting(ShadowJar::class) {
+  /*  val shadowJar by getting(ShadowJar::class) {
         archiveClassifier.set("all")
         mergeServiceFiles()
     }
@@ -59,7 +59,8 @@ tasks {
     publishing {
 
         publications {
-            create<MavenPublication>("mavenJava") {
+
+            create<MavenPublication>("mavenJava2") {
                 artifact(shadowJar) {
                     classifier = "all"
                 }
@@ -72,5 +73,5 @@ tasks {
         repositories {
             mavenLocal()
         }
-    }
+    }*/
 }

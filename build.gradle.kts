@@ -1,3 +1,4 @@
+import org.apache.tools.ant.taskdefs.Java
 
 plugins {
     `java-library`
@@ -27,6 +28,8 @@ allprojects {
 
 
 subprojects {
+    apply(plugin = "maven-publish")
+    apply(plugin = "java")
     tasks {
         javadoc {
             options.encoding = Charsets.UTF_8.name()
@@ -56,8 +59,43 @@ subprojects {
                 )
             }
         }
+
+    }
+    publishing {
+
+        publications {
+            create<MavenPublication>("mavenJava") {
+                from(components["java"])
+
+                val sourcesJar by tasks.registering(Jar::class) {
+                    archiveClassifier.set("sources")
+                    from(sourceSets.main.get().allSource)
+                }
+
+                val javadocJar by tasks.registering(Jar::class) {
+                    archiveClassifier.set("javadoc")
+                    from(tasks.named("javadoc"))
+                }
+
+                groupId = "org.broken.arrow.library"
+                artifactId = project.name.toString().lowercase()
+                version = "0.106"
+            }
+        }
+   /*     repositories {
+            maven {
+                name = "GitHubPackages"
+
+                url = uri("https://maven.pkg.github.com/broken1arrow/Utility-Library")
+                credentials {
+                    username = "broken1arrow"
+                    password = System.getProperty("token")
+                }
+            }
+        }*/
     }
 }
+
 
 fun setProjectVersion(project: Project) {
     if (project.version == "" || project.version == "1.0-SNAPSHOT") project.version = version
