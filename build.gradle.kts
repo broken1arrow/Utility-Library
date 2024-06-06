@@ -61,109 +61,110 @@ subprojects {
         }
 
     }
-    publishing {
+/*
+publishing {
 
-        publications {
-            create<MavenPublication>("mavenJava") {
-                from(components["java"])
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
 
-                val sourcesJar by tasks.registering(Jar::class) {
-                    archiveClassifier.set("sources")
-                    from(sourceSets.main.get().allSource)
-                }
+            val sourcesJar by tasks.registering(Jar::class) {
+                archiveClassifier.set("sources")
+                from(sourceSets.main.get().allSource)
+            }
 
-                val javadocJar by tasks.registering(Jar::class) {
-                    archiveClassifier.set("javadoc")
-                    from(tasks.named("javadoc"))
-                }
+            val javadocJar by tasks.registering(Jar::class) {
+                archiveClassifier.set("javadoc")
+                from(tasks.named("javadoc"))
+            }
 
-                groupId = "org.broken.arrow.library"
-                artifactId = project.name.toString().lowercase()
-                version = "0.106"
+            groupId = "org.broken.arrow.library"
+            artifactId = project.name.toString().lowercase()
+            version = "0.106"
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+
+            url = uri("https://maven.pkg.github.com/broken1arrow/Utility-Library")
+            credentials {
+                username = "broken1arrow"
+                password = System.getProperty("token")
             }
         }
-   /*     repositories {
-            maven {
-                name = "GitHubPackages"
-
-                url = uri("https://maven.pkg.github.com/broken1arrow/Utility-Library")
-                credentials {
-                    username = "broken1arrow"
-                    password = System.getProperty("token")
-                }
-            }
-        }*/
-    }
+    }*/
 }
+
 
 
 fun setProjectVersion(project: Project) {
-    if (project.version == "" || project.version == "1.0-SNAPSHOT") project.version = version
+if (project.version == "" || project.version == "1.0-SNAPSHOT") project.version = version
 }
 
 tasks {
-    javadoc {
-        options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
-    }
+javadoc {
+    options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
+}
 }
 
 
 private val exclusions = listOf(
-    "*exclude.jar",
-    "com/github/angeschossen/",
-    "org/spigotmc/",
-    "org/bukkit/",
-    "org/yaml/snakeyaml/",
-    "com/google/",
-    "net/md_5/bungee/",
-    "org/apache/commons/",
-    "mojang-translations/",
-    "javax/annotation/",
-    "org/joml/",
-    "org/checkerframework/",
-    "META-INF/proguard/",
-    "META-INF/versions/",
-    "META-INF/maven/com.google.code.findbugs/",
-    "META-INF/maven/com.google.code.gson/",
-    "META-INF/maven/com.google.errorprone/",
-    "META-INF/maven/com.google.guava/",
-    "META-INF/maven/net.md-5/",
-    "META-INF/maven/org.joml/",
-    "META-INF/maven/org.spigotmc/",
-    "META-INF/maven/org.yaml/"
+"*exclude.jar",
+"com/github/angeschossen/",
+"org/spigotmc/",
+"org/bukkit/",
+"org/yaml/snakeyaml/",
+"com/google/",
+"net/md_5/bungee/",
+"org/apache/commons/",
+"mojang-translations/",
+"javax/annotation/",
+"org/joml/",
+"org/checkerframework/",
+"META-INF/proguard/",
+"META-INF/versions/",
+"META-INF/maven/com.google.code.findbugs/",
+"META-INF/maven/com.google.code.gson/",
+"META-INF/maven/com.google.errorprone/",
+"META-INF/maven/com.google.guava/",
+"META-INF/maven/net.md-5/",
+"META-INF/maven/org.joml/",
+"META-INF/maven/org.spigotmc/",
+"META-INF/maven/org.yaml/"
 )
 /*todo This give circle dependency currently. See it this could be solved.
 subprojects{
-    apply(plugin = "com.github.johnrengelman.shadow")
-    version = "1.0-SNAPSHOT"
-    if (project.group == "" || project.group == "Utility_Library_Core")
-        project.group = "org.broken.arrow.library"
-    val config = ConfigurationUtilityLibrary()
-    config.apply(project)
-    tasks {
-        if (project.name != "buildProject") {
-            shadowJar {
-                val shadowSettings = config.shadowProject(project)
-                archiveFileName.set(shadowSettings.archiveFileName)
-                dependencies {
-                    shadowSettings.exclusions.forEach { exclude(it) }
-                }
-                shadowSettings.relocateList.forEach { relocateItem ->
-                    relocate(relocateItem.pattern, relocateItem.destination)
-                }
+apply(plugin = "com.github.johnrengelman.shadow")
+version = "1.0-SNAPSHOT"
+if (project.group == "" || project.group == "Utility_Library_Core")
+    project.group = "org.broken.arrow.library"
+val config = ConfigurationUtilityLibrary()
+config.apply(project)
+tasks {
+    if (project.name != "buildProject") {
+        shadowJar {
+            val shadowSettings = config.shadowProject(project)
+            archiveFileName.set(shadowSettings.archiveFileName)
+            dependencies {
+                shadowSettings.exclusions.forEach { exclude(it) }
             }
-        }
-        processResources {
-            filteringCharset = Charsets.UTF_8.name()
-            filesMatching("plugin.yml") {
-                expand(
-                    mapOf(
-                        "version" to project.version,
-                        "main" to "${project.group}.UtilityLibrary",
-                        "name" to project.name
-                    )
-                )
+            shadowSettings.relocateList.forEach { relocateItem ->
+                relocate(relocateItem.pattern, relocateItem.destination)
             }
         }
     }
+    processResources {
+        filteringCharset = Charsets.UTF_8.name()
+        filesMatching("plugin.yml") {
+            expand(
+                mapOf(
+                    "version" to project.version,
+                    "main" to "${project.group}.UtilityLibrary",
+                    "name" to project.name
+                )
+            )
+        }
+    }
+}
 }*/

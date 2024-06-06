@@ -1,9 +1,16 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.broken.arrow.library.PublicationManager
 
 plugins {
     java
+    alias(libs.plugins.shadow)
     id ("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }
+
+group = "org.broken.arrow.library.menu.configuration.library"
+description = "MenuConfiguration-Manager"
+version = "1.0-SNAPSHOT"
 
 dependencies {
     api(project(":Yaml_Utility"))
@@ -13,9 +20,19 @@ dependencies {
     compileOnly(libs.google.findbugs.jsr305)
 }
 
-description = "MenuConfiguration-Manager"
-version = "1.0-SNAPSHOT"
-
 java {
     withJavadocJar()
+}
+
+tasks {
+
+    PublicationManager(project) {
+        val shadowJar by getting(ShadowJar::class) {
+            archiveClassifier.set("all")
+            mergeServiceFiles()
+        }
+        artifact(shadowJar) {
+            classifier = "all"
+        }
+    }
 }

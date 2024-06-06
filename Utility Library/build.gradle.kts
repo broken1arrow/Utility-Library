@@ -3,12 +3,14 @@ import org.broken.arrow.library.*
 
 plugins {
     java
-    `maven-publish`
     id("java-library")
-
     alias(libs.plugins.shadow)
     id("org.broken.arrow.library.LoadDependency")
 }
+
+group = "org.broken.arrow.library.utility"
+description = "Utility-Library"
+version = "1.0-SNAPSHOT"
 
 dependencies {
     api(project(":Menu_Library"))
@@ -27,9 +29,6 @@ dependencies {
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 }
-group = "org.broken.arrow.library.utility"
-description = "Utility-Library"
-version = "1.0-SNAPSHOT"
 
 java {
     withJavadocJar()
@@ -39,39 +38,28 @@ tasks.withType<PublishToMavenLocal> {
     dependsOn(tasks.shadowJar)
 }
 
-val shadeLogic = ShadeLogic(project)
 
 tasks {
 
     shadowJar {
-        shadeLogic.shadowProject { fileName, destination, exclusions ->
-            archiveFileName.set(fileName)
-            relocate("de.tr7zw.changeme.nbtapi", "$destination.nbt")
-            dependencies { exclusions.forEach { exclude(it) } }
-        }
-    }
+        val shadeLogic = ShadeLogic(project, this)
 
-  /*  val shadowJar by getting(ShadowJar::class) {
-        archiveClassifier.set("all")
-        mergeServiceFiles()
-    }
-
-    publishing {
-
-        publications {
-
-            create<MavenPublication>("mavenJava2") {
-                artifact(shadowJar) {
-                    classifier = "all"
-                }
-                groupId = "org.broken.arrow.library"
-                artifactId = project.name
-                version = project.version.toString()
+        shadeLogic.shadowProject {
+            setArchiveFileName()
+            dependencies {
+                exclusions.forEach { exclude(it) }
             }
+            relocate("de.tr7zw.changeme.nbtapi", formatDependency("nbt"))
         }
+    }
 
-        repositories {
-            mavenLocal()
+    PublicationManager(project) {
+        val shadowJar by getting(ShadowJar::class) {
+            archiveClassifier.set("all")
+            mergeServiceFiles()
         }
-    }*/
+        artifact(shadowJar) {
+            classifier = "all"
+        }
+    }
 }

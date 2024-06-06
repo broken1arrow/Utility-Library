@@ -47,7 +47,7 @@ apply(plugin = "com.github.johnrengelman.shadow")
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
-
+   //implementation("com.github.jengelman.gradle.plugins:shadow:8.1.1")
    // implementation("com.github.jengelman.gradle.plugins:shadow:6.1.0")
      //implementation("com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar:8.1.1")
 }

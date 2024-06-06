@@ -1,9 +1,17 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.broken.arrow.library.PublicationManager
 
 plugins {
     java
+    alias(libs.plugins.shadow)
+
     id ("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }
+
+group = "org.broken.arrow.library.database"
+description = "Database"
+version = "1.0-SNAPSHOT"
 
 dependencies {
     api(project(":Log_and_Validate"))
@@ -17,9 +25,21 @@ dependencies {
     compileOnly(libs.apache.logging.log4j.core)
 }
 
-description = "Database"
-version = "1.0-SNAPSHOT"
-
 java {
     withJavadocJar()
+}
+
+tasks {
+
+    tasks {
+        PublicationManager(project) {
+            val shadowJar by getting(ShadowJar::class) {
+                archiveClassifier.set("all")
+                mergeServiceFiles()
+            }
+            artifact(shadowJar) {
+                classifier = "all"
+            }
+        }
+    }
 }

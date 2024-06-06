@@ -1,16 +1,18 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.broken.arrow.library.PublicationManager
 import org.broken.arrow.library.ShadeLogic
 
 plugins {
-    id("java-library")
-    id("java")
+    java
     alias(libs.plugins.shadow)
+
+    id("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.visualization"
+group = "org.broken.arrow.library.block.visualization"
 description = "Block-Visualization"
 version = "1.0-SNAPSHOT"
-val shadeLogic = ShadeLogic(project)
 
 
 dependencies {
@@ -26,17 +28,28 @@ java {
     withJavadocJar()
 }
 
-
-
 tasks {
 
     shadowJar {
-        shadeLogic.shadowProject{ fileName, destination, exclusions ->
-            archiveFileName.set(fileName)
-            relocate("de.tr7zw.changeme.nbtapi", "$destination.nbt")
+        val shadeLogic = ShadeLogic(project, this)
+
+        shadeLogic.shadowProject {
+            setArchiveFileName()
             dependencies {
                 exclusions.forEach { exclude(it) }
             }
+            relocate("de.tr7zw.changeme.nbtapi", formatDependency("nbt"))
+        }
+    }
+
+    PublicationManager(project) {
+        val shadowJar by getting(ShadowJar::class) {
+            archiveClassifier.set("all")
+            mergeServiceFiles()
+        }
+        artifact(shadowJar) {
+            classifier = "all"
         }
     }
 }
+

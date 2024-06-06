@@ -1,34 +1,46 @@
 package org.broken.arrow.library
 
 import org.gradle.api.Project
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.internal.impldep.bsh.classpath.BshClassPath
 
-open class ShadeLogic(private val project: Project) {
+/**
+ * Class to encapsulate logic for configuring the ShadowJar task.
+ *
+ * @param project The project to run this shade configuration.
+ * @param task The current running task for which to set the file name.
+ */
+open class ShadeLogic(private val project: Project, private val task: AbstractArchiveTask) {
 
-    init {
-        // project.apply(plugin = "com.github.johnrengelman.shadow")
+    private var fileName = "${project.name}-${project.version}.jar"
+
+    /**
+     * Configures the given shadow project with the specified settings.
+     *
+     * @param shadeLogic The configuration block for the ShadeLogic.
+     */
+    fun shadowProject(shadeLogic: ShadeLogic.() -> Unit = {}) {
+        shadeLogic(this)
     }
 
-    fun create(): ShadowTask? {
-        return null;
+    /**
+     * Formats the given package name as a dependency string. The resulting string will be in the following
+     * format: "group.dependencies.packageName".
+     *
+     * @param packageName The package name for the dependency.
+     * @return A formatted dependency string.
+     */
+    fun formatDependency(packageName: String): String {
+        return "${project.group}.dependencies.$packageName"
     }
 
-    fun shadowProject(shadowTask :ShadowTask) {
-        shadowTask.execute(
-            "${project.name}-${project.version}.jar",
-            "${project.group}.dependencies",
-            exclusions
-        )
-    }
 
-    data class ShadeSettings(
-        val archiveFileName: String,
-        val exclusions: List<String>,
-        val relocateList: List<Relocate>
-    )
-
-    data class Relocate(val pattern: String, val destination: String)
-    fun interface ShadowTask {
-        fun execute(archiveFileName: String, destination: String, exclusions: List<String>)
+    /**
+     * Sets the archive file name using the project's name and version.
+     */
+    fun setArchiveFileName() {
+        task.archiveFileName.set(fileName)
     }
 
     val exclusions = listOf(
@@ -55,5 +67,4 @@ open class ShadeLogic(private val project: Project) {
         "META-INF/maven/org.spigotmc/",
         "META-INF/maven/org.yaml/"
     )
-
 }
