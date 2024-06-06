@@ -27,6 +27,10 @@ public class FillItems<T> {
         fillItemsList.remove(item);
     }
 
+    public void clear(T item) {
+        fillItemsList.clear();
+    }
+
     /**
      * Set the items you want connect to a slot in the menu.
      *
