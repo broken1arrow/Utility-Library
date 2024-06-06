@@ -1,7 +1,9 @@
 package org.broken.arrow.menu.library;
 
 
+import org.broken.arrow.menu.library.utility.FilterMatch;
 import org.broken.arrow.menu.library.utility.ItemCreator;
+import org.broken.arrow.menu.library.utility.MatchCheckItemStack;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -10,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,10 +32,13 @@ import java.util.UUID;
 public class CheckItemsInsideMenu {
 
 	private final Map<UUID, Map<ItemStack, Integer>> duplicatedItems = new HashMap<>();
-	private boolean sendMsgPlayer = false;
-	private List<Material> blacklistedItems;
-	private final List<Integer> slotsToCheck = new ArrayList<>();
 	private final RegisterMenuAPI registerMenuAPI;
+	private FilterMatch filterMatch = FilterMatch.TYPE;
+	private MatchCheckItemStack matchCheck =  new MatchCheckItemStack();
+	private boolean sendMsgPlayer = false;
+	private List<ItemStack> blacklistedItems;
+	private final List<Integer> slotsToCheck = new ArrayList<>();
+
 	private boolean checkDuplicates;
 
 	public CheckItemsInsideMenu(RegisterMenuAPI registerMenuAPI) {
@@ -45,7 +51,7 @@ public class CheckItemsInsideMenu {
 	 *
 	 * @param blacklistedItems list of items some are not allowed.
 	 */
-	public void setBlacklistedItemsNew(final List<Material> blacklistedItems) {
+	public void setBlacklistedItems(final List<ItemStack> blacklistedItems) {
 		if (blacklistedItems == null) return;
 		this.blacklistedItems = blacklistedItems;
 	}
@@ -82,6 +88,28 @@ public class CheckItemsInsideMenu {
 		if (slotsToCheck != null)
 			this.slotsToCheck.addAll(slotsToCheck);
 	}
+
+	/**
+	 * Sets the type of match criteria for item comparisons. If none of the provided matches
+	 * are satisfied, use the {@link #setMatchCheck(MatchCheckItemStack)} method to set your
+	 * own custom condition in the match method.
+	 *
+	 * @param filterMatch the type of match to be used for item comparisons for matching the blacklist.
+	 */
+	public void setFilterMatch(@Nonnull FilterMatch filterMatch) {
+		this.filterMatch = filterMatch;
+	}
+
+	/**
+	 * Sets a custom match check for item comparisons. This method allows you to define
+	 * your own condition for matching items if the default criteria do not suffice.
+	 *
+	 * @param checkItemStack an instance of class that extends {@code MatchCheckItemStack} with a custom match method.
+	 */
+	public void setMatchCheck(@Nonnull MatchCheckItemStack checkItemStack) {
+		this.matchCheck = checkItemStack;
+	}
+
 
 	/**
 	 * Checks the items inside the inventory and removes duplicate items if the shallCheckDuplicates parameter is set
@@ -158,7 +186,7 @@ public class CheckItemsInsideMenu {
 			}
 			final ItemStack item = inv.getItem(slot);
 			this.getInventoryItems(inventoryItems, slot, player, item);
-			this.setItem(inv, slot, item);
+			this.setToOneItem(inv, slot, item);
 		}
 		if (shallCheckDuplicates)
 			return addToMuchItems(inventoryItems, player, itemStacks, location);
@@ -238,24 +266,24 @@ public class CheckItemsInsideMenu {
 	}
 
 	private boolean checkItemAreOnBlacklist(final ItemStack itemStack) {
-		final List<Material> itemStacks = blacklistedItems;
+		final List<ItemStack> itemStacks = blacklistedItems;
 		if (itemStack != null && itemStacks != null && !itemStacks.isEmpty())
-			for (final Material item : itemStacks) {
-				if (item == itemStack.getType() && new ItemStack(item).isSimilar(itemStack))
+			for (final ItemStack stack : itemStacks) {
+				if (matchCheck.match(filterMatch , stack ,itemStack))
 					return true;
 			}
 		return false;
 
 	}
 
-	public Material convertString(final String name) {
-		if (name == null) return null;
-		Material material = Material.getMaterial(name.toUpperCase());
+	public Material convertMaterialFromString(final String materialName) {
+		if (materialName == null) return null;
+		Material material = Material.getMaterial(materialName.toUpperCase());
 		if (material != null) {
 			return material;
 		} else {
 			if (!registerMenuAPI.isNotFoundItemCreator())
-				return registerMenuAPI.getItemCreator().of(name).makeItemStack().getType();
+				return registerMenuAPI.getItemCreator().of(materialName).makeItemStack().getType();
 		}
 		return null;
 	}
@@ -264,7 +292,7 @@ public class CheckItemsInsideMenu {
 		return nameEquals(material, "AIR", "CAVE_AIR", "VOID_AIR", "LEGACY_AIR");
 	}
 
-	public void setItem(final Inventory inventory, final int slot, final ItemStack item) {
+	public void setToOneItem(final Inventory inventory, final int slot, final ItemStack item) {
 		if (checkDuplicates && item != null) {
 			ItemStack clone = new ItemStack(item);
 			clone.setAmount(1);
