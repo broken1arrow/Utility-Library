@@ -27,7 +27,7 @@ public class FillItems<T> {
         fillItemsList.remove(item);
     }
 
-    public void clear(T item) {
+    public void clear() {
         fillItemsList.clear();
     }
 
