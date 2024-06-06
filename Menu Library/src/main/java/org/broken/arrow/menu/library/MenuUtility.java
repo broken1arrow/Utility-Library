@@ -41,7 +41,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 
-import static org.broken.arrow.menu.library.utility.ItemCreator.convertString;
+import static org.broken.arrow.menu.library.utility.ItemCreator.convertMaterialFromString;
 
 
 /**
@@ -112,7 +112,7 @@ public class MenuUtility<T> {
      * Creates a menu instance.
      *
      * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin. Use this constructor
-     *                        only if you are using the plugin and have not shaded it.
+     *                        only if you are using the plugin and you don't need provide this when you shaded it.
      * @param fillSlots       The slots you want to fill with items. Can be null if not filling specific slots.
      * @param shallCacheItems Indicates whether items and slots should be cached in this class. If false,
      *                        override {@link #retrieveMenuButtons(int, Map)} to cache it own class.
@@ -132,8 +132,8 @@ public class MenuUtility<T> {
         this.updateTime = -1;
         this.menuOpenSound = Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull() == null ? Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BASEDRUM").orNull() : Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull();
         this.uniqueKey = "";
-        this.menuAPI = RegisterMenuAPI.getMenuAPI();
-        this.menuCache = this.menuAPI.getMenuCache();
+        this.menuAPI = menuAPI;
+        this.menuCache = menuAPI.getMenuCache();
         this.checkItemsInsideMenu = new CheckItemsInsideMenu(menuAPI);
     }
 
@@ -561,7 +561,7 @@ public class MenuUtility<T> {
      */
     @Nonnull
     public CheckItemsInsideMenu getCheckItemsInsideMenu() {
-        return this.getCheckItemsInsideMenu(null);
+        return this.getCheckItemsInsideMenuByStrings(null);
     }
 
     /**
@@ -569,21 +569,38 @@ public class MenuUtility<T> {
      * inventory. You can use this instance, for example, to collect and save the items added by the player
      * to the menu to a cache or for other specific purposes.
      *
-     * @param blackListedMaterials list of blacklisted materials.
+     * @param blackListedMaterials list of blacklisted materials as strings.
      * @return A CheckItemsInsideMenu instance for collect the menu's inventory items.
      */
     @Nonnull
-    public CheckItemsInsideMenu getCheckItemsInsideMenu(@Nullable List<String> blackListedMaterials) {
+    public CheckItemsInsideMenu getCheckItemsInsideMenuByStrings(@Nullable List<String> blackListedMaterials) {
         if (blackListedMaterials != null) {
-            List<Material> materials = new ArrayList<>();
+            List<ItemStack> materials = new ArrayList<>();
             for (String item : blackListedMaterials) {
-                Material material = convertString(menuAPI, item);
-                materials.add(material);
+                Material material = convertMaterialFromString(menuAPI, item);
+                materials.add(new ItemStack(material));
             }
-            this.checkItemsInsideMenu.setBlacklistedItemsNew(materials);
+            this.checkItemsInsideMenu.setBlacklistedItems(materials);
         }
         return this.checkItemsInsideMenu;
     }
+
+    /**
+     * Retrieves an instance of CheckItemsInsideMenu, which allows you to process the items inside the menu's
+     * inventory. You can use this instance, for example, to collect and save the items added by the player
+     * to the menu to a cache or for other specific purposes.
+     *
+     * @param blackListedMaterials list of blacklisted ItemStacks.
+     * @return A CheckItemsInsideMenu instance for collect the menu's inventory items.
+     */
+    @Nonnull
+    public CheckItemsInsideMenu getCheckItemsInsideMenuByItems(@Nullable List<ItemStack> blackListedMaterials) {
+        if (blackListedMaterials != null) {
+            this.checkItemsInsideMenu.setBlacklistedItems(blackListedMaterials);
+        }
+        return this.checkItemsInsideMenu;
+    }
+
 
     /**
      * Provides access to the internal checks for player interactions

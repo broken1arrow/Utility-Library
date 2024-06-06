@@ -42,7 +42,7 @@ public class ItemCreator {
 		return countItems;
 	}
 
-	public static Material convertString(RegisterMenuAPI registerMenuAPI,final String name) {
+	public static Material convertMaterialFromString(RegisterMenuAPI registerMenuAPI, final String name) {
 		if (name == null) return null;
 		Material material = Material.getMaterial(name.toUpperCase());
 		if (material != null) {

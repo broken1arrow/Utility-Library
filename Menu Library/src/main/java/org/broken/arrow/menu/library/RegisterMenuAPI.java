@@ -6,7 +6,6 @@ import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.menu.library.utility.Metadata;
 import org.broken.arrow.menu.library.utility.ServerVersion;
-import org.broken.arrow.nbt.library.RegisterNbtAPI;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -32,17 +31,15 @@ import java.util.logging.Level;
 
 public class RegisterMenuAPI {
 	private final Logging logger = new Logging(RegisterMenuAPI.class);
-	private static RegisterMenuAPI menuAPI;
+	private static final RegisterMenuAPI menuAPI = new RegisterMenuAPI();
 	private final MenuCache menuCache;
 	private final Plugin plugin;
 	private Metadata playerMeta;
-	private RegisterNbtAPI nbtApi;
 	private ItemCreator itemCreator;
 	private CheckItemsInsideMenu checkItemsInsideMenu;
 	private SendMsgDuplicatedItems messages;
 	private boolean notFoundItemCreator;
 	private boolean notFoundUpdateTitle;
-
 
 	private RegisterMenuAPI() {
 		throw new UnsupportedOperationException("You need specify your main class");
@@ -54,8 +51,7 @@ public class RegisterMenuAPI {
 
 	public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
 		this.plugin = plugin;
-		menuAPI = this;
-		menuCache = new MenuCache();
+		this.menuCache = new MenuCache();
 		versionCheck(turnOffLogger);
 		if (this.plugin == null) {
 			logger.log(Level.WARNING, () -> Logging.of("You have not set a plugin."));
@@ -80,7 +76,6 @@ public class RegisterMenuAPI {
 		this.playerMeta = new Metadata(plugin);
 		this.messages = new SendMsgDuplicatedItems();
 		try {
-			this.nbtApi = new RegisterNbtAPI(plugin, turnOffLogger);
 			this.itemCreator = new ItemCreator(plugin);
 		} catch (NoClassDefFoundError ignore) {
 			notFoundItemCreator = true;
@@ -88,7 +83,7 @@ public class RegisterMenuAPI {
 	}
 
 	public static RegisterMenuAPI getMenuAPI() {
-		return menuAPI;
+		return  menuAPI;
 	}
 
 	private void versionCheck(boolean turnOffLogger) {
@@ -116,11 +111,6 @@ public class RegisterMenuAPI {
 
 	public CheckItemsInsideMenu getCheckItemsInsideInventory() {
 		return checkItemsInsideMenu;
-	}
-
-	@Nullable
-	public RegisterNbtAPI getNbtApi() {
-		return nbtApi;
 	}
 
 	public MenuCache getMenuCache() {

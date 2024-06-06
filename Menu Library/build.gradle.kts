@@ -16,7 +16,6 @@ version = "1.0-SNAPSHOT"
 dependencies {
     api(project(":Color-Conversion"))
     api(project(":Item-Creator"))
-    api(project(":NBT"))
     api(project(":Title-Update"))
     api(project(":Log-and-Validate"))
 
