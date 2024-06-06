@@ -14,9 +14,9 @@ description = "Item_Creator"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Color_Conversion"))
+    api(project(":Color-Conversion"))
     api(project(":NBT"))
-    api(project(":Log_and_Validate"))
+    api(project(":Log-and-Validate"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
     compileOnly(libs.mojang.authlib)

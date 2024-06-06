@@ -14,7 +14,7 @@ description = "Color_Conversion"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Log_and_Validate"))
+    api(project(":Log-and-Validate"))
     compileOnly(libs.com.google.code.gson.gson)
     compileOnly(libs.org.spigotmc.spigot.api)
     compileOnly(libs.com.google.code.findbugs.jsr305)

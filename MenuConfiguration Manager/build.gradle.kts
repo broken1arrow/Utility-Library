@@ -13,9 +13,9 @@ description = "MenuConfiguration-Manager"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Yaml_Utility"))
+    api(project(":Yaml-Utility"))
     api(project(":Serialize-Utility"))
-    api(project(":Log_and_Validate"))
+    api(project(":Log-and-Validate"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 }

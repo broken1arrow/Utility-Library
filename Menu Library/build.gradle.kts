@@ -14,11 +14,11 @@ description = "Menu_Library"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Color_Conversion"))
-    api(project(":Item_Creator"))
+    api(project(":Color-Conversion"))
+    api(project(":Item-Creator"))
     api(project(":NBT"))
     api(project(":Title-Update"))
-    api(project(":Log_and_Validate"))
+    api(project(":Log-and-Validate"))
 
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.com.google.code.gson.gson)

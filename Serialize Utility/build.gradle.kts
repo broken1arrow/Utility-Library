@@ -5,6 +5,7 @@ plugins {
     java
     `maven-publish`
     alias(libs.plugins.shadow)
+
     id("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }
@@ -14,7 +15,7 @@ description = "Serialize-Utility"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Log_and_Validate"))
+    api(project(":Log-and-Validate"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 }

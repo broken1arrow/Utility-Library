@@ -14,8 +14,8 @@ version = "1.0-SNAPSHOT"
 
 dependencies {
     api(project(":Serialize-Utility"))
-    api(project(":Yaml_Utility"))
-    api(project(":Color_Conversion"))
+    api(project(":Yaml-Utility"))
+    api(project(":Color-Conversion"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 }

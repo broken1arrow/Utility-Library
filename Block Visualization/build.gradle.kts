@@ -16,8 +16,8 @@ version = "1.0-SNAPSHOT"
 
 
 dependencies {
-    api(project(":Log_and_Validate"))
-    api(project(":Color_Conversion"))
+    api(project(":Log-and-Validate"))
+    api(project(":Color-Conversion"))
     implementation(libs.tr7zw.item.nbt.api)
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)

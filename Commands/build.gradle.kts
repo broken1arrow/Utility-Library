@@ -14,7 +14,7 @@ description = "Commands"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Color_Conversion"))
+    api(project(":Color-Conversion"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 }

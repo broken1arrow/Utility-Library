@@ -8,16 +8,16 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-dependencies {
-    api(project(":Log_and_Validate"))
-    api(project(":Color_Conversion"))
-    compileOnly(libs.org.spigotmc.spigotapi)
-    compileOnly(libs.google.findbugs.jsr305)
-}
-
 group = "org.broken.arrow.library.title.update"
 description = "Title-Update"
 version = "1.0-SNAPSHOT"
+
+dependencies {
+    api(project(":Log-and-Validate"))
+    api(project(":Color-Conversion"))
+    compileOnly(libs.org.spigotmc.spigotapi)
+    compileOnly(libs.google.findbugs.jsr305)
+}
 
 java {
     withJavadocJar()

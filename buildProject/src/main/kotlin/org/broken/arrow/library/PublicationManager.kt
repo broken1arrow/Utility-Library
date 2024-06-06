@@ -17,7 +17,7 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
     init {
         apply(project,configure);
     }
-    
+
     /**
      * Applies the Maven publishing configuration to the given project.
      *
@@ -61,7 +61,7 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
                         println("project.version = " + project.version)
                         groupId = project.group.toString()
                         artifactId = project.name
-                        version = "0.587"
+                        version = "0.104"
                     }
                 }
                 repositories {

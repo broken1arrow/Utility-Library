@@ -13,11 +13,11 @@ description = "Utility-Library"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Menu_Library"))
-    api(project(":Item_Creator"))
+    api(project(":Menu-Library"))
+    api(project(":Item-Creator"))
     api(project(":Database"))
     api(project(":Commands"))
-    api(project(":Yaml_Utility"))
+    api(project(":Yaml-Utility"))
     api(project(":Block-Visualization"))
     api(project(":Title-Update"))
     api(project(":Conversation-Prompt"))
@@ -25,6 +25,7 @@ dependencies {
     api(project(":MenuConfiguration-Manager"))
     api(project(":Serialize-Utility"))
     api(project(":NBT"))
+    api(project(":Log-and-Validate"))
 
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)

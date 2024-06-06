@@ -14,7 +14,7 @@ description = "Database"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Log_and_Validate"))
+    api(project(":Log-and-Validate"))
     api(project(":Serialize-Utility"))
     compileOnly(libs.org.xerial.sqlite.jdbc)
     compileOnly(libs.com.zaxxer.hikaricp)

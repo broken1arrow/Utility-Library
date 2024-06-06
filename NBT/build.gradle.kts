@@ -6,6 +6,7 @@ plugins {
     java
     `maven-publish`
     alias(libs.plugins.shadow)
+
     id("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }
@@ -16,7 +17,7 @@ version = "1.0-SNAPSHOT"
 
 
 dependencies {
-    api(project(":Log_and_Validate"))
+    api(project(":Log-and-Validate"))
     api(libs.tr7zw.item.nbt.api)
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
