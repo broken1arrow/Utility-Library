@@ -31,7 +31,7 @@ import java.util.logging.Level;
 
 public class RegisterMenuAPI {
 	private final Logging logger = new Logging(RegisterMenuAPI.class);
-	private static final RegisterMenuAPI menuAPI = new RegisterMenuAPI();
+	private static RegisterMenuAPI menuAPI;// = new RegisterMenuAPI();
 	private final MenuCache menuCache;
 	private final Plugin plugin;
 	private Metadata playerMeta;
@@ -51,7 +51,7 @@ public class RegisterMenuAPI {
 	}
 
 	public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
-
+		menuAPI = this;
 		this.plugin = plugin;
 		this.menuCache = new MenuCache();
 		versionCheck(turnOffLogger);
