@@ -42,7 +42,8 @@ public class RegisterMenuAPI {
 	private boolean notFoundUpdateTitle;
 
 	private RegisterMenuAPI() {
-		throw new UnsupportedOperationException("You need specify your main class");
+		menuCache = null;
+		plugin = null;
 	}
 
 	public RegisterMenuAPI(final Plugin plugin) {
@@ -50,6 +51,7 @@ public class RegisterMenuAPI {
 	}
 
 	public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
+
 		this.plugin = plugin;
 		this.menuCache = new MenuCache();
 		versionCheck(turnOffLogger);
