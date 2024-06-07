@@ -19,6 +19,7 @@ dependencies {
     api(project(":Title-Update"))
     api(project(":Log-and-Validate"))
 
+    api(project(":NBT"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.com.google.code.gson.gson)
     compileOnly(libs.google.findbugs.jsr305)
@@ -29,11 +30,14 @@ java {
     withJavadocJar()
 }
 
+
+
 tasks {
 
     PublicationManager(project) {
         val shadowJar by getting(ShadowJar::class) {
-            archiveClassifier.set("all")
+            mustRunAfter(":NBT:shadowJar")
+            archiveClassifier.set("${description}_all")
             mergeServiceFiles()
         }
         artifact(shadowJar) {

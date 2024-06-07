@@ -28,11 +28,11 @@ tasks {
     tasks {
         PublicationManager(project) {
             val shadowJar by getting(ShadowJar::class) {
-                archiveClassifier.set("all")
+                archiveClassifier.set("${description}_all")
                 mergeServiceFiles()
             }
             artifact(shadowJar) {
-                classifier = "all"
+                classifier = "all_t"
             }
         }
     }

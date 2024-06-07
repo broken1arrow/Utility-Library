@@ -5,7 +5,7 @@ plugins {
     java
     alias(libs.plugins.shadow)
 
-    id ("java-library")
+    id("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }
 
@@ -26,17 +26,16 @@ java {
     withJavadocJar()
 }
 
-tasks {
 
-    tasks{
-        PublicationManager(project) {
-            val shadowJar by getting(ShadowJar::class) {
-                archiveClassifier.set("all")
-                mergeServiceFiles()
-            }
-            artifact(shadowJar) {
-                classifier = "all"
-            }
+tasks {
+    PublicationManager(project) {
+        val shadowJar by getting(ShadowJar::class) {
+            mustRunAfter(":NBT:shadowJar")
+            archiveClassifier.set("${description}_all")
+            mergeServiceFiles()
+        }
+        artifact(shadowJar) {
+            classifier = "all"
         }
     }
 }

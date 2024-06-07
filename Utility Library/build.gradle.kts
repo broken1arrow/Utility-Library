@@ -35,16 +35,12 @@ java {
     withJavadocJar()
 }
 
-tasks.withType<PublishToMavenLocal> {
-    dependsOn(tasks.shadowJar)
-}
-
-
 tasks {
 
     shadowJar {
+        mustRunAfter(":Block-Visualization:shadowJar")
+        mustRunAfter(":NBT:shadowJar")
         val shadeLogic = ShadeLogic(project, this)
-
         shadeLogic.shadowProject {
             setArchiveFileName()
             dependencies {
@@ -56,7 +52,7 @@ tasks {
 
     PublicationManager(project) {
         val shadowJar by getting(ShadowJar::class) {
-            archiveClassifier.set("all")
+            archiveClassifier.set("${description}_all")
             mergeServiceFiles()
         }
         artifact(shadowJar) {

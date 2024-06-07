@@ -26,33 +26,40 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
      */
     private fun apply(project: Project,configure: MavenPublication.() -> Unit) {
         //project.plugins.apply("maven-publish")
-
-        val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
+        val projectName = project.name
 
         project.tasks {
-            register<Jar>("sourcesJar") {
-                archiveClassifier.set("sources")
-                from(sourceSets["main"].allSource)
-            }
+            if (findByName("${projectName}_sourcesJar") == null) {
+                val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
+                register<Jar>("${projectName}_sourcesJar") {
+                    archiveClassifier.set("sources")
+                    from(sourceSets["main"].allSource)
+                }}
+            if (findByName("${projectName}_javadocJar") == null) {
+                register<Jar>("${projectName}_javadocJar") {
+                    archiveClassifier.set("${projectName}_javadoc")
+                    from(project.tasks.named("javadoc"))
+                }}
         }
-        val javadocJarTask = project.tasks.findByName("javadocJar") as? Jar
-            ?: project.tasks.register<Jar>("javadocJar") {
+    /*    val javadocJarTask = project.tasks.findByName("${projectName}javadocJar") as? Jar
+            ?: project.tasks.register<Jar>("${projectName}javadocJar") {
                 archiveClassifier.set("javadoc")
                 from(project.tasks.named("javadoc"))
-            }
+            }*/
 
         project.afterEvaluate {
             project.extensions.configure<org.gradle.api.publish.PublishingExtension> {
                 publications {
-                    create<MavenPublication>("maven_Java_task"){
+                    create<MavenPublication>("${projectName}_maven"){
                         configure(this)
 
-                        artifact(project.tasks.named<Jar>("sourcesJar").get()) {
+                        artifact(project.tasks.named<Jar>("${projectName}_sourcesJar").get()) {
                             classifier = "sources"
                         }
-                        artifact(javadocJarTask) {
-                            classifier = "javadocs"
-                        }
+                       /* artifact(project.tasks.named<Jar>("${projectName}_javadocJar").get()) {
+                            classifier = "javadoc"
+                        }*/
+                        from (components["java"])
                         groupId = project.group.toString()
                         artifactId = project.name
                         version = "0.105"

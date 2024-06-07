@@ -10,6 +10,7 @@ plugins {
 group = "org.broken.arrow.library"
 version = "1.0-SNAPSHOT"
 apply(plugin = "java")
+apply(plugin = "maven-publish")
 
 repositories {
     mavenCentral()
@@ -22,7 +23,7 @@ repositories {
 
 
 allprojects {
-    apply(plugin = "java")
+
 }
 
 
@@ -45,7 +46,7 @@ subprojects {
         }
         jar {
             setProjectVersion(project)
-            archiveFileName.set("${project.name}-${project.version}_sources.jar")
+           // archiveFileName.set("${project.name}-${project.version}_sources.jar")
         }
         processResources {
             filteringCharset = Charsets.UTF_8.name() // We want UTF-8 for everything
@@ -108,31 +109,6 @@ javadoc {
 }
 }
 
-
-private val exclusions = listOf(
-"*exclude.jar",
-"com/github/angeschossen/",
-"org/spigotmc/",
-"org/bukkit/",
-"org/yaml/snakeyaml/",
-"com/google/",
-"net/md_5/bungee/",
-"org/apache/commons/",
-"mojang-translations/",
-"javax/annotation/",
-"org/joml/",
-"org/checkerframework/",
-"META-INF/proguard/",
-"META-INF/versions/",
-"META-INF/maven/com.google.code.findbugs/",
-"META-INF/maven/com.google.code.gson/",
-"META-INF/maven/com.google.errorprone/",
-"META-INF/maven/com.google.guava/",
-"META-INF/maven/net.md-5/",
-"META-INF/maven/org.joml/",
-"META-INF/maven/org.spigotmc/",
-"META-INF/maven/org.yaml/"
-)
 /*todo This give circle dependency currently. See it this could be solved.
 subprojects{
 apply(plugin = "com.github.johnrengelman.shadow")
