@@ -4,6 +4,7 @@ plugins {
     java
     `java-gradle-plugin`
     `java-library`
+    `maven-publish`
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -16,6 +17,10 @@ gradlePlugin {
         implementationClass = "org.broken.arrow.library.LoadDependency"
     }
 }
+
+
+apply(plugin = "com.github.johnrengelman.shadow")
+apply(plugin = "maven-publish")
 
 buildscript {
     repositories {
@@ -42,8 +47,6 @@ repositories {
     mavenCentral()
     mavenLocal()
 }
-
-apply(plugin = "com.github.johnrengelman.shadow")
 
 dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")

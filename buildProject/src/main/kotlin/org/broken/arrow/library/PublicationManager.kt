@@ -48,12 +48,9 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
                         artifact(project.tasks.named<Jar>("javadocJar").get()) {
                             classifier = "javadocs"
                         }
-                        println("project.group = " + project.group)
-                        println("project.name = " + project.name)
-                        println("project.version = " + project.version)
                         groupId = project.group.toString()
                         artifactId = project.name
-                        version = "0.104"
+                        version = "0.105"
                     }
                 }
                 repositories {
