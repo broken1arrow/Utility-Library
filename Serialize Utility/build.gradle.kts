@@ -2,10 +2,10 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.broken.arrow.library.PublicationManager
 
 plugins {
-    java
-    `maven-publish`
     alias(libs.plugins.shadow)
 
+    id("maven-publish")
+    id("java")
     id("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }

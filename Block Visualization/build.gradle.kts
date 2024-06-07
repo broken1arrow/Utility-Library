@@ -3,9 +3,9 @@ import org.broken.arrow.library.PublicationManager
 import org.broken.arrow.library.ShadeLogic
 
 plugins {
-    java
     alias(libs.plugins.shadow)
 
+    id("java")
     id("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }

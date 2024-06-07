@@ -1,9 +1,10 @@
 
 plugins {
     `kotlin-dsl`
-    java
-    `java-gradle-plugin`
-    `java-library`
+    //id ("kotlin-dsl") apply true
+    id ("java-gradle-plugin")
+    id ("java-library")
+    id ("java")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -53,6 +54,7 @@ dependencies {
    // implementation("com.github.jengelman.gradle.plugins:shadow:6.1.0")
      //implementation("com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar:8.1.1")
 }
+
 
 kotlin {
     jvmToolchain(8)

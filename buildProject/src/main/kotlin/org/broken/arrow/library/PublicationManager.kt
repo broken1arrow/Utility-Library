@@ -28,15 +28,18 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
         //project.plugins.apply("maven-publish")
         val projectName = project.name
 
+        val javaDocName = "${projectName}_javadocJar"
+        val sourcesName = "${projectName}_sourcesJar"
+
         project.tasks {
-            if (findByName("${projectName}_sourcesJar") == null) {
+            if (findByName(sourcesName) == null) {
                 val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
-                register<Jar>("${projectName}_sourcesJar") {
+                register<Jar>(sourcesName) {
                     archiveClassifier.set("sources")
                     from(sourceSets["main"].allSource)
                 }}
-            if (findByName("${projectName}_javadocJar") == null) {
-                register<Jar>("${projectName}_javadocJar") {
+            if (findByName(javaDocName) == null) {
+                register<Jar>(javaDocName) {
                     archiveClassifier.set("${projectName}_javadoc")
                     from(project.tasks.named("javadoc"))
                 }}
@@ -53,10 +56,10 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
                     create<MavenPublication>("${projectName}_maven"){
                         configure(this)
 
-                        artifact(project.tasks.named<Jar>("${projectName}_sourcesJar").get()) {
+                        artifact(project.tasks.named<Jar>(sourcesName).get()) {
                             classifier = "sources"
                         }
-                       /* artifact(project.tasks.named<Jar>("${projectName}_javadocJar").get()) {
+                       /* artifact(project.tasks.named<Jar>("javaDocName").get()) {
                             classifier = "javadoc"
                         }*/
                         from (components["java"])

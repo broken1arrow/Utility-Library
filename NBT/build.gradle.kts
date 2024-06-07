@@ -3,10 +3,10 @@ import org.broken.arrow.library.PublicationManager
 import org.broken.arrow.library.ShadeLogic
 
 plugins {
-    java
-    `maven-publish`
     alias(libs.plugins.shadow)
 
+    id ("java")
+    id ("maven-publish")
     id("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }

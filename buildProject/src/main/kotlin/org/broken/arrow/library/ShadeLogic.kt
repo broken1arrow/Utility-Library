@@ -1,9 +1,8 @@
 package org.broken.arrow.library
 
 import org.gradle.api.Project
-import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.internal.impldep.bsh.classpath.BshClassPath
+
 
 /**
  * Class to encapsulate logic for configuring the ShadowJar task.
