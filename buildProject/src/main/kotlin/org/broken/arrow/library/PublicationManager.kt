@@ -25,23 +25,15 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
      * @param configure The configuration block for the MavenPublication.
      */
     private fun apply(project: Project,configure: MavenPublication.() -> Unit) {
+        project.plugins.apply("maven-publish")
 
-        /*      project.plugins.apply("maven-publish")
-              project.plugins.apply("com.github.johnrengelman.shadow")*/
-
-        // Accessing the sourceSets
         val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
 
-        // Registering the sourcesJar task
         project.tasks {
             register<Jar>("sourcesJar") {
                 archiveClassifier.set("sources")
                 from(sourceSets["main"].allSource)
             }
-       /*     named<Jar>("javadoc") {
-                archiveClassifier.set("javadoc")
-                from(project.tasks.named("javadoc"))
-            }*/
         }
 
         project.afterEvaluate {
@@ -70,7 +62,6 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
             }
         }
     }
-
 }
 
 
