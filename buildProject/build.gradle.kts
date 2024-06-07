@@ -4,7 +4,7 @@ plugins {
     java
     `java-gradle-plugin`
     `java-library`
-    `maven-publish`
+    id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -36,10 +36,9 @@ buildscript {
 }
 
 tasks {
-
     compileJava {
-        sourceCompatibility = "8"//JavaVersion.VERSION_1_8.toString()
-        targetCompatibility = "8"//JavaVersion.VERSION_1_8.toString()
+        sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+        targetCompatibility = JavaVersion.VERSION_1_8.toString()
     }
 }
 
@@ -55,10 +54,6 @@ dependencies {
      //implementation("com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar:8.1.1")
 }
 
-
-/*tasks.test {
-    useJUnitPlatform()
-}*/
 kotlin {
     jvmToolchain(8)
 }
