@@ -13,7 +13,7 @@ public abstract class MenuButton {
 	private static int counter = 0;
 	private final int id;
 
-	public MenuButton() {
+	protected MenuButton() {
 		this.id = counter++;
 	}
 

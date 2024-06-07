@@ -17,9 +17,6 @@ import java.util.Objects;
  */
 public class MatchCheckItemStack {
 
-    public MatchCheckItemStack() {
-    }
-
     /**
      * Matches two ItemStacks based on the specified FilterMatch criteria.
      *
@@ -58,6 +55,7 @@ public class MatchCheckItemStack {
 
                     return Objects.equals(firstLore, secondLore);
                 }
+                return false;
             default:
                 return false;
         }
