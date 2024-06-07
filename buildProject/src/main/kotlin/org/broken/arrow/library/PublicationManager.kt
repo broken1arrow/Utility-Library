@@ -25,7 +25,7 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
      * @param configure The configuration block for the MavenPublication.
      */
     private fun apply(project: Project,configure: MavenPublication.() -> Unit) {
-        project.plugins.apply("maven-publish")
+        //project.plugins.apply("maven-publish")
 
         val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
 

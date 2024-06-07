@@ -47,7 +47,6 @@ public class CheckItemsInsideMenu {
 
 	/**
 	 * Set blacklisted items player not shall add to inventory/menu.
-	 * This will change name after the old method is removed.
 	 *
 	 * @param blacklistedItems list of items some are not allowed.
 	 */
