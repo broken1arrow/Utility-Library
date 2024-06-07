@@ -1,6 +1,7 @@
 package org.broken.arrow.prompt.library;
 
 
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.conversations.ConversationContext;
@@ -18,6 +19,8 @@ import javax.annotation.Nullable;
  * This class provides an easier implementation of SimpleConversation.
  */
 public abstract class SimplePrompt extends ValidatingPrompt {
+
+    private final Logging logger = new Logging(SimplePrompt.class);
 
     /**
      * Retrieves the prompt message to be displayed to the player.
@@ -122,19 +125,10 @@ public abstract class SimplePrompt extends ValidatingPrompt {
             simplePrompt = (SimplePrompt) super.clone();
             simplePrompt.player = player;
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+            logger.log(e,()-> Logging.of("Fail to clone this class " + SimplePrompt.class.getName()));
+            return null;
         }
         return simplePrompt;
     }
-
-/*    @Override
-    public SimplePrompt clone() {
-        try {
-            return (SimplePrompt) super.clone();
-        } catch (final CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }*/
 
 }

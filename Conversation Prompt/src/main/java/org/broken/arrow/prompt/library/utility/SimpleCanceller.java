@@ -1,5 +1,6 @@
 package org.broken.arrow.prompt.library.utility;
 
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationCanceller;
@@ -14,6 +15,7 @@ import java.util.List;
  * specified cancel phrases.
  */
 public final class SimpleCanceller implements ConversationCanceller {
+    private final Logging logger = new Logging(SimpleCanceller.class);
     private final List<String> cancelPhrases;
 
     /**
@@ -74,7 +76,8 @@ public final class SimpleCanceller implements ConversationCanceller {
             simpleCanceller.cancelPhrases.addAll(cancelPhrases);
             return simpleCanceller;
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+            logger.log(e,()-> Logging.of("Fail to clone this class " + SimpleCanceller.class.getName()));
+            return new SimpleCanceller("quit", "cancel", "exit");
         }
     }
 }
