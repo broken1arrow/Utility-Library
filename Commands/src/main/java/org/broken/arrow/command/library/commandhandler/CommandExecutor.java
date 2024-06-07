@@ -207,12 +207,10 @@ public class CommandExecutor extends Command {
     @Nonnull
     private String formatSet(Set<String> labels) {
         StringBuilder labelsFormatted = new StringBuilder();
-        //labelsFormatted.append("<");
         for (String label : labels) {
             labelsFormatted.append(label)
                     .append(", ");
         }
-        //labelsFormatted.append(">");
         labelsFormatted.setLength(labelsFormatted.length()-2);
         return labelsFormatted.toString();
     }
