@@ -10,7 +10,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.block.visualization"
+group = "org.broken.arrow.library"
 description = "Block-Visualization"
 version = "1.0-SNAPSHOT"
 

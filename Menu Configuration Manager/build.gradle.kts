@@ -9,7 +9,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.menu.configuration.library"
+group = "org.broken.arrow.library"
 description = "MenuConfiguration-Manager"
 version = "1.0-SNAPSHOT"
 

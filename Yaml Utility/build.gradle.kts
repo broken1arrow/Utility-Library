@@ -9,7 +9,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group ="org.broken.arrow.library.yaml.utility"
+group = "org.broken.arrow.library"
 description = "Yaml_Utility"
 version = "1.0-SNAPSHOT"
 

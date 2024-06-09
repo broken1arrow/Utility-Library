@@ -9,7 +9,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.title.update"
+group = "org.broken.arrow.library"
 description = "Title-Update"
 version = "1.0-SNAPSHOT"
 

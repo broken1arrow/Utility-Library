@@ -10,7 +10,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.serialize.utility"
+group = "org.broken.arrow.library"
 description = "Serialize-Utility"
 version = "1.0-SNAPSHOT"
 

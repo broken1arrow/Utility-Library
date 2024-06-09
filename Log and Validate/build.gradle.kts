@@ -9,7 +9,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.logger"
+group = "org.broken.arrow.library"
 description = "Log_and_Validate"
 version = "1.0-SNAPSHOT"
 

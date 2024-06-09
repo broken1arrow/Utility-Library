@@ -9,7 +9,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.color"
+group = "org.broken.arrow.library"
 description = "Color_Conversion"
 version = "1.0-SNAPSHOT"
 

@@ -11,7 +11,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.nbt"
+group = "org.broken.arrow.library"
 description = "NBT"
 version = "1.0-SNAPSHOT"
 

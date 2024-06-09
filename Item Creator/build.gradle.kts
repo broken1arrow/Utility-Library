@@ -9,7 +9,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.item.creator"
+group = "org.broken.arrow.library"
 description = "Item_Creator"
 version = "1.0-SNAPSHOT"
 
@@ -30,7 +30,7 @@ java {
 tasks {
     PublicationManager(project) {
         val shadowJar by getting(ShadowJar::class) {
-            //mustRunAfter(":nbt:shadowjar")
+            //mustRunAfter(":nbt:shadowJar")
             archiveClassifier.set("${description}_all")
             mergeServiceFiles()
         }

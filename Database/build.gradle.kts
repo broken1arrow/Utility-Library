@@ -9,7 +9,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.database"
+group = "org.broken.arrow.library"
 description = "Database"
 version = "1.0-SNAPSHOT"
 

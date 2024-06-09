@@ -9,7 +9,7 @@ plugins {
     id("org.broken.arrow.library.LoadDependency")
 }
 
-group = "org.broken.arrow.library.conversation.prompt"
+group = "org.broken.arrow.library"
 description = "Conversation-Prompt"
 version = "1.0-SNAPSHOT"
 
