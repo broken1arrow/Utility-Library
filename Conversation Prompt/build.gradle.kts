@@ -14,7 +14,7 @@ description = "Conversation-Prompt"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Log-and-Validate"))
+    api(project(":log-and-validate"))
     compileOnly(libs.org.spigotmc.spigot.api)
     compileOnly(libs.com.google.code.findbugs.jsr305)
 }
@@ -25,15 +25,14 @@ java {
 
 tasks {
 
-    tasks {
-        PublicationManager(project) {
-            val shadowJar by getting(ShadowJar::class) {
-                archiveClassifier.set("${description}_all")
-                mergeServiceFiles()
-            }
-            artifact(shadowJar) {
-                classifier = "all_t"
-            }
+    PublicationManager(project) {
+        val shadowJar by getting(ShadowJar::class) {
+            archiveClassifier.set("${description}_all")
+            mergeServiceFiles()
+        }
+        artifact(shadowJar) {
+            classifier = "all_t"
         }
     }
+
 }

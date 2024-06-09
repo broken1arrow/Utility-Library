@@ -15,7 +15,7 @@ version = "1.0-SNAPSHOT"
 
 
 dependencies {
-    api(project(":Serialize-Utility"))
+    api(project(":serialize-utility"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 }

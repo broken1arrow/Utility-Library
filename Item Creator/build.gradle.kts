@@ -14,9 +14,9 @@ description = "Item_Creator"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Color-Conversion"))
-    api(project(":NBT"))
-    api(project(":Log-and-Validate"))
+    api(project(":color-conversion"))
+    api(project(":nbt"))
+    api(project(":log-and-validate"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
     compileOnly(libs.mojang.authlib)
@@ -30,7 +30,7 @@ java {
 tasks {
     PublicationManager(project) {
         val shadowJar by getting(ShadowJar::class) {
-            mustRunAfter(":NBT:shadowJar")
+            //mustRunAfter(":nbt:shadowjar")
             archiveClassifier.set("${description}_all")
             mergeServiceFiles()
         }

@@ -15,7 +15,7 @@ description = "Serialize-Utility"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Log-and-Validate"))
+    api(project(":log-and-validate"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 }

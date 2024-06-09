@@ -15,7 +15,7 @@ import org.gradle.api.Project
 class PublicationManager(project: Project, configure: MavenPublication.() -> Unit = {}) {
 
     init {
-        apply(project,configure);
+        apply(project, configure);
     }
 
     /**
@@ -24,7 +24,7 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
      * @param project The Gradle project to configure.
      * @param configure The configuration block for the MavenPublication.
      */
-    private fun apply(project: Project,configure: MavenPublication.() -> Unit) {
+    private fun apply(project: Project, configure: MavenPublication.() -> Unit) {
         //project.plugins.apply("maven-publish")
         val projectName = project.name
 
@@ -37,35 +37,53 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
                 register<Jar>(sourcesName) {
                     archiveClassifier.set("sources")
                     from(sourceSets["main"].allSource)
-                }}
+                }
+            }
             if (findByName(javaDocName) == null) {
                 register<Jar>(javaDocName) {
                     archiveClassifier.set("${projectName}_javadoc")
                     from(project.tasks.named("javadoc"))
-                }}
+                }
+            }
         }
-    /*    val javadocJarTask = project.tasks.findByName("${projectName}javadocJar") as? Jar
-            ?: project.tasks.register<Jar>("${projectName}javadocJar") {
-                archiveClassifier.set("javadoc")
-                from(project.tasks.named("javadoc"))
-            }*/
-
+        /*    val javadocJarTask = project.tasks.findByName("${projectName}javadocJar") as? Jar
+                ?: project.tasks.register<Jar>("${projectName}javadocJar") {
+                    archiveClassifier.set("javadoc")
+                    from(project.tasks.named("javadoc"))
+                }*/
         project.afterEvaluate {
             project.extensions.configure<org.gradle.api.publish.PublishingExtension> {
                 publications {
-                    create<MavenPublication>("${projectName}_maven"){
+                    create<MavenPublication>("${projectName}_mavenJava") {
                         configure(this)
-
                         artifact(project.tasks.named<Jar>(sourcesName).get()) {
                             classifier = "sources"
                         }
-                       /* artifact(project.tasks.named<Jar>("javaDocName").get()) {
-                            classifier = "javadoc"
-                        }*/
-                        from (components["java"])
+                        /* artifact(project.tasks.named<Jar>("javaDocName").get()) {
+                             classifier = "javadoc"
+                         }*/
+                        from(components["java"])
                         groupId = project.group.toString()
                         artifactId = project.name
-                        version = "0.105"
+                        version = "0.107"
+                        pom {
+                            name.set(project.name)
+                            description.set("Description for ${project.name}")
+                            url.set("https://github.com/broken1arrow/Utility-Library")
+
+                            developers {
+                                developer {
+                                    id.set("yourId")
+                                    name.set("broken-arrow")
+                                    email.set("not set")
+                                }
+                            }
+                            scm {
+                                connection.set("scm:git:git://github.com/broken1arrow/Utility-Library")
+                                developerConnection.set("scm:git:ssh://github.com/broken1arrow/Utility-Library")
+                                url.set("https://github.com/broken1arrow/Utility-Library")
+                            }
+                        }
                     }
                 }
                 repositories {

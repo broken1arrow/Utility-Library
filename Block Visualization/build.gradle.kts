@@ -16,8 +16,8 @@ version = "1.0-SNAPSHOT"
 
 
 dependencies {
-    api(project(":Log-and-Validate"))
-    api(project(":Color-Conversion"))
+    api(project(":log-and-validate"))
+    api(project(":color-conversion"))
     implementation(libs.tr7zw.item.nbt.api)
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
@@ -30,10 +30,8 @@ java {
 
 tasks {
 
-    shadowJar {
-        val shadeLogic = ShadeLogic(project, this)
-
-        shadeLogic.shadowProject {
+   shadowJar {
+        ShadeLogic(project, this) {
             setArchiveFileName()
             dependencies {
                 exclusions.forEach { exclude(it) }

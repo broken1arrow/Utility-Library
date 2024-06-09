@@ -14,19 +14,19 @@ description = "Utility-Library"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Menu-Library"))
-    api(project(":Item-Creator"))
-    api(project(":Database"))
-    api(project(":Commands"))
-    api(project(":Yaml-Utility"))
-    api(project(":Block-Visualization"))
-    api(project(":Title-Update"))
-    api(project(":Conversation-Prompt"))
-    api(project(":Localization"))
-    api(project(":MenuConfiguration-Manager"))
-    api(project(":Serialize-Utility"))
-    api(project(":NBT"))
-    api(project(":Log-and-Validate"))
+    api(project(":menu-library"))
+    api(project(":item-creator"))
+    api(project(":database"))
+    api(project(":commands"))
+    api(project(":yaml-utility"))
+    api(project(":block-visualization"))
+    api(project(":title-update"))
+    api(project(":conversation-prompt"))
+    api(project(":localization"))
+    api(project(":menu-configuration-manager"))
+    api(project(":serialize-utility"))
+    api(project(":nbt"))
+    api(project(":log-and-validate"))
 
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
@@ -39,15 +39,26 @@ java {
 tasks {
 
     shadowJar {
-        mustRunAfter(":Block-Visualization:shadowJar")
-        mustRunAfter(":NBT:shadowJar")
-        val shadeLogic = ShadeLogic(project, this)
-        shadeLogic.shadowProject {
+        mustRunAfter(":block-visualization:shadowJar")
+        mustRunAfter(":nbt:shadowJar")
+        val shadeLogic = ShadeLogic(project, this) {
             setArchiveFileName()
             dependencies {
                 exclusions.forEach { exclude(it) }
             }
             relocate("de.tr7zw.changeme.nbtapi", formatDependency("nbt"))
+        }
+    }
+    processResources {
+        filteringCharset = Charsets.UTF_8.name() // We want UTF-8 for everything
+        filesMatching("plugin.yml") {
+            expand(
+                mapOf(
+                    "version" to project.version,
+                    "main" to "${project.group}.UtilityLibrary",//"${project.group}.${project.name}",
+                    "name" to project.name
+                )
+            )
         }
     }
 

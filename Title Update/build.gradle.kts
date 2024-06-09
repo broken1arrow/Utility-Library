@@ -14,8 +14,8 @@ description = "Title-Update"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Log-and-Validate"))
-    api(project(":Color-Conversion"))
+    api(project(":log-and-validate"))
+    api(project(":color-conversion"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 }

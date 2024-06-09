@@ -14,12 +14,11 @@ description = "Menu_Library"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Color-Conversion"))
-    api(project(":Item-Creator"))
-    api(project(":Title-Update"))
-    api(project(":Log-and-Validate"))
+    api(project(":color-conversion"))
+    api(project(":item-creator"))
+    api(project(":title-update"))
+    api(project(":log-and-validate"))
 
-    api(project(":NBT"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.com.google.code.gson.gson)
     compileOnly(libs.google.findbugs.jsr305)
@@ -36,7 +35,7 @@ tasks {
 
     PublicationManager(project) {
         val shadowJar by getting(ShadowJar::class) {
-            mustRunAfter(":NBT:shadowJar")
+            mustRunAfter(":nbt:shadowJar")
             archiveClassifier.set("${description}_all")
             mergeServiceFiles()
         }

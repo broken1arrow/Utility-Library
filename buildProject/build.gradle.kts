@@ -1,10 +1,10 @@
 
 plugins {
     `kotlin-dsl`
-    //id ("kotlin-dsl") apply true
-    id ("java-gradle-plugin")
-    id ("java-library")
-    id ("java")
+
+    id("java-gradle-plugin")
+    id("java-library")
+    id("java")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -38,8 +38,8 @@ buildscript {
 
 tasks {
     compileJava {
-        sourceCompatibility = JavaVersion.VERSION_1_8.toString()
-        targetCompatibility = JavaVersion.VERSION_1_8.toString()
+        java.sourceCompatibility = JavaVersion.VERSION_1_8
+        java.targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
 

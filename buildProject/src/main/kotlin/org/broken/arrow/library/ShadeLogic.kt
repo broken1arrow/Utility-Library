@@ -4,24 +4,22 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 
 
+
 /**
  * Class to encapsulate logic for configuring the ShadowJar task.
  *
  * @param project The project to run this shade configuration.
  * @param task The current running task for which to set the file name.
+ * @param shadeLogic create a anonymous part of this class you can use to sett property for the shadowJar.
  */
-open class ShadeLogic(private val project: Project, private val task: AbstractArchiveTask) {
+class ShadeLogic(private val project: Project, private val task: AbstractArchiveTask, shadeLogic: ShadeLogic.() -> Unit) {
 
-    private var fileName = "${project.name}-${project.version}.jar"
-
-    /**
-     * Configures the given shadow project with the specified settings.
-     *
-     * @param shadeLogic The configuration block for the ShadeLogic.
-     */
-    fun shadowProject(shadeLogic: ShadeLogic.() -> Unit = {}) {
+    private var fileName : String = "${project.name}-${project.version}.jar"
+    val exclusions : List<String> = setExclusions()
+    init {
         shadeLogic(this)
     }
+
 
     /**
      * Formats the given package name as a dependency string. The resulting string will be in the following
@@ -42,7 +40,7 @@ open class ShadeLogic(private val project: Project, private val task: AbstractAr
         task.archiveFileName.set(fileName)
     }
 
-    val exclusions = listOf(
+   private fun setExclusions() : List<String> = listOf(
         "*exclude.jar",
         "com/github/angeschossen/",
         "org/spigotmc/",

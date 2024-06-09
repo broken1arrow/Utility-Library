@@ -13,9 +13,9 @@ description = "Localization"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Serialize-Utility"))
-    api(project(":Yaml-Utility"))
-    api(project(":Color-Conversion"))
+    api(project(":serialize-utility"))
+    api(project(":yaml-utility"))
+    api(project(":color-conversion"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 }

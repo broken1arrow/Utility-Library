@@ -14,8 +14,8 @@ description = "Database"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    api(project(":Log-and-Validate"))
-    api(project(":Serialize-Utility"))
+    api(project(":log-and-validate"))
+    api(project(":serialize-utility"))
     compileOnly(libs.org.xerial.sqlite.jdbc)
     compileOnly(libs.com.zaxxer.hikaricp)
     compileOnly(libs.mysql.connector.j)
@@ -30,16 +30,13 @@ java {
 }
 
 tasks {
-
-    tasks {
-        PublicationManager(project) {
-            val shadowJar by getting(ShadowJar::class) {
-                archiveClassifier.set("${description}_all")
-                mergeServiceFiles()
-            }
-            artifact(shadowJar) {
-                classifier = "all"
-            }
+    PublicationManager(project) {
+        val shadowJar by getting(ShadowJar::class) {
+            archiveClassifier.set("${description}_all")
+            mergeServiceFiles()
+        }
+        artifact(shadowJar) {
+            classifier = "all"
         }
     }
 }
