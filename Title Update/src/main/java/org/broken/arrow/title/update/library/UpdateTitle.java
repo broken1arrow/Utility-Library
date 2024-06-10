@@ -146,10 +146,24 @@ public class UpdateTitle {
 			logger.log(Level.WARNING, () -> of("The server version is 0 or below " + SERVER_VERSION));
 			return;
 		}
+		if (showTitleNewerMinecraft(player, titleUtility)) return;
 
+		if (player != null && containerUtility != null && SERVER_VERSION > 0)
+			try {
+				if (!titleUtility.isTitleSet())
+					logger.log(Level.WARNING, () -> of("Title is not set, so can't update the title."));
+				else
+					containerUtility.updateInventory(player, titleUtility);
+			} catch (Exception exception) {
+				logger.log(Level.WARNING, exception, () -> of("There was an error while updating the title. Please contact the developer for assistance."));
+				hasCastEx = true;
+			}
+	}
+
+	private static boolean showTitleNewerMinecraft(Player player, @Nonnull TitleUtility titleUtility) {
 		if (SERVER_VERSION > 20.2F) {
 			if (player == null)
-				return;
+				return true;
 			InventoryView inventoryView = player.getOpenInventory();
 			try {
 				if (!titleUtility.isTitleSet())
@@ -162,18 +176,9 @@ public class UpdateTitle {
 				logger.log(Level.WARNING, exception, () -> Logging.of("Something was not working when update the title: " + inventoryView.getType()));
 				hasCastEx = true;
 			}
-			return;
+			return true;
 		}
-		if (player != null && containerUtility != null && SERVER_VERSION > 0)
-			try {
-				if (!titleUtility.isTitleSet())
-					logger.log(Level.WARNING, () -> of("Title is not set, so can't update the title."));
-				else
-					containerUtility.updateInventory(player, titleUtility);
-			} catch (Exception exception) {
-				logger.log(Level.WARNING, exception, () -> of("There was an error while updating the title. Please contact the developer for assistance."));
-				hasCastEx = true;
-			}
+		return false;
 	}
 
 
