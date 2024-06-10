@@ -84,11 +84,14 @@ public class MenuInteractionChecks<T> {
             event.setCancelled(true);
             return true;
         }
+
         if (menu.isSlotsYouCanAddItems()) {
-            if (menu.getFillSpace().contains(clickedPos) || menu.getFillSpace().contains(event.getSlot()))
+            if (menu.getFillSpace().contains(clickedPos) || menu.getFillSpace().contains(event.getSlot())) {
                 return true;
-            else if (clickedInventory.getType() != InventoryType.PLAYER)
+            } else if (clickedInventory.getType() != InventoryType.PLAYER) {
                 event.setCancelled(true);
+            }
+            return clickedInventory.getType() == InventoryType.PLAYER;
         } else {
             checkInventoryType(event, clickedInventory, cursor);
         }
