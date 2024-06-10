@@ -30,7 +30,7 @@ java {
 tasks {
     PublicationManager(project) {
         val shadowJar by getting(ShadowJar::class) {
-            //mustRunAfter(":nbt:shadowJar")
+            mustRunAfter(":nbt:shadowJar")
             archiveClassifier.set("${description}_all")
             mergeServiceFiles()
         }

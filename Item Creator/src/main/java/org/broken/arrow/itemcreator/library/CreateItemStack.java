@@ -56,8 +56,7 @@ public class CreateItemStack {
     private DyeColor bannerBaseColor;
     private final List<String> loreList;
     private final Map<Enchantment, Tuple<Integer, Boolean>> enchantments = new HashMap<>();
-    private final List<ItemFlag> visibleItemFlags = new ArrayList<>();
-    private final List<ItemFlag> flagsToHide = new ArrayList<>();
+    private List<ItemFlag> itemFlags;
     private final List<Pattern> pattern = new ArrayList<>();
     private final List<PotionEffect> portionEffects = new ArrayList<>();
     private FireworkEffect fireworkEffect;
@@ -229,7 +228,7 @@ public class CreateItemStack {
     /**
      * Add firework effect on this item.
      *
-     * @param fireworkEffect  effect you want to add to your firework.
+     * @param fireworkEffect effect you want to add to your firework.
      */
     public void setFireworkEffect(final FireworkEffect fireworkEffect) {
         this.fireworkEffect = fireworkEffect;
@@ -534,6 +533,15 @@ public class CreateItemStack {
     }
 
     /**
+     * Retrieve if all colors is set.
+     *
+     * @return true if the colors is set.
+     */
+    public boolean isColorSet() {
+        return getRed() >= 0 && getGreen() >= 0 && getBlue() >= 0;
+    }
+
+    /**
      * Set the 3 colors auto.
      *
      * @param rgb string need to be formatted like this #,#,#.
@@ -589,8 +597,7 @@ public class CreateItemStack {
      * @return this class.
      */
     public CreateItemStack setItemFlags(final ItemFlag... itemFlags) {
-        this.setItemFlags(Arrays.asList(itemFlags));
-        return this;
+        return this.setItemFlags(Arrays.asList(itemFlags));
     }
 
     /**
@@ -600,8 +607,8 @@ public class CreateItemStack {
      * @return this class.
      */
     public CreateItemStack setItemFlags(final List<ItemFlag> itemFlags) {
-        Validate.checkNotNull(itemFlags, "flags list is null");
-        this.visibleItemFlags.addAll(itemFlags);
+        Validate.checkNotNull(itemFlags, "flags list should not be null");
+        this.itemFlags = itemFlags;
         return this;
     }
 
@@ -610,10 +617,12 @@ public class CreateItemStack {
      *
      * @param itemFlags add one or several flags you want to hide.
      * @return this class.
+     * @deprecated this method does not make sense.
      */
+    @Deprecated
     public CreateItemStack setFlagsToHide(final List<ItemFlag> itemFlags) {
-        Validate.checkNotNull(itemFlags, "flags list is null");
-        this.flagsToHide.addAll(itemFlags);
+        Validate.checkNotNull(itemFlags, "flags list should not be null");
+        this.itemFlags = itemFlags;
         return this;
     }
 
@@ -622,8 +631,10 @@ public class CreateItemStack {
      *
      * @return list of flags.
      */
+    @Nonnull
     public List<ItemFlag> getFlagsToHide() {
-        return flagsToHide;
+        if (itemFlags == null) return new ArrayList<>();
+        return itemFlags;
     }
 
     /**
@@ -786,10 +797,8 @@ public class CreateItemStack {
     }
 
     private void hideEnchantments(final ItemMeta itemMeta) {
-        if (!this.getFlagsToHide().isEmpty()) {
-            itemMeta.addItemFlags(this.getFlagsToHide().toArray(new ItemFlag[0]));
-        } else {
-            itemMeta.addItemFlags(Arrays.stream(ItemFlag.values()).filter(itemFlag -> !visibleItemFlags.contains(itemFlag)).toArray(ItemFlag[]::new));
+        for (ItemFlag itemFlag : this.getFlagsToHide()) {
+            itemMeta.addItemFlags(itemFlag);
         }
     }
 
@@ -863,38 +872,32 @@ public class CreateItemStack {
                 potionsUtility.setPotion(PotionType.WATER);
                 return;
             }
-
-            if (getRgb() != null && (getRed() < 0 && getGreen() < 0 && getBlue() < 0)) {
-                logger.log(Level.WARNING, () -> Logging.of("You have not set colors correctly and need to be zero or above, you have set like this: " + getRgb() + " should be in this format Rgb: #,#,#"));
-            } else {
-                potionMeta.setColor(Color.fromBGR(getBlue(), getGreen(), getRed()));
-            }
-
             if (getPortionEffects() != null && !getPortionEffects().isEmpty()) {
+                if (getRgb() != null || !isColorSet()) {
+                    logger.log(Level.WARNING, () -> Logging.of("You have not set colors correctly and need to be zero or above, you have set like this: " + getRgb() + " should be in this format Rgb: #,#,#"));
+                } else {
+                    potionMeta.setColor(Color.fromBGR(getBlue(), getGreen(), getRed()));
+                }
                 getPortionEffects().forEach((portionEffect) -> potionMeta.addCustomEffect(portionEffect, true));
             }
-
         }
     }
 
     private void addFireworkEffect(final ItemMeta itemMeta) {
 
         if (itemMeta instanceof FireworkEffectMeta) {
-            if (getRgb() == null || (getRed() < 0 && getGreen() < 0 && getBlue() < 0)) {
-                logger.log(Level.WARNING, () -> Logging.of("You have not set colors correctly, you have set this: " + getRgb() + " should be in this format Rgb: #,#,#"));
+            if (getRgb() == null || !isColorSet()) {
+                // logger.log(Level.WARNING, () -> Logging.of("You have not set colors correctly, you have set this: " + getRgb() + " should be in this format Rgb: #,#,#"));
                 return;
             }
             final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
             final FireworkEffect.Builder builder = FireworkEffect.builder();
             builder.withColor(Color.fromBGR(getBlue(), getGreen(), getRed()));
             if (this.getFireworkEffect() != null) {
-                FireworkEffect effect = this.getFireworkEffect();
-                builder.flicker(effect.hasFlicker())
-                        .with(effect.getType())
-                        .trail(effect.hasTrail())
-                        .withFade(effect.getFadeColors());
+                fireworkEffectMeta.setEffect(this.getFireworkEffect());
+            } else {
+                fireworkEffectMeta.setEffect(builder.build());
             }
-            fireworkEffectMeta.setEffect(builder.build());
         }
     }
 
