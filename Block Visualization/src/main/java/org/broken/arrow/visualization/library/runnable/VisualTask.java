@@ -60,23 +60,7 @@ public final class VisualTask extends BukkitRunnable {
 
         if (seconds >= 5) {
             runningVisualTask = true;
-            for (final Entry<Location, VisualizeData> visualizeBlock : visualizeBlocks.entrySet()) {
-                final Location location = visualizeBlock.getKey();
-                final VisualizeData visualizeData = visualizeBlock.getValue();
-                Block block = location.getBlock();
-
-                if (!checkIfBlockIsAir(visualizeData, block) || visualizeData.isStopVisualizeBlock()) {
-                    remove.add(location);
-                    continue;
-                }
-
-                if (visualizeData.getViewer() == null) {
-                    for (final Player player : visualizeData.getPlayersAllowed())
-                        blockVisualizerCache.visualize(player, block, visualizeData);
-                } else {
-                    blockVisualizerCache.visualize(visualizeData.getViewer(), block, visualizeData);
-                }
-            }
+            visualTask();
             runningVisualTask = false;
             seconds = 0;
         }
@@ -89,6 +73,26 @@ public final class VisualTask extends BukkitRunnable {
                 blockVisualizerCache.sendBlockChangePlayers(block, visualizeData, visualizeData::removeFallingBlock);
             });
             remove.clear();
+        }
+    }
+
+    private void visualTask() {
+        for (final Entry<Location, VisualizeData> visualizeBlock : visualizeBlocks.entrySet()) {
+            final Location location = visualizeBlock.getKey();
+            final VisualizeData visualizeData = visualizeBlock.getValue();
+            Block block = location.getBlock();
+
+            if (!checkIfBlockIsAir(visualizeData, block) || visualizeData.isStopVisualizeBlock()) {
+                remove.add(location);
+                continue;
+            }
+
+            if (visualizeData.getViewer() == null) {
+                for (final Player player : visualizeData.getPlayersAllowed())
+                    blockVisualizerCache.visualize(player, block, visualizeData);
+            } else {
+                blockVisualizerCache.visualize(visualizeData.getViewer(), block, visualizeData);
+            }
         }
     }
 
