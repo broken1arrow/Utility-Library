@@ -260,7 +260,9 @@ public class ParticleCreator {
                 try {
                     Potion potion = potionsData.getPotion();
                     this.player.playEffect(location, this.effect, potion);
-                } catch (NoClassDefFoundError ignore) {}
+                } catch (NoClassDefFoundError ignore) {
+                    logger.warning("Could not find the Potion class, this class is removed in Minecraft 1.20.5+.");
+                }
             }
         } else {
             spawnInWorld(location, radius);
@@ -289,7 +291,9 @@ public class ParticleCreator {
             try {
                 Potion potion = potionsData.getPotion();
                 this.world.playEffect(location, this.effect, potion);
-            } catch (NoClassDefFoundError ignore) {}
+            } catch (NoClassDefFoundError ignore) {
+                logger.warning("Could not find the Potion class, this class is removed in Minecraft 1.20.5+.");
+            }
         }
     }
 }
