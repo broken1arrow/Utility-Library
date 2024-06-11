@@ -873,7 +873,7 @@ public class CreateItemStack {
                 return;
             }
             if (getPortionEffects() != null && !getPortionEffects().isEmpty()) {
-                if (getRgb() != null || !isColorSet()) {
+                if (!isColorSet() || getRgb() == null) {
                     logger.log(Level.WARNING, () -> Logging.of("You have not set colors correctly and need to be zero or above, you have set like this: " + getRgb() + " should be in this format Rgb: #,#,#"));
                 } else {
                     potionMeta.setColor(Color.fromBGR(getBlue(), getGreen(), getRed()));
