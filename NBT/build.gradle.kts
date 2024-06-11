@@ -40,14 +40,14 @@ tasks {
         }
     }
 
-    PublicationManager(project) {
-        val shadowJar by getting(ShadowJar::class) {
-            archiveClassifier.set("${description}_all")
-            mergeServiceFiles()
-        }
-        artifact(shadowJar) {
-            classifier = "all"
-        }
-    }
+    /*    PublicationManager(project) {
+            val shadowJar by getting(ShadowJar::class) {
+                archiveClassifier.set("${description}_all")
+                mergeServiceFiles()
+            }
+            artifact(shadowJar) {
+                classifier = "all"
+            }
+        }*/
 }
 

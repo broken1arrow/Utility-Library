@@ -25,7 +25,7 @@ java {
 }
 
 tasks{
-    PublicationManager(project) {
+/*    PublicationManager(project) {
         val shadowJar by getting(ShadowJar::class) {
             archiveClassifier.set("${description}_all")
             mergeServiceFiles()
@@ -33,5 +33,5 @@ tasks{
         artifact(shadowJar) {
             classifier = "all"
         }
-    }
+    }*/
 }

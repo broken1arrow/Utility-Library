@@ -28,14 +28,14 @@ java {
 
 
 tasks {
-    PublicationManager(project) {
+/*    PublicationManager(project) {
         val shadowJar by getting(ShadowJar::class) {
-            mustRunAfter(":nbt:shadowJar")
             archiveClassifier.set("${description}_all")
             mergeServiceFiles()
         }
         artifact(shadowJar) {
             classifier = "all"
         }
-    }
+    }*/
+
 }
