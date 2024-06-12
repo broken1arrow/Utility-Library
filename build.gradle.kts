@@ -38,11 +38,21 @@ subprojects {
             java.sourceCompatibility = JavaVersion.VERSION_1_8
             java.targetCompatibility = JavaVersion.VERSION_1_8
         }
+
+            val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
+            register<Jar>("sourcesJar") {
+                archiveClassifier.set("sources")
+                from(sourceSets["main"].allSource)
+            }
     }
+
     publishing {
         publications {
             create<MavenPublication>("mavenJava") {
 
+                artifact(project.tasks.named<Jar>("sourcesJar").get()) {
+                    classifier = "sources"
+                }
                 from(components["java"])
                 artifactId = project.name
                 groupId = project.group.toString()
