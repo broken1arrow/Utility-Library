@@ -25,7 +25,7 @@ dependencies {
 }
 
 java {
-
+    withJavadocJar()
 }
 
 tasks {
