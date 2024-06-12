@@ -827,9 +827,7 @@ public abstract class Database {
             if (this.connection != null) {
                 this.connection.close();
                 this.connection = null;
-            } else {
-                log.log(Level.WARNING, () -> of("Could not close connection, because it is not set."));
-            }
+            } 
         } catch (final SQLException exception) {
             log.log(Level.WARNING, exception, () -> of("Something went wrong, when attempt to close connection."));
         }
