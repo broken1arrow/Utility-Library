@@ -33,7 +33,10 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-
+          
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+      
     - name: Set up GPG
       run: |
         echo "${{ secrets.SIGNING_KEY }}" | gpg --batch --import
