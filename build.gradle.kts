@@ -81,24 +81,26 @@ subprojects {
 
         repositories {
             maven {
-                name = "sonatype"
-                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                name = "OSSRH"
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
                 credentials {
-                    username = project.findProperty("ossrhUsername") as String? ?: ""
-                    password = project.findProperty("ossrhPassword") as String? ?: ""
+                    username = findProperty("ossrhUsername") as String? ?: ""
+                    password = findProperty("ossrhPassword") as String? ?: ""
                 }
             }
         }
     }
 
-/*    signing {
+   signing {
+      /* val signingKey = findProperty("signing.key") as String?
+       signingKey?.let { file(it).readText(Charsets.UTF_8) }*/
         useInMemoryPgpKeys(
-            findProperty("signing.keyId") as String?,
+           findProperty("signing.keyId") as String?,
             findProperty("signing.key") as String?,
             findProperty("signing.password") as String?
         )
         sign(publishing.publications["mavenJava"])
-    }*/
+    }
 
 }
 
