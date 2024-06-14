@@ -43,11 +43,18 @@ jobs:
       env:
         SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
 
-    - name: Build and Publish
+    - name: Build
       env:
         OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
         SIGNING_KEY_PASSPHRASE: ${{ secrets.SIGNING_KEY_PASSPHRASE }}
+      run: |
+         echo "ossrhUsername=${OSSRH_USERNAME}" >> gradle.properties
+         echo "ossrhPassword=${OSSRH_PASSWORD}" >> gradle.properties
+         echo "signing.keyId=${SIGNING_KEY_ID}" >> gradle.properties
+         echo "signing.password=${SIGNING_KEY_PASSWORD}" >> gradle.properties
+         echo "signing.key=${HOME}/secring.gpg" >> gradle.properties
+    - name: Publish
       run: |
         ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
