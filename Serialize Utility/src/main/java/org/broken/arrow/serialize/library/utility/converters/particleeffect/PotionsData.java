@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 
 public class PotionsData {
 
-    private Object potion;
+    private final Object potion;
     private final int damage;
 
     public PotionsData(@Nonnull Object potion) {

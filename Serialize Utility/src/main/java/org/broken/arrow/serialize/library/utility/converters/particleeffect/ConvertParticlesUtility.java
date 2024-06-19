@@ -1,5 +1,6 @@
 package org.broken.arrow.serialize.library.utility.converters.particleeffect;
 
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.serialize.library.utility.Pair;
 import org.broken.arrow.serialize.library.utility.converters.particleeffect.ParticleEffect.Builder;
 import org.bukkit.Bukkit;
@@ -14,7 +15,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Utility class for converting particles and particle-related data.
@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 public class ConvertParticlesUtility {
 
 	private static final float SERVER_VERSION;
-	private static final Logger logger = Logger.getLogger(ConvertParticlesUtility.class.getName());
+	private static final Logging logger = new Logging(ConvertParticlesUtility.class);
 
 	private ConvertParticlesUtility() {
 	}
@@ -340,7 +340,7 @@ public class ConvertParticlesUtility {
 				builder.setPotion(potionsData);
 		} else {
 			if (particleData != null)
-				logger.warning("You must set the extra data for this '" + part.name() + "' or the effect will not spawn. The class you should use is '" + part.getDataType() + "'");
+				logger.warn(()-> Logging.of("You must set the extra data for this '" + part.name() + "' or the effect will not spawn. The class you should use is '" + part.getDataType() + "'"));
 		}
 	}
 
@@ -358,7 +358,7 @@ public class ConvertParticlesUtility {
 				builder.setPotion(potionsData);
 		} else {
 			if (particleData != null && effectData != null)
-				logger.warning("You must set the extra data for this '" + effect.name() + "' or the effect will not spawn. The class you should use is '" + effectData + "'");
+				logger.warn(()-> Logging.of("You must set the extra data for this '" + effect.name() + "' or the effect will not spawn. The class you should use is '" + effectData + "'"));
 		}
 	}
 }
