@@ -2,10 +2,10 @@ name: Publish to Maven Central
 
 on:
   push:
-    branches:
-    - main
-    #tags:
-    #  - 'v*'
+    #branches:
+    #- main
+    tags:
+    - 'v*'
 
 jobs:
   build:
@@ -54,7 +54,7 @@ jobs:
          echo "ossrhPassword=${OSSRH_PASSWORD}" >> gradle.properties
          echo "signing.keyId=${SIGNING_KEY_ID}" >> gradle.properties
          echo "signing.password=${SIGNING_KEY_PASSWORD}" >> gradle.properties
-         echo "signing.key=${HOME}/secring.gpg" >> gradle.properties
+         echo "signing.key=${SIGNING_KEY}" >> gradle.properties
     - name: Publish
       run: |
         ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
