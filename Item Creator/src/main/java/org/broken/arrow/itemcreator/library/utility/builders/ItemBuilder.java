@@ -46,20 +46,20 @@ public final class ItemBuilder {
 	 * Create one itemStack, with name and lore. You can also add more
 	 * like enchants and metadata.
 	 *
-	 * @param itemCreator the item creator instrace.
-	 * @param matrial     you want to create.
+	 * @param itemCreator the item creator instance.
+	 * @param material     the material you want to create.
 	 * @param displayName The name on the item.
 	 * @param lore        The lore or null if you not want to set lore.
 	 */
-	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final Material matrial, final String displayName, final List<String> lore) {
-		this(itemCreator, null, matrial, displayName, lore);
+	public ItemBuilder(@Nonnull final ItemCreator itemCreator, final Material material, final String displayName, final List<String> lore) {
+		this(itemCreator, null, material, displayName, lore);
 	}
 
 	/**
 	 * Create one itemStack, with name and lore. You can also add more
 	 * like enchants and metadata.
 	 *
-	 * @param itemCreator the item creator instrace.
+	 * @param itemCreator the item creator instance.
 	 * @param stringItem  you want to create.
 	 * @param displayName The name on the item.
 	 * @param lore        The lore or null if you not want to set lore.
@@ -69,8 +69,7 @@ public final class ItemBuilder {
 	}
 
 	/**
-	 * Create array of itemStack´s, with name and lore. You can also add more
-	 * like enchants and metadata.
+	 * Create array of itemStack´s, with name and lore. You can also add enchants and metadata.
 	 *
 	 * @param itemCreator the item creator instrace.
 	 * @param itemArray   The array you want to create.
@@ -86,7 +85,7 @@ public final class ItemBuilder {
 	 * Create array of itemStack´s, with name and lore. You can also add more
 	 * like enchants and metadata.
 	 *
-	 * @param itemCreator the item creator instrace.
+	 * @param itemCreator the item creator instance.
 	 * @param itemArray   The array you want to create.
 	 * @param stringItem  The item you want to set the array too.
 	 * @param displayName The name on the item.
@@ -122,7 +121,7 @@ public final class ItemBuilder {
 		return null;
 	}
 
-	public Material getMatrial() {
+	public Material getMaterial() {
 		if (item instanceof Material)
 			return (Material) item;
 		return null;
@@ -144,5 +143,9 @@ public final class ItemBuilder {
 
 	public List<String> getLore() {
 		return lore;
+	}
+
+	public boolean isItemSet() {
+		return item != null;
 	}
 }

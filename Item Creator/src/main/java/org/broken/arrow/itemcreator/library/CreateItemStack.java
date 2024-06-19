@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -48,7 +49,7 @@ public class CreateItemStack {
     static Logging logger = new Logging(CreateItemStack.class);
 
     private final ConvertToItemStack convertItems;
-    private final Object item;
+    private final ItemBuilder itemBuilder;
     private String rgb;
     private final Iterable<?> itemArray;
     private final String displayName;
@@ -66,8 +67,9 @@ public class CreateItemStack {
     private int red = -1;
     private int green = -1;
     private int blue = -1;
-    private short data = -1;
+    private byte data = -1;
     private int customModelData = -1;
+    private short damage = 0;
     private boolean glow;
     private boolean showEnchantments;
     private boolean waterBottle;
@@ -81,7 +83,7 @@ public class CreateItemStack {
         this.serverVersion = itemCreator.getServerVersion();
         this.convertItems = itemCreator.getConvertItems();
 
-        this.item = itemBuilder.getItem();
+        this.itemBuilder = itemBuilder;
         this.itemArray = itemBuilder.getItemArray();
         this.displayName = itemBuilder.getDisplayName();
         this.loreList = itemBuilder.getLore();
@@ -232,6 +234,24 @@ public class CreateItemStack {
      */
     public void setFireworkEffect(final FireworkEffect fireworkEffect) {
         this.fireworkEffect = fireworkEffect;
+    }
+
+    /**
+     * Retrieve the item damage.
+     *
+     * @return the damage
+     */
+    public short getDamage() {
+        return damage;
+    }
+
+    /**
+     * Set the item damage if the item support it.
+     *
+     * @param damage the damage to set.
+     */
+    public void setDamage(short damage) {
+        this.damage = damage;
     }
 
     /**
@@ -432,18 +452,17 @@ public class CreateItemStack {
      *
      * @return number.
      */
-    public short getData() {
+    public Byte getData() {
         return data;
     }
 
     /**
-     * Set data on a item, this only support short
-     * so it is a limit of how high you can set it.
+     * Set data on a item.
      *
-     * @param data the number you want to set.
+     * @param data the byte you want to set.
      * @return this class.
      */
-    public CreateItemStack setData(final short data) {
+    public CreateItemStack setData(final byte data) {
         this.data = data;
         return this;
     }
@@ -721,7 +740,7 @@ public class CreateItemStack {
             }
 
             final ItemMeta itemMeta = itemStack.getItemMeta();
-            setMetadata(itemMeta);
+            setMetadata(itemStack, itemMeta);
             itemStack.setItemMeta(itemMeta);
 
             if (!this.keepAmount)
@@ -730,7 +749,7 @@ public class CreateItemStack {
         return itemStack;
     }
 
-    private void setMetadata(final ItemMeta itemMeta) {
+    private void setMetadata(ItemStack itemStack, final ItemMeta itemMeta) {
         if (itemMeta != null) {
             if (this.displayName != null) {
                 itemMeta.setDisplayName(translateColors(this.displayName));
@@ -738,7 +757,7 @@ public class CreateItemStack {
             if (this.loreList != null && !this.loreList.isEmpty()) {
                 itemMeta.setLore(translateColors(this.loreList));
             }
-            addItemMeta(itemMeta);
+            addItemMeta(itemStack, itemMeta);
         }
     }
 
@@ -762,17 +781,24 @@ public class CreateItemStack {
     }
 
     private ItemStack checkTypeOfItem() {
-        Object object = this.item;
-        if (object != null) {
-            if (object instanceof ItemStack)
-                return (ItemStack) object;
-            if (object instanceof Material)
-                return new ItemStack((Material) object);
-            if (object instanceof String) {
-                if (this.color != null)
-                    return getConvertItems().checkItem(object, this.color);
-                return this.checkTypeOfItem(object);
+        ItemBuilder builder = this.itemBuilder;
+        if ( builder.isItemSet()) {
+            ItemStack result = null;
+            if (builder.getItemStack() != null) {
+                result = builder.getItemStack();
             }
+            ConvertToItemStack convertItems = this.getConvertItems();
+            if (builder.getMaterial() != null) {
+                if (serverVersion > 1.12) {
+                    result = new ItemStack(builder.getMaterial());
+                } else {
+                    result = convertItems.checkItem(builder.getMaterial(), this.getDamage(), this.color, this.getData());
+                }
+            }
+            if (builder.getStringItem() != null) {
+                result = convertItems.checkItem(builder.getStringItem(), this.getDamage(), this.color, this.getData());
+            }
+            return result;
         }
         return null;
     }
@@ -781,19 +807,31 @@ public class CreateItemStack {
         return getConvertItems().checkItem(object);
     }
 
-    private void addItemMeta(final ItemMeta itemMeta) {
+    private void addItemMeta(ItemStack itemStack, final ItemMeta itemMeta) {
         this.addBannerPatterns(itemMeta);
         this.addLeatherArmorColors(itemMeta);
         this.addFireworkEffect(itemMeta);
         this.addEnchantments(itemMeta);
         this.addBottleEffects(itemMeta);
         this.blockStateMeta(itemMeta);
+        this.setDamageMeta(itemStack, itemMeta);
         if (this.serverVersion > 10.0F)
             addUnbreakableMeta(itemMeta);
-        addCustomModelData(itemMeta);
+        this.addCustomModelData(itemMeta);
 
         if (isShowEnchantments() || !this.getFlagsToHide().isEmpty() || this.isGlow())
             hideEnchantments(itemMeta);
+    }
+
+    private void setDamageMeta(ItemStack itemStack, ItemMeta itemMeta) {
+        short damage = this.getDamage();
+        if (damage > 0) {
+            if (serverVersion < 1.13) {
+                itemStack.setDurability(damage);
+            } else {
+                ((Damageable) itemMeta).setDamage(damage);
+            }
+        }
     }
 
     private void hideEnchantments(final ItemMeta itemMeta) {
