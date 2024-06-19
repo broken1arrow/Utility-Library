@@ -1,6 +1,7 @@
 package org.broken.arrow.logging.library;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,6 +40,9 @@ public final class Logging {
 		}
 		logMessageBuilder.reset();
 	}
+	public void warn(Supplier<Builder> msg) {
+		this. log(Level.WARNING, null,  msg);
+	}
 
 	public void logError(Throwable exception, Supplier<Builder> msg) {
 		if (msg == null)
@@ -48,13 +52,17 @@ public final class Logging {
 		log.log(Level.WARNING , exception , logMessageBuilder::getMessage);
 	}
 
-	public static Builder of(final String msg, final String... placeholders) {
+	public static Builder of(final String msg) {
+		return logBuilder.setMessage(msg);
+	}
+	public static Builder of(final String msg, Map<String,String> placeholders) {
 		return logBuilder.setMessage(msg).setPlaceholders(placeholders);
 	}
 
 	public static final class Builder {
 		private String message;
-		private String[] placeholders;
+		private String msgCopy;
+		private Map<String,String> placeholders;
 
 		private Builder() {
 		}
@@ -64,7 +72,7 @@ public final class Logging {
 			return this;
 		}
 
-		private Builder setPlaceholders(final String... placeholders) {
+		private Builder setPlaceholders(final Map<String,String> placeholders) {
 			this.placeholders = placeholders;
 			return this;
 		}
@@ -80,16 +88,9 @@ public final class Logging {
 			if (placeholders == null) {
 				return message;
 			}
-
-			StringBuilder msg = new StringBuilder(message);
-			for (int i = 0; i < placeholders.length; i++) {
-				String placeholder = placeholders[i];
-				int startIndex = msg.indexOf("{" + i + "}");
-				if (startIndex >= 0) {
-					msg.replace(startIndex, startIndex + 3, placeholder != null ? placeholder : "");
-				}
-			}
-			return msg.toString();
+			placeholders.forEach((placeholderKey,value) ->
+					msgCopy = message.replace(placeholderKey, value != null ? value : ""));
+			return msgCopy;
 		}
 
 		private void reset() {
