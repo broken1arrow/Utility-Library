@@ -354,6 +354,11 @@ public enum Materials {
 
 	@Nonnull
 	public static ItemStack getItemStack(String materialName, int amount) {
+		return getItemStack( materialName, amount, null) ;
+	}
+
+	@Nonnull
+	public static ItemStack getItemStack(String materialName, int amount, Byte data) {
 		Materials material = STACKS.get(materialName);
 		if (material != null) {
 			ItemStack stack = material.itemStack;
@@ -361,6 +366,11 @@ public enum Materials {
 				ItemStack clone = stack.clone();
 				clone.setAmount(amount);
 				return clone;
+			}
+		} else {
+			Material bukkitMaterial = Material.getMaterial(materialName);
+			if (bukkitMaterial != null) {
+				return new ItemStack(bukkitMaterial, 1, (short) 0, data);
 			}
 		}
 		return defaultStack;
