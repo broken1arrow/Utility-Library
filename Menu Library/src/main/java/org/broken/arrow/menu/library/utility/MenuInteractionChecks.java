@@ -25,12 +25,19 @@ public class MenuInteractionChecks<T> {
 
         if (!this.menuUtility.isAddedButtonsCacheEmpty()) {
             final int clickedSlot = event.getSlot();
-            final int clickedPos = this.menuUtility.getSlot(clickedSlot);
+            MenuUtility<T> menu = this.menuUtility;
+            final int clickedPos = menu.getSlot(clickedSlot);
             Inventory clickedInventory = event.getClickedInventory();
+
+            if (clickedInventory == null) return false;
             if (checkClickIsAllowed(event,  clickedPos, clickedInventory)) return false;
+
             final MenuButton menuButton = getClickedButton(clickedItem, clickedPos);
             if (menuButton != null) {
                 event.setCancelled(true);
+                if (clickedInventory.getType() == InventoryType.PLAYER ) {
+                    return false;
+                }
                 if (clickedItem == null)
                     clickedItem = new ItemStack(Material.AIR);
                 this.menuUtility.onClick(menuButton, player, clickedSlot, event.getClick(), clickedItem);
@@ -93,9 +100,8 @@ public class MenuInteractionChecks<T> {
             }
             return clickedInventory.getType() == InventoryType.PLAYER;
         } else {
-            checkInventoryType(event, clickedInventory, cursor);
+            return isPlayerInventory(clickedInventory) || hasCursorItem(cursor);
         }
-        return false;
     }
 
     public ItemStack checkIfNull(final ItemStack currentCursor, final ItemStack oldCursor) {
@@ -105,13 +111,12 @@ public class MenuInteractionChecks<T> {
         return oldCursor != null ? oldCursor : new ItemStack(Material.AIR);
     }
 
-    private void checkInventoryType(final InventoryClickEvent event, final Inventory clickedInventory, final ItemStack cursor) {
-        if (clickedInventory.getType() == InventoryType.PLAYER) {
-            event.setCancelled(true);
-        }
-        if (cursor != null && cursor.getType() != Material.AIR) {
-            event.setCancelled(true);
-        }
+    private boolean isPlayerInventory(final Inventory clickedInventory) {
+        return clickedInventory.getType() != InventoryType.PLAYER;
+    }
+
+    private boolean hasCursorItem(ItemStack cursor) {
+        return cursor == null || cursor.getType() == Material.AIR;
     }
 }
 
