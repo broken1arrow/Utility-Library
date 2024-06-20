@@ -55,7 +55,7 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
                         artifact(project.tasks.named<Jar>(sourcesName).get()) {
                             classifier = "sources"
                         }
-                        
+
                         from(components["java"])
                         groupId = project.group.toString()
                         artifactId = project.name
