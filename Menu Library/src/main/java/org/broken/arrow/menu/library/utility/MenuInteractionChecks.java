@@ -28,7 +28,6 @@ public class MenuInteractionChecks<T> {
             MenuUtility<T> menu = this.menuUtility;
             final int clickedPos = menu.getSlot(clickedSlot);
             Inventory clickedInventory = event.getClickedInventory();
-
             if (clickedInventory == null) return false;
             if (checkClickIsAllowed(event,  clickedPos, clickedInventory)) return false;
 
@@ -105,7 +104,7 @@ public class MenuInteractionChecks<T> {
             if (isPlayerInventory || hasNotItemOnCursor(cursor)) {
                 event.setCancelled(true);
             }
-            return !isPlayerInventory || hasNotItemOnCursor(cursor);
+            return false;
         }
     }
 
