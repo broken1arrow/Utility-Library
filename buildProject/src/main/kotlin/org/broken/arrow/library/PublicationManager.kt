@@ -46,11 +46,6 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
                 }
             }
         }
-        /*    val javadocJarTask = project.tasks.findByName("${projectName}javadocJar") as? Jar
-                ?: project.tasks.register<Jar>("${projectName}javadocJar") {
-                    archiveClassifier.set("javadoc")
-                    from(project.tasks.named("javadoc"))
-                }*/
         project.afterEvaluate {
             project.extensions.configure<org.gradle.api.publish.PublishingExtension> {
                 publications {
@@ -59,9 +54,7 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
                         artifact(project.tasks.named<Jar>(sourcesName).get()) {
                             classifier = "sources"
                         }
-                        /* artifact(project.tasks.named<Jar>("javaDocName").get()) {
-                             classifier = "javadoc"
-                         }*/
+           
                         from(components["java"])
                         groupId = project.group.toString()
                         artifactId = project.name
