@@ -39,69 +39,71 @@ subprojects {
             java.targetCompatibility = JavaVersion.VERSION_1_8
         }
 
-            val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
-            register<Jar>("sourcesJar") {
-                archiveClassifier.set("sources")
-                from(sourceSets["main"].allSource)
-            }
+        val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
+        register<Jar>("sources") {
+            archiveClassifier.set("sources")
+            from(sourceSets["main"].allSource)
+        }
     }
+    project.afterEvaluate {
+        publishing {
+            publications {
+                create<MavenPublication>("mavenJava") {
 
-    publishing {
-        publications {
-            create<MavenPublication>("mavenJava") {
+                    artifact(project.tasks.named<Jar>("sources").get()) {
+                        classifier = "sources"
+                    }
+                    from(components["java"])
+                    artifactId = project.name
+                    groupId = project.group.toString()
+                    artifactId = project.name
+                    version = "0.107"
+                    pom {
+                        name.set(project.name)
+                        description.set("Description for ${project.name}")
+                        url.set("https://github.com/broken1arrow/Utility-Library")
 
-                artifact(project.tasks.named<Jar>("sourcesJar").get()) {
-                    classifier = "sources"
-                }
-                from(components["java"])
-                artifactId = project.name
-                groupId = project.group.toString()
-                artifactId = project.name
-                version = "0.107"
-                pom {
-                    name.set(project.name)
-                    description.set("Description for ${project.name}")
-                    url.set("https://github.com/broken1arrow/Utility-Library")
-
-                    developers {
-                        developer {
-                            id.set("yourId")
-                            name.set("broken-arrow")
-                            email.set("not set")
+                        developers {
+                            developer {
+                                id.set("yourId")
+                                name.set("broken-arrow")
+                                email.set("not set")
+                            }
+                        }
+                        scm {
+                            connection.set("scm:git:git://github.com/broken1arrow/Utility-Library")
+                            developerConnection.set("scm:git:ssh://github.com/broken1arrow/Utility-Library")
+                            url.set("https://github.com/broken1arrow/Utility-Library")
                         }
                     }
-                    scm {
-                        connection.set("scm:git:git://github.com/broken1arrow/Utility-Library")
-                        developerConnection.set("scm:git:ssh://github.com/broken1arrow/Utility-Library")
-                        url.set("https://github.com/broken1arrow/Utility-Library")
+                }
+            }
+
+            repositories {
+                //mavenLocal()
+                maven {
+                    name = "sonatype"
+                    url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    credentials {
+                        username = findProperty("ossrhUsername") as String? ?: ""
+                        password = findProperty("ossrhPassword") as String? ?: ""
                     }
                 }
             }
         }
 
-        repositories {
-            maven {
-                name = "sonatype"
-                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                credentials {
-                    username = findProperty("ossrhUsername") as String? ?: ""
-                    password = findProperty("ossrhPassword") as String? ?: ""
-                }
-            }
+    signing {
+            val signingKey = findProperty("signing.key") as String?
+            //signingKey?.let { file(it).readText(Charsets.UTF_8) }
+
+            useInMemoryPgpKeys(
+                findProperty("signing.keyId") as String?,
+                signingKey,
+                findProperty("signing.password") as String?
+            )
+            sign(publishing.publications["mavenJava"])
         }
     }
-
-   signing {
-      /* val signingKey = findProperty("signing.key") as String?
-       signingKey?.let { file(it).readText(Charsets.UTF_8) }*/
-        useInMemoryPgpKeys(
-           findProperty("signing.keyId") as String?,
-            findProperty("signing.key") as String?,
-            findProperty("signing.password") as String?
-        )
-        sign(publishing.publications["mavenJava"])
-    }
-
 }
 
 nexusPublishing {
