@@ -787,16 +787,16 @@ public class CreateItemStack {
             if (builder.getItemStack() != null) {
                 result = builder.getItemStack();
             }
-            ConvertToItemStack convertItems = this.getConvertItems();
+            ConvertToItemStack convertToItemStack = this.getConvertItems();
             if (builder.getMaterial() != null) {
                 if (serverVersion > 1.12) {
                     result = new ItemStack(builder.getMaterial());
                 } else {
-                    result = convertItems.checkItem(builder.getMaterial(), this.getDamage(), this.color, this.getData());
+                    result = convertToItemStack.checkItem(builder.getMaterial(), this.getDamage(), this.color, this.getData());
                 }
             }
             if (builder.getStringItem() != null) {
-                result = convertItems.checkItem(builder.getStringItem(), this.getDamage(), this.color, this.getData());
+                result = convertToItemStack.checkItem(builder.getStringItem(), this.getDamage(), this.color, this.getData());
             }
             return result;
         }
@@ -824,12 +824,12 @@ public class CreateItemStack {
     }
 
     private void setDamageMeta(ItemStack itemStack, ItemMeta itemMeta) {
-        short damage = this.getDamage();
-        if (damage > 0) {
+        short dmg = this.getDamage();
+        if (dmg > 0) {
             if (serverVersion < 1.13) {
-                itemStack.setDurability(damage);
+                itemStack.setDurability(dmg);
             } else {
-                ((Damageable) itemMeta).setDamage(damage);
+                ((Damageable) itemMeta).setDamage(dmg);
             }
         }
     }
@@ -924,13 +924,13 @@ public class CreateItemStack {
     private void addFireworkEffect(final ItemMeta itemMeta) {
 
         if (itemMeta instanceof FireworkEffectMeta) {
-            if (getRgb() == null || !isColorSet()) {
-                // logger.log(Level.WARNING, () -> Logging.of("You have not set colors correctly, you have set this: " + getRgb() + " should be in this format Rgb: #,#,#"));
-                return;
-            }
+
             final FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) itemMeta;
             final FireworkEffect.Builder builder = FireworkEffect.builder();
-            builder.withColor(Color.fromBGR(getBlue(), getGreen(), getRed()));
+
+            if (isColorSet())
+                builder.withColor(Color.fromBGR(getBlue(), getGreen(), getRed()));
+
             if (this.getFireworkEffect() != null) {
                 fireworkEffectMeta.setEffect(this.getFireworkEffect());
             } else {
