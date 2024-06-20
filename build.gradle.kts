@@ -92,16 +92,21 @@ subprojects {
             }
         }
 
-    signing {
-            val signingKey = findProperty("signing.key") as String?
-            //signingKey?.let { file(it).readText(Charsets.UTF_8) }
+        signing {
+            val signatoryConfigured = project.hasProperty("signing.keyId") &&
+                    project.hasProperty("signing.password") &&
+                    project.hasProperty("signing.secretKeyRingFile")
+            if (signatoryConfigured) {
+                val signingKey = findProperty("signing.key") as String?
+                //signingKey?.let { file(it).readText(Charsets.UTF_8) }
 
-            useInMemoryPgpKeys(
-                findProperty("signing.keyId") as String?,
-                signingKey,
-                findProperty("signing.password") as String?
-            )
-            sign(publishing.publications["mavenJava"])
+                useInMemoryPgpKeys(
+                    findProperty("signing.keyId") as String?,
+                    signingKey,
+                    findProperty("signing.password") as String?
+                )
+                sign(publishing.publications["mavenJava"])
+            }
         }
     }
 }
