@@ -91,16 +91,21 @@ public class MenuInteractionChecks<T> {
             event.setCancelled(true);
             return true;
         }
-
+        boolean isPlayerInventory = isPlayerInventory(clickedInventory);
         if (menu.isSlotsYouCanAddItems()) {
             if (menu.getFillSpace().contains(clickedPos) || menu.getFillSpace().contains(event.getSlot())) {
                 return true;
-            } else if (clickedInventory.getType() != InventoryType.PLAYER) {
+            } else {
+                if (!isPlayerInventory) {
+                    event.setCancelled(true);
+                }
+            }
+            return isPlayerInventory;
+        } else {
+            if (isPlayerInventory || hasNotItemOnCursor(cursor)) {
                 event.setCancelled(true);
             }
-            return clickedInventory.getType() == InventoryType.PLAYER;
-        } else {
-            return isPlayerInventory(clickedInventory) || hasCursorItem(cursor);
+            return !isPlayerInventory || hasNotItemOnCursor(cursor);
         }
     }
 
@@ -112,10 +117,10 @@ public class MenuInteractionChecks<T> {
     }
 
     private boolean isPlayerInventory(final Inventory clickedInventory) {
-        return clickedInventory.getType() != InventoryType.PLAYER;
+        return clickedInventory.getType() == InventoryType.PLAYER;
     }
 
-    private boolean hasCursorItem(ItemStack cursor) {
+    private boolean hasNotItemOnCursor(ItemStack cursor) {
         return cursor == null || cursor.getType() == Material.AIR;
     }
 }
