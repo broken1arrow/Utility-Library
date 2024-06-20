@@ -134,6 +134,7 @@ public class ConvertToItemStack {
      *
      * @param item   the 1.13+ item name.
      * @param amount the amount you want to create.
+     * @param data the data on the item, mostly used on legacy versions.
      * @return ItemStack with the amount or null.
      */
     @Nullable
