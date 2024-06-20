@@ -2,7 +2,6 @@ package org.broken.arrow.utility.library;
 
 
 import org.broken.arrow.command.library.CommandRegister;
-import org.broken.arrow.command.library.command.CommandHolder;
 import org.broken.arrow.command.library.commandhandler.CommandRegistering;
 import org.broken.arrow.database.library.MySQL;
 import org.broken.arrow.database.library.SQLite;
@@ -97,15 +96,6 @@ public final class UtilityLibrary extends JavaPlugin {
 		return new CommandRegister();
 	}
 
-	/**
-	 * Retrieves a new Builder instance for the given CommandHolder.
-	 *
-	 * @param executor The CommandHolder executor.
-	 * @return The Builder instance.
-	 */
-	public Builder getCommandBuilder(CommandHolder executor) {
-		return new Builder(executor);
-	}
 
 	/**
 	 * Retrieves a new BlockVisualize instance for the given plugin.
