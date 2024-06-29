@@ -43,7 +43,7 @@ public class V_1_18_2_Inventory implements InventoryNMS {
 	@Override
 	public Constructor<?> getPacketPlayOutOpenWindow() throws ClassNotFoundException, NoSuchMethodException {
 		Class<?> iChatBaseComponent = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
-		return Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenWindow").getConstructor(int.class, this.getContainerClass(), iChatBaseComponent);
+		return Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenWindow").getConstructor(int.class, this.getContainersClass(), iChatBaseComponent);
 	}
 
 	@Nonnull
