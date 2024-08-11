@@ -13,6 +13,7 @@ dependencyResolutionManagement {
             library("tr7zw.item.nbt.api", "de.tr7zw:item-nbt-api:2.13.1")
             library("google.findbugs.jsr305", "com.google.code.findbugs:jsr305:3.0.2")
             library("mojang.authlib","com.mojang:authlib:1.6.25");
+            library("space.arim.morepaperlib","space.arim.morepaperlib:morepaperlib:0.4.3");
             plugin("shadow", "com.github.johnrengelman.shadow").version("8.1.1")
         }
     }

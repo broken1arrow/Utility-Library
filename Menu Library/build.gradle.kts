@@ -23,6 +23,7 @@ dependencies {
     compileOnly(libs.com.google.code.gson.gson)
     compileOnly(libs.google.findbugs.jsr305)
     compileOnly(libs.mojang.authlib)
+    compileOnly(libs.space.arim.morepaperlib)
 }
 
 java {

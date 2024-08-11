@@ -26,7 +26,8 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import space.arim.morepaperlib.MorePaperLib;
+import space.arim.morepaperlib.scheduling.ScheduledTask;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -82,7 +83,7 @@ public class MenuUtility<T> {
     protected boolean autoTitleCurrentPage;
     protected boolean useColorConversion;
 
-    protected int taskid;
+    protected ScheduledTask taskid;
     protected int animateButtonTime = 20;
 
     protected int slotIndex;
@@ -95,7 +96,7 @@ public class MenuUtility<T> {
     protected int updateTime;
 
     protected int animateTitleTime = 5;
-    private int taskIdAnimateTitle;
+    private ScheduledTask taskIdAnimateTitle;
     protected int highestFillSlot;
 
     /**
@@ -666,8 +667,8 @@ public class MenuUtility<T> {
 
     protected void updateTimeButtons() {
         boolean cancelTask = false;
-        if (this.taskid > 0 && Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
-            Bukkit.getScheduler().cancelTask(this.taskid);
+        if (this.taskid != null && !this.taskid.isCancelled()) {
+            this.taskid.cancel();
             cancelTask = true;
         }
         if (cancelTask) {
@@ -760,11 +761,11 @@ public class MenuUtility<T> {
      * Note: this is only for internal use, don't try to override this.
      */
     protected final void closeTasks() {
-        if (Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
-            Bukkit.getScheduler().cancelTask(this.taskid);
+        if (this.taskid != null && !this.taskid.isCancelled()) {
+            this.taskid.cancel();
         }
-        if (Bukkit.getScheduler().isCurrentlyRunning(this.taskIdAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskIdAnimateTitle)) {
-            Bukkit.getScheduler().cancelTask(this.taskIdAnimateTitle);
+        if (this.taskIdAnimateTitle != null && !this.taskIdAnimateTitle.isCancelled()) {
+            this.taskIdAnimateTitle.cancel();
         }
     }
 
@@ -929,20 +930,17 @@ public class MenuUtility<T> {
     protected void runAnimateTitle() {
         Function<?> task = getAnimateTitle();
         if (task == null) return;
-        this.taskIdAnimateTitle = new BukkitRunnable() {
-            @Override
-            public void run() {
-                Object text = task.apply();
-                if (text == null || (ServerVersion.atLeast(ServerVersion.V1_9) && this.isCancelled())) {
-                    this.cancel();
-                    updateTitle();
-                    return;
-                }
-                if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz()) {
-                    updateTitle(text);
-                }
+        this.taskIdAnimateTitle = menuAPI.getMorePaperLib().scheduling().entitySpecificScheduler(player).runAtFixedRate(() -> {
+            Object text = task.apply();
+            if (text == null || (ServerVersion.atLeast(ServerVersion.V1_9) && this.taskIdAnimateTitle.isCancelled())) {
+                this.taskIdAnimateTitle.cancel();
+                updateTitle();
+                return;
             }
-        }.runTaskTimerAsynchronously(menuAPI.getPlugin(), 1, 20 + this.animateTitleTime).getTaskId();
+            if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz()) {
+                updateTitle(text);
+            }
+        }, null, 1, 20 + this.animateTitleTime);
     }
 
     public void cancelAnimateTitle() {
@@ -950,8 +948,8 @@ public class MenuUtility<T> {
         if (task == null) return;
         this.animateTitle = null;
         this.animateTitleJson = null;
-        if (Bukkit.getScheduler().isCurrentlyRunning(this.taskIdAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskIdAnimateTitle)) {
-            Bukkit.getScheduler().cancelTask(this.taskIdAnimateTitle);
+        if (this.taskIdAnimateTitle != null && !this.taskIdAnimateTitle.isCancelled()) {
+            this.taskIdAnimateTitle.cancel();
         }
         updateTitle();
     }
@@ -971,11 +969,18 @@ public class MenuUtility<T> {
             UpdateTitle.update(player, (JsonObject) text);
     }
 
-    private class RunButtonAnimation extends BukkitRunnable {
+    private class RunButtonAnimation implements Runnable {
         private int counter = 0;
+        private ScheduledTask task;
 
-        public int runTask(long delay) {
-            return runTaskTimer(menuAPI.getPlugin(), 1L, delay).getTaskId();
+        public ScheduledTask runTask(long delay) {
+            this.task = menuAPI.getMorePaperLib().scheduling().entitySpecificScheduler(player).runAtFixedRate(
+                    this,
+                    null,
+                    1L,
+                    delay
+            );
+            return this.task;
         }
 
         @Override
@@ -991,7 +996,7 @@ public class MenuUtility<T> {
                     getMenuData(getPageNumber());
                     final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
                     if (menuDataUtility == null) {
-                        cancel();
+                        task.cancel();
                         return;
                     }
 
