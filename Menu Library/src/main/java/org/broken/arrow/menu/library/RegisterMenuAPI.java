@@ -21,6 +21,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import space.arim.morepaperlib.MorePaperLib;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ public class RegisterMenuAPI {
 	private static RegisterMenuAPI menuAPI;// = new RegisterMenuAPI();
 	private final MenuCache menuCache;
 	private final Plugin plugin;
+	private MorePaperLib morePaperLib;
 	private Metadata playerMeta;
 	private ItemCreator itemCreator;
 	private CheckItemsInsideMenu checkItemsInsideMenu;
@@ -53,6 +55,7 @@ public class RegisterMenuAPI {
 	public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
 		menuAPI = this;
 		this.plugin = plugin;
+		this.morePaperLib = new MorePaperLib(plugin);
 		this.menuCache = new MenuCache();
 		versionCheck(turnOffLogger);
 		if (this.plugin == null) {
@@ -100,6 +103,10 @@ public class RegisterMenuAPI {
 
 	public Plugin getPlugin() {
 		return plugin;
+	}
+
+	public MorePaperLib getMorePaperLib() {
+		return morePaperLib;
 	}
 
 	public Metadata getPlayerMeta() {

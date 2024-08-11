@@ -25,6 +25,7 @@ class LoadDependency : Plugin<Project> {
             maven { url = URI("https://oss.sonatype.org/content/repositories/snapshots/") }
             maven { url = URI("https://repo.maven.apache.org/maven2/") }
             maven { url = URI("https://libraries.minecraft.net/") }
+            maven { url = URI("https://mvn-repo.arim.space/lesser-gpl3/") }
         }
     }
 }

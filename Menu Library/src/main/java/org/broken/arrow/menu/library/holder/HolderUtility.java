@@ -145,7 +145,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
         if (!getButtonsToUpdate().isEmpty())
             updateButtonsInList();
-        Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), this::updateTitle, 1);
+        menuAPI.getMorePaperLib().scheduling().entitySpecificScheduler(player).runDelayed(this::updateTitle, null, 1L);
     }
 
     /**
