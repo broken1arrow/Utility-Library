@@ -177,11 +177,16 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     public abstract FillMenuButton<T> createFillMenuButton();
 
     /**
-     * Register your fill buttons, this method will return number from 0 to
-     * amount you want inside the inventory.
+     * Registers buttons using the list of slots from {@link #getFillSpace()}.
+     * You do not need to override this method as you can simply use {@link #createFillMenuButton()},
+     * which handles the functionality automatically.
+     * <p>&nbsp;</p>
+     * This method returns a number from 0 to the highest slot number specified
+     * in the list or the inventory's maximum size, whichever is smaller.
      *
-     * @param slot will return current number till will add item.
-     * @return MenuButtonI you have set.
+     * @param slot the slot number to register the button in.
+     * @return The {@link MenuButton} set in the specified slot. Specifically, in this case,
+     *         it returns an instance of {@link MenuButtonPage}.
      */
     @Nullable
     @Override
@@ -323,7 +328,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
     @Override
     @Nullable
-    protected ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
+    public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
         if (menuButton == null) return null;
 
         if (updateButton) {

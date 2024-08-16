@@ -8,6 +8,19 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * This class extends {@link MenuButton} to enhance its functionality by including
+ * the fill object provided in your menu.
+ * <p>&nbsp;</p>
+ * <p>It provides easy access to your class object both when a player interacts with the item
+ * (e.g., clicks on it) and when you set the item. For example, you can save the fill object
+ * that a player clicks on to a cache or perform actions based on whether the fill object exists
+ * in the cache. Additionally, when setting the item, you can alter its properties based on the
+ * fill object.</p>
+ *
+ * @see MenuButton
+ * @param <T> the type of the fill item for the menu.
+ */
 public abstract class MenuButtonPage<T> extends MenuButton {
 
     protected MenuButtonPage() {}
@@ -24,7 +37,7 @@ public abstract class MenuButtonPage<T> extends MenuButton {
      * @param menu        menu some are currently open.
      * @param click       click type (right,left or shift click)
      * @param clickedItem item some are clicked on
-     * @param object      object that ios connected to the item.
+     * @param object      object that is connected to the menu button item.
      */
     public abstract void onClickInsideMenu(@Nonnull Player player, @Nonnull Inventory menu, @Nonnull ClickType click, @Nonnull ItemStack clickedItem, @Nullable T object);
 

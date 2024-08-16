@@ -440,24 +440,28 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
         final Set<Integer> buttonSlots = this.getButtonSlots(menuDataUtility, menuButton);
 
-        if (menuDataUtility != null && this.getMenu() != null) {
+        Inventory menu = this.getMenu();
+        if (menuDataUtility != null && menu != null) {
             if (!buttonSlots.isEmpty()) {
                 for (final int slot : buttonSlots) {
 
-                    final ButtonData<T> buttonData = menuDataUtility.getButton(getSlot(slot));
+                    int menuSlot = this.getSlot(slot);
+                    final ButtonData<T> buttonData = menuDataUtility.getButton(menuSlot);
                     if (buttonData == null) return;
+
                     final ItemStack menuItem = getMenuItem(menuButton, buttonData, slot, true);
-                    this.getMenu().setItem(slot, menuItem);
-                    menuDataUtility.putButton(this.getSlot(slot), new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject()), menuDataUtility.getFillMenuButton(this.getSlot(slot)));
+                    menu.setItem(slot, menuItem);
+                    menuDataUtility.putButton(menuSlot, buttonData.copy(menuItem) /*new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject())*/);
                 }
             } else {
                 final int buttonSlot = this.getButtonSlot(menuButton);
-                final ButtonData<T> buttonData = menuDataUtility.getButton(this.getSlot(buttonSlot));
+                int slot = this.getSlot(buttonSlot);
+                final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
                 if (buttonData == null) return;
 
                 final ItemStack itemStack = getMenuItem(menuButton, buttonData, buttonSlot, true);
-                this.getMenu().setItem(buttonSlot, itemStack);
-                menuDataUtility.putButton(this.getSlot(buttonSlot), new ButtonData<>(itemStack, menuButton, buttonData.getObject()), menuDataUtility.getFillMenuButton(this.getSlot(buttonSlot)));
+                menu.setItem(buttonSlot, itemStack);
+                menuDataUtility.putButton(slot, new ButtonData<>(itemStack, menuButton, buttonData.getObject()));
             }
             this.putAddedButtonsCache(this.getPageNumber(), menuDataUtility);
         }

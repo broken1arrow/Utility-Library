@@ -8,6 +8,18 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+
+/**
+ * The base class for a menu button.
+ * <p>
+ * This class provides functionality to handle player interactions with menu buttons, including
+ * managing the display item for the button.</p>
+ * <p>
+ * Additionally, it supports updating the button's display item at a specified interval. This allows
+ * modifications to attributes such as the display name, lore, and other properties of the button
+ * without requiring the player to reopen the menu or press a button.
+ * </p>
+ */
 public abstract class MenuButton {
 
 	private static int counter = 0;

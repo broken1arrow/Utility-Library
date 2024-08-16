@@ -56,10 +56,10 @@ public class ItemCreator {
 
 	public static boolean  isItemSimilar(final ItemStack item, final ItemStack clickedItem) {
 		if (item != null && clickedItem != null) {
-			if (itemIsSimilar(item, clickedItem)) {
+			if (item.isSimilar(clickedItem)) {
 				return true;
 			} else {
-				return item.isSimilar(clickedItem);
+				return itemIsSimilar(item, clickedItem);
 			}
 		}
 		return false;

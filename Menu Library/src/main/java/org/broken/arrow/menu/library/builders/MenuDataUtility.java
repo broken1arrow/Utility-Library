@@ -16,7 +16,7 @@ public final class MenuDataUtility<T> {
 
 	
 	public MenuDataUtility<T> putButton(final int slot, @Nonnull final ButtonData<T> buttonData) {
-		return putButton(slot, buttonData, this.getFillMenuButton());
+		return putButton(slot, buttonData, this.getFillMenuButton(slot));
 	}
 
 	public MenuDataUtility<T> putButton(final int slot, @Nonnull final ButtonData<T> buttonData, @Nullable final MenuButton fillMenuButton) {

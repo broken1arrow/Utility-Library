@@ -11,6 +11,7 @@ import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.holder.MenuHolder;
 import org.broken.arrow.menu.library.holder.MenuHolderPage;
+import org.broken.arrow.menu.library.runnable.RunButtonAnimation;
 import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.MenuInteractionChecks;
 import org.broken.arrow.menu.library.utility.ServerVersion;
@@ -26,6 +27,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
@@ -33,11 +35,9 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -150,11 +150,16 @@ public class MenuUtility<T> {
 
 
     /**
-     * Register your fill buttons, this method will return number from 0 to
-     * amount you want inside the inventory.
+     * Registers buttons using the list of slots from {@link #getFillSpace()}.
+     * This method returns a number from 0 to the highest slot number specified
+     * in the list or the inventory's maximum size, whichever is smaller.
+     * <p>&nbsp;</p>
+     * This method operates differently from the {@link MenuHolderPage#getFillButtonAt(int)}
+     * in the {@link MenuHolderPage} class. Therefore, you may need to implement custom logic
+     * to make the buttons function as desired.
      *
-     * @param slot will return current number till will add item.
-     * @return MenuButton you have set.
+     * @param slot the slot number to register the button in.
+     * @return the {@link MenuButton} set in the specified slot.
      */
     @Nullable
     public MenuButton getFillButtonAt(final int slot) {
@@ -187,7 +192,7 @@ public class MenuUtility<T> {
     }
 
     @Nullable
-    protected Long getTimeWhenUpdatesButton(final MenuButton menuButton) {
+    public Long getTimeWhenUpdatesButton(final MenuButton menuButton) {
         return getTimeWhenUpdatesButtons().getOrDefault(menuButton.getId(), null);
     }
 
@@ -219,7 +224,7 @@ public class MenuUtility<T> {
      * <p>
      * You also need set this to true {@link MenuButton#shouldUpdateButtons()}
      *
-     * @return seconds between the updates, defult it will return -1 and don't update the buttons.
+     * @return seconds between the updates, default it will return -1 and don't update the buttons.
      */
     public int getUpdateTime() {
         return updateTime;
@@ -282,7 +287,7 @@ public class MenuUtility<T> {
      *
      * @param pageNumber with page you want to get.
      * @param slotIndex  the slot you want to get both the object and/or the itemstack stored in cache.
-     * @return ButtonData with the set data or new instance with no set data.
+     * @return ButtonData with the set data or new instance with no set data if could not find the button data.
      */
     @Nonnull
     public ButtonData<T> getAddedButton(final int pageNumber, final int slotIndex) {
@@ -300,7 +305,7 @@ public class MenuUtility<T> {
      * Because this only return first match.
      *
      * @param menuButton to get slots connected to this button.
-     * @return slot number or -1 if not find data or if cache is null.
+     * @return slot number or -1 if not fund data or if cache is null.
      */
     public int getButtonSlot(final MenuButton menuButton) {
         final Map<Integer, ButtonData<T>> data = this.getMenuButtons(this.getPageNumber());
@@ -629,7 +634,7 @@ public class MenuUtility<T> {
      * @param pageNumber      the page number to set in cache
      * @param menuDataUtility the map with slot and menu data where both button,item and code execution is set.
      */
-    protected void putAddedButtonsCache(final Integer pageNumber, final MenuDataUtility<T> menuDataUtility) {
+    public void putAddedButtonsCache(final Integer pageNumber, final MenuDataUtility<T> menuDataUtility) {
         this.pagesOfButtonsData.put(pageNumber, menuDataUtility);
     }
 
@@ -910,11 +915,11 @@ public class MenuUtility<T> {
 
 
     protected void updateButtonsInList() {
-        taskid = new RunButtonAnimation().runTask(this.animateButtonTime);
+        taskid = new RunButtonAnimation<>(this).runTask(this.animateButtonTime);
     }
 
     @Nullable
-    protected ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
+    public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
         if (menuButton == null) return null;
 
         if (updateButton) {
@@ -971,7 +976,12 @@ public class MenuUtility<T> {
             UpdateTitle.update(player, (JsonObject) text);
     }
 
-    private class RunButtonAnimation extends BukkitRunnable {
+    public Plugin getPlugin() {
+        return menuAPI.getPlugin();
+    }
+
+/*
+    private class RunButtonAnimationOld extends BukkitRunnable {
         private int counter = 0;
 
         public int runTask(long delay) {
@@ -1023,9 +1033,9 @@ public class MenuUtility<T> {
                 if (buttonData == null) continue;
 
                 final ItemStack menuItem = getMenuItemStack(menuButton, buttonData, slot);
-                final ButtonData<T> newButtonData = new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject());
+                final ButtonData<T> newButtonData =  buttonData.copy(menuItem);// new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject());
 
-                menuDataUtility.putButton(getSlot(slot), newButtonData, menuDataUtility.getFillMenuButton(getSlot(slot)));
+                menuDataUtility.putButton(getSlot(slot), newButtonData);
 
                 putAddedButtonsCache(getPageNumber(), menuDataUtility);
                 getMenu().setItem(slot, menuItem);
@@ -1043,13 +1053,15 @@ public class MenuUtility<T> {
             return getMenuItem(menuButton, cachedButtons, slot, menuButton.shouldUpdateButtons());
         }
 
-        /**
+        */
+/**
          * Get all slots same menu button is connected too.
          *
          * @param menuDataMap the map with all slots and menu data
          * @param menuButton  the menu buttons you want to match with.
          * @return set of slots that match same menu button.
-         */
+         *//*
+
         @Nonnull
         private Set<Integer> getItemSlotsMap(final MenuDataUtility<T> menuDataMap, final MenuButton menuButton) {
             final Set<Integer> slotList = new HashSet<>();
@@ -1068,5 +1080,6 @@ public class MenuUtility<T> {
             return slotList;
         }
     }
+*/
 
 }
