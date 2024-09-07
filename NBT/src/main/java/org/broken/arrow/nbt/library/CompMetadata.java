@@ -18,6 +18,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
@@ -185,12 +187,8 @@ public final class CompMetadata {
 	public void setMetadata(@Nonnull final Entity entity, @Nonnull final String key, @Nonnull final String value) {
 		Validate.checkNotNull(entity);
 
-		final String tag = format(key, value);
-
-		if (isHasScoreboardTags()) {
-			if (!entity.getScoreboardTags().contains(tag))
-				entity.addScoreboardTag(tag);
-
+		if (SERVER_VERSION >= 1.14F) {
+			this.setPersistentMetadata(entity, key, value);
 		} else {
 			entity.setMetadata(key, new FixedMetadataValue(plugin, value));
 		}
@@ -212,12 +210,11 @@ public final class CompMetadata {
 			Validate.checkBoolean(tileEntity instanceof TileState,
 					BLOCK_STATE + tileEntity);
 
-			setNameSpacedKey((TileState) tileEntity, key, value);
-			tileEntity.update();
-
+			this.setPersistentMetadata(tileEntity, key, value);
+			tileEntity.update(true);
 		} else {
 			tileEntity.setMetadata(key, new FixedMetadataValue(plugin, value));
-			tileEntity.update();
+			tileEntity.update(true);
 		}
 	}
 
@@ -358,8 +355,11 @@ public final class CompMetadata {
 				if (tag != null && !tag.isEmpty())
 					return tag;
 			}
-		}
 
+		}
+		if (SERVER_VERSION >= 1.14F) {
+			return getPersistentMetadata(entity, key);
+		}
 		final String value = entity.hasMetadata(key) ? entity.getMetadata(key).get(0).asString() : null;
 
 		return getOrNull(value);
@@ -382,7 +382,7 @@ public final class CompMetadata {
 			Validate.checkBoolean(tileEntity instanceof TileState,
 					BLOCK_STATE + tileEntity);
 
-			return getNameSpacedKey((TileState) tileEntity, key);
+			return this.getPersistentMetadata( tileEntity, key) ;
 		}
 		final String value = tileEntity.hasMetadata(key) ? tileEntity.getMetadata(key).get(0).asString() : null;
 
@@ -412,13 +412,6 @@ public final class CompMetadata {
 		final String[] parts = raw.split(DELIMITER);
 
 		return parts.length == 3 && parts[0].equals(plugin.getName()) && parts[1].equals(key) ? parts[2] : null;
-	}
-
-	private String getNameSpacedKey(final TileState tile, final String key) {
-		final String value = tile.getPersistentDataContainer().get(new NamespacedKey(plugin, key),
-				PersistentDataType.STRING);
-
-		return getOrNull(value);
 	}
 
 	// ----------------------------------------------------------------------------------------
@@ -572,4 +565,28 @@ public final class CompMetadata {
 		return READING_NULL_ITEM;
 	}
 
+	/**
+	 * Returns persistent metadata with our plugin assigned as namedspaced key for MC 1.14+
+	 */
+	private String getPersistentMetadata(final Object entity, final String key) {
+		Validate.checkBoolean(entity instanceof PersistentDataHolder, "Can only use CompMetadata#setMetadata(" + key + ") for persistent data holders, got " + entity.getClass());
+		final PersistentDataContainer data = ((PersistentDataHolder) entity).getPersistentDataContainer(); // Prevents no class def error on legacy MC
+
+		return getOrNull(data.get(new NamespacedKey(plugin, key), PersistentDataType.STRING));
+	}
+
+	/**
+	 * Sets persistent metadata with our plugin assigned as namedspaced key for MC 1.14+
+	 */
+	private  void setPersistentMetadata(final Object entity, final String key, final String value) {
+		Validate.checkBoolean(!(entity instanceof PersistentDataHolder), "Can only use CompMetadata#setMetadata(" + key + ") for persistent data holders, got " + entity.getClass());
+
+		final PersistentDataContainer data = ((PersistentDataHolder) entity).getPersistentDataContainer();
+		final boolean remove = value == null || value.isEmpty();
+
+		if (remove)
+			data.remove(new NamespacedKey(plugin, key));
+		else
+			data.set(new NamespacedKey(plugin, key), PersistentDataType.STRING, value);
+	}
 }
