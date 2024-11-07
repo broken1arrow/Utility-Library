@@ -126,7 +126,7 @@ public class MenuUtility<T> {
         this.shallCacheItems = shallCacheItems;
         this.allowShiftClick = true;
         this.autoClearCache = true;
-        this.ignoreItemCheck = false;
+        this.ignoreItemCheck = true;
         this.autoTitleCurrentPage = true;
         this.slotIndex = 0;
         this.updateTime = -1;
