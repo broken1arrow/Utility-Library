@@ -65,7 +65,11 @@ public class MongoDB extends Database{
 			this.printFailFindTable(tableName);
 			return;
 		}
-		if (!openConnection()) return;
+		if (!openMongo()) {
+			log.log(Level.WARNING,()->of("Could not open connection to the database."));
+			return;
+		}
+
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		MongoCollection<Document> collection = database.getCollection(tableName);
 		for (DataWrapper dataWrapper : dataWrapperList) {
@@ -88,7 +92,7 @@ public class MongoDB extends Database{
 			this.printFailFindTable(tableName);
 			return;
 		}
-		if (!openConnection()) return;
+		if (isClosed()) return;
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		MongoCollection<Document> collection = database.getCollection(tableName);
 
@@ -106,7 +110,10 @@ public class MongoDB extends Database{
 			this.printFailFindTable(tableName);
 			return null;
 		}
-		if (!openConnection()) return null;
+		if (!openMongo()) {
+			log.log(Level.WARNING,()->of("Could not open connection."));
+			return null;
+		}
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 
 		final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
@@ -147,8 +154,8 @@ public class MongoDB extends Database{
 			this.printFailFindTable(tableName);
 			return null;
 		}
-		if (!openConnection()) {
-			log.log(Level.WARNING,()->of("Could not open connection."));
+		if (!openMongo()) {
+			log.log(Level.WARNING,()->of("Could not open connection to the database."));
 			return null;
 		}
 		Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
@@ -188,21 +195,24 @@ public class MongoDB extends Database{
 	}
 
 	/**
-	 * This method function argument returns a {@link com.mongodb.client.MongoCollection} with the class {@link org.bson.Document} .
-	 * You can use for example {@link com.mongodb.client.MongoCollection#find(org.bson.conversions.Bson)} to filter
-	 * the result or get everything inside the table if filter is not set.
-	 * <p>
-	 * Check the MongoDB documentations for more help https://www.mongodb.com/docs/manual/
-	 *
-	 * @param tableName the table name set.
-	 * @param function  the function that will be applied to the command.
-	 * @param <T>       The type you want the method to return.
-	 * @return the value you set as the lambda should return or null if something did go wrong..
-	 */
+     * This method function argument returns a {@link MongoCollection} with the class {@link Document} .
+     * You can use for example {@link MongoCollection#find(Bson)} to filter
+     * the result or get everything inside the table if filter is not set.
+     * <p>
+     * Check the MongoDB documentations for more help <a href="https://www.mongodb.com/docs/manual/">mongodb manual</a>
+     *
+     * @param tableName the table name set.
+     * @param function  the function that will be applied to the command.
+     * @param <T>       The type you want the method to return.
+     * @return the value you set as the lambda should return or null if something did go wrong..
+     */
 	@Override
 	@Nullable
 	public <T> T getPreparedStatement(@Nonnull final String tableName, Function<PreparedStatementWrapper, T> function) {
-		if (!openConnection()) return null;
+		if (!openMongo()) {
+			log.log(Level.WARNING,()->of("Could not open connection to the database."));
+			return null;
+		}
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		MongoCollection<Document> collection = database.getCollection(tableName);
 		try {
@@ -213,18 +223,21 @@ public class MongoDB extends Database{
 	}
 
 	/**
-	 * This methods consumer returns a {@link com.mongodb.client.MongoCollection} with the class {@link org.bson.Document} .
-	 * You can use for example {@link com.mongodb.client.MongoCollection#find(org.bson.conversions.Bson)} to filter
-	 * the result or get everything inside the table or get everything inside the table if filter is not set.
-	 * <p>
-	 * Check the MongoDB documentations for more help https://www.mongodb.com/docs/manual/
-	 *
-	 * @param tableName the table name set.
-	 * @param consumer  the function that will be applied to the command.
-	 */
+     * This methods consumer returns a {@link MongoCollection} with the class {@link Document} .
+     * You can use for example {@link MongoCollection#find(Bson)} to filter
+     * the result or get everything inside the table or get everything inside the table if filter is not set.
+     * <p>
+     * Check the MongoDB documentations for more help <a href="https://www.mongodb.com/docs/manual/">mongodb manual</a>
+     *
+     * @param tableName the table name set.
+     * @param consumer  the function that will be applied to the command.
+     */
 	@Override
 	public void getPreparedStatement(@Nonnull final String tableName, Consumer<PreparedStatementWrapper> consumer) {
-		if (!openConnection()) return;
+		if (!openMongo()) {
+			log.log(Level.WARNING,()->of("Could not open connection to the database."));
+			return;
+		}
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		MongoCollection<Document> collection = database.getCollection(tableName);
 		try {
@@ -258,7 +271,7 @@ public class MongoDB extends Database{
 
 	@Override
 	public void createTables() {
-		if (!openConnection()) return;
+		if (!openMongo()) return;
 		MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
 		for (final Entry<String, TableWrapper> entityTables : this.getTables().entrySet()) {
 			boolean collectionExists = database.listCollectionNames().into(new ArrayList<>()).contains(entityTables.getKey());
@@ -290,22 +303,32 @@ public class MongoDB extends Database{
 		if (document.size() > 1)
 			collection.insertOne(document);
 	}
-	@Override
-	public boolean openConnection() {
+
+	public boolean openMongo() {
 		if (isClosed())
 			connect();
 		this.isClosed = false;
 		return this.mongoClient != null;
 	}
 
-	@Override
+	/**
+	 * This method close the connection to the mongo db.
+	 * <p>
+	 * You need to use {@link #connect()} or {@link #openMongo()} for open the connection again.
+	 *
+	 */
 	public void closeConnection() {
 		if (mongoClient == null) return;
 		mongoClient.close();
 		this.isClosed = true;
 	}
 
-	@Override
+	/**
+	 * This method check if connection is null or close.
+	 *
+	 * @return true if connection is closed or null.
+	 */
+
 	public boolean isClosed() {
 		return mongoClient == null || isClosed;
 	}

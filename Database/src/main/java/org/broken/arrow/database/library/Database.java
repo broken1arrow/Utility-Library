@@ -106,18 +106,22 @@ public abstract class Database {
      */
     public void createTables() {
         Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
+        Connection connection = this.openConnection();
+        if (connection == null) {
+            this.printFailToOpen();
+        }
         try {
             createAllTablesIfNotExist();
             try {
                 for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
                     final List<String> columns = updateTableColumnsInDb(entityTables.getKey());
-                    this.createMissingColumns(entityTables.getValue(), columns);
+                    this.createMissingColumns(connection, entityTables.getValue(), columns);
                 }
             } catch (final SQLException throwable) {
-                throwable.printStackTrace();
+                log.log(throwable, () -> of("Fail to update columns in your table."));
             }
         } finally {
-            closeConnection();
+            closeConnection(connection);
         }
     }
 
@@ -254,8 +258,7 @@ public abstract class Database {
     @Nullable
     public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
 
-        if (!openConnection()) {
-            this.printFailToOpen();
+        if (checkConnectionBefore()) {
             return null;
         }
 
@@ -280,8 +283,6 @@ public abstract class Database {
                 }
             } catch (SQLException e) {
                 log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
-            } finally {
-                this.closeConnection();
             }
         });
         return loadDataWrappers;
@@ -299,10 +300,11 @@ public abstract class Database {
     @Nullable
     public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
         TableWrapper tableWrapper = this.getTable(tableName);
-        if (!openConnection()) {
-            this.printFailToOpen();
+
+        if (checkConnectionBefore()) {
             return null;
         }
+
         if (tableWrapper == null) {
             this.printFailFindTable(tableName);
             return null;
@@ -320,8 +322,6 @@ public abstract class Database {
                     dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
             } catch (SQLException e) {
                 log.log(Level.WARNING, e, () -> of("Could not load the data. Check the stacktrace."));
-            } finally {
-                this.closeConnection();
             }
         });
 
@@ -391,7 +391,7 @@ public abstract class Database {
      *
      * @param tableName the table to find the rows to remove.
      * @param column    the name of the column to remove.
-     * @param quotes The quotes around the table name.
+     * @param quotes    The quotes around the table name.
      * @param threshold the threshold where it should start to remove and below.
      */
     public void removeBelowThreshold(@Nonnull final String tableName, @Nonnull final String column, char quotes, int threshold) {
@@ -462,16 +462,17 @@ public abstract class Database {
      */
     @Nullable
     public <T> T getPreparedStatement(@Nonnull final String command, final Function<PreparedStatementWrapper, T> function) {
-        if (!openConnection()) {
+        Connection connection = this.openConnection();
+        if (connection == null) {
             this.printFailToOpen();
             return null;
         }
-        try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(command)) {
             return function.apply(new PreparedStatementWrapper(preparedStatement));
         } catch (SQLException e) {
             log.log(e, () -> of("could not execute this command: " + command));
         } finally {
-            this.closeConnection();
+            this.closeConnection(connection);
         }
         return null;
     }
@@ -498,22 +499,25 @@ public abstract class Database {
      * @param consumer the consumer that will be applied to the command.
      */
     public void getPreparedStatement(@Nonnull final String command, final Consumer<PreparedStatementWrapper> consumer) {
-        if (!openConnection()) {
+        Connection connection = this.openConnection();
+        if (connection == null) {
             this.printFailToOpen();
             return;
         }
-        try (PreparedStatement preparedStatement = this.connection.prepareStatement(command)) {
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(command)) {
             consumer.accept(new PreparedStatementWrapper(preparedStatement));
         } catch (SQLException e) {
             log.log(e, () -> of("could not execute this command: " + command));
         } finally {
-            this.closeConnection();
+            this.closeConnection(connection);
         }
     }
 
     public boolean doRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
         TableWrapper tableWrapper = this.getTable(tableName);
-        if (!openConnection()) {
+        Connection connection = this.openConnection();
+        if (connection == null) {
             this.printFailToOpen();
             return false;
         }
@@ -529,7 +533,7 @@ public abstract class Database {
 
         final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
         try {
-            preparedStatement = this.connection.prepareStatement(sqlCommandComposer.selectRow(primaryKeyValue + ""));
+            preparedStatement = connection.prepareStatement(sqlCommandComposer.selectRow(primaryKeyValue + ""));
             resultSet = preparedStatement.executeQuery();
             return resultSet.next();
         } catch (SQLException e) {
@@ -605,13 +609,17 @@ public abstract class Database {
      * @throws SQLException if something going wrong.
      */
     protected List<String> updateTableColumnsInDb(final String tableName) throws SQLException {
-        if (!openConnection()) return new ArrayList<>();
+        Connection connection = this.openConnection();
+        if (connection == null) {
+            this.printFailToOpen();
+            return new ArrayList<>();
+        }
         PreparedStatement statement = null;
         ResultSet rs = null;
 
         try {
             final List<String> column = new ArrayList<>();
-            statement = this.connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + ";");
+            statement = connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + ";");
             rs = statement.executeQuery();
             final ResultSetMetaData rsmd = rs.getMetaData();
             final int columnCount = rsmd.getColumnCount();
@@ -626,7 +634,11 @@ public abstract class Database {
     }
 
     protected void dropColumn(final List<String> existingColumns, final String tableName) throws SQLException {
-
+        Connection connection = this.openConnection();
+        if (connection == null) {
+            this.printFailToOpen();
+            return;
+        }
         final TableWrapper updatedTableColumns = tables.get(tableName);
 
         if (updatedTableColumns == null || updatedTableColumns.getColumns().isEmpty()) return;
@@ -636,7 +648,7 @@ public abstract class Database {
             existingColumns.remove(removed);
         }
         final String columnsSeparated = getColumnsFromTable(updatedTableColumns.getColumns().values());
-        if (!openConnection()) return;
+        if (openConnection() == null) return;
 
         PreparedStatement moveData = null;
         PreparedStatement alterTable = null;
@@ -661,9 +673,12 @@ public abstract class Database {
         }
     }
 
-    protected void createMissingColumns(final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
+    protected void createMissingColumns(final Connection connection, final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
         if (existingColumns == null) return;
-        if (!openConnection()) return;
+        if (connection == null) {
+            log.log(Level.WARNING, () -> of("You must set the connection instance."));
+            return;
+        }
 
         for (final Entry<String, TableRow> entry : tableWrapper.getColumns().entrySet()) {
             String columnName = entry.getKey();
@@ -695,10 +710,12 @@ public abstract class Database {
      * @return true if it could check if the table exist or create now table.
      */
     protected boolean createTableIfNotExist(final String tableName) {
-        if (!openConnection()) {
+        Connection connection = this.openConnection();
+        if (connection == null) {
             this.printFailToOpen();
             return false;
         }
+
         PreparedStatement statement = null;
         String table = "";
         try {
@@ -709,7 +726,7 @@ public abstract class Database {
             }
             final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(wrapperEntry), this);
             table = sqlCommandComposer.createTable();
-            statement = this.connection.prepareStatement(table);
+            statement = connection.prepareStatement(table);
             statement.executeUpdate();
             TableRow wrapper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
             Validate.checkNotNull(wrapper, "Could not find a column for this table " + tableName);
@@ -725,17 +742,31 @@ public abstract class Database {
         }
     }
 
+    private boolean checkConnectionBefore() {
+        if (isHasCastException()) {
+            this.printFailConnect();
+            if (this.openConnection() == null) {
+                this.printFailToOpen();
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void checkIfTableExist(String tableName, String columName) {
-        if (this.connection == null) return;
+        Connection connection = this.openConnection();
+        if (connection == null) {
+            this.printFailToOpen();
+            return;
+        }
 
-        try (final PreparedStatement preparedStatement = this.connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?");) {
-
+        try (final PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?");) {
             preparedStatement.setString(1, "");
             final ResultSet resultSet = preparedStatement.executeQuery();
             close(preparedStatement, resultSet);
 
         } catch (final SQLException ex) {
-            log.log(ex, () -> of("Unable to retrieve connection "));
+            log.log(ex, () -> of("Unable to retrieve connection."));
         }
     }
 
@@ -817,33 +848,18 @@ public abstract class Database {
         tables.put(tableWrapper.getTableName(), tableWrapper);
     }
 
-    public boolean openConnection() {
-        if (isClosed()) this.connection = connect();
-        return this.connection != null;
+    @Nullable
+    public Connection openConnection() {
+        return connect();
     }
 
-    public void closeConnection() {
+    public void closeConnection(Connection connection) {
         try {
-            if (this.connection != null) {
-                this.connection.close();
-                this.connection = null;
-            } 
+            if (connection != null) {
+                connection.close();
+            }
         } catch (final SQLException exception) {
             log.log(Level.WARNING, exception, () -> of("Something went wrong, when attempt to close connection."));
-        }
-    }
-
-    /**
-     * This method check if connection is null or close.
-     *
-     * @return true if connection is closed or null.
-     */
-    public boolean isClosed() {
-        try {
-            return this.connection == null || this.connection.isClosed();
-        } catch (SQLException e) {
-            log.log(e, () -> of("Something went wrong, when check if the connection is closed."));
-            return false;
         }
     }
 
@@ -1043,8 +1059,7 @@ public abstract class Database {
 
     protected final void batchUpdate(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
         final ArrayList<SqlCommandComposer> sqls = new ArrayList<>(batchList);
-        if (!openConnection()) {
-            this.printFailToOpen();
+        if (this.checkConnectionBefore()) {
             return;
         }
         if (sqls.isEmpty()) return;
@@ -1055,6 +1070,12 @@ public abstract class Database {
 
     protected final void executePrepareBatch(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
         batchUpdateGoingOn = true;
+        Connection connection = this.openConnection();
+        if (connection == null) {
+            this.printFailToOpen();
+            return;
+        }
+
         final int processedCount = batchList.size();
         new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -1066,39 +1087,44 @@ public abstract class Database {
         if (processedCount > 10_000)
             this.printPressesCount(processedCount);
         try {
-            this.connection.setAutoCommit(false);
+            connection.setAutoCommit(false);
             int batchSize = 1;
             for (SqlCommandComposer sql : batchList) {
                 this.setPreparedStatement(sql, resultSetType, resultSetConcurrency);
 
                 if (batchSize % 100 == 0)
-                    this.connection.commit();
+                    connection.commit();
                 batchSize++;
             }
         } catch (SQLException e) {
             log.log(Level.WARNING, e, () -> of("Could not set auto commit to false."));
         } finally {
             try {
-                this.connection.commit();
-                this.connection.setAutoCommit(true);
+                connection.commit();
+                connection.setAutoCommit(true);
             } catch (final SQLException ex) {
                 log.log(Level.WARNING, ex, () -> of("Could not set auto commit to true or commit last changes."));
             } finally {
-                this.closeConnection();
+                this.closeConnection(connection);
             }
             batchUpdateGoingOn = false;
         }
     }
 
     protected final void executeBatch(@Nonnull final List<SqlCommandComposer> batchOfSQL, int resultSetType, int resultSetConcurrency) {
+        Connection connection = this.openConnection();
+        if (connection == null) {
+            this.printFailToOpen();
+            return;
+        }
 
         if (!hasStartWriteToDb)
-            try (final Statement statement = this.connection.createStatement(resultSetType, resultSetConcurrency)) {
+            try (final Statement statement = connection.createStatement(resultSetType, resultSetConcurrency)) {
                 hasStartWriteToDb = true;
                 final int processedCount = batchOfSQL.size();
 
                 // Prevent automatically sending db instructions
-                this.connection.setAutoCommit(false);
+                connection.setAutoCommit(false);
 
                 for (final SqlCommandComposer sql : batchOfSQL)
                     statement.addBatch(sql.getQueryCommand());
@@ -1122,17 +1148,17 @@ public abstract class Database {
                 statement.executeBatch();
 
                 // This will block the thread
-                this.connection.commit();
+                connection.commit();
 
             } catch (final Exception t) {
-                log.log( t,()-> of("Could not execute one or several batches."));
+                log.log(t, () -> of("Could not execute one or several batches."));
             } finally {
                 try {
-                    this.connection.setAutoCommit(true);
+                    connection.setAutoCommit(true);
                 } catch (final SQLException ex) {
-                    log.log( ex,()-> of("Could not set auto commit back to true."));
+                    log.log(ex, () -> of("Could not set auto commit back to true."));
                 } finally {
-                    this.closeConnection();
+                    this.closeConnection(connection);
                 }
                 hasStartWriteToDb = false;
                 // Even in case of failure, cancel
@@ -1148,7 +1174,11 @@ public abstract class Database {
     }
 
     public void printFailToOpen() {
-        log.log(Level.WARNING, () -> of("Could not open connection."));
+        log.log(Level.WARNING, () -> of("Could not open connection, check the logs for more details."));
+    }
+
+    public void printFailConnect() {
+        log.log(Level.WARNING, () -> of("Previous attempt to connect have failed, so can't execute your sql command. Will do an attempt to connect again"));
     }
 
     public void printFailFindTable(String tableName) {
@@ -1160,6 +1190,12 @@ public abstract class Database {
     }
 
     private final void setPreparedStatement(SqlCommandComposer sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+        Connection connection = this.openConnection();
+        if (connection == null) {
+            this.printFailToOpen();
+            return;
+        }
+
         Map<Integer, Object> cachedDataByColumn = sql.getCachedDataByColumn();
         try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
             boolean valuesSet = false;
@@ -1176,7 +1212,7 @@ public abstract class Database {
         } catch (SQLException e) {
             log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
             log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
-            this.connection.commit();
+            connection.commit();
         }
     }
 }

@@ -75,7 +75,6 @@ public class PostgreSQL extends Database {
 		this.driver = "org.postgresql.Driver";
 		if (createDatabase)
 			createMissingDatabase();
-		this.connection = connect();
 	}
 
 	@Override
@@ -83,15 +82,17 @@ public class PostgreSQL extends Database {
 		Validate.checkNotNull(preferences, "You need to set preferences for the database");
 		Connection connection = null;
 		try {
-			if ((this.connection == null || this.connection.isClosed()) && !hasCastException) {
+			if (!hasCastException) {
 				connection = this.setupConnection();
 			}
 		} catch (SQLRecoverableException exception) {
 			hasCastException = true;
-			log.log(exception, () -> of("Could not connect to the database. Check your database connection."));
+			log.log(exception, () -> of("Unable to connect to the database. Please try this action again after re-establishing the " +
+					"connection. This issue might be caused by a temporary connectivity problem or a timeout."));
 
 		} catch (SQLException throwable) {
-			throwable.printStackTrace();
+			hasCastException = true;
+			log.log(throwable, () -> of("Could not connect to the database. Check the error message and make sure the database is running."));
 		}
 		return connection;
 	}

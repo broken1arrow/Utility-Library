@@ -106,7 +106,8 @@ public class HikariCP {
     public Connection getFileConnection(String driverConnection) throws SQLException {
         final ConnectionSettings connectionSettings = this.database.getConnectionSettings();
         String hostAddress = connectionSettings.getHostAddress();
-
+        if (this.hikari != null)
+            this.hikari.getConnection().close();
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(driverConnection + hostAddress);
         config.setDriverClassName(this.driver);

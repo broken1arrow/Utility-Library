@@ -24,6 +24,7 @@ public class SQLite extends Database {
     private final String child;
     private final boolean isHikariAvailable;
     private HikariCP hikari;
+    private boolean hasCastException = false;
 
     public SQLite(@Nonnull final String parent) {
         this(parent, (String) null);
@@ -50,11 +51,9 @@ public class SQLite extends Database {
     @Override
     public Connection connect() {
         try {
-            if (this.connection != null && !this.connection.isClosed()) {
-                return this.connection;
-            }
             return setupConnection();
         } catch (final SQLException ex) {
+            this.hasCastException = true;
             log.log(ex, () -> of("Fail to connect to SQLITE database"));
         }
         return null;
@@ -80,7 +79,7 @@ public class SQLite extends Database {
 
     @Override
     public boolean isHasCastException() {
-        return false;
+        return this.hasCastException;
     }
 
     private static class DBPath {

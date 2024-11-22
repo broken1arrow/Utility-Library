@@ -24,6 +24,7 @@ public class H2DB extends Database {
     private final boolean isHikariAvailable;
     private final File dbFile;
     private HikariCP hikari;
+    private boolean hasCastException;
 
     public H2DB(@Nonnull final String parent, @Nonnull final String child) {
         this("com.zaxxer.hikari.HikariConfig", parent, child);
@@ -48,8 +49,8 @@ public class H2DB extends Database {
         try {
             return setupConnection();
         } catch (SQLException e) {
-            log.log(e, () -> of("File write error: " + parent));
-            e.printStackTrace();
+            this.hasCastException = true;
+            log.log(e, () -> of("Fail to connect to H2 database. With the file path: " + this.dbFile));
         }
         return null;
     }
@@ -87,7 +88,7 @@ public class H2DB extends Database {
 
     @Override
     public boolean isHasCastException() {
-        return false;
+        return this.hasCastException;
     }
 
     private static class DBPath {
