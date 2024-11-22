@@ -3,6 +3,7 @@ package org.broken.arrow.menu.library.utility;
 import org.bukkit.Bukkit;
 
 public enum ServerVersion {
+	V1_20_1((float) 21.1),
 	V1_20_0((float) 20.0),
 	V1_19_4((float) 19.4),
 	V1_19((float) 19.0),
@@ -65,7 +66,6 @@ public enum ServerVersion {
 			firstNumber = firstString;
 			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
 		}
-
 		final float version = Float.parseFloat(firstNumber + "." + secondNumber);
 		if (version < 18)
 			currentServerVersion = (float) Math.floor(version);

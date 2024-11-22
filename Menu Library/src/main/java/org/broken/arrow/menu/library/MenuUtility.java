@@ -1,6 +1,5 @@
 package org.broken.arrow.menu.library;
 
-import com.google.common.base.Enums;
 import com.google.gson.JsonObject;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
@@ -15,6 +14,7 @@ import org.broken.arrow.menu.library.runnable.RunButtonAnimation;
 import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.MenuInteractionChecks;
 import org.broken.arrow.menu.library.utility.ServerVersion;
+import org.broken.arrow.menu.library.utility.SoundUtility;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -130,7 +130,7 @@ public class MenuUtility<T> {
         this.autoTitleCurrentPage = true;
         this.slotIndex = 0;
         this.updateTime = -1;
-        this.menuOpenSound = Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull() == null ? Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BASEDRUM").orNull() : Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull();
+        this.menuOpenSound = new SoundUtility().getMenuOpenSound();
         this.uniqueKey = "";
         this.menuAPI = menuAPI;
         this.menuCache = menuAPI.getMenuCache();
