@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
 import org.broken.arrow.library.PublicationManager
 import org.broken.arrow.library.ShadeLogic
 
@@ -18,7 +19,7 @@ version = "1.0-SNAPSHOT"
 dependencies {
     api(project(":log-and-validate"))
     api(project(":color-conversion"))
-    implementation(libs.tr7zw.item.nbt.api)
+    api(libs.tr7zw.item.nbt.api)
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
 
@@ -31,6 +32,7 @@ java {
 tasks {
 
    shadowJar {
+       duplicatesStrategy = DuplicatesStrategy.INHERIT
         ShadeLogic(project, this) {
             setArchiveFileName()
             dependencies {

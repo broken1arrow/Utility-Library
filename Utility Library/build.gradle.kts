@@ -1,4 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
+import groovy.lang.Closure
 import org.broken.arrow.library.*
 
 plugins {
@@ -41,12 +43,14 @@ tasks {
     shadowJar {
         mustRunAfter(":block-visualization:shadowJar")
         mustRunAfter(":nbt:shadowJar")
-        val shadeLogic = ShadeLogic(project, this) {
+        duplicatesStrategy = DuplicatesStrategy.INHERIT
+        ShadeLogic(project, this) {
             setArchiveFileName()
             dependencies {
                 exclusions.forEach { exclude(it) }
+                exclude("de/tr7zw/changeme/nbtapi/")
             }
-            relocate("de.tr7zw.changeme.nbtapi", formatDependency("nbt"))
+           // relocate("de.tr7zw.changeme.nbtapi", formatDependency("nbt_util"))
         }
     }
     processResources {

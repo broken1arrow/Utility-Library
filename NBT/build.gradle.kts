@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
 import org.broken.arrow.library.PublicationManager
 import org.broken.arrow.library.ShadeLogic
 
@@ -31,7 +32,8 @@ java {
 tasks {
 
     shadowJar {
-        val shadeLogic = ShadeLogic(project, this) {
+        duplicatesStrategy = DuplicatesStrategy.INHERIT
+        ShadeLogic(project, this) {
             setArchiveFileName()
             dependencies {
                 exclusions.forEach { exclude(it) }
