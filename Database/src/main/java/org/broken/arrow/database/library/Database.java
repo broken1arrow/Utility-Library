@@ -10,6 +10,8 @@ import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.connection.HikariCP;
+import org.broken.arrow.database.library.utility.BatchExecutor;
+import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
 import org.broken.arrow.database.library.utility.DatabaseType;
 import org.broken.arrow.database.library.utility.PreparedStatementWrapper;
 import org.broken.arrow.database.library.utility.SQLCommandPrefix;
@@ -25,7 +27,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -46,13 +45,10 @@ import static org.broken.arrow.logging.library.Logging.of;
 public abstract class Database {
     private final Logging log = new Logging(Database.class);
     private final Map<String, TableWrapper> tables = new HashMap<>();
-    final Map<String, Map<String, Integer>> cachedColumnsIndex = new HashMap<>();
     private Set<String> removeColumns = new HashSet<>();
-    protected Connection connection;
     private final ConnectionSettings connectionSettings;
     private final MethodReflectionUtils methodReflectionUtils = new MethodReflectionUtils();
-    protected boolean batchUpdateGoingOn = false;
-    protected boolean hasStartWriteToDb = false;
+
     private DatabaseType databaseType = null;
     private char quote = '`';
     private String characterSet = "";
@@ -94,6 +90,15 @@ public abstract class Database {
     public abstract Connection connect();
 
     /**
+     * Checks if HikariCP is being used as the connection method to the database.
+     *
+     * @return {@code true} if HikariCP is being used, otherwise {@code false}.
+     */
+    public abstract boolean usingHikari();
+
+    public abstract boolean isHasCastException();
+
+    /**
      * The batchUpdate method, override this method to self set the {@link #batchUpdate(List, int, int)} method.
      *
      * @param sqlComposer   list of instances that store the information for the command that will be executed.
@@ -109,12 +114,13 @@ public abstract class Database {
         Connection connection = this.openConnection();
         if (connection == null) {
             this.printFailToOpen();
+            return;
         }
         try {
-            createAllTablesIfNotExist();
+            createAllTablesIfNotExist(connection);
             try {
                 for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
-                    final List<String> columns = updateTableColumnsInDb(entityTables.getKey());
+                    final List<String> columns = updateTableColumnsInDb(connection, entityTables.getKey());
                     this.createMissingColumns(connection, entityTables.getValue(), columns);
                 }
             } catch (final SQLException throwable) {
@@ -604,16 +610,12 @@ public abstract class Database {
     /**
      * Update the table, if it missing a colum or columns.
      *
-     * @param tableName the table you want to check.
+     * @param connection the connection to the database where the changes should be added.
+     * @param tableName  the table you want to check.
      * @return list of columns added in the database.
      * @throws SQLException if something going wrong.
      */
-    protected List<String> updateTableColumnsInDb(final String tableName) throws SQLException {
-        Connection connection = this.openConnection();
-        if (connection == null) {
-            this.printFailToOpen();
-            return new ArrayList<>();
-        }
+    protected List<String> updateTableColumnsInDb(final Connection connection, final String tableName) throws SQLException {
         PreparedStatement statement = null;
         ResultSet rs = null;
 
@@ -695,10 +697,12 @@ public abstract class Database {
 
     /**
      * Create all tables if it not exist yet, will only create a table if it not already exist.
+     *
+     * @param connection the connection to the database where the changes should be added.
      */
-    protected void createAllTablesIfNotExist() {
+    protected void createAllTablesIfNotExist(final Connection connection) {
         for (final Entry<String, TableWrapper> wrapperEntry : tables.entrySet()) {
-            this.createTableIfNotExist(wrapperEntry.getKey());
+            this.createTableIfNotExist(connection, wrapperEntry.getKey());
         }
     }
 
@@ -706,15 +710,11 @@ public abstract class Database {
     /**
      * Create table if it not exist yet, will only create a table if it not already exist.
      *
-     * @param tableName the name of the table to create.
+     * @param connection the connection to the database where the changes should be added.
+     * @param tableName  the name of the table to create.
      * @return true if it could check if the table exist or create now table.
      */
-    protected boolean createTableIfNotExist(final String tableName) {
-        Connection connection = this.openConnection();
-        if (connection == null) {
-            this.printFailToOpen();
-            return false;
-        }
+    protected boolean createTableIfNotExist(final Connection connection, final String tableName) {
 
         PreparedStatement statement = null;
         String table = "";
@@ -804,7 +804,7 @@ public abstract class Database {
     }
 
     public boolean isHasStartWriteToDb() {
-        return hasStartWriteToDb;
+        return false;
     }
 
     public Set<String> getRemoveColumns() {
@@ -1069,46 +1069,17 @@ public abstract class Database {
     }
 
     protected final void executePrepareBatch(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
-        batchUpdateGoingOn = true;
         Connection connection = this.openConnection();
         if (connection == null) {
             this.printFailToOpen();
             return;
         }
-
-        final int processedCount = batchList.size();
-        new Timer().scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (batchUpdateGoingOn) log.log(() -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
-                else cancel();
-            }
-        }, 1000 * 30L, 1000 * 30L);
-        if (processedCount > 10_000)
-            this.printPressesCount(processedCount);
-        try {
-            connection.setAutoCommit(false);
-            int batchSize = 1;
-            for (SqlCommandComposer sql : batchList) {
-                this.setPreparedStatement(sql, resultSetType, resultSetConcurrency);
-
-                if (batchSize % 100 == 0)
-                    connection.commit();
-                batchSize++;
-            }
-        } catch (SQLException e) {
-            log.log(Level.WARNING, e, () -> of("Could not set auto commit to false."));
-        } finally {
-            try {
-                connection.commit();
-                connection.setAutoCommit(true);
-            } catch (final SQLException ex) {
-                log.log(Level.WARNING, ex, () -> of("Could not set auto commit to true or commit last changes."));
-            } finally {
-                this.closeConnection(connection);
-            }
-            batchUpdateGoingOn = false;
-        }
+        BatchExecutor batch = new BatchExecutor(this, connection, (batchData -> {
+            batchData.setBatchList(batchList);
+            batchData.setResultSetType(resultSetType);
+            batchData.setResultSetConcurrency(resultSetConcurrency);
+        }));
+        batch.executeDatabaseTask();
     }
 
     protected final void executeBatch(@Nonnull final List<SqlCommandComposer> batchOfSQL, int resultSetType, int resultSetConcurrency) {
@@ -1117,56 +1088,13 @@ public abstract class Database {
             this.printFailToOpen();
             return;
         }
-
-        if (!hasStartWriteToDb)
-            try (final Statement statement = connection.createStatement(resultSetType, resultSetConcurrency)) {
-                hasStartWriteToDb = true;
-                final int processedCount = batchOfSQL.size();
-
-                // Prevent automatically sending db instructions
-                connection.setAutoCommit(false);
-
-                for (final SqlCommandComposer sql : batchOfSQL)
-                    statement.addBatch(sql.getQueryCommand());
-                if (processedCount > 10_000)
-                    this.printPressesCount(processedCount);
-
-                // Set the flag to start time notifications timer
-                batchUpdateGoingOn = true;
-
-                // Notify console that progress still is being made
-                new Timer().scheduleAtFixedRate(new TimerTask() {
-
-                    @Override
-                    public void run() {
-                        if (batchUpdateGoingOn)
-                            log.log(Level.WARNING, () -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
-                        else cancel();
-                    }
-                }, 1000 * 30L, 1000 * 30L);
-                // Execute
-                statement.executeBatch();
-
-                // This will block the thread
-                connection.commit();
-
-            } catch (final Exception t) {
-                log.log(t, () -> of("Could not execute one or several batches."));
-            } finally {
-                try {
-                    connection.setAutoCommit(true);
-                } catch (final SQLException ex) {
-                    log.log(ex, () -> of("Could not set auto commit back to true."));
-                } finally {
-                    this.closeConnection(connection);
-                }
-                hasStartWriteToDb = false;
-                // Even in case of failure, cancel
-                batchUpdateGoingOn = false;
-            }
+        BatchExecutorUnsafe batch = new BatchExecutorUnsafe(this, connection, (batchData -> {
+            batchData.setBatchList(batchOfSQL);
+            batchData.setResultSetType(resultSetType);
+            batchData.setResultSetConcurrency(resultSetConcurrency);
+        }));
+        batch.executeDatabaseTask();
     }
-
-    public abstract boolean isHasCastException();
 
     public void printPressesCount(int processedCount) {
         if (processedCount > 10_000)
@@ -1189,30 +1117,4 @@ public abstract class Database {
         return object != null;
     }
 
-    private final void setPreparedStatement(SqlCommandComposer sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-        Connection connection = this.openConnection();
-        if (connection == null) {
-            this.printFailToOpen();
-            return;
-        }
-
-        Map<Integer, Object> cachedDataByColumn = sql.getCachedDataByColumn();
-        try (PreparedStatement statement = connection.prepareStatement(sql.getPreparedSQLBatch(), resultSetType, resultSetConcurrency)) {
-            boolean valuesSet = false;
-
-            if (!cachedDataByColumn.isEmpty()) {
-                for (Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
-                    statement.setObject(column.getKey(), column.getValue());
-                    valuesSet = true;
-                }
-            }
-            if (valuesSet)
-                statement.addBatch();
-            statement.executeBatch();
-        } catch (SQLException e) {
-            log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
-            log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
-            connection.commit();
-        }
-    }
 }

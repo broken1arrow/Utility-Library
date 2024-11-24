@@ -85,6 +85,7 @@ public class PostgreSQL extends Database {
 			if (!hasCastException) {
 				connection = this.setupConnection();
 			}
+			hasCastException = false;
 		} catch (SQLRecoverableException exception) {
 			hasCastException = true;
 			log.log(exception, () -> of("Unable to connect to the database. Please try this action again after re-establishing the " +
@@ -167,5 +168,10 @@ public class PostgreSQL extends Database {
 			sqlCommandComposer.insertIntoTable();
 
 		return sqlCommandComposer;
+	}
+
+	@Override
+	public boolean usingHikari() {
+		return this.isHikariAvailable;
 	}
 }

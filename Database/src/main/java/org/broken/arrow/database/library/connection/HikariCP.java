@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.broken.arrow.database.library.Database;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
+import org.broken.arrow.logging.library.Logging;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
@@ -23,7 +24,8 @@ import java.sql.SQLException;
  * for this class to function correctly.
  */
 public class HikariCP {
-    private HikariDataSource hikari;
+    private final Logging log = new Logging(HikariCP.class);
+    private volatile HikariDataSource hikari;
     private final Database database;
     private final String driver;
 
@@ -60,29 +62,36 @@ public class HikariCP {
         if (maxLifeTime > 0)
             config.setMaxLifetime(maxLifeTime);
 
-        if (this.hikari == null) {
-            synchronized (this) {
-                this.hikari = new HikariDataSource(config);
-            }
-        } else {
-            createPoolIfSetDataNotMatch(config);
-        }
-        turnOfLogs();
-        return this.hikari.getConnection();
+        return createPoolIfSetDataNotMatch(config);
     }
-
-    private void createPoolIfSetDataNotMatch(HikariConfig config) {
-
-        boolean needRecreate = !this.hikari.getJdbcUrl().equals(config.getJdbcUrl()) ||
-                !this.hikari.getUsername().equals(config.getUsername()) ||
-                !this.hikari.getPassword().equals(config.getPassword());
-
-        if (needRecreate) {
-            synchronized (this) {
-                this.hikari.close();
+    private Connection createPoolIfSetDataNotMatch(HikariConfig config) throws SQLException {
+        synchronized (this) {
+            if (this.hikari == null || this.hikari.isClosed()) {
+                System.out.println("Creating new HikariDataSource as pool is null or closed.");
                 this.hikari = new HikariDataSource(config);
             }
+
+            boolean needRecreate = !this.hikari.getJdbcUrl().equals(config.getJdbcUrl()) ||
+                    !this.hikari.getUsername().equals(config.getUsername()) ||
+                    !this.hikari.getPassword().equals(config.getPassword());
+
+            if (needRecreate) {
+                try {
+                    this.hikari.close();
+                } catch (Exception e) {
+                    log.log(e, () -> Logging.of("Failed to close the connection pool. Continuing with recreation."));
+                }
+                this.hikari = new HikariDataSource(config); // Create a new pool
+            }
+
+            // Validate pool state
+            if (this.hikari.isClosed()) {
+                log.log(java.util.logging.Level.WARNING,()-> Logging.of( "Failed to initialize HikariDataSource. The pool is closed"));
+            }
         }
+
+        // Get connection from the pool
+        return this.hikari.getConnection();
     }
 
     @Nonnull

@@ -19,8 +19,7 @@ import static org.broken.arrow.logging.library.Logging.of;
 
 public class H2DB extends Database {
     private final Logging log = new Logging(H2DB.class);
-    private final String parent;
-    private final String child;
+
     private final boolean isHikariAvailable;
     private final File dbFile;
     private HikariCP hikari;
@@ -37,8 +36,7 @@ public class H2DB extends Database {
     public H2DB(String hikariClazzPath, DBPath dbPath) {
         super(new ConnectionSettings(dbPath.getDbFile().getPath()));
         this.dbFile = dbPath.getDbFile();
-        this.parent = "";
-        this.child = "";
+
         this.isHikariAvailable = isHikariAvailable(hikariClazzPath);
         this.loadDriver("org.h2.Driver");
         connect();
@@ -53,6 +51,11 @@ public class H2DB extends Database {
             log.log(e, () -> of("Fail to connect to H2 database. With the file path: " + this.dbFile));
         }
         return null;
+    }
+
+    @Override
+    public boolean usingHikari() {
+        return this.isHikariAvailable;
     }
 
     @Override
@@ -82,7 +85,7 @@ public class H2DB extends Database {
         } else {
             connection = DriverManager.getConnection("jdbc:h2:" + this.dbFile.getPath());
         }
-
+        hasCastException = false;
         return connection;
     }
 

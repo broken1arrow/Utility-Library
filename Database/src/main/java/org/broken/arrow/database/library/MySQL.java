@@ -25,7 +25,7 @@ public class MySQL extends Database {
     private final String driver;
     private boolean hasCastException = false;
     private final boolean isHikariAvailable;
-    private HikariCP hikari;
+    private final HikariCP hikari;
 
     /**
      * Creates a new MySQL instance with the given MySQL preferences.This
@@ -72,6 +72,10 @@ public class MySQL extends Database {
         this.startSQLUrl = "jdbc:mysql://";
         this.driver = "com.mysql.cj.jdbc.Driver";
         if (createDatabase) createMissingDatabase();
+        if (isHikariAvailable) {
+            this.hikari = new HikariCP(this, this.driver);
+        } else this.hikari = null;
+
         connect();
     }
 
@@ -83,6 +87,7 @@ public class MySQL extends Database {
             if (!hasCastException) {
                 connection = this.setupConnection();
             }
+            hasCastException = false;
         } catch (SQLRecoverableException exception) {
             hasCastException = true;
             log.log(exception, () -> of("Unable to connect to the database. Please try this action again after re-establishing the " +
@@ -103,8 +108,7 @@ public class MySQL extends Database {
     public Connection setupConnection() throws SQLException {
         Connection connection;
 
-        if (isHikariAvailable) {
-            if (this.hikari == null) this.hikari = new HikariCP(this, this.driver);
+        if (isHikariAvailable && this.hikari != null) {
             connection = this.hikari.getConnection(startSQLUrl);
         } else {
             String databaseName = mysqlPreference.getDatabaseName();
@@ -135,6 +139,11 @@ public class MySQL extends Database {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean usingHikari() {
+        return this.isHikariAvailable;
     }
 
     @Override

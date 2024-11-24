@@ -73,7 +73,7 @@ public class SQLite extends Database {
             connection = this.hikari.getFileConnection("jdbc:sqlite:");
         else
             connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getPath());
-
+        hasCastException = false;
         return connection;
     }
 
@@ -96,6 +96,12 @@ public class SQLite extends Database {
             return dbFile;
         }
     }
+
+    @Override
+    public boolean usingHikari() {
+        return this.isHikariAvailable;
+    }
+
 
 }
  

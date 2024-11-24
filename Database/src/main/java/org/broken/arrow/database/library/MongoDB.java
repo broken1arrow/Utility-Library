@@ -333,6 +333,12 @@ public class MongoDB extends Database{
 		return mongoClient == null || isClosed;
 	}
 
+
+	@Override
+	public boolean usingHikari() {
+		return false;
+	}
+
 	@Override
 	public boolean isHasCastException() {
 		return false;
