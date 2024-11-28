@@ -111,9 +111,8 @@ public abstract class Database {
      */
     public void createTables() {
         Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
-        Connection connection = this.openConnection();
+        Connection connection = this.attemptToConnect();
         if (connection == null) {
-            this.printFailToOpen();
             return;
         }
         try {
@@ -264,12 +263,7 @@ public abstract class Database {
     @Nullable
     public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
 
-        if (checkConnectionBefore()) {
-            return null;
-        }
-
         TableWrapper tableWrapper = this.getTable(tableName);
-
         if (tableWrapper == null) {
             this.printFailFindTable(tableName);
             return null;
@@ -307,14 +301,11 @@ public abstract class Database {
     public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
         TableWrapper tableWrapper = this.getTable(tableName);
 
-        if (checkConnectionBefore()) {
-            return null;
-        }
-
         if (tableWrapper == null) {
             this.printFailFindTable(tableName);
             return null;
         }
+
         Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
         String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
         Map<String, Object> dataFromDB = new HashMap<>();
@@ -468,9 +459,8 @@ public abstract class Database {
      */
     @Nullable
     public <T> T getPreparedStatement(@Nonnull final String command, final Function<PreparedStatementWrapper, T> function) {
-        Connection connection = this.openConnection();
+        Connection connection = this.attemptToConnect();
         if (connection == null) {
-            this.printFailToOpen();
             return null;
         }
         try (PreparedStatement preparedStatement = connection.prepareStatement(command)) {
@@ -505,9 +495,8 @@ public abstract class Database {
      * @param consumer the consumer that will be applied to the command.
      */
     public void getPreparedStatement(@Nonnull final String command, final Consumer<PreparedStatementWrapper> consumer) {
-        Connection connection = this.openConnection();
+        Connection connection = this.attemptToConnect();
         if (connection == null) {
-            this.printFailToOpen();
             return;
         }
 
@@ -534,18 +523,16 @@ public abstract class Database {
         Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
         String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
         Validate.checkNotNull(primaryKeyValue, "Could not find column for " + primaryColumn + ". Because the column value is null.");
-        PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
 
         final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-        try {
-            preparedStatement = connection.prepareStatement(sqlCommandComposer.selectRow(primaryKeyValue + ""));
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlCommandComposer.selectRow(primaryKeyValue + ""))){
             resultSet = preparedStatement.executeQuery();
             return resultSet.next();
         } catch (SQLException e) {
             log.log(e, () -> of("Could not search for your the row with this value '" + primaryKeyValue + "' from this table '" + tableName + "'"));
         } finally {
-            this.close(preparedStatement, resultSet);
+            this.close(null, resultSet);
         }
         return false;
     }
@@ -636,7 +623,7 @@ public abstract class Database {
     }
 
     protected void dropColumn(final List<String> existingColumns, final String tableName) throws SQLException {
-        Connection connection = this.openConnection();
+        Connection connection = this.connect();
         if (connection == null) {
             this.printFailToOpen();
             return;
@@ -650,7 +637,6 @@ public abstract class Database {
             existingColumns.remove(removed);
         }
         final String columnsSeparated = getColumnsFromTable(updatedTableColumns.getColumns().values());
-        if (openConnection() == null) return;
 
         PreparedStatement moveData = null;
         PreparedStatement alterTable = null;
@@ -730,7 +716,7 @@ public abstract class Database {
             statement.executeUpdate();
             TableRow wrapper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
             Validate.checkNotNull(wrapper, "Could not find a column for this table " + tableName);
-            checkIfTableExist(tableName, wrapper.getColumnName());
+            checkIfTableExist(connection, tableName, wrapper.getColumnName());
             return true;
         } catch (final SQLException e) {
             log.log(() -> of("Something not working when try create this table: '" + tableName + "'"));
@@ -742,23 +728,21 @@ public abstract class Database {
         }
     }
 
-    private boolean checkConnectionBefore() {
+    @Nullable
+    private Connection attemptToConnect() {
+        Connection connection = this.connect();
         if (isHasCastException()) {
             this.printFailConnect();
-            if (this.openConnection() == null) {
+            if (connection == null) {
                 this.printFailToOpen();
-                return true;
+                return null;
             }
+            return connection;
         }
-        return false;
+        return connection;
     }
 
-    private void checkIfTableExist(String tableName, String columName) {
-        Connection connection = this.openConnection();
-        if (connection == null) {
-            this.printFailToOpen();
-            return;
-        }
+    private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
 
         try (final PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?");) {
             preparedStatement.setString(1, "");
@@ -1059,9 +1043,6 @@ public abstract class Database {
 
     protected final void batchUpdate(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
         final ArrayList<SqlCommandComposer> sqls = new ArrayList<>(batchList);
-        if (this.checkConnectionBefore()) {
-            return;
-        }
         if (sqls.isEmpty()) return;
 
         if (this.secureQuery) this.executePrepareBatch(sqls, resultSetType, resultSetConcurrency);
@@ -1069,9 +1050,8 @@ public abstract class Database {
     }
 
     protected final void executePrepareBatch(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
-        Connection connection = this.openConnection();
+        Connection connection = this.attemptToConnect();
         if (connection == null) {
-            this.printFailToOpen();
             return;
         }
         BatchExecutor batch = new BatchExecutor(this, connection, (batchData -> {
@@ -1083,11 +1063,11 @@ public abstract class Database {
     }
 
     protected final void executeBatch(@Nonnull final List<SqlCommandComposer> batchOfSQL, int resultSetType, int resultSetConcurrency) {
-        Connection connection = this.openConnection();
+        Connection connection = this.attemptToConnect();
         if (connection == null) {
-            this.printFailToOpen();
             return;
         }
+
         BatchExecutorUnsafe batch = new BatchExecutorUnsafe(this, connection, (batchData -> {
             batchData.setBatchList(batchOfSQL);
             batchData.setResultSetType(resultSetType);
@@ -1106,7 +1086,7 @@ public abstract class Database {
     }
 
     public void printFailConnect() {
-        log.log(Level.WARNING, () -> of("Previous attempt to connect have failed, so can't execute your sql command. Will do an attempt to connect again"));
+        log.log(Level.WARNING, () -> of("Previous attempt to connect have failed, so can't execute your sql command. Will do an attempt to connect again, if it will not work you get 'Could not open connection, check the logs for more details.' message."));
     }
 
     public void printFailFindTable(String tableName) {
