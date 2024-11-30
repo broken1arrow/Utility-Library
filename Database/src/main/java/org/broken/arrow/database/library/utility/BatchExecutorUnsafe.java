@@ -1,15 +1,17 @@
 package org.broken.arrow.database.library.utility;
 
 import org.broken.arrow.database.library.Database;
+import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.logging.library.Logging;
 
+import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import static org.broken.arrow.logging.library.Logging.of;
@@ -19,22 +21,23 @@ public class BatchExecutorUnsafe extends BatchExecutor {
     private volatile boolean batchUpdateGoingOn;
     private volatile boolean hasStartWriteToDb;
 
-    public BatchExecutorUnsafe(final Database database, final Connection connection, final Consumer<BatchData> data) {
-        super(database, connection, data);
+    public BatchExecutorUnsafe(final Database database, final Connection connection, @Nonnull final List<DataWrapper> dataWrapperList) {
+        super(database, connection, dataWrapperList);
     }
 
     @Override
-    public void executeDatabaseTask() {
+    public void executeDatabaseTask(List<SqlCommandComposer> composerList) {
         this.batchUpdateGoingOn = true;
+        Connection connection = this.connection;
         if (!this.hasStartWriteToDb)
-            try (final Statement statement = this.connection.createStatement(this.resultSetType, this.resultSetConcurrency)) {
+            try (final Statement statement = connection.createStatement(this.resultSetType, this.resultSetConcurrency)) {
                 this.hasStartWriteToDb = true;
-                final int processedCount = batchList.size();
+                final int processedCount = dataWrapperList.size();
 
                 // Prevent automatically sending db instructions
                 this.connection.setAutoCommit(false);
 
-                for (final SqlCommandComposer sql : batchList)
+                for (final SqlCommandComposer sql : composerList)
                     statement.addBatch(sql.getQueryCommand());
                 if (processedCount > 10_000)
                     this.printPressesCount(processedCount);
@@ -55,17 +58,16 @@ public class BatchExecutorUnsafe extends BatchExecutor {
                 statement.executeBatch();
 
                 // This will block the thread
-                this.connection.commit();
-
+                connection.commit();
             } catch (final Exception t) {
                 this.log.log(t, () -> of("Could not execute one or several batches."));
             } finally {
                 try {
-                    this.connection.setAutoCommit(true);
+                    connection.setAutoCommit(true);
                 } catch (final SQLException ex) {
                     this.log.log(ex, () -> of("Could not set auto commit back to true."));
                 } finally {
-                    this.database.closeConnection(this.connection);
+                    this.database.closeConnection(connection);
                 }
                 this.hasStartWriteToDb = false;
                 // Even in case of failure, cancel

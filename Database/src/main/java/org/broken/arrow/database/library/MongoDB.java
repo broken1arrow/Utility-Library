@@ -15,6 +15,7 @@ import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.database.library.utility.PreparedStatementWrapper;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
@@ -286,6 +287,13 @@ public class MongoDB extends Database{
 	protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
 		throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
 	}
+
+	@Nonnull
+	@Override
+	public DatabaseCommandConfig databaseConfig() {
+		throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
+	}
+
 
 	private void saveData(final DataWrapper dataWrapper, final TableWrapper tableWrapper, final MongoCollection<Document> collection) {
 		Document document = new Document("_id", dataWrapper.getPrimaryValue());

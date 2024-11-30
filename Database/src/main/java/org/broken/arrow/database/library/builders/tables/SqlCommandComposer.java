@@ -423,4 +423,17 @@ public final class SqlCommandComposer {
 		return value;
 	}
 
+	@Override
+	public String toString() {
+		return "SqlCommandComposer{" +
+				"tableWrapper=" + tableWrapper +
+				", rowWrapper=" + rowWrapper +
+				", database=" + database +
+				", queryBuilder=" + queryBuilder +
+				", cachedDataByColumn=" + cachedDataByColumn +
+				", columnsToUpdate=" + columnsToUpdate +
+				", preparedSQLBatch=" + preparedSQLBatch +
+				", queryCommand='" + queryCommand + '\'' +
+				'}';
+	}
 }

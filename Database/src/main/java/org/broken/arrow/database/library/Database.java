@@ -3,7 +3,6 @@ package org.broken.arrow.database.library;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
-import org.broken.arrow.database.library.builders.RowDataWrapper;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
@@ -12,6 +11,7 @@ import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
+import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.database.library.utility.DatabaseType;
 import org.broken.arrow.database.library.utility.PreparedStatementWrapper;
 import org.broken.arrow.database.library.utility.SQLCommandPrefix;
@@ -105,7 +105,8 @@ public abstract class Database {
      * @param tableWrappers the table wrapper involved in the execution of this event.
      */
     protected abstract void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers);
-
+    @Nonnull
+    public abstract DatabaseCommandConfig databaseConfig();
     /**
      * Create all needed tables if it not exist.
      */
@@ -168,28 +169,14 @@ public abstract class Database {
      *                        updates the existing row with these columns if it exists.
      */
     public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns) {
-        final List<SqlCommandComposer> composerList = new ArrayList<>();
-
-        final TableWrapper tableWrapper = this.getTable(tableName);
-        if (tableWrapper == null) {
-            this.printFailFindTable(tableName);
-            return;
+        Connection connection = this.attemptToConnect();
+        BatchExecutor batchExecutor;
+        if (this.secureQuery)
+             batchExecutor = new BatchExecutor(this,connection,dataWrapperList);
+        else {
+            batchExecutor = new BatchExecutorUnsafe(this,connection,dataWrapperList);
         }
-
-        for (DataWrapper dataWrapper : dataWrapperList) {
-            TableRow primaryRow = tableWrapper.getPrimaryRow();
-            if (dataWrapper == null || primaryRow == null) continue;
-
-            RowWrapper saveWrapper = new RowDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
-
-            for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
-                TableRow column = tableWrapper.getColumn(entry.getKey());
-                if (column == null) continue;
-                saveWrapper.putColumn(entry.getKey(), entry.getValue());
-            }
-            composerList.add(this.getCommandComposer(saveWrapper, shallUpdate, columns));
-        }
-        this.batchUpdate(composerList, this.getTables().values().toArray(new TableWrapper[0]));
+        batchExecutor.saveAll(tableName,shallUpdate,columns);
     }
 
     /**
@@ -231,25 +218,15 @@ public abstract class Database {
      *                    updates the existing row with these columns if it exists.
      */
     public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
-        final List<SqlCommandComposer> composerList = new ArrayList<>();
-        TableWrapper tableWrapper = this.getTable(tableName);
-        if (tableWrapper == null) {
-            this.printFailFindTable(tableName);
-            return;
+
+        Connection connection = this.attemptToConnect();
+        BatchExecutor batchExecutor;
+        if (this.secureQuery)
+            batchExecutor = new BatchExecutor(this,connection,new ArrayList<>());
+        else {
+            batchExecutor = new BatchExecutorUnsafe(this,connection,new ArrayList<>());
         }
-        if (!checkIfNotNull(dataWrapper)) return;
-
-
-        ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
-        RowWrapper rowWrapper = new RowDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
-
-        for (Entry<String, Object> entry : configuration.serialize().entrySet()) {
-            TableRow column = tableWrapper.getColumn(entry.getKey());
-            if (column == null) continue;
-            rowWrapper.putColumn(entry.getKey(), entry.getValue());
-        }
-        composerList.add(this.getCommandComposer(rowWrapper, shallUpdate, columns));
-        this.batchUpdate(composerList, tableWrapper);
+        batchExecutor.save(tableName,dataWrapper,shallUpdate,columns);
     }
 
     /**
@@ -528,6 +505,7 @@ public abstract class Database {
         final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
         try (PreparedStatement preparedStatement = connection.prepareStatement(sqlCommandComposer.selectRow(primaryKeyValue + ""))){
             resultSet = preparedStatement.executeQuery();
+            System.out.println("resultSet.next() " + resultSet.next());
             return resultSet.next();
         } catch (SQLException e) {
             log.log(e, () -> of("Could not search for your the row with this value '" + primaryKeyValue + "' from this table '" + tableName + "'"));
@@ -585,7 +563,7 @@ public abstract class Database {
             close(statement, null);
     }
 
-    protected void close(final PreparedStatement preparedStatement, final ResultSet resultSet) {
+    public void close(final PreparedStatement preparedStatement, final ResultSet resultSet) {
         try {
             if (preparedStatement != null) preparedStatement.close();
             if (resultSet != null) resultSet.close();
@@ -775,10 +753,13 @@ public abstract class Database {
         SqlCommandComposer commandComposer = new SqlCommandComposer(rowWrapper, this);
         commandComposer.setColumnsToUpdate(columns);
         boolean columnsIsEmpty = columns == null || columns.length == 0;
+        boolean canUpdateRow = (!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue());
 
-        if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
+
+        this.databaseConfig().applyDatabaseCommand(commandComposer,rowWrapper.getPrimaryKeyValue(),canUpdateRow);
+     /*   if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
             commandComposer.updateTable(rowWrapper.getPrimaryKeyValue());
-        else commandComposer.replaceIntoTable();
+        else commandComposer.replaceIntoTable();*/
 
         return commandComposer;
     }
@@ -1050,7 +1031,7 @@ public abstract class Database {
     }
 
     protected final void executePrepareBatch(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
-        Connection connection = this.attemptToConnect();
+  /*      Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
         }
@@ -1059,11 +1040,11 @@ public abstract class Database {
             batchData.setResultSetType(resultSetType);
             batchData.setResultSetConcurrency(resultSetConcurrency);
         }));
-        batch.executeDatabaseTask();
+        batch.executeDatabaseTask(composerList);*/
     }
 
     protected final void executeBatch(@Nonnull final List<SqlCommandComposer> batchOfSQL, int resultSetType, int resultSetConcurrency) {
-        Connection connection = this.attemptToConnect();
+      /*  Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
         }
@@ -1073,7 +1054,7 @@ public abstract class Database {
             batchData.setResultSetType(resultSetType);
             batchData.setResultSetConcurrency(resultSetConcurrency);
         }));
-        batch.executeDatabaseTask();
+        batch.executeDatabaseTask(composerList);*/
     }
 
     public void printPressesCount(int processedCount) {

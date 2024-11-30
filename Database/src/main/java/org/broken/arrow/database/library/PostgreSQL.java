@@ -1,10 +1,10 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
-import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.connection.HikariCP;
+import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 
@@ -103,6 +103,17 @@ public class PostgreSQL extends Database {
 		this.batchUpdate(batchList, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	}
 
+	@Nonnull
+	@Override
+	public DatabaseCommandConfig databaseConfig() {
+		return new DatabaseCommandConfig(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,(commandComposer, primaryKeyValue, rowExist) -> {
+			if (rowExist)
+				commandComposer.updateTable(primaryKeyValue);
+			else
+				commandComposer.insertIntoTable();
+		});
+	}
+
 	@Override
 	public boolean isHasCastException() {
 		return hasCastException;
@@ -156,7 +167,7 @@ public class PostgreSQL extends Database {
 		}
 	}
 
-	@Override
+/*	@Override
 	protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
 		SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(rowWrapper, this);
 		boolean columnsIsEmpty = columns == null || columns.length == 0;
@@ -168,7 +179,7 @@ public class PostgreSQL extends Database {
 			sqlCommandComposer.insertIntoTable();
 
 		return sqlCommandComposer;
-	}
+	}*/
 
 	@Override
 	public boolean usingHikari() {
