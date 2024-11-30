@@ -4,7 +4,11 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerApi;
 import com.mongodb.ServerApiVersion;
-import com.mongodb.client.*;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
@@ -12,7 +16,6 @@ import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
-import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
@@ -283,10 +286,6 @@ public class MongoDB extends Database{
 		this.closeConnection();
 	}
 
-	@Override
-	protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
-		throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
-	}
 
 	@Nonnull
 	@Override

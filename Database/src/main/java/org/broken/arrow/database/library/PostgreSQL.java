@@ -1,8 +1,6 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
-import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
-import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.logging.library.Logging;
@@ -15,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
-import java.util.List;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
@@ -98,15 +95,10 @@ public class PostgreSQL extends Database {
 		return connection;
 	}
 
-	@Override
-	protected void batchUpdate(@Nonnull final List<SqlCommandComposer> batchList, @Nonnull final TableWrapper... tableWrappers) {
-		this.batchUpdate(batchList, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-	}
-
 	@Nonnull
 	@Override
 	public DatabaseCommandConfig databaseConfig() {
-		return new DatabaseCommandConfig(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,(commandComposer, primaryKeyValue, rowExist) -> {
+		return new DatabaseCommandConfig(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE,(commandComposer, primaryKeyValue, rowExist) -> {
 			if (rowExist)
 				commandComposer.updateTable(primaryKeyValue);
 			else

@@ -29,7 +29,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -99,14 +98,26 @@ public abstract class Database {
     public abstract boolean isHasCastException();
 
     /**
-     * The batchUpdate method, override this method to self set the {@link #batchUpdate(List, int, int)} method.
+     * The batchUpdate method, override this method to self set the method.
      *
      * @param sqlComposer   list of instances that store the information for the command that will be executed.
      * @param tableWrappers the table wrapper involved in the execution of this event.
      */
-    protected abstract void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers);
+    @Deprecated
+    protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
+
+    }
+
+    /**
+     * Retrieves the configuration settings for a specific database type. This includes settings
+     * such as {@code resultSetType}, {@code resultSetConcurrency}, and the type of command
+     * to execute when performing data updates or inserts.
+     *
+     * @return the {@link DatabaseCommandConfig} instance containing the database configuration settings.
+     */
     @Nonnull
     public abstract DatabaseCommandConfig databaseConfig();
+
     /**
      * Create all needed tables if it not exist.
      */
@@ -172,11 +183,11 @@ public abstract class Database {
         Connection connection = this.attemptToConnect();
         BatchExecutor batchExecutor;
         if (this.secureQuery)
-             batchExecutor = new BatchExecutor(this,connection,dataWrapperList);
+            batchExecutor = new BatchExecutor(this, connection, dataWrapperList);
         else {
-            batchExecutor = new BatchExecutorUnsafe(this,connection,dataWrapperList);
+            batchExecutor = new BatchExecutorUnsafe(this, connection, dataWrapperList);
         }
-        batchExecutor.saveAll(tableName,shallUpdate,columns);
+        batchExecutor.saveAll(tableName, shallUpdate, columns);
     }
 
     /**
@@ -222,11 +233,11 @@ public abstract class Database {
         Connection connection = this.attemptToConnect();
         BatchExecutor batchExecutor;
         if (this.secureQuery)
-            batchExecutor = new BatchExecutor(this,connection,new ArrayList<>());
+            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
         else {
-            batchExecutor = new BatchExecutorUnsafe(this,connection,new ArrayList<>());
+            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
-        batchExecutor.save(tableName,dataWrapper,shallUpdate,columns);
+        batchExecutor.save(tableName, dataWrapper, shallUpdate, columns);
     }
 
     /**
@@ -313,18 +324,19 @@ public abstract class Database {
      * @param values    the list of primary key values you want to remove from database.
      */
     public void removeAll(final String tableName, final List<String> values) {
-        TableWrapper tableWrapper = this.getTable(tableName);
-        if (tableWrapper == null) {
-            this.printFailFindTable(tableName);
+        BatchExecutor batchExecutor;
+        Connection connection = this.attemptToConnect();
+        if (connection == null) {
             return;
         }
-        List<SqlCommandComposer> columns = new ArrayList<>();
-        for (String value : values) {
-            final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-            sqlCommandComposer.removeRow(value);
-            columns.add(sqlCommandComposer);
+
+        if (this.secureQuery)
+            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+        else {
+            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
-        this.batchUpdate(columns, tableWrapper);
+
+        batchExecutor.removeAll(tableName, values);
     }
 
     /**
@@ -334,14 +346,19 @@ public abstract class Database {
      * @param value     the primary key value you want to remove from database.
      */
     public void remove(final String tableName, final String value) {
-        TableWrapper tableWrapper = this.getTable(tableName);
-        if (tableWrapper == null) {
-            this.printFailFindTable(tableName);
+        BatchExecutor batchExecutor;
+        Connection connection = this.attemptToConnect();
+        if (connection == null) {
             return;
         }
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-        sqlCommandComposer.removeRow(value);
-        this.batchUpdate(Collections.singletonList(sqlCommandComposer), tableWrapper);
+
+        if (this.secureQuery)
+            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+        else {
+            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+        }
+
+        batchExecutor.remove(tableName, value);
     }
 
     /**
@@ -350,14 +367,19 @@ public abstract class Database {
      * @param tableName the name of the table to drop.
      */
     public void dropTable(final String tableName) {
-        TableWrapper tableWrapper = this.getTable(tableName);
-        if (tableWrapper == null) {
-            this.printFailFindTable(tableName);
+        BatchExecutor batchExecutor;
+        Connection connection = this.attemptToConnect();
+        if (connection == null) {
             return;
         }
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-        sqlCommandComposer.dropTable();
-        this.batchUpdate(Collections.singletonList(sqlCommandComposer), tableWrapper);
+
+        if (this.secureQuery)
+            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+        else {
+            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+        }
+
+        batchExecutor.dropTable(tableName);
     }
 
     /**
@@ -396,19 +418,18 @@ public abstract class Database {
      * @param sqlQueryBuilders The SQL command or commands you want to run
      */
     public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
-        if (!checkIfNotNull(sqlQueryBuilders)) return;
-
-        List<SqlCommandComposer> sqlComposer = new ArrayList<>();
-        TableWrapper tableWrapper = null;
-        for (SqlQueryBuilder command : sqlQueryBuilders) {
-            tableWrapper = TableWrapper.of(command, TableRow.of("", ""));
-            final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-            sqlCommandComposer.executeCustomCommand();
-            sqlComposer.add(sqlCommandComposer);
+        BatchExecutor batchExecutor;
+        Connection connection = this.attemptToConnect();
+        if (connection == null) {
+            return;
         }
-        if (tableWrapper == null)
-            tableWrapper = TableWrapper.of("table", TableRow.of("", ""));
-        this.batchUpdate(sqlComposer, tableWrapper);
+
+        if (this.secureQuery)
+            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+        else {
+            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+        }
+        batchExecutor.runSQLCommand(sqlQueryBuilders);
     }
 
     /**
@@ -416,15 +437,12 @@ public abstract class Database {
      * preparedStatement and parameterized queries to reduce SQL injection risks (if you do not turn it off with
      * {@link #setSecureQuery(boolean)}), it is crucial for you to follow safe practices:
      * <p>&nbsp;</p>
-     * <p>
-     * * Don't pass unsanitized user input directly into SQL commands. Always validate and sanitize
-     * any user-provided values before using them in SQL commands.
-     * </p>
-     * <p>&nbsp;</p>
-     * <p>
-     * * You need to be aware of the potentially security risks of running your own custom SQL
-     * commands, and only give access to trusted individuals only.
-     * </p>
+     * <ul>
+     *   <li>Do not pass unsanitized user input directly into SQL commands. Always validate and sanitize
+     *       user-provided values before including them in SQL queries.</li>
+     *   <li>Be cautious of security risks when executing custom SQL commands. Ensure that end-users cannot manipulate
+     *       sensitive values or keys.</li>
+     * </ul>
      * <p>&nbsp;</p>
      * Throws SQLException if a database access error occurs or this method is called on a
      * closed connection. Alternatively the command is not correctly setup.
@@ -451,25 +469,22 @@ public abstract class Database {
     }
 
     /**
-     * This method enables you to set up and execute custom SQL commands on a database and returns {@link PreparedStatementWrapper}. While this method uses
-     * preparedStatement and parameterized queries to reduce SQL injection risks (if you do not turn it off with
-     * {@link #setSecureQuery(boolean)}), it is crucial for you to follow safe practices:
-     * <p>&nbsp;</p>
-     * <p>
-     * * Don't pass unsanitized user input directly into SQL commands. Always validate and sanitize
-     * any user-provided values before using them in SQL commands.
-     * </p>
-     * <p>&nbsp;</p>
-     * <p>
-     * * You need to be aware of the potentially security risks of running your own custom SQL
-     * commands, and only give access to trusted individuals only.
-     * </p>
-     * <p>&nbsp;</p>
-     * Throws SQLException if a database access error occurs or this method is called on a
-     * closed connection. Alternatively the command is not correctly setup.
+     * Executes a custom SQL command on the database and returns a {@link PreparedStatementWrapper}.
+     * This method leverages prepared statements and parameterized queries to mitigate SQL injection risks
+     * (unless disabled using {@link #setSecureQuery(boolean)}). It is essential to adhere to best practices for safe SQL execution:
      *
-     * @param command  the V or SQL command you want to run.
-     * @param consumer the consumer that will be applied to the command.
+     * <ul>
+     *   <li>Do not pass unsanitized user input directly into SQL commands. Always validate and sanitize
+     *       user-provided values before including them in SQL queries.</li>
+     *   <li>Be cautious of security risks when executing custom SQL commands. Ensure that end-users cannot manipulate
+     *       sensitive values or keys.</li>
+     * </ul>
+     *
+     * <p>Throws {@code SQLException} if a database access error occurs, if the connection is closed, or if the command
+     * is not properly set up.</p>
+     *
+     * @param command  the SQL command to be executed.
+     * @param consumer a consumer to handle the result returned by the database.
      */
     public void getPreparedStatement(@Nonnull final String command, final Consumer<PreparedStatementWrapper> consumer) {
         Connection connection = this.attemptToConnect();
@@ -480,39 +495,10 @@ public abstract class Database {
         try (PreparedStatement preparedStatement = connection.prepareStatement(command)) {
             consumer.accept(new PreparedStatementWrapper(preparedStatement));
         } catch (SQLException e) {
-            log.log(e, () -> of("could not execute this command: " + command));
+            log.log(e, () -> of("Could not execute this command: " + command));
         } finally {
             this.closeConnection(connection);
         }
-    }
-
-    public boolean doRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
-        TableWrapper tableWrapper = this.getTable(tableName);
-        Connection connection = this.openConnection();
-        if (connection == null) {
-            this.printFailToOpen();
-            return false;
-        }
-        if (tableWrapper == null) {
-            this.printFailFindTable(tableName);
-            return false;
-        }
-        Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
-        String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
-        Validate.checkNotNull(primaryKeyValue, "Could not find column for " + primaryColumn + ". Because the column value is null.");
-        ResultSet resultSet = null;
-
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlCommandComposer.selectRow(primaryKeyValue + ""))){
-            resultSet = preparedStatement.executeQuery();
-            System.out.println("resultSet.next() " + resultSet.next());
-            return resultSet.next();
-        } catch (SQLException e) {
-            log.log(e, () -> of("Could not search for your the row with this value '" + primaryKeyValue + "' from this table '" + tableName + "'"));
-        } finally {
-            this.close(null, resultSet);
-        }
-        return false;
     }
 
     /**
@@ -739,29 +725,6 @@ public abstract class Database {
             columRow.append(colum).append(" ");
         }
         return columRow.toString();
-    }
-
-    /**
-     * Retrieves a SqlCommandComposer instance.
-     *
-     * @param rowWrapper  The current row's column data.
-     * @param shallUpdate Specifies whether the table should be updated.
-     * @param columns     If not null and not empty, updates the existing row with these columns if it exists.
-     * @return The SqlCommandComposer instance with the finish SQL command for either use for prepare V or not.
-     */
-    protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
-        SqlCommandComposer commandComposer = new SqlCommandComposer(rowWrapper, this);
-        commandComposer.setColumnsToUpdate(columns);
-        boolean columnsIsEmpty = columns == null || columns.length == 0;
-        boolean canUpdateRow = (!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue());
-
-
-        this.databaseConfig().applyDatabaseCommand(commandComposer,rowWrapper.getPrimaryKeyValue(),canUpdateRow);
-     /*   if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
-            commandComposer.updateTable(rowWrapper.getPrimaryKeyValue());
-        else commandComposer.replaceIntoTable();*/
-
-        return commandComposer;
     }
 
     protected String textUtils(final List<String> columns) {
@@ -1020,41 +983,6 @@ public abstract class Database {
 
     public MethodReflectionUtils getMethodReflectionUtils() {
         return methodReflectionUtils;
-    }
-
-    protected final void batchUpdate(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
-        final ArrayList<SqlCommandComposer> sqls = new ArrayList<>(batchList);
-        if (sqls.isEmpty()) return;
-
-        if (this.secureQuery) this.executePrepareBatch(sqls, resultSetType, resultSetConcurrency);
-        else this.executeBatch(sqls, resultSetType, resultSetConcurrency);
-    }
-
-    protected final void executePrepareBatch(@Nonnull final List<SqlCommandComposer> batchList, int resultSetType, int resultSetConcurrency) {
-  /*      Connection connection = this.attemptToConnect();
-        if (connection == null) {
-            return;
-        }
-        BatchExecutor batch = new BatchExecutor(this, connection, (batchData -> {
-            batchData.setBatchList(batchList);
-            batchData.setResultSetType(resultSetType);
-            batchData.setResultSetConcurrency(resultSetConcurrency);
-        }));
-        batch.executeDatabaseTask(composerList);*/
-    }
-
-    protected final void executeBatch(@Nonnull final List<SqlCommandComposer> batchOfSQL, int resultSetType, int resultSetConcurrency) {
-      /*  Connection connection = this.attemptToConnect();
-        if (connection == null) {
-            return;
-        }
-
-        BatchExecutorUnsafe batch = new BatchExecutorUnsafe(this, connection, (batchData -> {
-            batchData.setBatchList(batchOfSQL);
-            batchData.setResultSetType(resultSetType);
-            batchData.setResultSetConcurrency(resultSetConcurrency);
-        }));
-        batch.executeDatabaseTask(composerList);*/
     }
 
     public void printPressesCount(int processedCount) {

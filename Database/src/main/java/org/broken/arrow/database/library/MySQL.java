@@ -1,8 +1,6 @@
 package org.broken.arrow.database.library;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
-import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
-import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.logging.library.Logging;
@@ -15,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
-import java.util.List;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
@@ -99,11 +96,6 @@ public class MySQL extends Database {
             log.log(throwable, () -> of("Could not connect to the database. Check the error message and make sure the database is running."));
         }
         return connection;
-    }
-
-    @Override
-    protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
-        this.batchUpdate(sqlComposer, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
     }
 
     @Nonnull

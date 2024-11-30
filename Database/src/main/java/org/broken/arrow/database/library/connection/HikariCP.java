@@ -61,6 +61,8 @@ public class HikariCP {
         long maxLifeTime = this.database.getMaxLifeTime();
         if (maxLifeTime > 0)
             config.setMaxLifetime(maxLifeTime);
+
+
         return createPoolIfSetDataNotMatch(config);
     }
 
@@ -80,22 +82,13 @@ public class HikariCP {
                 } catch (Exception e) {
                     log.log(e, () -> Logging.of("Failed to close the connection pool. Continuing with recreation."));
                 }
-                this.hikari = new HikariDataSource(config); // Create a new pool
+                this.hikari = new HikariDataSource(config);
             }
-
-            // Validate pool state
             if (this.hikari.isClosed()) {
-                log.log(java.util.logging.Level.WARNING, () -> Logging.of("Failed to initialize HikariDataSource. The pool is closed"));
+                log.log(java.util.logging.Level.WARNING, () -> Logging.of("Failed to initialize HikariDataSource: The connection pool is closed. Unable to proceed with the connection process. Try again later."));
+                return null;
             }
- /*           HikariPoolMXBean hikariPoolMXBean = this.hikari.getHikariPoolMXBean();
-            if (hikariPoolMXBean.getActiveConnections() -1 >= this.hikari.getMaximumPoolSize())
-                hikariPoolMXBean.softEvictConnections();*/
         }
-/*        HikariPoolMXBean hikariPoolMXBean = this.hikari.getHikariPoolMXBean();
-        System.out.println("Active Connections: " + hikariPoolMXBean.getActiveConnections());
-        System.out.println("Idle Connections: " + hikariPoolMXBean.getIdleConnections());
-        System.out.println("Threads Awaiting Connection: " + hikariPoolMXBean.getThreadsAwaitingConnection());*/
-        // Get connection from the pool
         return this.hikari.getConnection();
     }
 

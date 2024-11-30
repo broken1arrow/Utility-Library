@@ -4,6 +4,7 @@ import org.broken.arrow.database.library.Database;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.RowDataWrapper;
 import org.broken.arrow.database.library.builders.RowWrapper;
+import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
@@ -17,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -35,7 +37,7 @@ public class BatchExecutor {
     protected final int resultSetConcurrency;
     private volatile boolean batchUpdateGoingOn;
 
-    public BatchExecutor(final Database database, final Connection connection, @Nonnull final List<DataWrapper> dataWrapperList) {
+    public BatchExecutor(@Nonnull final Database database, @Nonnull final Connection connection, @Nonnull final List<DataWrapper> dataWrapperList) {
         this.database = database;
         this.connection = connection;
         this.dataWrapperList = dataWrapperList;
@@ -49,7 +51,7 @@ public class BatchExecutor {
 
         final TableWrapper tableWrapper = this.database.getTable(tableName);
         if (tableWrapper == null) {
-            this.database.printFailFindTable(tableName);
+            this.printFailFindTable(tableName);
             return;
         }
 
@@ -66,7 +68,7 @@ public class BatchExecutor {
         final List<SqlCommandComposer> composerList = new ArrayList<>();
         TableWrapper tableWrapper = this.database.getTable(tableName);
         if (tableWrapper == null) {
-            this.database.printFailFindTable(tableName);
+            this.printFailFindTable(tableName);
             return;
         }
         if (!checkIfNotNull(dataWrapper)) return;
@@ -74,6 +76,56 @@ public class BatchExecutor {
         this.formatData(composerList, dataWrapper, shallUpdate, columns, tableWrapper);
 
         executeDatabaseTask(composerList);
+    }
+
+    public void removeAll(String tableName, final List<String> values) {
+        TableWrapper tableWrapper = this.database.getTable(tableName);
+        if (tableWrapper == null) {
+            this.printFailFindTable(tableName);
+            return;
+        }
+        List<SqlCommandComposer> columns = new ArrayList<>();
+        for (String value : values) {
+            final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper),  this.database);
+            sqlCommandComposer.removeRow(value);
+            columns.add(sqlCommandComposer);
+        }
+        this.executeDatabaseTask(columns);
+    }
+
+    public void remove(String tableName, String value) {
+        TableWrapper tableWrapper = this.database.getTable(tableName);
+        if (tableWrapper == null) {
+            this.printFailFindTable(tableName);
+            return;
+        }
+        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper),  this.database);
+        sqlCommandComposer.removeRow(value);
+        this.executeDatabaseTask(Collections.singletonList(sqlCommandComposer));
+    }
+
+    public void dropTable(String tableName) {
+        TableWrapper tableWrapper = this.database.getTable(tableName);
+        if (tableWrapper == null) {
+            this.printFailFindTable(tableName);
+            return;
+        }
+        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this.database);
+        sqlCommandComposer.dropTable();
+        this.executeDatabaseTask(Collections.singletonList(sqlCommandComposer));
+    }
+
+    public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
+        if (!checkIfNotNull(sqlQueryBuilders)) return;
+
+        List<SqlCommandComposer> sqlComposer = new ArrayList<>();
+        for (SqlQueryBuilder command : sqlQueryBuilders) {
+            TableWrapper tableWrapper = TableWrapper.of(command, TableRow.of("", ""));
+            final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this.database);
+            sqlCommandComposer.executeCustomCommand();
+            sqlComposer.add(sqlCommandComposer);
+        }
+        this.executeDatabaseTask(sqlComposer);
     }
 
     private void formatData(@Nonnull final List<SqlCommandComposer> composerList, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final String[] columns, final TableWrapper tableWrapper) {
@@ -112,7 +164,7 @@ public class BatchExecutor {
         TableWrapper tableWrapper = this.database.getTable(tableName);
         Connection connection = this.connection;
         if (tableWrapper == null) {
-            this.database.printFailFindTable(tableName);
+            this.printFailFindTable(tableName);
             return false;
         }
         Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
@@ -208,5 +260,9 @@ public class BatchExecutor {
 
     public boolean checkIfNotNull(Object object) {
         return object != null;
+    }
+
+    public void printFailFindTable(String tableName) {
+        log.log(Level.WARNING, () -> of("Could not find table " + tableName));
     }
 }
