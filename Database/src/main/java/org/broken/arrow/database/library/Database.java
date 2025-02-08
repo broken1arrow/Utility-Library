@@ -277,13 +277,13 @@ public abstract class Database {
     }
 
     /**
-     * Load one row from specified database table.
+     * Loads a single row from the specified database table.
      *
-     * @param tableName   name of the table you want to get data from.
-     * @param clazz       the class you have your static deserialize method.
-     * @param columnValue the value of the primary key you want to find data from.
-     * @param <T>         V of class that extends ConfigurationSerializable .
-     * @return one row you have in the table.
+     * @param tableName   the name of the table to retrieve data from.
+     * @param clazz       the class containing the static deserialize method.
+     * @param columnValue the primary key value used to find the data.
+     * @param <T>         a class that extends {@code ConfigurationSerializable}.
+     * @return the retrieved row from the table, or {@code null} if no data is found.
      */
     @Nullable
     public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
@@ -309,7 +309,8 @@ public abstract class Database {
                 log.log(Level.WARNING, e, () -> of("Could not load the data. Check the stacktrace."));
             }
         });
-
+        if (dataFromDB.isEmpty())
+            return null;
         T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
         Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
 
@@ -499,6 +500,35 @@ public abstract class Database {
         } finally {
             this.closeConnection(connection);
         }
+    }
+
+
+    /**
+     * Checks if a row exists in the specified table.
+     * <p>&nbsp;</p>
+     * <p>It is recommended to use {@link #load(String, Class, String)} or {@link #loadAll(String, Class)}
+     * if you also need to load the data, as a simple null check or checking if the list is empty is often sufficient.</p>
+     * <p>&nbsp;</p>
+     * <p>For save operations, running this check beforehand is unnecessary, as the SQL command
+     * automatically determines whether the value exists and executes the appropriate command.</p>
+     *
+     * @param tableName the name of the table to search for the data.
+     * @param primaryKeyValue the primary key value to look for in the table.
+     * @return {@code true} if the key exists in the table, or {@code false} if the data is not found
+     *         or a connection issue occurs.
+     */
+    public boolean doRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
+        BatchExecutor batchExecutor;
+        Connection connection = this.attemptToConnect();
+        if (connection == null) {
+            return false;
+        }
+        if (this.secureQuery)
+            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+        else {
+            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+        }
+        return batchExecutor.checkIfRowExist(tableName,  primaryKeyValue);
     }
 
     /**

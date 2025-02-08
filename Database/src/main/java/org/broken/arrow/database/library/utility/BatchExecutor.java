@@ -128,6 +128,21 @@ public class BatchExecutor {
         this.executeDatabaseTask(sqlComposer);
     }
 
+    /**
+     * Checks if a row exists in the specified table.
+     * <p>&nbsp;</p>
+     * <p>For save operations, running this check beforehand is unnecessary since the appropriate SQL
+     * command will be used based on whether the value already exists.</p>
+     *
+     * @param tableName the name of the table to search for the data.
+     * @param primaryKeyValue the primary key value to look for in the table.
+     * @return {@code true} if the key exists in the table, or {@code false} if the data is not found
+     *         or a connection issue occurs.
+     */
+    public boolean checkIfRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
+        return this.checkIfRowExist(tableName, primaryKeyValue, true);
+    }
+
     private void formatData(@Nonnull final List<SqlCommandComposer> composerList, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final String[] columns, final TableWrapper tableWrapper) {
         final ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
         final RowWrapper rowWrapper = new RowDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
@@ -155,12 +170,31 @@ public class BatchExecutor {
         commandComposer.setColumnsToUpdate(columns);
 
         boolean columnsIsEmpty = columns == null || columns.length == 0;
-        boolean canUpdateRow = (!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue());
+        boolean canUpdateRow = (!columnsIsEmpty || shallUpdate) && this.checkIfRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue(),false);
         this.databaseConfig.applyDatabaseCommand(commandComposer, rowWrapper.getPrimaryKeyValue(), canUpdateRow);
         return commandComposer;
     }
 
-    private boolean doRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
+    /**
+     * Checks if a row exists in the specified table.
+     * <p>&nbsp;<p>
+     * <p><strong>Important:</strong> If you use this method, you must either:</p>
+     * <ul>
+     *   <li>Set {@code closeConnection} to {@code true} to automatically close the connection.</li>
+     *   <li>Manually close the connection after use if {@code closeConnection} is set to {@code false}.</li>
+     * </ul>
+     *
+     * <p>For save operations, running this check beforehand is unnecessary, as the appropriate SQL
+     * command will be used based on whether the value already exists.</p>
+     *
+     * @param tableName the name of the table to search for the data.
+     * @param primaryKeyValue the primary key value to look for in the table.
+     * @param closeConnection set to {@code true} to close the connection after the call,
+     *                        or {@code false} if you plan to use it further.
+     * @return {@code true} if the key exists in the table, or {@code false} if either a connection
+     *         issue occurs or the data is not found.
+     */
+    private boolean checkIfRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue,boolean closeConnection) {
         TableWrapper tableWrapper = this.database.getTable(tableName);
         Connection connection = this.connection;
         if (tableWrapper == null) {
@@ -179,6 +213,14 @@ public class BatchExecutor {
         } catch (SQLException e) {
             log.log(e, () -> of("Could not search for your the row with this value '" + primaryKeyValue + "' from this table '" + tableName + "'"));
         }
+        if(closeConnection){
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                log.log(Level.WARNING, e, () -> of("Failed to close database connection."));
+            }
+        }
+
         return false;
     }
 
