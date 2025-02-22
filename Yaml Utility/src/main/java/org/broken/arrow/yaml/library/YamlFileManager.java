@@ -7,6 +7,7 @@ import org.broken.arrow.serialize.library.utility.serialize.MethodReflectionUtil
 import org.broken.arrow.yaml.library.config.updater.ConfigUpdater;
 import org.broken.arrow.yaml.library.utillity.ConfigurationWrapper;
 import org.broken.arrow.yaml.library.utillity.Valid;
+import org.broken.arrow.yaml.library.utillity.transform.MapYamlConverter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemorySection;
@@ -52,6 +53,7 @@ public abstract class YamlFileManager {
 	private final File dataFolder;
 	private boolean shallGenerateFiles;
 	private boolean singleFile;
+	private boolean convertNestedSections;
 	private final String path;
 	private final String fileName;
 	private int version;
@@ -210,16 +212,29 @@ public abstract class YamlFileManager {
 
 		final ConfigurationSection configurationSection = config.getConfigurationSection(path);
 		if (configurationSection != null) {
-			for (final String yamlKeys : configurationSection.getKeys(true)) {
-				final Object object = config.get(path + "." + yamlKeys);
-				if (object instanceof ConfigurationSection && yamlKeys.contains("map?.")) {
-					setToMap(fileData, yamlKeys, (ConfigurationSection) object);
+			String nestedKey = "";
+			for (final String yamlKey : configurationSection.getKeys(true)) {
+				String fullPath = path + "." + yamlKey;
+				Object object = config.get(fullPath);
+				boolean containMappedValue = this.isConvertNestedSections() && config.contains(fullPath + "._type") && "map".equals(config.getString(fullPath + "._type"));
+				if (containMappedValue) {
+					ConfigurationSection bossSection = config.getConfigurationSection(fullPath);
+					if (bossSection != null && (nestedKey.isEmpty() || !fullPath.contains(nestedKey))) {
+						Map<String, Object> decodedConfigMap = MapYamlConverter.decodeConfig(fullPath, config);
+						nestedKey = fullPath + ".";
+						fileData.put(yamlKey, decodedConfigMap);
+					}
+					continue;
 				}
-				if (!(object instanceof MemorySection) && !yamlKeys.contains("map?.")) {
-					fileData.put(yamlKeys, object);
+				if (object instanceof ConfigurationSection && yamlKey.contains("map?.")) {
+					setToMap(fileData, yamlKey, (ConfigurationSection) object);
+				}
+				if (!(object instanceof MemorySection) && !yamlKey.contains("map?.")) {
+					fileData.put(yamlKey, object);
 				}
 			}
 		}
+
 		Method deserializeMethod = MethodReflectionUtils.getMethod(clazz, "deserialize", Map.class);
 		if (deserializeMethod == null)
 			deserializeMethod = MethodReflectionUtils.getMethod(clazz, "valueOf", Map.class);
@@ -524,6 +539,25 @@ public abstract class YamlFileManager {
 	}
 
 	/**
+	 * Checks whether nested {@link ConfigurationSection} objects should be converted into {@code Map<String, Object>},
+	 * or if they should be kept in their original format (e.g., as a {@link ConfigurationSection}, list, or scalar value).
+	 *
+	 * @return {@code true} if nested sections are converted into maps, {@code false} if they remain in their original format.
+	 */
+	public boolean isConvertNestedSections() {
+		return convertNestedSections;
+	}
+
+	/**
+	 * Sets whether nested {@link ConfigurationSection} objects should be converted into {@code Map<String, Object>},
+	 * or if they should be kept in their original format (e.g., as a {@link ConfigurationSection}, list, or scalar value).
+	 *
+	 * @param convertNestedSections {@code true} to convert nested sections into maps, {@code false} to keep them in their original format.
+	 */
+	public void setConvertNestedSections(final boolean convertNestedSections) {
+		this.convertNestedSections = convertNestedSections;
+	}
+	/**
 	 * check if the folder name is empty or null.
 	 *
 	 * @return true if folder name is empty or null.
@@ -628,7 +662,7 @@ public abstract class YamlFileManager {
 	 * @param file the file to save.
 	 */
 	private void saveData(@Nonnull final File file) {
-		ConfigurationWrapper configurationWrapper = new ConfigurationWrapper(file);
+		ConfigurationWrapper configurationWrapper = new ConfigurationWrapper(this.isConvertNestedSections(), file);
 		saveDataToFile(file, configurationWrapper);
 	}
 
