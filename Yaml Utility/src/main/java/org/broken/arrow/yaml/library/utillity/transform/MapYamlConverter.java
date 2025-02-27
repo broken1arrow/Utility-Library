@@ -44,11 +44,9 @@ public class MapYamlConverter {
             String key = entry.getKey();
             Object value = entry.getValue();
 
-            // Recursively process nested maps
             if (value instanceof Map) {
                 value = processNestedMapForSave((Map<String, Object>) value);
             }
-
             processedMap.put(key, value);
         }
         return processedMap;
