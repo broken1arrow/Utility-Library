@@ -55,7 +55,7 @@ public class RegisterNbtAPI {
         if (itemStacks == null) return new ItemStack[0];
 
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(itemStacks)) {
-            return NBT.itemStackArrayFromNBT(new NBTContainer(byteArrayInputStream));
+            return NBT.itemStackArrayFromNBT(  new NBTContainer(byteArrayInputStream));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
