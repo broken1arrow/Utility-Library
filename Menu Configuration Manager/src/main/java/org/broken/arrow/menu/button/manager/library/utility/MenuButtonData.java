@@ -17,11 +17,13 @@ public class MenuButtonData implements ConfigurationSerializable {
 	private final MenuButton passiveButton;
 	private final MenuButton activeButton;
 	private final String actionType;
+	private final String command;
 
-	private MenuButtonData(@Nonnull final MenuButton passiveButton, @Nullable final MenuButton activeButton, @Nullable String actionType) {
+	private MenuButtonData(@Nonnull final MenuButton passiveButton, @Nullable final MenuButton activeButton, @Nullable String actionType,@Nullable String command) {
 		this.passiveButton = passiveButton;
 		this.activeButton = activeButton;
 		this.actionType = actionType;
+		this.command = command;
 	}
 
 	/**
@@ -53,6 +55,17 @@ public class MenuButtonData implements ConfigurationSerializable {
 	@Nonnull
 	public String getActionType() {
 		return actionType != null ? actionType : "";
+	}
+
+	/**
+	 * Sets a command for a button. Be cautious when using this option to ensure players do not gain access
+	 * to unintended features or commands.
+	 * @return The command set as a string. The return value depends on the file configuration, as it does not
+	 *         validate the command type.
+	 */
+	@Nullable
+	public String getCommand() {
+		return command;
 	}
 
 	/**
@@ -109,6 +122,7 @@ public class MenuButtonData implements ConfigurationSerializable {
 		else
 			deserializePassiveData = MenuButton.deserialize(map);
 		String actionType = (String) map.get("action_type");
-		return new MenuButtonData(deserializePassiveData, deserializeActiveData, actionType);
+		String command = (String) map.get("command");
+		return new MenuButtonData(deserializePassiveData, deserializeActiveData, actionType, command);
 	}
 }
