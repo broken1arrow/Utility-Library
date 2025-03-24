@@ -2,6 +2,8 @@ package org.broken.arrow.database.library.builders.tables;
 
 
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
+import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 
@@ -12,6 +14,8 @@ import java.util.Map;
 
 public final class TableWrapper {
 	private final TableWrapper table;
+	private final QueryBuilder queryBuilder;
+	private final CreateTableHandler tableBuilder;
 	private TableRow primaryRow;
 	private final String tableName;
 	private String columnsArray;
@@ -31,6 +35,9 @@ public final class TableWrapper {
 
 	private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow primaryRow, final int valueLength) {
 		Validate.checkNotEmpty(tableName, "Table name is empty.");
+		this.queryBuilder = new QueryBuilder();
+		this.tableBuilder = queryBuilder.createTableIfNotExists(tableName);
+
 		this.supportQuery = false;
 		this.tableName = tableName;
 		this.primaryRow = primaryRow;
@@ -150,9 +157,7 @@ public final class TableWrapper {
 	 * @return instance of this class.
 	 */
 	public TableWrapper add(final String columnName, final String datatype) {
-		columns.put(columnName, new TableRow.Builder(columnName, datatype)
-				.setIsPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).build());
-		return this;
+		return this.addDefault( columnName,  datatype, null);
 	}
 
 	/**
@@ -163,11 +168,14 @@ public final class TableWrapper {
 	 * @param defaultValue The value to set if the value is null.
 	 * @return instance of this class.
 	 */
-	public TableWrapper addDefault(final String columnName, final String datatype, final Object defaultValue) {
-		columns.put(columnName, new TableRow.Builder(columnName, datatype)
-				.setIsPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).setDefaultValue(defaultValue).build());
-		return this;
-	}
+    public TableWrapper addDefault(final String columnName, final String datatype, final Object defaultValue) {
+        TableRow.Builder tableRow = new TableRow.Builder(columnName, datatype);
+        tableRow.setIsPrimaryKey(getPrimaryRow().getColumnName().equals(columnName));
+        if (defaultValue != null)
+            tableRow.setDefaultValue(defaultValue);
+
+        return this.putColumn(columnName, tableRow);
+    }
 
 	/**
 	 * Add a column to database, with auto increment the row.
@@ -177,9 +185,10 @@ public final class TableWrapper {
 	 * @return instance of this class.
 	 */
 	public TableWrapper addAutoIncrement(final String columnName, final String datatype) {
-		columns.put(columnName, new TableRow.Builder(columnName, datatype)
-				.setIsPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).setAutoIncrement(true).build());
-		return this;
+        TableRow.Builder tableRow = new TableRow.Builder(columnName, datatype);
+        tableRow.setIsPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).setAutoIncrement(true);
+
+		return this.putColumn(columnName, tableRow);
 	}
 
 	/**
@@ -190,9 +199,10 @@ public final class TableWrapper {
 	 * @return instance of this class.
 	 */
 	public TableWrapper addNotNull(final String columnName, final String datatype) {
-		columns.put(columnName, new TableRow.Builder(columnName, datatype)
-				.setIsPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).setNotNull(true).build());
-		return this;
+        TableRow.Builder tableRow = new TableRow.Builder(columnName, datatype);
+        tableRow.setIsPrimaryKey(getPrimaryRow().getColumnName().equals(columnName)).setNotNull(true);
+
+		return this.putColumn(columnName, tableRow);
 	}
 
 	/**
@@ -203,9 +213,13 @@ public final class TableWrapper {
 	 * @return instance of this class.
 	 */
 	public TableWrapper addCustom(final String columnName, final TableRow.Builder builder) {
-		columns.put(columnName, builder.build());
-		return this;
+		return this.putColumn(columnName, builder);
 	}
+
+    private TableWrapper putColumn(final String columnName,TableRow.Builder tableRow ) {
+        columns.put(columnName, tableRow.build());
+        return this;
+    }
 
 	/**
 	 * Set the primary row inside the database.
