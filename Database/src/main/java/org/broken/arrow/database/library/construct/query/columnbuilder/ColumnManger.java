@@ -1,7 +1,8 @@
 package org.broken.arrow.database.library.construct.query.columnbuilder;
 
-import org.broken.arrow.tabletypes.SQLConstraints;
-import org.broken.arrow.test.DataType;
+import org.broken.arrow.database.library.construct.query.builder.tablebuilder.SQLConstraints;
+import org.broken.arrow.database.library.construct.query.builder.tablebuilder.TableColumn;
+import org.broken.arrow.database.library.construct.query.utlity.DataType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +36,9 @@ public class ColumnManger {
     return new HavingSeparator(new Column(columnManger, name, alias));
   }
 
-  public static TableColumnsBuilder.Separator tableOf(final String communeName, final DataType datatype, final SQLConstraints... constraints) {
+  public static TableColumn.Separator tableOf(final String communeName, final DataType datatype, final SQLConstraints... constraints) {
     ColumnManger columnManger = new ColumnManger();
-    return new TableColumnsBuilder.Separator(new TableColumnsBuilder(columnManger, communeName, datatype, constraints));
+    return new TableColumn.Separator(new TableColumn(columnManger, communeName, datatype, constraints));
   }
 
 }

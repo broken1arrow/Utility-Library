@@ -85,7 +85,6 @@ public class QueryBuilder {
 
   public WithManger with(Consumer<WithManger> callback) {
     this.queryType = QueryType.WITH;
-    this.table = table;
     callback.accept(withManger);
     return withManger;
   }
