@@ -6,9 +6,17 @@ import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
+import org.broken.arrow.database.library.builders.tables.SqlHandler;
+import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
+import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.connection.HikariCP;
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
+import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
+import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
+import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
+import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
@@ -44,10 +52,10 @@ import static org.broken.arrow.logging.library.Logging.of;
 public abstract class Database {
     private final Logging log = new Logging(Database.class);
     private final Map<String, TableWrapper> tables = new HashMap<>();
-    private Set<String> removeColumns = new HashSet<>();
+    private final Map<String, SqlQueryTable> tabless = new HashMap<>();
     private final ConnectionSettings connectionSettings;
     private final MethodReflectionUtils methodReflectionUtils = new MethodReflectionUtils();
-
+    private Set<String> removeColumns = new HashSet<>();
     private DatabaseType databaseType = null;
     private char quote = '`';
     private String characterSet = "";
@@ -79,6 +87,8 @@ public abstract class Database {
             this.databaseType = DatabaseType.UNKNOWN;
 
         this.connectionSettings = connectionSettings;
+
+
     }
 
     /**
@@ -237,7 +247,7 @@ public abstract class Database {
         else {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
-        batchExecutor.save(tableName, dataWrapper, shallUpdate, columns);
+        batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> where,columns);
     }
 
     /**
@@ -250,12 +260,40 @@ public abstract class Database {
      */
     @Nullable
     public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
+        final TableWrapper tableWrapper = this.getTable(tableName);
+        final SqlQueryTable table = this.getTableFromName(tableName);
 
-        TableWrapper tableWrapper = this.getTable(tableName);
         if (tableWrapper == null) {
             this.printFailFindTable(tableName);
             return null;
         }
+
+        if (table != null) {
+            final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
+            final String selectRow = table.selectTable();
+
+            this.getPreparedStatement(selectRow, statementWrapper -> {
+                try (ResultSet resultSet = statementWrapper.getPreparedStatement().executeQuery()) {
+                    while (resultSet.next()) {
+                        final Map<String, Object> dataFromDB = this.getDataFromDB(resultSet, table.getTable().getColumns());
+                        final T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+                        final List<Column> primaryColumns = table.getTable().getPrimaryColumns();
+                        final List<Object> objectList = new ArrayList<>();
+                        if (!primaryColumns.isEmpty()) {
+                            for (Column column : primaryColumns) {
+                                Object primaryValue = dataFromDB.get(column.getColumnName());
+                                objectList.add(primaryValue);
+                            }
+                        }
+                        loadDataWrappers.add(new LoadDataWrapper<>(objectList, deserialize));
+                    }
+                } catch (SQLException e) {
+                    log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
+                }
+            });
+            return loadDataWrappers;
+        }
+
 
         final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
         final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
@@ -288,10 +326,49 @@ public abstract class Database {
     @Nullable
     public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
         TableWrapper tableWrapper = this.getTable(tableName);
-
-        if (tableWrapper == null) {
+        SqlQueryTable table = this.getTableFromName(tableName);
+        if (tableWrapper == null && table == null) {
             this.printFailFindTable(tableName);
             return null;
+        }
+
+        if (table != null) {
+            final Map<String, Object> dataFromDB = new HashMap<>();
+            final SqlHandler sqlHandler = new SqlHandler(table.getTableName(), this);
+            final WhereBuilder primaryColumns = table.createWhereClauseFromPrimaryColumns(true, columnValue);
+            Validate.checkBoolean(primaryColumns.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
+            
+            final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), primaryColumns);
+
+            this.getPreparedStatement(selectRow.getQuery(), statementWrapper -> {
+                PreparedStatement preparedStatement = statementWrapper.getPreparedStatement();
+                primaryColumns.getValues().forEach((index, value) -> {
+                    try {
+                        preparedStatement.setObject(index, value);
+                    } catch (SQLException e) {
+                        log.log(Level.WARNING, e, () -> of("Failed to set where clause values. for this column value " + columnValue + ". Check the stacktrace."));
+                    }
+                });
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next())
+                        dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
+                } catch (SQLException e) {
+                    log.log(Level.WARNING, e, () -> of("Could not load the data from " + columnValue + ". Check the stacktrace."));
+                }
+            });
+            if (dataFromDB.isEmpty())
+                return null;
+            T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+            List<ComparisonHandler<?>> comparisonHandlerList = primaryColumns.getConditionsList();
+            List<Object> objectList = new ArrayList<>();
+            if (!comparisonHandlerList.isEmpty()) {
+                for (ComparisonHandler<?> comparisonHandler : comparisonHandlerList) {
+                    String column = comparisonHandler != null ? comparisonHandler.getLogicalOperator().getConditionQuery().getColumn() : null;
+                    Object primaryValue = dataFromDB.get(column);
+                    objectList.add(primaryValue);
+                }
+            }
+            return new LoadDataWrapper<>(objectList, deserialize);
         }
 
         Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
@@ -306,7 +383,7 @@ public abstract class Database {
                 if (resultSet.next())
                     dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Could not load the data. Check the stacktrace."));
+                log.log(Level.WARNING, e, () -> of("Could not load the data from " + columnValue + ". Check the stacktrace."));
             }
         });
         if (dataFromDB.isEmpty())
@@ -512,10 +589,10 @@ public abstract class Database {
      * <p>For save operations, running this check beforehand is unnecessary, as the SQL command
      * automatically determines whether the value exists and executes the appropriate command.</p>
      *
-     * @param tableName the name of the table to search for the data.
+     * @param tableName       the name of the table to search for the data.
      * @param primaryKeyValue the primary key value to look for in the table.
      * @return {@code true} if the key exists in the table, or {@code false} if the data is not found
-     *         or a connection issue occurs.
+     * or a connection issue occurs.
      */
     public boolean doRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
         BatchExecutor batchExecutor;
@@ -528,7 +605,7 @@ public abstract class Database {
         else {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
-        return batchExecutor.checkIfRowExist(tableName,  primaryKeyValue);
+        return batchExecutor.checkIfRowExist(tableName, primaryKeyValue);
     }
 
     /**
@@ -738,13 +815,13 @@ public abstract class Database {
 
     private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
 
-        try (final PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?");) {
+        try (final PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?")) {
             preparedStatement.setString(1, "");
             final ResultSet resultSet = preparedStatement.executeQuery();
             close(preparedStatement, resultSet);
 
         } catch (final SQLException ex) {
-            log.log(ex, () -> of("Unable to retrieve connection."));
+            log.log(ex, () -> of("Unable to check if table is created."));
         }
     }
 
@@ -788,8 +865,14 @@ public abstract class Database {
     }
 
     @Nullable
+    @Deprecated
     public TableWrapper getTable(String tableName) {
         return tables.get(tableName);
+    }
+
+    @Nullable
+    public SqlQueryTable getTableFromName(String tableName) {
+        return tabless.get(tableName);
     }
 
     /**
@@ -798,12 +881,31 @@ public abstract class Database {
      * @param tableName The table you want to remove
      * @return true if it find the old table you want to remove.
      */
+    @Deprecated
     public boolean removeTable(String tableName) {
         return tables.remove(tableName) != null;
     }
 
+    /**
+     * This is replaced by {@link #addTable(Function)} )} You can still use this method, but
+     * is no longer supported and planed to be removed.
+     *
+     * @param tableWrapper the table you created.
+     */
+    @Deprecated
     public void addTable(TableWrapper tableWrapper) {
         tables.put(tableWrapper.getTableName(), tableWrapper);
+    }
+
+    /**
+     * Add the tables you want to create inside the database and
+     * don't forget at least 1 primary key.
+     *
+     * @param callback the helper to create your sql query.
+     */
+    public void addTable(Function<QueryBuilder, CreateTableHandler> callback) {
+        SqlQueryTable sqlQueryTable = new SqlQueryTable(callback);
+        this.tabless.put(sqlQueryTable.getTableName(), sqlQueryTable);
     }
 
     @Nullable
@@ -833,6 +935,10 @@ public abstract class Database {
         this.secureQuery = secureQuery;
     }
 
+    public boolean isSecureQuery() {
+        return secureQuery;
+    }
+
     /**
      * Converts the data retrieved from the database and puts it into a map. Some databases
      * may return column names in uppercase, and this method uses {@link #getColumnName(TableWrapper, String)}
@@ -852,6 +958,47 @@ public abstract class Database {
             objectMap.put(this.getColumnName(tableWrapper, rsmd.getColumnName(i)), resultSet.getObject(i));
         }
         return objectMap;
+    }
+
+    /**
+     * Converts the data retrieved from the database and puts it into a map. Some databases
+     * may return column names in uppercase, and this method uses {@link #getColumnName(List, String)} )}
+     * to correct the keys in the map based on the column names set when you created the table.
+     *
+     * @param resultSet The ResultSet object representing the cursor to retrieve the data set.
+     * @param columns   The list of columns you want to check against column names.
+     * @return A map containing the column values from the database, with corrected keys based on the
+     * column names in the TableWrapper.
+     * @throws SQLException If there is an issue reading data from the database.
+     */
+    public Map<String, Object> getDataFromDB(final ResultSet resultSet, List<Column> columns) throws SQLException {
+        final ResultSetMetaData rsmd = resultSet.getMetaData();
+        final int columnCount = rsmd.getColumnCount();
+        final Map<String, Object> objectMap = new HashMap<>();
+        for (int i = 1; i <= columnCount; i++) {
+            objectMap.put(this.getColumnName(columns, rsmd.getColumnName(i)), resultSet.getObject(i));
+        }
+        return objectMap;
+    }
+
+    /**
+     * Retrieves the correct column name for the given table from the TableWrapper.
+     * Some databases may return column names in uppercase, so this method allows you
+     * to fetch the column name with the appropriate casing as set in the TableWrapper.
+     *
+     * @param columns    The list of columns to check for a match.
+     * @param columnName The name of the column to retrieve.
+     * @return The column name with the correct case as set in the TableWrapper. If there
+     * is no matching column name in the TableWrapper, it returns the columnName
+     * you set in the second argument.
+     */
+    private String getColumnName(List<Column> columns, String columnName) {
+        if (!columns.isEmpty())
+            for (Column column : columns) {
+                if (column.getColumnName().equalsIgnoreCase(columnName)) return column.getColumnName();
+            }
+
+        return columnName;
     }
 
     /**
@@ -888,6 +1035,15 @@ public abstract class Database {
     }
 
     /**
+     * Retrieve the current maximum size of the connection pool.
+     *
+     * @return the maximum size of the connection pool, or a default value if not explicitly set.
+     */
+    public int getMaximumPoolSize() {
+        return maximumPoolSize;
+    }
+
+    /**
      * Set the maximum size of the connection pool.
      * <p>
      * Note: Does currently only works with this connection pool {@link HikariCP}.
@@ -896,6 +1052,15 @@ public abstract class Database {
      */
     public void setMaximumPoolSize(final int poolSize) {
         this.maximumPoolSize = poolSize;
+    }
+
+    /**
+     * Retrieve the current connection timeout in milliseconds.
+     *
+     * @return the current connection timeout in milliseconds, or a default value if not explicitly set.
+     */
+    public long getConnectionTimeout() {
+        return connectionTimeout;
     }
 
     /**
@@ -910,6 +1075,15 @@ public abstract class Database {
     }
 
     /**
+     * Retrieve the current idle timeout in milliseconds.
+     *
+     * @return the current idle timeout in milliseconds, or a default value if not explicitly set.
+     */
+    public long getIdleTimeout() {
+        return idleTimeout;
+    }
+
+    /**
      * Set the maximum time (in seconds) a connection can remain idle before it is eligible for eviction.
      * <p>
      * Note: Does currently only works with this connection pool {@link HikariCP}.
@@ -918,6 +1092,16 @@ public abstract class Database {
      */
     public void setIdleTimeout(final int idleTimeout) {
         this.idleTimeout = idleTimeout * 1000L;
+    }
+
+    /**
+     * Retrieve the minimum number of idle connections the pool tries to maintain,
+     * including both idle and in-use connections.
+     *
+     * @return the minimum number of connections in the pool.
+     */
+    public int getMinimumIdle() {
+        return minimumIdle;
     }
 
     /**
@@ -935,6 +1119,17 @@ public abstract class Database {
 
     /**
      * This property controls the maximum lifetime of a connection in the pool. When a connection reaches
+     * this timeout, even if recently used, it will be retired from the pool. An in-use connection will
+     * never be retired, only when it is idle will it be removed.
+     *
+     * @return the maximum connection lifetime in milliseconds.
+     */
+    public long getMaxLifeTime() {
+        return maxLifeTime;
+    }
+
+    /**
+     * This property controls the maximum lifetime of a connection in the pool. When a connection reaches
      * this timeout, even if recently used, it will be retired from the pool. An in-use connection
      * will never be retired, only when it is idle will it be removed.
      * <p>
@@ -944,54 +1139,6 @@ public abstract class Database {
      */
     public void setMaxLifeTime(long maxLifeTime) {
         this.maxLifeTime = maxLifeTime * 1000L;
-    }
-
-    /**
-     * Retrieve the current maximum size of the connection pool.
-     *
-     * @return the maximum size of the connection pool, or a default value if not explicitly set.
-     */
-    public int getMaximumPoolSize() {
-        return maximumPoolSize;
-    }
-
-    /**
-     * Retrieve the current connection timeout in milliseconds.
-     *
-     * @return the current connection timeout in milliseconds, or a default value if not explicitly set.
-     */
-    public long getConnectionTimeout() {
-        return connectionTimeout;
-    }
-
-    /**
-     * Retrieve the current idle timeout in milliseconds.
-     *
-     * @return the current idle timeout in milliseconds, or a default value if not explicitly set.
-     */
-    public long getIdleTimeout() {
-        return idleTimeout;
-    }
-
-    /**
-     * Retrieve the minimum number of idle connections the pool tries to maintain,
-     * including both idle and in-use connections.
-     *
-     * @return the minimum number of connections in the pool.
-     */
-    public int getMinimumIdle() {
-        return minimumIdle;
-    }
-
-    /**
-     * This property controls the maximum lifetime of a connection in the pool. When a connection reaches
-     * this timeout, even if recently used, it will be retired from the pool. An in-use connection will
-     * never be retired, only when it is idle will it be removed.
-     *
-     * @return the maximum connection lifetime in milliseconds.
-     */
-    public long getMaxLifeTime() {
-        return maxLifeTime;
     }
 
     /**

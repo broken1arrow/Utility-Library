@@ -1,5 +1,8 @@
 package org.broken.arrow.database.library.construct.query.utlity;
 
+import java.util.List;
+import java.util.StringJoiner;
+
 public class StringUtil {
 
 
@@ -9,5 +12,13 @@ public class StringUtil {
             sb.append(marker);
         }
         return sb.toString();
+    }
+
+    public static String stringJoin(List<?> value) {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (Object constraints : value) {
+            joiner.add(constraints.toString());
+        }
+        return joiner +"";
     }
 }

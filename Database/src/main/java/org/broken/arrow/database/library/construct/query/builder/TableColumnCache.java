@@ -2,9 +2,10 @@ package org.broken.arrow.database.library.construct.query.builder;
 
 
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.TableColumn;
+import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
 
-public class TableColumnCache extends ColumnBuilder<TableColumn, Void> {
+public class TableColumnCache extends ColumnBuilder<Column, Void> {
 
 
     public TableColumnCache() {
@@ -12,10 +13,12 @@ public class TableColumnCache extends ColumnBuilder<TableColumn, Void> {
     }
 
     @Override
-    public final Void add(TableColumn column) {
-        super.add(column);
-        return null;
+    public String build() {
+        StringBuilder builder = new StringBuilder();
+
+        for(Column column : this.getColumns()){
+            builder.append(((TableColumn)column).build());
+        }
+        return builder + "";
     }
-
-
 }

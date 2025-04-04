@@ -1,11 +1,12 @@
 package org.broken.arrow.database.library.construct.query;
 
 
-import org.broken.arrow.database.library.construct.query.builder.HavingBuilder;
 import org.broken.arrow.database.library.construct.query.builder.JoinBuilder;
+import org.broken.arrow.database.library.construct.query.builder.havingbuilder.HavingBuilder;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
 
+import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
 public class Selector<T extends ColumnBuilder<?, Void>> {
@@ -17,7 +18,7 @@ public class Selector<T extends ColumnBuilder<?, Void>> {
     private String table;
     private String tableAlias;
 
-    public Selector(T selectBuilder) {
+    public Selector(@Nonnull final T selectBuilder) {
         this.selectBuilder = selectBuilder;
     }
 

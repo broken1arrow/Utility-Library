@@ -20,7 +20,7 @@ public  class SelectorWrapper {
       return this;
     }
 
-    public Selector<ColumnBuilder<Column,Void>> build() {
+    public Selector<ColumnBuilder<Column,Void>> getSelector() {
       return selector;
     }
   }

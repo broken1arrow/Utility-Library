@@ -1,9 +1,11 @@
 package org.broken.arrow.database.library.construct.query.builder.tablebuilder;
 
+import javax.annotation.Nonnull;
+
 public class SQLConstraints {
   private final String value;
 
-  public SQLConstraints(String value) {
+  public SQLConstraints(@Nonnull final String value) {
     this.value = value;
   }
 
@@ -19,7 +21,7 @@ public class SQLConstraints {
     return new SQLConstraints("PRIMARY KEY");
   }
 
-  public static SQLConstraints PRIMARY_KEY(String... columns) {
+  public static SQLConstraints PRIMARY_KEYS(String... columns) {
     return new SQLConstraints("PRIMARY KEY (" + String.join(", ", columns) + ")");
   }
 
@@ -78,5 +80,26 @@ public class SQLConstraints {
   @Override
   public String toString() {
     return value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    SQLConstraints that = (SQLConstraints) o;
+      return value.equals(that.value);
+  }
+
+  public static boolean isPrimary(Object o) {
+    if (o == null || SQLConstraints.class != o.getClass()) return false;
+
+    SQLConstraints that = (SQLConstraints) o;
+    return that.value.startsWith("PRIMARY KEY");
+
+  }
+  @Override
+  public int hashCode() {
+    return value.hashCode();
   }
 }

@@ -4,130 +4,92 @@ import org.broken.arrow.database.library.construct.query.utlity.CalcFunc;
 import org.broken.arrow.database.library.construct.query.utlity.MathOperation;
 import org.broken.arrow.database.library.construct.query.utlity.SqlExpressionType;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class Column {
-  private final String columnName;
-  private final ColumnManger columnManger;
-  private final String alias;
-  private final List<CalcFunc> aggregations = new ArrayList<>();
-  private String roundNumber;
-  private String roundMode;
-  private MathOperation operation = MathOperation.PER_ROUND;
+    private final String columnName;
+    private final String alias;
+    private Aggregation aggregation;
 
-  public Column(ColumnManger columnManger, String columnName, String alias) {
-    this.columnManger = columnManger;
-    this.columnName = columnName;
-    this.alias = alias;
-  }
-
-  public Separator of(String name) {
-    return new Separator( new Column(this.columnManger, name, ""));
-  }
-
-  public Separator of(String name, String alias) {
-    return new Separator( new Column(this.columnManger, name, alias));
-  }
-
-
-  public String getFinishColumName() {
-    if (alias == null || alias.isEmpty())
-      return columnName;
-    return columnName + " " + SqlExpressionType.AS + " " + alias;
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sql = new StringBuilder();
-    boolean applyPerFunction = operation.isSplit();
-    if (!aggregations.isEmpty()) {
-      String aggExpression = aggregations.stream()
-              .map(agg -> getValue(!applyPerFunction, agg + "(" + getFinishColumName() + ")"))
-              .collect(Collectors.joining(" " + operation.getSymbol() + " "));
-
-
-      sql.append(applyPerFunction || roundNumber == null ? aggExpression : getValue(false, aggExpression));
-    } else {
-      sql.append(getValue(false, getFinishColumName()));
-    }
-    return sql.toString();
-  }
-
-  private String getValue(boolean applyPerFunction, String base) {
-    if (roundNumber != null && !applyPerFunction) {
-      return "ROUND(" + base + ", " + roundNumber + (roundMode != null ? ", " + roundMode : "") + ")";
-    }
-    return base;
-  }
-
-  public String getColumnName() {
-    return this.columnName;
-  }
-
-  public ColumnManger getColumnManger() {
-    return columnManger;
-  }
-
-  public static class Separator {
-    private final Column column;
-
-    public Separator(Column column) {
-      this.column = column;
-      this.column.columnManger.add(column);
+    public Column(String columnName, String alias) {
+        this.columnName = columnName;
+        this.alias = alias;
     }
 
-    public Separator withAggregation(CalcFunc aggregation) {
-      return this.withAggregations((MathOperation) null, aggregation);
+    public String getFinishColumName() {
+        if (alias == null || alias.isEmpty())
+            return columnName;
+        return columnName + " " + SqlExpressionType.AS + " " + alias;
     }
 
-    public Separator withAggregation(MathOperation operation, CalcFunc aggregation) {
-      return this.withAggregations(operation, aggregation);
+    @Override
+    public String toString() {
+        final StringBuilder sql = new StringBuilder();
+        if (this.aggregation != null) {
+            final MathOperation operation = aggregation.getOperation();
+            List<CalcFunc> aggregations = aggregation.getAggregations();
+            final boolean applyPerFunction = operation.isSplit();
+            if (!aggregations.isEmpty()) {
+                String aggExpression = aggregations.stream()
+                        .map(agg -> getValue(!applyPerFunction, agg + "(" + getFinishColumName() + ")"))
+                        .collect(Collectors.joining(" " + operation.getSymbol() + " "));
+
+                sql.append(applyPerFunction || aggregation.getRoundNumber() == null ? aggExpression : getValue(false, aggExpression));
+                return sql.toString();
+            }
+            sql.append(getValue(false, getFinishColumName()));
+        } else {
+            sql.append(getValue(false, getFinishColumName()));
+        }
+        return sql.toString();
     }
 
-    public Separator withAggregations(CalcFunc... aggregations) {
-      return this.withAggregations(null, aggregations);
+    private String getValue(boolean applyPerFunction, String base) {
+        if (aggregation == null) return base;
+
+        if (aggregation.getRoundNumber() != null && !applyPerFunction) {
+            final String roundMode = aggregation.getRoundMode();
+            return "ROUND(" + base + ", " + aggregation.getRoundNumber() + (roundMode != null ? ", " + roundMode : "") + ")";
+        }
+        return base;
     }
 
-    public Separator withAggregations(MathOperation operation, CalcFunc... aggregations) {
-      Collections.addAll(this.column.aggregations, aggregations);
-      if (operation != null)
-        this.column.operation = operation;
-      return this;
+    public Aggregation getAggregation() {
+        return aggregation;
     }
 
-    // Method to apply ROUND function
-    public Separator round(Number numberOfDecimalPlaces) {
-      return this.round(numberOfDecimalPlaces, null);
+    public String getColumnName() {
+        return this.columnName;
     }
 
-    public Separator round(MathOperation operation, Number numberOfDecimalPlaces) {
-      return this.round(operation, numberOfDecimalPlaces, null);
-    }
+    public static class Separator {
+        private final Column column;
+        private final Aggregation aggregation;
 
-    // Method to apply ROUND function with mode (optional)
-    public Separator round(Number numberOfDecimalPlaces, String mode) {
-      return this.round(null, numberOfDecimalPlaces, mode);
-    }
+        public Separator(Aggregation aggregation, Column column) {
+            this.column = column;
+            this.aggregation = aggregation;
+            this.column.aggregation = aggregation;
+            this.aggregation.getColumnManger().add(column);
+        }
 
-    public Separator round(MathOperation operation, Number numberOfDecimalPlaces, String mode) {
-      this.column.roundNumber = numberOfDecimalPlaces + "";
-      if (operation != null)
-        this.column.operation = operation;
-      this.column.roundMode = mode;
-      return this;
-    }
+        public Aggregation colum(String name) {
+            return new Aggregation(aggregation.getColumnManger(), name, "");
+        }
 
-   public Column next() {
-      return this.column;
-    }
+        public Aggregation colum(String name, String alias) {
+            return new Aggregation(aggregation.getColumnManger(), name, alias);
+        }
 
-    public ColumnManger build() {
-      return  this.column.columnManger;
-    }
+        public Column getColumn() {
+            return this.column;
+        }
 
-  }
+        public ColumnManger build() {
+            return this.aggregation.getColumnManger();
+        }
+
+    }
 
 }

@@ -2,6 +2,8 @@ package org.broken.arrow.database.library.builders;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Wrapper class for loading and storing deserialized data along with its primary value.
@@ -11,6 +13,7 @@ import javax.annotation.Nullable;
 public class LoadDataWrapper<T> {
 	private final T deSerializedData;
 	private final Object primaryValue;
+	private final List<Object> primaryValues;
 
 	/**
 	 * Constructs a LoadDataWrapper instance with the provided primary column value, deserialized the values from the database.
@@ -21,8 +24,14 @@ public class LoadDataWrapper<T> {
 	public LoadDataWrapper(@Nullable final Object primaryKeyValue, @Nonnull final T deSerializedData) {
 		this.deSerializedData = deSerializedData;
 		this.primaryValue = primaryKeyValue;
+		this.primaryValues = new ArrayList<>();
 	}
 
+	public LoadDataWrapper(@Nullable final List<Object> primaryKeyValues, @Nonnull final T deSerializedData) {
+		this.deSerializedData = deSerializedData;
+		this.primaryValues = primaryKeyValues == null ? new ArrayList<>(): primaryKeyValues;
+		this.primaryValue = null;
+	}
 	/**
 	 * Retrieves the deserialized data stored in this wrapper.
 	 *
@@ -36,11 +45,19 @@ public class LoadDataWrapper<T> {
 	/**
 	 * Retrieves the primary value associated with the data stored in this wrapper.
 	 *
+	 * This will be replaced with {@link #getPrimaryValues()}, as you now have the option
+	 * return more than 1 primary key from the sql query.
+	 *
 	 * @return The primary value for the primaryColumn or null if not this value is set in the database.
 	 */
 	@Nullable
+	@Deprecated
 	public Object getPrimaryValue() {
 		return primaryValue;
 	}
 
+	@Nonnull
+	public List<Object> getPrimaryValues() {
+		return this.primaryValues;
+	}
 }

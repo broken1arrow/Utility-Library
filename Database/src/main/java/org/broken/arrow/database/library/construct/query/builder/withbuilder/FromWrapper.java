@@ -14,7 +14,7 @@ public class FromWrapper {
     private final ColumnBuilder<Column, Void> selectWithBuilder;
     private final QueryBuilder query;
     private final String aliasName;
-    private Logging logging = new Logging(FromWrapper.class);
+    private final Logging logging = new Logging(FromWrapper.class);
     private String columns;
 
     public FromWrapper(WithColumnBuilder withColumnBuilder, WithBuilder withBuilder, QueryBuilder query) {

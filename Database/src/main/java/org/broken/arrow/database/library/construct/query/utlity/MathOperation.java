@@ -1,7 +1,6 @@
 package org.broken.arrow.database.library.construct.query.utlity;
 
-import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
-
+import org.broken.arrow.database.library.construct.query.columnbuilder.Aggregation;
 public enum MathOperation {
   ADD("+"),
   SUBTRACT("-"),
@@ -24,9 +23,9 @@ public enum MathOperation {
    * - **Without ROUND**: Functions are listed separately instead of being combined.
    * Example: `MIN(u.length), SUM(u.length)`
    * <p>
-   * This is the default behavior for {@link Column.Separator#withAggregation(CalcFunc)}.
-   * If using math operations via {@link Column.Separator#round(MathOperation, Number, String)} or
-   * {@link Column.Separator#round(MathOperation, Number)}, you can combine calculations as needed.
+   * This is the default behavior for {@link Aggregation#withAggregation(CalcFunc)}.
+   * If using math operations via {@link Aggregation#round(MathOperation, Number, String)} or
+   * {@link Aggregation#round(MathOperation, Number)}, you can combine calculations as needed.
    */
   PER_ROUND(",");
 

@@ -59,11 +59,17 @@ public class H2DB extends Database {
     @Nonnull
     @Override
     public DatabaseCommandConfig databaseConfig() {
-        return new DatabaseCommandConfig(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY,(commandComposer, primaryKeyValue, rowExist) -> {
+        new DatabaseCommandConfig(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, (commandComposer, primaryKeyValue, rowExist) -> {
             if (rowExist)
                 commandComposer.updateTable(primaryKeyValue);
             else
                 commandComposer.mergeIntoTable();
+        });
+        return new DatabaseCommandConfig(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, (sqlHandler, columnData, whereClause, rowExist) -> {
+            if (rowExist)
+                return sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columnData), whereClause);
+            else
+                return sqlHandler.insertIntoTable(insertHandler -> insertHandler.addAll(columnData));
         });
     }
 
