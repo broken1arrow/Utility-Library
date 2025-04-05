@@ -280,7 +280,10 @@ public abstract class Database {
         }
         SqlQueryTable table = this.getTableFromName(tableName);
         final WhereBuilder whereClauseFromPrimaryColumns = table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, dataWrapper.getPrimaryValue());
-        Validate.checkBoolean(whereClauseFromPrimaryColumns.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
+        if(whereClauseFromPrimaryColumns.isEmpty()){
+            this.log.log(Level.WARNING,() -> Logging.of("Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?"));
+            return;
+        }
 
         batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> whereClauseFromPrimaryColumns, columns);
     }
@@ -328,7 +331,6 @@ public abstract class Database {
             });
             return loadDataWrappers;
         }
-
 
         final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
         final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);

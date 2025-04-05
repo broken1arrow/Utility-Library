@@ -21,11 +21,11 @@ public class MainTestingSQL {
     public static void main(String[] args) {
 
         SqlQueryTable table = new SqlQueryTable(queryBuilder ->
-                queryBuilder.createTableIfNotExists("tableName").addColumns(
-                        ColumnManger.tableOf("column_primary", DataType.VARCHAR(50), SQLConstraints.PRIMARY_KEY())
-                                .column("column_primary_test", DataType.VARCHAR(80), SQLConstraints.PRIMARY_KEY())
-                                .column("column1_not_null", DataType.VARCHAR(80), SQLConstraints.NOT_NULL())
-                                .build()));
+                queryBuilder.createTableIfNotExists("tableName").addColumns(ColumnManger
+                        .tableOf("column_primary", DataType.VARCHAR(50), SQLConstraints.PRIMARY_KEY())
+                        .column("column_primary_test", DataType.VARCHAR(80), SQLConstraints.PRIMARY_KEY())
+                        .column("column1_not_null", DataType.VARCHAR(80), SQLConstraints.NOT_NULL())
+                        .build()));
 
         SqlQueryTable tableAS = new SqlQueryTable(queryBuilder ->
                 queryBuilder.createTableIfNotExists("tableNames").as()
