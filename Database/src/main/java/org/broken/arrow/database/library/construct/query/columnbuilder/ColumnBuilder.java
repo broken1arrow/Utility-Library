@@ -41,6 +41,10 @@ public class ColumnBuilder<T extends Column, V> {
         return columns;
     }
 
+    public V getSelectorInstance() {
+        return clazzType;
+    }
+
     public String build() {
         if (columns.isEmpty()) return "";
         final StringJoiner joiner = new StringJoiner(", ");

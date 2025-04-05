@@ -9,6 +9,7 @@ import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnMan
 import org.broken.arrow.database.library.utility.SqlFunction;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class SqlHandler {
@@ -27,6 +28,7 @@ public class SqlHandler {
     /**
      * Replace data in your database, on columns you added.
      *
+     * @param callback Consumer where you add your column and value pair.
      * @return the command and also values with help of a wrapper class.
      */
     public SqlQueryPair replaceIntoTable(Consumer<InsertHandler> callback) {
@@ -39,6 +41,7 @@ public class SqlHandler {
     /**
      * Replace data in your database, on columns you added.
      *
+     * @param callback Consumer where you add your column and value pair.
      * @return the command and also values with help of a wrapper class.
      */
     public SqlQueryPair insertIntoTable(Consumer<InsertHandler> callback) {
@@ -53,6 +56,7 @@ public class SqlHandler {
      * "REPLACE INTO", but this command is often used with a database that not support
      * "REPLACE INTO" for example H2 database.
      *
+     * @param callback Consumer where you add your column and value pair.
      * @return the command and also values with help of a wrapper class.
      */
     public SqlQueryPair mergeIntoTable(final Consumer<InsertHandler> callback) {
@@ -63,15 +67,17 @@ public class SqlHandler {
     }
 
     /**
-     * Update data in your database from the provided record value, on columns you added. Will update old data on columns you added.
+     * Updates data in the database using the provided record values for the specified columns.
+     * This will update any existing values for the columns you've added.
      *
-     * @param callback the record for the primary key you want to update.
-     * @return the command and also values with help of a wrapper class.
+     * @param callback     The record or data structure containing the primary key and values to update.
+     * @param whereClause  The conditions used to filter which row(s) should be updated.
+     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair updateTable(final Consumer<UpdateBuilder> callback, SqlFunction<WhereBuilder> where) {
+    public SqlQueryPair updateTable(final Consumer<UpdateBuilder> callback, SqlFunction<WhereBuilder> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
-        queryBuilder.update(this.tableName, callback).getSelector().where(where.apply(WhereBuilder.of(this.isSetQueryPlaceholders())));
+        queryBuilder.update(this.tableName, callback).getSelector().where(whereClause.apply(WhereBuilder.of(this.isSetQueryPlaceholders())));
         return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
     }
 
@@ -79,14 +85,15 @@ public class SqlHandler {
      * Select specific table.
      *
      * @param callback the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
-     * @return the command and also values with help of a wrapper class.
+     * @param whereClause The conditions used to filter which row(s) should be selected.
+     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, @Nonnull final SqlFunction<WhereBuilder> where) {
+    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, @Nonnull final SqlFunction<WhereBuilder> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
         ColumnManger columnManger = new ColumnManger();
         callback.accept(columnManger);
 
-        queryBuilder.select(columnManger).from(this.tableName).where(where.apply(WhereBuilder.of()));
+        queryBuilder.select(columnManger).from(this.tableName).where(whereClause.apply(WhereBuilder.of()));
         return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
     }
 
@@ -94,7 +101,9 @@ public class SqlHandler {
      * Select specific table.
      *
      * @param callback the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
-     * @return the command and also values with help of a wrapper class.
+     * @param queryPlaceholders set this to {@code false} if you not want a prepared statement.
+     * @param where The conditions used to filter which row(s) should be selected.
+     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
     public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, final boolean queryPlaceholders, @Nonnull final SqlFunction<WhereBuilder> where) {
         QueryBuilder queryBuilder = new QueryBuilder();
@@ -104,11 +113,13 @@ public class SqlHandler {
         queryBuilder.select(columnManger).from(this.tableName).where(where.apply(WhereBuilder.of(queryPlaceholders)));
         return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
     }
+
     /**
      * Select specific table.
      *
      * @param callback the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
-     * @return the command and also values with help of a wrapper class.
+     * @param where what conditions you want to filter your rows from.
+     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
     public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, @Nonnull final WhereBuilder where) {
         QueryBuilder queryBuilder = new QueryBuilder();
@@ -123,7 +134,7 @@ public class SqlHandler {
      * Remove a specific row from the table.
      *
      * @param where the where clause it should remove the row from.
-     * @return the command and also values with help of a wrapper class.
+     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
     public SqlQueryPair removeRow(@Nonnull final SqlFunction<WhereBuilder> where) {
         QueryBuilder queryBuilder = new QueryBuilder();
@@ -134,7 +145,7 @@ public class SqlHandler {
     /**
      * Remove this table from the database.
      *
-     * @return the command and also values with help of a wrapper class.
+     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
     public SqlQueryPair dropTable() {
         QueryBuilder queryBuilder = new QueryBuilder();

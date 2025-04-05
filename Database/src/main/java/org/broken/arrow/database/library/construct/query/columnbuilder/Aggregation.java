@@ -93,7 +93,11 @@ public class Aggregation {
         return operation;
     }
 
-    public ColumnManger getColumnManger() {
+    public Column.Separator getSeparator() {
+        return separator;
+    }
+
+    public ColumnManger finish() {
         return this.columnManger;
     }
 }

@@ -4,16 +4,18 @@ package org.broken.arrow.database.library.construct.query;
 import org.broken.arrow.database.library.construct.query.builder.JoinBuilder;
 import org.broken.arrow.database.library.construct.query.builder.havingbuilder.HavingBuilder;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
+import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
-public class Selector<T extends ColumnBuilder<?, Void>> {
+public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
 
     private final T selectBuilder;
     private final JoinBuilder joinBuilder = new JoinBuilder();
     private final HavingBuilder havingBuilder = new HavingBuilder();
+
     private WhereBuilder whereBuilder = new WhereBuilder();
     private String table;
     private String tableAlias;
@@ -22,38 +24,38 @@ public class Selector<T extends ColumnBuilder<?, Void>> {
         this.selectBuilder = selectBuilder;
     }
 
-    public Selector<T> from(String table) {
+    public Selector<T,V> from(String table) {
         this.table = table;
         return this;
     }
 
-    public Selector<T> from(String table, String alias) {
+    public Selector<T,V>  from(String table, String alias) {
         this.table = table;
         this.tableAlias = alias;
         return this;
     }
 
-    protected Selector<T> from(QueryBuilder queryBuilder) {
+    protected Selector<T,V>  from(QueryBuilder queryBuilder) {
         this.table = "(" + queryBuilder.build().replace(";", "") + ")";
         return this;
     }
 
-    public Selector<T> where(WhereBuilder whereBuilder) {
+    public Selector<T,V>  where(WhereBuilder whereBuilder) {
         this.whereBuilder = whereBuilder;
         return this;
     }
 
-    public Selector<T> select(Consumer<T> callback) {
+    public Selector<T,V>  select(Consumer<T> callback) {
         callback.accept(selectBuilder);
         return this;
     }
 
-    public Selector<T> join(Consumer<JoinBuilder> callback) {
+    public Selector<T,V> join(Consumer<JoinBuilder> callback) {
         callback.accept(joinBuilder);
         return this;
     }
 
-    public Selector<T> having(Consumer<HavingBuilder> callback) {
+    public Selector<T,V>  having(Consumer<HavingBuilder> callback) {
         callback.accept(havingBuilder);
         return this;
     }

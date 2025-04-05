@@ -6,6 +6,7 @@ import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.utlity.FunctionQuery;
+import org.broken.arrow.database.library.Database;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -72,7 +73,7 @@ public class DatabaseCommandConfig {
      * Executes a database command and optionally applies a custom function for additional operations.
      * This allows modifying the standard behavior, such as altering queries or handling data differently.
      * Whether this customization is available depends on which constructor is used—if you use
-     * {@link DatabaseCommandConfig(int, int, FunctionQuery)} instead of {@link DatabaseCommandConfig(int, int)},
+     * {@link DatabaseCommandConfig#DatabaseCommandConfig(int, int, FunctionQuery)} instead of {@link DatabaseCommandConfig#DatabaseCommandConfig(int, int)},
      * additional functionality can be applied.
      *
      * @param sqlHandler     Provides access to various query methods for retrieving command and query values.
@@ -82,8 +83,8 @@ public class DatabaseCommandConfig {
      * @param rowExists      Indicates whether the row already exists in the database. If {@code false}, the method
      *                       will replace the data by default. Depending on the provided function, additional
      *                       operations may be executed instead.
-     * @return A {@link SqlQueryPair} containing the generated SQL query and associated values.
-     * If {@link org.broken.arrow.database.library.Database#setSecureQuery(boolean)} is set to {@code false},
+     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} )} containing the generated SQL query and associated values.
+     * If {@link Database#setSecureQuery(boolean)} is set to {@code false},
      * the query will not use parameterized values, as they are already included in the generated SQL string.
      */
     public SqlQueryPair applyDatabaseCommand(@Nonnull final SqlHandler sqlHandler, final Map<Column, Object> columnValueMap, SqlFunction<WhereBuilder> whereClause, final boolean rowExists) {

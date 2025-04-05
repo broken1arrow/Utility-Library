@@ -8,7 +8,6 @@ import org.broken.arrow.database.library.construct.query.builder.tablebuilder.Ta
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.TableSelector;
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.TableSelectorWrapper;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
-import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
 import org.broken.arrow.database.library.construct.query.utlity.SqlExpressionType;
 
@@ -23,13 +22,13 @@ public class CreateTableHandler {
 
     public SelectorWrapper as() {
         copyMethod = SqlExpressionType.AS;
-        selector = new SelectorWrapper(this, new Selector<>(new ColumnBuilder<>()));
+        selector = new SelectorWrapper(this);
         return selector;
     }
 
     public SelectorWrapper like() {
         copyMethod = SqlExpressionType.LIKE;
-        selector = new SelectorWrapper(this, new Selector<>(new ColumnBuilder<>()));
+        selector = new SelectorWrapper(this);
         return selector;
     }
 
@@ -63,7 +62,7 @@ public class CreateTableHandler {
     public String build() {
         StringBuilder sql = new StringBuilder();
 
-        Selector<?> selectorWrapper = this.selector != null ? this.selector.getSelector() : null;
+        Selector<?,?> selectorWrapper = this.selector != null ? this.selector.getSelector() : null;
         if (this.selectorWrapper != null)
             selectorWrapper = this.selectorWrapper.getTableSelector();
 

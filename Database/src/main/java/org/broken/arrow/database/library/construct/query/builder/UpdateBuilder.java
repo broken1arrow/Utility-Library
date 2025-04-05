@@ -12,7 +12,7 @@ import java.util.Map;
 public class UpdateBuilder {
     private final Map<String, Object> updateData = new LinkedHashMap<>();
     private final Map<Integer, Object> values = new LinkedHashMap<>();
-    private final Selector<ColumnBuilder<Column, Void>> selector = new Selector<>(new ColumnBuilder<>());
+    private final Selector<ColumnBuilder<Column, Void>,Column> selector = new Selector<>(new ColumnBuilder<>());
     private int columnIndex = 1;
 
     public UpdateBuilder() {
@@ -35,7 +35,7 @@ public class UpdateBuilder {
         return this;
     }
 
-    public Selector<ColumnBuilder<Column, Void>> getSelector() {
+    public Selector<ColumnBuilder<Column, Void>,Column> getSelector() {
         return selector;
     }
 

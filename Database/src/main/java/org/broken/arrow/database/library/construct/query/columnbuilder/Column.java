@@ -71,23 +71,23 @@ public class Column {
             this.column = column;
             this.aggregation = aggregation;
             this.column.aggregation = aggregation;
-            this.aggregation.getColumnManger().add(column);
+            this.aggregation.finish().add(column);
         }
 
         public Aggregation colum(String name) {
-            return new Aggregation(aggregation.getColumnManger(), name, "");
+            return new Aggregation(aggregation.finish(), name, "");
         }
 
         public Aggregation colum(String name, String alias) {
-            return new Aggregation(aggregation.getColumnManger(), name, alias);
+            return new Aggregation(aggregation.finish(), name, alias);
         }
 
         public Column getColumn() {
             return this.column;
         }
 
-        public ColumnManger build() {
-            return this.aggregation.getColumnManger();
+        public ColumnManger finish() {
+            return this.aggregation.finish();
         }
 
     }

@@ -5,6 +5,7 @@ import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.construct.query.builder.insertbuilder.InsertBuilder;
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.SQLConstraints;
+import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
 import org.broken.arrow.database.library.construct.query.utlity.CalcFunc;
 import org.broken.arrow.database.library.construct.query.utlity.DataType;
@@ -20,11 +21,22 @@ public class MainTestingSQL {
     public static void main(String[] args) {
 
         SqlQueryTable table = new SqlQueryTable(queryBuilder ->
-                queryBuilder.createTableIfNotExists("table").addColumns(
-                        ColumnManger.tableOf("test", DataType.VARCHAR(50), SQLConstraints.PRIMARY_KEY())
-                                .column("IS_primary", DataType.VARCHAR(80), SQLConstraints.PRIMARY_KEY())
-                                .column("not_null", DataType.VARCHAR(80), SQLConstraints.NOT_NULL())
+                queryBuilder.createTableIfNotExists("tableName").addColumns(
+                        ColumnManger.tableOf("column_primary", DataType.VARCHAR(50), SQLConstraints.PRIMARY_KEY())
+                                .column("column_primary_test", DataType.VARCHAR(80), SQLConstraints.PRIMARY_KEY())
+                                .column("column1_not_null", DataType.VARCHAR(80), SQLConstraints.NOT_NULL())
                                 .build()));
+
+        SqlQueryTable tableAS = new SqlQueryTable(queryBuilder ->
+                queryBuilder.createTableIfNotExists("tableNames").as()
+                        .select(ColumnManger.of()
+                                .column("column1")
+                                .colum("column2")
+                                .colum("column3")
+                                .finish())
+                        .from("testings")
+                        .where(WhereBuilder.of())
+                        .build());
 
         SqlHandler sqlHandler = getSqlHandler(table);
 
@@ -33,7 +45,8 @@ public class MainTestingSQL {
                     InsertBuilder.of("test", 888),
                     InsertBuilder.of("new", 7),
                     InsertBuilder.of("hu", 7859)
-            );});
+            );
+        });
 
         SqlQueryPair update = sqlHandler.updateTable(updateBuilder -> {
             updateBuilder.put("test", 8);
@@ -55,11 +68,20 @@ public class MainTestingSQL {
 
         SqlQueryPair select2 = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()),
                 table.createWhereClauseFromPrimaryColumns(true, 8, "nooo", "is too much"));
+        final SqlHandler sqlHandlers = getSqlHandler(table);
+        final String query = sqlHandlers.selectRow(columnManger ->
+                                columnManger.addAll(table.getPrimaryColumns()), false,
+                        whereBuilder ->
+                                table.createWhereClauseFromPrimaryColumns(false, "test"))
+                .getQuery();
+
         System.out.println("insert= " + insert);
         System.out.println("update= " + update);
         System.out.println("select= " + select);
         System.out.println("select2= " + select2);
+        System.out.println("query row exists = " + query);
         System.out.println("table.getTable().getColumns()= " + table.getTable().getColumns());
+        System.out.println("tableAS)= " + tableAS.createTable());
         System.out.println("table PrimaryColumns=" + table.createWhereClauseFromPrimaryColumns(false, 8, "nooo", "is too much").build());
     }
 

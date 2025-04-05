@@ -2,11 +2,6 @@ package org.broken.arrow.database.library.builders.tables;
 
 
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
-import org.broken.arrow.database.library.construct.query.QueryBuilder;
-import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
-import org.broken.arrow.database.library.construct.query.builder.tablebuilder.SQLConstraints;
-import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
-import org.broken.arrow.database.library.construct.query.utlity.DataType;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 
@@ -17,14 +12,11 @@ import java.util.Map;
 
 public final class TableWrapper {
     private final TableWrapper table;
-    private final QueryBuilder queryBuilder;
-    private final CreateTableHandler tableBuilder;
     private final String tableName;
     private final int primaryKeyLength;
     private final boolean supportQuery;
     private final Map<String, TableRow> columns = new LinkedHashMap<>();
     private TableRow primaryRow;
-    private String columnsArray;
     private String quoteColumnKey = "`";
     private SqlQueryBuilder sqlQueryBuilder;
 
@@ -38,13 +30,6 @@ public final class TableWrapper {
 
     private TableWrapper(@Nonnull final String tableName, @Nonnull final TableRow primaryRow, final int valueLength) {
         Validate.checkNotEmpty(tableName, "Table name is empty.");
-        this.queryBuilder = new QueryBuilder();
-        this.tableBuilder = queryBuilder.createTableIfNotExists(tableName);
-        this.tableBuilder.addColumns(
-                ColumnManger.tableOf(primaryRow.getColumnName(), DataType.VARCHAR(60), SQLConstraints.PRIMARY_KEY())
-                        .column("", DataType.VARCHAR(50))
-                        .build());
-
         this.supportQuery = false;
         this.tableName = tableName;
         this.primaryRow = primaryRow;
@@ -291,10 +276,6 @@ public final class TableWrapper {
     @Nullable
     public TableRow getColumn(String columnName) {
         return columns.get(columnName);
-    }
-
-    public String getColumnsArray() {
-        return columnsArray;
     }
 
     public boolean isSupportQuery() {

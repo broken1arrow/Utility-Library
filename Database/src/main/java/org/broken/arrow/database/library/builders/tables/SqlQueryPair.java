@@ -1,5 +1,6 @@
 package org.broken.arrow.database.library.builders.tables;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
 
@@ -7,7 +8,7 @@ public class SqlQueryPair {
     private final String query;
     private final Map<Integer, Object> values;
 
-    public SqlQueryPair(String query, Map<Integer, Object> values) {
+    public SqlQueryPair(@Nonnull final String query,@Nonnull final Map<Integer, Object> values) {
         this.query = query;
         this.values = values;
     }

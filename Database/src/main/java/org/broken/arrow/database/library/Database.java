@@ -15,6 +15,7 @@ import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
 import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
+import org.broken.arrow.database.library.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.utility.BatchExecutor;
@@ -139,6 +140,16 @@ public abstract class Database {
         }
         try {
             createAllTablesIfNotExist(connection);
+            if(!tabless.isEmpty()) {
+                try {
+                    for (final Entry<String, SqlQueryTable> entityTables : tabless.entrySet()) {
+                        final List<String> columns = updateTableColumnsInDb(connection, entityTables.getKey());
+                        this.createMissingColumns(connection, entityTables.getValue(), columns);
+                    }
+                } catch (final SQLException throwable) {
+                    log.log(throwable, () -> of("Fail to update columns in your table."));
+                }
+            }
             try {
                 for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
                     final List<String> columns = updateTableColumnsInDb(connection, entityTables.getKey());
@@ -154,6 +165,8 @@ public abstract class Database {
 
     /**
      * Saves all rows to the specified database table, based on the provided primary key and associated data.
+     * <p>&nbsp;</p>
+     * <p>
      * Note: If you use this method it will replace the old data instead of update it.
      *
      * @param tableName       name of the table you want to update rows inside.
@@ -166,6 +179,8 @@ public abstract class Database {
 
     /**
      * Saves all rows to the specified database table, based on the provided primary key and associated data.
+     * <p>&nbsp;</p>
+     * <p>
      * Note: If you use this method it will replace the old data instead of update it.
      *
      * @param tableName       name of the table you want to update rows inside.
@@ -190,14 +205,23 @@ public abstract class Database {
      *                        updates the existing row with these columns if it exists.
      */
     public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns) {
-        Connection connection = this.attemptToConnect();
-        BatchExecutor batchExecutor;
+        final Connection connection = this.attemptToConnect();
+        final BatchExecutor batchExecutor;
+
+        if (connection == null) {
+            this.printFailToOpen();
+            return;
+        }
+
         if (this.secureQuery)
             batchExecutor = new BatchExecutor(this, connection, dataWrapperList);
         else {
             batchExecutor = new BatchExecutorUnsafe(this, connection, dataWrapperList);
         }
-        batchExecutor.saveAll(tableName, shallUpdate, columns);
+        SqlQueryTable table = this.getTableFromName(tableName);
+        Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryValue);
+
+        batchExecutor.saveAll(tableName, shallUpdate, whereClauseFunc, columns);
     }
 
     /**
@@ -239,15 +263,24 @@ public abstract class Database {
      *                    updates the existing row with these columns if it exists.
      */
     public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
+        final Connection connection = this.attemptToConnect();
+        final BatchExecutor batchExecutor;
 
-        Connection connection = this.attemptToConnect();
-        BatchExecutor batchExecutor;
+        if (connection == null) {
+            this.printFailToOpen();
+            return;
+        }
+
         if (this.secureQuery)
             batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
         else {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
-        batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> where,columns);
+        SqlQueryTable table = this.getTableFromName(tableName);
+        final WhereBuilder whereClauseFromPrimaryColumns = table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, dataWrapper.getPrimaryValue());
+        Validate.checkBoolean(whereClauseFromPrimaryColumns.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
+
+        batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> whereClauseFromPrimaryColumns, columns);
     }
 
     /**
@@ -263,7 +296,7 @@ public abstract class Database {
         final TableWrapper tableWrapper = this.getTable(tableName);
         final SqlQueryTable table = this.getTableFromName(tableName);
 
-        if (tableWrapper == null) {
+        if (tableWrapper == null && table == null) {
             this.printFailFindTable(tableName);
             return null;
         }
@@ -337,7 +370,7 @@ public abstract class Database {
             final SqlHandler sqlHandler = new SqlHandler(table.getTableName(), this);
             final WhereBuilder primaryColumns = table.createWhereClauseFromPrimaryColumns(true, columnValue);
             Validate.checkBoolean(primaryColumns.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
-            
+
             final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), primaryColumns);
 
             this.getPreparedStatement(selectRow.getQuery(), statementWrapper -> {
@@ -401,7 +434,7 @@ public abstract class Database {
      * @param tableName name of the table you want to get data from.
      * @param values    the list of primary key values you want to remove from database.
      */
-    public void removeAll(final String tableName, final List<String> values) {
+    public void removeAll(@Nonnull final String tableName, @Nonnull final List<String> values) {
         BatchExecutor batchExecutor;
         Connection connection = this.attemptToConnect();
         if (connection == null) {
@@ -413,8 +446,11 @@ public abstract class Database {
         else {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
+        //todo check so table does exist? or just accept any table that maybe does not exist on the database?
+        final SqlQueryTable table = this.getTableFromName(tableName);
+        final Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryValue);
 
-        batchExecutor.removeAll(tableName, values);
+        batchExecutor.removeAll(tableName, values, whereClauseFunc);
     }
 
     /**
@@ -423,7 +459,7 @@ public abstract class Database {
      * @param tableName name of the table you want to get data from.
      * @param value     the primary key value you want to remove from database.
      */
-    public void remove(final String tableName, final String value) {
+    public void remove(@Nonnull final String tableName, @Nonnull final String value) {
         BatchExecutor batchExecutor;
         Connection connection = this.attemptToConnect();
         if (connection == null) {
@@ -435,8 +471,9 @@ public abstract class Database {
         else {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
-
-        batchExecutor.remove(tableName, value);
+        final SqlQueryTable table = this.getTableFromName(tableName);
+        final Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryValue);
+        batchExecutor.remove(tableName, value, whereClauseFunc);
     }
 
     /**
@@ -605,7 +642,9 @@ public abstract class Database {
         else {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
-        return batchExecutor.checkIfRowExist(tableName, primaryKeyValue);
+        final SqlQueryTable table = this.getTableFromName(tableName);
+        final Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryKeyValue);
+        return batchExecutor.checkIfRowExist(tableName, primaryKeyValue, whereClauseFunc);
     }
 
     /**
@@ -732,6 +771,26 @@ public abstract class Database {
         }
     }
 
+    private void createMissingColumns(Connection connection, SqlQueryTable queryTable, List<String> existingColumns) {
+        if (existingColumns == null) return;
+        if (connection == null) {
+            log.log(Level.WARNING, () -> of("You must set the connection instance."));
+            return;
+        }
+
+        for (final Column column : queryTable.getTable().getColumns()) {
+            String columnName = column.getColumnName();
+            if (removeColumns.contains(columnName) || existingColumns.contains(columnName.toLowerCase())) continue;
+
+            try (final PreparedStatement statement = connection.prepareStatement("ALTER TABLE " + this.getQuote() +  queryTable.getTableName() + this.getQuote() + " ADD " + this.getQuote() + columnName + this.getQuote() + " " + ((TableColumn)column).getDataType() + ";")) {
+                statement.execute();
+            } catch (final SQLException throwable) {
+                log.log(throwable, () -> of("Could not add this '" + columnName + "' missing column. To this table '" + queryTable.getTableName() + "'"));
+            }
+        }
+
+    }
+
     protected void createMissingColumns(final Connection connection, final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
         if (existingColumns == null) return;
         if (connection == null) {
@@ -774,13 +833,27 @@ public abstract class Database {
     protected boolean createTableIfNotExist(final Connection connection, final String tableName) {
 
         PreparedStatement statement = null;
+        PreparedStatement statementNew = null;
         String table = "";
         try {
-            TableWrapper wrapperEntry = this.getTable(tableName);
-            if (wrapperEntry == null) {
+            final TableWrapper wrapperEntry = this.getTable(tableName);
+            final SqlQueryTable tableQuery = this.getTableFromName(tableName);
+            if (wrapperEntry == null && tableQuery == null) {
                 this.printFailFindTable(tableName);
                 return false;
             }
+
+            if (tableQuery != null) {
+                if (tableQuery.getTableName().isEmpty())
+                    return false;
+                statementNew = connection.prepareStatement(tableQuery.createTable());
+                statementNew.executeUpdate();
+                Column column = tableQuery.getPrimaryColumns().stream().findFirst().orElse(null);
+                Validate.checkNotNull(column, "Could not find a primary column for this table " + tableName);
+                checkIfTableExist(connection, tableName, column.getColumnName());
+                return true;
+            }
+
             final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(wrapperEntry), this);
             table = sqlCommandComposer.createTable();
             statement = connection.prepareStatement(table);
@@ -795,7 +868,7 @@ public abstract class Database {
             log.log(e, () -> of("With this command: " + finalTable));
             return false;
         } finally {
-            close(statement);
+            close(statement, statementNew);
         }
     }
 
@@ -923,6 +996,10 @@ public abstract class Database {
         }
     }
 
+    public boolean isSecureQuery() {
+        return secureQuery;
+    }
+
     /**
      * Sets whether to perform a secure batch update. When set to false, the class will not apply
      * measures to prevent SQL injection vulnerabilities during batch updates.
@@ -933,10 +1010,6 @@ public abstract class Database {
      */
     public final void setSecureQuery(final boolean secureQuery) {
         this.secureQuery = secureQuery;
-    }
-
-    public boolean isSecureQuery() {
-        return secureQuery;
     }
 
     /**
