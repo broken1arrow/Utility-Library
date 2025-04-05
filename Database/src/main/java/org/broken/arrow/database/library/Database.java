@@ -133,12 +133,13 @@ public abstract class Database {
      * Create all needed tables if it not exist.
      */
     public void createTables() {
-        Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
+       // Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
         }
         try {
+            System.out.println("tabless " + tabless);
             createAllTablesIfNotExist(connection);
             if(!tabless.isEmpty()) {
                 try {
@@ -150,6 +151,8 @@ public abstract class Database {
                     log.log(throwable, () -> of("Fail to update columns in your table."));
                 }
             }
+            if(tables.isEmpty())
+                return;
             try {
                 for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
                     final List<String> columns = updateTableColumnsInDb(connection, entityTables.getKey());
@@ -212,7 +215,6 @@ public abstract class Database {
             this.printFailToOpen();
             return;
         }
-
         if (this.secureQuery)
             batchExecutor = new BatchExecutor(this, connection, dataWrapperList);
         else {
@@ -700,7 +702,7 @@ public abstract class Database {
             if (preparedStatement != null) preparedStatement.close();
             if (resultSet != null) resultSet.close();
         } catch (final SQLException ex) {
-            log.log(ex, () -> of("Fail to close connection."));
+            log.log(ex, () -> of("Fail to close preparedStatement."));
         }
     }
 
@@ -978,6 +980,7 @@ public abstract class Database {
      */
     public void addTable(Function<QueryBuilder, CreateTableHandler> callback) {
         SqlQueryTable sqlQueryTable = new SqlQueryTable(callback);
+
         this.tabless.put(sqlQueryTable.getTableName(), sqlQueryTable);
     }
 
@@ -1024,6 +1027,8 @@ public abstract class Database {
      * @throws SQLException If there is an issue reading data from the database.
      */
     public Map<String, Object> getDataFromDB(final ResultSet resultSet, final TableWrapper tableWrapper) throws SQLException {
+        if(tableWrapper == null) return new HashMap<>();
+
         final ResultSetMetaData rsmd = resultSet.getMetaData();
         final int columnCount = rsmd.getColumnCount();
         final Map<String, Object> objectMap = new HashMap<>();

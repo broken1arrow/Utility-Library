@@ -16,8 +16,10 @@ public class SqlQueryTable {
 
     public SqlQueryTable(@Nonnull final Function<QueryBuilder, CreateTableHandler> callback) {
         final QueryBuilder queryBuilder = new QueryBuilder();
-        this.queryBuilder = queryBuilder;
         this.tableHandler = callback.apply(queryBuilder);
+        System.out.println("TableName " + queryBuilder.getTableName());
+
+        this.queryBuilder = queryBuilder;
     }
 
     public QueryBuilder getQueryBuilder() {
@@ -72,4 +74,11 @@ public class SqlQueryTable {
         return queryBuilder.build();
     }
 
+    @Override
+    public String toString() {
+        return "SqlQueryTable{" +
+                "queryBuilder=" + queryBuilder +
+                ", tableHandler=" + tableHandler +
+                '}';
+    }
 }

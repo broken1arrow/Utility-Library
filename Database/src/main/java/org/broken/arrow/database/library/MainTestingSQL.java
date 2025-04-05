@@ -82,6 +82,7 @@ public class MainTestingSQL {
         System.out.println("query row exists = " + query);
         System.out.println("table.getTable().getColumns()= " + table.getTable().getColumns());
         System.out.println("tableAS)= " + tableAS.createTable());
+        System.out.println("tableAS)= " + tableAS.getQueryBuilder().getTableName());
         System.out.println("table PrimaryColumns=" + table.createWhereClauseFromPrimaryColumns(false, 8, "nooo", "is too much").build());
     }
 

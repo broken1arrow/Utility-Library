@@ -64,7 +64,6 @@ public class BatchExecutor {
             this.printFailFindTable(tableName);
             return;
         }
-
         for (DataWrapper dataWrapper : dataWrapperList) {
 
             if (table != null) {
@@ -82,15 +81,17 @@ public class BatchExecutor {
                     continue;
                 }
                 queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, formatData(dataWrapper, columns), whereBuilder -> wereClauseResult, canUpdateRow));
-                this.executeDatabaseTasks(queryList);
             } else {
                 TableRow primaryRow = tableWrapper.getPrimaryRow();
                 if (dataWrapper == null || primaryRow == null) continue;
-
                 this.formatData(composerList, dataWrapper, shallUpdate, columns, tableWrapper);
             }
         }
-        executeDatabaseTask(composerList);
+        if (table != null) {
+            this.executeDatabaseTasks(queryList);
+        } else {
+            executeDatabaseTask(composerList);
+        }
     }
 
     public void save(final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final SqlFunction<WhereBuilder> whereClause, final String... columns) {
@@ -121,7 +122,7 @@ public class BatchExecutor {
         }
     }
 
-    public void removeAll(@Nonnull final String tableName,@Nonnull final List<String> values,@Nonnull final Function<Object, WhereBuilder> whereClause) {
+    public void removeAll(@Nonnull final String tableName, @Nonnull final List<String> values, @Nonnull final Function<Object, WhereBuilder> whereClause) {
         TableWrapper tableWrapper = this.database.getTable(tableName);
         final SqlQueryTable table = this.database.getTableFromName(tableName);
         if (tableWrapper == null && table == null) {
@@ -207,11 +208,11 @@ public class BatchExecutor {
      *
      * @param tableName       the name of the table to search for the data.
      * @param primaryKeyValue the primary key value to look for in the table.
-     * @param whereClause witch rows to update.
+     * @param whereClause     witch rows to update.
      * @return {@code true} if the key exists in the table, or {@code false} if the data is not found
      * or a connection issue occurs.
      */
-    public boolean checkIfRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue,@Nonnull final Function<Object, WhereBuilder> whereClause) {
+    public boolean checkIfRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue, @Nonnull final Function<Object, WhereBuilder> whereClause) {
         final TableWrapper tableWrapper = this.database.getTable(tableName);
         final SqlQueryTable table = this.database.getTableFromName(tableName);
         if (tableWrapper == null && table == null) {
@@ -340,7 +341,8 @@ public class BatchExecutor {
 
     protected void executeDatabaseTasks(List<SqlQueryPair> composerList) {
         batchUpdateGoingOn = true;
-        Connection connection = this.connection;
+        final Connection connection = this.connection;
+
         final int processedCount = composerList.size();
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
