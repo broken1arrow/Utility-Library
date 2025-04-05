@@ -6,7 +6,7 @@ import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.utlity.FunctionQuery;
-import org.broken.arrow.database.library.Database;
+import org.broken.arrow.database.library.core.Database;
 
 import javax.annotation.Nonnull;
 import java.util.Map;

@@ -1,7 +1,8 @@
-package org.broken.arrow.database.library;
+package org.broken.arrow.database.library.core.databases;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.connection.HikariCP;
+import org.broken.arrow.database.library.core.SQLDatabaseQuery;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
@@ -16,7 +17,7 @@ import java.sql.SQLRecoverableException;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public class MySQL extends Database {
+public class MySQL extends SQLDatabaseQuery {
     private final Logging log = new Logging(MySQL.class);
     private final ConnectionSettings mysqlPreference;
     private final String startSQLUrl;
@@ -24,6 +25,7 @@ public class MySQL extends Database {
     private boolean hasCastException = false;
     private final boolean isHikariAvailable;
     private final HikariCP hikari;
+
 
     /**
      * Creates a new MySQL instance with the given MySQL preferences.This
@@ -73,9 +75,9 @@ public class MySQL extends Database {
         if (isHikariAvailable) {
             this.hikari = new HikariCP(this, this.driver);
         } else this.hikari = null;
-
         connect();
     }
+
 
     @Override
     public Connection connect() {

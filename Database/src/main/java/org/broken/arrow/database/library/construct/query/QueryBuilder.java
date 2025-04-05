@@ -33,6 +33,10 @@ public class QueryBuilder {
     private String table;
     private boolean globalEnableQueryPlaceholders = true;
 
+    public QueryBuilder() {
+        this.queryType = QueryType.NON;
+    }
+
     public CreateTableHandler createTable(String table) {
         this.queryType = QueryType.CREATE;
         this.table = table;
@@ -110,6 +114,10 @@ public class QueryBuilder {
         this.queryType = QueryType.WITH;
         callback.accept(withManger);
         return withManger;
+    }
+
+    public boolean isQuerySet() {
+        return this.queryType != null && this.queryType != QueryType.NON;
     }
 
     public boolean isGlobalEnableQueryPlaceholders() {

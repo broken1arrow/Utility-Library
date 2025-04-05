@@ -1,7 +1,8 @@
-package org.broken.arrow.database.library;
+package org.broken.arrow.database.library.core.databases;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.connection.HikariCP;
+import org.broken.arrow.database.library.core.SQLDatabaseQuery;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.logging.library.Logging;
 
@@ -14,7 +15,7 @@ import java.sql.SQLException;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public class H2DB extends Database {
+public class H2DB extends SQLDatabaseQuery {
     private final Logging log = new Logging(H2DB.class);
 
     private final boolean isHikariAvailable;
@@ -38,6 +39,7 @@ public class H2DB extends Database {
         this.loadDriver("org.h2.Driver");
         connect();
     }
+
 
     @Override
     public Connection connect() {

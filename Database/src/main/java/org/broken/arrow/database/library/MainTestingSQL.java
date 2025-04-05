@@ -1,5 +1,7 @@
 package org.broken.arrow.database.library;
 
+import org.broken.arrow.database.library.builders.DataWrapper;
+import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlHandler;
 import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
@@ -10,15 +12,19 @@ import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnMan
 import org.broken.arrow.database.library.construct.query.utlity.CalcFunc;
 import org.broken.arrow.database.library.construct.query.utlity.DataType;
 import org.broken.arrow.database.library.construct.query.utlity.MathOperation;
+import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.sql.Connection;
+import java.util.List;
 
 public class MainTestingSQL {
 
 
     public static void main(String[] args) {
+
 
         SqlQueryTable table = new SqlQueryTable(queryBuilder ->
                 queryBuilder.createTableIfNotExists("tableName").addColumns(ColumnManger
@@ -108,6 +114,28 @@ public class MainTestingSQL {
             @Override
             public DatabaseCommandConfig databaseConfig() {
                 return new DatabaseCommandConfig(1, 1);
+            }
+
+            @Override
+            public void save(@Nonnull String tableName, @Nonnull DataWrapper dataWrapper, boolean shallUpdate, String... columns) {
+
+            }
+
+            @Nullable
+            @Override
+            public LoadDataWrapper load(@Nonnull String tableName, @Nonnull Class clazz, String columnValue) {
+                return null;
+            }
+
+            @Nullable
+            @Override
+            public List<LoadDataWrapper> loadAll(@Nonnull String tableName, @Nonnull Class clazz) {
+                return null;
+            }
+
+            @Override
+            public void saveAll(@Nonnull String tableName, @Nonnull List list, boolean shallUpdate, String... columns) {
+
             }
         });
     }

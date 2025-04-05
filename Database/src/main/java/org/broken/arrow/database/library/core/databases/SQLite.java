@@ -1,7 +1,8 @@
-package org.broken.arrow.database.library;
+package org.broken.arrow.database.library.core.databases;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.connection.HikariCP;
+import org.broken.arrow.database.library.core.SQLDatabaseQuery;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.logging.library.Logging;
 
@@ -15,7 +16,7 @@ import java.sql.SQLException;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public class SQLite extends Database {
+public class SQLite extends SQLDatabaseQuery {
     private final Logging log = new Logging(SQLite.class);
     private File dbFile;
     private final String parent;

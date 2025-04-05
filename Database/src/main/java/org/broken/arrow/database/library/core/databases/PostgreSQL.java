@@ -1,7 +1,8 @@
-package org.broken.arrow.database.library;
+package org.broken.arrow.database.library.core.databases;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.connection.HikariCP;
+import org.broken.arrow.database.library.core.SQLDatabaseQuery;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
@@ -16,7 +17,7 @@ import java.sql.SQLRecoverableException;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public class PostgreSQL extends Database {
+public class PostgreSQL extends SQLDatabaseQuery {
 
     private final Logging log = new Logging(PostgreSQL.class);
     private final ConnectionSettings preferences;

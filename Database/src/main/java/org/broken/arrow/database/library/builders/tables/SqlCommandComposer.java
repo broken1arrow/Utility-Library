@@ -1,6 +1,6 @@
 package org.broken.arrow.database.library.builders.tables;
 
-import org.broken.arrow.database.library.Database;
+import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.logging.library.Logging;

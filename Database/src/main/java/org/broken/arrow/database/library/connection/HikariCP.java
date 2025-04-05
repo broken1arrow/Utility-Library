@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.broken.arrow.database.library.Database;
+import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.logging.library.Logging;
 

@@ -1,4 +1,4 @@
-package org.broken.arrow.database.library;
+package org.broken.arrow.database.library.core;
 
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
@@ -6,23 +6,24 @@ import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
-import org.broken.arrow.database.library.builders.tables.SqlHandler;
-import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
-import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
+import org.broken.arrow.database.library.core.databases.H2DB;
+import org.broken.arrow.database.library.core.databases.MongoDB;
+import org.broken.arrow.database.library.core.databases.MySQL;
+import org.broken.arrow.database.library.core.databases.PostgreSQL;
+import org.broken.arrow.database.library.core.databases.SQLite;
 import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.database.library.utility.DatabaseType;
-import org.broken.arrow.database.library.utility.PreparedStatementWrapper;
 import org.broken.arrow.database.library.utility.SQLCommandPrefix;
 import org.broken.arrow.database.library.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.logging.library.Logging;
@@ -44,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 
@@ -133,15 +133,14 @@ public abstract class Database {
      * Create all needed tables if it not exist.
      */
     public void createTables() {
-       // Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
+        // Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
         }
         try {
-            System.out.println("tabless " + tabless);
             createAllTablesIfNotExist(connection);
-            if(!tabless.isEmpty()) {
+            if (!tabless.isEmpty()) {
                 try {
                     for (final Entry<String, SqlQueryTable> entityTables : tabless.entrySet()) {
                         final List<String> columns = updateTableColumnsInDb(connection, entityTables.getKey());
@@ -151,7 +150,7 @@ public abstract class Database {
                     log.log(throwable, () -> of("Fail to update columns in your table."));
                 }
             }
-            if(tables.isEmpty())
+            if (tables.isEmpty())
                 return;
             try {
                 for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
@@ -207,24 +206,7 @@ public abstract class Database {
      * @param columns         Set the columns you only wants to update in the database. It will not null and not empty,
      *                        updates the existing row with these columns if it exists.
      */
-    public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns) {
-        final Connection connection = this.attemptToConnect();
-        final BatchExecutor batchExecutor;
-
-        if (connection == null) {
-            this.printFailToOpen();
-            return;
-        }
-        if (this.secureQuery)
-            batchExecutor = new BatchExecutor(this, connection, dataWrapperList);
-        else {
-            batchExecutor = new BatchExecutorUnsafe(this, connection, dataWrapperList);
-        }
-        SqlQueryTable table = this.getTableFromName(tableName);
-        Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryValue);
-
-        batchExecutor.saveAll(tableName, shallUpdate, whereClauseFunc, columns);
-    }
+    public abstract void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns);
 
     /**
      * Saves a single row to the specified database table. The row is identified by the
@@ -264,29 +246,7 @@ public abstract class Database {
      * @param columns     Set the columns you only wants to update in the database. It will not null and not empty,
      *                    updates the existing row with these columns if it exists.
      */
-    public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
-        final Connection connection = this.attemptToConnect();
-        final BatchExecutor batchExecutor;
-
-        if (connection == null) {
-            this.printFailToOpen();
-            return;
-        }
-
-        if (this.secureQuery)
-            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
-        else {
-            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
-        }
-        SqlQueryTable table = this.getTableFromName(tableName);
-        final WhereBuilder whereClauseFromPrimaryColumns = table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, dataWrapper.getPrimaryValue());
-        if(whereClauseFromPrimaryColumns.isEmpty()){
-            this.log.log(Level.WARNING,() -> Logging.of("Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?"));
-            return;
-        }
-
-        batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> whereClauseFromPrimaryColumns, columns);
-    }
+    public abstract void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns);
 
     /**
      * Load all rows from specified database table.
@@ -297,59 +257,7 @@ public abstract class Database {
      * @return list of all data you have in the table.
      */
     @Nullable
-    public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
-        final TableWrapper tableWrapper = this.getTable(tableName);
-        final SqlQueryTable table = this.getTableFromName(tableName);
-
-        if (tableWrapper == null && table == null) {
-            this.printFailFindTable(tableName);
-            return null;
-        }
-
-        if (table != null) {
-            final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
-            final String selectRow = table.selectTable();
-
-            this.getPreparedStatement(selectRow, statementWrapper -> {
-                try (ResultSet resultSet = statementWrapper.getPreparedStatement().executeQuery()) {
-                    while (resultSet.next()) {
-                        final Map<String, Object> dataFromDB = this.getDataFromDB(resultSet, table.getTable().getColumns());
-                        final T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-                        final List<Column> primaryColumns = table.getTable().getPrimaryColumns();
-                        final List<Object> objectList = new ArrayList<>();
-                        if (!primaryColumns.isEmpty()) {
-                            for (Column column : primaryColumns) {
-                                Object primaryValue = dataFromDB.get(column.getColumnName());
-                                objectList.add(primaryValue);
-                            }
-                        }
-                        loadDataWrappers.add(new LoadDataWrapper<>(objectList, deserialize));
-                    }
-                } catch (SQLException e) {
-                    log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
-                }
-            });
-            return loadDataWrappers;
-        }
-
-        final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-        Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
-
-        this.getPreparedStatement(sqlCommandComposer.selectTable(), statementWrapper -> {
-            try (ResultSet resultSet = statementWrapper.getPreparedStatement().executeQuery()) {
-                while (resultSet.next()) {
-                    Map<String, Object> dataFromDB = this.getDataFromDB(resultSet, tableWrapper);
-                    T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-                    Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
-                    loadDataWrappers.add(new LoadDataWrapper<>(primaryValue, deserialize));
-                }
-            } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
-            }
-        });
-        return loadDataWrappers;
-    }
+    public abstract <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz);
 
     /**
      * Loads a single row from the specified database table.
@@ -361,75 +269,7 @@ public abstract class Database {
      * @return the retrieved row from the table, or {@code null} if no data is found.
      */
     @Nullable
-    public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
-        TableWrapper tableWrapper = this.getTable(tableName);
-        SqlQueryTable table = this.getTableFromName(tableName);
-        if (tableWrapper == null && table == null) {
-            this.printFailFindTable(tableName);
-            return null;
-        }
-
-        if (table != null) {
-            final Map<String, Object> dataFromDB = new HashMap<>();
-            final SqlHandler sqlHandler = new SqlHandler(table.getTableName(), this);
-            final WhereBuilder primaryColumns = table.createWhereClauseFromPrimaryColumns(true, columnValue);
-            Validate.checkBoolean(primaryColumns.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
-
-            final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), primaryColumns);
-
-            this.getPreparedStatement(selectRow.getQuery(), statementWrapper -> {
-                PreparedStatement preparedStatement = statementWrapper.getPreparedStatement();
-                primaryColumns.getValues().forEach((index, value) -> {
-                    try {
-                        preparedStatement.setObject(index, value);
-                    } catch (SQLException e) {
-                        log.log(Level.WARNING, e, () -> of("Failed to set where clause values. for this column value " + columnValue + ". Check the stacktrace."));
-                    }
-                });
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if (resultSet.next())
-                        dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
-                } catch (SQLException e) {
-                    log.log(Level.WARNING, e, () -> of("Could not load the data from " + columnValue + ". Check the stacktrace."));
-                }
-            });
-            if (dataFromDB.isEmpty())
-                return null;
-            T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-            List<ComparisonHandler<?>> comparisonHandlerList = primaryColumns.getConditionsList();
-            List<Object> objectList = new ArrayList<>();
-            if (!comparisonHandlerList.isEmpty()) {
-                for (ComparisonHandler<?> comparisonHandler : comparisonHandlerList) {
-                    String column = comparisonHandler != null ? comparisonHandler.getLogicalOperator().getConditionQuery().getColumn() : null;
-                    Object primaryValue = dataFromDB.get(column);
-                    objectList.add(primaryValue);
-                }
-            }
-            return new LoadDataWrapper<>(objectList, deserialize);
-        }
-
-        Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
-        String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
-        Map<String, Object> dataFromDB = new HashMap<>();
-        Validate.checkNotNull(columnValue, "Could not find column for " + primaryColumn + ". Because the column value is null.");
-
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this);
-
-        this.getPreparedStatement(sqlCommandComposer.selectRow(columnValue), statementWrapper -> {
-            try (ResultSet resultSet = statementWrapper.getPreparedStatement().executeQuery()) {
-                if (resultSet.next())
-                    dataFromDB.putAll(this.getDataFromDB(resultSet, tableWrapper));
-            } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Could not load the data from " + columnValue + ". Check the stacktrace."));
-            }
-        });
-        if (dataFromDB.isEmpty())
-            return null;
-        T deserialize = this.methodReflectionUtils.invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-        Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
-
-        return new LoadDataWrapper<>(primaryValue, deserialize);
-    }
+    public abstract <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue);
 
 
     /**
@@ -502,6 +342,36 @@ public abstract class Database {
     }
 
     /**
+     * Checks if a row exists in the specified table.
+     * <p>&nbsp;</p>
+     * <p>It is recommended to use {@link #load(String, Class, String)} or {@link #loadAll(String, Class)}
+     * if you also need to load the data, as a simple null check or checking if the list is empty is often sufficient.</p>
+     * <p>&nbsp;</p>
+     * <p>For save operations, running this check beforehand is unnecessary, as the SQL command
+     * automatically determines whether the value exists and executes the appropriate command.</p>
+     *
+     * @param tableName       the name of the table to search for the data.
+     * @param primaryKeyValue the primary key value to look for in the table.
+     * @return {@code true} if the key exists in the table, or {@code false} if the data is not found
+     * or a connection issue occurs.
+     */
+    public boolean doRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
+        BatchExecutor batchExecutor;
+        Connection connection = this.attemptToConnect();
+        if (connection == null) {
+            return false;
+        }
+        if (this.secureQuery)
+            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+        else {
+            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+        }
+        final SqlQueryTable table = this.getTableFromName(tableName);
+        final Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryKeyValue);
+        return batchExecutor.checkIfRowExist(tableName, primaryKeyValue, whereClauseFunc);
+    }
+
+    /**
      * This method removes rows older than the set threshold.
      *
      * @param tableName the table to find the rows to remove.
@@ -542,113 +412,12 @@ public abstract class Database {
         if (connection == null) {
             return;
         }
-
         if (this.secureQuery)
             batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
         else {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
         batchExecutor.runSQLCommand(sqlQueryBuilders);
-    }
-
-    /**
-     * This method enables you to set up and execute custom SQL commands on a database and returns PreparedStatement. While this method uses
-     * preparedStatement and parameterized queries to reduce SQL injection risks (if you do not turn it off with
-     * {@link #setSecureQuery(boolean)}), it is crucial for you to follow safe practices:
-     * <p>&nbsp;</p>
-     * <ul>
-     *   <li>Do not pass unsanitized user input directly into SQL commands. Always validate and sanitize
-     *       user-provided values before including them in SQL queries.</li>
-     *   <li>Be cautious of security risks when executing custom SQL commands. Ensure that end-users cannot manipulate
-     *       sensitive values or keys.</li>
-     * </ul>
-     * <p>&nbsp;</p>
-     * Throws SQLException if a database access error occurs or this method is called on a
-     * closed connection. Alternatively the command is not correctly setup.
-     *
-     * @param command  the V or SQL command you want to run.
-     * @param function the function that will be applied to the command.
-     * @param <T>      The type you want the method to return.
-     * @return the value you set as the lambda should return or null if something did go wrong.
-     */
-    @Nullable
-    public <T> T getPreparedStatement(@Nonnull final String command, final Function<PreparedStatementWrapper, T> function) {
-        Connection connection = this.attemptToConnect();
-        if (connection == null) {
-            return null;
-        }
-        try (PreparedStatement preparedStatement = connection.prepareStatement(command)) {
-            return function.apply(new PreparedStatementWrapper(preparedStatement));
-        } catch (SQLException e) {
-            log.log(e, () -> of("could not execute this command: " + command));
-        } finally {
-            this.closeConnection(connection);
-        }
-        return null;
-    }
-
-    /**
-     * Executes a custom SQL command on the database and returns a {@link PreparedStatementWrapper}.
-     * This method leverages prepared statements and parameterized queries to mitigate SQL injection risks
-     * (unless disabled using {@link #setSecureQuery(boolean)}). It is essential to adhere to best practices for safe SQL execution:
-     *
-     * <ul>
-     *   <li>Do not pass unsanitized user input directly into SQL commands. Always validate and sanitize
-     *       user-provided values before including them in SQL queries.</li>
-     *   <li>Be cautious of security risks when executing custom SQL commands. Ensure that end-users cannot manipulate
-     *       sensitive values or keys.</li>
-     * </ul>
-     *
-     * <p>Throws {@code SQLException} if a database access error occurs, if the connection is closed, or if the command
-     * is not properly set up.</p>
-     *
-     * @param command  the SQL command to be executed.
-     * @param consumer a consumer to handle the result returned by the database.
-     */
-    public void getPreparedStatement(@Nonnull final String command, final Consumer<PreparedStatementWrapper> consumer) {
-        Connection connection = this.attemptToConnect();
-        if (connection == null) {
-            return;
-        }
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(command)) {
-            consumer.accept(new PreparedStatementWrapper(preparedStatement));
-        } catch (SQLException e) {
-            log.log(e, () -> of("Could not execute this command: " + command));
-        } finally {
-            this.closeConnection(connection);
-        }
-    }
-
-
-    /**
-     * Checks if a row exists in the specified table.
-     * <p>&nbsp;</p>
-     * <p>It is recommended to use {@link #load(String, Class, String)} or {@link #loadAll(String, Class)}
-     * if you also need to load the data, as a simple null check or checking if the list is empty is often sufficient.</p>
-     * <p>&nbsp;</p>
-     * <p>For save operations, running this check beforehand is unnecessary, as the SQL command
-     * automatically determines whether the value exists and executes the appropriate command.</p>
-     *
-     * @param tableName       the name of the table to search for the data.
-     * @param primaryKeyValue the primary key value to look for in the table.
-     * @return {@code true} if the key exists in the table, or {@code false} if the data is not found
-     * or a connection issue occurs.
-     */
-    public boolean doRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
-        BatchExecutor batchExecutor;
-        Connection connection = this.attemptToConnect();
-        if (connection == null) {
-            return false;
-        }
-        if (this.secureQuery)
-            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
-        else {
-            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
-        }
-        final SqlQueryTable table = this.getTableFromName(tableName);
-        final Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryKeyValue);
-        return batchExecutor.checkIfRowExist(tableName, primaryKeyValue, whereClauseFunc);
     }
 
     /**
@@ -786,7 +555,7 @@ public abstract class Database {
             String columnName = column.getColumnName();
             if (removeColumns.contains(columnName) || existingColumns.contains(columnName.toLowerCase())) continue;
 
-            try (final PreparedStatement statement = connection.prepareStatement("ALTER TABLE " + this.getQuote() +  queryTable.getTableName() + this.getQuote() + " ADD " + this.getQuote() + columnName + this.getQuote() + " " + ((TableColumn)column).getDataType() + ";")) {
+            try (final PreparedStatement statement = connection.prepareStatement("ALTER TABLE " + this.getQuote() + queryTable.getTableName() + this.getQuote() + " ADD " + this.getQuote() + columnName + this.getQuote() + " " + ((TableColumn) column).getDataType() + ";")) {
                 statement.execute();
             } catch (final SQLException throwable) {
                 log.log(throwable, () -> of("Could not add this '" + columnName + "' missing column. To this table '" + queryTable.getTableName() + "'"));
@@ -877,7 +646,7 @@ public abstract class Database {
     }
 
     @Nullable
-    private Connection attemptToConnect() {
+    public Connection attemptToConnect() {
         Connection connection = this.connect();
         if (isHasCastException()) {
             this.printFailConnect();
@@ -1029,7 +798,7 @@ public abstract class Database {
      * @throws SQLException If there is an issue reading data from the database.
      */
     public Map<String, Object> getDataFromDB(final ResultSet resultSet, final TableWrapper tableWrapper) throws SQLException {
-        if(tableWrapper == null) return new HashMap<>();
+        if (tableWrapper == null) return new HashMap<>();
 
         final ResultSetMetaData rsmd = resultSet.getMetaData();
         final int columnCount = rsmd.getColumnCount();

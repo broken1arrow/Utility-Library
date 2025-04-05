@@ -2,6 +2,7 @@ package org.broken.arrow.database.library.builders.tables;
 
 
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
+import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.logging.library.Validate.ValidateExceptions;
 
@@ -40,7 +41,7 @@ public final class TableWrapper {
     /**
      * Creates a new TableWrapper object to build a database command for creating a table.
      * Use the provided methods to add columns and define table properties. You can then call {@link SqlCommandComposer#createTable()}
-     * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
+     * to construct the final database command string or use {@link Database#createTables()}.
      * <p>
      * Note: if you set up a Mysql database is it recommended you also set the length of the primary column value.
      *
@@ -55,7 +56,7 @@ public final class TableWrapper {
     /**
      * Creates a new TableWrapper object to build a database command for creating a table.
      * Use the provided methods to add columns and define table properties. You can then call {@link SqlCommandComposer#createTable()}
-     * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
+     * to construct the final database command string or use {@link Database#createTables()}.
      *
      * @param tableName   name on your table.
      * @param primaryRow  the key that serves as the primary key. If not set, duplicate records may be added.
@@ -69,7 +70,7 @@ public final class TableWrapper {
     /**
      * Creates a new TableWrapper object to build a database command for creating a table.
      * Use the provided methods to add columns and define table properties. You can then call {@link SqlCommandComposer#createTable()}
-     * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
+     * to construct the final database command string or use {@link Database#createTables()}.
      * <p>
      * Note: if you set up a Mysql database is it recommended you also set the length of the primary column value.
      *
@@ -87,7 +88,7 @@ public final class TableWrapper {
     /**
      * Creates a new TableWrapper object to build a database command for creating a table.
      * Use the provided methods to add columns and define table properties. You can then call {@link SqlCommandComposer#createTable()}
-     * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
+     * to construct the final database command string or use {@link Database#createTables()}.
      *
      * @param sqlQueryBuilder the prebuilt command.
      * @param primaryRow      the key that serves as the primary key. If not set, duplicate records may be added.
@@ -103,7 +104,7 @@ public final class TableWrapper {
     /**
      * Creates a new TableWrapper object to build a database command for creating a table.
      * Use the provided methods to add columns and define table properties. You can then call {@link SqlCommandComposer#createTable()}
-     * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
+     * to construct the final database command string or use {@link Database#createTables()}.
      * <p>
      * Note: if you set up a Mysql database is it recommended you also set the length of the primary column value.
      *
@@ -122,7 +123,7 @@ public final class TableWrapper {
     /**
      * Creates a new TableWrapper object to build a database command for creating a table.
      * Use the provided methods to add columns and define table properties. You can then call {@link SqlCommandComposer#createTable()}
-     * to construct the final database command string or use {@link org.broken.arrow.database.library.Database#createTables()}.
+     * to construct the final database command string or use {@link Database#createTables()}.
      *
      * @param tableName    name on your table.
      * @param primaryRow   the key that serves as the primary key. If not set, duplicate records may be added.
