@@ -9,67 +9,67 @@ public class SQLConstraints {
     this.value = value;
   }
 
-  public static SQLConstraints Null() {
+  public static SQLConstraints nullCon() {
     return new SQLConstraints("NULL");
   }
 
-  public static SQLConstraints Not_null() {
+  public static SQLConstraints not_null() {
     return new SQLConstraints("NOT NULL");
   }
 
-  public static SQLConstraints Primary_key() {
+  public static SQLConstraints primary_key() {
     return new SQLConstraints("PRIMARY KEY");
   }
 
-  public static SQLConstraints Primary_keys(String... columns) {
+  public static SQLConstraints primary_keys(String... columns) {
     return new SQLConstraints("PRIMARY KEY (" + String.join(", ", columns) + ")");
   }
 
-  public static SQLConstraints Auto_increment() {
+  public static SQLConstraints auto_increment() {
     return new SQLConstraints("AUTO_INCREMENT");
   }
 
-  public static SQLConstraints Unique() {
+  public static SQLConstraints unique() {
     return new SQLConstraints("UNIQUE");
   }
 
-  public static SQLConstraints Default(String value) {
+  public static SQLConstraints defaultCon(String value) {
     return new SQLConstraints("DEFAULT " + value);
   }
 
-  public static SQLConstraints Default(int value) {
+  public static SQLConstraints defaultCon(int value) {
     return new SQLConstraints("DEFAULT " + value);
   }
 
-  public static SQLConstraints Default(boolean value) {
+  public static SQLConstraints defaultCon(boolean value) {
     return new SQLConstraints("DEFAULT " + (value ? "TRUE" : "FALSE"));
   }
 
-  public static SQLConstraints Check(String condition) {
+  public static SQLConstraints check(String condition) {
     return new SQLConstraints("CHECK(" + condition + ")");
   }
 
-  public static SQLConstraints Foreign_key(String column, String referenceTable, String referenceColumn) {
+  public static SQLConstraints foreign_key(String column, String referenceTable, String referenceColumn) {
     return new SQLConstraints("FOREIGN KEY (" + column + ") REFERENCES " + referenceTable + "(" + referenceColumn + ")");
   }
 
-  public static SQLConstraints On_delete_cascade() {
+  public static SQLConstraints on_delete_cascade() {
     return new SQLConstraints("ON DELETE CASCADE");
   }
 
-  public static SQLConstraints On_update_cascade() {
+  public static SQLConstraints on_update_cascade() {
     return new SQLConstraints("ON UPDATE CASCADE");
   }
 
-  public static SQLConstraints On_delete_set_nulL() {
+  public static SQLConstraints on_delete_set_nulL() {
     return new SQLConstraints("ON DELETE SET NULL");
   }
 
-  public static SQLConstraints On_update_set_null() {
+  public static SQLConstraints on_update_set_null() {
     return new SQLConstraints("ON UPDATE SET NULL");
   }
 
-  public static SQLConstraints Unique_key(String column) {
+  public static SQLConstraints unique_key(String column) {
     return new SQLConstraints("UNIQUE (" + column + ")");
   }
 
