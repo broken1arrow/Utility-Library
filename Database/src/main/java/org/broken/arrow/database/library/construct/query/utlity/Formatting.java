@@ -7,6 +7,9 @@ import java.util.List;
 
 public class Formatting {
 
+    private Formatting() {
+    }
+
     public static String formatConditions(final List<ComparisonHandler<?>> conditionsList) {
         final StringBuilder whereClause = new StringBuilder();
         boolean openParenthesis = false;

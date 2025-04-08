@@ -27,25 +27,25 @@ public class FromWrapper {
 
     public void from() {
         build();
-        StringBuilder fromClaus = this.fromClaus;
-        fromClaus.append("SELECT ");
-        if (columns != null && !columns.isEmpty()) fromClaus.append(columns);
-        else fromClaus.append("*");
+        StringBuilder claus = this.fromClaus;
+        claus.append("SELECT ");
+        if (columns != null && !columns.isEmpty()) claus.append(columns);
+        else claus.append("*");
 
-        fromClaus.append(" FROM ").append(aliasName);
+        claus.append(" FROM ").append(aliasName);
     }
 
     public void build() {
         this.columns = columnBuilder.build();
-        StringBuilder withCommandBuilder = this.withCommandBuilder;
+        StringBuilder withCommand = this.withCommandBuilder;
 
-        withCommandBuilder.append(aliasName).append(" ");
+        withCommand.append(aliasName).append(" ");
 
         String build = this.selectWithBuilder.build();
         int size = this.selectWithBuilder.getColumns().size();
         int columnsSet = query.getAmountColumnsSet();
         if (!build.isEmpty() && size == columnsSet)
-            withCommandBuilder.append("(")
+            withCommand.append("(")
                     .append(build)
                     .append(") ");
         else if (!build.isEmpty()) {
@@ -54,7 +54,7 @@ public class FromWrapper {
                     "number of columns must be equal. Current number of columns: " + size + ", expected: " + columnsSet));
         }
 
-        withCommandBuilder.append("AS (")
+        withCommand.append("AS (")
                 .append(this.query.build().replace(";", ""))
                 .append(")");
     }
