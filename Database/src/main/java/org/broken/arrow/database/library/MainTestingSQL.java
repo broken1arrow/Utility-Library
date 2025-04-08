@@ -81,7 +81,7 @@ public class MainTestingSQL {
                                 table.createWhereClauseFromPrimaryColumns(false, "test"))
                 .getQuery();
 
-        System.out.println("insert= " + insert);
+   /*    System.out.println("insert= " + insert);
         System.out.println("update= " + update);
         System.out.println("select= " + select);
         System.out.println("select2= " + select2);
@@ -89,7 +89,7 @@ public class MainTestingSQL {
         System.out.println("table.getTable().getColumns()= " + table.getTable().getColumns());
         System.out.println("tableAS)= " + tableAS.createTable());
         System.out.println("tableAS)= " + tableAS.getQueryBuilder().getTableName());
-        System.out.println("table PrimaryColumns=" + table.createWhereClauseFromPrimaryColumns(false, 8, "nooo", "is too much").build());
+        System.out.println("table PrimaryColumns=" + table.createWhereClauseFromPrimaryColumns(false, 8, "nooo", "is too much").build());*/
     }
 
     @Nonnull
@@ -118,7 +118,7 @@ public class MainTestingSQL {
 
             @Override
             public void save(@Nonnull String tableName, @Nonnull DataWrapper dataWrapper, boolean shallUpdate, String... columns) {
-
+                   //just for testing
             }
 
             @Nullable
@@ -135,7 +135,7 @@ public class MainTestingSQL {
 
             @Override
             public void saveAll(@Nonnull String tableName, @Nonnull List list, boolean shallUpdate, String... columns) {
-
+                    //just for testing
             }
         });
     }

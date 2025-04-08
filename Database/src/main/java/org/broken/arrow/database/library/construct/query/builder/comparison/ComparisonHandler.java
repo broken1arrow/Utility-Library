@@ -5,6 +5,7 @@ import org.broken.arrow.database.library.construct.query.builder.condition.Condi
 import org.broken.arrow.database.library.construct.query.utlity.LogicalOperators;
 import org.broken.arrow.database.library.construct.query.utlity.Marker;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -15,18 +16,21 @@ public class ComparisonHandler<T> {
 
     private final LogicalOperator<T> logicalOperator;
     private final StringBuilder columnsBuilt = new StringBuilder();
+    private final String column;
     private ConditionBuilder<T> condition;
     private SubqueryHandler<T> subqueryHandler;
     private Object[] values;
     private String symbol;
 
     public ComparisonHandler(T clazz, String column, Marker marker) {
+        this.column = column;
         condition = new ConditionBuilder<>(this, marker);
         this.logicalOperator = new LogicalOperator<>(clazz, column, condition);
     }
 
     public ComparisonHandler() {
         this.logicalOperator = null;
+        this.column = "";
     }
 
     public StringBuilder getColumnsBuilt() {
@@ -170,6 +174,11 @@ public class ComparisonHandler<T> {
 
     public ConditionBuilder<T> getCondition() {
         return condition;
+    }
+
+    @Nonnull
+    public String getColumn() {
+        return column;
     }
 
     public LogicalOperator<T> getLogicalOperator() {

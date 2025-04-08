@@ -109,11 +109,11 @@ public abstract class SQLDatabaseQuery extends Database {
                         final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet, table.getTable().getColumns());
                         final T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
                         final List<Column> primaryColumns = table.getTable().getPrimaryColumns();
-                        final List<Object> objectList = new ArrayList<>();
+                        final Map<String, Object> objectList = new HashMap<>();
                         if (!primaryColumns.isEmpty()) {
                             for (Column column : primaryColumns) {
                                 Object primaryValue = dataFromDB.get(column.getColumnName());
-                                objectList.add(primaryValue);
+                                objectList.put(column.getColumnName(), primaryValue);
                             }
                         }
                         loadDataWrappers.add(new LoadDataWrapper<>(objectList, deserialize));
@@ -182,12 +182,12 @@ public abstract class SQLDatabaseQuery extends Database {
                 return null;
             T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
             List<ComparisonHandler<?>> comparisonHandlerList = primaryColumns.getConditionsList();
-            List<Object> objectList = new ArrayList<>();
+            Map<String, Object> objectList = new HashMap<>();
             if (!comparisonHandlerList.isEmpty()) {
                 for (ComparisonHandler<?> comparisonHandler : comparisonHandlerList) {
-                    String column = comparisonHandler != null ? comparisonHandler.getLogicalOperator().getConditionQuery().getColumn() : null;
+                    String column = comparisonHandler != null ? comparisonHandler.getColumn() : null;
                     Object primaryValue = dataFromDB.get(column);
-                    objectList.add(primaryValue);
+                    objectList.put(column, primaryValue);
                 }
             }
             return new LoadDataWrapper<>(objectList, deserialize);
@@ -237,7 +237,7 @@ public abstract class SQLDatabaseQuery extends Database {
      * @return the value you set as the lambda should return or null if something did go wrong.
      */
     @Nullable
-    public <T>  T  executeQuery(@Nonnull final QueryDefinition queryBuilder, final Function<StatementContext<PreparedStatement>, T> function) {
+    public <T> T executeQuery(@Nonnull final QueryDefinition queryBuilder, final Function<StatementContext<PreparedStatement>, T> function) {
         final String query = queryBuilder.getQuery();
 
         if (query.isEmpty()) {

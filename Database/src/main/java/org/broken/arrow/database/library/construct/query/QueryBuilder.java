@@ -13,7 +13,6 @@ import org.broken.arrow.database.library.construct.query.utlity.QueryType;
 import org.broken.arrow.database.library.construct.query.utlity.StringUtil;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -140,19 +139,16 @@ public class QueryBuilder {
             throw new IllegalStateException("Query type must be set before building.");
         }
 
+        StringBuilder sql = getBuiltCommand(queryModifier);
+        return sql + ";";
+    }
+
+    @Nonnull
+    private StringBuilder getBuiltCommand(final QueryModifier queryModifier) {
         StringBuilder sql = new StringBuilder();
         switch (queryType) {
             case SELECT:
-                sql.append("SELECT ");
-
-                sql.append(queryModifier.getSelectBuilder().getColumns().isEmpty() ? "*" : queryModifier.getSelectBuilder().build());
-
-                sql.append(" FROM ").append(queryModifier.getTableWithAlias())
-                        .append(queryModifier.getJoinBuilder().build())
-                        .append(queryModifier.getWhereBuilder().build())
-                        .append(queryModifier.getGroupByBuilder().build())
-                        .append(queryModifier.getHavingBuilder().build())
-                        .append(queryModifier.getOrderByBuilder().build());
+                createSelectQuery(queryModifier, sql);
                 break;
             case DELETE:
                 sql.append("DELETE FROM ").append(table);
@@ -171,57 +167,80 @@ public class QueryBuilder {
                 sql.append("CREATE TABLE IF NOT EXISTS ").append(table).append(this.createTableHandler.build());
                 break;
             case UPDATE:
-                Map<String, Object> updateValues = updateBuilder.build();
-                if (updateValues.isEmpty()) {
-                    throw new IllegalStateException("UPDATE queries require at least one SET value.");
-                }
-                sql.append("UPDATE ").append(table).append(" SET ");
-                if (this.globalEnableQueryPlaceholders) {
-                    sql.append(updateValues.entrySet().stream()
-                            .map(entry -> entry.getKey() + " = ?")
-                            .collect(Collectors.joining(", ")));
-                } else {
-                    sql.append(updateValues.entrySet().stream()
-                            .map(entry -> entry.getKey() + " = " + entry.getValue())
-                            .collect(Collectors.joining(", ")));
-                }
-                sql.append(updateBuilder.getSelector().getWhereBuilder().build());
+                createUpdateQuery(sql);
                 break;
-
             case INSERT:
             case MERGE_INTO:
             case REPLACE_INTO:
-                String sqlKeyword = getInsertStart();
-                Set<Map.Entry<Integer, InsertBuilder>> insertValues = insertHandler.getInsertValues().entrySet();
-
-                List<InsertBuilder> insertBuilders = insertValues.stream()
-                        .sorted(Comparator.comparingInt(Map.Entry::getKey))
-                        .map(Map.Entry::getValue)
-                        .collect(Collectors.toList());
-
-                List<String> columnNames = insertBuilders.stream()
-                        .map(InsertBuilder::getColumnName)
-                        .collect(Collectors.toList());
-
-                sql.append(sqlKeyword).append(table).append(" (")
-                        .append(StringUtil.stringJoin(columnNames))
-                        .append(") VALUES (");
-
-                if (this.globalEnableQueryPlaceholders) {
-                    sql.append(StringUtil.repeat("?,", insertBuilders.size()).replaceAll(",$", ""));
-                } else {
-                    List<Object> columnValues = insertBuilders.stream()
-                            .map(InsertBuilder::getColumnValue)
-                            .collect(Collectors.toList());
-                    sql.append(StringUtil.stringJoin(columnValues));
-                }
-                sql.append(")");
+                createInsertQuery(sql);
                 break;
             case WITH:
                 sql.append(withManger.build());
                 break;
+            default:
+                break;
         }
-        return sql + ";";
+        return sql;
+    }
+
+
+    private void createSelectQuery(final QueryModifier queryModifier,final StringBuilder sql) {
+        sql.append("SELECT ");
+
+        sql.append(queryModifier.getSelectBuilder().getColumns().isEmpty() ? "*" : queryModifier.getSelectBuilder().build());
+
+        sql.append(" FROM ").append(queryModifier.getTableWithAlias())
+                .append(queryModifier.getJoinBuilder().build())
+                .append(queryModifier.getWhereBuilder().build())
+                .append(queryModifier.getGroupByBuilder().build())
+                .append(queryModifier.getHavingBuilder().build())
+                .append(queryModifier.getOrderByBuilder().build());
+    }
+
+    private void createUpdateQuery(final StringBuilder sql) {
+        Map<String, Object> updateValues = updateBuilder.build();
+        if (updateValues.isEmpty()) {
+            throw new IllegalStateException("UPDATE queries require at least one SET value.");
+        }
+        sql.append("UPDATE ").append(table).append(" SET ");
+        if (this.globalEnableQueryPlaceholders) {
+            sql.append(updateValues.entrySet().stream()
+                    .map(entry -> entry.getKey() + " = ?")
+                    .collect(Collectors.joining(", ")));
+        } else {
+            sql.append(updateValues.entrySet().stream()
+                    .map(entry -> entry.getKey() + " = " + entry.getValue())
+                    .collect(Collectors.joining(", ")));
+        }
+        sql.append(updateBuilder.getSelector().getWhereBuilder().build());
+    }
+
+    private void createInsertQuery(final StringBuilder sql) {
+        String sqlKeyword = getInsertStart();
+        Set<Map.Entry<Integer, InsertBuilder>> insertValues = insertHandler.getInsertValues().entrySet();
+
+        List<InsertBuilder> insertBuilders = insertValues.stream()
+                .sorted(Comparator.comparingInt(Map.Entry::getKey))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+
+        List<String> columnNames = insertBuilders.stream()
+                .map(InsertBuilder::getColumnName)
+                .collect(Collectors.toList());
+
+        sql.append(sqlKeyword).append(table).append(" (")
+                .append(StringUtil.stringJoin(columnNames))
+                .append(") VALUES (");
+
+        if (this.globalEnableQueryPlaceholders) {
+            sql.append(StringUtil.repeat("?,", insertBuilders.size()).replaceAll(",$", ""));
+        } else {
+            List<Object> columnValues = insertBuilders.stream()
+                    .map(InsertBuilder::getColumnValue)
+                    .collect(Collectors.toList());
+            sql.append(StringUtil.stringJoin(columnValues));
+        }
+        sql.append(")");
     }
 
     @Nonnull
@@ -245,7 +264,6 @@ public class QueryBuilder {
 
     public Map<Integer, Object> getValues() {
 
-        List<Object> values = new ArrayList<>();
         if (queryType == QueryType.UPDATE) {
             return updateBuilder.getIndexedValues();
         } else if (queryType == QueryType.INSERT || queryType == QueryType.MERGE_INTO || queryType == QueryType.REPLACE_INTO) {

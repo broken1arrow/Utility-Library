@@ -6,7 +6,7 @@ import org.broken.arrow.database.library.construct.query.builder.condition.Condi
 import java.util.List;
 
 public class Formatting {
-    
+
     public static String formatConditions(final List<ComparisonHandler<?>> conditionsList) {
         final StringBuilder whereClause = new StringBuilder();
         boolean openParenthesis = false;

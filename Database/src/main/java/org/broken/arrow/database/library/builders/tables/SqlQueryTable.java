@@ -15,11 +15,8 @@ public class SqlQueryTable {
 
 
     public SqlQueryTable(@Nonnull final Function<QueryBuilder, CreateTableHandler> callback) {
-        final QueryBuilder queryBuilder = new QueryBuilder();
+        this.queryBuilder = new QueryBuilder();
         this.tableHandler = callback.apply(queryBuilder);
-        System.out.println("TableName " + queryBuilder.getTableName());
-
-        this.queryBuilder = queryBuilder;
     }
 
     public QueryBuilder getQueryBuilder() {
@@ -60,9 +57,9 @@ public class SqlQueryTable {
      * @return the constructed SQL command for get the table.
      */
     public String selectTable() {
-        QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.select(this.getTable().getColumns()).from(this.getQueryBuilder().getTableName());
-        return queryBuilder.build();
+        QueryBuilder selectTableBuilder = new QueryBuilder();
+        selectTableBuilder.select(this.getTable().getColumns()).from(this.getQueryBuilder().getTableName());
+        return selectTableBuilder.build();
     }
 
     /**
