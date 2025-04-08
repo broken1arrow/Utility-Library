@@ -5,7 +5,9 @@ import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSeriali
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,13 +19,13 @@ public class MenuButtonData implements ConfigurationSerializable {
 	private final MenuButton passiveButton;
 	private final MenuButton activeButton;
 	private final String actionType;
-	private final String command;
+	private final List<String> extra;
 
-	private MenuButtonData(@Nonnull final MenuButton passiveButton, @Nullable final MenuButton activeButton, @Nullable String actionType,@Nullable String command) {
+	private MenuButtonData(@Nonnull final MenuButton passiveButton, @Nullable final MenuButton activeButton, @Nullable String actionType, @Nullable List<String> extra) {
 		this.passiveButton = passiveButton;
 		this.activeButton = activeButton;
 		this.actionType = actionType;
-		this.command = command;
+		this.extra = extra;
 	}
 
 	/**
@@ -58,14 +60,13 @@ public class MenuButtonData implements ConfigurationSerializable {
 	}
 
 	/**
-	 * Sets a command for a button. Be cautious when using this option to ensure players do not gain access
-	 * to unintended features or commands.
-	 * @return The command set as a string. The return value depends on the file configuration, as it does not
-	 *         validate the command type.
+	 * Sets extra data for a button. If you want to attach commands or other options to your button.
+	 *
+	 * @return The extra data as string list.
 	 */
 	@Nullable
-	public String getCommand() {
-		return command;
+	public List<String> getExtra() {
+		return extra;
 	}
 
 	/**
@@ -122,7 +123,14 @@ public class MenuButtonData implements ConfigurationSerializable {
 		else
 			deserializePassiveData = MenuButton.deserialize(map);
 		String actionType = (String) map.get("action_type");
-		String command = (String) map.get("command");
-		return new MenuButtonData(deserializePassiveData, deserializeActiveData, actionType, command);
+		Object extra = map.get("extra");
+		List<String> extras;
+		if (extra instanceof List){
+			extras = (List<String>) extra;
+		} else {
+			extras = Collections.singletonList(extra +"");
+		}
+		
+		return new MenuButtonData(deserializePassiveData, deserializeActiveData, actionType, extras);
 	}
 }

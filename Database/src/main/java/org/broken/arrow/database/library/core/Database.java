@@ -88,8 +88,6 @@ public abstract class Database {
             this.databaseType = DatabaseType.UNKNOWN;
 
         this.connectionSettings = connectionSettings;
-
-
     }
 
     /**

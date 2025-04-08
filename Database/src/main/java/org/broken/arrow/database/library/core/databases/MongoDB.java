@@ -226,7 +226,7 @@ public class MongoDB extends Database {
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
         MongoCollection<Document> collection = database.getCollection(queryBuilder.getQuery());
         try {
-            return function.apply(new StatementContext<>(collection));
+            return function.apply( new StatementContext<>(collection));
         } finally {
             closeConnection();
         }
