@@ -43,9 +43,9 @@ public class ComparisonHandler<T> {
             this.values = new ArrayList<>((List<?>) value).toArray();
         } else {
             if (value instanceof SubqueryHandler<?>) {
-                final SubqueryHandler<T> subqueryHandler = (SubqueryHandler<T>) value;
-                this.subqueryHandler = subqueryHandler;
-                final Map<Integer, Object> subValues = subqueryHandler.getSubquery().getValues();
+                final SubqueryHandler<T> subquery = (SubqueryHandler<T>) value;
+                this.subqueryHandler = subquery;
+                final Map<Integer, Object> subValues = subquery.getSubquery().getValues();
                 this.values = subValues.entrySet().stream()
                         .sorted(Comparator.comparingInt(Map.Entry::getKey))
                         .map(Map.Entry::getValue).toArray();
@@ -145,7 +145,6 @@ public class ComparisonHandler<T> {
         if (firstValue == null || secondValue == null) {
             throw new IllegalArgumentException("BETWEEN requires exactly two values.");
         }
-        //return new BetweenHandler(LogicalOperators.BETWEEN, firstValue, secondValue);
         this.init(LogicalOperators.BETWEEN, firstValue, secondValue);
         return this.logicalOperator;
     }

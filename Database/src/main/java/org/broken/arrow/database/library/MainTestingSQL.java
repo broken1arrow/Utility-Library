@@ -28,9 +28,9 @@ public class MainTestingSQL {
 
         SqlQueryTable table = new SqlQueryTable(queryBuilder ->
                 queryBuilder.createTableIfNotExists("tableName").addColumns(ColumnManger
-                        .tableOf("column_primary", DataType.VARCHAR(50), SQLConstraints.PRIMARY_KEY())
-                        .column("column_primary_test", DataType.VARCHAR(80), SQLConstraints.PRIMARY_KEY())
-                        .column("column1_not_null", DataType.VARCHAR(80), SQLConstraints.NOT_NULL())
+                        .tableOf("column_primary", DataType.VARCHAR(50), SQLConstraints.Primary_key())
+                        .column("column_primary_test", DataType.VARCHAR(80), SQLConstraints.Primary_key())
+                        .column("column1_not_null", DataType.VARCHAR(80), SQLConstraints.Not_null())
                         .build()));
 
         SqlQueryTable tableAS = new SqlQueryTable(queryBuilder ->

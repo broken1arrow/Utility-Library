@@ -64,10 +64,6 @@ public class HavingBuilder {
         return comparisonHandler;
     }
 
-    private void addCondition(ComparisonHandler<HavingBuilder> condition) {
-        conditionsList.add(condition);
-    }
-
     public void setEnableQueryPlaceholders(boolean globalEnableQueryPlaceholders) {
         this.globalEnableQueryPlaceholders = globalEnableQueryPlaceholders;
     }

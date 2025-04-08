@@ -3,7 +3,6 @@ package org.broken.arrow.database.library.construct.query.builder;
 import org.broken.arrow.database.library.construct.query.Selector;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
-import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
 
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -16,11 +15,10 @@ public class UpdateBuilder {
     private int columnIndex = 1;
 
     public UpdateBuilder() {
+        //just empty constructor.
     }
 
     public UpdateBuilder put(final String column, final Object value) {
-        final ColumnManger columnManger = new ColumnManger();
-
         return this.put(new Column(column,""), value);
     }
 

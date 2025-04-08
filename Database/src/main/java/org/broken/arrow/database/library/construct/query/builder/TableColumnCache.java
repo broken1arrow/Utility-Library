@@ -7,9 +7,8 @@ import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBui
 
 public class TableColumnCache extends ColumnBuilder<Column, Void> {
 
-
     public TableColumnCache() {
-
+        //just empty constructor.
     }
 
     @Override

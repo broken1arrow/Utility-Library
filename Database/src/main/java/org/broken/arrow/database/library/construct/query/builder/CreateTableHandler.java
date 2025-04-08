@@ -62,30 +62,30 @@ public class CreateTableHandler {
     public String build() {
         StringBuilder sql = new StringBuilder();
 
-        Selector<?,?> selectorWrapper = this.selector != null ? this.selector.getSelector() : null;
+        Selector<?,?> selectorData = this.selector != null ? this.selector.getSelector() : null;
         if (this.selectorWrapper != null)
-            selectorWrapper = this.selectorWrapper.getTableSelector();
+            selectorData = this.selectorWrapper.getTableSelector();
 
-        if (copyMethod != null && selectorWrapper != null) {
+        if (copyMethod != null && selectorData != null) {
             sql.append(" ")
                     .append(this.getCopyMethod().toString())
                     .append(" ")
                     .append("SELECT")
                     .append(" ")
-                    .append(selectorWrapper.getSelectBuilder().build())
+                    .append(selectorData.getSelectBuilder().build())
                     .append(" ")
                     .append("FROM")
                     .append(" ")
-                    .append(selectorWrapper.getTableWithAlias())
-                    .append(selectorWrapper.getWhereBuilder().build());
+                    .append(selectorData.getTableWithAlias())
+                    .append(selectorData.getWhereBuilder().build());
 
 
             return sql + "";
 
         }
-        if (selectorWrapper != null) {
+        if (selectorData != null) {
             sql.append(" (");
-            sql.append(selectorWrapper.getSelectBuilder().build());
+            sql.append(selectorData.getSelectBuilder().build());
             sql.append(")");
         }
 

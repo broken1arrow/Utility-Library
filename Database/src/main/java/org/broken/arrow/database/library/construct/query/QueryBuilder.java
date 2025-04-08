@@ -134,21 +134,19 @@ public class QueryBuilder {
 
     // ---- Query Build ----
     public String build() {
-        final QueryModifier queryModifier = this.queryModifier;
-        if (queryType == null) {
+        if (this.queryType == null) {
             throw new IllegalStateException("Query type must be set before building.");
         }
-
-        StringBuilder sql = getBuiltCommand(queryModifier);
+        StringBuilder sql = getBuiltCommand(this.queryModifier);
         return sql + ";";
     }
 
     @Nonnull
-    private StringBuilder getBuiltCommand(final QueryModifier queryModifier) {
+    private StringBuilder getBuiltCommand(final QueryModifier modifierType) {
         StringBuilder sql = new StringBuilder();
-        switch (queryType) {
+        switch (this.queryType) {
             case SELECT:
-                createSelectQuery(queryModifier, sql);
+                createSelectQuery(modifierType, sql);
                 break;
             case DELETE:
                 sql.append("DELETE FROM ").append(table);
@@ -276,9 +274,9 @@ public class QueryBuilder {
             }
         } else if (queryType == QueryType.DELETE) {
             return queryRemover.getWhereBuilder().getValues();
-        } else if (queryType == QueryType.WITH) {
-
-        }
+        } /*else if (queryType == QueryType.WITH) {
+                //not in use yet.
+        }*/
         return new HashMap<>();
     }
 
