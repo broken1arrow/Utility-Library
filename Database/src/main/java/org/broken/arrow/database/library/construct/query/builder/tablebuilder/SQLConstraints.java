@@ -50,7 +50,7 @@ public class SQLConstraints {
     return new SQLConstraints("CHECK(" + condition + ")");
   }
 
-  public static SQLConstraints foreign_key(String column, String referenceTable, String referenceColumn) {
+  public static SQLConstraints foreignKey(String column, String referenceTable, String referenceColumn) {
     return new SQLConstraints("FOREIGN KEY (" + column + ") REFERENCES " + referenceTable + "(" + referenceColumn + ")");
   }
 
