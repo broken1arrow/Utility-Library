@@ -3,6 +3,7 @@ package org.broken.arrow.database.library.construct.query.builder.tablebuilder;
 import javax.annotation.Nonnull;
 
 public class SQLConstraints {
+  public static final String DEFAULT = "DEFAULT";
   private final String value;
 
   public SQLConstraints(@Nonnull final String value) {
@@ -34,15 +35,15 @@ public class SQLConstraints {
   }
 
   public static SQLConstraints defaultCon(String value) {
-    return new SQLConstraints("DEFAULT " + value);
+    return new SQLConstraints(DEFAULT + " " + value);
   }
 
   public static SQLConstraints defaultCon(int value) {
-    return new SQLConstraints("DEFAULT " + value);
+    return new SQLConstraints(DEFAULT + " " + value);
   }
 
   public static SQLConstraints defaultCon(boolean value) {
-    return new SQLConstraints("DEFAULT " + (value ? "TRUE" : "FALSE"));
+    return new SQLConstraints(DEFAULT + " " + (value ? "TRUE" : "FALSE"));
   }
 
   public static SQLConstraints check(String condition) {
