@@ -9,116 +9,116 @@ public class DataType {
   }
 
   // Integer types
-  public static DataType TINYINT() {
+  public static DataType tinyint() {
     return new DataType("TINYINT");
   }
 
-  public static DataType SMALLINT() {
+  public static DataType smallint() {
     return new DataType("SMALLINT");
   }
 
-  public static DataType MEDIUMINT() {
+  public static DataType mediumint() {
     return new DataType("MEDIUMINT");
   }
 
-  public static DataType INT() {
+  public static DataType dataInt() {
     return new DataType("INT");
   }
 
-  public static DataType BIGINT() {
+  public static DataType bigint() {
     return new DataType("BIGINT");
   }
 
   // Floating-point types
-  public static DataType FLOAT() {
+  public static DataType dataFloat() {
     return new DataType("FLOAT");
   }
 
-  public static DataType DOUBLE() {
+  public static DataType dataDouble() {
     return new DataType("DOUBLE");
   }
 
-  public static DataType DECIMAL(int precision, int scale) {
+  public static DataType decimal(int precision, int scale) {
     return new DataType("DECIMAL(" + precision + ", " + scale + ")");
   }
 
-  public static DataType NUMERIC(int precision, int scale) {
+  public static DataType numeric(int precision, int scale) {
     return new DataType("NUMERIC(" + precision + ", " + scale + ")");
   }
 
   // String types
-  public static DataType CHAR(int length) {
+  public static DataType dataChar(int length) {
     return new DataType("CHAR(" + length + ")");
   }
 
-  public static DataType VARCHAR(int length) {
+  public static DataType varchar(int length) {
     return  new DataType("VARCHAR(" + length + ")");
   }
 
-  public static DataType TEXT() {
+  public static DataType text() {
     return new DataType("TEXT");
   }
 
-  public static DataType TINYTEXT() {
+  public static DataType tinytext() {
     return new DataType("TINYTEXT");
   }
 
-  public static DataType MEDIUMTEXT() {
+  public static DataType mediumtext() {
     return new DataType("MEDIUMTEXT");
   }
 
-  public static DataType LONGTEXT() {
+  public static DataType longtext() {
     return new DataType("LONGTEXT");
   }
 
   // Date & Time types
-  public static DataType DATE() {
+  public static DataType date() {
     return new DataType("DATE");
   }
 
-  public static DataType DATETIME() {
+  public static DataType datetime() {
     return new DataType("DATETIME");
   }
 
-  public static DataType TIMESTAMP() {
+  public static DataType timestamp() {
     return new DataType("TIMESTAMP");
   }
 
-  public static DataType TIME() {
+  public static DataType time() {
     return new DataType("TIME");
   }
 
-  public static DataType YEAR() {
+  public static DataType year() {
     return new DataType("YEAR");
   }
 
   // Boolean
-  public static DataType BOOLEAN() {
+  public static DataType dataBoolean() {
     return new DataType("BOOLEAN");
   }
 
   // Binary types
-  public static DataType BLOB() {
+  public static DataType blob() {
     return new DataType("BLOB");
   }
 
-  public static DataType TINYBLOB() {
+  public static DataType tinyblob() {
     return new DataType("TINYBLOB");
   }
 
-  public static DataType MEDIUMBLOB() {
+  public static DataType mediumblob() {
     return new DataType("MEDIUMBLOB");
   }
 
-  public static DataType LONGBLOB() {
+  public static DataType longblob() {
     return new DataType("LONGBLOB");
   }
 
-  public static DataType ENUM(String... values) {
+  public static DataType dataEnum(String... values) {
     return new DataType("ENUM(" + String.join(", ", wrapWithQuotes(values)) + ")");
   }
 
-  public static DataType SET(String... values) {
+  public static DataType set(String... values) {
     return new DataType("SET(" + String.join(", ", wrapWithQuotes(values)) + ")");
   }
 
