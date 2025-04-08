@@ -290,7 +290,6 @@ public class QueryBuilder {
             return queryModifier.getSelectBuilder().getColumns().size();
         } else if (queryType == QueryType.DELETE) {
             return -1;
-        } else {
         }
         return -1;
     }

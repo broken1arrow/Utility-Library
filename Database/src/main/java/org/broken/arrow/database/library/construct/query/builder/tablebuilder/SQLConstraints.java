@@ -13,19 +13,19 @@ public class SQLConstraints {
     return new SQLConstraints("NULL");
   }
 
-  public static SQLConstraints not_null() {
+  public static SQLConstraints notNull() {
     return new SQLConstraints("NOT NULL");
   }
 
-  public static SQLConstraints primary_key() {
+  public static SQLConstraints primaryKey() {
     return new SQLConstraints("PRIMARY KEY");
   }
 
-  public static SQLConstraints primary_keys(String... columns) {
+  public static SQLConstraints primaryKeys(String... columns) {
     return new SQLConstraints("PRIMARY KEY (" + String.join(", ", columns) + ")");
   }
 
-  public static SQLConstraints auto_increment() {
+  public static SQLConstraints autoIncrement() {
     return new SQLConstraints("AUTO_INCREMENT");
   }
 
@@ -53,23 +53,23 @@ public class SQLConstraints {
     return new SQLConstraints("FOREIGN KEY (" + column + ") REFERENCES " + referenceTable + "(" + referenceColumn + ")");
   }
 
-  public static SQLConstraints on_delete_cascade() {
+  public static SQLConstraints onDeleteCascade() {
     return new SQLConstraints("ON DELETE CASCADE");
   }
 
-  public static SQLConstraints on_update_cascade() {
+  public static SQLConstraints onUpdateCascade() {
     return new SQLConstraints("ON UPDATE CASCADE");
   }
 
-  public static SQLConstraints on_delete_set_nulL() {
+  public static SQLConstraints onDeleteSetNulL() {
     return new SQLConstraints("ON DELETE SET NULL");
   }
 
-  public static SQLConstraints on_update_set_null() {
+  public static SQLConstraints onUpdateSetNull() {
     return new SQLConstraints("ON UPDATE SET NULL");
   }
 
-  public static SQLConstraints unique_key(String column) {
+  public static SQLConstraints uniqueKey(String column) {
     return new SQLConstraints("UNIQUE (" + column + ")");
   }
 
