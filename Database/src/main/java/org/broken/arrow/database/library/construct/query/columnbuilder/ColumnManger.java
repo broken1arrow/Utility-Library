@@ -11,6 +11,7 @@ public class ColumnManger {
     private final List<Column> columnsBuilt = new ArrayList<>();
 
     public ColumnManger() {
+        //just a constructor
     }
 
     public static ColumnManger of() {

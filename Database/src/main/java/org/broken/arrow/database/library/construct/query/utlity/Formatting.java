@@ -49,13 +49,16 @@ public class Formatting {
 
     private static boolean setCloseParenthesis(final StringBuilder whereClause, final ComparisonHandler<?> next, final boolean currentIsOr, boolean hasOpenParenthesis) {
         if (currentIsOr && next != null) {
-            whereClause.append(")");
-            hasOpenParenthesis = false;
+            hasOpenParenthesis = closeParenthesis(whereClause);
         } else if (hasOpenParenthesis && (currentIsOr || next == null)) {
-            whereClause.append(")");
-            hasOpenParenthesis = false;
+            hasOpenParenthesis = closeParenthesis(whereClause);
         }
         return hasOpenParenthesis;
+    }
+
+    private static boolean closeParenthesis(StringBuilder whereClause) {
+        whereClause.append(")");
+        return false;
     }
 
 
