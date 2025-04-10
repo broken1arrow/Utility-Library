@@ -10,7 +10,7 @@ public class SQLConstraints {
     this.value = value;
   }
 
-  public static SQLConstraints nullCon() {
+  public static SQLConstraints nullable() {
     return new SQLConstraints("NULL");
   }
 
@@ -34,15 +34,15 @@ public class SQLConstraints {
     return new SQLConstraints("UNIQUE");
   }
 
-  public static SQLConstraints defaultCon(String value) {
+  public static SQLConstraints defaultVal(String value) {
     return new SQLConstraints(DEFAULT + " " + value);
   }
 
-  public static SQLConstraints defaultCon(int value) {
+  public static SQLConstraints defaultVal(int value) {
     return new SQLConstraints(DEFAULT + " " + value);
   }
 
-  public static SQLConstraints defaultCon(boolean value) {
+  public static SQLConstraints defaultVal(boolean value) {
     return new SQLConstraints(DEFAULT + " " + (value ? "TRUE" : "FALSE"));
   }
 

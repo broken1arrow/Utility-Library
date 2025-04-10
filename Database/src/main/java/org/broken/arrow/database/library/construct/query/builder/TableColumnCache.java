@@ -5,6 +5,8 @@ import org.broken.arrow.database.library.construct.query.builder.tablebuilder.Ta
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
 
+import java.util.StringJoiner;
+
 public class TableColumnCache extends ColumnBuilder<Column, Void> {
 
     public TableColumnCache() {
@@ -13,11 +15,10 @@ public class TableColumnCache extends ColumnBuilder<Column, Void> {
 
     @Override
     public String build() {
-        StringBuilder builder = new StringBuilder();
-
+        StringJoiner joiner = new StringJoiner(", ");
         for(Column column : this.getColumns()){
-            builder.append(((TableColumn)column).build());
+            joiner.add(((TableColumn)column).build());
         }
-        return builder + "";
+        return joiner + "";
     }
 }

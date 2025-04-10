@@ -50,7 +50,7 @@ public class TableColumn extends Column {
             joiner.add(constraint.toString());
         }
 
-        return this.getColumnName() + " " + dataType.getValue() + " " + joiner;
+        return this.getColumnName() + " " + dataType.getValue() + " " + joiner + " ";
     }
 
     public static class Separator {
