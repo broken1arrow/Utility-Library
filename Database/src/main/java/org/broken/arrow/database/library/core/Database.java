@@ -588,8 +588,41 @@ public abstract class Database {
      * @param connection the connection to the database where the changes should be added.
      */
     protected void createAllTablesIfNotExist(final Connection connection) {
+        if (!tabless.isEmpty())
+            for (final Entry<String, SqlQueryTable> sqlQueryTable : tabless.entrySet()) {
+                this.createTableIfNotExist(connection, sqlQueryTable);
+            }
         for (final Entry<String, TableWrapper> wrapperEntry : tables.entrySet()) {
             this.createTableIfNotExist(connection, wrapperEntry.getKey());
+        }
+    }
+
+    private void createTableIfNotExist(Connection connection, Entry<String, SqlQueryTable> sqlQueryTable) {
+        PreparedStatement statement= null;
+        String table = "";
+        if (sqlQueryTable == null) {
+            this.printFailFindTable("'table is null'");
+            return;
+        }
+
+       final SqlQueryTable tableQuery  = sqlQueryTable.getValue();
+        try {
+            if (tableQuery != null) {
+                if (tableQuery.getTableName().isEmpty())
+                    return ;
+                table = tableQuery.createTable();
+                statement = connection.prepareStatement( table);
+                statement.executeUpdate();
+                Column column = tableQuery.getPrimaryColumns().stream().findFirst().orElse(null);
+                Validate.checkNotNull(column, "Could not find a primary column for this table " + tableQuery.getTableName());
+                checkIfTableExist(connection, tableQuery.getTableName(), column.getColumnName());
+            }
+        } catch (final SQLException e) {
+            log.log(() -> of("Something not working when try create this table: '" + tableQuery.getTableName() + "'"));
+            final String finalTable = table;
+            log.log(e, () -> of("With this command: " + finalTable));
+        } finally {
+            close( statement);
         }
     }
 
