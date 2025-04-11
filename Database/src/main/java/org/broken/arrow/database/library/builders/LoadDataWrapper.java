@@ -27,6 +27,12 @@ public class LoadDataWrapper<T> {
 		this.primaryValues = new HashMap<>();
 	}
 
+	/**
+	 * Constructs a LoadDataWrapper instance with the provided primary column value, deserialized the values from the database.
+	 *
+	 * @param  primaryKeyValues  The map of key and value par set for the primary key.
+	 * @param deSerializedData The deserialized data.
+	 */
 	public LoadDataWrapper(@Nullable final Map<String,Object> primaryKeyValues, @Nonnull final T deSerializedData) {
 		this.deSerializedData = deSerializedData;
 		this.primaryValues = primaryKeyValues == null ? new HashMap<>(): primaryKeyValues;
