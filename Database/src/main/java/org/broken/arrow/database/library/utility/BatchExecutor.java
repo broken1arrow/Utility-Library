@@ -74,7 +74,7 @@ public class BatchExecutor {
                     final String query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), false, whereBuilder -> table.createWhereClauseFromPrimaryColumns(false, dataWrapper.getPrimaryValue())).getQuery();
                     canUpdateRow = this.checkIfRowExist(query, false);
                 }
-                sqlHandler.setSetQueryPlaceholders(this.database.isSecureQuery());
+                sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
                 final WhereBuilder wereClauseResult = whereClauseFunc.apply(dataWrapper.getPrimaryValue());
                 if (wereClauseResult.isEmpty()) {
                     this.log.log(Level.WARNING, () -> Logging.of("Where clause is not set for this value:" + dataWrapper.getPrimaryValue() + " and table: " + table.getTableName() + ". You must set at least one primary row when creating a table. If you want to control this self, just use the new methods for save."));
@@ -113,7 +113,7 @@ public class BatchExecutor {
                 final String query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), false, whereClause).getQuery();
                 canUpdateRow = this.checkIfRowExist(query, false);
             }
-            sqlHandler.setSetQueryPlaceholders(this.database.isSecureQuery());
+            sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
             queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, formatData(dataWrapper, columns), whereClause, canUpdateRow));
             this.executeDatabaseTasks(queryList);
         } else {
