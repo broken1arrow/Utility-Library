@@ -190,7 +190,6 @@ public abstract class SQLDatabaseQuery extends Database {
                     log.log(Level.WARNING, e, () -> of("Could not load the data from " + columnValue + ". Check the stacktrace."));
                 }
             });
-            System.out.println("dataFromDB " +  dataFromDB);
             if (dataFromDB.isEmpty())
                 return null;
             T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
