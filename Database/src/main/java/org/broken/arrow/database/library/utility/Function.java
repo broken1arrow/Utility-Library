@@ -1,6 +1,6 @@
 package org.broken.arrow.database.library.utility;
 
-public interface FunctionWhereCause<T,V> {
+public interface Function<T> {
 
 
     /**
@@ -9,6 +9,6 @@ public interface FunctionWhereCause<T,V> {
      * @param t the function argument
      * @return the class instance you set as type.
      */
-    V apply(T t);
+    T apply(T t);
 
 }

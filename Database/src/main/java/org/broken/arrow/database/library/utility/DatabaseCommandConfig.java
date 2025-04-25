@@ -3,6 +3,7 @@ package org.broken.arrow.database.library.utility;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.SqlHandler;
 import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
+import org.broken.arrow.database.library.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.utlity.FunctionQuery;
@@ -10,6 +11,7 @@ import org.broken.arrow.database.library.core.Database;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.function.Function;
 
 public class DatabaseCommandConfig {
     protected final int resultSetType;
@@ -87,7 +89,7 @@ public class DatabaseCommandConfig {
      * If {@link Database#setSecureQuery(boolean)} is set to {@code false},
      * the query will not use parameterized values, as they are already included in the generated SQL string.
      */
-    public SqlQueryPair applyDatabaseCommand(@Nonnull final SqlHandler sqlHandler, final Map<Column, Object> columnValueMap, SqlFunction<WhereBuilder> whereClause, final boolean rowExists) {
+    public SqlQueryPair applyDatabaseCommand(@Nonnull final SqlHandler sqlHandler, final Map<Column, Object> columnValueMap, final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final boolean rowExists) {
         if (this.query != null) {
             return this.query.apply(sqlHandler, columnValueMap, whereClause, rowExists);
         }

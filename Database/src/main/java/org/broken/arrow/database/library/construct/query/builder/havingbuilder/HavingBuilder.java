@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library.construct.query.builder.havingbuilder;
 
 
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Aggregation;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
@@ -24,37 +25,23 @@ public class HavingBuilder {
     private final List<ComparisonHandler<?>> conditionsList = new ArrayList<>();
     private boolean globalEnableQueryPlaceholders = true;
 
-    public HavingBuilder() {
-        this(true);
+
+    public HavingBuilder(@Nonnull final QueryBuilder queryBuilder) {
+        this.globalEnableQueryPlaceholders = queryBuilder.isGlobalEnableQueryPlaceholders();
+
     }
 
-    public HavingBuilder(boolean enableQueryPlaceholders) {
-        this.globalEnableQueryPlaceholders = enableQueryPlaceholders;
-    }
-
-    public static HavingBuilder of() {
-        return new HavingBuilder();
-    }
-
-    public static HavingBuilder of(boolean enableQueryPlaceholders) {
-        return new HavingBuilder(enableQueryPlaceholders);
+    public static HavingBuilder of(@Nonnull final QueryBuilder queryBuilder) {
+        return new HavingBuilder( queryBuilder);
     }
 
     public ComparisonHandler<HavingBuilder> having(@Nonnull final String columnName) {
-        return this.having(columnName, this.globalEnableQueryPlaceholders);
+        return this.having(columnName, a -> {});
     }
 
-    public ComparisonHandler<HavingBuilder> having(@Nonnull final String columnName, final boolean enableQueryPlaceholders) {
-        return this.having(columnName, a -> {
-        }, enableQueryPlaceholders);
-    }
 
     public ComparisonHandler<HavingBuilder> having(@Nonnull final String columnName, Consumer<Aggregation> callBack) {
-        return this.having(columnName, callBack, this.globalEnableQueryPlaceholders);
-    }
-
-    public ComparisonHandler<HavingBuilder> having(@Nonnull final String columnName, Consumer<Aggregation> callBack, final boolean enableQueryPlaceholders) {
-        final Marker marker = isAllowingQueryPlaceholders(enableQueryPlaceholders) ? Marker.PLACEHOLDER : Marker.USE_VALUE;
+        final Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
         Column column = new Column(columnName, "");
         callBack.accept(column.getAggregation());
 
@@ -62,10 +49,6 @@ public class HavingBuilder {
 
         this.conditionsList.add(comparisonHandler);
         return comparisonHandler;
-    }
-
-    public void setEnableQueryPlaceholders(boolean globalEnableQueryPlaceholders) {
-        this.globalEnableQueryPlaceholders = globalEnableQueryPlaceholders;
     }
 
     public String build() {

@@ -2,10 +2,12 @@ package org.broken.arrow.database.library.builders.tables;
 
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
+import org.broken.arrow.database.library.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Function;
 
@@ -28,24 +30,26 @@ public class SqlQueryTable {
         return tableHandler;
     }
 
-    @Nonnull
-    public WhereBuilder createWhereClauseFromPrimaryColumns(final boolean isPreparedStatement, Object... values) {
-        WhereBuilder whereBuilder = WhereBuilder.of(isPreparedStatement);
+    @Nullable
+    public LogicalOperator<WhereBuilder> createWhereClauseFromPrimaryColumns(@Nonnull final WhereBuilder whereBuilder, final Object... values) {
         int index = 0;
+        LogicalOperator<WhereBuilder> logicalOperator = null;
         for (Column primaryColumns : this.getTable().getPrimaryColumns()) {
             if (values.length < index + 1)
                 break;
             if (values.length > index + 1 && index + 1 < this.getTable().getPrimaryColumns().size())
                 whereBuilder.where(primaryColumns.getColumnName()).equal(values[index]).and();
             else
-                whereBuilder.where(primaryColumns.getColumnName()).equal(values[index]);
+                logicalOperator = whereBuilder.where(primaryColumns.getColumnName()).equal(values[index]);
             index++;
         }
-        return whereBuilder;
+        return logicalOperator;
     }
+
     public List<Column> getPrimaryColumns() {
         return this.getTable().getPrimaryColumns();
     }
+
     @Nonnull
     public String getTableName() {
         return getQueryBuilder().getTableName();
@@ -78,4 +82,5 @@ public class SqlQueryTable {
                 ", tableHandler=" + tableHandler +
                 '}';
     }
+
 }

@@ -1,9 +1,11 @@
 package org.broken.arrow.database.library.construct.query.builder;
 
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.Selector;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
 
+import javax.annotation.Nonnull;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,11 +13,11 @@ import java.util.Map;
 public class UpdateBuilder {
     private final Map<String, Object> updateData = new LinkedHashMap<>();
     private final Map<Integer, Object> values = new LinkedHashMap<>();
-    private final Selector<ColumnBuilder<Column, Void>,Column> selector = new Selector<>(new ColumnBuilder<>());
+    private final Selector<ColumnBuilder<Column, Void>,Column> selector;
     private int columnIndex = 1;
 
-    public UpdateBuilder() {
-        //just empty constructor.
+    public UpdateBuilder(@Nonnull final QueryBuilder queryBuilder) {
+        this.selector = new Selector<>(new ColumnBuilder<>(), queryBuilder);
     }
 
     public UpdateBuilder put(final String column, final Object value) {

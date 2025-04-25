@@ -1,5 +1,6 @@
 package org.broken.arrow.database.library.construct.query.builder;
 
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.joinbuilder.JoinCondition;
 import org.broken.arrow.database.library.construct.query.builder.joinbuilder.JoinType;
 
@@ -10,7 +11,11 @@ import java.util.stream.Collectors;
 public class JoinBuilder {
   private final List<JoinCondition> joins = new ArrayList<>();
 
-  public void join(JoinType type, String table, String alias, String onCondition) {
+  public JoinBuilder(QueryBuilder queryBuilder) {
+
+  }
+
+    public void join(JoinType type, String table, String alias, String onCondition) {
     joins.add(new JoinCondition(type, table, alias, onCondition, false));
   }
 

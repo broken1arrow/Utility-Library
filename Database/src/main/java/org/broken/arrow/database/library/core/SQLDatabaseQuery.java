@@ -9,7 +9,9 @@ import org.broken.arrow.database.library.builders.tables.SqlHandler;
 import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
+import org.broken.arrow.database.library.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.utlity.QueryDefinition;
@@ -59,9 +61,13 @@ public abstract class SQLDatabaseQuery extends Database {
             batchExecutor = new BatchExecutorUnsafe(getDatabase(), connection, dataWrapperList);
         }
         SqlQueryTable table = getDatabase().getTableFromName(tableName);
-        Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryValue);
 
-        batchExecutor.saveAll(tableName, shallUpdate, whereClauseFunc, columns);
+        if (table == null) {
+            this.log.log(Level.WARNING, () -> Logging.of("Could not find this table:'" + tableName + "' . Did you register your table?"));
+            return;
+        }
+
+        batchExecutor.saveAll(tableName, shallUpdate, table::createWhereClauseFromPrimaryColumns, columns);
     }
 
     @Override
@@ -80,12 +86,16 @@ public abstract class SQLDatabaseQuery extends Database {
             batchExecutor = new BatchExecutorUnsafe(getDatabase(), connection, new ArrayList<>());
         }
         SqlQueryTable table = getDatabase().getTableFromName(tableName);
-        final WhereBuilder whereClauseFromPrimaryColumns = table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, dataWrapper.getPrimaryValue());
-        if (whereClauseFromPrimaryColumns.isEmpty()) {
+        if (table == null) {
+            this.log.log(Level.WARNING, () -> Logging.of("Could not find this table:'" + tableName + "' . Did you register your table?"));
+            return;
+        }
+        if (table.getPrimaryColumns().isEmpty()) {
             this.log.log(Level.WARNING, () -> Logging.of("Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?"));
             return;
         }
-        batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> whereClauseFromPrimaryColumns, columns);
+
+        batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> table.createWhereClauseFromPrimaryColumns(where, dataWrapper.getPrimaryValue()), columns);
     }
 
     @Override
@@ -157,14 +167,18 @@ public abstract class SQLDatabaseQuery extends Database {
         if (table != null) {
             final Map<String, Object> dataFromDB = new HashMap<>();
             final SqlHandler sqlHandler = new SqlHandler(table.getTableName(), getDatabase());
-            final WhereBuilder primaryColumns = table.createWhereClauseFromPrimaryColumns(true, columnValue);
-            Validate.checkBoolean(primaryColumns.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 
-            final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), primaryColumns);
+            final WhereBuilder whereBuilder = WhereBuilder.of(new QueryBuilder().setGlobalEnableQueryPlaceholders(this.isSecureQuery()));
+            final LogicalOperator<WhereBuilder> primaryColumns = table.createWhereClauseFromPrimaryColumns (whereBuilder, columnValue);
+            Validate.checkBoolean( whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
+
+
+            final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), whereBuilder);
 
             this.executeQuery(QueryDefinition.of(selectRow.getQuery()), statementWrapper -> {
-                PreparedStatement preparedStatement = (PreparedStatement) statementWrapper.getContextResult();
-                primaryColumns.getValues().forEach((index, value) -> {
+                PreparedStatement preparedStatement = statementWrapper.getContextResult();
+
+                whereBuilder.getValues().forEach((index, value) -> {
                     try {
                         preparedStatement.setObject(index, value);
                     } catch (SQLException e) {
@@ -181,7 +195,7 @@ public abstract class SQLDatabaseQuery extends Database {
             if (dataFromDB.isEmpty())
                 return null;
             T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-            List<ComparisonHandler<?>> comparisonHandlerList = primaryColumns.getConditionsList();
+            List<ComparisonHandler<?>> comparisonHandlerList = whereBuilder.getConditionsList();
             Map<String, Object> objectList = new HashMap<>();
             if (!comparisonHandlerList.isEmpty()) {
                 for (ComparisonHandler<?> comparisonHandler : comparisonHandlerList) {

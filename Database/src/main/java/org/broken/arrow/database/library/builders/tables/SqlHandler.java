@@ -1,16 +1,17 @@
 package org.broken.arrow.database.library.builders.tables;
 
-import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.InsertHandler;
 import org.broken.arrow.database.library.construct.query.builder.UpdateBuilder;
+import org.broken.arrow.database.library.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
-import org.broken.arrow.database.library.utility.SqlFunction;
+import org.broken.arrow.database.library.core.Database;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class SqlHandler {
     private final Database database;
@@ -70,54 +71,40 @@ public class SqlHandler {
      * Updates data in the database using the provided record values for the specified columns.
      * This will update any existing values for the columns you've added.
      *
-     * @param callback     The record or data structure containing the primary key and values to update.
-     * @param whereClause  The conditions used to filter which row(s) should be updated.
+     * @param callback    The record or data structure containing the primary key and values to update.
+     * @param whereClause The conditions used to filter which row(s) should be updated.
      * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair updateTable(@Nonnull final Consumer<UpdateBuilder> callback,@Nonnull final SqlFunction<WhereBuilder> whereClause) {
+    public SqlQueryPair updateTable(@Nonnull final Consumer<UpdateBuilder> callback, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
-        queryBuilder.update(this.tableName, callback).getSelector().where(whereClause.apply(WhereBuilder.of(this.isSetQueryPlaceholders())));
+        queryBuilder.update(this.tableName, callback).getSelector().where(whereClause);
         return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
     }
+
 
     /**
      * Select specific table.
      *
-     * @param callback the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
-     * @param whereClause The conditions used to filter which row(s) should be selected.
-     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
-     */
-    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, @Nonnull final SqlFunction<WhereBuilder> whereClause) {
-        QueryBuilder queryBuilder = new QueryBuilder();
-        ColumnManger columnManger = new ColumnManger();
-        callback.accept(columnManger);
-
-        queryBuilder.select(columnManger).from(this.tableName).where(whereClause.apply(WhereBuilder.of(this.isSetQueryPlaceholders())));
-        return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
-    }
-
-    /**
-     * Select specific table.
-     *
-     * @param callback the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
+     * @param callback          the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
      * @param queryPlaceholders set this to {@code false} if you not want a prepared statement.
-     * @param whereClause The conditions used to filter which row(s) should be selected.
+     * @param whereClause       The conditions used to filter which row(s) should be selected.
      * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, final boolean queryPlaceholders, @Nonnull final SqlFunction<WhereBuilder> whereClause) {
+    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, final boolean queryPlaceholders, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
         ColumnManger columnManger = new ColumnManger();
         callback.accept(columnManger);
-
-        queryBuilder.select(columnManger).from(this.tableName).where(whereClause.apply(WhereBuilder.of(queryPlaceholders)));
+        queryBuilder.setGlobalEnableQueryPlaceholders(queryPlaceholders);
+        queryBuilder.select(columnManger).from(this.tableName).where( whereClause);
         return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
     }
+
 
     /**
      * Select specific table.
      *
-     * @param callback the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
+     * @param callback    the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
      * @param whereClause what conditions you want to filter your rows from.
      * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
@@ -136,9 +123,10 @@ public class SqlHandler {
      * @param whereClause the where clause it should remove the row from.
      * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair removeRow(@Nonnull final SqlFunction<WhereBuilder> whereClause) {
+    public SqlQueryPair removeRow(@Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.deleteFrom(this.tableName).where(whereClause.apply(WhereBuilder.of(this.setGlobalEnableQueryPlaceholders)));
+        queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
+        queryBuilder.deleteFrom(this.tableName).where(whereClause);
         return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
     }
 

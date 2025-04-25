@@ -1,11 +1,13 @@
 package org.broken.arrow.database.library.construct.query.builder.wherebuilder;
 
 
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Aggregation;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.utlity.Marker;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,38 +25,27 @@ public class WhereBuilder {
     private final boolean globalEnableQueryPlaceholders;
 
     public WhereBuilder() {
-        this(true);
+        this.globalEnableQueryPlaceholders = false;
     }
 
-    public WhereBuilder(boolean enableQueryPlaceholders) {
-        this.globalEnableQueryPlaceholders = enableQueryPlaceholders;
+
+    public WhereBuilder(@Nonnull final QueryBuilder queryBuilder) {
+        this.globalEnableQueryPlaceholders = queryBuilder.isGlobalEnableQueryPlaceholders();
+
     }
 
-    public static WhereBuilder of() {
-        return new WhereBuilder();
-    }
-
-    public static WhereBuilder of(boolean enableQueryPlaceholders) {
-        return new WhereBuilder(enableQueryPlaceholders);
+    public static WhereBuilder of(@Nonnull final QueryBuilder queryBuilder) {
+        return new WhereBuilder(queryBuilder);
     }
 
     public ComparisonHandler<WhereBuilder> where(final String columnName) {
-        return this.where(columnName, this.globalEnableQueryPlaceholders);
+        return this.where(columnName,  a -> {});
     }
 
-    public ComparisonHandler<WhereBuilder> where(final String columnName, final boolean enableQueryPlaceholders) {
-        return this.where(columnName, a -> {
-        }, enableQueryPlaceholders);
-    }
-
-    public ComparisonHandler<WhereBuilder> where(final String columnName, final Consumer<Aggregation> callBack) {
-        return this.where(columnName, callBack, this.globalEnableQueryPlaceholders);
-    }
-
-    public ComparisonHandler<WhereBuilder> where(final String columnName, final Consumer<Aggregation> callBack, final boolean enableQueryPlaceholders) {
-        Marker marker = isAllowingQueryPlaceholders(enableQueryPlaceholders) ? Marker.PLACEHOLDER : Marker.USE_VALUE;
+    public ComparisonHandler<WhereBuilder> where(final String columnName, final Consumer<Aggregation> aggregation) {
+        Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
         Column column = new Column(columnName, "");
-        callBack.accept(column.getAggregation());
+        aggregation.accept(column.getAggregation());
 
         ComparisonHandler<WhereBuilder> operator = new ComparisonHandler<>(this, column.toString(), marker);
         addCondition(operator);

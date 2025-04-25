@@ -1,5 +1,6 @@
 package org.broken.arrow.database.library.construct.query.builder;
 
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.withbuilder.FromWrapper;
 import org.broken.arrow.database.library.construct.query.builder.withbuilder.WithBuilder;
 
@@ -11,7 +12,11 @@ public class WithManger {
   private final List<WithBuilder> buildersList = new ArrayList<>();
   private boolean union;
 
-  public WithBuilder as(String aliasName) {
+  public WithManger(QueryBuilder queryBuilder) {
+
+  }
+
+    public WithBuilder as(String aliasName) {
     WithBuilder withBuilder = new WithBuilder(aliasName);
     buildersList.add(withBuilder);
     return withBuilder;

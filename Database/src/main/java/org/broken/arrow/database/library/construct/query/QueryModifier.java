@@ -4,21 +4,25 @@ package org.broken.arrow.database.library.construct.query;
 import org.broken.arrow.database.library.construct.query.builder.GroupByBuilder;
 import org.broken.arrow.database.library.construct.query.builder.JoinBuilder;
 import org.broken.arrow.database.library.construct.query.builder.OrderByBuilder;
+import org.broken.arrow.database.library.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.database.library.construct.query.builder.havingbuilder.HavingBuilder;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class QueryModifier extends Selector<ColumnBuilder<Column, Void>, Column> {
     private final GroupByBuilder groupByBuilder = new GroupByBuilder();
 
     private final OrderByBuilder orderByBuilder = new OrderByBuilder();
+    private final QueryBuilder queryBuilder;
     private int limit;
 
-    public QueryModifier() {
-        super(new ColumnBuilder<>());
+    public QueryModifier(QueryBuilder queryBuilder) {
+        super(new ColumnBuilder<>(), queryBuilder);
+        this.queryBuilder = queryBuilder;
     }
 
     @Override
@@ -42,6 +46,11 @@ public class QueryModifier extends Selector<ColumnBuilder<Column, Void>, Column>
     @Override
     public QueryModifier where(WhereBuilder whereBuilder) {
         super.where(whereBuilder);
+        return this;
+    }
+    @Override
+    public QueryModifier where(Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
+        super.where(callback);
         return this;
     }
 

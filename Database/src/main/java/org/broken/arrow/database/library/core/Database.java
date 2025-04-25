@@ -13,7 +13,6 @@ import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.TableColumn;
-import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.core.databases.H2DB;
 import org.broken.arrow.database.library.core.databases.MongoDB;
@@ -290,9 +289,11 @@ public abstract class Database {
         }
         //todo check so table does exist? or just accept any table that maybe does not exist on the database?
         final SqlQueryTable table = this.getTableFromName(tableName);
-        final Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryValue);
-
-        batchExecutor.removeAll(tableName, values, whereClauseFunc);
+        if (table == null) {
+            this.log.log(Level.WARNING, () -> Logging.of("Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?"));
+            return;
+        }
+        batchExecutor.removeAll(tableName, values, table::createWhereClauseFromPrimaryColumns);
     }
 
     /**
@@ -314,8 +315,12 @@ public abstract class Database {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
         final SqlQueryTable table = this.getTableFromName(tableName);
-        final Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryValue);
-        batchExecutor.remove(tableName, value, whereClauseFunc);
+
+        if (table == null) {
+            this.log.log(Level.WARNING, () -> Logging.of("Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?"));
+            return;
+        }
+        batchExecutor.remove(tableName, value, table::createWhereClauseFromPrimaryColumns);
     }
 
     /**
@@ -365,8 +370,11 @@ public abstract class Database {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
         final SqlQueryTable table = this.getTableFromName(tableName);
-        final Function<Object, WhereBuilder> whereClauseFunc = primaryValue -> table == null ? WhereBuilder.of() : table.createWhereClauseFromPrimaryColumns(true, primaryKeyValue);
-        return batchExecutor.checkIfRowExist(tableName, primaryKeyValue, whereClauseFunc);
+        if(table == null){
+            log.log(() -> of("Could not find this table: '" + tableName + "'"));
+            return false;
+        }
+        return batchExecutor.checkIfRowExist(tableName, primaryKeyValue, whereClause -> table.createWhereClauseFromPrimaryColumns(whereClause, primaryKeyValue));
     }
 
     /**
@@ -598,20 +606,20 @@ public abstract class Database {
     }
 
     private void createTableIfNotExist(Connection connection, Entry<String, SqlQueryTable> sqlQueryTable) {
-        PreparedStatement statement= null;
+        PreparedStatement statement = null;
         String table = "";
         if (sqlQueryTable == null) {
             this.printFailFindTable("'table is null'");
             return;
         }
 
-       final SqlQueryTable tableQuery  = sqlQueryTable.getValue();
+        final SqlQueryTable tableQuery = sqlQueryTable.getValue();
         try {
             if (tableQuery != null) {
                 if (tableQuery.getTableName().isEmpty())
-                    return ;
+                    return;
                 table = tableQuery.createTable();
-                statement = connection.prepareStatement( table);
+                statement = connection.prepareStatement(table);
                 statement.executeUpdate();
                 Column column = tableQuery.getPrimaryColumns().stream().findFirst().orElse(null);
                 Validate.checkNotNull(column, "Could not find a primary column for this table " + tableQuery.getTableName());
@@ -622,7 +630,7 @@ public abstract class Database {
             final String finalTable = table;
             log.log(e, () -> of("With this command: " + finalTable));
         } finally {
-            close( statement);
+            close(statement);
         }
     }
 

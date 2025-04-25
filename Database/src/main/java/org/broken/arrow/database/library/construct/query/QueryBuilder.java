@@ -22,12 +22,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class QueryBuilder {
-    private final UpdateBuilder updateBuilder = new UpdateBuilder();
+    private final UpdateBuilder updateBuilder = new UpdateBuilder(this);
     private final InsertHandler insertHandler = new InsertHandler();
-    private final QueryModifier queryModifier = new QueryModifier();
-    private final CreateTableHandler createTableHandler = new CreateTableHandler();
-    private final QueryRemover queryRemover = new QueryRemover();
-    private final WithManger withManger = new WithManger();
+    private final QueryModifier queryModifier = new QueryModifier(this);
+    private final CreateTableHandler createTableHandler = new CreateTableHandler(this);
+    private final QueryRemover queryRemover = new QueryRemover(this);
+    private final WithManger withManger = new WithManger(this);
     private QueryType queryType;
     private String table;
     private boolean globalEnableQueryPlaceholders = true;

@@ -17,7 +17,7 @@ public class TableSelectorWrapper {
 
 
     public TableSelectorWrapper select(List<Column> columnsBuilder) {
-        selector = new TableSelector(new TableColumnCache());
+        selector = new TableSelector(this.createTableHandler.getQueryBuilder(), new TableColumnCache());
         selector.select(tablesColumns -> tablesColumns.addAll(columnsBuilder));
         return this;
     }

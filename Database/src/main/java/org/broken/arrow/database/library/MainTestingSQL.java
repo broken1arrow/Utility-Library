@@ -5,13 +5,11 @@ import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlHandler;
 import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.insertbuilder.InsertBuilder;
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.SQLConstraints;
-import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
-import org.broken.arrow.database.library.construct.query.utlity.CalcFunc;
 import org.broken.arrow.database.library.construct.query.utlity.DataType;
-import org.broken.arrow.database.library.construct.query.utlity.MathOperation;
 import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 
@@ -32,6 +30,29 @@ public class MainTestingSQL {
                         .column("column_primary_test", DataType.varchar(80), SQLConstraints.primaryKey())
                         .column("column1_not_null", DataType.varchar(80), SQLConstraints.notNull())
                         .build()));
+        QueryBuilder tableBuilder = new QueryBuilder();
+        tableBuilder.createTableIfNotExists("tableName").addColumns(ColumnManger
+                .tableOf("column_primary", DataType.varchar(50), SQLConstraints.primaryKey())
+                .build());
+        QueryBuilder selectQuery = new QueryBuilder();
+        selectQuery.select(ColumnManger.of().column("name")
+                        .colum("orders.total")
+                        .finish())
+                .from("users")
+                .where(whereBuilder->
+                        whereBuilder.where("id").equal("user_id").and()
+                                .where("something").equal("test").or().where("do" ).equal("npo"));
+        System.out.println("selectQuery= " + selectQuery.build());
+        //The SQL query to run inside the database.
+        tableBuilder.build();
+        QueryBuilder withSeveralColumns = new QueryBuilder();
+        withSeveralColumns.createTableIfNotExists("tableName").addColumns(ColumnManger
+                .tableOf("column_primary", DataType.varchar(50), SQLConstraints.primaryKey())
+                .column("column_primary_test", DataType.varchar(80), SQLConstraints.primaryKey())
+                .column("column1_not_null", DataType.varchar(80), SQLConstraints.notNull())
+                .build());
+        //The SQL query to run inside the database.
+        withSeveralColumns.build();
 
         SqlQueryTable tableAS = new SqlQueryTable(queryBuilder ->
                 queryBuilder.createTableIfNotExists("tableNames").as()
@@ -41,7 +62,7 @@ public class MainTestingSQL {
                                 .colum("column3")
                                 .finish())
                         .from("testings")
-                        .where(WhereBuilder.of())
+                        .where(WhereB ->WhereB.where("test").equal("user_id"))
                         .build());
 
         SqlHandler sqlHandler = getSqlHandler(table);
@@ -60,26 +81,23 @@ public class MainTestingSQL {
         }, whereBuilder -> whereBuilder
                 .where("test_where").equal("seme").and()
                 .where("ho").between(5, 7)
-                .or().where("nooo").equal("yes")
-                .build());
+                .or().where("nooo").equal("yes"));
 
-        SqlQueryPair select = sqlHandler.selectRow(updateBuilder -> {
+       /* SqlQueryPair select = sqlHandler.selectRow(updateBuilder -> {
             updateBuilder.column("first").withAggregation(MathOperation.ADD, CalcFunc.AVG).colum("second_one").getColumn();
 
         }, whereBuilder -> whereBuilder
                 .where("test_where").equal("seme").and()
                 .where("ho").between(5, 7)
                 .or().where("nooo").equal("yes")
-                .build());
+                .build());*/
 
-        SqlQueryPair select2 = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()),
-                table.createWhereClauseFromPrimaryColumns(true, 8, "nooo", "is too much"));
         final SqlHandler sqlHandlers = getSqlHandler(table);
-        final String query = sqlHandlers.selectRow(columnManger ->
+   /*     final String query = sqlHandlers.selectRow(columnManger ->
                                 columnManger.addAll(table.getPrimaryColumns()), false,
                         whereBuilder ->
                                 table.createWhereClauseFromPrimaryColumns(false, "test"))
-                .getQuery();
+                .getQuery();*/
 
    /*    System.out.println("insert= " + insert);
         System.out.println("update= " + update);

@@ -1,6 +1,7 @@
 package org.broken.arrow.database.library.construct.query.builder;
 
 
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.Selector;
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.SQLConstraints;
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.SelectorWrapper;
@@ -16,24 +17,30 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CreateTableHandler {
+    private final QueryBuilder queryBuilder;
     private SqlExpressionType copyMethod = null;
     private TableSelectorWrapper selectorWrapper;
     private SelectorWrapper selector;
 
+    public CreateTableHandler(QueryBuilder queryBuilder) {
+
+        this.queryBuilder = queryBuilder;
+    }
+
     public SelectorWrapper as() {
         copyMethod = SqlExpressionType.AS;
-        selector = new SelectorWrapper(this);
+        selector = new SelectorWrapper(this,    this.queryBuilder );
         return selector;
     }
 
     public SelectorWrapper like() {
         copyMethod = SqlExpressionType.LIKE;
-        selector = new SelectorWrapper(this);
+        selector = new SelectorWrapper(this,    this.queryBuilder );
         return selector;
     }
 
     public CreateTableHandler addColumns(ColumnManger column) {
-        selectorWrapper = new TableSelectorWrapper(this, new TableSelector(new TableColumnCache()));
+        selectorWrapper = new TableSelectorWrapper(this, new TableSelector(this.queryBuilder,new TableColumnCache()));
         selectorWrapper.select(column.getColumnsBuilt());
         return this;
     }
@@ -90,5 +97,9 @@ public class CreateTableHandler {
         }
 
         return sql + "";
+    }
+
+    public QueryBuilder getQueryBuilder() {
+        return this.queryBuilder;
     }
 }
