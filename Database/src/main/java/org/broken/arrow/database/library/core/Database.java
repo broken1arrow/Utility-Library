@@ -49,6 +49,7 @@ import java.util.logging.Level;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
+@SuppressWarnings("unused")
 public abstract class Database {
     private final Logging log = new Logging(Database.class);
     private final Map<String, TableWrapper> tables = new HashMap<>();
@@ -287,7 +288,7 @@ public abstract class Database {
         else {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
-        //todo check so table does exist? or just accept any table that maybe does not exist on the database?
+
         final SqlQueryTable table = this.getTableFromName(tableName);
         if (table == null) {
             this.log.log(Level.WARNING, () -> Logging.of("Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?"));
@@ -370,7 +371,7 @@ public abstract class Database {
             batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
         }
         final SqlQueryTable table = this.getTableFromName(tableName);
-        if(table == null){
+        if (table == null) {
             log.log(() -> of("Could not find this table: '" + tableName + "'"));
             return false;
         }
