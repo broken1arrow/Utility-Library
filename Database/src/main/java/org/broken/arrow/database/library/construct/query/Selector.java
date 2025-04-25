@@ -19,7 +19,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
     private final JoinBuilder joinBuilder;
     private final HavingBuilder havingBuilder;
 
-    private WhereBuilder whereBuilder = new WhereBuilder();
+    private WhereBuilder whereBuilder;
     private String table;
     private String tableAlias;
 

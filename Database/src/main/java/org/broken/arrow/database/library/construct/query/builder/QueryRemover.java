@@ -4,21 +4,25 @@ import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.function.Function;
 
 public class QueryRemover {
-    private final WhereBuilder whereBuilder;
+    private WhereBuilder whereBuilder;
+    private final QueryBuilder queryBuilder;
 
-    public QueryRemover(QueryBuilder queryBuilder) {
-        whereBuilder = new WhereBuilder(queryBuilder);
-
+    public QueryRemover(@Nonnull final QueryBuilder queryBuilder) {
+        this.queryBuilder = queryBuilder;
     }
 
-    public QueryRemover where(Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereBuilder) {
-        whereBuilder.apply(this.whereBuilder);
-        return this;
+    public QueryBuilder where(Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+        this. whereBuilder = new WhereBuilder(queryBuilder);
+        whereClause.apply(whereBuilder);
+        return queryBuilder;
     }
 
+    @Nullable
     public WhereBuilder getWhereBuilder() {
         return whereBuilder;
     }

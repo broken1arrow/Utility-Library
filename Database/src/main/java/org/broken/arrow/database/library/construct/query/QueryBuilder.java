@@ -7,6 +7,7 @@ import org.broken.arrow.database.library.construct.query.builder.QueryRemover;
 import org.broken.arrow.database.library.construct.query.builder.UpdateBuilder;
 import org.broken.arrow.database.library.construct.query.builder.WithManger;
 import org.broken.arrow.database.library.construct.query.builder.insertbuilder.InsertBuilder;
+import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
 import org.broken.arrow.database.library.construct.query.utlity.QueryType;
@@ -150,7 +151,8 @@ public class QueryBuilder {
                 break;
             case DELETE:
                 sql.append("DELETE FROM ").append(table);
-                sql.append(this.queryRemover.getWhereBuilder().build());
+                WhereBuilder whereBuilder = this.queryRemover.getWhereBuilder();
+                sql.append(whereBuilder != null ? whereBuilder.build() : "");
                 break;
 
             case DROP:
@@ -182,7 +184,7 @@ public class QueryBuilder {
     }
 
 
-    private void createSelectQuery(final QueryModifier queryModifier,final StringBuilder sql) {
+    private void createSelectQuery(final QueryModifier queryModifier, final StringBuilder sql) {
         sql.append("SELECT ");
 
         sql.append(queryModifier.getSelectBuilder().getColumns().isEmpty() ? "*" : queryModifier.getSelectBuilder().build());
@@ -273,7 +275,9 @@ public class QueryBuilder {
                 return queryModifier.getHavingBuilder().getValues();
             }
         } else if (queryType == QueryType.DELETE) {
-            return queryRemover.getWhereBuilder().getValues();
+            WhereBuilder whereBuilder = queryRemover.getWhereBuilder();
+            if (whereBuilder != null)
+                return whereBuilder.getValues();
         } /*else if (queryType == QueryType.WITH) {
                 //not in use yet.
         }*/

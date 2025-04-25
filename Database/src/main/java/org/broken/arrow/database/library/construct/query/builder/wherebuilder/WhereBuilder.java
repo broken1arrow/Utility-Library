@@ -25,13 +25,16 @@ public class WhereBuilder {
     private final boolean globalEnableQueryPlaceholders;
 
     public WhereBuilder() {
-        this.globalEnableQueryPlaceholders = false;
+        this.globalEnableQueryPlaceholders = true;
     }
 
 
     public WhereBuilder(@Nonnull final QueryBuilder queryBuilder) {
         this.globalEnableQueryPlaceholders = queryBuilder.isGlobalEnableQueryPlaceholders();
+    }
 
+    public boolean isGlobalEnableQueryPlaceholders() {
+        return globalEnableQueryPlaceholders;
     }
 
     public static WhereBuilder of(@Nonnull final QueryBuilder queryBuilder) {
