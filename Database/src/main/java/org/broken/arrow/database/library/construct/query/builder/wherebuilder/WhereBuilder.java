@@ -92,8 +92,4 @@ public class WhereBuilder {
         return valuesMap;
     }
 
-    private boolean isAllowingQueryPlaceholders(boolean enableQueryPlaceholders) {
-        return enableQueryPlaceholders && globalEnableQueryPlaceholders;
-    }
-
 }
