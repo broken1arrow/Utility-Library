@@ -278,9 +278,7 @@ public class QueryBuilder {
             WhereBuilder whereBuilder = queryRemover.getWhereBuilder();
             if (whereBuilder != null)
                 return whereBuilder.getValues();
-        } /*else if (queryType == QueryType.WITH) {
-                //not in use yet.
-        }*/
+        }
         return new HashMap<>();
     }
 

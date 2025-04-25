@@ -20,6 +20,7 @@ public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrap
         this.createTableHandler = createTableHandler;
         this.queryBuilder = queryBuilder;
     }
+
     public SelectorWrapper select(ColumnManger column) {
         super.select(tableColumn -> tableColumn.addAll(column.getColumnsBuilt()));
         return this;
@@ -34,16 +35,9 @@ public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrap
     @Override
     public BuildTable where(Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
         super.where(callback);
-        return new BuildTable(this.createTableHandler,queryBuilder);
+        return new BuildTable(this.createTableHandler, queryBuilder);
     }
 
-/*
-    @Override
-    public BuildTable where(Function<WhereBuilder, LogicalOperator<Column>> whereBuilder) {
-        super.where(whereBuilder);
-        return new BuildTable(this.createTableHandler,queryBuilder);
-    }
-*/
 
     public Selector<ColumnBuilder<Column, SelectorWrapper>, Column> getSelector() {
         return this;

@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Locale;
 
@@ -79,13 +80,16 @@ public class ConvertToItemStack {
      */
     @Nullable
     public ItemStack checkItem(@Nullable final Object object, short damage,@Nullable final String color,@Nullable final Byte data) {
-        ItemStack result = null;
-
         if (object == null) {
             return null;
         }
-
         String colorUpcast = color != null ? color.toUpperCase(Locale.ROOT) : "";
+        return getItemStack(object, damage, color, data, colorUpcast);
+    }
+
+    @Nullable
+    private ItemStack getItemStack(@Nonnull Object object, short damage, @Nullable String color, @Nullable Byte data, String colorUpcast) {
+        ItemStack result = null;
         if (color != null)
             damage = checkColor(colorUpcast);
 
@@ -109,6 +113,7 @@ public class ConvertToItemStack {
         }
         return result;
     }
+
     public ItemStack checkItemStack(final ItemStack itemStack, final short damage) {
         if (serverVersion < 13.0F && itemStack != null) {
             final ItemStack stack = new ItemStack(itemStack.getType(), itemStack.getAmount(), damage);

@@ -10,7 +10,7 @@ public class Formatting {
     private Formatting() {
     }
 
-    public static String formatConditions(final List<ComparisonHandler<?>> conditionsList) {
+    public static <T> String formatConditions(final List<ComparisonHandler<T>> conditionsList) {
         final StringBuilder whereClause = new StringBuilder();
         boolean openParenthesis = false;
 
@@ -48,15 +48,19 @@ public class Formatting {
     }
 
     private static boolean setCloseParenthesis(final StringBuilder whereClause, final ComparisonHandler<?> next, final boolean currentIsOr, boolean hasOpenParenthesis) {
-        if (currentIsOr && next != null) {
-            hasOpenParenthesis = closeParenthesis(whereClause);
-        } else if (hasOpenParenthesis && (currentIsOr || next == null)) {
-            hasOpenParenthesis = closeParenthesis(whereClause);
+        if (checkIfHasOpenParenthesis(next, currentIsOr, hasOpenParenthesis)) {
+            hasOpenParenthesis = appendCloseParenthesis(whereClause);
         }
         return hasOpenParenthesis;
     }
 
-    private static boolean closeParenthesis(StringBuilder whereClause) {
+    private static boolean checkIfHasOpenParenthesis(final ComparisonHandler<?> next, final boolean currentIsOr, boolean hasOpenParenthesis) {
+        if (currentIsOr && next != null)
+            return true;
+        return hasOpenParenthesis && (currentIsOr || next == null);
+    }
+
+    private static boolean appendCloseParenthesis(StringBuilder whereClause) {
         whereClause.append(")");
         return false;
     }

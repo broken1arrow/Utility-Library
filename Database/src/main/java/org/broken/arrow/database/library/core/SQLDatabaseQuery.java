@@ -11,7 +11,6 @@ import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
-import org.broken.arrow.database.library.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.utlity.QueryDefinition;
@@ -41,7 +40,7 @@ import static org.broken.arrow.logging.library.Logging.of;
 public abstract class SQLDatabaseQuery extends Database {
     private final Logging log = new Logging(Database.class);
 
-    public SQLDatabaseQuery(@Nonnull final ConnectionSettings connectionSettings) {
+    protected SQLDatabaseQuery(@Nonnull final ConnectionSettings connectionSettings) {
         super(connectionSettings);
 
     }
@@ -168,7 +167,6 @@ public abstract class SQLDatabaseQuery extends Database {
             final SqlHandler sqlHandler = new SqlHandler(table.getTableName(), getDatabase());
 
             final WhereBuilder whereBuilder = WhereBuilder.of(new QueryBuilder().setGlobalEnableQueryPlaceholders(this.isSecureQuery()));
-            final LogicalOperator<WhereBuilder> primaryColumns = table.createWhereClauseFromPrimaryColumns (whereBuilder, columnValue);
             Validate.checkBoolean( whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 
             final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), whereBuilder);
@@ -193,7 +191,7 @@ public abstract class SQLDatabaseQuery extends Database {
             if (dataFromDB.isEmpty())
                 return null;
             T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-            List<ComparisonHandler<?>> comparisonHandlerList = whereBuilder.getConditionsList();
+            List<ComparisonHandler<WhereBuilder>> comparisonHandlerList = whereBuilder.getConditionsList();
             Map<String, Object> objectList = new HashMap<>();
             if (!comparisonHandlerList.isEmpty()) {
                 for (ComparisonHandler<?> comparisonHandler : comparisonHandlerList) {
@@ -213,7 +211,7 @@ public abstract class SQLDatabaseQuery extends Database {
         final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), getDatabase());
 
         this.executeQuery(QueryDefinition.of(sqlCommandComposer.selectRow(columnValue)), statementWrapper -> {
-            try (ResultSet resultSet = ((PreparedStatement) statementWrapper.getContextResult()).executeQuery()) {
+            try (ResultSet resultSet = statementWrapper.getContextResult().executeQuery()) {
                 if (resultSet.next())
                     dataFromDB.putAll(getDatabase().getDataFromDB(resultSet, tableWrapper));
             } catch (SQLException e) {

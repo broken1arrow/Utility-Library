@@ -111,6 +111,7 @@ public abstract class Database {
      *
      * @param sqlComposer   list of instances that store the information for the command that will be executed.
      * @param tableWrappers the table wrapper involved in the execution of this event.
+     * @deprecated should not be used as it have no use soon.
      */
     @Deprecated
     protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
@@ -131,7 +132,6 @@ public abstract class Database {
      * Create all needed tables if it not exist.
      */
     public void createTables() {
-        // Validate.checkBoolean(tables.isEmpty(), "The table is empty, add tables to the map before call this method");
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;

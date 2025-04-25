@@ -21,7 +21,7 @@ import static org.broken.arrow.database.library.construct.query.utlity.Formattin
 
 
 public class WhereBuilder {
-    private final List<ComparisonHandler<?>> conditionsList = new ArrayList<>();
+    private final List<ComparisonHandler<WhereBuilder>> conditionsList = new ArrayList<>();
     private final boolean globalEnableQueryPlaceholders;
 
     public WhereBuilder() {
@@ -70,7 +70,7 @@ public class WhereBuilder {
         return conditionsList.isEmpty();
     }
 
-    public List<ComparisonHandler<?>> getConditionsList() {
+    public List<ComparisonHandler<WhereBuilder>> getConditionsList() {
         return conditionsList;
     }
 

@@ -5,6 +5,8 @@ import java.util.StringJoiner;
 
 public class StringUtil {
 
+    private StringUtil() {
+    }
 
     public static String repeat(String marker, int times) {
         StringBuilder sb = new StringBuilder(marker.length() * times);

@@ -13,6 +13,9 @@ import java.util.Map;
  */
 public class MapYamlConverter {
 
+    private MapYamlConverter() {
+    }
+
     /**
      * Transforms a given map into a YAML-friendly format by adding "_type: map" to all nested maps.
      *

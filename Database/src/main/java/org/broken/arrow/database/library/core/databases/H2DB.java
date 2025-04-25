@@ -74,19 +74,7 @@ public class H2DB extends SQLDatabaseQuery {
                 return sqlHandler.insertIntoTable(insertHandler -> insertHandler.addAll(columnData));
         });
     }
-
-/*    @Override
-    protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
-        SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(rowWrapper, this);
-        boolean columnsIsEmpty = columns == null || columns.length == 0;
-        sqlCommandComposer.setColumnsToUpdate(columns);
-
-        if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
-            sqlCommandComposer.updateTable(rowWrapper.getPrimaryKeyValue());
-        else
-            sqlCommandComposer.mergeIntoTable();
-        return sqlCommandComposer;
-    }*/
+    
 
     public Connection setupConnection() throws SQLException {
         Connection connection;

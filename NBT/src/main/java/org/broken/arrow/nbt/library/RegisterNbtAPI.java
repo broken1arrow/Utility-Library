@@ -3,6 +3,7 @@ package org.broken.arrow.nbt.library;
 
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NBTContainer;
+import org.broken.arrow.logging.library.Logging;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -19,7 +20,7 @@ import static de.tr7zw.changeme.nbtapi.utils.MinecraftVersion.getVersion;
 
 
 public class RegisterNbtAPI {
-
+    private static final Logging logger = new Logging(RegisterNbtAPI.class);
     private final CompMetadata compMetadata;
     private static boolean hasScoreboardTags = true;
 
@@ -46,8 +47,9 @@ public class RegisterNbtAPI {
             NBT.itemStackArrayToNBT((itemStacks == null ? new ItemStack[0] : itemStacks)).writeCompound(outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.log(e,() -> Logging.of("Could not serialize the itemStacks."));
         }
+        return new byte[0];
     }
 
     @Nullable
@@ -57,8 +59,9 @@ public class RegisterNbtAPI {
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(itemStacks)) {
             return NBT.itemStackArrayFromNBT(  new NBTContainer(byteArrayInputStream));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.log(e,() -> Logging.of("Could not deserialize the itemStacks."));
         }
+        return new ItemStack[0];
     }
 
     public static boolean isHasScoreboardTags() {

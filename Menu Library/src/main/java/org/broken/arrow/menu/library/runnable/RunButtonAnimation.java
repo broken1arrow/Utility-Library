@@ -75,10 +75,9 @@ public class RunButtonAnimation<T> extends BukkitRunnable {
             if (buttonData == null) continue;
 
             final ItemStack menuItem = getMenuItemStack(menuButton, buttonData, slot);
-            final ButtonData<T> newButtonData =  buttonData.copy(menuItem);//new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject());
+            final ButtonData<T> newButtonData =  buttonData.copy(menuItem);
 
             menuDataUtility.putButton(slotPageCalculated, newButtonData);
-            //menuUtility.putAddedButtonsCache(menuUtility.getPageNumber(), menuDataUtility);
             menu.setItem(slot, menuItem);
             slotList.remove();
         }

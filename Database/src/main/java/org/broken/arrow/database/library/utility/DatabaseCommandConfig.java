@@ -23,6 +23,13 @@ public class DatabaseCommandConfig {
         this(resultSetType, resultSetConcurrency, (FunctionQuery) null);
     }
 
+    /**
+     * No longer in use
+     * @param resultSetType the result set
+     * @param resultSetConcurrency the result curentcy
+     * @param config the config consumer
+     * @deprecated should not be used, due to the changes this will be removed.
+     */
     @Deprecated
     public DatabaseCommandConfig(final int resultSetType, final int resultSetConcurrency, final ConfigConsumer config) {
         this.resultSetType = resultSetType;
@@ -59,6 +66,7 @@ public class DatabaseCommandConfig {
      * @param rowExist        a flag indicating whether the row exists in the database.
      *                        If {@code false}, the method will use a `REPLACE INTO`
      *                        command to insert or replace the row.
+     * @deprecated replaced with similar method below.
      */
     @Deprecated
     public final void applyDatabaseCommand(final SqlCommandComposer commandComposer, final Object primaryKeyValue, final boolean rowExist) {

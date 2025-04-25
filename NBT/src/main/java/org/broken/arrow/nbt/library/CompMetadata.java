@@ -544,15 +544,15 @@ public final class CompMetadata {
 	}
 
 	// Format the syntax of stored tags
-	private String format(final String key, final String value) {
+	public String format(final String key, final String value) {
 		return plugin.getName() + DELIMITER + key + DELIMITER + value;
 	}
 
-	private void setNameSpacedKey(final TileState tile, final String key, final String value) {
+	public void setNameSpacedKey(final TileState tile, final String key, final String value) {
 		tile.getPersistentDataContainer().set(new NamespacedKey(plugin, key), PersistentDataType.STRING, value);
 	}
 
-	private boolean hasNameSpacedKey(final TileState tile, final String key) {
+	public boolean hasNameSpacedKey(final TileState tile, final String key) {
 		return tile.getPersistentDataContainer().has(new NamespacedKey(plugin, key), PersistentDataType.STRING);
 	}
 

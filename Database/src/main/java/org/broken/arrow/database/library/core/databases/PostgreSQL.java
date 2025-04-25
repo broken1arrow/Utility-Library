@@ -161,25 +161,10 @@ public class PostgreSQL extends SQLDatabaseQuery {
                     createStatement.executeUpdate();
                 }
             }
-        } catch (
-                SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
-/*	@Override
-	protected SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
-		SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(rowWrapper, this);
-		boolean columnsIsEmpty = columns == null || columns.length == 0;
-		sqlCommandComposer.setColumnsToUpdate(columns);
-		
-		if ((!columnsIsEmpty || shallUpdate) && this.doRowExist(rowWrapper.getTableWrapper().getTableName(), rowWrapper.getPrimaryKeyValue()))
-			sqlCommandComposer.updateTable(rowWrapper.getPrimaryKeyValue());
-		else
-			sqlCommandComposer.insertIntoTable();
-
-		return sqlCommandComposer;
-	}*/
 
     @Override
     public boolean usingHikari() {

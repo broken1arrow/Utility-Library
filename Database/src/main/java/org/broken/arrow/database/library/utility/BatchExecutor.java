@@ -352,7 +352,7 @@ public class BatchExecutor {
 
     protected void executeDatabaseTasks(List<SqlQueryPair> composerList) {
         batchUpdateGoingOn = true;
-        final Connection connection = this.connection;
+        final Connection databaseConnection = this.connection;
         final int processedCount = composerList.size();
 
         Timer timer = new Timer();
@@ -367,32 +367,32 @@ public class BatchExecutor {
         if (processedCount > 10_000)
             this.printPressesCount(processedCount);
         try {
-            connection.setAutoCommit(false);
+            databaseConnection.setAutoCommit(false);
             int batchSize = 1;
             for (SqlQueryPair sql : composerList) {
                 this.setPreparedStatement(sql);
 
                 if (batchSize % 100 == 0)
-                    connection.commit();
+                    databaseConnection.commit();
                 batchSize++;
             }
-            connection.commit();
+            databaseConnection.commit();
         } catch (SQLException e) {
             log.log(Level.WARNING, e, () -> of("Error during batch execution. Rolling back changes."));
             try {
-                connection.rollback();
+                databaseConnection.rollback();
             } catch (SQLException rollbackEx) {
                 log.log(Level.SEVERE, rollbackEx, () -> of("Failed to rollback changes after error."));
             }
             this.batchUpdateGoingOn = false;
         } finally {
             try {
-                connection.setAutoCommit(true);
+                databaseConnection.setAutoCommit(true);
             } catch (SQLException ex) {
                 log.log(Level.WARNING, ex, () -> of("Could not reset auto-commit to true."));
             }
             try {
-                connection.close();
+                databaseConnection.close();
             } catch (SQLException e) {
                 log.log(Level.WARNING, e, () -> of("Failed to close database connection."));
             } finally {

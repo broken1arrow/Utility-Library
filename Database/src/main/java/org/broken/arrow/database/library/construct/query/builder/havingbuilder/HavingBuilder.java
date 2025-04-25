@@ -22,7 +22,7 @@ import static org.broken.arrow.database.library.construct.query.utlity.Formattin
 
 public class HavingBuilder {
 
-    private final List<ComparisonHandler<?>> conditionsList = new ArrayList<>();
+    private final List<ComparisonHandler<HavingBuilder>> conditionsList = new ArrayList<>();
     private boolean globalEnableQueryPlaceholders = true;
 
 
@@ -58,6 +58,10 @@ public class HavingBuilder {
         return (" HAVING " + condition).replace(";", "");
     }
 
+    public List<ComparisonHandler<HavingBuilder>> getConditionsList() {
+        return conditionsList;
+    }
+
     public Map<Integer, Object> getValues() {
         if (conditionsList.isEmpty())
             return new HashMap<>();
@@ -74,10 +78,6 @@ public class HavingBuilder {
         }
 
         return valuesMap;
-    }
-
-    private boolean isAllowingQueryPlaceholders(boolean enableQueryPlaceholders) {
-        return enableQueryPlaceholders && globalEnableQueryPlaceholders;
     }
 
 }
