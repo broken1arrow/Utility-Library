@@ -25,9 +25,9 @@ public class RegisterNbtAPI {
     private static boolean hasScoreboardTags = true;
 
     public RegisterNbtAPI(Plugin plugin, boolean turnOffLogger) {
-        Logger logger = Logger.getLogger("NBTAPI");
+        Logger nbtLogger = Logger.getLogger("NBTAPI");
         if (turnOffLogger)
-            logger.setLevel(Level.WARNING);
+            nbtLogger.setLevel(Level.WARNING);
         getVersion();
         compMetadata = new CompMetadata(plugin);
         checkClassesExist();

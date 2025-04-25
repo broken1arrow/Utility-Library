@@ -314,7 +314,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
                     if (buttonData == null) return;
                     final ItemStack menuItem = getMenuItem(menuButton, buttonData, slot, true);
                     this.getMenu().setItem(slot, menuItem);
-                    menuDataUtility.putButton(menuSlot, buttonData.copy(menuItem));//new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject()));
+                    menuDataUtility.putButton(menuSlot, buttonData.copy(menuItem));
                 }
             } else {
                 final int buttonSlot = this.getButtonSlot(menuButton);
