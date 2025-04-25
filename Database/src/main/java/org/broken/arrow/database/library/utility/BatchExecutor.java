@@ -81,7 +81,13 @@ public class BatchExecutor {
                     canUpdateRow = this.checkIfRowExist(query, false);
                 }
                 sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
-                queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, formatData(dataWrapper, columns), wereClause -> whereClauseFunc.apply(wereClause, dataWrapper.getPrimaryValue()), canUpdateRow));
+
+                final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, columns));
+                for (Column primary : table.getPrimaryColumns()) {
+                    columnValueMap.put(primary, dataWrapper.getPrimaryValue());
+                }
+
+                queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, wereClause -> whereClauseFunc.apply(wereClause, dataWrapper.getPrimaryValue()), canUpdateRow));
             } else {
                 TableRow primaryRow = tableWrapper.getPrimaryRow();
                 if (dataWrapper == null || primaryRow == null) continue;
@@ -115,7 +121,12 @@ public class BatchExecutor {
                 canUpdateRow = this.checkIfRowExist(query, false);
             }
             sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
-            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, formatData(dataWrapper, columns), whereClause, canUpdateRow));
+            final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, columns));
+            for (Column primary : table.getPrimaryColumns()) {
+                columnValueMap.put(primary, dataWrapper.getPrimaryValue());
+            }
+
+            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, whereClause, canUpdateRow));
             this.executeDatabaseTasks(queryList);
         } else {
             this.formatData(composerList, dataWrapper, shallUpdate, columns, tableWrapper);
@@ -251,18 +262,18 @@ public class BatchExecutor {
     private Map<Column, Object> formatData(@Nonnull final DataWrapper dataWrapper, final String[] columns) {
         final ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
         final Map<Column, Object> rowWrapper = new HashMap<>();
-
         for (Map.Entry<String, Object> entry : configuration.serialize().entrySet()) {
-            if (!checkIfUpdateColumn(columns, entry.getKey())) continue;
+            if (columns != null && columns.length > 0 && !checkIfUpdateColumn(columns, entry.getKey())) continue;
 
             rowWrapper.put(ColumnManger.of().column(entry.getKey()).getColumn(), entry.getValue());
         }
+
         return rowWrapper;
     }
 
     private boolean checkIfUpdateColumn(final String[] columns, final String columnName) {
         if (columns == null || columns.length == 0)
-            return true;
+            return false;
 
         for (String column : columns) {
             if (column.equals(columnName))
@@ -409,6 +420,9 @@ public class BatchExecutor {
         } catch (SQLException e) {
             log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql.getQuery() + "\""));
             log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
+        } catch (ArrayIndexOutOfBoundsException exception) {
+            log.log(Level.WARNING, () -> of("Could not execute this batch: \"" + sql.getQuery() + "\" . Probably this is not an premed batch with placeholders, check so the query contains ? for all values."));
+            log.log(exception, () -> of("Values that could not be executed: '" + cachedDataByColumn.entrySet() + "'"));
         }
     }
 

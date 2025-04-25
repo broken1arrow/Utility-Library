@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Wrapper class for loading and storing deserialized data along with its primary value.
@@ -55,7 +56,7 @@ public class LoadDataWrapper<T> {
 	 * return more than 1 primary key from the sql query.
 	 *
 	 * @return The primary value for the primaryColumn or null if not this value is set in the database.
-	 * @deprecated use {@link #getPrimaryValues()}.
+	 * @deprecated use {@link #getPrimaryValues()} as it will no longer work if you register your tables with the new option {@link org.broken.arrow.database.library.core.Database#addTable(Function)}.
 	 */
 	@Nullable
 	@Deprecated

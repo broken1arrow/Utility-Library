@@ -112,7 +112,6 @@ public abstract class SQLDatabaseQuery extends Database {
         if (table != null) {
             final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
             final String selectRow = table.selectTable();
-
             this.executeQuery(QueryDefinition.of(selectRow), statementWrapper -> {
                 try (ResultSet resultSet = statementWrapper.getContextResult().executeQuery()) {
                     while (resultSet.next()) {
@@ -172,7 +171,6 @@ public abstract class SQLDatabaseQuery extends Database {
             final LogicalOperator<WhereBuilder> primaryColumns = table.createWhereClauseFromPrimaryColumns (whereBuilder, columnValue);
             Validate.checkBoolean( whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 
-
             final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), whereBuilder);
 
             this.executeQuery(QueryDefinition.of(selectRow.getQuery()), statementWrapper -> {
@@ -187,11 +185,12 @@ public abstract class SQLDatabaseQuery extends Database {
                 });
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     if (resultSet.next())
-                        dataFromDB.putAll(getDatabase().getDataFromDB(resultSet, tableWrapper));
+                        dataFromDB.putAll(getDatabase().getDataFromDB(resultSet, table.getTable().getColumns()));
                 } catch (SQLException e) {
                     log.log(Level.WARNING, e, () -> of("Could not load the data from " + columnValue + ". Check the stacktrace."));
                 }
             });
+            System.out.println("dataFromDB " +  dataFromDB);
             if (dataFromDB.isEmpty())
                 return null;
             T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
