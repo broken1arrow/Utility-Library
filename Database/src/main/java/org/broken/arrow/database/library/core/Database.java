@@ -498,7 +498,8 @@ public abstract class Database {
 
         try {
             final List<String> column = new ArrayList<>();
-            statement = connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + ";");
+            String queryAllColumns = "SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + ";";
+            statement = connection.prepareStatement(queryAllColumns);
             rs = statement.executeQuery();
             final ResultSetMetaData rsmd = rs.getMetaData();
             final int columnCount = rsmd.getColumnCount();
@@ -533,7 +534,8 @@ public abstract class Database {
         PreparedStatement createTable = null;
         PreparedStatement removeOldTable = null;
         try {    // Rename the old table, so we can remove old name and rename columns.
-            alterTable = connection.prepareStatement("ALTER TABLE " + tableName + " RENAME TO " + tableName + "_old;");
+            String alterTableQuery = "ALTER TABLE " + tableName + " RENAME TO " + tableName + "_old;";
+            alterTable = connection.prepareStatement(alterTableQuery);
             // Creating the table on its new format (no redundant columns)
             createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnsSeparated + ");");
 
@@ -701,7 +703,8 @@ public abstract class Database {
 
     private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
 
-        try (final PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?")) {
+        String checkTableQuery = "SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?";
+        try (final PreparedStatement preparedStatement = connection.prepareStatement(checkTableQuery)) {
             preparedStatement.setString(1, "");
             final ResultSet resultSet = preparedStatement.executeQuery();
             close(preparedStatement, resultSet);
