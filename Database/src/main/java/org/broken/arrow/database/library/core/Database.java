@@ -375,7 +375,7 @@ public abstract class Database {
             log.log(() -> of("Could not find this table: '" + tableName + "'"));
             return false;
         }
-        return batchExecutor.checkIfRowExist(tableName, primaryKeyValue, whereClause -> table.createWhereClauseFromPrimaryColumns(whereClause, primaryKeyValue));
+        return batchExecutor.checkIfRowExist(tableName, primaryKeyValue, whereClause -> table.createWhereClauseFromPrimaryColumns(whereClause, "'" + primaryKeyValue + "'"));
     }
 
     /**

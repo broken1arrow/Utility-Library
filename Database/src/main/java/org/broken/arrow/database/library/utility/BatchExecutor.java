@@ -77,7 +77,7 @@ public class BatchExecutor {
                 final boolean columnsIsEmpty = columns == null || columns.length == 0;
                 boolean canUpdateRow = false;
                 if ((!columnsIsEmpty || shallUpdate)) {
-                    final String query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), false, whereBuilder -> table.createWhereClauseFromPrimaryColumns(whereBuilder, dataWrapper.getPrimaryValue())).getQuery();
+                    final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereBuilder -> table.createWhereClauseFromPrimaryColumns(whereBuilder, dataWrapper.getPrimaryValue()));
                     canUpdateRow = this.checkIfRowExist(query, false);
                 }
                 sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
@@ -117,7 +117,7 @@ public class BatchExecutor {
             final boolean columnsIsEmpty = columns == null || columns.length == 0;
             boolean canUpdateRow = false;
             if ((!columnsIsEmpty || shallUpdate)) {
-                final String query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), false, whereClause).getQuery();
+                final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
                 canUpdateRow = this.checkIfRowExist(query, false);
             }
             sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
@@ -133,6 +133,7 @@ public class BatchExecutor {
             this.executeDatabaseTask(composerList);
         }
     }
+
 
     public void removeAll(@Nonnull final String tableName, @Nonnull final List<String> values, @Nonnull final WhereClauseApplier whereClause) {
         final TableWrapper tableWrapper = this.database.getTable(tableName);
@@ -233,9 +234,8 @@ public class BatchExecutor {
         }
         if (table != null) {
             final SqlHandler sqlHandler = new SqlHandler(tableName, database);
-            final String query = sqlHandler.selectRow(columnManger ->
-                            columnManger.addAll(table.getPrimaryColumns()), false, whereClause)
-                    .getQuery();
+            final SqlQueryPair query = sqlHandler.selectRow(columnManger ->
+                            columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
             return this.checkIfRowExist(query, true);
         }
 
@@ -310,6 +310,51 @@ public class BatchExecutor {
         boolean canUpdateRow = (!columnsIsEmpty || shallUpdate) && this.checkIfRowExist(sqlCommandComposer.selectRow(rowWrapper.getPrimaryKeyValue() + ""), false);
         this.databaseConfig.applyDatabaseCommand(commandComposer, rowWrapper.getPrimaryKeyValue(), canUpdateRow);
         return commandComposer;
+    }
+
+    /**
+     * Checks if a row exists in the specified table.
+     * <p>&nbsp;<p>
+     * <p><strong>Important:</strong> If you use this method, you must either:</p>
+     * <ul>
+     *   <li>Set {@code closeConnection} to {@code true} to automatically close the connection.</li>
+     *   <li>Manually close the connection after use if {@code closeConnection} is set to {@code false}.</li>
+     * </ul>
+     *
+     * <p>For save operations, running this check beforehand is unnecessary, as the appropriate SQL
+     * command will be used based on whether the value already exists.</p>
+     *
+     * @param query        the query to run to check if the row exists.
+     * @param closeConnection set to {@code true} to close the connection after the call,
+     *                        or {@code false} if you plan to use it further.
+     * @return {@code true} if the key exists in the table, or {@code false} if either a connection
+     * issue occurs or the data is not found.
+     */
+    private boolean checkIfRowExist(@Nonnull final SqlQueryPair query, final boolean closeConnection) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query.getQuery())) {
+            query.getValues().forEach((index, value) -> {
+                try {
+                    preparedStatement.setObject(index, value);
+                } catch (SQLException e) {
+                    log.log(Level.WARNING, e, () -> of("Failed to set where clause values. for this query: " + query.getQuery() + ". Check the stacktrace."));
+                }
+            });
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return resultSet.next();
+            }
+        } catch (SQLException e) {
+            log.log(e, () -> of("Could not search for your the row with this query '" + query + "' ."));
+        }
+        if (closeConnection) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                log.log(Level.WARNING, e, () -> of("Failed to close database connection."));
+            }
+        }
+
+        return false;
+
     }
 
     /**

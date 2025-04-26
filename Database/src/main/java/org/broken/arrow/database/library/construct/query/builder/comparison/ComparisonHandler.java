@@ -69,7 +69,6 @@ public class ComparisonHandler<T> {
     }
 
     public LogicalOperator<T> equal(QueryBuilder subquery) {
-        //SubqueryHandler
         this.init(LogicalOperators.EQUALS, new SubqueryHandler<>(subquery));
         return this.logicalOperator;
     }

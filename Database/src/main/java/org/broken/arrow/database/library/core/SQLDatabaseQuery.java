@@ -167,7 +167,8 @@ public abstract class SQLDatabaseQuery extends Database {
             final SqlHandler sqlHandler = new SqlHandler(table.getTableName(), getDatabase());
 
             final WhereBuilder whereBuilder = WhereBuilder.of(new QueryBuilder().setGlobalEnableQueryPlaceholders(this.isSecureQuery()));
-            Validate.checkBoolean( whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
+            table.createWhereClauseFromPrimaryColumns(whereBuilder, columnValue);
+            Validate.checkBoolean(whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 
             final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), whereBuilder);
 
