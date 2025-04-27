@@ -53,7 +53,6 @@ public class BatchExecutor {
     }
 
     public void saveAll(@Nonnull final String tableName, final boolean shallUpdate, final WhereClauseApplier whereClauseFunc, String... columns) {
-        final List<SqlCommandComposer> composerList = new ArrayList<>();
         final List<SqlQueryPair> queryList = new ArrayList<>();
 
         final SqlQueryTable table = this.database.getTableFromName(tableName);
@@ -87,8 +86,8 @@ public class BatchExecutor {
     }
 
     public void save(final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final String... columns) {
-        final List<SqlCommandComposer> composerList = new ArrayList<>();
         final SqlQueryTable table = this.database.getTableFromName(tableName);
+
         if (table == null) {
             this.printFailFindTable(tableName);
             return;
@@ -216,19 +215,6 @@ public class BatchExecutor {
         return false;
     }
 
-    /**
-     * Retrieves a SqlCommandComposer instance.
-     *
-     * @param rowWrapper  The current row's column data.
-     * @param shallUpdate Specifies whether the table should be updated.
-     * @param columns     If not null and not empty, updates the existing row with these columns if it exists.
-     * @return The SqlCommandComposer instance with the finish SQL command for either use for prepare V or not.
-     */
-    private SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
-        final SqlCommandComposer commandComposer = new SqlCommandComposer(rowWrapper, this.database);
-        commandComposer.setColumnsToUpdate(columns);
-        return commandComposer;
-    }
 
     /**
      * Checks if a row exists in the specified table.
@@ -267,13 +253,14 @@ public class BatchExecutor {
             try {
                 connection.close();
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Failed to close database connection."));
+                failedCloseConnection(e);
             }
         }
 
         return false;
 
     }
+
 
     protected void executeDatabaseTasks(List<SqlQueryPair> composerList) {
         batchUpdateGoingOn = true;
@@ -319,7 +306,7 @@ public class BatchExecutor {
             try {
                 databaseConnection.close();
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Failed to close database connection."));
+                failedCloseConnection(e);
             } finally {
                 this.batchUpdateGoingOn = false;
                 timer.cancel();
@@ -343,11 +330,9 @@ public class BatchExecutor {
                 statement.addBatch();
             statement.executeBatch();
         } catch (SQLException e) {
-            log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql.getQuery() + "\""));
-            log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
+            failedSetValuesBatch(sql.getQuery(), e, cachedDataByColumn);
         } catch (ArrayIndexOutOfBoundsException exception) {
             log.log(Level.WARNING, () -> of("Could not execute this batch: \"" + sql.getQuery() + "\" . Probably this is not an premed batch with placeholders, check so the query contains ? for all values."));
-            log.log(exception, () -> of("Values that could not be executed: '" + cachedDataByColumn.entrySet() + "'"));
         }
     }
 
@@ -393,7 +378,7 @@ public class BatchExecutor {
             try {
                 databaseConnection.close();
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Failed to close database connection."));
+                failedCloseConnection(e);
             } finally {
                 this.batchUpdateGoingOn = false;
                 timer.cancel();
@@ -417,8 +402,7 @@ public class BatchExecutor {
                 statement.addBatch();
             statement.executeBatch();
         } catch (SQLException e) {
-            log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql.getPreparedSQLBatch() + "\""));
-            log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
+            failedSetValuesBatch(sql.getPreparedSQLBatch(), e, cachedDataByColumn);
         }
     }
 
@@ -429,6 +413,15 @@ public class BatchExecutor {
 
     public boolean checkIfNotNull(Object object) {
         return object != null;
+    }
+
+    private void failedSetValuesBatch(String sql, SQLException e, Map<Integer, Object> cachedDataByColumn) {
+        log.log(Level.WARNING, () -> of("Could not execute this prepared batch: \"" + sql + "\""));
+        log.log(e, () -> of("Values that could not be executed: '" + cachedDataByColumn.values() + "'"));
+    }
+
+    private void failedCloseConnection(SQLException e) {
+        log.log(Level.WARNING, e, () -> of("Failed to close database connection."));
     }
 
     public void printFailFindTable(String tableName) {
