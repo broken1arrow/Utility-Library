@@ -3,7 +3,6 @@ package org.broken.arrow.database.library.core;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
-import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
@@ -37,7 +36,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,8 +50,7 @@ import static org.broken.arrow.logging.library.Logging.of;
 @SuppressWarnings("unused")
 public abstract class Database {
     private final Logging log = new Logging(Database.class);
-    private final Map<String, TableWrapper> tables = new HashMap<>();
-    private final Map<String, SqlQueryTable> tabless = new HashMap<>();
+    private final Map<String, SqlQueryTable> tablesCache = new HashMap<>();
     private final ConnectionSettings connectionSettings;
     private final MethodReflectionUtils methodReflectionUtils = new MethodReflectionUtils();
     private Set<String> removeColumns = new HashSet<>();
@@ -129,29 +126,39 @@ public abstract class Database {
     public abstract DatabaseCommandConfig databaseConfig();
 
     /**
+     * Add the tables you want to create inside the database and
+     * don't forget at least 1 primary key.
+     *
+     * @param callback the helper to create your sql query.
+     */
+    public void addTable(Function<QueryBuilder, CreateTableHandler> callback) {
+        SqlQueryTable sqlQueryTable = new SqlQueryTable(callback);
+
+        this.tablesCache.put(sqlQueryTable.getTableName(), sqlQueryTable);
+    }
+
+    @Nullable
+    public SqlQueryTable getTableFromName(String tableName) {
+        return tablesCache.get(tableName);
+    }
+
+
+    /**
      * Create all needed tables if it not exist.
      */
     public void createTables() {
+        if (tablesCache.isEmpty()) {
+            log.log(() -> of("You don't have added any tables, so it can't check or create your tables."));
+            return;
+        }
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
         }
         try {
             createAllTablesIfNotExist(connection);
-            if (!tabless.isEmpty()) {
-                try {
-                    for (final Entry<String, SqlQueryTable> entityTables : tabless.entrySet()) {
-                        final List<String> columns = updateTableColumnsInDb(connection, entityTables.getKey());
-                        this.createMissingColumns(connection, entityTables.getValue(), columns);
-                    }
-                } catch (final SQLException throwable) {
-                    log.log(throwable, () -> of("Fail to update columns in your table."));
-                }
-            }
-            if (tables.isEmpty())
-                return;
             try {
-                for (final Entry<String, TableWrapper> entityTables : tables.entrySet()) {
+                for (final Entry<String, SqlQueryTable> entityTables : tablesCache.entrySet()) {
                     final List<String> columns = updateTableColumnsInDb(connection, entityTables.getKey());
                     this.createMissingColumns(connection, entityTables.getValue(), columns);
                 }
@@ -519,15 +526,15 @@ public abstract class Database {
             this.printFailToOpen();
             return;
         }
-        final TableWrapper updatedTableColumns = tables.get(tableName);
+        final SqlQueryTable updatedTableColumns = this.getTableFromName(tableName);
 
-        if (updatedTableColumns == null || updatedTableColumns.getColumns().isEmpty()) return;
+        if (updatedTableColumns == null || updatedTableColumns.getTable().getColumns().isEmpty()) return;
         // Remove the columns we don't want anymore from the table's list of columns
 
         if (this.removeColumns != null) for (final String removed : this.removeColumns) {
             existingColumns.remove(removed);
         }
-        final String columnsSeparated = getColumnsFromTable(updatedTableColumns.getColumns().values());
+        final String columnsSeparated = getColumnsFromTable(updatedTableColumns.getTable().getColumns());
 
         PreparedStatement moveData = null;
         PreparedStatement alterTable = null;
@@ -599,12 +606,9 @@ public abstract class Database {
      * @param connection the connection to the database where the changes should be added.
      */
     protected void createAllTablesIfNotExist(final Connection connection) {
-        if (!tabless.isEmpty())
-            for (final Entry<String, SqlQueryTable> sqlQueryTable : tabless.entrySet()) {
-                this.createTableIfNotExist(connection, sqlQueryTable);
-            }
-        for (final Entry<String, TableWrapper> wrapperEntry : tables.entrySet()) {
-            this.createTableIfNotExist(connection, wrapperEntry.getKey());
+        if (tablesCache.isEmpty()) return;
+        for (final Entry<String, SqlQueryTable> sqlQueryTable : tablesCache.entrySet()) {
+            this.createTableIfNotExist(connection, sqlQueryTable);
         }
     }
 
@@ -648,42 +652,31 @@ public abstract class Database {
     protected boolean createTableIfNotExist(final Connection connection, final String tableName) {
 
         PreparedStatement statement = null;
-        PreparedStatement statementNew = null;
         String table = "";
         try {
-            final TableWrapper wrapperEntry = this.getTable(tableName);
+
             final SqlQueryTable tableQuery = this.getTableFromName(tableName);
-            if (wrapperEntry == null && tableQuery == null) {
+            if (tableQuery == null) {
                 this.printFailFindTable(tableName);
                 return false;
             }
 
-            if (tableQuery != null) {
-                if (tableQuery.getTableName().isEmpty())
-                    return false;
-                statementNew = connection.prepareStatement(tableQuery.createTable());
-                statementNew.executeUpdate();
-                Column column = tableQuery.getPrimaryColumns().stream().findFirst().orElse(null);
-                Validate.checkNotNull(column, "Could not find a primary column for this table " + tableName);
-                checkIfTableExist(connection, tableName, column.getColumnName());
-                return true;
-            }
-
-            final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(wrapperEntry), this);
-            table = sqlCommandComposer.createTable();
-            statement = connection.prepareStatement(table);
+            if (tableQuery.getTableName().isEmpty())
+                return false;
+            statement = connection.prepareStatement(tableQuery.createTable());
             statement.executeUpdate();
-            TableRow wrapper = wrapperEntry.getColumns().values().stream().findFirst().orElse(null);
-            Validate.checkNotNull(wrapper, "Could not find a column for this table " + tableName);
-            checkIfTableExist(connection, tableName, wrapper.getColumnName());
+            Column column = tableQuery.getPrimaryColumns().stream().findFirst().orElse(null);
+            Validate.checkNotNull(column, "Could not find a primary column for this table " + tableName);
+            checkIfTableExist(connection, tableName, column.getColumnName());
             return true;
+
         } catch (final SQLException e) {
             log.log(() -> of("Something not working when try create this table: '" + tableName + "'"));
             final String finalTable = table;
             log.log(e, () -> of("With this command: " + finalTable));
             return false;
         } finally {
-            close(statement, statementNew);
+            close(statement);
         }
     }
 
@@ -715,10 +708,10 @@ public abstract class Database {
     }
 
 
-    protected String getColumnsFromTable(final Collection<TableRow> columns) {
+    protected String getColumnsFromTable(final List<Column> columns) {
         final StringBuilder columRow = new StringBuilder();
-        for (final TableRow colum : columns) {
-            columRow.append(colum).append(" ");
+        for (final Column colum : columns) {
+            columRow.append(colum.getColumnName()).append(" ");
         }
         return columRow.toString();
     }
@@ -749,54 +742,10 @@ public abstract class Database {
     }
 
     @Nonnull
-    public Map<String, TableWrapper> getTables() {
-        return tables;
+    public Map<String, SqlQueryTable> getTables() {
+        return tablesCache;
     }
 
-    @Nullable
-    @Deprecated
-    public TableWrapper getTable(String tableName) {
-        return tables.get(tableName);
-    }
-
-    @Nullable
-    public SqlQueryTable getTableFromName(String tableName) {
-        return tabless.get(tableName);
-    }
-
-    /**
-     * Remove the table.
-     *
-     * @param tableName The table you want to remove
-     * @return true if it find the old table you want to remove.
-     */
-    @Deprecated
-    public boolean removeTable(String tableName) {
-        return tables.remove(tableName) != null;
-    }
-
-    /**
-     * This is replaced by {@link #addTable(Function)} )} You can still use this method, but
-     * is no longer supported and planed to be removed.
-     *
-     * @param tableWrapper the table you created.
-     */
-    @Deprecated
-    public void addTable(TableWrapper tableWrapper) {
-        tables.put(tableWrapper.getTableName(), tableWrapper);
-    }
-
-    /**
-     * Add the tables you want to create inside the database and
-     * don't forget at least 1 primary key.
-     *
-     * @param callback the helper to create your sql query.
-     */
-    public void addTable(Function<QueryBuilder, CreateTableHandler> callback) {
-        SqlQueryTable sqlQueryTable = new SqlQueryTable(callback);
-
-        this.tabless.put(sqlQueryTable.getTableName(), sqlQueryTable);
-    }
 
     @Nullable
     public Connection openConnection() {
