@@ -125,7 +125,7 @@ public abstract class SQLDatabaseQuery extends Database {
                 log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
             }
         });
-        
+
         return loadDataWrappers;
     }
 

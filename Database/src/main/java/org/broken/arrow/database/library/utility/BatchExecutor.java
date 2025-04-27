@@ -1,7 +1,6 @@
 package org.broken.arrow.database.library.utility;
 
 import org.broken.arrow.database.library.builders.DataWrapper;
-import org.broken.arrow.database.library.builders.RowDataWrapper;
 import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
@@ -16,7 +15,6 @@ import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
 import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -25,7 +23,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,9 +56,8 @@ public class BatchExecutor {
         final List<SqlCommandComposer> composerList = new ArrayList<>();
         final List<SqlQueryPair> queryList = new ArrayList<>();
 
-        final TableWrapper tableWrapper = this.database.getTable(tableName);
         final SqlQueryTable table = this.database.getTableFromName(tableName);
-        if (tableWrapper == null && table == null) {
+        if (table == null) {
             this.printFailFindTable(tableName);
             return;
         }
@@ -72,132 +68,92 @@ public class BatchExecutor {
 
         for (DataWrapper dataWrapper : dataWrapperList) {
 
-            if (table != null) {
-                final SqlHandler sqlHandler = new SqlHandler(tableName, database);
-                final boolean columnsIsEmpty = columns == null || columns.length == 0;
-                boolean canUpdateRow = false;
-                if ((!columnsIsEmpty || shallUpdate)) {
-                    final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereBuilder -> table.createWhereClauseFromPrimaryColumns(whereBuilder, dataWrapper.getPrimaryValue()));
-                    canUpdateRow = this.checkIfRowExist(query, false);
-                }
-                sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
-
-                final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, columns));
-                for (Column primary : table.getPrimaryColumns()) {
-                    columnValueMap.put(primary, dataWrapper.getPrimaryValue());
-                }
-
-                queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, wereClause -> whereClauseFunc.apply(wereClause, dataWrapper.getPrimaryValue()), canUpdateRow));
-            } else {
-                TableRow primaryRow = tableWrapper.getPrimaryRow();
-                if (dataWrapper == null || primaryRow == null) continue;
-                this.formatData(composerList, dataWrapper, shallUpdate, columns, tableWrapper);
+            final SqlHandler sqlHandler = new SqlHandler(tableName, database);
+            final boolean columnsIsEmpty = columns == null || columns.length == 0;
+            boolean canUpdateRow = false;
+            if ((!columnsIsEmpty || shallUpdate)) {
+                final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereBuilder -> table.createWhereClauseFromPrimaryColumns(whereBuilder, dataWrapper.getPrimaryValue()));
+                canUpdateRow = this.checkIfRowExist(query, false);
             }
+            sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
+
+            final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, columns));
+            for (Column primary : table.getPrimaryColumns()) {
+                columnValueMap.put(primary, dataWrapper.getPrimaryValue());
+            }
+            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, wereClause -> whereClauseFunc.apply(wereClause, dataWrapper.getPrimaryValue()), canUpdateRow));
         }
-        if (table != null) {
-            this.executeDatabaseTasks(queryList);
-        } else {
-            this.executeDatabaseTask(composerList);
-        }
+        this.executeDatabaseTasks(queryList);
     }
 
     public void save(final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final String... columns) {
         final List<SqlCommandComposer> composerList = new ArrayList<>();
-        final TableWrapper tableWrapper = this.database.getTable(tableName);
         final SqlQueryTable table = this.database.getTableFromName(tableName);
-        if (tableWrapper == null && table == null) {
+        if (table == null) {
             this.printFailFindTable(tableName);
             return;
         }
         if (!checkIfNotNull(dataWrapper)) return;
 
-        if (table != null) {
-            final List<SqlQueryPair> queryList = new ArrayList<>();
-            final SqlHandler sqlHandler = new SqlHandler(tableName, database);
-            final boolean columnsIsEmpty = columns == null || columns.length == 0;
-            boolean canUpdateRow = false;
-            if ((!columnsIsEmpty || shallUpdate)) {
-                final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
-                canUpdateRow = this.checkIfRowExist(query, false);
-            }
-            sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
-            final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, columns));
-            for (Column primary : table.getPrimaryColumns()) {
-                columnValueMap.put(primary, dataWrapper.getPrimaryValue());
-            }
-
-            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, whereClause, canUpdateRow));
-            this.executeDatabaseTasks(queryList);
-        } else {
-            this.formatData(composerList, dataWrapper, shallUpdate, columns, tableWrapper);
-            this.executeDatabaseTask(composerList);
+        final List<SqlQueryPair> queryList = new ArrayList<>();
+        final SqlHandler sqlHandler = new SqlHandler(tableName, database);
+        final boolean columnsIsEmpty = columns == null || columns.length == 0;
+        boolean canUpdateRow = false;
+        if ((!columnsIsEmpty || shallUpdate)) {
+            final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
+            canUpdateRow = this.checkIfRowExist(query, false);
         }
+        sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
+        final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, columns));
+        for (Column primary : table.getPrimaryColumns()) {
+            columnValueMap.put(primary, dataWrapper.getPrimaryValue());
+        }
+
+        queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, whereClause, canUpdateRow));
+        this.executeDatabaseTasks(queryList);
     }
 
 
     public void removeAll(@Nonnull final String tableName, @Nonnull final List<String> values, @Nonnull final WhereClauseApplier whereClause) {
-        final TableWrapper tableWrapper = this.database.getTable(tableName);
+
         final SqlQueryTable table = this.database.getTableFromName(tableName);
-        if (tableWrapper == null && table == null) {
+        if (table == null) {
             this.printFailFindTable(tableName);
             return;
         }
-        if (table != null) {
-            final SqlHandler sqlHandler = new SqlHandler(tableName, database);
-            List<SqlQueryPair> queryList = new ArrayList<>();
-            for (String value : values) {
-                queryList.add(sqlHandler.removeRow(where -> whereClause.apply(where, value)));
-            }
-            this.executeDatabaseTasks(queryList);
-            return;
-        }
-        final List<SqlCommandComposer> columns = new ArrayList<>();
+        final SqlHandler sqlHandler = new SqlHandler(tableName, database);
+        List<SqlQueryPair> queryList = new ArrayList<>();
         for (String value : values) {
-            final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this.database);
-            sqlCommandComposer.removeRow(value);
-            columns.add(sqlCommandComposer);
+            queryList.add(sqlHandler.removeRow(where -> whereClause.apply(where, value)));
         }
-        this.executeDatabaseTask(columns);
+        this.executeDatabaseTasks(queryList);
     }
 
     public void remove(@Nonnull final String tableName, @Nonnull final String value, @Nonnull final WhereClauseApplier whereClause) {
-        final TableWrapper tableWrapper = this.database.getTable(tableName);
         final SqlQueryTable table = this.database.getTableFromName(tableName);
-        if (tableWrapper == null && table == null) {
+        if ( table == null) {
             this.printFailFindTable(tableName);
             return;
         }
 
-        if (table != null) {
-            final SqlHandler sqlHandler = new SqlHandler(tableName, database);
-            List<SqlQueryPair> queryList = new ArrayList<>();
-            queryList.add(sqlHandler.removeRow(where -> whereClause.apply(where, value)));
-            this.executeDatabaseTasks(queryList);
-            return;
-        }
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this.database);
-        sqlCommandComposer.removeRow(value);
-        this.executeDatabaseTask(Collections.singletonList(sqlCommandComposer));
+        final SqlHandler sqlHandler = new SqlHandler(tableName, database);
+        List<SqlQueryPair> queryList = new ArrayList<>();
+        queryList.add(sqlHandler.removeRow(where -> whereClause.apply(where, value)));
+        this.executeDatabaseTasks(queryList);
     }
 
     public void dropTable(String tableName) {
-        final TableWrapper tableWrapper = this.database.getTable(tableName);
         final SqlQueryTable table = this.database.getTableFromName(tableName);
-        if (tableWrapper == null && table == null) {
+
+        if (table == null) {
             this.printFailFindTable(tableName);
             return;
         }
 
-        if (table != null) {
-            final SqlHandler sqlHandler = new SqlHandler(tableName, database);
-            List<SqlQueryPair> queryList = new ArrayList<>();
-            queryList.add(sqlHandler.dropTable());
-            this.executeDatabaseTasks(queryList);
-            return;
-        }
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this.database);
-        sqlCommandComposer.dropTable();
-        this.executeDatabaseTask(Collections.singletonList(sqlCommandComposer));
+        final SqlHandler sqlHandler = new SqlHandler(tableName, database);
+        List<SqlQueryPair> queryList = new ArrayList<>();
+        queryList.add(sqlHandler.dropTable());
+        this.executeDatabaseTasks(queryList);
     }
 
     public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
@@ -226,37 +182,15 @@ public class BatchExecutor {
      * or a connection issue occurs.
      */
     public boolean checkIfRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
-        final TableWrapper tableWrapper = this.database.getTable(tableName);
         final SqlQueryTable table = this.database.getTableFromName(tableName);
-        if (tableWrapper == null && table == null) {
+        if ( table == null) {
             this.printFailFindTable(tableName);
             return false;
         }
-        if (table != null) {
-            final SqlHandler sqlHandler = new SqlHandler(tableName, database);
-            final SqlQueryPair query = sqlHandler.selectRow(columnManger ->
-                            columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
-            return this.checkIfRowExist(query, true);
-        }
-
-        Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
-        final String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
-        Validate.checkNotNull(primaryKeyValue, "The value for the column " + primaryColumn + ". Is null.");
-
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this.database);
-        return this.checkIfRowExist(sqlCommandComposer.selectRow((String) primaryKeyValue), true);
-    }
-
-    private void formatData(@Nonnull final List<SqlCommandComposer> composerList, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final String[] columns, final TableWrapper tableWrapper) {
-        final ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
-        final RowWrapper rowWrapper = new RowDataWrapper(tableWrapper, dataWrapper.getPrimaryValue());
-
-        for (Map.Entry<String, Object> entry : configuration.serialize().entrySet()) {
-            TableRow column = tableWrapper.getColumn(entry.getKey());
-            if (column == null) continue;
-            rowWrapper.putColumn(entry.getKey(), entry.getValue());
-        }
-        composerList.add(this.getCommandComposer(rowWrapper, shallUpdate, columns));
+        final SqlHandler sqlHandler = new SqlHandler(tableName, database);
+        final SqlQueryPair query = sqlHandler.selectRow(columnManger ->
+                        columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
+        return this.checkIfRowExist(query, true);
     }
 
     private Map<Column, Object> formatData(@Nonnull final DataWrapper dataWrapper, final String[] columns) {
@@ -293,22 +227,6 @@ public class BatchExecutor {
     private SqlCommandComposer getCommandComposer(@Nonnull final RowWrapper rowWrapper, final boolean shallUpdate, String... columns) {
         final SqlCommandComposer commandComposer = new SqlCommandComposer(rowWrapper, this.database);
         commandComposer.setColumnsToUpdate(columns);
-
-        final boolean columnsIsEmpty = columns == null || columns.length == 0;
-        final String tableName = rowWrapper.getTableWrapper().getTableName();
-        final TableWrapper tableWrapper = this.database.getTable(tableName);
-        if (tableWrapper == null) {
-            this.printFailFindTable(tableName);
-            return commandComposer;
-        }
-        Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
-        final String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
-        Validate.checkNotNull(rowWrapper.getPrimaryKeyValue(), "Could not find column for " + primaryColumn + ". Because the column value is null.");
-
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this.database);
-
-        boolean canUpdateRow = (!columnsIsEmpty || shallUpdate) && this.checkIfRowExist(sqlCommandComposer.selectRow(rowWrapper.getPrimaryKeyValue() + ""), false);
-        this.databaseConfig.applyDatabaseCommand(commandComposer, rowWrapper.getPrimaryKeyValue(), canUpdateRow);
         return commandComposer;
     }
 
@@ -355,44 +273,6 @@ public class BatchExecutor {
 
         return false;
 
-    }
-
-    /**
-     * Checks if a row exists in the specified table.
-     * <p>&nbsp;<p>
-     * <p><strong>Important:</strong> If you use this method, you must either:</p>
-     * <ul>
-     *   <li>Set {@code closeConnection} to {@code true} to automatically close the connection.</li>
-     *   <li>Manually close the connection after use if {@code closeConnection} is set to {@code false}.</li>
-     * </ul>
-     *
-     * <p>For save operations, running this check beforehand is unnecessary, as the appropriate SQL
-     * command will be used based on whether the value already exists.</p>
-     *
-     * @param sqlQuery        the query to run to check if the row exists.
-     * @param closeConnection set to {@code true} to close the connection after the call,
-     *                        or {@code false} if you plan to use it further.
-     * @return {@code true} if the key exists in the table, or {@code false} if either a connection
-     * issue occurs or the data is not found.
-     */
-    private boolean checkIfRowExist(@Nonnull String sqlQuery, boolean closeConnection) {
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery)) {
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                return resultSet.next();
-            }
-        } catch (SQLException e) {
-            log.log(e, () -> of("Could not search for your the row with this query '" + sqlQuery + "' ."));
-        }
-        if (closeConnection) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Failed to close database connection."));
-            }
-        }
-
-        return false;
     }
 
     protected void executeDatabaseTasks(List<SqlQueryPair> composerList) {
