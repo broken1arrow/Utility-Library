@@ -71,7 +71,7 @@ public class MongoDB extends Database {
             return;
         }
         if (!openMongo()) {
-            log.log(Level.WARNING, () -> of("Could not open connection to the database."));
+            errorCouldConnect();
             return;
         }
 
@@ -116,7 +116,7 @@ public class MongoDB extends Database {
             return null;
         }
         if (!openMongo()) {
-            log.log(Level.WARNING, () -> of("Could not open connection."));
+            errorCouldConnect();
             return null;
         }
 
@@ -159,7 +159,7 @@ public class MongoDB extends Database {
             return null;
         }
         if (!openMongo()) {
-            log.log(Level.WARNING, () -> of("Could not open connection to the database."));
+            errorCouldConnect();
             return null;
         }
 
@@ -217,7 +217,7 @@ public class MongoDB extends Database {
     @Nullable
     public <T> T executeQuery(@Nonnull final QueryDefinition queryBuilder, Function<StatementContext<MongoCollection<Document>>, T> function) {
         if (!openMongo()) {
-            log.log(Level.WARNING, () -> of("Could not open connection to the database."));
+            errorCouldConnect();
             return null;
         }
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
@@ -244,7 +244,7 @@ public class MongoDB extends Database {
      */
     public void executeQuery(@Nonnull final QueryDefinition queryBuilder, Consumer<StatementContext<MongoCollection<Document>>> consumer) {
         if (!openMongo()) {
-            log.log(Level.WARNING, () -> of("Could not open connection to the database."));
+            errorCouldConnect();
             return;
         }
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
@@ -341,6 +341,11 @@ public class MongoDB extends Database {
         mongoClient.close();
         this.isClosed = true;
     }
+
+    private void errorCouldConnect() {
+        log.log(Level.WARNING, () -> of("Could not open connection to the database."));
+    }
+
 
     /**
      * This method check if connection is null or close.
