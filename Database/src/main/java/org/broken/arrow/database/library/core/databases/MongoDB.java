@@ -16,14 +16,13 @@ import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
-import org.broken.arrow.database.library.builders.tables.TableRow;
-import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
+import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.database.library.utility.StatementContext;
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -66,8 +65,8 @@ public class MongoDB extends Database {
 
     @Override
     public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, final String... columns) {
-        final TableWrapper tableWrapper = this.getTable(tableName);
-        if (tableWrapper == null) {
+        final  SqlQueryTable sqlQueryTable = this.getTableFromName(tableName);
+        if (sqlQueryTable == null) {
             this.printFailFindTable(tableName);
             return;
         }
@@ -79,7 +78,7 @@ public class MongoDB extends Database {
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
         MongoCollection<Document> collection = database.getCollection(tableName);
         for (DataWrapper dataWrapper : dataWrapperList) {
-            saveData(dataWrapper, tableWrapper, collection);
+            saveData(dataWrapper, sqlQueryTable, collection);
         }
 
         // Close the MongoDB connection
@@ -93,7 +92,7 @@ public class MongoDB extends Database {
 
     @Override
     public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
-        final TableWrapper tableWrapper = this.getTable(tableName);
+        SqlQueryTable tableWrapper = this.getTableFromName(tableName);
         if (tableWrapper == null) {
             this.printFailFindTable(tableName);
             return;
@@ -111,8 +110,8 @@ public class MongoDB extends Database {
     @Nullable
     @Override
     public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
-        TableWrapper tableWrapper = this.getTable(tableName);
-        if (tableWrapper == null) {
+        SqlQueryTable sqlQueryTable = this.getTableFromName(tableName);
+        if (sqlQueryTable == null) {
             this.printFailFindTable(tableName);
             return null;
         }
@@ -120,7 +119,6 @@ public class MongoDB extends Database {
             log.log(Level.WARNING, () -> of("Could not open connection."));
             return null;
         }
-        Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 
         final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
@@ -155,7 +153,7 @@ public class MongoDB extends Database {
     @Nullable
     @Override
     public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, final String columnValue) {
-        TableWrapper tableWrapper = this.getTable(tableName);
+        SqlQueryTable tableWrapper = this.getTableFromName(tableName);
         if (tableWrapper == null) {
             this.printFailFindTable(tableName);
             return null;
@@ -164,7 +162,6 @@ public class MongoDB extends Database {
             log.log(Level.WARNING, () -> of("Could not open connection to the database."));
             return null;
         }
-        Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
 
         LoadDataWrapper<T> loadDataWrapper = null;
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
@@ -285,7 +282,7 @@ public class MongoDB extends Database {
     public void createTables() {
         if (!openMongo()) return;
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
-        for (final Entry<String, TableWrapper> entityTables : this.getTables().entrySet()) {
+        for (final Entry<String, SqlQueryTable> entityTables : this.getTables().entrySet()) {
             boolean collectionExists = database.listCollectionNames().into(new ArrayList<>()).contains(entityTables.getKey());
             if (!collectionExists) {
                 database.createCollection(entityTables.getKey());
@@ -302,12 +299,12 @@ public class MongoDB extends Database {
     }
 
 
-    private void saveData(final DataWrapper dataWrapper, final TableWrapper tableWrapper, final MongoCollection<Document> collection) {
+    private void saveData(final DataWrapper dataWrapper, final SqlQueryTable tableWrapper, final MongoCollection<Document> collection) {
         Document document = new Document("_id", dataWrapper.getPrimaryValue());
         Bson filter = Filters.eq("_id", dataWrapper.getPrimaryValue());
 
         for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
-            TableRow column = tableWrapper.getColumn(entry.getKey());
+            Column column = getColumn(tableWrapper,entry.getKey());
 
             if (column == null) continue;
             Bson updatedRow = Updates.set(entry.getKey(), entry.getValue());
@@ -317,6 +314,14 @@ public class MongoDB extends Database {
         }
         if (document.size() > 1)
             collection.insertOne(document);
+    }
+
+    private static Column getColumn(SqlQueryTable tableWrapper,String columnName) {
+        for(Column colum :tableWrapper.getTable().getColumns()){
+            if(colum.getColumnName().equals(columnName))
+                return colum;
+        }
+        return null;
     }
 
     public boolean openMongo() {
