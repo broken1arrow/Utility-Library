@@ -4,7 +4,6 @@ import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
-import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
@@ -103,17 +102,6 @@ public abstract class Database {
 
     public abstract boolean isHasCastException();
 
-    /**
-     * The batchUpdate method, override this method to self set the method.
-     *
-     * @param sqlComposer   list of instances that store the information for the command that will be executed.
-     * @param tableWrappers the table wrapper involved in the execution of this event.
-     * @deprecated should not be used as it have no use soon.
-     */
-    @Deprecated
-    protected void batchUpdate(@Nonnull final List<SqlCommandComposer> sqlComposer, @Nonnull final TableWrapper... tableWrappers) {
-
-    }
 
     /**
      * Retrieves the configuration settings for a specific database type. This includes settings
