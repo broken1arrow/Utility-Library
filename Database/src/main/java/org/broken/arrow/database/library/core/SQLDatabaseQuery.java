@@ -3,12 +3,9 @@ package org.broken.arrow.database.library.core;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
-import org.broken.arrow.database.library.builders.RowWrapper;
-import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.SqlHandler;
 import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
-import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
@@ -100,121 +97,69 @@ public abstract class SQLDatabaseQuery extends Database {
     @Override
     @Nullable
     public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
-        final TableWrapper tableWrapper = getDatabase().getTable(tableName);
         final SqlQueryTable table = getDatabase().getTableFromName(tableName);
 
-        if (tableWrapper == null && table == null) {
+        if (table == null) {
             getDatabase().printFailFindTable(tableName);
             return null;
         }
 
-        if (table != null) {
-            final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
-            final String selectRow = table.selectTable();
-            this.executeQuery(QueryDefinition.of(selectRow), statementWrapper -> {
-                try (ResultSet resultSet = statementWrapper.getContextResult().executeQuery()) {
-                    while (resultSet.next()) {
-                        final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet, table.getTable().getColumns());
-                        final T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-                        final List<Column> primaryColumns = table.getTable().getPrimaryColumns();
-                        final Map<String, Object> objectList = new HashMap<>();
-                        if (!primaryColumns.isEmpty()) {
-                            for (Column column : primaryColumns) {
-                                Object primaryValue = dataFromDB.get(column.getColumnName());
-                                objectList.put(column.getColumnName(), primaryValue);
-                            }
-                        }
-                        loadDataWrappers.add(new LoadDataWrapper<>(objectList, deserialize));
-                    }
-                } catch (SQLException e) {
-                    log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
-                }
-            });
-            return loadDataWrappers;
-        }
-
         final List<LoadDataWrapper<T>> loadDataWrappers = new ArrayList<>();
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), getDatabase());
-        Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Primary column should not be null");
-
-        this.executeQuery(QueryDefinition.of(sqlCommandComposer.selectTable()), statementWrapper -> {
+        final String selectRow = table.selectTable();
+        this.executeQuery(QueryDefinition.of(selectRow), statementWrapper -> {
             try (ResultSet resultSet = statementWrapper.getContextResult().executeQuery()) {
                 while (resultSet.next()) {
-                    Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet, tableWrapper);
-                    T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-                    Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
-                    loadDataWrappers.add(new LoadDataWrapper<>(primaryValue, deserialize));
+                    final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet, table.getTable().getColumns());
+                    final T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+                    final List<Column> primaryColumns = table.getTable().getPrimaryColumns();
+                    final Map<String, Object> objectList = new HashMap<>();
+                    if (!primaryColumns.isEmpty()) {
+                        for (Column column : primaryColumns) {
+                            Object primaryValue = dataFromDB.get(column.getColumnName());
+                            objectList.put(column.getColumnName(), primaryValue);
+                        }
+                    }
+                    loadDataWrappers.add(new LoadDataWrapper<>(objectList, deserialize));
                 }
             } catch (SQLException e) {
                 log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
             }
         });
+        
         return loadDataWrappers;
     }
 
     @Override
     @Nullable
     public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
-        TableWrapper tableWrapper = getDatabase().getTable(tableName);
         SqlQueryTable table = getDatabase().getTableFromName(tableName);
-        if (tableWrapper == null && table == null) {
+        if (table == null) {
             getDatabase().printFailFindTable(tableName);
             return null;
         }
 
-        if (table != null) {
-            final Map<String, Object> dataFromDB = new HashMap<>();
-            final SqlHandler sqlHandler = new SqlHandler(table.getTableName(), getDatabase());
+        final Map<String, Object> dataFromDB = new HashMap<>();
+        final SqlHandler sqlHandler = new SqlHandler(table.getTableName(), getDatabase());
 
-            final WhereBuilder whereBuilder = WhereBuilder.of(new QueryBuilder().setGlobalEnableQueryPlaceholders(this.isSecureQuery()));
-            table.createWhereClauseFromPrimaryColumns(whereBuilder, columnValue);
-            Validate.checkBoolean(whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
+        final WhereBuilder whereBuilder = WhereBuilder.of(new QueryBuilder().setGlobalEnableQueryPlaceholders(this.isSecureQuery()));
+        table.createWhereClauseFromPrimaryColumns(whereBuilder, columnValue);
+        Validate.checkBoolean(whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 
-            final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), whereBuilder);
+        final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), whereBuilder);
 
-            this.executeQuery(QueryDefinition.of(selectRow.getQuery()), statementWrapper -> {
-                PreparedStatement preparedStatement = statementWrapper.getContextResult();
+        this.executeQuery(QueryDefinition.of(selectRow.getQuery()), statementWrapper -> {
+            PreparedStatement preparedStatement = statementWrapper.getContextResult();
 
-                whereBuilder.getValues().forEach((index, value) -> {
-                    try {
-                        preparedStatement.setObject(index, value);
-                    } catch (SQLException e) {
-                        log.log(Level.WARNING, e, () -> of("Failed to set where clause values. for this column value " + columnValue + ". Check the stacktrace."));
-                    }
-                });
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if (resultSet.next())
-                        dataFromDB.putAll(getDatabase().getDataFromDB(resultSet, table.getTable().getColumns()));
+            whereBuilder.getValues().forEach((index, value) -> {
+                try {
+                    preparedStatement.setObject(index, value);
                 } catch (SQLException e) {
-                    log.log(Level.WARNING, e, () -> of("Could not load the data from " + columnValue + ". Check the stacktrace."));
+                    log.log(Level.WARNING, e, () -> of("Failed to set where clause values. for this column value " + columnValue + ". Check the stacktrace."));
                 }
             });
-            if (dataFromDB.isEmpty())
-                return null;
-            T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-            List<ComparisonHandler<WhereBuilder>> comparisonHandlerList = whereBuilder.getConditionsList();
-            Map<String, Object> objectList = new HashMap<>();
-            if (!comparisonHandlerList.isEmpty()) {
-                for (ComparisonHandler<?> comparisonHandler : comparisonHandlerList) {
-                    String column = comparisonHandler != null ? comparisonHandler.getColumn() : null;
-                    Object primaryValue = dataFromDB.get(column);
-                    objectList.put(column, primaryValue);
-                }
-            }
-            return new LoadDataWrapper<>(objectList, deserialize);
-        }
-
-        Validate.checkNotNull(tableWrapper.getPrimaryRow(), "Could not find  primary column for table " + tableName);
-        String primaryColumn = tableWrapper.getPrimaryRow().getColumnName();
-        Map<String, Object> dataFromDB = new HashMap<>();
-        Validate.checkNotNull(columnValue, "Could not find column for " + primaryColumn + ". Because the column value is null.");
-
-        final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), getDatabase());
-
-        this.executeQuery(QueryDefinition.of(sqlCommandComposer.selectRow(columnValue)), statementWrapper -> {
-            try (ResultSet resultSet = statementWrapper.getContextResult().executeQuery()) {
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next())
-                    dataFromDB.putAll(getDatabase().getDataFromDB(resultSet, tableWrapper));
+                    dataFromDB.putAll(getDatabase().getDataFromDB(resultSet, table.getTable().getColumns()));
             } catch (SQLException e) {
                 log.log(Level.WARNING, e, () -> of("Could not load the data from " + columnValue + ". Check the stacktrace."));
             }
@@ -222,9 +167,17 @@ public abstract class SQLDatabaseQuery extends Database {
         if (dataFromDB.isEmpty())
             return null;
         T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
-        Object primaryValue = dataFromDB.get(tableWrapper.getPrimaryRow().getColumnName());
+        List<ComparisonHandler<WhereBuilder>> comparisonHandlerList = whereBuilder.getConditionsList();
+        Map<String, Object> objectList = new HashMap<>();
+        if (!comparisonHandlerList.isEmpty()) {
+            for (ComparisonHandler<?> comparisonHandler : comparisonHandlerList) {
+                String column = comparisonHandler != null ? comparisonHandler.getColumn() : null;
+                Object primaryValue = dataFromDB.get(column);
+                objectList.put(column, primaryValue);
+            }
+        }
+        return new LoadDataWrapper<>(objectList, deserialize);
 
-        return new LoadDataWrapper<>(primaryValue, deserialize);
     }
 
     /**
