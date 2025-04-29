@@ -45,7 +45,7 @@ public class TableColumn extends Column {
     }
 
     public String build(){
-        StringJoiner joiner = new StringJoiner(", ");
+        StringJoiner joiner = new StringJoiner(" ");
         for (SQLConstraints constraint: this.constraints){
             joiner.add(constraint.toString());
         }
