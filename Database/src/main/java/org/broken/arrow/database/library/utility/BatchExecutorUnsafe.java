@@ -1,9 +1,8 @@
 package org.broken.arrow.database.library.utility;
 
-import org.broken.arrow.database.library.core.Database;
-import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
+import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.logging.library.Logging;
 
 import javax.annotation.Nonnull;
@@ -17,12 +16,12 @@ import java.util.logging.Level;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public class BatchExecutorUnsafe extends BatchExecutor {
+public class BatchExecutorUnsafe<T> extends BatchExecutor<T> {
     private final Logging log = new Logging(BatchExecutorUnsafe.class);
     private volatile boolean batchUpdateGoingOn;
     private volatile boolean hasStartWriteToDb;
 
-    public BatchExecutorUnsafe(final Database database, final Connection connection, @Nonnull final List<DataWrapper> dataWrapperList) {
+    public BatchExecutorUnsafe(final Database database, final Connection connection, @Nonnull final List<T> dataWrapperList) {
         super(database, connection, dataWrapperList);
     }
 
@@ -33,7 +32,7 @@ public class BatchExecutorUnsafe extends BatchExecutor {
         if (!this.hasStartWriteToDb)
             try (final Statement statement = connection.createStatement(this.resultSetType, this.resultSetConcurrency)) {
                 this.hasStartWriteToDb = true;
-                final int processedCount = dataWrapperList.size();
+                final int processedCount = dataToProcess.size();
 
                 // Prevent automatically sending db instructions
                 this.connection.setAutoCommit(false);
@@ -83,7 +82,7 @@ public class BatchExecutorUnsafe extends BatchExecutor {
         if (!this.hasStartWriteToDb)
             try (final Statement statement = connection.createStatement(this.resultSetType, this.resultSetConcurrency)) {
                 this.hasStartWriteToDb = true;
-                final int processedCount = dataWrapperList.size();
+                final int processedCount = dataToProcess.size();
 
                 // Prevent automatically sending db instructions
                 this.connection.setAutoCommit(false);

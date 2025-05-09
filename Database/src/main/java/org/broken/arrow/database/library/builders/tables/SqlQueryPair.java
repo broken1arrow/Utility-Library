@@ -1,5 +1,7 @@
 package org.broken.arrow.database.library.builders.tables;
 
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
+
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
@@ -7,9 +9,11 @@ import java.util.Objects;
 public class SqlQueryPair {
     private final String query;
     private final Map<Integer, Object> values;
+    private final boolean safeQuery;
 
-    public SqlQueryPair(@Nonnull final String query,@Nonnull final Map<Integer, Object> values) {
-        this.query = query;
+    public SqlQueryPair(@Nonnull final QueryBuilder query, @Nonnull final Map<Integer, Object> values) {
+        this.safeQuery = query.isGlobalEnableQueryPlaceholders();
+        this.query = query.build();
         this.values = values;
     }
 
@@ -21,6 +25,9 @@ public class SqlQueryPair {
         return values;
     }
 
+    public boolean isSafeQuery() {
+        return safeQuery;
+    }
 
     @Override
     public String toString() {

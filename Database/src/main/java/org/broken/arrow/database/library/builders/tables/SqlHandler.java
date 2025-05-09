@@ -36,7 +36,7 @@ public class SqlHandler {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
         queryBuilder.replaceInto(this.tableName, callback);
-        return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
+        return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
     /**
@@ -49,7 +49,7 @@ public class SqlHandler {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
         queryBuilder.insertInto(this.tableName, callback);
-        return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
+        return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
     /**
@@ -64,7 +64,7 @@ public class SqlHandler {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
         queryBuilder.mergeInto(this.tableName, callback);
-        return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
+        return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
     /**
@@ -73,13 +73,13 @@ public class SqlHandler {
      *
      * @param callback    The record or data structure containing the primary key and values to update.
      * @param whereClause The conditions used to filter which row(s) should be updated.
-     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
+     * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
     public SqlQueryPair updateTable(@Nonnull final Consumer<UpdateBuilder> callback, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
         queryBuilder.update(this.tableName, callback).getSelector().where(whereClause);
-        return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
+        return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
 
@@ -89,7 +89,7 @@ public class SqlHandler {
      * @param callback          the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
      * @param queryPlaceholders set this to {@code false} if you not want a prepared statement.
      * @param whereClause       The conditions used to filter which row(s) should be selected.
-     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
+     * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
     public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, final boolean queryPlaceholders, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
@@ -97,7 +97,7 @@ public class SqlHandler {
         callback.accept(columnManger);
         queryBuilder.setGlobalEnableQueryPlaceholders(queryPlaceholders);
         queryBuilder.select(columnManger).from(this.tableName).where( whereClause);
-        return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
+        return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
 
@@ -106,7 +106,7 @@ public class SqlHandler {
      *
      * @param callback    the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
      * @param whereClause what conditions you want to filter your rows from.
-     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
+     * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
     public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, @Nonnull final WhereBuilder whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
@@ -114,31 +114,42 @@ public class SqlHandler {
         callback.accept(columnManger);
 
         queryBuilder.select(columnManger).from(this.tableName).where(whereClause);
-        return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
+        return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
     /**
      * Remove a specific row from the table.
      *
      * @param whereClause the where clause it should remove the row from.
-     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
+     * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
     public SqlQueryPair removeRow(@Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
         queryBuilder.deleteFrom(this.tableName).where(whereClause);
-        return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
+        return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
     /**
      * Remove this table from the database.
      *
-     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} containing the generated SQL command and associated values.
+     * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
     public SqlQueryPair dropTable() {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.dropTable(this.tableName);
-        return new SqlQueryPair(queryBuilder.build(), queryBuilder.getValues());
+
+        return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
+    }
+
+    /**
+     * Just build and wrap the query for be used in the batch update.
+     *
+     * @param queryBuilder The built query command.
+     * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
+     */
+    public SqlQueryPair wrapQuery(QueryBuilder queryBuilder) {
+        return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
     public boolean isSetQueryPlaceholders() {
@@ -148,4 +159,6 @@ public class SqlHandler {
     public void setQueryPlaceholders(final boolean setPlaceholders) {
         this.setGlobalEnableQueryPlaceholders = setPlaceholders;
     }
+
+
 }

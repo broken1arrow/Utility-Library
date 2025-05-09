@@ -51,7 +51,7 @@ public class DatabaseCommandConfig {
      * @param rowExists      Indicates whether the row already exists in the database. If {@code false}, the method
      *                       will replace the data by default. Depending on the provided function, additional
      *                       operations may be executed instead.
-     * @return A {@link SqlQueryPair#SqlQueryPair(String, Map)} )} containing the generated SQL query and associated values.
+     * @return A {@link SqlQueryPair#SqlQueryPair(org.broken.arrow.database.library.construct.query.QueryBuilder, Map)} )} containing the generated SQL query and associated values.
      * If {@link Database#setSecureQuery(boolean)} is set to {@code false},
      * the query will not use parameterized values, as they are already included in the generated SQL string.
      */

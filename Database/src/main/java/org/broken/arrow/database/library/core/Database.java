@@ -7,6 +7,10 @@ import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.database.library.builders.wrappers.DatabaseQueryHandler;
+import org.broken.arrow.database.library.builders.wrappers.DatabaseSettingsLoad;
+import org.broken.arrow.database.library.builders.wrappers.DatabaseSettingsSave;
+import org.broken.arrow.database.library.builders.wrappers.SaveContext;
 import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
@@ -22,13 +26,14 @@ import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.database.library.utility.DatabaseType;
 import org.broken.arrow.database.library.utility.SQLCommandPrefix;
-import org.broken.arrow.database.library.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.serialize.library.utility.serialize.MethodReflectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -41,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 
@@ -51,7 +57,6 @@ public abstract class Database {
     private final Logging log = new Logging(Database.class);
     private final Map<String, SqlQueryTable> tablesCache = new HashMap<>();
     private final ConnectionSettings connectionSettings;
-    private final MethodReflectionUtils methodReflectionUtils = new MethodReflectionUtils();
     private Set<String> removeColumns = new HashSet<>();
     private DatabaseType databaseType = null;
     private char quote = '`';
@@ -242,6 +247,32 @@ public abstract class Database {
     public abstract void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns);
 
     /**
+     * Allows you to specify which row or rows you want to update in a SQL database.
+     * (Note: This currently does not support non-SQL databases.)
+     * <p>
+     * You provide the table name and a map of cached values to save. The table doesn't need to be one of the registered ones in this library,
+     * as no checks are performed against previously registered tables (unlike the older methods).
+     * <p>
+     * The map’s values must implement {@link ConfigurationSerializable}, and the keys are entirely up to you — they will be available
+     * in the returned class, where you can loop through them using {@link DatabaseQueryHandler#forEach(Function)}.
+     *
+     * @param tableName   The name of the table. It must exist in the database, but it doesn't need to be registered in this library.
+     * @param cacheToSave The data you want to save. The values must implement {@link ConfigurationSerializable}, and the keys are handled
+     *                    inside {@link DatabaseQueryHandler#forEach(Function)}.
+     * @param shallUpdate Set to {@code true} if you want to update existing rows. Alternatively, you can use the filter option in {@code settings}
+     *                    to control which columns should be updated when a row already exists. If {@code false}, the existing row/rows will be fully replaced.
+     * @param settings    The settings for the save action. Here, you can filter which columns should be updated if the row(s) already exist.
+     * @param <K>         The type of the key used in your cache map.
+     * @param <V>         A type that implements {@link ConfigurationSerializable}.
+     * @return A class that lets you define the WHERE clause for each cached value and access the key associated with it.
+     */
+    @Nonnull
+    public <K, V extends ConfigurationSerializable> DatabaseQueryHandler<SaveContext<K, V>> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave, final boolean shallUpdate, @Nonnull final Consumer<DatabaseSettingsSave<V>> settings) {
+        final DatabaseSettingsSave<V> databaseSettings = new DatabaseSettingsSave<>(tableName);
+        return new DatabaseQueryHandler<>(databaseSettings);
+    }
+
+    /**
      * Load all rows from specified database table.
      *
      * @param tableName name of the table you want to get data from.
@@ -262,8 +293,22 @@ public abstract class Database {
      * @return the retrieved row from the table, or {@code null} if no data is found.
      */
     @Nullable
-    public abstract <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue);
+    public abstract <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final String columnValue);
 
+    /**
+     * Loads a single row from the specified database table.
+     *
+     * @param tableName the name of the table to retrieve data from.
+     * @param clazz     the class containing the static deserialize method.
+     * @param <T>       a class that extends {@code ConfigurationSerializable}.
+     * @return the retrieved row from the table, or {@code null} if no data is found.
+     */
+    @Nonnull
+    public <T extends ConfigurationSerializable> DatabaseQueryHandler<LoadDataWrapper<T>> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<DatabaseSettingsLoad> helperConsumer) {
+        DatabaseSettingsLoad databaseSettings = new DatabaseSettingsLoad(tableName);
+        helperConsumer.accept(databaseSettings);
+        return new DatabaseQueryHandler<>(databaseSettings);
+    }
 
     /**
      * Remove all rows from specified database table.
@@ -272,7 +317,7 @@ public abstract class Database {
      * @param values    the list of primary key values you want to remove from database.
      */
     public void removeAll(@Nonnull final String tableName, @Nonnull final List<String> values) {
-        BatchExecutor batchExecutor;
+        final BatchExecutor batchExecutor;
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
@@ -355,15 +400,15 @@ public abstract class Database {
      * or a connection issue occurs.
      */
     public boolean doRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue) {
-        BatchExecutor batchExecutor;
+        BatchExecutor<DataWrapper> batchExecutor;
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return false;
         }
         if (this.secureQuery)
-            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutor<>(this, connection, new ArrayList<>());
         else {
-            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
         final SqlQueryTable table = this.getTableFromName(tableName);
         if (table == null) {
@@ -988,7 +1033,14 @@ public abstract class Database {
     }
 
     public MethodReflectionUtils getMethodReflectionUtils() {
-        return methodReflectionUtils;
+        return null;
+    }
+
+    public <T extends ConfigurationSerializable> T deSerialize(@Nonnull final Class<T> clazz, @Nonnull final Map<String, Object> serializedData) {
+        Method deserializeMethod = MethodReflectionUtils.getMethod(clazz, "deserialize", Map.class);
+        if (deserializeMethod == null)
+            deserializeMethod = MethodReflectionUtils.getMethod(clazz, "valueOf", Map.class);
+        return MethodReflectionUtils.invokeStaticMethod(clazz, deserializeMethod, serializedData);
     }
 
     public void printPressesCount(int processedCount) {

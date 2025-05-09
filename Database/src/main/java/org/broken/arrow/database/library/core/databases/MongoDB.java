@@ -140,8 +140,10 @@ public class MongoDB extends Database {
                     resultMap.put(key, value);
 
                 }
-                T deserialize = this.getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", resultMap);
-                loadDataWrappers.add(new LoadDataWrapper<>(id, deserialize));
+                T deserialize = this.deSerialize(clazz,  resultMap);
+                Map<String,Object> map = new HashMap<>();
+                map.put("id", id);
+                loadDataWrappers.add(new LoadDataWrapper<>(map, deserialize));
             }
         } else {
             log.log(() -> of("Could not find any row within this table " + tableName));
@@ -152,7 +154,7 @@ public class MongoDB extends Database {
 
     @Nullable
     @Override
-    public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, final String columnValue) {
+    public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final String columnValue) {
         SqlQueryTable tableWrapper = this.getTableFromName(tableName);
         if (tableWrapper == null) {
             this.printFailFindTable(tableName);
@@ -181,8 +183,10 @@ public class MongoDB extends Database {
                     Object value = entry.getValue();
                     resultMap.put(key, value);
                 }
-                T deserialize = this.getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", resultMap);
-                loadDataWrapper = new LoadDataWrapper<>(id, deserialize);
+                T deserialize = this.deSerialize(clazz,  resultMap);
+                Map<String,Object> map = new HashMap<>();
+                map.put("id", id);
+                loadDataWrapper = new LoadDataWrapper<>(map , deserialize);
             }
         } else {
             log.log(() -> of("Could not find any row with this value " + columnValue));

@@ -133,6 +133,14 @@ public class QueryBuilder {
         return table;
     }
 
+    public QueryType getQueryType() {
+        return queryType;
+    }
+
+    public QueryModifier getQueryModifier() {
+        return queryModifier;
+    }
+
     // ---- Query Build ----
     public String build() {
         if (this.queryType == null) {
@@ -194,7 +202,8 @@ public class QueryBuilder {
                 .append(queryModifier.getWhereBuilder().build())
                 .append(queryModifier.getGroupByBuilder().build())
                 .append(queryModifier.getHavingBuilder().build())
-                .append(queryModifier.getOrderByBuilder().build());
+                .append(queryModifier.getOrderByBuilder().build())
+                .append(queryModifier.getLimit());
     }
 
     private void createUpdateQuery(final StringBuilder sql) {
@@ -296,5 +305,18 @@ public class QueryBuilder {
         return -1;
     }
 
-
+    @Override
+    public String toString() {
+        return "QueryBuilder{" +
+                "updateBuilder=" + updateBuilder +
+                ", insertHandler=" + insertHandler +
+                ", queryModifier=" + queryModifier +
+                ", createTableHandler=" + createTableHandler +
+                ", queryRemover=" + queryRemover +
+                ", withManger=" + withManger +
+                ", queryType=" + queryType +
+                ", table='" + table + '\'' +
+                ", globalEnableQueryPlaceholders=" + globalEnableQueryPlaceholders +
+                '}';
+    }
 }

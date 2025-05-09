@@ -9,6 +9,9 @@ import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.builders.tables.TableRow;
 import org.broken.arrow.database.library.builders.tables.TableWrapper;
+import org.broken.arrow.database.library.builders.wrappers.DatabaseQueryHandler;
+import org.broken.arrow.database.library.builders.wrappers.SaveContext;
+import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
@@ -33,9 +36,10 @@ import java.util.logging.Level;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
-public class BatchExecutor {
+public class BatchExecutor<T> {
+
     protected final Database database;
-    protected final List<DataWrapper> dataWrapperList;
+    protected final List<T> dataToProcess;
     protected final Connection connection;
     protected final int resultSetType;
     protected final int resultSetConcurrency;
@@ -43,10 +47,10 @@ public class BatchExecutor {
     private final DatabaseCommandConfig databaseConfig;
     private volatile boolean batchUpdateGoingOn;
 
-    public BatchExecutor(@Nonnull final Database database, @Nonnull final Connection connection, @Nonnull final List<DataWrapper> dataWrapperList) {
+    public BatchExecutor(@Nonnull final Database database, @Nonnull final Connection connection, @Nonnull final List<T> dataToProcess) {
         this.database = database;
         this.connection = connection;
-        this.dataWrapperList = dataWrapperList;
+        this.dataToProcess = dataToProcess;
         this.databaseConfig = this.database.databaseConfig();
         this.resultSetType = this.databaseConfig.getResultSetType();
         this.resultSetConcurrency = this.databaseConfig.getResultSetConcurrency();
@@ -65,7 +69,10 @@ public class BatchExecutor {
             return;
         }
 
-        for (DataWrapper dataWrapper : dataWrapperList) {
+        for (T dataToSave : dataToProcess) {
+            if (!(dataToSave instanceof DataWrapper)) continue;
+
+            final DataWrapper dataWrapper = (DataWrapper) dataToSave;
 
             final SqlHandler sqlHandler = new SqlHandler(tableName, database);
             final boolean columnsIsEmpty = columns == null || columns.length == 0;
@@ -81,6 +88,39 @@ public class BatchExecutor {
                 columnValueMap.put(primary, dataWrapper.getPrimaryValue());
             }
             queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, wereClause -> whereClauseFunc.apply(wereClause, dataWrapper.getPrimaryValue()), canUpdateRow));
+        }
+        this.executeDatabaseTasks(queryList);
+    }
+
+    public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, final boolean shallUpdate, final DatabaseQueryHandler<SaveContext<K, V>> databaseQueryHandler) {
+        final List<SqlQueryPair> queryList = new ArrayList<>();
+
+        if (dataToProcess.isEmpty()) {
+            this.log.log(Level.WARNING, () -> Logging.of("No query is not set for this table: " + tableName + ". You must have at least 1 command to save data to the database."));
+            return;
+        }
+
+        for (T dataToSave : dataToProcess) {
+            if (!(dataToSave instanceof SaveContext<? , ?>)) continue;
+            final SaveContext<K, V> saveContext = ((SaveContext<?, ?>) dataToSave).isSaveContext(dataToSave);
+            if (saveContext == null) {
+                this.log.log(Level.WARNING, () -> Logging.of("Failed to process this: " + dataToSave + ". As it is a class mismatch for the saveContext class for the generic type."));
+                continue;
+            }
+
+            final QueryBuilder queryBuilder = saveContext.getQueryBuilder();
+
+            if (checkIfQuerySet(saveContext, queryBuilder)) continue;
+
+            final SqlHandler sqlHandler = new SqlHandler(tableName, database);
+            final boolean columnsFilterSet = databaseQueryHandler.isFilterSet();
+            boolean canUpdateRow = false;
+
+            if ((!columnsFilterSet || shallUpdate)) {
+                final SqlQueryPair wrappedQuery = sqlHandler.wrapQuery(queryBuilder);
+                canUpdateRow = this.checkIfRowExist(wrappedQuery, false);
+            }
+            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, formatData(saveContext.getValue(), canUpdateRow ? databaseQueryHandler : null, new String[0]), saveContext.getWhereClause(), canUpdateRow));
         }
         this.executeDatabaseTasks(queryList);
     }
@@ -130,7 +170,7 @@ public class BatchExecutor {
 
     public void remove(@Nonnull final String tableName, @Nonnull final String value, @Nonnull final WhereClauseApplier whereClause) {
         final SqlQueryTable table = this.database.getTableFromName(tableName);
-        if ( table == null) {
+        if (table == null) {
             this.printFailFindTable(tableName);
             return;
         }
@@ -182,26 +222,33 @@ public class BatchExecutor {
      */
     public boolean checkIfRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         final SqlQueryTable table = this.database.getTableFromName(tableName);
-        if ( table == null) {
+        if (table == null) {
             this.printFailFindTable(tableName);
             return false;
         }
         final SqlHandler sqlHandler = new SqlHandler(tableName, database);
         final SqlQueryPair query = sqlHandler.selectRow(columnManger ->
-                        columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
+                columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
         return this.checkIfRowExist(query, true);
     }
 
+
     private Map<Column, Object> formatData(@Nonnull final DataWrapper dataWrapper, final String[] columns) {
         final ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
+        return this.formatData(configuration, null, columns);
+    }
+
+    private <K, V extends ConfigurationSerializable> Map<Column, Object> formatData(V configuration, final DatabaseQueryHandler<SaveContext<K, V>> databaseQueryHandler, String[] columns) {
         final Map<Column, Object> rowWrapper = new HashMap<>();
         for (Map.Entry<String, Object> entry : configuration.serialize().entrySet()) {
-            if (columns != null && columns.length > 0 && !checkIfUpdateColumn(columns, entry.getKey())) continue;
+            String name = entry.getKey();
+            if (databaseQueryHandler != null && !databaseQueryHandler.containsFilteredColumn(name)) continue;
+            if (columns != null && columns.length > 0 && !checkIfUpdateColumn(columns, name)) continue;
 
-            rowWrapper.put(ColumnManger.of().column(entry.getKey()).getColumn(), entry.getValue());
+            rowWrapper.put(ColumnManger.of().column(name).getColumn(), entry.getValue());
         }
-
         return rowWrapper;
+
     }
 
     private boolean checkIfUpdateColumn(final String[] columns, final String columnName) {
@@ -228,7 +275,7 @@ public class BatchExecutor {
      * <p>For save operations, running this check beforehand is unnecessary, as the appropriate SQL
      * command will be used based on whether the value already exists.</p>
      *
-     * @param query        the query to run to check if the row exists.
+     * @param query           the query to run to check if the row exists.
      * @param closeConnection set to {@code true} to close the connection after the call,
      *                        or {@code false} if you plan to use it further.
      * @return {@code true} if the key exists in the table, or {@code false} if either a connection
@@ -236,13 +283,15 @@ public class BatchExecutor {
      */
     private boolean checkIfRowExist(@Nonnull final SqlQueryPair query, final boolean closeConnection) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(query.getQuery())) {
-            query.getValues().forEach((index, value) -> {
-                try {
-                    preparedStatement.setObject(index, value);
-                } catch (SQLException e) {
-                    log.log(Level.WARNING, e, () -> of("Failed to set where clause values. for this query: " + query.getQuery() + ". Check the stacktrace."));
-                }
-            });
+            if (query.isSafeQuery()) {
+                query.getValues().forEach((index, value) -> {
+                    try {
+                        preparedStatement.setObject(index, value);
+                    } catch (SQLException e) {
+                        log.log(Level.WARNING, e, () -> of("Failed to set where clause values. for this query: " + query.getQuery() + ". Check the stacktrace."));
+                    }
+                });
+            }
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 return resultSet.next();
             }
@@ -427,4 +476,23 @@ public class BatchExecutor {
     public void printFailFindTable(String tableName) {
         log.log(Level.WARNING, () -> of("Could not find table " + tableName));
     }
+
+    private <K, V extends ConfigurationSerializable> boolean checkIfQuerySet(SaveContext<K, V> saveContext, QueryBuilder queryBuilder) {
+        if (queryBuilder == null || saveContext.getSelectData() == null) {
+            this.log.log(Level.WARNING, () -> Logging.of("Missing queryBuilder for key: " + saveContext.getKey() + ". Did you forget to call setSelectCommand()?"));
+            return true;
+        }
+        if (!queryBuilder.isQuerySet()) {
+            this.log.log(Level.WARNING, () -> Logging.of("query is not correct setup: " + saveContext.getKey() + ". It seams like you never chose the type of command to execute on the database."));
+            return true;
+        }
+
+        if (saveContext.getSelectData().getWhereBuilder().isEmpty()) {
+            this.log.log(Level.WARNING, () -> Logging.of("Missing where clause for key: " + saveContext.getKey() + ". You must set it via setSelectCommand() to avoid replacing entire table."));
+            return true;
+        }
+        return false;
+    }
+
+
 }

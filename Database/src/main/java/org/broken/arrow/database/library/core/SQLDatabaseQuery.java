@@ -6,10 +6,15 @@ import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.tables.SqlHandler;
 import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
+import org.broken.arrow.database.library.builders.wrappers.DatabaseQueryHandler;
+import org.broken.arrow.database.library.builders.wrappers.DatabaseSettingsLoad;
+import org.broken.arrow.database.library.builders.wrappers.DatabaseSettingsSave;
+import org.broken.arrow.database.library.builders.wrappers.SaveContext;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
+import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
 import org.broken.arrow.database.library.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
@@ -31,6 +36,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static org.broken.arrow.logging.library.Logging.of;
 
@@ -45,16 +51,16 @@ public abstract class SQLDatabaseQuery extends Database {
     @Override
     public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns) {
         final Connection connection = getDatabase().attemptToConnect();
-        final BatchExecutor batchExecutor;
+        final BatchExecutor<DataWrapper> batchExecutor;
 
         if (connection == null) {
             getDatabase().printFailToOpen();
             return;
         }
         if (getDatabase().isSecureQuery())
-            batchExecutor = new BatchExecutor(getDatabase(), connection, dataWrapperList);
+            batchExecutor = new BatchExecutor<>(getDatabase(), connection, dataWrapperList);
         else {
-            batchExecutor = new BatchExecutorUnsafe(getDatabase(), connection, dataWrapperList);
+            batchExecutor = new BatchExecutorUnsafe<>(getDatabase(), connection, dataWrapperList);
         }
         SqlQueryTable table = getDatabase().getTableFromName(tableName);
 
@@ -69,7 +75,7 @@ public abstract class SQLDatabaseQuery extends Database {
     @Override
     public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
         final Connection connection = getDatabase().attemptToConnect();
-        final BatchExecutor batchExecutor;
+        final BatchExecutor<DataWrapper> batchExecutor;
 
         if (connection == null) {
             getDatabase().printFailToOpen();
@@ -77,9 +83,9 @@ public abstract class SQLDatabaseQuery extends Database {
         }
 
         if (getDatabase().isSecureQuery())
-            batchExecutor = new BatchExecutor(getDatabase(), connection, new ArrayList<>());
+            batchExecutor = new BatchExecutor<>(getDatabase(), connection, new ArrayList<>());
         else {
-            batchExecutor = new BatchExecutorUnsafe(getDatabase(), connection, new ArrayList<>());
+            batchExecutor = new BatchExecutorUnsafe<>(getDatabase(), connection, new ArrayList<>());
         }
         SqlQueryTable table = getDatabase().getTableFromName(tableName);
         if (table == null) {
@@ -92,6 +98,36 @@ public abstract class SQLDatabaseQuery extends Database {
         }
 
         batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> table.createWhereClauseFromPrimaryColumns(where, dataWrapper.getPrimaryValue()), columns);
+    }
+
+    @Nonnull
+    @Override
+    public <K, V extends ConfigurationSerializable> DatabaseQueryHandler<SaveContext<K, V>> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave, final boolean shallUpdate, @Nonnull final Consumer<DatabaseSettingsSave<V>> settings) {
+        final Connection connection = getDatabase().attemptToConnect();
+        final BatchExecutor<SaveContext<K, V>> batchExecutor;
+
+        final DatabaseSettingsSave<V> databaseSettings = new DatabaseSettingsSave<>(tableName);
+        final DatabaseQueryHandler<SaveContext<K, V>> databaseQueryHandler = new DatabaseQueryHandler<>(databaseSettings);
+        if (connection == null) {
+            getDatabase().printFailToOpen();
+            return databaseQueryHandler;
+        }
+
+        settings.accept(databaseSettings);
+        final List<SaveContext<K, V>> data = cacheToSave.entrySet().stream().map(kvEntry -> databaseQueryHandler.setLoadData(new SaveContext<>(tableName, kvEntry))).collect(Collectors.toList());
+        if (data.isEmpty()) {
+            this.log.log(Level.WARNING, () -> Logging.of("No data in the map for the table:'" + tableName + "' . Just must provide data and also don't forget to set your where clause."));
+            return databaseQueryHandler;
+        }
+
+        if (getDatabase().isSecureQuery())
+            batchExecutor = new BatchExecutor<>(getDatabase(), connection, data); //dataWrapperList);
+        else {
+            batchExecutor = new BatchExecutorUnsafe<>(getDatabase(), connection, data); //dataWrapperList);
+        }
+
+        batchExecutor.save(tableName, shallUpdate, databaseQueryHandler);
+        return databaseQueryHandler;
     }
 
     @Override
@@ -110,7 +146,7 @@ public abstract class SQLDatabaseQuery extends Database {
             try (ResultSet resultSet = statementWrapper.getContextResult().executeQuery()) {
                 while (resultSet.next()) {
                     final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet, table.getTable().getColumns());
-                    final T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+                    final T deserialize = getDatabase().deSerialize(clazz, dataFromDB);
                     final List<Column> primaryColumns = table.getTable().getPrimaryColumns();
                     final Map<String, Object> objectList = new HashMap<>();
                     if (!primaryColumns.isEmpty()) {
@@ -131,7 +167,7 @@ public abstract class SQLDatabaseQuery extends Database {
 
     @Override
     @Nullable
-    public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, String columnValue) {
+    public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final String columnValue) {
         SqlQueryTable table = getDatabase().getTableFromName(tableName);
         if (table == null) {
             getDatabase().printFailFindTable(tableName);
@@ -166,7 +202,7 @@ public abstract class SQLDatabaseQuery extends Database {
         });
         if (dataFromDB.isEmpty())
             return null;
-        T deserialize = getDatabase().getMethodReflectionUtils().invokeDeSerializeMethod(clazz, "deserialize", dataFromDB);
+        T deserialize = getDatabase().deSerialize(clazz, dataFromDB);
         List<ComparisonHandler<WhereBuilder>> comparisonHandlerList = whereBuilder.getConditionsList();
         Map<String, Object> objectList = new HashMap<>();
         if (!comparisonHandlerList.isEmpty()) {
@@ -177,8 +213,72 @@ public abstract class SQLDatabaseQuery extends Database {
             }
         }
         return new LoadDataWrapper<>(objectList, deserialize);
-
     }
+
+
+    @Override
+    @Nonnull
+    public <T extends ConfigurationSerializable> DatabaseQueryHandler<LoadDataWrapper<T>> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<DatabaseSettingsLoad> helperConsumer) {
+        DatabaseSettingsLoad databaseSettings = new DatabaseSettingsLoad(tableName);
+        helperConsumer.accept(databaseSettings);
+        final DatabaseQueryHandler<LoadDataWrapper<T>> databaseQueryHandler = new DatabaseQueryHandler<>(databaseSettings);
+
+        this.executeQuery(tableName, clazz, databaseQueryHandler);
+        return databaseQueryHandler;
+    }
+
+    private <T extends ConfigurationSerializable> void executeQuery(@Nonnull String tableName, @Nonnull Class<T> clazz, DatabaseQueryHandler<LoadDataWrapper<T>> databaseQueryHandler) {
+        final QueryBuilder selectTableBuilder = databaseQueryHandler.getQueryBuilder();
+        if (selectTableBuilder == null) {
+            log.log(Level.WARNING, () -> of("This is not load query type: " + databaseQueryHandler + ". Make sure you are using the DatabaseSettingsLoad class."));
+            return;
+        }
+
+        this.executeQuery(QueryDefinition.of(selectTableBuilder), statementWrapper -> {
+            PreparedStatement preparedStatement = statementWrapper.getContextResult();
+            selectTableBuilder.getValues().forEach((index, value) -> {
+                try {
+                    preparedStatement.setObject(index, value);
+                } catch (SQLException e) {
+                    log.log(Level.WARNING, e, () -> of("Failed to set where clause values. The values that could not be executed: " + selectTableBuilder.getValues() + ". Check the stacktrace."));
+                }
+            });
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    final ColumnBuilder<Column, Void> selectBuilder = selectTableBuilder.getQueryModifier().getSelectBuilder();
+                    final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet, selectBuilder.getColumns());
+                    final T deserialize = getDatabase().deSerialize(clazz, dataFromDB);
+                    final Map<String, Object> columnsFiltered = getColumnsFiltered(selectBuilder, databaseQueryHandler, dataFromDB);
+                    final LoadDataWrapper<T> loadDataWrapper = new LoadDataWrapper<>(columnsFiltered, deserialize);
+
+                    databaseQueryHandler.setLoadData(loadDataWrapper);
+                    databaseQueryHandler.add(loadDataWrapper);
+                }
+            } catch (SQLException e) {
+                log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
+            }
+        });
+    }
+
+    @Nonnull
+    private <T extends ConfigurationSerializable> Map<String, Object> getColumnsFiltered(final ColumnBuilder<Column, Void> columnBuilder, DatabaseQueryHandler<LoadDataWrapper<T>> databaseQueryHandler, Map<String, Object> dataFromDB) {
+        final List<Column> columnList = columnBuilder.getColumns();
+        final Map<String, Object> columnsFiltered = new HashMap<>();
+        if (columnList.isEmpty()) {
+            return columnsFiltered;
+        }
+        for (Column column : columnList) {
+            String columnName = column.getColumnName();
+            if (databaseQueryHandler.containsFilteredColumn(columnName)) {
+                Object primaryValue = dataFromDB.get(columnName);
+                columnsFiltered.put(columnName, primaryValue);
+            }
+        }
+
+        return columnsFiltered;
+    }
+
 
     /**
      * This method enables you to set up and execute custom SQL commands on a database and returns PreparedStatement. While this method uses

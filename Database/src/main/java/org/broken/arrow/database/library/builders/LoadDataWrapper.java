@@ -1,12 +1,14 @@
 package org.broken.arrow.database.library.builders;
 
 import org.broken.arrow.database.library.core.Database;
+import org.broken.arrow.database.library.builders.wrappers.DatabaseSettings;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.function.Function;
 
 /**
  * Wrapper class for loading and storing deserialized data along with its primary value.
@@ -15,31 +17,19 @@ import java.util.Map;
  */
 public class LoadDataWrapper<T> {
     private final T deSerializedData;
-    private final Object primaryValue;
-    private final Map<String, Object> primaryValues;
+
+    private final Map<String, Object> filteredMap;
 
     /**
      * Constructs a LoadDataWrapper instance with the provided primary column value, deserialized the values from the database.
      *
-     * @param primaryKeyValue  The primary column value.
+     * @param filteredMap      The map of column names to their raw values, filtered according to the provided filter defined
+     *                         in {@link DatabaseSettings#setFilter(Function)}.
      * @param deSerializedData The deserialized data.
      */
-    public LoadDataWrapper(@Nullable final Object primaryKeyValue, @Nonnull final T deSerializedData) {
+    public LoadDataWrapper(@Nullable final Map<String, Object> filteredMap, @Nonnull final T deSerializedData) {
         this.deSerializedData = deSerializedData;
-        this.primaryValue = primaryKeyValue;
-        this.primaryValues = new HashMap<>();
-    }
-
-    /**
-     * Constructs a LoadDataWrapper instance with the provided primary column value, deserialized the values from the database.
-     *
-     * @param primaryKeyValues The map of key and value par set for the primary key.
-     * @param deSerializedData The deserialized data.
-     */
-    public LoadDataWrapper(@Nullable final Map<String, Object> primaryKeyValues, @Nonnull final T deSerializedData) {
-        this.deSerializedData = deSerializedData;
-        this.primaryValues = primaryKeyValues == null ? new HashMap<>() : primaryKeyValues;
-        this.primaryValue = null;
+        this.filteredMap = filteredMap == null ? new HashMap<>() : filteredMap;
     }
 
     /**
@@ -65,7 +55,20 @@ public class LoadDataWrapper<T> {
      */
     @Nullable
     public Object getPrimaryValue(final String columnName) {
-        return this.primaryValues.get(columnName);
+        return this.filteredMap.get(columnName);
+    }
+
+
+    /**
+     * Returns a map of filtered column data for this row.
+     * <p>
+     * The keys are the column names that matched the filter defined in {@link DatabaseSettings#setFilter(Function)}.
+     * The values are the corresponding raw database values (not deserialized).
+     *
+     * @return a map of column names to their raw values, filtered according to the provided filter.
+     */
+    public Map<String, Object> getFilteredMap() {
+        return Collections.unmodifiableMap(filteredMap);
     }
 
     /**
@@ -73,9 +76,11 @@ public class LoadDataWrapper<T> {
      * if you did not set up your own where clause.
      *
      * @return a map of key and value par set for the primary key.
+     * @deprecated it is confusing naming on this method use {@link #getFilteredMap()}.
      */
+    @Deprecated
     @Nonnull
     public Map<String, Object> getPrimaryValues() {
-        return this.primaryValues;
+        return this.filteredMap;
     }
 }

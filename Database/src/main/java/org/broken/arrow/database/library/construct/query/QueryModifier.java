@@ -89,6 +89,8 @@ public class QueryModifier extends Selector<ColumnBuilder<Column, Void>, Column>
     }
 
     public String getLimit() {
+        if(limit < 1)
+            return "";
         return "LIMIT" + limit;
     }
 
