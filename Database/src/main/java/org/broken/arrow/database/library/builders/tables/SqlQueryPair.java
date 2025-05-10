@@ -17,6 +17,7 @@ public class SqlQueryPair {
         this.values = values;
     }
 
+
     public String getQuery() {
         return query;
     }

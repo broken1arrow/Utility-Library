@@ -308,13 +308,7 @@ public class QueryBuilder {
     @Override
     public String toString() {
         return "QueryBuilder{" +
-                "updateBuilder=" + updateBuilder +
-                ", insertHandler=" + insertHandler +
-                ", queryModifier=" + queryModifier +
-                ", createTableHandler=" + createTableHandler +
-                ", queryRemover=" + queryRemover +
-                ", withManger=" + withManger +
-                ", queryType=" + queryType +
+                "queryType=" + queryType +
                 ", table='" + table + '\'' +
                 ", globalEnableQueryPlaceholders=" + globalEnableQueryPlaceholders +
                 '}';

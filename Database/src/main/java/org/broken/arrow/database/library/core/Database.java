@@ -5,12 +5,8 @@ import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
-import org.broken.arrow.database.library.builders.tables.TableRow;
-import org.broken.arrow.database.library.builders.tables.TableWrapper;
-import org.broken.arrow.database.library.builders.wrappers.DatabaseQueryHandler;
-import org.broken.arrow.database.library.builders.wrappers.DatabaseSettingsLoad;
-import org.broken.arrow.database.library.builders.wrappers.DatabaseSettingsSave;
-import org.broken.arrow.database.library.builders.wrappers.SaveContext;
+import org.broken.arrow.database.library.builders.wrappers.LoadSetup;
+import org.broken.arrow.database.library.builders.wrappers.SaveSetup;
 import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
@@ -25,7 +21,6 @@ import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.database.library.utility.DatabaseType;
-import org.broken.arrow.database.library.utility.SQLCommandPrefix;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
@@ -254,22 +249,17 @@ public abstract class Database {
      * as no checks are performed against previously registered tables (unlike the older methods).
      * <p>
      * The map’s values must implement {@link ConfigurationSerializable}, and the keys are entirely up to you — they will be available
-     * in the returned class, where you can loop through them using {@link DatabaseQueryHandler#forEach(Function)}.
+     * inside the consumer, where you can loop through them using {@link SaveSetup#forEachQuery(Consumer)}.
      *
      * @param tableName   The name of the table. It must exist in the database, but it doesn't need to be registered in this library.
      * @param cacheToSave The data you want to save. The values must implement {@link ConfigurationSerializable}, and the keys are handled
-     *                    inside {@link DatabaseQueryHandler#forEach(Function)}.
-     * @param shallUpdate Set to {@code true} if you want to update existing rows. Alternatively, you can use the filter option in {@code settings}
-     *                    to control which columns should be updated when a row already exists. If {@code false}, the existing row/rows will be fully replaced.
-     * @param settings    The settings for the save action. Here, you can filter which columns should be updated if the row(s) already exist.
+     *                    inside {@link SaveSetup#forEachQuery(Consumer)}.
+     * @param  strategy   The settings and the setup for the queries where clause and your primary keys. Also you can filter which columns should be updated if the row(s) already exist.
      * @param <K>         The type of the key used in your cache map.
      * @param <V>         A type that implements {@link ConfigurationSerializable}.
-     * @return A class that lets you define the WHERE clause for each cached value and access the key associated with it.
      */
-    @Nonnull
-    public <K, V extends ConfigurationSerializable> DatabaseQueryHandler<SaveContext<K, V>> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave, final boolean shallUpdate, @Nonnull final Consumer<DatabaseSettingsSave<V>> settings) {
-        final DatabaseSettingsSave<V> databaseSettings = new DatabaseSettingsSave<>(tableName);
-        return new DatabaseQueryHandler<>(databaseSettings);
+    public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave,
+                                                              @Nonnull final Consumer<SaveSetup<K, V>> strategy)  {
     }
 
     /**
@@ -300,14 +290,12 @@ public abstract class Database {
      *
      * @param tableName the name of the table to retrieve data from.
      * @param clazz     the class containing the static deserialize method.
+     * @param setup  set up a filter as an option and a query command to run.
      * @param <T>       a class that extends {@code ConfigurationSerializable}.
-     * @return the retrieved row from the table, or {@code null} if no data is found.
      */
-    @Nonnull
-    public <T extends ConfigurationSerializable> DatabaseQueryHandler<LoadDataWrapper<T>> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<DatabaseSettingsLoad> helperConsumer) {
-        DatabaseSettingsLoad databaseSettings = new DatabaseSettingsLoad(tableName);
-        helperConsumer.accept(databaseSettings);
-        return new DatabaseQueryHandler<>(databaseSettings);
+
+    public <T extends ConfigurationSerializable> void load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<LoadSetup<T>> setup) {
+
     }
 
     /**
@@ -317,16 +305,16 @@ public abstract class Database {
      * @param values    the list of primary key values you want to remove from database.
      */
     public void removeAll(@Nonnull final String tableName, @Nonnull final List<String> values) {
-        final BatchExecutor batchExecutor;
+        final BatchExecutor<DataWrapper> batchExecutor;
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
         }
 
         if (this.secureQuery)
-            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutor<>(this, connection, new ArrayList<>());
         else {
-            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
 
         final SqlQueryTable table = this.getTableFromName(tableName);
@@ -344,16 +332,16 @@ public abstract class Database {
      * @param value     the primary key value you want to remove from database.
      */
     public void remove(@Nonnull final String tableName, @Nonnull final String value) {
-        BatchExecutor batchExecutor;
+        BatchExecutor<DataWrapper> batchExecutor;
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
         }
 
         if (this.secureQuery)
-            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutor<>(this, connection, new ArrayList<>());
         else {
-            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
         final SqlQueryTable table = this.getTableFromName(tableName);
 
@@ -370,16 +358,16 @@ public abstract class Database {
      * @param tableName the name of the table to drop.
      */
     public void dropTable(final String tableName) {
-        BatchExecutor batchExecutor;
+        BatchExecutor<DataWrapper> batchExecutor;
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
         }
 
         if (this.secureQuery)
-            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutor<>(this, connection, new ArrayList<>());
         else {
-            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
 
         batchExecutor.dropTable(tableName);
@@ -427,12 +415,7 @@ public abstract class Database {
      * @param threshold the threshold where it should start to remove and below.
      */
     public void removeBelowThreshold(@Nonnull final String tableName, @Nonnull final String column, char quotes, int threshold) {
-        runSQLCommand(new SqlQueryBuilder.Builder(SQLCommandPrefix.DELETE, quotes + tableName + quotes)
-                .selectColumns(' ')
-                .from()
-                .where(column + " < ?")
-                .putColumnData(1, column, threshold)
-                .build());
+
     }
 
     /**
@@ -452,17 +435,19 @@ public abstract class Database {
      * </p>
      *
      * @param sqlQueryBuilders The SQL command or commands you want to run
+     * @deprecated should not be used any more, is it no longer work.
      */
+    @Deprecated
     public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
-        BatchExecutor batchExecutor;
+        BatchExecutor<DataWrapper> batchExecutor;
         Connection connection = this.attemptToConnect();
         if (connection == null) {
             return;
         }
         if (this.secureQuery)
-            batchExecutor = new BatchExecutor(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutor<>(this, connection, new ArrayList<>());
         else {
-            batchExecutor = new BatchExecutorUnsafe(this, connection, new ArrayList<>());
+            batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
         batchExecutor.runSQLCommand(sqlQueryBuilders);
     }
@@ -613,25 +598,7 @@ public abstract class Database {
 
     }
 
-    protected void createMissingColumns(final Connection connection, final TableWrapper tableWrapper, final List<String> existingColumns) throws SQLException {
-        if (existingColumns == null) return;
-        if (connection == null) {
-            log.log(Level.WARNING, () -> of("You must set the connection instance."));
-            return;
-        }
 
-        for (final Entry<String, TableRow> entry : tableWrapper.getColumns().entrySet()) {
-            String columnName = entry.getKey();
-            TableRow tableRow = entry.getValue();
-            if (removeColumns.contains(columnName) || existingColumns.contains(columnName.toLowerCase())) continue;
-
-            try (final PreparedStatement statement = connection.prepareStatement("ALTER TABLE " + this.getQuote() + tableWrapper.getTableName() + this.getQuote() + " ADD " + this.getQuote() + columnName + this.getQuote() + " " + tableRow.getDatatype() + ";")) {
-                statement.execute();
-            } catch (final SQLException throwable) {
-                log.log(throwable, () -> of("Could not create this '" + columnName + "' missing column. To this table '" + tableWrapper.getTableName() + "'"));
-            }
-        }
-    }
 
     /**
      * Create all tables if it not exist yet, will only create a table if it not already exist.
@@ -811,28 +778,7 @@ public abstract class Database {
         this.secureQuery = secureQuery;
     }
 
-    /**
-     * Converts the data retrieved from the database and puts it into a map. Some databases
-     * may return column names in uppercase, and this method uses {@link #getColumnName(TableWrapper, String)}
-     * to correct the keys in the map based on the column names set in the TableWrapper.
-     *
-     * @param resultSet    The ResultSet object representing the cursor to retrieve the data set.
-     * @param tableWrapper The TableWrapper instance representing the current table to get the column names.
-     * @return A map containing the column values from the database, with corrected keys based on the
-     * column names in the TableWrapper.
-     * @throws SQLException If there is an issue reading data from the database.
-     */
-    public Map<String, Object> getDataFromDB(final ResultSet resultSet, final TableWrapper tableWrapper) throws SQLException {
-        if (tableWrapper == null) return new HashMap<>();
 
-        final ResultSetMetaData rsmd = resultSet.getMetaData();
-        final int columnCount = rsmd.getColumnCount();
-        final Map<String, Object> objectMap = new HashMap<>();
-        for (int i = 1; i <= columnCount; i++) {
-            objectMap.put(this.getColumnName(tableWrapper, rsmd.getColumnName(i)), resultSet.getObject(i));
-        }
-        return objectMap;
-    }
 
     /**
      * Converts the data retrieved from the database and puts it into a map. Some databases
@@ -875,29 +821,6 @@ public abstract class Database {
         return columnName;
     }
 
-    /**
-     * Retrieves the correct column name for the given table from the TableWrapper.
-     * Some databases may return column names in uppercase, so this method allows you
-     * to fetch the column name with the appropriate casing as set in the TableWrapper.
-     *
-     * @param tableWrapper The TableWrapper instance currently being processed.
-     * @param columnName   The name of the column to retrieve.
-     * @return The column name with the correct case as set in the TableWrapper. If there
-     * is no matching column name in the TableWrapper, it returns the columnName
-     * you set in the second argument.
-     */
-    public String getColumnName(final TableWrapper tableWrapper, String columnName) {
-        TableRow primaryRow = tableWrapper.getPrimaryRow();
-        if (primaryRow != null && primaryRow.getColumnName().equalsIgnoreCase(columnName))
-            return primaryRow.getColumnName();
-
-        if (!tableWrapper.getColumns().isEmpty())
-            for (String column : tableWrapper.getColumns().keySet()) {
-                if (column.equalsIgnoreCase(columnName)) return column;
-            }
-        // If no matching column name is found, return the original name from the columnName.
-        return columnName;
-    }
 
     public boolean isHikariAvailable(final String path) {
         try {

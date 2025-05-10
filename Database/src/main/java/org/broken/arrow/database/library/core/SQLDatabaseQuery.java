@@ -9,7 +9,7 @@ import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.builders.wrappers.DatabaseQueryHandler;
 import org.broken.arrow.database.library.builders.wrappers.DatabaseSettingsLoad;
 import org.broken.arrow.database.library.builders.wrappers.DatabaseSettingsSave;
-import org.broken.arrow.database.library.builders.wrappers.SaveContext;
+import org.broken.arrow.database.library.builders.wrappers.SaveRecord;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
@@ -18,6 +18,8 @@ import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBui
 import org.broken.arrow.database.library.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
+import org.broken.arrow.database.library.builders.wrappers.LoadSetup;
+import org.broken.arrow.database.library.builders.wrappers.SaveSetup;
 import org.broken.arrow.database.library.utility.StatementContext;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
@@ -49,9 +51,9 @@ public abstract class SQLDatabaseQuery extends Database {
     }
 
     @Override
-    public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns) {
+    public void saveAll(@Nonnull final String tableName, @Nonnull final List<org.broken.arrow.database.library.builders.DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns) {
         final Connection connection = getDatabase().attemptToConnect();
-        final BatchExecutor<DataWrapper> batchExecutor;
+        final BatchExecutor<org.broken.arrow.database.library.builders.DataWrapper> batchExecutor;
 
         if (connection == null) {
             getDatabase().printFailToOpen();
@@ -100,24 +102,26 @@ public abstract class SQLDatabaseQuery extends Database {
         batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> table.createWhereClauseFromPrimaryColumns(where, dataWrapper.getPrimaryValue()), columns);
     }
 
-    @Nonnull
     @Override
-    public <K, V extends ConfigurationSerializable> DatabaseQueryHandler<SaveContext<K, V>> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave, final boolean shallUpdate, @Nonnull final Consumer<DatabaseSettingsSave<V>> settings) {
+    public <K, V extends ConfigurationSerializable>  void save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave,
+                                                               @Nonnull final Consumer<SaveSetup<K, V>> strategy) {
         final Connection connection = getDatabase().attemptToConnect();
-        final BatchExecutor<SaveContext<K, V>> batchExecutor;
+        final BatchExecutor<SaveRecord<K, V>> batchExecutor;
 
-        final DatabaseSettingsSave<V> databaseSettings = new DatabaseSettingsSave<>(tableName);
-        final DatabaseQueryHandler<SaveContext<K, V>> databaseQueryHandler = new DatabaseQueryHandler<>(databaseSettings);
+        final DatabaseSettingsSave databaseSettings = new DatabaseSettingsSave(tableName);
+        final DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler = new DatabaseQueryHandler<>(databaseSettings);
         if (connection == null) {
             getDatabase().printFailToOpen();
-            return databaseQueryHandler;
+            return;
         }
+        SaveSetup<K,V> saveSetup = new SaveSetup<>();
+        strategy.accept(saveSetup);
+        saveSetup.applyConfigure(databaseSettings);
 
-        settings.accept(databaseSettings);
-        final List<SaveContext<K, V>> data = cacheToSave.entrySet().stream().map(kvEntry -> databaseQueryHandler.setLoadData(new SaveContext<>(tableName, kvEntry))).collect(Collectors.toList());
+        final List<SaveRecord<K, V>> data = cacheToSave.entrySet().stream().map(kvEntry -> saveSetup.applyQuery(new SaveRecord<>(tableName, kvEntry))).collect(Collectors.toList());
         if (data.isEmpty()) {
             this.log.log(Level.WARNING, () -> Logging.of("No data in the map for the table:'" + tableName + "' . Just must provide data and also don't forget to set your where clause."));
-            return databaseQueryHandler;
+            return;
         }
 
         if (getDatabase().isSecureQuery())
@@ -125,9 +129,7 @@ public abstract class SQLDatabaseQuery extends Database {
         else {
             batchExecutor = new BatchExecutorUnsafe<>(getDatabase(), connection, data); //dataWrapperList);
         }
-
-        batchExecutor.save(tableName, shallUpdate, databaseQueryHandler);
-        return databaseQueryHandler;
+        batchExecutor.save(tableName, databaseSettings.isShallUpdate(), databaseQueryHandler);
     }
 
     @Override
@@ -217,32 +219,36 @@ public abstract class SQLDatabaseQuery extends Database {
 
 
     @Override
-    @Nonnull
-    public <T extends ConfigurationSerializable> DatabaseQueryHandler<LoadDataWrapper<T>> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<DatabaseSettingsLoad> helperConsumer) {
-        DatabaseSettingsLoad databaseSettings = new DatabaseSettingsLoad(tableName);
-        helperConsumer.accept(databaseSettings);
+    public <T extends ConfigurationSerializable> void load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<LoadSetup<T>> setup) {
+        final DatabaseSettingsLoad databaseSettings = new DatabaseSettingsLoad(tableName);
         final DatabaseQueryHandler<LoadDataWrapper<T>> databaseQueryHandler = new DatabaseQueryHandler<>(databaseSettings);
+        final LoadSetup<T> loadSetup = new LoadSetup<>(databaseQueryHandler);
 
-        this.executeQuery(tableName, clazz, databaseQueryHandler);
-        return databaseQueryHandler;
+        setup.accept(loadSetup);
+        loadSetup.applyConfigure(databaseSettings);
+
+        this.executeLoadQuery(tableName, clazz,loadSetup, databaseQueryHandler);
     }
 
-    private <T extends ConfigurationSerializable> void executeQuery(@Nonnull String tableName, @Nonnull Class<T> clazz, DatabaseQueryHandler<LoadDataWrapper<T>> databaseQueryHandler) {
+    private <T extends ConfigurationSerializable> void executeLoadQuery(@Nonnull String tableName, @Nonnull Class<T> clazz,final LoadSetup<T> loadSetup, DatabaseQueryHandler<LoadDataWrapper<T>> databaseQueryHandler) {
         final QueryBuilder selectTableBuilder = databaseQueryHandler.getQueryBuilder();
         if (selectTableBuilder == null) {
-            log.log(Level.WARNING, () -> of("This is not load query type: " + databaseQueryHandler + ". Make sure you are using the DatabaseSettingsLoad class."));
+            log.log(Level.WARNING, () -> of("The query is not set: " + databaseQueryHandler + ". Make sure you set your query into the consumer."));
             return;
         }
 
         this.executeQuery(QueryDefinition.of(selectTableBuilder), statementWrapper -> {
             PreparedStatement preparedStatement = statementWrapper.getContextResult();
-            selectTableBuilder.getValues().forEach((index, value) -> {
-                try {
-                    preparedStatement.setObject(index, value);
-                } catch (SQLException e) {
-                    log.log(Level.WARNING, e, () -> of("Failed to set where clause values. The values that could not be executed: " + selectTableBuilder.getValues() + ". Check the stacktrace."));
-                }
-            });
+
+            if(!selectTableBuilder.getQueryModifier().getWhereBuilder().isEmpty()) {
+                selectTableBuilder.getValues().forEach((index, value) -> {
+                    try {
+                        preparedStatement.setObject(index, value);
+                    } catch (SQLException e) {
+                        log.log(Level.WARNING, e, () -> of("Failed to set where clause values. The values that could not be executed: " + selectTableBuilder.getValues() + ". Check the stacktrace."));
+                    }
+                });
+            }
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
@@ -252,7 +258,7 @@ public abstract class SQLDatabaseQuery extends Database {
                     final Map<String, Object> columnsFiltered = getColumnsFiltered(selectBuilder, databaseQueryHandler, dataFromDB);
                     final LoadDataWrapper<T> loadDataWrapper = new LoadDataWrapper<>(columnsFiltered, deserialize);
 
-                    databaseQueryHandler.setLoadData(loadDataWrapper);
+                    loadSetup.applyWrapper(loadDataWrapper);
                     databaseQueryHandler.add(loadDataWrapper);
                 }
             } catch (SQLException e) {
@@ -265,9 +271,11 @@ public abstract class SQLDatabaseQuery extends Database {
     private <T extends ConfigurationSerializable> Map<String, Object> getColumnsFiltered(final ColumnBuilder<Column, Void> columnBuilder, DatabaseQueryHandler<LoadDataWrapper<T>> databaseQueryHandler, Map<String, Object> dataFromDB) {
         final List<Column> columnList = columnBuilder.getColumns();
         final Map<String, Object> columnsFiltered = new HashMap<>();
+
         if (columnList.isEmpty()) {
             return columnsFiltered;
         }
+
         for (Column column : columnList) {
             String columnName = column.getColumnName();
             if (databaseQueryHandler.containsFilteredColumn(columnName)) {
@@ -349,7 +357,7 @@ public abstract class SQLDatabaseQuery extends Database {
             log.log(() -> of("This query command is not set"));
             return;
         }
-
+        System.out.println(" query " +  query);
         Connection connection = getDatabase().attemptToConnect();
         if (connection == null) {
             return;

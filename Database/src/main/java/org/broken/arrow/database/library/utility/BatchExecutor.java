@@ -1,16 +1,13 @@
 package org.broken.arrow.database.library.utility;
 
 import org.broken.arrow.database.library.builders.DataWrapper;
-import org.broken.arrow.database.library.builders.RowWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlCommandComposer;
 import org.broken.arrow.database.library.builders.tables.SqlHandler;
 import org.broken.arrow.database.library.builders.tables.SqlQueryPair;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
-import org.broken.arrow.database.library.builders.tables.TableRow;
-import org.broken.arrow.database.library.builders.tables.TableWrapper;
 import org.broken.arrow.database.library.builders.wrappers.DatabaseQueryHandler;
-import org.broken.arrow.database.library.builders.wrappers.SaveContext;
+import org.broken.arrow.database.library.builders.wrappers.SaveRecord;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
@@ -70,9 +67,9 @@ public class BatchExecutor<T> {
         }
 
         for (T dataToSave : dataToProcess) {
-            if (!(dataToSave instanceof DataWrapper)) continue;
+            if (!(dataToSave instanceof org.broken.arrow.database.library.builders.DataWrapper)) continue;
 
-            final DataWrapper dataWrapper = (DataWrapper) dataToSave;
+            final org.broken.arrow.database.library.builders.DataWrapper dataWrapper = (org.broken.arrow.database.library.builders.DataWrapper) dataToSave;
 
             final SqlHandler sqlHandler = new SqlHandler(tableName, database);
             final boolean columnsIsEmpty = columns == null || columns.length == 0;
@@ -92,25 +89,27 @@ public class BatchExecutor<T> {
         this.executeDatabaseTasks(queryList);
     }
 
-    public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, final boolean shallUpdate, final DatabaseQueryHandler<SaveContext<K, V>> databaseQueryHandler) {
+    public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, final boolean shallUpdate, final DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler) {
         final List<SqlQueryPair> queryList = new ArrayList<>();
 
-        if (dataToProcess.isEmpty()) {
+        if (this.dataToProcess.isEmpty()) {
             this.log.log(Level.WARNING, () -> Logging.of("No query is not set for this table: " + tableName + ". You must have at least 1 command to save data to the database."));
             return;
         }
 
-        for (T dataToSave : dataToProcess) {
-            if (!(dataToSave instanceof SaveContext<? , ?>)) continue;
-            final SaveContext<K, V> saveContext = ((SaveContext<?, ?>) dataToSave).isSaveContext(dataToSave);
-            if (saveContext == null) {
+        for (T dataToSave : this.dataToProcess) {
+            if (!(dataToSave instanceof SaveRecord<?, ?>)) {
+                this.log.log(Level.WARNING, () -> Logging.of("Failed to process this data as it is: '" + dataToSave + "' or not an instance of SaveContext"));
+                continue;
+            }
+            final SaveRecord<K, V> saveRecord = ((SaveRecord<?, ?>) dataToSave).isSaveContext(dataToSave);
+            if (saveRecord == null) {
                 this.log.log(Level.WARNING, () -> Logging.of("Failed to process this: " + dataToSave + ". As it is a class mismatch for the saveContext class for the generic type."));
                 continue;
             }
+            final QueryBuilder queryBuilder = saveRecord.getQueryBuilder();
 
-            final QueryBuilder queryBuilder = saveContext.getQueryBuilder();
-
-            if (checkIfQuerySet(saveContext, queryBuilder)) continue;
+            if (checkIfQuerySet(saveRecord, queryBuilder)) continue;
 
             final SqlHandler sqlHandler = new SqlHandler(tableName, database);
             final boolean columnsFilterSet = databaseQueryHandler.isFilterSet();
@@ -120,7 +119,15 @@ public class BatchExecutor<T> {
                 final SqlQueryPair wrappedQuery = sqlHandler.wrapQuery(queryBuilder);
                 canUpdateRow = this.checkIfRowExist(wrappedQuery, false);
             }
-            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, formatData(saveContext.getValue(), canUpdateRow ? databaseQueryHandler : null, new String[0]), saveContext.getWhereClause(), canUpdateRow));
+            Map<Column, Object> toSave = formatData(saveRecord.getValue(), canUpdateRow ? databaseQueryHandler : null, new String[0]);
+            if (!canUpdateRow) {
+                if (saveRecord.getKeys().isEmpty())
+                    this.log.log(Level.WARNING, () -> Logging.of("Primary key and/or foreign key values were not set. It will still attempt to save the data, which may result in " +
+                            "certain columns being saved as null unless your ConfigurationSerializable implementation explicitly handles missing columns and values."));
+                else
+                    toSave.putAll(saveRecord.getKeys());
+            }
+            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, toSave, saveRecord.getWhereClause(), canUpdateRow));
         }
         this.executeDatabaseTasks(queryList);
     }
@@ -198,14 +205,8 @@ public class BatchExecutor<T> {
     public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
         if (!checkIfNotNull(sqlQueryBuilders)) return;
 
-        final List<SqlCommandComposer> sqlComposer = new ArrayList<>();
-        for (SqlQueryBuilder command : sqlQueryBuilders) {
-            final TableWrapper tableWrapper = TableWrapper.of(command, TableRow.of("", ""));
-            final SqlCommandComposer sqlCommandComposer = new SqlCommandComposer(new RowWrapper(tableWrapper), this.database);
-            sqlCommandComposer.executeCustomCommand();
-            sqlComposer.add(sqlCommandComposer);
-        }
-        this.executeDatabaseTask(sqlComposer);
+        final List<SqlQueryPair> sqlComposer = new ArrayList<>();
+       // this.executeDatabaseTasks(sqlComposer);
     }
 
     /**
@@ -233,12 +234,12 @@ public class BatchExecutor<T> {
     }
 
 
-    private Map<Column, Object> formatData(@Nonnull final DataWrapper dataWrapper, final String[] columns) {
+    private Map<Column, Object> formatData(@Nonnull final org.broken.arrow.database.library.builders.DataWrapper dataWrapper, final String[] columns) {
         final ConfigurationSerializable configuration = dataWrapper.getConfigurationSerialize();
         return this.formatData(configuration, null, columns);
     }
 
-    private <K, V extends ConfigurationSerializable> Map<Column, Object> formatData(V configuration, final DatabaseQueryHandler<SaveContext<K, V>> databaseQueryHandler, String[] columns) {
+    private <K, V extends ConfigurationSerializable> Map<Column, Object> formatData(final V configuration, final DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler, String[] columns) {
         final Map<Column, Object> rowWrapper = new HashMap<>();
         for (Map.Entry<String, Object> entry : configuration.serialize().entrySet()) {
             String name = entry.getKey();
@@ -477,18 +478,18 @@ public class BatchExecutor<T> {
         log.log(Level.WARNING, () -> of("Could not find table " + tableName));
     }
 
-    private <K, V extends ConfigurationSerializable> boolean checkIfQuerySet(SaveContext<K, V> saveContext, QueryBuilder queryBuilder) {
-        if (queryBuilder == null || saveContext.getSelectData() == null) {
-            this.log.log(Level.WARNING, () -> Logging.of("Missing queryBuilder for key: " + saveContext.getKey() + ". Did you forget to call setSelectCommand()?"));
+    private <K, V extends ConfigurationSerializable> boolean checkIfQuerySet(SaveRecord<K, V> saveRecord, QueryBuilder queryBuilder) {
+        if (queryBuilder == null || saveRecord.getSelectData() == null) {
+            this.log.log(Level.WARNING, () -> Logging.of("Missing queryBuilder for key: " + saveRecord.getKey() + ". Did you forget to call setSelectCommand()?"));
             return true;
         }
         if (!queryBuilder.isQuerySet()) {
-            this.log.log(Level.WARNING, () -> Logging.of("query is not correct setup: " + saveContext.getKey() + ". It seams like you never chose the type of command to execute on the database."));
+            this.log.log(Level.WARNING, () -> Logging.of("query is not correct setup: " + saveRecord.getKey() + ". It seams like you never chose the type of command to execute on the database."));
             return true;
         }
 
-        if (saveContext.getSelectData().getWhereBuilder().isEmpty()) {
-            this.log.log(Level.WARNING, () -> Logging.of("Missing where clause for key: " + saveContext.getKey() + ". You must set it via setSelectCommand() to avoid replacing entire table."));
+        if (saveRecord.getSelectData().getWhereBuilder().isEmpty()) {
+            this.log.log(Level.WARNING, () -> Logging.of("Missing where clause for key: " + saveRecord.getKey() + ". You must set it via setSelectCommand() to avoid replacing entire table."));
             return true;
         }
         return false;
