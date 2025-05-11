@@ -31,7 +31,7 @@ public class ConfigurationWrapper {
 
     /**
      * Creates a new ConfigurationWrapper instance with the specified file and an empty path.
-     * This method provide option to set path {@link #addSerializableData(String, org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable)}
+     * This method provide option to set path {@link #addSerializableData(String, ConfigurationSerializable)}
      * or alternatively set the path when serialize the data and use {@link #addAllSerializableData(List)}.
      * <p>&nbsp;</p>
      * <p><strong>Note:</strong> When using this constructor, nested maps are not modified.
@@ -45,7 +45,7 @@ public class ConfigurationWrapper {
 
     /**
      * Creates a new ConfigurationWrapper instance with the specified file and an empty path.
-     * This method provide option to set path {@link #addSerializableData(String, org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable)}
+     * This method provide option to set path {@link #addSerializableData(String, ConfigurationSerializable)}
      * or alternatively set the path when serialize the data and use {@link #addAllSerializableData(List)}.
      *
      * @param convertNestedSections {@code true} to convert nested sections into maps, {@code false} to keep them in their original format.
@@ -57,7 +57,7 @@ public class ConfigurationWrapper {
 
     /**
      * Creates a new ConfigurationWrapper instance with the specified file and path.
-     * This method provide option to set path {@link #addSerializableData(String, org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable)}
+     * This method provide option to set path {@link #addSerializableData(String, ConfigurationSerializable)}
      * or alternatively set the path when serialize the data and use {@link #addAllSerializableData(List)}.
      *
      * @param convertNestedSections {@code true} to convert nested sections into maps, {@code false} to keep them in their original format.

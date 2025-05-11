@@ -81,7 +81,7 @@ public class BatchExecutor<T> {
             }
             sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
 
-            final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, columns));
+            final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns: null));
             for (Column primary : table.getPrimaryColumns()) {
                 columnValueMap.put(primary, dataWrapper.getPrimaryValue());
             }
@@ -146,7 +146,7 @@ public class BatchExecutor<T> {
             canUpdateRow = this.checkIfRowExist(query, false);
         }
         sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
-        final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, columns));
+        final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper,canUpdateRow ? columns: null));
         for (Column primary : table.getPrimaryColumns()) {
             columnValueMap.put(primary, dataWrapper.getPrimaryValue());
         }
@@ -236,7 +236,7 @@ public class BatchExecutor<T> {
         final Map<Column, Object> rowWrapper = new HashMap<>();
         for (Map.Entry<String, Object> entry : configuration.serialize().entrySet()) {
             String name = entry.getKey();
-            if (isFiltredOutColumn(databaseQueryHandler, columns, name)) continue;
+            if (isFilteredOutColumn(databaseQueryHandler, columns, name)) continue;
 
             rowWrapper.put(ColumnManger.of().column(name).getColumn(), entry.getValue());
         }
@@ -244,7 +244,7 @@ public class BatchExecutor<T> {
 
     }
 
-    private <K, V extends ConfigurationSerializable> boolean isFiltredOutColumn(DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler, String[] columns, String name) {
+    private <K, V extends ConfigurationSerializable> boolean isFilteredOutColumn(DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler, String[] columns, String name) {
         if (databaseQueryHandler != null && !databaseQueryHandler.containsFilteredColumn(name)) return true;
 
         return columns != null && columns.length > 0 && !checkIfUpdateColumn(columns, name);

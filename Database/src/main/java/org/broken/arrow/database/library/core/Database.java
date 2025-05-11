@@ -12,6 +12,7 @@ import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
 import org.broken.arrow.database.library.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
+import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
 import org.broken.arrow.database.library.core.databases.H2DB;
 import org.broken.arrow.database.library.core.databases.MongoDB;
 import org.broken.arrow.database.library.core.databases.MySQL;
@@ -254,12 +255,12 @@ public abstract class Database {
      * @param tableName   The name of the table. It must exist in the database, but it doesn't need to be registered in this library.
      * @param cacheToSave The data you want to save. The values must implement {@link ConfigurationSerializable}, and the keys are handled
      *                    inside {@link SaveSetup#forEachQuery(Consumer)}.
-     * @param  strategy   The settings and the setup for the queries where clause and your primary keys. Also you can filter which columns should be updated if the row(s) already exist.
+     * @param strategy    The settings and the setup for the queries where clause and your primary keys. Also you can filter which columns should be updated if the row(s) already exist.
      * @param <K>         The type of the key used in your cache map.
      * @param <V>         A type that implements {@link ConfigurationSerializable}.
      */
     public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave,
-                                                              @Nonnull final Consumer<SaveSetup<K, V>> strategy)  {
+                                                              @Nonnull final Consumer<SaveSetup<K, V>> strategy) {
     }
 
     /**
@@ -290,7 +291,7 @@ public abstract class Database {
      *
      * @param tableName the name of the table to retrieve data from.
      * @param clazz     the class containing the static deserialize method.
-     * @param setup  set up a filter as an option and a query command to run.
+     * @param setup     set up a filter as an option and a query command to run.
      * @param <T>       a class that extends {@code ConfigurationSerializable}.
      */
 
@@ -523,7 +524,9 @@ public abstract class Database {
 
         try {
             final List<String> column = new ArrayList<>();
-            final String queryAllColumns = "SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + ";";
+            final QueryBuilder queryBuilder = new QueryBuilder();
+            queryBuilder.select(ColumnManger.of().column("*").finish()).from(tableName);
+            final String queryAllColumns = queryBuilder.build();
             statement = connection.prepareStatement(queryAllColumns);
             rs = statement.executeQuery();
             final ResultSetMetaData rsmd = rs.getMetaData();
@@ -597,7 +600,6 @@ public abstract class Database {
         }
 
     }
-
 
 
     /**
@@ -695,8 +697,10 @@ public abstract class Database {
     }
 
     private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
+        final QueryBuilder queryBuilder = new QueryBuilder();
+        queryBuilder.select(ColumnManger.of().column("*").finish()).from(tableName).where(where-> where.where(columName ).equal(""));
+        final String checkTableQuery = queryBuilder.build();
 
-        final String checkTableQuery = "SELECT * FROM " + this.getQuote() + tableName + this.getQuote() + " WHERE " + this.getQuote() + columName + this.getQuote() + " = ?";
         try (final PreparedStatement preparedStatement = connection.prepareStatement(checkTableQuery)) {
             preparedStatement.setString(1, "");
             final ResultSet resultSet = preparedStatement.executeQuery();
@@ -777,7 +781,6 @@ public abstract class Database {
     public final void setSecureQuery(final boolean secureQuery) {
         this.secureQuery = secureQuery;
     }
-
 
 
     /**
