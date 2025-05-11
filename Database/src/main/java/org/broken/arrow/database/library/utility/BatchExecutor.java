@@ -18,6 +18,7 @@ import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -98,15 +99,9 @@ public class BatchExecutor<T> {
         }
 
         for (T dataToSave : this.dataToProcess) {
-            if (!(dataToSave instanceof SaveRecord<?, ?>)) {
-                this.log.log(Level.WARNING, () -> Logging.of("Failed to process this data as it is: '" + dataToSave + "' or not an instance of SaveContext"));
-                continue;
-            }
-            final SaveRecord<K, V> saveRecord = ((SaveRecord<?, ?>) dataToSave).isSaveContext(dataToSave);
-            if (saveRecord == null) {
-                this.log.log(Level.WARNING, () -> Logging.of("Failed to process this: " + dataToSave + ". As it is a class mismatch for the saveContext class for the generic type."));
-                continue;
-            }
+            final SaveRecord<K, V> saveRecord = getSaveRecord(dataToSave);
+            if (saveRecord == null) continue;
+
             final QueryBuilder queryBuilder = saveRecord.getQueryBuilder();
 
             if (checkIfQuerySet(saveRecord, queryBuilder)) continue;
@@ -131,6 +126,7 @@ public class BatchExecutor<T> {
         }
         this.executeDatabaseTasks(queryList);
     }
+
 
     public void save(final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final String... columns) {
         final SqlQueryTable table = this.database.getTableFromName(tableName);
@@ -204,9 +200,6 @@ public class BatchExecutor<T> {
 
     public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
         if (!checkIfNotNull(sqlQueryBuilders)) return;
-
-        final List<SqlQueryPair> sqlComposer = new ArrayList<>();
-       // this.executeDatabaseTasks(sqlComposer);
     }
 
     /**
@@ -243,13 +236,18 @@ public class BatchExecutor<T> {
         final Map<Column, Object> rowWrapper = new HashMap<>();
         for (Map.Entry<String, Object> entry : configuration.serialize().entrySet()) {
             String name = entry.getKey();
-            if (databaseQueryHandler != null && !databaseQueryHandler.containsFilteredColumn(name)) continue;
-            if (columns != null && columns.length > 0 && !checkIfUpdateColumn(columns, name)) continue;
+            if (isFiltredOutColumn(databaseQueryHandler, columns, name)) continue;
 
             rowWrapper.put(ColumnManger.of().column(name).getColumn(), entry.getValue());
         }
         return rowWrapper;
 
+    }
+
+    private <K, V extends ConfigurationSerializable> boolean isFiltredOutColumn(DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler, String[] columns, String name) {
+        if (databaseQueryHandler != null && !databaseQueryHandler.containsFilteredColumn(name)) return true;
+        
+        return columns != null && columns.length > 0 && !checkIfUpdateColumn(columns, name);
     }
 
     private boolean checkIfUpdateColumn(final String[] columns, final String columnName) {
@@ -476,6 +474,20 @@ public class BatchExecutor<T> {
 
     public void printFailFindTable(String tableName) {
         log.log(Level.WARNING, () -> of("Could not find table " + tableName));
+    }
+
+    @Nullable
+    private <K, V extends ConfigurationSerializable> SaveRecord<K, V> getSaveRecord(T dataToSave) {
+        if (!(dataToSave instanceof SaveRecord<?, ?>)) {
+            this.log.log(Level.WARNING, () -> Logging.of("Failed to process this data as it is: '" + dataToSave + "' or not an instance of SaveContext"));
+            return null;
+        }
+        final SaveRecord<K, V> saveRecord = ((SaveRecord<?, ?>) dataToSave).isSaveContext(dataToSave);
+        if (saveRecord == null) {
+            this.log.log(Level.WARNING, () -> Logging.of("Failed to process this: " + dataToSave + ". As it is a class mismatch for the saveContext class for the generic type."));
+            return null;
+        }
+        return saveRecord;
     }
 
     private <K, V extends ConfigurationSerializable> boolean checkIfQuerySet(SaveRecord<K, V> saveRecord, QueryBuilder queryBuilder) {

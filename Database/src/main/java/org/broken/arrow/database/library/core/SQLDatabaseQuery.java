@@ -125,9 +125,9 @@ public abstract class SQLDatabaseQuery extends Database {
         }
 
         if (getDatabase().isSecureQuery())
-            batchExecutor = new BatchExecutor<>(getDatabase(), connection, data); //dataWrapperList);
+            batchExecutor = new BatchExecutor<>(getDatabase(), connection, data);
         else {
-            batchExecutor = new BatchExecutorUnsafe<>(getDatabase(), connection, data); //dataWrapperList);
+            batchExecutor = new BatchExecutorUnsafe<>(getDatabase(), connection, data);
         }
         batchExecutor.save(tableName, databaseSettings.isShallUpdate(), databaseQueryHandler);
     }
@@ -357,7 +357,6 @@ public abstract class SQLDatabaseQuery extends Database {
             log.log(() -> of("This query command is not set"));
             return;
         }
-        System.out.println(" query " +  query);
         Connection connection = getDatabase().attemptToConnect();
         if (connection == null) {
             return;
