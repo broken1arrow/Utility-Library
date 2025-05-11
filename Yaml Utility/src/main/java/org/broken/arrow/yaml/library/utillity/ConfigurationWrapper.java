@@ -33,7 +33,7 @@ public class ConfigurationWrapper {
      * Creates a new ConfigurationWrapper instance with the specified file and an empty path.
      * This method provide option to set path {@link #addSerializableData(String, org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable)}
      * or alternatively set the path when serialize the data and use {@link #addAllSerializableData(List)}.
-     * <p>&nbsp;<p>
+     * <p>&nbsp;</p>
      * <p><strong>Note:</strong> When using this constructor, nested maps are not modified.
      * If you need to handle nested structures, consider converting them into a list or another appropriate key-value structure.</p>
      *

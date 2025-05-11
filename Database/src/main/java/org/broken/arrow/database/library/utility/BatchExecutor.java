@@ -246,7 +246,7 @@ public class BatchExecutor<T> {
 
     private <K, V extends ConfigurationSerializable> boolean isFiltredOutColumn(DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler, String[] columns, String name) {
         if (databaseQueryHandler != null && !databaseQueryHandler.containsFilteredColumn(name)) return true;
-        
+
         return columns != null && columns.length > 0 && !checkIfUpdateColumn(columns, name);
     }
 

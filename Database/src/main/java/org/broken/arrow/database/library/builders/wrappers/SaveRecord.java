@@ -58,6 +58,8 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
 
     /**
      * Gets the key associated with this save context.
+     *
+     * @return The map key instance.
      */
     public K getKey() {
         return key;
@@ -65,6 +67,8 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
 
     /**
      * Gets the value to be saved, which must implement {@link ConfigurationSerializable}.
+     *
+     * @return the {@link ConfigurationSerializable} value from your cache.
      */
     public V getValue() {
         return value;

@@ -1,14 +1,14 @@
 package org.broken.arrow.database.library.builders;
 
-import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.builders.wrappers.DatabaseSettings;
+import org.broken.arrow.database.library.core.Database;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Wrapper class for loading and storing deserialized data along with its primary value.
@@ -24,7 +24,7 @@ public class LoadDataWrapper<T> {
      * Constructs a LoadDataWrapper instance with the provided primary column value, deserialized the values from the database.
      *
      * @param filteredMap      The map of column names to their raw values, filtered according to the provided filter defined
-     *                         in {@link DatabaseSettings#setFilter(Function)}.
+     *                         in {@link DatabaseSettings#setFilter(Predicate)}.
      * @param deSerializedData The deserialized data.
      */
     public LoadDataWrapper(@Nullable final Map<String, Object> filteredMap, @Nonnull final T deSerializedData) {
@@ -62,7 +62,7 @@ public class LoadDataWrapper<T> {
     /**
      * Returns a map of filtered column data for this row.
      * <p>
-     * The keys are the column names that matched the filter defined in {@link DatabaseSettings#setFilter(Function)}.
+     * The keys are the column names that matched the filter defined in {@link DatabaseSettings#setFilter(Predicate)}.
      * The values are the corresponding raw database values (not deserialized).
      *
      * @return a map of column names to their raw values, filtered according to the provided filter.
