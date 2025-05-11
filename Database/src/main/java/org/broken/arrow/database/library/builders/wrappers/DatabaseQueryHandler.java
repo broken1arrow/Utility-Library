@@ -5,7 +5,7 @@ import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class DatabaseQueryHandler<T> {
     private final List<T> data = new ArrayList<>();
@@ -15,7 +15,7 @@ public class DatabaseQueryHandler<T> {
         this.databaseSettings = databaseSettings;
     }
 
-    public Function<String, Boolean> getFilter() {
+    public Predicate<String> getFilter() {
         return databaseSettings.getFilter();
     }
 
@@ -26,15 +26,15 @@ public class DatabaseQueryHandler<T> {
     }
 
     public boolean isFilterSet() {
-        final Function<String, Boolean> filter = this.getFilter();
+        final Predicate<String> filter = this.getFilter();
         return filter != null;
     }
 
 
     public boolean containsFilteredColumn(@Nonnull final String columnName) {
-        final Function<String, Boolean> filter = this.getFilter();
+        final Predicate<String> filter = this.getFilter();
 
-        return filter == null || filter.apply(columnName);
+        return filter == null || filter.test(columnName);
     }
 
     public void add(T queryData) {

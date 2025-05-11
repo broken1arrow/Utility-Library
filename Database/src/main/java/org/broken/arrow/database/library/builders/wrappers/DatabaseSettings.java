@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Base class for settings used in database operations such as loading or saving data.
@@ -16,7 +16,7 @@ public class DatabaseSettings {
 
     @Nonnull
     private final String tableName;
-    private Function<String, Boolean> filter;
+    private Predicate<String> filter;
 
     /**
      * Creates a new settings object for the specified table.
@@ -32,7 +32,7 @@ public class DatabaseSettings {
      *
      * @return A function that returns {@code true} if the column should be included; otherwise {@code false}. May be {@code null}.
      */
-    public Function<String, Boolean> getFilter() {
+    public Predicate<String> getFilter() {
         return filter;
     }
 
@@ -41,7 +41,7 @@ public class DatabaseSettings {
      *
      * @param filterColumn A function that returns {@code true} for columns that should be included.
      */
-    public void setFilter(@Nonnull Function<String, Boolean> filterColumn) {
+    public void setFilter(@Nonnull Predicate<String> filterColumn) {
         filter = filterColumn;
     }
 

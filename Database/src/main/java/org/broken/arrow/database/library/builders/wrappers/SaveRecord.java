@@ -167,18 +167,18 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      * Attempts to safely cast an object to a {@code SaveContext<k, v>} of the expected types.
      *
      * @param obj the object to test and cast.
-     * @param <k> expected key type.
-     * @param <v> expected value type.
+     * @param <Z> expected key type.
+     * @param <Y> expected value type.
      * @return a casted {@code SaveContext<k, v>} if the types match, or {@code null} otherwise.
      */
     @Nullable
-    public <k, v extends ConfigurationSerializable> SaveRecord<k, v> isSaveContext(Object obj) {
+    public <Z, Y extends ConfigurationSerializable> SaveRecord<Z, Y> isSaveContext(Object obj) {
         if (!(obj instanceof SaveRecord)) return null;
 
         SaveRecord<?, ?> context = (SaveRecord<?, ?>) obj;
         if (keyClazz.isInstance(context.getKey()) && valueClazz.isInstance(context.getValue())) {
             @SuppressWarnings("unchecked")
-            SaveRecord<k, v> saveRecord = (SaveRecord<k, v>) context;
+            SaveRecord<Z, Y> saveRecord = (SaveRecord<Z, Y>) context;
             return saveRecord;
         }
         return null;
