@@ -7,6 +7,7 @@ import org.broken.arrow.database.library.construct.query.builder.QueryRemover;
 import org.broken.arrow.database.library.construct.query.builder.UpdateBuilder;
 import org.broken.arrow.database.library.construct.query.builder.WithManger;
 import org.broken.arrow.database.library.construct.query.builder.insertbuilder.InsertBuilder;
+import org.broken.arrow.database.library.construct.query.builder.tablebuilder.AlterTable;
 import org.broken.arrow.database.library.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
@@ -27,6 +28,7 @@ public class QueryBuilder {
     private final InsertHandler insertHandler = new InsertHandler();
     private final QueryModifier queryModifier = new QueryModifier(this);
     private final CreateTableHandler createTableHandler = new CreateTableHandler(this);
+    private final AlterTable alterTable = new AlterTable(this);
     private final QueryRemover queryRemover = new QueryRemover(this);
     private final WithManger withManger = new WithManger(this);
     private QueryType queryType;
@@ -48,7 +50,11 @@ public class QueryBuilder {
         this.table = table;
         return createTableHandler;
     }
-
+    public AlterTable alterTable(String table) {
+        this.queryType = QueryType.ALTER_TABLE;
+        this.table = table;
+        return  alterTable;
+    }
     public CreateTableHandler dropTable(String table) {
         this.queryType = QueryType.DROP;
         this.table = table;
@@ -184,6 +190,9 @@ public class QueryBuilder {
                 break;
             case WITH:
                 sql.append(withManger.build());
+                break;
+            case ALTER_TABLE:
+                sql.append("ALTER TABLE ").append(table).append(" ").append(this.alterTable.build());
                 break;
             default:
                 break;

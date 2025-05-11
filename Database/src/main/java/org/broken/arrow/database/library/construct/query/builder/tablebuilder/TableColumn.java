@@ -13,8 +13,8 @@ public class TableColumn extends Column {
     private final ColumnManger columnManger;
     private final boolean isPrimaryKey;
 
-    public TableColumn(ColumnManger columnManger, String columnName, final DataType dataType, final SQLConstraints... constraints) {
-        super( columnName, "");
+    public TableColumn(ColumnManger columnManger, final String columnName, final DataType dataType, final SQLConstraints... constraints) {
+        super(columnName, "");
         this.dataType = dataType;
         this.constraints = constraints;
         this.columnManger = columnManger;
@@ -44,11 +44,12 @@ public class TableColumn extends Column {
         return false;
     }
 
-    public String build(){
+    public String build() {
         StringJoiner joiner = new StringJoiner(" ");
-        for (SQLConstraints constraint: this.constraints){
-            joiner.add(constraint.toString());
-        }
+        if (this.constraints != null)
+            for (SQLConstraints constraint : this.constraints) {
+                joiner.add(constraint.toString());
+            }
 
         return this.getColumnName() + " " + dataType.getValue() + " " + joiner + " ";
     }

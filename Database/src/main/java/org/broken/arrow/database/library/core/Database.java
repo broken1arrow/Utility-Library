@@ -10,7 +10,6 @@ import org.broken.arrow.database.library.builders.wrappers.SaveSetup;
 import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.builder.CreateTableHandler;
-import org.broken.arrow.database.library.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
 import org.broken.arrow.database.library.core.databases.H2DB;
@@ -588,11 +587,15 @@ public abstract class Database {
             return;
         }
 
+
         for (final Column column : queryTable.getTable().getColumns()) {
             String columnName = column.getColumnName();
             if (removeColumns.contains(columnName) || existingColumns.contains(columnName.toLowerCase())) continue;
-
-            try (final PreparedStatement statement = connection.prepareStatement("ALTER TABLE " + this.getQuote() + queryTable.getTableName() + this.getQuote() + " ADD " + this.getQuote() + columnName + this.getQuote() + " " + ((TableColumn) column).getDataType() + ";")) {
+            final QueryBuilder queryBuilder = new QueryBuilder();
+            queryBuilder.alterTable(queryTable.getTableName()).add(column);
+            final String query = queryBuilder.build();
+            // String string = "ALTER TABLE " + this.getQuote() + queryTable.getTableName() + this.getQuote() + " ADD " + this.getQuote() + columnName + this.getQuote() + " " + ((TableColumn) column).getDataType() + ";";
+            try (final PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.execute();
             } catch (final SQLException throwable) {
                 log.log(throwable, () -> of("Could not add this '" + columnName + "' missing column. To this table '" + queryTable.getTableName() + "'"));
@@ -698,7 +701,7 @@ public abstract class Database {
 
     private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
         final QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.select(ColumnManger.of().column("*").finish()).from(tableName).where(where-> where.where(columName ).equal(""));
+        queryBuilder.select(ColumnManger.of().column("*").finish()).from(tableName).where(where -> where.where(columName).equal(""));
         final String checkTableQuery = queryBuilder.build();
 
         try (final PreparedStatement preparedStatement = connection.prepareStatement(checkTableQuery)) {

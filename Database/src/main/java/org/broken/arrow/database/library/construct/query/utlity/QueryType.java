@@ -1,7 +1,7 @@
 package org.broken.arrow.database.library.construct.query.utlity;
 
 public enum QueryType {
-    SELECT, DELETE, DROP, CREATE, CREATE_IF_NOT_EXISTS, UPDATE, WITH, INSERT,REPLACE_INTO, MERGE_INTO, NON;
+    SELECT, DELETE, DROP, CREATE, CREATE_IF_NOT_EXISTS, UPDATE, WITH, INSERT,REPLACE_INTO, MERGE_INTO, NON, ALTER_TABLE;
 
     public static QueryType getType(final String type) {
       if (type == null) return NON;
