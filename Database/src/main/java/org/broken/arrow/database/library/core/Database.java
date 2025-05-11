@@ -541,7 +541,7 @@ public abstract class Database {
         }
     }
 
-    protected void dropColumn(final List<String> existingColumns, final String tableName) throws SQLException {
+/*    protected void dropColumn(final List<String> existingColumns, final String tableName) throws SQLException {
         Connection connection = this.connect();
         if (connection == null) {
             this.printFailToOpen();
@@ -579,7 +579,7 @@ public abstract class Database {
         } finally {
             close(moveData, alterTable, createTable, removeOldTable);
         }
-    }
+    }*/
 
     private void createMissingColumns(Connection connection, SqlQueryTable queryTable, List<String> existingColumns) {
         if (existingColumns == null) return;
