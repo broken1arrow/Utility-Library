@@ -11,7 +11,7 @@ import java.util.StringJoiner;
 
 public class AlterTable {
 
-    public List<String> columns = new ArrayList<>();
+    private final List<String> columns = new ArrayList<>();
 
 
     public AlterTable(@Nonnull final QueryBuilder queryBuilder) {
