@@ -15,7 +15,6 @@ import java.util.Map;
 public class ComparisonHandler<T> {
 
     private final LogicalOperator<T> logicalOperator;
-    private final StringBuilder columnsBuilt = new StringBuilder();
     private final String column;
     private ConditionBuilder<T> condition;
     private SubqueryHandler<T> subqueryHandler;
@@ -33,16 +32,13 @@ public class ComparisonHandler<T> {
         this.column = "";
     }
 
-    public StringBuilder getColumnsBuilt() {
-        return columnsBuilt;
-    }
-
     private void init(LogicalOperators symbol, Object value) {
         this.symbol = symbol.getSymbol();
         if (value instanceof List<?>) {
             this.values = new ArrayList<>((List<?>) value).toArray();
         } else {
             if (value instanceof SubqueryHandler<?>) {
+                @SuppressWarnings("unchecked")
                 final SubqueryHandler<T> subquery = (SubqueryHandler<T>) value;
                 this.subqueryHandler = subquery;
                 final Map<Integer, Object> subValues = subquery.getSubquery().getValues();
