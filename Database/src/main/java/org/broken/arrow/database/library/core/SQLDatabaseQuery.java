@@ -101,32 +101,7 @@ public abstract class SQLDatabaseQuery extends Database {
     @Nonnull
     @Override
     public <K, V extends ConfigurationSerializable> QuerySaver<K, V> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave,
-                                                                          @Nonnull final Consumer<SaveSetup<K, V>> saveSetup) {
-/*        final Connection connection = getDatabase().attemptToConnect();
-        final BatchExecutor<SaveRecord<K, V>> batchExecutor;
-
-        final DatabaseSettingsSave databaseSettings = new DatabaseSettingsSave(tableName);
-        final DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler = new DatabaseQueryHandler<>(databaseSettings);
-        if (connection == null) {
-            getDatabase().printFailToOpen();
-            return;
-        }
-        SaveSetup<K,V> saveSetup = new SaveSetup<>();
-        strategy.accept(saveSetup);
-        saveSetup.applyConfigure(databaseSettings);
-
-        final List<SaveRecord<K, V>> data = cacheToSave.entrySet().stream().map(kvEntry -> saveSetup.applyQuery(new SaveRecord<>(tableName, kvEntry))).collect(Collectors.toList());
-        if (data.isEmpty()) {
-            this.log.log(Level.WARNING, () -> Logging.of("No data in the map for the table:'" + tableName + "' . Just must provide data and also don't forget to set your where clause."));
-            return;
-        }
-
-        if (getDatabase().isSecureQuery())
-            batchExecutor = new BatchExecutor<>(getDatabase(), connection, data);
-        else {
-            batchExecutor = new BatchExecutorUnsafe<>(getDatabase(), connection, data);
-        }
-        batchExecutor.save(tableName, databaseSettings.isShallUpdate(), databaseQueryHandler);*/
+                                                                          @Nonnull final Consumer<SaveSetup> saveSetup) {
         return new QuerySaver<>(this, tableName, cacheToSave, saveSetup);
     }
 
