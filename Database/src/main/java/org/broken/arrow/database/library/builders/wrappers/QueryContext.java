@@ -37,12 +37,14 @@ public class QueryContext<T> {
      * This method is used by both saving and loading processes, and its behavior depends
      * on the surrounding context (i.e., the subclass using it).
      * </p>
-     *
-     * <h3>When used for saving:</h3>
+     * <p>
+     * <strong>When used for saving:</strong>
+     * </p>
      * You should define primary key(s) or other identifying values not included in your
      * {@link ConfigurationSerializable} implementation by calling {@link SaveRecord#addKeys(String, Object)}.
-     *
-     * <h3>When used for loading:</h3>
+     * <p>
+     * <strong>When used for loading:</strong>
+     * </p>
      * Ensure your {@link LoadDataWrapper} instance can provide identifying key/value pairs.
      * You can access selected (or filtered if set) columns via {@link LoadDataWrapper#getFilteredMap()}.
      *
