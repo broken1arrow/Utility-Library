@@ -26,11 +26,11 @@ public class Aggregation {
         this.separator = new Column.Separator(this, new Column(name, alias));
     }
 
-    public Aggregation colum(String name) {
-        return this.colum( name, "") ;
+    public Aggregation column(String name) {
+        return this.column( name, "") ;
     }
 
-    public Aggregation colum(String name, String alias) {
+    public Aggregation column(String name, String alias) {
         return new Aggregation( this.columnManger, new Column.Separator(this, new Column(name, alias)));
     }
 

@@ -538,7 +538,7 @@ public abstract class Database {
     }
 
     /**
-     * Update the table, if it missing a colum or columns.
+     * Update the table, if it missing a column or columns.
      *
      * @param connection the connection to the database where the changes should be added.
      * @param tableName  the table you want to check.
