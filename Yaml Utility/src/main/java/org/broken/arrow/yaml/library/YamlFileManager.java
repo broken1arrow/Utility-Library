@@ -1,6 +1,7 @@
 package org.broken.arrow.yaml.library;
 
 
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.serialize.library.utility.serialize.MethodReflectionUtils;
@@ -42,13 +43,16 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 
+import static org.broken.arrow.logging.library.Logging.of;
+
 /**
  * Helper class to load and save data from one or several files.
  * Provides methods for serialization and file operations.
  */
 public abstract class YamlFileManager {
+    private final Logging log = new Logging(YamlFileManager.class);
 
-	private FileConfiguration currentConfig;
+    private FileConfiguration currentConfig;
 	private File currentConfigFile;
 	private final File dataFolder;
 	private boolean shallGenerateFiles;
@@ -159,7 +163,8 @@ public abstract class YamlFileManager {
 		try {
 			this.configUpdater.update(getVersion(), resourcePathToFile != null ? resourcePathToFile : this.getPathWithExtension(), file);
 		} catch (final IOException e) {
-			e.printStackTrace();
+			String name = file.getName();
+			log.log(e, () -> of("Failed to update the file: " + name));
 		} finally {
 			currentConfig = YamlConfiguration.loadConfiguration(file);
 		}
@@ -177,7 +182,7 @@ public abstract class YamlFileManager {
 				load(getFilesInPluginFolder(this.getPath()));
 			}
 		} catch (final IOException | InvalidConfigurationException e) {
-			e.printStackTrace();
+			log.log(e, () -> of("Failed to reload the config"));
 		}
 	}
 
@@ -313,7 +318,7 @@ public abstract class YamlFileManager {
 			try {
 				newDataFolder.createNewFile();
 			} catch (final IOException e) {
-				e.printStackTrace();
+				log.log(e, () -> of("Failed to save the file to disk: "+ fileToSave ));
 			} finally {
 				saveData(newDataFolder);
 			}
@@ -351,7 +356,7 @@ public abstract class YamlFileManager {
 			if (updateData)
 				update(file);
 		} catch (final IOException e) {
-			e.printStackTrace();
+			log.log(e, () -> of("Could not save data to file " + file.getName()));
 		}
 	}
 
@@ -707,7 +712,7 @@ public abstract class YamlFileManager {
 						}
 					}
 				} catch (final URISyntaxException e) {
-					e.printStackTrace();
+					log.log(e, () -> of("Could not retrieve the file from your plugin jar. From the directory: " + directoryName));
 				}
 			} else if (url.getProtocol().equals("jar")) {
 				getFileFromJar(directoryName, filenames, url);
@@ -739,7 +744,7 @@ public abstract class YamlFileManager {
 				}
 			}
 		} catch (final IOException e) {
-			e.printStackTrace();
+			log.log(e, () -> of("Could not add the file to the list. From the directory: " + directoryName));
 		}
 	}
 

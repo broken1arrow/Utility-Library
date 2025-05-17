@@ -22,6 +22,8 @@ import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.UUID;
 
+import static org.broken.arrow.logging.library.Logging.of;
+
 /**
  * A library for the Bukkit API to create player skulls
  * from names, base64 strings, and texture URLs.
@@ -298,7 +300,7 @@ public class SkullCreator {
 			}
 			blockProfileField.set(block, makeProfile(b64));
 		} catch (NoSuchFieldException | IllegalAccessException e) {
-			e.printStackTrace();
+			LOG.log(e, () -> of("Failed to change the skull block"));
 		}
 	}
 

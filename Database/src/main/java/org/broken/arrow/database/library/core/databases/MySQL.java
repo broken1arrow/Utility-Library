@@ -139,7 +139,7 @@ public class MySQL extends SQLDatabaseQuery {
                 close(create);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.log(e, () -> of("Failed to connect to the database with the database name: " + databaseName));
         }
     }
 

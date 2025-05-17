@@ -4,6 +4,7 @@ package org.broken.arrow.command.library;
 import org.broken.arrow.command.library.command.CommandProperty;
 import org.broken.arrow.command.library.commandhandler.CommandExecutor;
 import org.broken.arrow.command.library.commandhandler.CommandRegistering;
+import org.broken.arrow.logging.library.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandException;
@@ -24,6 +25,7 @@ import java.util.Set;
  * retrieving sub-commands, and registering the main command label.
  */
 public class CommandRegister implements CommandRegistering {
+    private Logging log = new Logging(CommandRegister.class);
 
 	private final List<CommandProperty> commands = Collections.synchronizedList(new ArrayList<>());
 	private String commandLabelMessage;
@@ -353,7 +355,7 @@ public class CommandRegister implements CommandRegistering {
 
 			commandMap.register(fallbackPrefix, command);
 		} catch (final NoSuchFieldException | IllegalAccessException e) {
-			e.printStackTrace();
+			log.log(e,() -> Logging.of("It failed to register your command"));
 		}
 	}
 

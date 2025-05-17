@@ -93,8 +93,8 @@ public class EntityModifications {
 		} else {
 			try {
 				return (FallingBlock) loc.getWorld().getClass().getMethod("spawnFallingBlock", Location.class, Integer.TYPE, Byte.TYPE).invoke(loc.getWorld(), loc, material.getId(), data);
-			} catch (final ReflectiveOperationException var4) {
-				var4.printStackTrace();
+			} catch (final ReflectiveOperationException error) {
+				log.logError(error,() -> of("Could create a falling block. You probably trying this on to old version of Minecraft as it does only supports 1.8.8 and up, your version: " + serverVersion));
 				return null;
 			}
 		}
