@@ -1,17 +1,13 @@
 package org.broken.arrow.database.library.builders.wrappers;
 
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
-
 import java.util.function.Consumer;
 
 /**
- * Represents a setup for saving data to a database, encapsulating both
- * the configuration of database settings and the logic for preparing query contexts.
+ * Represents a setup for saving data to a database, encapsulating
+ * the configuration of database settings.
  *
- * @param <K> the type of the map key used in the save operation
- * @param <V> the type of the value, which must implement {@link ConfigurationSerializable}
  */
-public class SaveSetup<K, V extends ConfigurationSerializable> {
+public class SaveSetup{
 
     private Consumer<DatabaseSettingsSave> settings;
 

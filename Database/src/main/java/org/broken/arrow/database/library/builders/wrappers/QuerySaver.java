@@ -15,6 +15,12 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+/**
+ * Represents a helper to set values before execute the save to the database.
+ *
+ * @param <K> the type of the map key used in the save operation
+ * @param <V> the type of the value, which must implement {@link ConfigurationSerializable}
+ */
 public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryContext<SaveRecord<K, V>> {
     @Nonnull
     private final Logging log = new Logging(QueryLoader.class);
@@ -23,11 +29,11 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
     @Nonnull
     private final Map<K, V> cacheToSave;
     @Nonnull
-    final Consumer<SaveSetup<K, V>> strategy;
+    final Consumer<SaveSetup> strategy;
 
 
 
-    public QuerySaver(@Nonnull final SQLDatabaseQuery sqlDatabaseQuery, @Nonnull String tableName, @Nonnull Map<K, V> cacheToSave, @Nonnull Consumer<SaveSetup<K, V>> strategy) {
+    public QuerySaver(@Nonnull final SQLDatabaseQuery sqlDatabaseQuery, @Nonnull String tableName, @Nonnull Map<K, V> cacheToSave, @Nonnull Consumer<SaveSetup> strategy) {
         super(sqlDatabaseQuery,tableName);
         this.tableName = tableName;
         this.cacheToSave = cacheToSave;
@@ -46,7 +52,7 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
             database.printFailToOpen();
             return;
         }
-        SaveSetup<K,V> saveSetup = new SaveSetup<>();
+        SaveSetup saveSetup = new SaveSetup();
         this.strategy.accept(saveSetup);
         saveSetup.applyConfigure(databaseSettings);
 

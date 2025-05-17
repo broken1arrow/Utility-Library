@@ -276,7 +276,7 @@ public abstract class Database {
      * @throws UnsupportedOperationException if this database type does not support save operations.
      */
     @Nonnull
-    public <K, V extends ConfigurationSerializable> QuerySaver<K, V> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave, @Nonnull final Consumer<SaveSetup<K, V>> saveSetup) {
+    public <K, V extends ConfigurationSerializable> QuerySaver<K, V> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave, @Nonnull final Consumer<SaveSetup> saveSetup) {
         throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
     }
 
