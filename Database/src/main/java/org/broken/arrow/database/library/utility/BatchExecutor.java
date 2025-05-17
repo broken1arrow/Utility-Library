@@ -100,11 +100,8 @@ public class BatchExecutor<T> {
 
         for (T dataToSave : this.dataToProcess) {
             final SaveRecord<K, V> saveRecord = getSaveRecord(dataToSave);
-            if (saveRecord == null) continue;
-
-            final QueryBuilder queryBuilder = saveRecord.getQueryBuilder();
-
-            if (checkIfQuerySet(saveRecord, queryBuilder)) continue;
+            final QueryBuilder queryBuilder = saveRecord != null ? saveRecord.getQueryBuilder(): null;
+            if (saveRecord == null || queryBuilder == null || checkIfQuerySet(saveRecord, queryBuilder)) continue;
 
             final SqlHandler sqlHandler = new SqlHandler(tableName, database);
             final boolean columnsFilterSet = databaseQueryHandler.isFilterSet();
@@ -114,19 +111,11 @@ public class BatchExecutor<T> {
                 final SqlQueryPair wrappedQuery = sqlHandler.wrapQuery(queryBuilder);
                 canUpdateRow = this.checkIfRowExist(wrappedQuery, false);
             }
-            Map<Column, Object> toSave = formatData(saveRecord.getValue(), canUpdateRow ? databaseQueryHandler : null, new String[0]);
-            if (!canUpdateRow) {
-                if (saveRecord.getKeys().isEmpty())
-                    this.log.log(Level.WARNING, () -> Logging.of("Primary key and/or foreign key values were not set. It will still attempt to save the data, which may result in " +
-                            "certain columns being saved as null unless your ConfigurationSerializable implementation explicitly handles missing columns and values."));
-                else
-                    toSave.putAll(saveRecord.getKeys());
-            }
+            Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
             queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, toSave, saveRecord.getWhereClause(), canUpdateRow));
         }
         this.executeDatabaseTasks(queryList);
     }
-
 
     public void save(final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final String... columns) {
         final SqlQueryTable table = this.database.getTableFromName(tableName);
@@ -199,7 +188,9 @@ public class BatchExecutor<T> {
     }
 
     public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
-        if (!checkIfNotNull(sqlQueryBuilders)) return;
+        if (!checkIfNotNull(sqlQueryBuilders)) {
+            //not in use
+        }
     }
 
     /**
@@ -507,5 +498,16 @@ public class BatchExecutor<T> {
         return false;
     }
 
+    private <K, V extends ConfigurationSerializable> @Nonnull Map<Column, Object> getColumns(DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler, SaveRecord<K, V> saveRecord, boolean canUpdateRow) {
+        Map<Column, Object> toSave = formatData(saveRecord.getValue(), canUpdateRow ? databaseQueryHandler : null, new String[0]);
+        if (!canUpdateRow) {
+            if (saveRecord.getKeys().isEmpty())
+                this.log.log(Level.WARNING, () -> Logging.of("Primary key and/or foreign key values were not set. It will still attempt to save the data, which may result in " +
+                        "certain columns being saved as null unless your ConfigurationSerializable implementation explicitly handles missing columns and values."));
+            else
+                toSave.putAll(saveRecord.getKeys());
+        }
+        return toSave;
+    }
 
 }
