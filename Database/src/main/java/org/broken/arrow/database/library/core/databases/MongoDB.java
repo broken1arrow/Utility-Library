@@ -15,7 +15,6 @@ import com.mongodb.client.result.UpdateResult;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.builders.DataWrapper;
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
-import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.utlity.QueryDefinition;
@@ -196,10 +195,6 @@ public class MongoDB extends Database {
         return loadDataWrapper;
     }
 
-    @Override
-    public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
-        throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
-    }
 
     /**
      * Executes a query against a MongoDB collection and passes the result to the given function.

@@ -6,6 +6,8 @@ import org.broken.arrow.database.library.builders.LoadDataWrapper;
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.builders.tables.SqlQueryTable;
 import org.broken.arrow.database.library.builders.wrappers.LoadSetup;
+import org.broken.arrow.database.library.builders.wrappers.QueryLoader;
+import org.broken.arrow.database.library.builders.wrappers.QuerySaver;
 import org.broken.arrow.database.library.builders.wrappers.SaveSetup;
 import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
@@ -242,24 +244,40 @@ public abstract class Database {
     public abstract void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns);
 
     /**
-     * Allows you to specify which row or rows you want to update in a SQL database.
-     * (Note: This currently does not support non-SQL databases.)
+     * Prepares an operation to save one or more rows to a SQL database table.
      * <p>
-     * You provide the table name and a map of cached values to save. The table doesn't need to be one of the registered ones in this library,
-     * as no checks are performed against previously registered tables (unlike the older methods).
-     * <p>
-     * The map’s values must implement {@link ConfigurationSerializable}, and the keys are entirely up to you — they will be available
-     * inside the consumer, where you can loop through them using {@link SaveSetup#forEachQuery(Consumer)}.
+     * <b>Note:</b> This method currently supports only SQL databases.
+     * It performs a <i>blocking</i> query, so it's strongly recommended to call
+     * {@link QuerySaver#save()} in a separate thread to avoid blocking the main thread.
+     * </p>
      *
-     * @param tableName   The name of the table. It must exist in the database, but it doesn't need to be registered in this library.
-     * @param cacheToSave The data you want to save. The values must implement {@link ConfigurationSerializable}, and the keys are handled
-     *                    inside {@link SaveSetup#forEachQuery(Consumer)}.
-     * @param strategy    The settings and the setup for the queries where clause and your primary keys. Also you can filter which columns should be updated if the row(s) already exist.
-     * @param <K>         The type of the key used in your cache map.
-     * @param <V>         A type that implements {@link ConfigurationSerializable}.
+     * <p>
+     * You specify the target table and a map of values to save. The table does <b>not</b>
+     * need to be registered in this library — no validation is performed against known tables.
+     * </p>
+     *
+     * <p>
+     * The values in the map must implement {@link ConfigurationSerializable}, and the keys are up to you.
+     * These keys will be available inside the query logic through {@link QuerySaver#forEachQuery(Consumer)},
+     * where you can configure the update logic and define the WHERE clause.
+     * </p>
+     *
+     * <p>
+     * You must call {@link QuerySaver#save()} after configuring your query logic using {@code forEachQuery}.
+     * </p>
+     *
+     * @param tableName   The name of the target table. It must exist in the database, but does not need to be registered in this library.
+     * @param cacheToSave A map of data to save. The values must implement {@link ConfigurationSerializable}.
+     *                    The keys are available during query setup via {@link QuerySaver#forEachQuery(Consumer)}.
+     * @param saveSetup    Provides access to define primary keys, WHERE clauses, and column filters for updates.
+     * @param <K>         The type of keys used in your cache map.
+     * @param <V>         The type of values, which must implement {@link ConfigurationSerializable}.
+     * @return a {@link QuerySaver} instance used to configure and execute the query, and to access results if needed.
+     * @throws UnsupportedOperationException if this database type does not support save operations.
      */
-    public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave,
-                                                              @Nonnull final Consumer<SaveSetup<K, V>> strategy) {
+    @Nonnull
+    public <K, V extends ConfigurationSerializable> QuerySaver<K, V> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave, @Nonnull final Consumer<SaveSetup<K, V>> saveSetup) {
+        throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
     }
 
     /**
@@ -286,16 +304,26 @@ public abstract class Database {
     public abstract <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final String columnValue);
 
     /**
-     * Loads a single row from the specified database table.
+     * Loads one or more rows from the specified database table.
+     * <p>
+     * This method performs a blocking database query, so it is strongly recommended
+     * to invoke {@link QueryLoader#load()} in a separate thread to avoid blocking the main thread.
+     * </p>
+     * <p>
+     * Use the {@link QueryLoader} instance to define how rows should be handled during loading
+     * via {@link QueryLoader#forEachQuery(Consumer)}, or to retrieve the full list of loaded results afterward.
+     * </p>
      *
-     * @param tableName the name of the table to retrieve data from.
-     * @param clazz     the class containing the static deserialize method.
-     * @param setup     set up a filter as an option and a query command to run.
-     * @param <T>       a class that extends {@code ConfigurationSerializable}.
+     * @param tableName the name of the table to query.
+     * @param clazz     the class type that must provide a static {@code deserialize} method.
+     * @param setup     a consumer to configure optional filtering and query conditions.
+     * @param <T>       the type that implements {@link ConfigurationSerializable}.
+     * @return a {@link QueryLoader} instance for configuring, triggering, and retrieving query results.
+     * @throws UnsupportedOperationException if this operation is not implemented for the current database type.
      */
-
-    public <T extends ConfigurationSerializable> void load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<LoadSetup<T>> setup) {
-
+    @Nonnull
+    public <T extends ConfigurationSerializable> QueryLoader<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<LoadSetup<T>> setup) {
+        throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
     }
 
     /**

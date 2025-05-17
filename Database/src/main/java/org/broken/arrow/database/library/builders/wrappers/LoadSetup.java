@@ -15,7 +15,7 @@ public class LoadSetup<T extends ConfigurationSerializable> {
 
     private final DatabaseQueryHandler<LoadDataWrapper<T>> databaseHandler;
     private Consumer<DatabaseSettingsLoad> settings;
-    private Consumer<LoadDataWrapper<T>> context;
+
 
     public LoadSetup(DatabaseQueryHandler<LoadDataWrapper<T>> databaseHandler) {
         this.databaseHandler = databaseHandler;
@@ -30,17 +30,6 @@ public class LoadSetup<T extends ConfigurationSerializable> {
         this.settings = settings;
     }
 
-    /**
-     * Sets the logic to prepare query data for each entry in the cache.
-     * Don't forget to define your primary key(s) or equivalent identifiers not present
-     * in your {@link ConfigurationSerializable} implementation, by using
-     * {@link SaveRecord#addKeys(String, Object)}.
-     *
-     * @param queryResult a consumer that populates or modifies a {@link LoadDataWrapper} for loading.
-     */
-    public void forEachLoadedQuery(final Consumer<LoadDataWrapper<T>> queryResult) {
-        this.context = queryResult;
-    }
 
     /**
      * Applies the configured database settings if present.
@@ -53,16 +42,7 @@ public class LoadSetup<T extends ConfigurationSerializable> {
         this.settings.accept(settings);
     }
 
-    /**
-     * Applies the query preparation logic for a given loaded value if it set and data is found.
-     *
-     * @param loadDataWrapper the {@link LoadDataWrapper} instance to apply found query data to.
-     */
-    public void applyWrapper(final LoadDataWrapper<T> loadDataWrapper) {
-        if (this.context == null)
-            return;
-        context.accept(loadDataWrapper);
-    }
+
 
     public DatabaseQueryHandler<LoadDataWrapper<T>> getDatabaseHandler() {
         return databaseHandler;
