@@ -622,7 +622,6 @@ public abstract class Database {
             final QueryBuilder queryBuilder = new QueryBuilder();
             queryBuilder.alterTable(queryTable.getTableName()).add(column);
             final String query = queryBuilder.build();
-            // String string = "ALTER TABLE " + this.getQuote() + queryTable.getTableName() + this.getQuote() + " ADD " + this.getQuote() + columnName + this.getQuote() + " " + ((TableColumn) column).getDataType() + ";";
             try (final PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.execute();
             } catch (final SQLException throwable) {
