@@ -103,30 +103,38 @@ public class TitleUtility {
      */
     public Object getTitle(float serverVersion) {
         if (serverVersion > 20.2F) {
-            if (this.title == null)
-                return "";
-            if (this.jsonObjectTitle != null)
-                return this.jsonObjectTitle.toString();
-            if (!this.defaultConvertColor)
-                return  ChatColor.translateAlternateColorCodes('&', title);
-            return TextTranslator.toSpigotFormat(title);
+            return getTitleNewVersions();
         }
         if (this.jsonObjectTitle != null && serverVersion > 13.0F)
             return this.jsonObjectTitle;
         if (this.title != null) {
-            if (this.defaultConvertColor && serverVersion > 13.0F)
-                return TextTranslator.toComponent(title);
-            else {
-                if (this.defaultConvertColor)
-                    return "'" + TextTranslator.toSpigotFormat(title) + "'";
-                else {
-                    if (serverVersion >= 16.0F)
-                        return TextTranslator.fromLegacyText(title, ChatColors.WHITE);
-                    else
-                        return "'" + ChatColor.translateAlternateColorCodes('&', title) + "'";
-                }
-            }
+            return getTitleLegacy(serverVersion);
         }
         return null;
+    }
+
+    private String getTitleNewVersions() {
+        if (this.title == null)
+            return "";
+        if (this.jsonObjectTitle != null)
+            return this.jsonObjectTitle.toString();
+        if (!this.defaultConvertColor)
+            return ChatColor.translateAlternateColorCodes('&', title);
+        return TextTranslator.toSpigotFormat(title);
+    }
+
+    private Object getTitleLegacy(float serverVersion) {
+        if (this.defaultConvertColor && serverVersion > 13.0F)
+            return TextTranslator.toComponent(title);
+        else {
+            if (this.defaultConvertColor)
+                return "'" + TextTranslator.toSpigotFormat(title) + "'";
+            else {
+                if (serverVersion >= 16.0F)
+                    return TextTranslator.fromLegacyText(title, ChatColors.WHITE);
+                else
+                    return "'" + ChatColor.translateAlternateColorCodes('&', title) + "'";
+            }
+        }
     }
 }
