@@ -829,14 +829,14 @@ public class CreateItemStack {
 
     public void addEnchantments(final ItemMeta itemMeta) {
         if (!this.getEnchantments().isEmpty()) {
-            boolean haveEnchant = false;
+
             for (final Map.Entry<Enchantment, Tuple<Integer, Boolean>> enchant : this.getEnchantments().entrySet()) {
                 if (enchant == null) {
                     logger.log(() -> Logging.of("Your enchantment are null."));
                     continue;
                 }
                 final Tuple<Integer, Boolean> level = enchant.getValue();
-                haveEnchant = itemMeta.addEnchant(enchant.getKey(), level.getFirst() <= 0 ? 1 : level.getFirst(), level.getSecond());
+                itemMeta.addEnchant(enchant.getKey(), level.getFirst() <= 0 ? 1 : level.getFirst(), level.getSecond());
             }
             List<ItemFlag> itemFlagList = this.getItemFlags();
             if (isShowEnchantments() || !itemFlagList.isEmpty())
