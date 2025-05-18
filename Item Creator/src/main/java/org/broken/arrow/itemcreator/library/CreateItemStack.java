@@ -631,19 +631,6 @@ public class CreateItemStack {
         return this;
     }
 
-    /**
-     * Hide one or several metadata values on a itemstack.
-     *
-     * @param itemFlags add one or several flags you want to hide.
-     * @return this class.
-     * @deprecated this method does not make sense.
-     */
-    @Deprecated
-    public CreateItemStack setFlagsToHide(final List<ItemFlag> itemFlags) {
-        Validate.checkNotNull(itemFlags, "flags list should not be null");
-        this.itemFlags = itemFlags;
-        return this;
-    }
 
     /**
      * Get the list of flags set on this item.
@@ -651,7 +638,7 @@ public class CreateItemStack {
      * @return list of flags.
      */
     @Nonnull
-    public List<ItemFlag> getFlagsToHide() {
+    public List<ItemFlag> getItemFlags() {
         if (itemFlags == null) return new ArrayList<>();
         return itemFlags;
     }
@@ -819,7 +806,7 @@ public class CreateItemStack {
             addUnbreakableMeta(itemMeta);
         this.addCustomModelData(itemMeta);
 
-        if (isShowEnchantments() || !this.getFlagsToHide().isEmpty() || this.isGlow())
+        if (isShowEnchantments() || !this.getItemFlags().isEmpty() || this.isGlow())
             hideEnchantments(itemMeta);
     }
 
@@ -835,12 +822,12 @@ public class CreateItemStack {
     }
 
     private void hideEnchantments(final ItemMeta itemMeta) {
-        for (ItemFlag itemFlag : this.getFlagsToHide()) {
+        for (ItemFlag itemFlag : this.getItemFlags()) {
             itemMeta.addItemFlags(itemFlag);
         }
     }
 
-    public boolean addEnchantments(final ItemMeta itemMeta) {
+    public void addEnchantments(final ItemMeta itemMeta) {
         if (!this.getEnchantments().isEmpty()) {
             boolean haveEnchant = false;
             for (final Map.Entry<Enchantment, Tuple<Integer, Boolean>> enchant : this.getEnchantments().entrySet()) {
@@ -851,13 +838,12 @@ public class CreateItemStack {
                 final Tuple<Integer, Boolean> level = enchant.getValue();
                 haveEnchant = itemMeta.addEnchant(enchant.getKey(), level.getFirst() <= 0 ? 1 : level.getFirst(), level.getSecond());
             }
-            if (isShowEnchantments() || !this.getFlagsToHide().isEmpty())
+            List<ItemFlag> itemFlagList = this.getItemFlags();
+            if (isShowEnchantments() || !itemFlagList.isEmpty())
                 hideEnchantments(itemMeta);
-            return haveEnchant;
         } else if (this.isGlow()) {
-            return itemMeta.addEnchant(Enchantment.SILK_TOUCH, 1, false);
+            itemMeta.addEnchant(Enchantment.SILK_TOUCH, 1, false);
         }
-        return false;
     }
 
     private void addBannerPatterns(final ItemMeta itemMeta) {
