@@ -39,7 +39,7 @@ public class KeyUtils {
 		}
 		return builder.toString();
 	}
-	
+
 	/**
 	 * Adds the specified number of indents to each line of the given string.
 	 *
@@ -74,36 +74,35 @@ public class KeyUtils {
 
 		try {
 			Float keyFloat = Float.parseFloat(key);
-
 			if (sectionContext.containsKey(keyFloat))
 				return keyFloat;
 		} catch (NumberFormatException ignored) {
+            //don't need to know if it fails
 		}
 
 		try {
 			Double keyDouble = Double.parseDouble(key);
-
 			if (sectionContext.containsKey(keyDouble))
 				return keyDouble;
 		} catch (NumberFormatException ignored) {
+            //don't need to know if it fails
 		}
 
 		try {
 			Integer keyInteger = Integer.parseInt(key);
-
 			if (sectionContext.containsKey(keyInteger))
 				return keyInteger;
 		} catch (NumberFormatException ignored) {
+            //don't need to know if it fails
 		}
 
 		try {
 			Long longKey = Long.parseLong(key);
-
 			if (sectionContext.containsKey(longKey))
 				return longKey;
 		} catch (NumberFormatException ignored) {
+            //don't need to know if it fails 
 		}
-
 		return null;
 	}
 }
