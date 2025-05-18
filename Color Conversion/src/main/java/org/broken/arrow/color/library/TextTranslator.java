@@ -65,7 +65,7 @@ public final class TextTranslator {
 
 	/**
 	 * This is for component when you want to send message
-	 * thru vanilla minecraft MNS for example. DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
+	 * thought vanilla minecraft MNS for example. DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
 	 * <br> You use this format for colors:<br>
 	 * <ul>
 	 * <li> For vanilla color codes <strong>&amp; or &#167;</strong> and the color code.</li>
