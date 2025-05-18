@@ -101,7 +101,7 @@ public class KeyUtils {
 			if (sectionContext.containsKey(longKey))
 				return longKey;
 		} catch (NumberFormatException ignored) {
-            //don't need to know if it fails 
+            //don't need to know if it fails
 		}
 		return null;
 	}

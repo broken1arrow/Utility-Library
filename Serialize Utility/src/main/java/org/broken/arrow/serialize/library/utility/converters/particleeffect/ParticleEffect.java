@@ -499,14 +499,8 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		final Builder builder = new Builder(particle, effect, dataType);
 		if (options == null)
 			options = (ParticleDustOptions) map.get("Transition");
-		if (material != null) {
-			if (dataType.isInstance(material))
-				builder.setMaterial(material);
-			if (dataType.isInstance(material))
-				builder.setMaterialData(material.getData());
-			if (dataType.isInstance(material))
-				builder.setMaterialBlockData(material.createBlockData());
-		}
+		setMaterial(material, dataType, builder);
+
 		final Class<?> finalDataType = dataType;
 		if (material == null && dataType.isInstance(Material.class)) {
 			logger.log(Level.WARNING, () -> of("you have to set the material for this particle effect, this particle use this class '" + finalDataType + "' ."));
@@ -529,6 +523,18 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 				.build();
 
 		return builder.build();
+
+	}
+
+	private static void setMaterial(Material material, Class<?> dataType, Builder builder) {
+		if (material == null)
+			return;
+		if (dataType.isInstance(material))
+			builder.setMaterial(material);
+		if (dataType.isInstance(material))
+			builder.setMaterialData(material.getData());
+		if (dataType.isInstance(material))
+			builder.setMaterialBlockData(material.createBlockData());
 
 	}
 }
