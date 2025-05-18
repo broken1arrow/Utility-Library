@@ -1,4 +1,4 @@
-package org.broken.arrow.title.update.library.nms.modules;
+package org.broken.arrow.title.update.library.nms.modules.v_1_17;
 
 import org.broken.arrow.title.update.library.nms.InventoryNMS;
 import org.bukkit.inventory.Inventory;
@@ -7,7 +7,8 @@ import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-public class V_1_20_2_Inventory implements InventoryNMS {
+public class InventoryPacketSeventeen implements InventoryNMS {
+
 
 	@Override
 	public Class<?> getPacket() throws ClassNotFoundException {
@@ -16,7 +17,7 @@ public class V_1_20_2_Inventory implements InventoryNMS {
 
 	@Override
 	public Field getPlayerConnection() throws ClassNotFoundException, NoSuchFieldException {
-		return Class.forName("net.minecraft.server.level.EntityPlayer").getField("c");
+		return Class.forName("net.minecraft.server.level.EntityPlayer").getField("b");
 	}
 
 	@Override
@@ -48,7 +49,7 @@ public class V_1_20_2_Inventory implements InventoryNMS {
 	@Nonnull
 	@Override
 	public String getContainerField() {
-		return "bS";
+		return "bV";
 	}
 
 	@Nonnull
@@ -60,13 +61,13 @@ public class V_1_20_2_Inventory implements InventoryNMS {
 	@Nonnull
 	@Override
 	public String getSendPacketName() {
-		return "b";
+		return "sendPacket";
 	}
 
 	@Nonnull
 	@Override
 	public String getUpdateInventoryMethodName() {
-		return "a";
+		return "initMenu";
 	}
 
 	@Override
@@ -102,8 +103,7 @@ public class V_1_20_2_Inventory implements InventoryNMS {
 				return "p";
 			case SHULKER_BOX:
 				return "t";
-        /*todo should this be implemented? class do you find in net.minecraft.world.level.block.entity.TileEntityBarrel
-            and source is from InventoryEnderChest inside net.minecraft.world.entity.player.EntityHuman and what I looking for.
+        /*todo should this be implemented? class do you find in net.minecraft.world.level.block.entity.TileEntityBarrel.
            Check this nms code it use the field 'protected static final DataWatcherObject<NBTTagCompound> bR;':
               protected boolean a(EntityHuman entityhuman) {
                 if (entityhuman.bR instanceof ContainerChest) {

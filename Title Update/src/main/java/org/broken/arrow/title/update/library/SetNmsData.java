@@ -1,15 +1,15 @@
 package org.broken.arrow.title.update.library;
 
 import org.broken.arrow.title.update.library.nms.InventoryNMS;
-import org.broken.arrow.title.update.library.nms.modules.V_1_12_Inventory;
-import org.broken.arrow.title.update.library.nms.modules.V_1_16_Inventory;
-import org.broken.arrow.title.update.library.nms.modules.V_1_17_Inventory;
-import org.broken.arrow.title.update.library.nms.modules.V_1_18_2_Inventory;
-import org.broken.arrow.title.update.library.nms.modules.V_1_18_Inventory;
-import org.broken.arrow.title.update.library.nms.modules.V_1_19_4_Inventory;
-import org.broken.arrow.title.update.library.nms.modules.V_1_19_Inventory;
-import org.broken.arrow.title.update.library.nms.modules.V_1_20_2_Inventory;
-import org.broken.arrow.title.update.library.nms.modules.V_1_20_Inventory;
+import org.broken.arrow.title.update.library.nms.modules.v_1_12.InventoryPacketTwelve;
+import org.broken.arrow.title.update.library.nms.modules.v_1_16.InventoryPacketSixteen;
+import org.broken.arrow.title.update.library.nms.modules.v_1_17.InventoryPacketSeventeen;
+import org.broken.arrow.title.update.library.nms.modules.v_1_18.InventoryPacketEighteenTwo;
+import org.broken.arrow.title.update.library.nms.modules.v_1_18.InventoryPacketEighteen;
+import org.broken.arrow.title.update.library.nms.modules.v_1_19.InventoryPacketNineteenFour;
+import org.broken.arrow.title.update.library.nms.modules.v_1_19.InventoryPacketNineteen;
+import org.broken.arrow.title.update.library.nms.modules.v_1_20.InventoryPacketTwentyTwo;
+import org.broken.arrow.title.update.library.nms.modules.v_1_20.InventoryPacketTwenty;
 import org.bukkit.Bukkit;
 
 import javax.annotation.Nonnull;
@@ -62,35 +62,35 @@ public class SetNmsData {
 		switch ((int) Math.floor(serverVersion)) {
 			case 20:
 				if (serverVersion > 20.1F)
-					inventoryNMS = new V_1_20_2_Inventory();
+					inventoryNMS = new InventoryPacketTwentyTwo();
 				else
-					inventoryNMS = new V_1_20_Inventory();
+					inventoryNMS = new InventoryPacketTwenty();
 				break;
 			case 19:
 				if (serverVersion >= 19.4F) {
-					inventoryNMS = new V_1_19_4_Inventory();
+					inventoryNMS = new InventoryPacketNineteenFour();
 				} else {
-					inventoryNMS = new V_1_19_Inventory();
+					inventoryNMS = new InventoryPacketNineteen();
 				}
 				break;
 			case 18:
 				if (serverVersion >= 18.2F) {
-					inventoryNMS = new V_1_18_2_Inventory();
+					inventoryNMS = new InventoryPacketEighteenTwo();
 				} else {
-					inventoryNMS = new V_1_18_Inventory();
+					inventoryNMS = new InventoryPacketEighteen();
 				}
 				break;
 			case 17:
-				inventoryNMS = new V_1_17_Inventory();
+				inventoryNMS = new InventoryPacketSeventeen();
 				break;
 			default:
 				if (serverVersion < 14.0F) {
-					inventoryNMS = new V_1_12_Inventory();
+					inventoryNMS = new InventoryPacketTwelve();
 				} else {
 					if (serverVersion > 19)
-						inventoryNMS = new V_1_20_Inventory();
+						inventoryNMS = new InventoryPacketTwenty();
 					else
-						inventoryNMS = new V_1_16_Inventory();
+						inventoryNMS = new InventoryPacketSixteen();
 				}
 		}
 		return new ContainerUtility(inventoryNMS, serverVersion);

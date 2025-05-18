@@ -1,4 +1,4 @@
-package org.broken.arrow.title.update.library.nms.modules;
+package org.broken.arrow.title.update.library.nms.modules.v_1_12;
 
 import org.broken.arrow.title.update.library.nms.InventoryNMS;
 import org.bukkit.inventory.Inventory;
@@ -7,7 +7,7 @@ import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-public class V_1_12_Inventory implements InventoryNMS {
+public class InventoryPacketTwelve implements InventoryNMS {
 
 	@Override
 	public Class<?> getPacket() throws ClassNotFoundException {
