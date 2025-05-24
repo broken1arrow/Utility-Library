@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
 
 import static org.broken.arrow.menu.library.utility.ItemCreator.convertMaterialFromString;
 
@@ -95,7 +94,6 @@ public class MenuUtility<T> {
     private String uniqueKey;
 
     private int numberOfFillItems;
-    private int requiredPages;
     private int manuallySetPages = -1;
 
 
@@ -388,6 +386,11 @@ public class MenuUtility<T> {
         return inventory;
     }
 
+
+    public MenuRenderer<T> getMenuRenderer() {
+        return menuRenderer;
+    }
+
     /**
      * Set the number of pages manually. Note that it is important to ensure that the number of
      * pages is appropriate for the size of the items you want too display, setting the wrong
@@ -419,7 +422,11 @@ public class MenuUtility<T> {
      */
 
     public int getRequiredPages() {
-        return requiredPages;
+        return this.menuRenderer.getRequiredPages();
+    }
+
+    public int getItemsPerPage() {
+        return this.itemsPerPage ;
     }
 
     /**
@@ -642,7 +649,11 @@ public class MenuUtility<T> {
      * @return the number of items could be added on each page.
      */
     public int getNumberOfFillItems() {
-        return numberOfFillItems;
+        return this.menuRenderer.getNumberOfFillItems();
+    }
+
+    public boolean shallCacheItems() {
+        return shallCacheItems;
     }
 
     //========================================================
@@ -777,14 +788,8 @@ public class MenuUtility<T> {
     }
 
     protected void updateButtons() {
-        int currentFillSlot = this.getPageNumber() * numberOfFillItems;
+        this.menuRenderer.setMenuItemsToPage(this.getPageNumber());
 
-        final MenuRenderer<T> renderer = this.menuRenderer;
-        renderer.setStartItemIndex(currentFillSlot);
-        renderer.setHighestFillSlot(this.getHighestFillSlot());
-
-        this.putMenuItemsToCache(this.getPageNumber());
-        this.slotIndex = 0;
         this.redrawInventory();
         this.updateTimeButtons();
     }
@@ -838,9 +843,9 @@ public class MenuUtility<T> {
             this.animateTitleTask.stopTask();
     }
 
-    protected Inventory loadInventory(final Player player, final boolean loadToCahe) {
+    protected Inventory loadInventory(final Player player, final boolean loadToCache) {
         Inventory menu = null;
-        if (loadToCahe && this.location != null) {
+        if (loadToCache && this.location != null) {
             this.setLocationMetaOnPlayer(player, this.location);
             MenuUtility<?> menuCached = this.getMenuCache();
 
@@ -862,42 +867,6 @@ public class MenuUtility<T> {
             if (menuUtility != null) menu = menuUtility.getMenu();
         }
         return menu;
-    }
-
-    protected double amountOfPages() {
-        final List<Integer> fillSlots = this.getFillSpace();
-        int manualAmount = this.itemsPerPage;
-        if (manualAmount > 0) {
-            if (manualAmount > this.inventorySize)
-                this.logger.log(Level.WARNING, () -> Logging.of("Items per page are bigger an Inventory size, items items per page " + manualAmount + ". Inventory size " + this.inventorySize));
-            if (!fillSlots.isEmpty()) {
-                return (double) fillSlots.size() / manualAmount;
-            }
-        }
-        return (double) (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size()) / manualAmount;
-    }
-
-    protected void setMenuItemsToAllPages() {
-        this.requiredPages = Math.max((int) Math.ceil(amountOfPages()), 1);
-        if (this.manuallySetPages > 0) this.requiredPages = this.manuallySetPages;
-
-        final MenuRenderer<T> renderer = this.menuRenderer;
-        renderer.resetStartItemIndex();
-        renderer.setHighestFillSlot(this.highestFillSlot);
-
-        for (int i = 0; i < this.requiredPages; i++) {
-            putMenuItemsToCache(i);
-            if (i == 0) numberOfFillItems = renderer.getStartItemIndex();
-        }
-        renderer.resetStartItemIndex();
-    }
-
-    protected void putMenuItemsToCache(final int pageNumber) {
-        MenuDataUtility<T> menuDataUtility = this.menuRenderer.renderPage(pageNumber);
-        if (!this.shallCacheItems) {
-            this.putAddedButtonsCache(pageNumber, menuDataUtility);
-        }
-        retrieveMenuButtons(pageNumber, menuDataUtility);
     }
 
     protected MenuButton getMenuButtonAtSlot(final int slot, final int fillSlot) {

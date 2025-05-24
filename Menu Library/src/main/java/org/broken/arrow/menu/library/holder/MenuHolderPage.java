@@ -163,6 +163,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             this.listOfFillItems = new FillItems<>();
             this.listOfFillItems.setFillItems(fillItems);
         }
+        this.amountOfPages();
     }
 
     /**
@@ -265,21 +266,24 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         return null;
     }
 
-    @Override
-    protected final double amountOfPages() {
-        if (getListOfFillItem() == null) return getManuallySetPages();
+    protected final void amountOfPages() {
+        this.getMenuRenderer().setAmountOfPages(() -> {
+            if (getListOfFillItem() == null) return (double) getManuallySetPages();
 
-        final List<T> fillItems = this.getListOfFillItem().getFillItems();
-        final List<Integer> fillSlots = this.getFillSpace();
-        if (this.itemsPerPage > 0) {
-            if (!fillSlots.isEmpty()) {
-                return (double) fillSlots.size() / this.itemsPerPage;
-            } else if (fillItems != null && !fillItems.isEmpty()) return (double) fillItems.size() / this.itemsPerPage;
-        }
-        if (fillItems != null && !fillItems.isEmpty()) {
-            return (double) fillItems.size() / (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size());
-        }
-        return getManuallySetPages();
+            final List<T> fillItems = this.getListOfFillItem().getFillItems();
+            final List<Integer> fillSlots = this.getFillSpace();
+            if (this.itemsPerPage > 0) {
+                if (!fillSlots.isEmpty()) {
+                    return (double) fillSlots.size() / this.itemsPerPage;
+                } else if (fillItems != null && !fillItems.isEmpty()) return (double) fillItems.size() / this.itemsPerPage;
+            }
+            if (fillItems != null && !fillItems.isEmpty()) {
+                return (double) fillItems.size() / (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size());
+            }
+            return (double) getManuallySetPages();
+        });
+
+
     }
 
     @Override

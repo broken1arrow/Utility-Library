@@ -84,7 +84,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 
         player.closeInventory();
         if (!shallCacheItems) {
-            setMenuItemsToAllPages();
+          this.getMenuRenderer().setMenuItemsToPage(0);
         }
         redrawInventory();
 
