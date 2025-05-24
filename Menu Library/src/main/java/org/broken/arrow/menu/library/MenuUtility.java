@@ -726,6 +726,21 @@ public class MenuUtility<T> {
         return null;
     }
 
+    /**
+     * Sets a menu button in the inventory if one is found at the given slot or using the fill slot index.
+     * <p>
+     * This method retrieves the {@link MenuButton} for the specified slot and attempts to resolve its
+     * {@link ItemStack} either directly or from the {@code fillSlotIndex}. If a valid button is found,
+     * it is added to the update list (if marked for updates) and stored in the provided
+     * {@link MenuDataUtility} cache.
+     * </p>
+     *
+     * @param pageNumber     the current page number of the inventory.
+     * @param menuDataUtility the cache that stores buttons for this page.
+     * @param slot           the inventory slot currently being rendered.
+     * @param fillSlotIndex  the index within {@link #fillSpace} representing the inventory slot where your fill buttons is located.
+     * @param isLastFillSlot whether this is the final slot in the fill space range.
+     */
     public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
         final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex);
         final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex);
