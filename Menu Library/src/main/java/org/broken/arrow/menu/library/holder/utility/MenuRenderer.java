@@ -202,9 +202,9 @@ public class MenuRenderer<T> {
     @Nullable
     private Double getSetPages() {
         if (this.amountOfPages != null) {
-            Double amountOfPages = this.amountOfPages.get();
-            if (amountOfPages != null && amountOfPages > 0)
-                return amountOfPages;
+            Double pagesTotal = this.amountOfPages.get();
+            if (pagesTotal != null && pagesTotal > 0)
+                return pagesTotal;
         }
         return null;
     }
