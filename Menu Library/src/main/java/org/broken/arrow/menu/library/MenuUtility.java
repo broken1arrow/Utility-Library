@@ -49,9 +49,8 @@ import static org.broken.arrow.menu.library.utility.ItemCreator.convertMaterialF
  */
 
 public class MenuUtility<T> {
-    private final Logging logger = new Logging(MenuUtility.class);
-
     final MenuRenderer<T> menuRenderer;
+    private final Logging logger = new Logging(MenuUtility.class);
     private final MenuCache menuCache;
     private final CheckItemsInsideMenu checkItemsInsideMenu;
     private final List<MenuButton> buttonsToUpdate = new ArrayList<>();
@@ -669,7 +668,7 @@ public class MenuUtility<T> {
     protected void updateButtons() {
         int currentFillSlot = this.getPageNumber() * numberOfFillItems;
 
-        MenuRenderer<T> renderer = this.menuRenderer;
+        final MenuRenderer<T> renderer = this.menuRenderer;
         renderer.setStartItemIndex(currentFillSlot);
         renderer.setHighestFillSlot(this.getHighestFillSlot());
 
@@ -825,14 +824,16 @@ public class MenuUtility<T> {
     protected void setMenuItemsToAllPages() {
         this.requiredPages = Math.max((int) Math.ceil(amountOfPages()), 1);
         if (this.manuallySetPages > 0) this.requiredPages = this.manuallySetPages;
-        this.menuRenderer.resetStartItemIndex();
-        this.menuRenderer.setHighestFillSlot(this.highestFillSlot);
+        
+        final MenuRenderer<T> renderer = this.menuRenderer;
+        renderer.resetStartItemIndex();
+        renderer.setHighestFillSlot(this.highestFillSlot);
 
         for (int i = 0; i < this.requiredPages; i++) {
             putMenuItemsToCache(i);
-            if (i == 0) numberOfFillItems = this.menuRenderer.getStartItemIndex();
+            if (i == 0) numberOfFillItems = renderer.getStartItemIndex();
         }
-        this.menuRenderer.resetStartItemIndex();
+        renderer.resetStartItemIndex();
     }
 
     protected void putMenuItemsToCache(final int pageNumber) {
