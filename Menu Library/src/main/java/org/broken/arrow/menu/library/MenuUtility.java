@@ -824,7 +824,7 @@ public class MenuUtility<T> {
     protected void setMenuItemsToAllPages() {
         this.requiredPages = Math.max((int) Math.ceil(amountOfPages()), 1);
         if (this.manuallySetPages > 0) this.requiredPages = this.manuallySetPages;
-        
+
         final MenuRenderer<T> renderer = this.menuRenderer;
         renderer.resetStartItemIndex();
         renderer.setHighestFillSlot(this.highestFillSlot);
@@ -964,7 +964,7 @@ public class MenuUtility<T> {
 
         if (this.animateTitleTask == null || !this.animateTitleTask.isRunning()) {
             this.animateTitleTask = new AnimateTitleTask<T>(this);
-            this.animateTitleTask.runTask(20 + this.animateTitleTime);
+            this.animateTitleTask.runTask( 20L + this.animateTitleTime);
         }
 
 /*        this.taskIdAnimateTitle = new BukkitRunnable() {
