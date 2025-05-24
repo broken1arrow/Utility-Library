@@ -625,12 +625,29 @@ public class MenuUtility<T> {
         return this.highestFillSlot;
     }
 
-
-    //========================================================
+    public void cancelAnimateTitle() {
+        Function<?> task = getAnimateTitle();
+        if (task == null) return;
+        this.animateTitle = null;
+        this.animateTitleJson = null;
+        if (this.animateTitleTask != null && this.animateTitleTask.isRunning()) {
+            this.animateTitleTask.stopTask();
+        }
+        updateTitle();
+    }
 
     /**
-     * Do not try use methods below.
+     * Get the amount of fill slots for each menu page.
+     *
+     * @return the number of items could be added on each page.
      */
+    public int getNumberOfFillItems() {
+        return numberOfFillItems;
+    }
+
+    //========================================================
+    // Do not try use methods below if you don't know what you are doing.
+
 
     /**
      * Put data to menu cache.
@@ -640,6 +657,85 @@ public class MenuUtility<T> {
      */
     public void putAddedButtonsCache(final Integer pageNumber, final MenuDataUtility<T> menuDataUtility) {
         this.pagesOfButtonsData.put(pageNumber, menuDataUtility);
+    }
+
+    public Function<?> getAnimateTitle() {
+        if (this.animateTitle != null)
+            return this.animateTitle;
+        if (this.animateTitleJson != null)
+            return this.animateTitleJson;
+        return null;
+    }
+
+    public void updateTitle(Object text) {
+        if (text instanceof String)
+            UpdateTitle.update(player, (String) text, useColorConversion);
+        if (text instanceof JsonObject)
+            UpdateTitle.update(player, (JsonObject) text);
+    }
+
+    /**
+     * Remove the cached menu. if you use location.
+     */
+    public void removeMenuCache() {
+        menuCache.removeMenuCached(this.menuCacheKey);
+    }
+
+    /**
+     * Set a unique key for the cached menu if you want to have multiple menus on the same location,
+     * allowing many players to interact with different menus without limiting them to one menu or
+     * risking the override of an old menu when a player opens a new one. You need to use this method
+     * in your constructor,so your key gets added it to the cache.
+     *
+     * @param uniqueKey will used as part of the key in the cache.
+     */
+    public void setUniqueKeyMenuCache(final String uniqueKey) {
+        this.uniqueKey = uniqueKey;
+    }
+
+    /**
+     * This gets triggered when a player clicks on a button inside the inventory.
+     *
+     * @param menuButton  the MenuButton instance that the player is currently clicking on.
+     * @param player      the player who performs the action.
+     * @param clickedPos  the actual slot the player is clicking on, excluding the page calculation. You can look at {@link #getSlot(int)}.
+     * @param clickType   the type of click the player is performing, such as right-click, left-click, or shift-click.
+     * @param clickedItem the item clicked on.
+     */
+    public void onClick(MenuButton menuButton, Player player, int clickedPos, ClickType clickType, ItemStack clickedItem) {
+        if (this.getMenu() != null)
+            menuButton.onClickInsideMenu(player, this.getMenu(), clickType, clickedItem);
+    }
+
+    public void updateTitle() {
+        Object title = getTitle();
+        if (!menuAPI.isNotFoundUpdateTitleClazz())
+            this.updateTitle(title);
+    }
+
+    @Nullable
+    public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
+        if (menuButton == null) return null;
+
+        if (updateButton) {
+            ItemStack itemStack = menuButton.getItem();
+            if (itemStack != null) return itemStack;
+            itemStack = menuButton.getItem(this.getSlot(slot));
+            return itemStack;
+        }
+        return null;
+    }
+
+    public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
+        final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex);
+        final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex);
+
+        if (menuButton != null) {
+            if (menuButton.shouldUpdateButtons()) this.buttonsToUpdate.add(menuButton);
+            final ButtonData<T> buttonData = new ButtonData<>(result, menuButton, null);
+
+            menuDataUtility.putButton(this.getSlot(slot), buttonData, null);
+        }
     }
 
     protected void putTimeWhenUpdatesButtons(final MenuButton menuButton, final Long time) {
@@ -691,61 +787,6 @@ public class MenuUtility<T> {
         }
     }
 
-    public void updateTitle() {
-        Object title = getTitle();
-        if (!menuAPI.isNotFoundUpdateTitleClazz())
-            this.updateTitle(title);
-    }
-
-    /**
-     * Get the amount of fill slots for each menu page.
-     *
-     * @return the number of items could be added on each page.
-     */
-    public int getNumberOfFillItems() {
-        return numberOfFillItems;
-    }
-
-    private void saveMenuCache(@Nonnull final Location location) {
-        menuCache.addToCache(location, this.uniqueKey, this);
-    }
-
-    private MenuUtility<?> getMenuCache() {
-        return menuCache.getMenuInCache(this.menuCacheKey, this.getClass());
-    }
-
-    /**
-     * Remove the cached menu. if you use location.
-     */
-    public void removeMenuCache() {
-        menuCache.removeMenuCached(this.menuCacheKey);
-    }
-
-    /**
-     * Set a unique key for the cached menu if you want to have multiple menus on the same location,
-     * allowing many players to interact with different menus without limiting them to one menu or
-     * risking the override of an old menu when a player opens a new one. You need to use this method
-     * in your constructor,so your key gets added it to the cache.
-     *
-     * @param uniqueKey will used as part of the key in the cache.
-     */
-    public void setUniqueKeyMenuCache(final String uniqueKey) {
-        this.uniqueKey = uniqueKey;
-    }
-
-    /**
-     * This gets triggered when a player clicks on a button inside the inventory.
-     *
-     * @param menuButton  the MenuButton instance that the player is currently clicking on.
-     * @param player      the player who performs the action.
-     * @param clickedPos  the actual slot the player is clicking on, excluding the page calculation. You can look at {@link #getSlot(int)}.
-     * @param clickType   the type of click the player is performing, such as right-click, left-click, or shift-click.
-     * @param clickedItem the item clicked on.
-     */
-    public void onClick(MenuButton menuButton, Player player, int clickedPos, ClickType clickType, ItemStack clickedItem) {
-        if (this.getMenu() != null)
-            menuButton.onClickInsideMenu(player, this.getMenu(), clickType, clickedItem);
-    }
 
     protected void setLocationMetaOnPlayer(final Player player, final Location location) {
         String key = this.uniqueKey;
@@ -844,18 +885,6 @@ public class MenuUtility<T> {
         retrieveMenuButtons(pageNumber, menuDataUtility);
     }
 
-    public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
-        final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex);
-        final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex);
-
-        if (menuButton != null) {
-            if (menuButton.shouldUpdateButtons()) this.buttonsToUpdate.add(menuButton);
-            final ButtonData<T> buttonData = new ButtonData<>(result, menuButton, null);
-
-            menuDataUtility.putButton(this.getSlot(slot), buttonData, null);
-        }
-    }
-
     protected MenuButton getMenuButtonAtSlot(final int slot, final int fillSlot) {
         final MenuButton result;
         if (!this.getFillSpace().isEmpty() && this.getFillSpace().contains(slot)) {
@@ -866,6 +895,20 @@ public class MenuUtility<T> {
         return result;
     }
 
+    /**
+     * Retrieves the {@link ItemStack} for the given menu button in the specified slot.
+     * <p>
+     * This method first tries to return the default item provided by {@link MenuButton#getItem()}.
+     * If that returns {@code null}, it attempts to fetch an item using the slot index from the
+     * {@link MenuButton#getItem(int)} method, using the {@code fillSlot} argument.
+     * <p>
+     * The {@code fillSlot} corresponds to the index from the {@link #fillSpace} range.
+     *
+     * @param menuButton the menu button to retrieve the item from.
+     * @param slot       the current inventory slot being rendered.
+     * @param fillSlot   the index within {@link #fillSpace} representing the inventory slot.
+     * @return the corresponding {@link ItemStack}, or {@code null} if none is found.
+     */
     protected ItemStack getItemAtSlot(final MenuButton menuButton, final int slot, final int fillSlot) {
         if (menuButton == null) return null;
 
@@ -879,20 +922,6 @@ public class MenuUtility<T> {
     protected void redrawInventory() {
         this.inventory = this.inventoryRender.redraw();
     }
-
-    @Nullable
-    public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
-        if (menuButton == null) return null;
-
-        if (updateButton) {
-            ItemStack itemStack = menuButton.getItem();
-            if (itemStack != null) return itemStack;
-            itemStack = menuButton.getItem(this.getSlot(slot));
-            return itemStack;
-        }
-        return null;
-    }
-
 
     protected void updateButtonsInList() {
         if (this.buttonAnimation == null || !this.buttonAnimation.isRunning()) {
@@ -908,35 +937,17 @@ public class MenuUtility<T> {
 
         if (this.animateTitleTask == null || !this.animateTitleTask.isRunning()) {
             this.animateTitleTask = new AnimateTitleTask<T>(this);
-            this.animateTitleTask.runTask( 20L + this.animateTitleTime);
+            this.animateTitleTask.runTask(20L + this.animateTitleTime);
         }
 
     }
 
-    public void cancelAnimateTitle() {
-        Function<?> task = getAnimateTitle();
-        if (task == null) return;
-        this.animateTitle = null;
-        this.animateTitleJson = null;
-        if (this.animateTitleTask != null && this.animateTitleTask.isRunning()) {
-            this.animateTitleTask.stopTask();
-        }
-        updateTitle();
+    private void saveMenuCache(@Nonnull final Location location) {
+        menuCache.addToCache(location, this.uniqueKey, this);
     }
 
-    public Function<?> getAnimateTitle() {
-        if (this.animateTitle != null)
-            return this.animateTitle;
-        if (this.animateTitleJson != null)
-            return this.animateTitleJson;
-        return null;
-    }
-
-    public void updateTitle(Object text) {
-        if (text instanceof String)
-            UpdateTitle.update(player, (String) text, useColorConversion);
-        if (text instanceof JsonObject)
-            UpdateTitle.update(player, (JsonObject) text);
+    private MenuUtility<?> getMenuCache() {
+        return menuCache.getMenuInCache(this.menuCacheKey, this.getClass());
     }
 
     public Plugin getPlugin() {
