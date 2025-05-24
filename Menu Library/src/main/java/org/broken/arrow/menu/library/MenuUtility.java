@@ -844,23 +844,6 @@ public class MenuUtility<T> {
         retrieveMenuButtons(pageNumber, menuDataUtility);
     }
 
-/*    @Nonnull
-    private MenuDataUtility<T> cacheMenuData(final int pageNumber) {
-        final MenuDataUtility<T> menuDataUtility = new MenuDataUtility<>();
-        int fillSlot = this.getFillSpace().stream().mapToInt(Integer::intValue).max().orElse(-1);
-        for (int slot = 0; slot < this.inventorySize; slot++) {
-
-            boolean isFillButton = !this.getFillSpace().isEmpty() && this.getFillSpace().contains(slot);
-
-            this.setButton(pageNumber, menuDataUtility, slot, this.slotIndex, slot > fillSlot);
-
-            if (isFillButton) {
-                this.slotIndex++;
-            }
-        }
-        return menuDataUtility;
-    }*/
-
     public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
         final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex);
         final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex);
@@ -894,48 +877,9 @@ public class MenuUtility<T> {
     }
 
     protected void redrawInventory() {
-      /*  Inventory menu = this.getMenu();
-        final List<Integer> integerList = this.getFillSpace();
-        final  int size = this.inventorySize;
-
-        if (menu == null || size > menu.getSize()) {
-            this.inventory = this.createInventory();
-            menu =   this.inventory;
-        }
-
-        final int fillSlots = !integerList.isEmpty() ? integerList.size() : menu.getSize();
-
-        for (int i = integerList.stream().findFirst().orElse(0); i < fillSlots; i++) {
-            menu.setItem(i, new ItemStack(Material.AIR));
-        }
-
-        final Map<Integer, ButtonData<T>> entity = this.getMenuButtons(this.getPageNumber());
-        if (entity != null && !entity.isEmpty()) for (int i = 0; i < menu.getSize(); i++) {
-            final ButtonData<?> buttonData = entity.get(this.getPageNumber() * size + i);
-            ItemStack itemStack = null;
-            if (buttonData != null) {
-                itemStack = buttonData.getItemStack();
-            }
-            menu.setItem(i, itemStack);
-        }*/
         this.inventory = this.inventoryRender.redraw();
     }
 
-    /*
-        private Inventory createInventory() {
-            final Object title = this.getTitle();
-            String menuTitle = " ";
-            if (title instanceof String)
-                menuTitle = String.valueOf(title);
-            if (this.getInventoryType() != null)
-                return Bukkit.createInventory(null, this.getInventoryType(), menuTitle != null ? menuTitle : "");
-            if (!(this.inventorySize == 5 || this.inventorySize % 9 == 0))
-                this.logger.log(Level.WARNING, () -> Logging.of("wrong inventory size , you has put in " + this.inventorySize + " it need to be valid number."));
-            if (this.inventorySize == 5)
-                return Bukkit.createInventory(null, InventoryType.HOPPER, menuTitle != null ? menuTitle : "");
-            return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, menuTitle != null ? menuTitle : "");
-        }
-    */
     @Nullable
     public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
         if (menuButton == null) return null;
@@ -967,20 +911,6 @@ public class MenuUtility<T> {
             this.animateTitleTask.runTask( 20L + this.animateTitleTime);
         }
 
-/*        this.taskIdAnimateTitle = new BukkitRunnable() {
-            @Override
-            public void run() {
-                Object text = task.apply();
-                if (text == null || (ServerVersion.atLeast(ServerVersion.V1_9) && this.isCancelled())) {
-                    this.cancel();
-                    updateTitle();
-                    return;
-                }
-                if (!text.equals("") && !menuAPI.isNotFoundUpdateTitleClazz()) {
-                    updateTitle(text);
-                }
-            }
-        }.runTaskTimerAsynchronously(menuAPI.getPlugin(), 1, 20 + this.animateTitleTime).getTaskId();*/
     }
 
     public void cancelAnimateTitle() {
