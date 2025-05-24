@@ -1,7 +1,8 @@
 package org.broken.arrow.menu.library.holder;
 
+import org.broken.arrow.menu.library.builders.MenuDataUtility;
+
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class handles single-page menus or paged menus if you implement the logic yourself.
@@ -75,7 +76,7 @@ public class MenuHolder extends HolderUtility<Object> {
      * Constructs a menu instance with specified caching option.
      *
      * @param shallCacheItems Set this to false if items and slots should be cached in this class.
-     *                        Otherwise, override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        Otherwise, override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
      *                        them in your own implementation.
      */
     protected MenuHolder(final boolean shallCacheItems) {
@@ -90,7 +91,7 @@ public class MenuHolder extends HolderUtility<Object> {
      * @param fillSlots       The slots you want to fill with items, and you need to set the amount of pages if your plan
      *                        to use mor than one page.
      * @param shallCacheItems Set this to false if items and slots should be cached in this class.
-     *                        Otherwise, override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        Otherwise, override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
      *                        them in your own implementation.
      */
     protected MenuHolder(final List<Integer> fillSlots, boolean shallCacheItems) {

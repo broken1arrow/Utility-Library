@@ -99,7 +99,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
 
         if (!getButtonsToUpdate().isEmpty())
             updateButtonsInList();
-        Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), this::updateTitle, 1);
+        Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), ()->this.updateTitle(), 1);
     }
 
 
@@ -217,6 +217,8 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      */
     public void setFillSpace(final List<Integer> fillSpace) {
         this.fillSpace = fillSpace;
+        if (fillSpace != null)
+            this.highestFillSlot = fillSpace.stream().mapToInt(Integer::intValue).max().orElse(-1);
     }
 
     /**

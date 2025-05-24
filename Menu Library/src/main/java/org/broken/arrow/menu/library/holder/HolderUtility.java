@@ -23,7 +23,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -49,7 +48,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      * Create menu instance.
      *
      * @param shallCacheItems Set this to false items and slots should be cached in this class,
-     *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        other case override  {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
      *                        this in own implementation.
      */
     protected HolderUtility(final boolean shallCacheItems) {
@@ -61,7 +60,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      *
      * @param fillSlots       The slots to be filled with items.
      * @param shallCacheItems Set this to false items and slots should be cached in this class,
-     *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        other case override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
      *                        this in own implementation.
      */
     protected HolderUtility(List<Integer> fillSlots, boolean shallCacheItems) {
@@ -77,7 +76,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin.
      * @param fillSlots       The slots to be filled with items. Can be null if not filling specific slots.
      * @param shallCacheItems Set this to false items and slots should be cached in this class,
-     *                        other case override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        other case override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
      *                        this in own implementation.
      */
     protected HolderUtility(RegisterMenuAPI menuAPI, List<Integer> fillSlots, boolean shallCacheItems) {
@@ -97,7 +96,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
     /**
      * open menu and make one instance in cache.
-     * Will be clered on server restart.
+     * Will be cleared on server restart.
      *
      * @param player   some open menu.
      * @param location location you open menu.
@@ -145,7 +144,8 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
         if (!getButtonsToUpdate().isEmpty())
             updateButtonsInList();
-        Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), this::updateTitle, 1);
+
+        Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), ()->this.updateTitle(), 1);
     }
 
     /**
@@ -405,16 +405,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
     }
 
     /**
-     * get the number it currently fill
-     * items in.
-     *
-     * @return curent number it will fill with one item.
-     */
-    public int getSlotIndex() {
-        return this.slotIndex;
-    }
-
-    /**
      * get previous page if this menu has several pages
      */
     public void previousPage() {
@@ -451,7 +441,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
                     final ItemStack menuItem = getMenuItem(menuButton, buttonData, slot, true);
                     menu.setItem(slot, menuItem);
-                    menuDataUtility.putButton(menuSlot, buttonData.copy(menuItem) /*new ButtonData<>(menuItem, buttonData.getMenuButton(), buttonData.getObject())*/);
+                    menuDataUtility.putButton(menuSlot, buttonData.copy(menuItem));
                 }
             } else {
                 final int buttonSlot = this.getButtonSlot(menuButton);

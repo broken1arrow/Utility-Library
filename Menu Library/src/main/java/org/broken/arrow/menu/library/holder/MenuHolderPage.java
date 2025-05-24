@@ -138,7 +138,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
      * @param fillSlots       The slots to be filled with items on each page.
      * @param fillItems       The list of items to be displayed inside the GUI.
      * @param shallCacheItems Set this to false if items and slots should be cached in this class;
-     *                        otherwise, override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        otherwise, override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
      *                        them in your own implementation.
      */
     protected MenuHolderPage(@Nullable List<Integer> fillSlots, @Nullable List<T> fillItems, boolean shallCacheItems) {
@@ -154,7 +154,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
      * @param fillSlots       The slots to be filled with items on each page.
      * @param fillItems       The list of items to be displayed inside the GUI.
      * @param shallCacheItems Set this to false if items and slots should be cached in this class;
-     *                        otherwise, override {@link #retrieveMenuButtons(int, Map)} to cache
+     *                        otherwise, override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
      *                        them in your own implementation.
      */
     protected MenuHolderPage(@Nonnull RegisterMenuAPI menuAPI, @Nullable List<Integer> fillSlots, @Nullable List<T> fillItems, boolean shallCacheItems) {
@@ -283,7 +283,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     }
 
     @Override
-    protected void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
+    public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
         final int fillSlot = isLastFillSlot ? -1 : fillSlotIndex;
 
         final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlot);
@@ -353,7 +353,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     }
 
     private boolean isFillSlot(final int slot) {
-        final List<Integer> fillSlots = this.fillSpace == null ? this.getFillSpace() : this.fillSpace;
+        final List<Integer> fillSlots =  this.getFillSpace();
         return !fillSlots.isEmpty() && fillSlots.contains(slot);
     }
 }

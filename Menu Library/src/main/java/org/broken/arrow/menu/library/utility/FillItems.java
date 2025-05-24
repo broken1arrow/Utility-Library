@@ -1,5 +1,6 @@
 package org.broken.arrow.menu.library.utility;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,7 @@ public class FillItems<T> {
      * @param index the index of the fill item to retrieve.
      * @return the fill item at the specified index, or null if the index is out of bounds or the list is empty.
      */
+    @Nullable
     public T getFillItem(int index) {
         List<T> fillItems = this.getFillItems();
         if (fillItems.isEmpty())

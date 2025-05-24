@@ -4,6 +4,7 @@ import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButton;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -17,21 +18,34 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class RunButtonAnimation<T> extends BukkitRunnable {
+public class ButtonAnimation<T> extends BukkitRunnable {
     private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
     private final MenuUtility<T> menuUtility;
     private final Inventory menu;
     private final int inventorySize;
     private int counter = 0;
+    private int taskid;
 
-    public RunButtonAnimation(MenuUtility<T> menuUtility) {
+    public ButtonAnimation(MenuUtility<T> menuUtility) {
         this.menuUtility = menuUtility;
         this.menu = menuUtility.getMenu();
         this.inventorySize = menuUtility.getInventorySize();
     }
 
-    public int runTask(long delay) {
-        return runTaskTimer(menuUtility.getPlugin(), 1L, delay).getTaskId();
+    public void runTask(long delay) {
+        taskid = runTaskTimer(menuUtility.getPlugin(), 1L, delay).getTaskId();
+    }
+
+    public boolean isRunning() {
+        return taskid > 0 &&
+                (Bukkit.getScheduler().isCurrentlyRunning(taskid) ||
+                        Bukkit.getScheduler().isQueued(taskid));
+    }
+
+    public void stopTask() {
+        if (this.isRunning()) {
+            Bukkit.getScheduler().cancelTask(this.taskid);
+        }
     }
 
     @Override
@@ -58,7 +72,7 @@ public class RunButtonAnimation<T> extends BukkitRunnable {
     }
 
     private boolean updateButtonsData(final MenuButton menuButton, final MenuDataUtility<T> menuDataUtility, final Set<Integer> itemSlots) {
-        if (!itemSlots.isEmpty()){
+        if (!itemSlots.isEmpty()) {
             final Iterator<Integer> slotList = itemSlots.iterator();
             setButtons(menuButton, menuDataUtility, slotList);
         }
@@ -75,7 +89,7 @@ public class RunButtonAnimation<T> extends BukkitRunnable {
             if (buttonData == null) continue;
 
             final ItemStack menuItem = getMenuItemStack(menuButton, buttonData, slot);
-            final ButtonData<T> newButtonData =  buttonData.copy(menuItem);
+            final ButtonData<T> newButtonData = buttonData.copy(menuItem);
 
             menuDataUtility.putButton(slotPageCalculated, newButtonData);
             menu.setItem(slot, menuItem);
@@ -132,4 +146,5 @@ public class RunButtonAnimation<T> extends BukkitRunnable {
         }
         return slotList;
     }
+
 }

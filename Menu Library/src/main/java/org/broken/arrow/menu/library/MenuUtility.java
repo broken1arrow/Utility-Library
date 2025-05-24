@@ -10,13 +10,14 @@ import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.holder.MenuHolder;
 import org.broken.arrow.menu.library.holder.MenuHolderPage;
-import org.broken.arrow.menu.library.runnable.RunButtonAnimation;
+import org.broken.arrow.menu.library.holder.utility.AnimateTitleTask;
+import org.broken.arrow.menu.library.holder.utility.InventoryRenderer;
+import org.broken.arrow.menu.library.holder.utility.MenuRenderer;
+import org.broken.arrow.menu.library.runnable.ButtonAnimation;
 import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.MenuInteractionChecks;
-import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.broken.arrow.menu.library.utility.SoundUtility;
 import org.broken.arrow.title.update.library.UpdateTitle;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -28,7 +29,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,18 +51,19 @@ import static org.broken.arrow.menu.library.utility.ItemCreator.convertMaterialF
 public class MenuUtility<T> {
     private final Logging logger = new Logging(MenuUtility.class);
 
-    protected MenuCacheKey menuCacheKey;
+    final MenuRenderer<T> menuRenderer;
     private final MenuCache menuCache;
     private final CheckItemsInsideMenu checkItemsInsideMenu;
     private final List<MenuButton> buttonsToUpdate = new ArrayList<>();
     private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
     private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
     private final MenuInteractionChecks<T> menuInteractionChecks;
+    private final InventoryRenderer<T> inventoryRender;
 
+    protected MenuCacheKey menuCacheKey;
     protected List<Integer> fillSpace;
     protected Location location;
     protected RegisterMenuAPI menuAPI;
-    private Inventory inventory;
     protected InventoryType inventoryType;
     protected Player player;
     protected Sound menuOpenSound;
@@ -70,9 +71,6 @@ public class MenuUtility<T> {
     protected Function<JsonObject> titleFunctionJson;
     protected Function<String> animateTitle;
     protected Function<JsonObject> animateTitleJson;
-    private String playerMetadataKey;
-    private String uniqueKey;
-
     protected boolean shallCacheItems;
     protected boolean slotsYouCanAddItems;
     protected boolean allowShiftClick;
@@ -81,28 +79,32 @@ public class MenuUtility<T> {
     protected boolean ignoreItemCheck;
     protected boolean autoTitleCurrentPage;
     protected boolean useColorConversion;
-
-    protected int taskid;
     protected int animateButtonTime = 20;
-
     protected int slotIndex;
-    private int numberOfFillItems;
-    private int requiredPages;
-    private int manuallySetPages = -1;
     protected int inventorySize;
     protected int itemsPerPage = this.inventorySize - 9;
     protected int pageNumber;
     protected int updateTime;
-
     protected int animateTitleTime = 5;
-    private int taskIdAnimateTitle;
     protected int highestFillSlot;
+
+    private AnimateTitleTask<T> animateTitleTask;
+    private ButtonAnimation<T> buttonAnimation;
+
+    private Inventory inventory;
+    private String playerMetadataKey;
+    private String uniqueKey;
+
+    private int numberOfFillItems;
+    private int requiredPages;
+    private int manuallySetPages = -1;
+
 
     /**
      * Create menu instance.
      *
      * @param fillSlots       Witch slots you want fill with items.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case override {@link #retrieveMenuButtons(int, Map)} to cache it own class.
+     * @param shallCacheItems if it shall cache items and slots in this class, other case override {@link #retrieveMenuButtons(int, MenuDataUtility)}  to cache it own class.
      */
     public MenuUtility(@Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
         this(RegisterMenuAPI.getMenuAPI(), fillSlots, shallCacheItems);
@@ -115,14 +117,17 @@ public class MenuUtility<T> {
      *                        only if you are using the plugin and you don't need provide this when you shaded it.
      * @param fillSlots       The slots you want to fill with items. Can be null if not filling specific slots.
      * @param shallCacheItems Indicates whether items and slots should be cached in this class. If false,
-     *                        override {@link #retrieveMenuButtons(int, Map)} to cache it own class.
+     *                        override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache it own class.
      */
     public MenuUtility(@Nonnull final RegisterMenuAPI menuAPI, @Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
         this.fillSpace = fillSlots;
         if (fillSlots != null)
             this.highestFillSlot = fillSlots.stream().mapToInt(Integer::intValue).max().orElse(-1);
 
+        this.menuRenderer = new MenuRenderer<>(this);
+        this.inventoryRender = new InventoryRenderer<>(this);
         this.menuInteractionChecks = new MenuInteractionChecks<>(this);
+
         this.shallCacheItems = shallCacheItems;
         this.allowShiftClick = true;
         this.autoClearCache = true;
@@ -169,10 +174,10 @@ public class MenuUtility<T> {
     /**
      * Override this method if you want to cache the menu buttons in own class.
      *
-     * @param pageNumber the page number
-     * @param buttons the menu buttons with the attached slots.
+     * @param pageNumber      the page number
+     * @param menuDataUtility the menu cache for the specific page.
      */
-    public void retrieveMenuButtons(int pageNumber, Map<Integer, ButtonData<T>> buttons) {
+    public void retrieveMenuButtons(int pageNumber, MenuDataUtility<T> menuDataUtility) {
         //override this class if you want to cache the buttons self.
     }
 
@@ -662,17 +667,23 @@ public class MenuUtility<T> {
     }
 
     protected void updateButtons() {
-        this.slotIndex = this.getPageNumber() * numberOfFillItems;
-        putMenuItemsToCache(this.getPageNumber());
+        int currentFillSlot = this.getPageNumber() * numberOfFillItems;
+
+        MenuRenderer<T> renderer = this.menuRenderer;
+        renderer.setStartItemIndex(currentFillSlot);
+        renderer.setHighestFillSlot(this.getHighestFillSlot());
+
+        this.putMenuItemsToCache(this.getPageNumber());
         this.slotIndex = 0;
-        redrawInventory();
-        updateTimeButtons();
+        this.redrawInventory();
+        this.updateTimeButtons();
     }
 
     protected void updateTimeButtons() {
         boolean cancelTask = false;
-        if (this.taskid > 0 && Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
-            Bukkit.getScheduler().cancelTask(this.taskid);
+
+        if (this.buttonAnimation != null && this.buttonAnimation.isRunning()) {
+            this.buttonAnimation.stopTask();
             cancelTask = true;
         }
         if (cancelTask) {
@@ -681,7 +692,7 @@ public class MenuUtility<T> {
         }
     }
 
-    protected void updateTitle() {
+    public void updateTitle() {
         Object title = getTitle();
         if (!menuAPI.isNotFoundUpdateTitleClazz())
             this.updateTitle(title);
@@ -765,12 +776,11 @@ public class MenuUtility<T> {
      * Note: this is only for internal use, don't try to override this.
      */
     protected final void closeTasks() {
-        if (Bukkit.getScheduler().isCurrentlyRunning(this.taskid) || Bukkit.getScheduler().isQueued(this.taskid)) {
-            Bukkit.getScheduler().cancelTask(this.taskid);
-        }
-        if (Bukkit.getScheduler().isCurrentlyRunning(this.taskIdAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskIdAnimateTitle)) {
-            Bukkit.getScheduler().cancelTask(this.taskIdAnimateTitle);
-        }
+
+        if (this.buttonAnimation != null)
+            this.buttonAnimation.stopTask();
+        if (this.animateTitleTask != null)
+            this.animateTitleTask.stopTask();
     }
 
     protected Inventory loadInventory(final Player player, final boolean loadToCahe) {
@@ -801,36 +811,39 @@ public class MenuUtility<T> {
 
     protected double amountOfPages() {
         final List<Integer> fillSlots = this.getFillSpace();
-        if (this.itemsPerPage > 0) {
-            if (this.itemsPerPage > this.inventorySize)
-                this.logger.log(Level.WARNING, () -> Logging.of("Items per page are bigger an Inventory size, items items per page " + this.itemsPerPage + ". Inventory size " + this.inventorySize));
+        int manualAmount = this.itemsPerPage;
+        if (manualAmount > 0) {
+            if (manualAmount > this.inventorySize)
+                this.logger.log(Level.WARNING, () -> Logging.of("Items per page are bigger an Inventory size, items items per page " + manualAmount + ". Inventory size " + this.inventorySize));
             if (!fillSlots.isEmpty()) {
-                return (double) fillSlots.size() / this.itemsPerPage;
+                return (double) fillSlots.size() / manualAmount;
             }
         }
-        return (double) (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size()) / this.itemsPerPage;
+        return (double) (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size()) / manualAmount;
     }
 
     protected void setMenuItemsToAllPages() {
         this.requiredPages = Math.max((int) Math.ceil(amountOfPages()), 1);
         if (this.manuallySetPages > 0) this.requiredPages = this.manuallySetPages;
+        this.menuRenderer.resetStartItemIndex();
+        this.menuRenderer.setHighestFillSlot(this.highestFillSlot);
 
         for (int i = 0; i < this.requiredPages; i++) {
             putMenuItemsToCache(i);
-            if (i == 0) numberOfFillItems = this.slotIndex;
+            if (i == 0) numberOfFillItems = this.menuRenderer.getStartItemIndex();
         }
-        this.slotIndex = 0;
+        this.menuRenderer.resetStartItemIndex();
     }
 
     protected void putMenuItemsToCache(final int pageNumber) {
-        final MenuDataUtility<T> menuDataUtility = cacheMenuData(pageNumber);
+        MenuDataUtility<T> menuDataUtility = this.menuRenderer.renderPage(pageNumber);
         if (!this.shallCacheItems) {
             this.putAddedButtonsCache(pageNumber, menuDataUtility);
         }
-        retrieveMenuButtons(pageNumber ,menuDataUtility.getButtons());
+        retrieveMenuButtons(pageNumber, menuDataUtility);
     }
 
-    @Nonnull
+/*    @Nonnull
     private MenuDataUtility<T> cacheMenuData(final int pageNumber) {
         final MenuDataUtility<T> menuDataUtility = new MenuDataUtility<>();
         int fillSlot = this.getFillSpace().stream().mapToInt(Integer::intValue).max().orElse(-1);
@@ -845,9 +858,9 @@ public class MenuUtility<T> {
             }
         }
         return menuDataUtility;
-    }
+    }*/
 
-    protected void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
+    public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
         final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex);
         final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex);
 
@@ -880,44 +893,48 @@ public class MenuUtility<T> {
     }
 
     protected void redrawInventory() {
-        if (this.getMenu() == null || this.inventorySize > this.getMenu().getSize()) this.inventory = createInventory();
+      /*  Inventory menu = this.getMenu();
+        final List<Integer> integerList = this.getFillSpace();
+        final  int size = this.inventorySize;
 
-        final int fillSlots = !getFillSpace().isEmpty() ? getFillSpace().size() : this.getMenu().getSize();
+        if (menu == null || size > menu.getSize()) {
+            this.inventory = this.createInventory();
+            menu =   this.inventory;
+        }
 
-        for (int i = getFillSpace().stream().findFirst().orElse(0); i < fillSlots; i++) {
-            this.getMenu().setItem(i, new ItemStack(Material.AIR));
+        final int fillSlots = !integerList.isEmpty() ? integerList.size() : menu.getSize();
+
+        for (int i = integerList.stream().findFirst().orElse(0); i < fillSlots; i++) {
+            menu.setItem(i, new ItemStack(Material.AIR));
         }
 
         final Map<Integer, ButtonData<T>> entity = this.getMenuButtons(this.getPageNumber());
-        if (entity != null && !entity.isEmpty()) for (int i = 0; i < this.getMenu().getSize(); i++) {
-            final ButtonData<?> buttonData = entity.get(this.getPageNumber() * inventorySize + i);
+        if (entity != null && !entity.isEmpty()) for (int i = 0; i < menu.getSize(); i++) {
+            final ButtonData<?> buttonData = entity.get(this.getPageNumber() * size + i);
             ItemStack itemStack = null;
             if (buttonData != null) {
                 itemStack = buttonData.getItemStack();
             }
-            this.getMenu().setItem(i, itemStack);
+            menu.setItem(i, itemStack);
+        }*/
+        this.inventory = this.inventoryRender.redraw();
+    }
+
+    /*
+        private Inventory createInventory() {
+            final Object title = this.getTitle();
+            String menuTitle = " ";
+            if (title instanceof String)
+                menuTitle = String.valueOf(title);
+            if (this.getInventoryType() != null)
+                return Bukkit.createInventory(null, this.getInventoryType(), menuTitle != null ? menuTitle : "");
+            if (!(this.inventorySize == 5 || this.inventorySize % 9 == 0))
+                this.logger.log(Level.WARNING, () -> Logging.of("wrong inventory size , you has put in " + this.inventorySize + " it need to be valid number."));
+            if (this.inventorySize == 5)
+                return Bukkit.createInventory(null, InventoryType.HOPPER, menuTitle != null ? menuTitle : "");
+            return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, menuTitle != null ? menuTitle : "");
         }
-    }
-
-    private Inventory createInventory() {
-        final Object title = this.getTitle();
-        String menuTitle = " ";
-        if (title instanceof String)
-            menuTitle = String.valueOf(title);
-        if (this.getInventoryType() != null)
-            return Bukkit.createInventory(null, this.getInventoryType(), menuTitle != null ? menuTitle : "");
-        if (!(this.inventorySize == 5 || this.inventorySize % 9 == 0))
-            this.logger.log(Level.WARNING, () -> Logging.of("wrong inventory size , you has put in " + this.inventorySize + " it need to be valid number."));
-        if (this.inventorySize == 5)
-            return Bukkit.createInventory(null, InventoryType.HOPPER, menuTitle != null ? menuTitle : "");
-        return Bukkit.createInventory(null, this.inventorySize % 9 == 0 ? this.inventorySize : 9, menuTitle != null ? menuTitle : "");
-    }
-
-
-    protected void updateButtonsInList() {
-        taskid = new RunButtonAnimation<>(this).runTask(this.animateButtonTime);
-    }
-
+    */
     @Nullable
     public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
         if (menuButton == null) return null;
@@ -931,10 +948,25 @@ public class MenuUtility<T> {
         return null;
     }
 
+
+    protected void updateButtonsInList() {
+        if (this.buttonAnimation == null || !this.buttonAnimation.isRunning()) {
+            this.buttonAnimation = new ButtonAnimation<>(this);
+            this.buttonAnimation.runTask(this.animateButtonTime);
+        }
+    }
+
     protected void runAnimateTitle() {
         Function<?> task = getAnimateTitle();
         if (task == null) return;
-        this.taskIdAnimateTitle = new BukkitRunnable() {
+        if (menuAPI.isNotFoundUpdateTitleClazz()) return;
+
+        if (this.animateTitleTask == null || !this.animateTitleTask.isRunning()) {
+            this.animateTitleTask = new AnimateTitleTask<T>(this);
+            this.animateTitleTask.runTask(20 + this.animateTitleTime);
+        }
+
+/*        this.taskIdAnimateTitle = new BukkitRunnable() {
             @Override
             public void run() {
                 Object text = task.apply();
@@ -947,7 +979,7 @@ public class MenuUtility<T> {
                     updateTitle(text);
                 }
             }
-        }.runTaskTimerAsynchronously(menuAPI.getPlugin(), 1, 20 + this.animateTitleTime).getTaskId();
+        }.runTaskTimerAsynchronously(menuAPI.getPlugin(), 1, 20 + this.animateTitleTime).getTaskId();*/
     }
 
     public void cancelAnimateTitle() {
@@ -955,8 +987,8 @@ public class MenuUtility<T> {
         if (task == null) return;
         this.animateTitle = null;
         this.animateTitleJson = null;
-        if (Bukkit.getScheduler().isCurrentlyRunning(this.taskIdAnimateTitle) || Bukkit.getScheduler().isQueued(this.taskIdAnimateTitle)) {
-            Bukkit.getScheduler().cancelTask(this.taskIdAnimateTitle);
+        if (this.animateTitleTask != null && this.animateTitleTask.isRunning()) {
+            this.animateTitleTask.stopTask();
         }
         updateTitle();
     }
@@ -969,7 +1001,7 @@ public class MenuUtility<T> {
         return null;
     }
 
-    private void updateTitle(Object text) {
+    public void updateTitle(Object text) {
         if (text instanceof String)
             UpdateTitle.update(player, (String) text, useColorConversion);
         if (text instanceof JsonObject)
