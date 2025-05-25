@@ -24,7 +24,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
     private final Inventory menu;
     private final int inventorySize;
     private int counter = 0;
-    private int taskid;
+    private int taskId;
 
     public ButtonAnimation(MenuUtility<T> menuUtility) {
         this.menuUtility = menuUtility;
@@ -33,18 +33,18 @@ public class ButtonAnimation<T> extends BukkitRunnable {
     }
 
     public void runTask(long delay) {
-        taskid = runTaskTimer(menuUtility.getPlugin(), 1L, delay).getTaskId();
+        taskId = runTaskTimer(menuUtility.getPlugin(), 1L, delay).getTaskId();
     }
 
     public boolean isRunning() {
-        return taskid > 0 &&
-                (Bukkit.getScheduler().isCurrentlyRunning(taskid) ||
-                        Bukkit.getScheduler().isQueued(taskid));
+        return taskId > 0 &&
+                (Bukkit.getScheduler().isCurrentlyRunning(taskId) ||
+                        Bukkit.getScheduler().isQueued(taskId));
     }
 
     public void stopTask() {
         if (this.isRunning()) {
-            Bukkit.getScheduler().cancelTask(this.taskid);
+            Bukkit.getScheduler().cancelTask(this.taskId);
         }
     }
 

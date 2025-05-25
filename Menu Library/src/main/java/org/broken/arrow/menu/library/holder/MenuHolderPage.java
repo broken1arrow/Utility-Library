@@ -282,8 +282,6 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             }
             return (double) getManuallySetPages();
         });
-
-
     }
 
     @Override

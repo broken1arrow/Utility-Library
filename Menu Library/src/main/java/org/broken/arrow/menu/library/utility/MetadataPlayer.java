@@ -15,11 +15,11 @@ import java.util.List;
  * Class to get or set metadata and this api use this keys internally {@link MenuMetadataKey } and methods below do you
  * get values or a menu from a player (if you use location in the menu api it will store the menu in cache).
  */
-public final class Metadata {
+public final class MetadataPlayer {
 
 	private final Plugin plugin;
 
-	public Metadata(Plugin plugin) {
+	public MetadataPlayer(Plugin plugin) {
 		this.plugin = plugin;
 	}
 

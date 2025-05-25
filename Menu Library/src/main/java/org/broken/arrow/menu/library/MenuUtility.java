@@ -2,16 +2,14 @@ package org.broken.arrow.menu.library;
 
 import com.google.gson.JsonObject;
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.logging.library.Validate;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButton;
-import org.broken.arrow.menu.library.cache.MenuCache;
-import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.holder.MenuHolder;
 import org.broken.arrow.menu.library.holder.MenuHolderPage;
 import org.broken.arrow.menu.library.holder.utility.AnimateTitleTask;
 import org.broken.arrow.menu.library.holder.utility.InventoryRenderer;
+import org.broken.arrow.menu.library.holder.utility.LoadInventoryHandler;
 import org.broken.arrow.menu.library.holder.utility.MenuRenderer;
 import org.broken.arrow.menu.library.runnable.ButtonAnimation;
 import org.broken.arrow.menu.library.utility.Function;
@@ -48,19 +46,19 @@ import static org.broken.arrow.menu.library.utility.ItemCreator.convertMaterialF
  */
 
 public class MenuUtility<T> {
-    final MenuRenderer<T> menuRenderer;
+
     private final Logging logger = new Logging(MenuUtility.class);
-    private final MenuCache menuCache;
+
+    private final MenuRenderer<T> menuRenderer;
     private final CheckItemsInsideMenu checkItemsInsideMenu;
     private final List<MenuButton> buttonsToUpdate = new ArrayList<>();
     private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
     private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
     private final MenuInteractionChecks<T> menuInteractionChecks;
     private final InventoryRenderer<T> inventoryRender;
+    private final LoadInventoryHandler<T> loadInventoryHandler;
 
-    protected MenuCacheKey menuCacheKey;
     protected List<Integer> fillSpace;
-    protected Location location;
     protected RegisterMenuAPI menuAPI;
     protected InventoryType inventoryType;
     protected Player player;
@@ -69,6 +67,7 @@ public class MenuUtility<T> {
     protected Function<JsonObject> titleFunctionJson;
     protected Function<String> animateTitle;
     protected Function<JsonObject> animateTitleJson;
+
     protected boolean shallCacheItems;
     protected boolean slotsYouCanAddItems;
     protected boolean allowShiftClick;
@@ -77,6 +76,7 @@ public class MenuUtility<T> {
     protected boolean ignoreItemCheck;
     protected boolean autoTitleCurrentPage;
     protected boolean useColorConversion;
+
     protected int animateButtonTime = 20;
     protected int slotIndex;
     protected int inventorySize;
@@ -91,9 +91,7 @@ public class MenuUtility<T> {
 
     private Inventory inventory;
     private String playerMetadataKey;
-    private String uniqueKey;
 
-    private int numberOfFillItems;
     private int manuallySetPages = -1;
 
 
@@ -124,6 +122,7 @@ public class MenuUtility<T> {
         this.menuRenderer = new MenuRenderer<>(this);
         this.inventoryRender = new InventoryRenderer<>(this);
         this.menuInteractionChecks = new MenuInteractionChecks<>(this);
+        this.loadInventoryHandler = new LoadInventoryHandler<>(this, menuAPI);
 
         this.shallCacheItems = shallCacheItems;
         this.allowShiftClick = true;
@@ -133,9 +132,7 @@ public class MenuUtility<T> {
         this.slotIndex = 0;
         this.updateTime = -1;
         this.menuOpenSound = new SoundUtility().getMenuOpenSound();
-        this.uniqueKey = "";
         this.menuAPI = menuAPI;
-        this.menuCache = menuAPI.getMenuCache();
         this.checkItemsInsideMenu = new CheckItemsInsideMenu(menuAPI);
     }
 
@@ -426,7 +423,7 @@ public class MenuUtility<T> {
     }
 
     public int getItemsPerPage() {
-        return this.itemsPerPage ;
+        return this.itemsPerPage;
     }
 
     /**
@@ -643,6 +640,10 @@ public class MenuUtility<T> {
         updateTitle();
     }
 
+    public Location getLocation() {
+        return this.getLoadInventoryHandler().getLocation();
+    }
+
     /**
      * Get the amount of fill slots for each menu page.
      *
@@ -654,6 +655,10 @@ public class MenuUtility<T> {
 
     public boolean shallCacheItems() {
         return shallCacheItems;
+    }
+
+    public LoadInventoryHandler<T> getLoadInventoryHandler() {
+        return loadInventoryHandler;
     }
 
     //========================================================
@@ -689,19 +694,21 @@ public class MenuUtility<T> {
      * Remove the cached menu. if you use location.
      */
     public void removeMenuCache() {
-        menuCache.removeMenuCached(this.menuCacheKey);
+        this.getLoadInventoryHandler().removeMenuCache();
     }
 
     /**
      * Set a unique key for the cached menu if you want to have multiple menus on the same location,
      * allowing many players to interact with different menus without limiting them to one menu or
-     * risking the override of an old menu when a player opens a new one. You need to use this method
-     * in your constructor,so your key gets added it to the cache.
+     * risking the override of an old menu when a player opens a new one.
+     * <p>
+     * You need to use this method in your constructor,so your key gets
+     * added it to the cache before player open the new menu.
      *
      * @param uniqueKey will used as part of the key in the cache.
      */
     public void setUniqueKeyMenuCache(final String uniqueKey) {
-        this.uniqueKey = uniqueKey;
+        this.getLoadInventoryHandler().setUniqueKey(uniqueKey);
     }
 
     /**
@@ -746,11 +753,11 @@ public class MenuUtility<T> {
      * {@link MenuDataUtility} cache.
      * </p>
      *
-     * @param pageNumber     the current page number of the inventory.
+     * @param pageNumber      the current page number of the inventory.
      * @param menuDataUtility the cache that stores buttons for this page.
-     * @param slot           the inventory slot currently being rendered.
-     * @param fillSlotIndex  the index within {@link #fillSpace} representing the inventory slot where your fill buttons is located.
-     * @param isLastFillSlot whether this is the final slot in the fill space range.
+     * @param slot            the inventory slot currently being rendered.
+     * @param fillSlotIndex   the index within {@link #fillSpace} representing the inventory slot where your fill buttons is located.
+     * @param isLastFillSlot  whether this is the final slot in the fill space range.
      */
     public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
         final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex);
@@ -762,6 +769,10 @@ public class MenuUtility<T> {
 
             menuDataUtility.putButton(this.getSlot(slot), buttonData, null);
         }
+    }
+
+    public String getUniqueKey() {
+        return this.getLoadInventoryHandler().getUniqueKey();
     }
 
     protected void putTimeWhenUpdatesButtons(final MenuButton menuButton, final Long time) {
@@ -807,18 +818,6 @@ public class MenuUtility<T> {
         }
     }
 
-
-    protected void setLocationMetaOnPlayer(final Player player, final Location location) {
-        String key = this.uniqueKey;
-        if (key != null && key.isEmpty()) {
-            this.uniqueKey = this.getClass().getName();
-            key = this.uniqueKey;
-        }
-        menuCacheKey = this.menuCache.getMenuCacheKey(location, key);
-        if (menuCacheKey == null) menuCacheKey = new MenuCacheKey(location, key);
-        menuAPI.getPlayerMeta().setPlayerLocationMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION, menuCacheKey);
-    }
-
     protected void setMetadataKey(final String setPlayerMetadataKey) {
         this.playerMetadataKey = setPlayerMetadataKey;
     }
@@ -843,8 +842,11 @@ public class MenuUtility<T> {
             this.animateTitleTask.stopTask();
     }
 
-    protected Inventory loadInventory(final Player player, final boolean loadToCache) {
-        Inventory menu = null;
+    protected Inventory loadInventory(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
+        LoadInventoryHandler<T> inventoryHandler = this.getLoadInventoryHandler();
+        inventoryHandler.setLocation(location);
+        return inventoryHandler.loadInventory(player, loadToCache);
+      /*  Inventory menu = null;
         if (loadToCache && this.location != null) {
             this.setLocationMetaOnPlayer(player, this.location);
             MenuUtility<?> menuCached = this.getMenuCache();
@@ -866,7 +868,7 @@ public class MenuUtility<T> {
             final MenuUtility<?> menuUtility = menuAPI.getPlayerMeta().getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
             if (menuUtility != null) menu = menuUtility.getMenu();
         }
-        return menu;
+        return menu;*/
     }
 
     protected MenuButton getMenuButtonAtSlot(final int slot, final int fillSlot) {
@@ -924,14 +926,6 @@ public class MenuUtility<T> {
             this.animateTitleTask.runTask(20L + this.animateTitleTime);
         }
 
-    }
-
-    private void saveMenuCache(@Nonnull final Location location) {
-        menuCache.addToCache(location, this.uniqueKey, this);
-    }
-
-    private MenuUtility<?> getMenuCache() {
-        return menuCache.getMenuInCache(this.menuCacheKey, this.getClass());
     }
 
     public Plugin getPlugin() {

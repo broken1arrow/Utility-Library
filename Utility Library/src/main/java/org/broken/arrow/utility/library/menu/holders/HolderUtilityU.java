@@ -80,7 +80,6 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      */
     public void menuOpen(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
         this.player = player;
-        this.location = location;
 
         player.closeInventory();
         if (!shallCacheItems) {
@@ -88,7 +87,7 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
         }
         redrawInventory();
 
-        final Inventory menu = loadInventory(player, loadToCache);
+        final Inventory menu = loadInventory(player, location, loadToCache);
         if (menu == null) return;
 
         player.openInventory(menu);
@@ -414,6 +413,6 @@ public abstract class HolderUtilityU<T> extends MenuUtility<T> {
      */
     @Nullable
     public MenuCacheKey getMenuCacheKey() {
-        return this.menuCacheKey;
+        return this.getLoadInventoryHandler().getMenuCacheKey();
     }
 }

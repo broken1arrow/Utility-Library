@@ -4,7 +4,7 @@ import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
-import org.broken.arrow.menu.library.utility.Metadata;
+import org.broken.arrow.menu.library.utility.MetadataPlayer;
 import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Bukkit;
@@ -34,7 +34,7 @@ public class RegisterMenuAPI {
 	private static RegisterMenuAPI menuAPI;
 	private final MenuCache menuCache;
 	private final Plugin plugin;
-	private Metadata playerMeta;
+	private MetadataPlayer playerMeta;
 	private ItemCreator itemCreator;
 	private CheckItemsInsideMenu checkItemsInsideMenu;
 	private SendMsgDuplicatedItems messages;
@@ -75,7 +75,7 @@ public class RegisterMenuAPI {
 		}
 		registerMenuEvent(plugin);
 		this.checkItemsInsideMenu = new CheckItemsInsideMenu(this);
-		this.playerMeta = new Metadata(plugin);
+		this.playerMeta = new MetadataPlayer(plugin);
 		this.messages = new SendMsgDuplicatedItems();
 		try {
 			this.itemCreator = new ItemCreator(plugin);
@@ -102,7 +102,7 @@ public class RegisterMenuAPI {
 		return plugin;
 	}
 
-	public Metadata getPlayerMeta() {
+	public MetadataPlayer getPlayerMeta() {
 		return playerMeta;
 	}
 
