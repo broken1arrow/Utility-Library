@@ -12,6 +12,7 @@ import org.broken.arrow.menu.library.holder.utility.InventoryRenderer;
 import org.broken.arrow.menu.library.holder.utility.LoadInventoryHandler;
 import org.broken.arrow.menu.library.holder.utility.MenuRenderer;
 import org.broken.arrow.menu.library.runnable.ButtonAnimation;
+import org.broken.arrow.menu.library.utility.Action;
 import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.MenuInteractionChecks;
 import org.broken.arrow.menu.library.utility.SoundUtility;
@@ -725,6 +726,18 @@ public class MenuUtility<T> {
             menuButton.onClickInsideMenu(player, this.getMenu(), clickType, clickedItem);
     }
 
+    /**
+     * Check if the close or open Inventory is a valid menu.
+     * @param topInventory the inventory player open or close.
+     * @param action the action player does, such as open or close.
+     * @return true if valid menu, in other cases this will return false.
+     */
+    public boolean checkValidMenu(@Nonnull final Inventory topInventory,@Nonnull final Action action) {
+        if(action == Action.OPEN )
+            return true;
+        return topInventory.equals(getMenu());
+    }
+
     public void updateTitle() {
         Object title = getTitle();
         if (!menuAPI.isNotFoundUpdateTitleClazz())
@@ -846,29 +859,6 @@ public class MenuUtility<T> {
         LoadInventoryHandler<T> inventoryHandler = this.getLoadInventoryHandler();
         inventoryHandler.setLocation(location);
         return inventoryHandler.loadInventory(player, loadToCache);
-      /*  Inventory menu = null;
-        if (loadToCache && this.location != null) {
-            this.setLocationMetaOnPlayer(player, this.location);
-            MenuUtility<?> menuCached = this.getMenuCache();
-
-            if (menuCached == null || menuCached.getMenu() == null) {
-                saveMenuCache(this.location);
-                menuCached = this.getMenuCache();
-            }
-            if (!this.isIgnoreValidCheck()) {
-                Validate.checkBoolean(!menuCached.getClass().equals(this.getClass()) && (this.uniqueKey == null || this.uniqueKey.isEmpty()), "You need set uniqueKey for this menu " + menuCached.getClass() + " or it will replace the old menu and players left can take items, set method setIgnoreValidCheck() to ignore this or set the uniqueKey");
-            } else {
-                saveMenuCache(this.location);
-                menuCached = this.getMenuCache();
-            }
-            menu = menuCached.getMenu();
-        } else {
-            menuAPI.getPlayerMeta().setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_PREVIOUS, this);
-            menuAPI.getPlayerMeta().setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN, this);
-            final MenuUtility<?> menuUtility = menuAPI.getPlayerMeta().getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
-            if (menuUtility != null) menu = menuUtility.getMenu();
-        }
-        return menu;*/
     }
 
     protected MenuButton getMenuButtonAtSlot(final int slot, final int fillSlot) {
@@ -931,5 +921,6 @@ public class MenuUtility<T> {
     public Plugin getPlugin() {
         return menuAPI.getPlugin();
     }
+
 
 }
