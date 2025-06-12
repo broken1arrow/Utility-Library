@@ -888,6 +888,25 @@ public class MenuUtility<T> {
     }
 
     /**
+     * This method just remove all associated data to the player with the menu and also stop the animation.
+     *
+     * @param player The player that currently closing the menu.
+     */
+    protected void unregister(@Nonnull final Player player) {
+        final MetadataPlayer playerMeta = this.menuAPI.getPlayerMeta();
+        final MenuCache menuCache = this.menuAPI.getMenuCache();
+
+        if (playerMeta.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN)) {
+            playerMeta.removePlayerMenuMetadata(this.player, MenuMetadataKey.MENU_OPEN);
+        }
+        if (playerMeta.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
+                this.isAutoClearCache() && this.getAmountOfViewers() < 1) {
+            menuCache.removeMenuCached(playerMeta.getPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION));
+        }
+        closeTasks();
+    }
+
+    /**
      * This method close all running tasks, if it is set.
      * <p>
      * Note: this is only for internal use, don't try to override this.
@@ -898,23 +917,6 @@ public class MenuUtility<T> {
             this.buttonAnimation.stopTask();
         if (this.animateTitleTask != null)
             this.animateTitleTask.stopTask();
-    }
-
-    /**
-     * This method just remove all associated data to the player with the menu.
-     */
-    protected void unregister() {
-        final MetadataPlayer playerMeta = this.menuAPI.getPlayerMeta();
-        final MenuCache menuCache = this.menuAPI.getMenuCache();
-
-        if (playerMeta.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
-            playerMeta.removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
-        }
-        if (playerMeta.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
-                this.isAutoClearCache() && this.getAmountOfViewers() < 1) {
-            menuCache.removeMenuCached(playerMeta.getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION));
-        }
-        playerMeta.removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
     }
 
     protected Inventory loadInventory(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {

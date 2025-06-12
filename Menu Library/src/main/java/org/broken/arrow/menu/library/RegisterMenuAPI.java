@@ -198,12 +198,10 @@ public class RegisterMenuAPI {
             if (!menuUtility.checkValidMenu(event.getView().getTopInventory(), Action.CLOSE)) {
                 return;
             }
-
-            menuUtility.closeTasks();
             try {
                 menuUtility.menuClose(event, menuUtility);
             } finally {
-                menuUtility.unregister();
+                menuUtility.unregister(player);
             }
         }
 
