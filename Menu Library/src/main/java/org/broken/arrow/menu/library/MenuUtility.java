@@ -903,7 +903,7 @@ public class MenuUtility<T> {
     /**
      * This method just remove all associated data to the player with the menu.
      */
-    protected final void unregister() {
+    protected void unregister() {
         final MetadataPlayer playerMeta = this.menuAPI.getPlayerMeta();
         final MenuCache menuCache = this.menuAPI.getMenuCache();
 
