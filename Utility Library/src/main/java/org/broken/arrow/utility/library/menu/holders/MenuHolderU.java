@@ -1,11 +1,10 @@
 package org.broken.arrow.utility.library.menu.holders;
 
-import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.holder.HolderUtility;
 import org.broken.arrow.menu.library.holder.MenuHolderPage;
+import org.broken.arrow.utility.library.UtilityLibrary;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
 
@@ -26,34 +25,31 @@ public class MenuHolderU extends HolderUtility<Object> {
      * Constructs a menu instance with specified menuAPI instance. It is recommended to set the menu size
      * using {@link #setMenuSize(int)}, as the default size is set to zero.
      *
-     * @param menuAPI The instance of RegisterMenuAPI where your registered your plugin.
      */
-    public MenuHolderU(@Nonnull RegisterMenuAPI menuAPI) {
-        this(menuAPI, null, false);
+    public MenuHolderU() {
+        this( null, false);
     }
 
     /**
      * Constructs a menu instance with specified fill slots and menuAPI instance. It is recommended to set the menu size using {@link #setMenuSize(int)},
      * as the default size is set to zero.
      *
-     * @param menuAPI The instance of RegisterMenuAPI where your registered your plugin.
      * @param fillSlots The slots you want to fill with items, and you need to set the amount of pages if your plan
      *                  to use mor than one page.
      */
-    public MenuHolderU(@Nonnull RegisterMenuAPI menuAPI, final List<Integer> fillSlots) {
-        this(menuAPI, fillSlots, false);
+    public MenuHolderU( final List<Integer> fillSlots) {
+        this( fillSlots, false);
     }
 
     /**
      * Constructs a menu instance with specified caching option and menuAPI instance.
      *
-     * @param menuAPI         The instance of RegisterMenuAPI where your registered your plugin.
      * @param shallCacheItems Set this to false if items and slots should be cached in this class.
      *                        Otherwise, override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
      *                        them in your own implementation.                       .
      */
-    public MenuHolderU(@Nonnull RegisterMenuAPI menuAPI, final boolean shallCacheItems) {
-        this(menuAPI, null, shallCacheItems);
+    public MenuHolderU( final boolean shallCacheItems) {
+        this( null, shallCacheItems);
     }
 
     /**
@@ -61,15 +57,14 @@ public class MenuHolderU extends HolderUtility<Object> {
      * It is recommended to set the menu size using {@link #setMenuSize(int)},
      * as the default size is set to zero.
      *
-     * @param menuAPI         The instance of RegisterMenuAPI where your registered your plugin.
      * @param fillSlots       The slots you want to fill with items, and you need to set the amount of pages if your plan
      *                        to use mor than one page.
      * @param shallCacheItems Set this to false if items and slots should be cached in this class.
      *                        Otherwise, override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
      *                        them in your own implementation.
      */
-    public MenuHolderU(@Nonnull RegisterMenuAPI menuAPI, final List<Integer> fillSlots, final boolean shallCacheItems) {
-        super(menuAPI, fillSlots, shallCacheItems);
+    public MenuHolderU( final List<Integer> fillSlots, final boolean shallCacheItems) {
+        super(UtilityLibrary.getInstance().getMenuApi(), fillSlots, shallCacheItems);
     }
 
 }
