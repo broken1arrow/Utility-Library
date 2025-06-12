@@ -48,8 +48,9 @@ public final class MenuDataUtility<T> {
 
 	@Nullable
 	public MenuButton getFillMenuButton(@Nonnull MenuButton menuButton) {
-		if (this.getFillMenuButton() != null && this.getFillMenuButton().getId() == menuButton.getId()) {
-			return this.getFillMenuButton();
+		MenuButton fillButton = this.getFillMenuButton();
+		if (fillButton != null && fillButton.getId() == menuButton.getId()) {
+			return fillButton;
 		}
 		if (fillMenuButtons != null) {
 			for (MenuButton button : getFillMenuButtons().values())

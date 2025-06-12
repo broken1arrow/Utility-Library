@@ -47,7 +47,6 @@ public class LoadInventoryHandler<T> {
             menu = menuCached.getMenu();
         } else {
             MetadataPlayer playerMeta = this.metadataPlayer;
-            playerMeta.setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_PREVIOUS, menuUtility);
             playerMeta.setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN, menuUtility);
             final MenuUtility<?> menuUtility = playerMeta.getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
             if (menuUtility != null) menu = menuUtility.getMenu();

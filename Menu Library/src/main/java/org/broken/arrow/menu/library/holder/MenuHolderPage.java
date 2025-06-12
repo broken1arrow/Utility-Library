@@ -330,7 +330,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
     @Override
     @Nullable
-    public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
+    public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtonData, final int slot, final boolean updateButton) {
         if (menuButton == null) return null;
 
         if (updateButton) {
@@ -338,9 +338,9 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             if (itemStack != null) return itemStack;
             MenuButtonPage<T> menuButtonPage = getPagedMenuButton(menuButton);
             if (menuButtonPage != null) {
-                itemStack = menuButtonPage.getItem(cachedButtons.getObject());
+                itemStack = menuButtonPage.getItem(cachedButtonData.getObject());
                 if (itemStack != null) return itemStack;
-                itemStack = menuButtonPage.getItem(slot + (this.getPageNumber() * this.getNumberOfFillItems()), cachedButtons.getObject());
+                itemStack = menuButtonPage.getItem(slot + (this.getPageNumber() * this.getNumberOfFillItems()), cachedButtonData.getObject());
             }
             return itemStack;
         }

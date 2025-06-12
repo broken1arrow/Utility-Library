@@ -203,14 +203,7 @@ public class RegisterMenuAPI {
             try {
                 menuUtility.menuClose(event, menuUtility);
             } finally {
-                if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
-                    getPlayerMeta().removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
-                }
-                if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
-                        menuUtility.isAutoClearCache() && menuUtility.getAmountOfViewers() < 1) {
-                    menuCache.removeMenuCached(getPlayerMeta().getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION));
-                }
-                getPlayerMeta().removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
+                menuUtility.unregister();
             }
         }
 
@@ -236,13 +229,14 @@ public class RegisterMenuAPI {
 
             Object menukey = null;
 
-            if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
-                menukey = getPlayerMeta().getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
+            MetadataPlayer playerMeta = getPlayerMeta();
+            if (playerMeta.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
+                menukey = playerMeta.getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
             }
 
             final MenuUtility<?> menuUtility;
-            if (getPlayerMeta().hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
-                menuUtility = getPlayerMeta().getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
+            if (playerMeta.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
+                menuUtility = playerMeta.getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
             } else {
                 menuUtility = menuCache.getMenuInCache(menukey, MenuUtility.class);
             }

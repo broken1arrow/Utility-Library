@@ -3,16 +3,22 @@ package org.broken.arrow.menu.library.holder.utility;
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import javax.annotation.Nonnull;
 
 public class AnimateTitleTask<T> extends BukkitRunnable {
 
     private final MenuUtility<T> menuUtility;
+    private final Player player;
     private int taskId;
     private volatile boolean cancelled = false;
 
-    public AnimateTitleTask(MenuUtility<T> menuUtility) {
+    public AnimateTitleTask(@Nonnull final MenuUtility<T> menuUtility, @Nonnull final Player player) {
         this.menuUtility = menuUtility;
+        this.player = player;
     }
 
     public void runTask(long delay) {
@@ -20,7 +26,7 @@ public class AnimateTitleTask<T> extends BukkitRunnable {
     }
 
     public boolean isRunning() {
-         return taskId > 0 &&
+        return taskId > 0 &&
                 (Bukkit.getScheduler().isCurrentlyRunning(taskId) ||
                         Bukkit.getScheduler().isQueued(taskId));
     }
@@ -34,21 +40,33 @@ public class AnimateTitleTask<T> extends BukkitRunnable {
 
     @Override
     public void run() {
-        if(this.cancelled) return;
+        if (this.cancelled) return;
 
         Object text = menuUtility.getAnimateTitle().apply();
-        if (text == null || (ServerVersion.atLeast(ServerVersion.V1_9) && this.isCancelled())) {
+        if (itShouldNotAnimateTitle(text)) {
             this.cancelled = true;
             this.cancel();
-            menuUtility.updateTitle();
+            menuUtility.updateTitle(this.player);
             return;
         }
         if (!text.equals("")) {
-            menuUtility.updateTitle(text);
+            menuUtility.updateTitle(this.player, text);
         } else {
             this.cancelled = true;
             this.cancel();
         }
+    }
+
+    private boolean itShouldNotAnimateTitle(Object text) {
+        if (player != null && (!player.isOnline() || hasNotInventoryWithTitle()))
+            return true;
+
+        return text == null || (ServerVersion.atLeast(ServerVersion.V1_9) && this.isCancelled());
+    }
+
+    private boolean hasNotInventoryWithTitle() {
+        InventoryType inventoryType = player.getOpenInventory().getType();
+        return inventoryType == InventoryType.PLAYER || inventoryType == InventoryType.CREATIVE;
     }
 
 }

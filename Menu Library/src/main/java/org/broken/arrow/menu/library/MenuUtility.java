@@ -5,6 +5,7 @@ import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButton;
+import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.holder.MenuHolder;
 import org.broken.arrow.menu.library.holder.MenuHolderPage;
 import org.broken.arrow.menu.library.holder.utility.AnimateTitleTask;
@@ -15,6 +16,7 @@ import org.broken.arrow.menu.library.runnable.ButtonAnimation;
 import org.broken.arrow.menu.library.utility.Action;
 import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.MenuInteractionChecks;
+import org.broken.arrow.menu.library.utility.MetadataPlayer;
 import org.broken.arrow.menu.library.utility.SoundUtility;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Location;
@@ -685,6 +687,12 @@ public class MenuUtility<T> {
     }
 
     public void updateTitle(Object text) {
+        updateTitle(this.player, text);
+    }
+
+    public void updateTitle(@Nullable final Player player, final Object text) {
+        if (player == null)
+            return;
         if (text instanceof String)
             UpdateTitle.update(player, (String) text, useColorConversion);
         if (text instanceof JsonObject)
@@ -728,24 +736,56 @@ public class MenuUtility<T> {
 
     /**
      * Check if the close or open Inventory is a valid menu.
+     *
      * @param topInventory the inventory player open or close.
-     * @param action the action player does, such as open or close.
+     * @param action       the action player does, such as open or close.
      * @return true if valid menu, in other cases this will return false.
      */
-    public boolean checkValidMenu(@Nonnull final Inventory topInventory,@Nonnull final Action action) {
-        if(action == Action.OPEN )
+    public boolean checkValidMenu(@Nonnull final Inventory topInventory, @Nonnull final Action action) {
+        if (action == Action.OPEN)
             return true;
         return topInventory.equals(getMenu());
     }
 
+    /**
+     * Update the title while player has the menu open. It will just update the set title
+     * rom this method {@link org.broken.arrow.menu.library.holder.HolderUtility#setTitle(Function)}.
+     *
+     *
+     */
     public void updateTitle() {
-        Object title = getTitle();
-        if (!menuAPI.isNotFoundUpdateTitleClazz())
-            this.updateTitle(title);
+        this.updateTitle(this.player);
     }
 
+    /**
+     * Update the title while player has the menu open. It will just update the set title
+     * from this method {@link org.broken.arrow.menu.library.holder.HolderUtility#setTitle(Function)}.
+     *
+     * @param player the player you want to update the title for.
+     */
+
+    public void updateTitle(@Nullable final Player player) {
+        Object title = getTitle();
+        if (!menuAPI.isNotFoundUpdateTitleClazz())
+            this.updateTitle(player, title);
+    }
+
+    /**
+     * Retrieves the {@link ItemStack} from the provided {@link MenuButton}, based on the update flag.
+     * <p>
+     * If {@code updateButton} is {@code true}, the method attempts to fetch the item stack directly from
+     * the {@code menuButton}, first using the default getter, then using the slot-based getter as fallback.
+     * If {@code updateButton} is {@code false} or {@code menuButton} is {@code null}, this returns {@code null}.
+     * </p>
+     *
+     * @param menuButton       the button to retrieve the item stack from.
+     * @param cachedButtonData the cached button data for this slot.
+     * @param slot             the current inventory slot.
+     * @param updateButton     whether the button should be updated and its item retrieved.
+     * @return the {@link ItemStack} to display, or {@code null} if not updating or no button is available.
+     */
     @Nullable
-    public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtons, final int slot, final boolean updateButton) {
+    public ItemStack getMenuItem(final MenuButton menuButton, final ButtonData<T> cachedButtonData, final int slot, final boolean updateButton) {
         if (menuButton == null) return null;
 
         if (updateButton) {
@@ -836,10 +876,15 @@ public class MenuUtility<T> {
     }
 
     protected void onMenuOpenPlaySound() {
+        this.onMenuOpenPlaySound(this.player);
+    }
+
+    public void onMenuOpenPlaySound(@Nullable final Player player) {
         final Sound sound = this.menuOpenSound;
         if (sound == null) return;
+        if (player == null) return;
 
-        this.player.playSound(player.getLocation(), sound, 1, 1);
+        player.playSound(player.getLocation(), sound, 1, 1);
     }
 
     /**
@@ -853,6 +898,23 @@ public class MenuUtility<T> {
             this.buttonAnimation.stopTask();
         if (this.animateTitleTask != null)
             this.animateTitleTask.stopTask();
+    }
+
+    /**
+     * This method just remove all associated data to the player with the menu.
+     */
+    protected final void unregister() {
+        final MetadataPlayer playerMeta = this.menuAPI.getPlayerMeta();
+        final MenuCache menuCache = this.menuAPI.getMenuCache();
+
+        if (playerMeta.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
+            playerMeta.removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
+        }
+        if (playerMeta.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
+                this.isAutoClearCache() && this.getAmountOfViewers() < 1) {
+            menuCache.removeMenuCached(playerMeta.getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION));
+        }
+        playerMeta.removePlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
     }
 
     protected Inventory loadInventory(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
@@ -912,7 +974,7 @@ public class MenuUtility<T> {
         if (menuAPI.isNotFoundUpdateTitleClazz()) return;
 
         if (this.animateTitleTask == null || !this.animateTitleTask.isRunning()) {
-            this.animateTitleTask = new AnimateTitleTask<T>(this);
+            this.animateTitleTask = new AnimateTitleTask<T>(this,this.player);
             this.animateTitleTask.runTask(20L + this.animateTitleTime);
         }
 

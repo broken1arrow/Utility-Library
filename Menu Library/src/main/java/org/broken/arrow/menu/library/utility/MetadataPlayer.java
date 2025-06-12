@@ -62,6 +62,10 @@ public final class MetadataPlayer {
 	}
 
 	public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+		removePlayerMenuMetadata(player,key.name());
+	}
+
+	public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final String key) {
 		player.removeMetadata(key + "_" + plugin, plugin);
 	}
 

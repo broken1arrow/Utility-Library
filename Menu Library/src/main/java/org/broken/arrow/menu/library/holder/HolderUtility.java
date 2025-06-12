@@ -142,7 +142,8 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         setMetadataKey(MenuMetadataKey.MENU_OPEN.name());
 
         if (!getButtonsToUpdate().isEmpty())
-            updateButtonsInList();
+            this.updateButtonsInList();
+        this.runAnimateTitle();
 
         Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), ()->this.updateTitle(), 1);
     }
@@ -220,7 +221,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
     /**
      * Sets the title of the menu using the specified
-     * function to animate title. You can
+     * function to animate title.
      *
      * @param time     set how often it shall update, in seconds.
      * @param function a function that takes a String, for animate title.
@@ -228,7 +229,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
     public void setAnimateTitle(final int time, final Function<String> function) {
         this.animateTitleTime = time;
         this.animateTitle = function;
-        this.runAnimateTitle();
     }
 
     /**
@@ -272,7 +272,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
     public void setAnimateTitleJson(final int time, final Function<JsonObject> function) {
         this.animateTitleTime = time;
         this.animateTitleJson = function;
-        this.runAnimateTitle();
     }
 
     /**
@@ -428,8 +427,8 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
     public void updateButton(final MenuButton menuButton) {
         final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
         final Set<Integer> buttonSlots = this.getButtonSlots(menuDataUtility, menuButton);
+        final Inventory menu = this.getMenu();
 
-        Inventory menu = this.getMenu();
         if (menuDataUtility != null && menu != null) {
             if (!buttonSlots.isEmpty()) {
                 for (final int slot : buttonSlots) {
