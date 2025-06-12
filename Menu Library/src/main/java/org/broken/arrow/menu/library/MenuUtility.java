@@ -893,15 +893,15 @@ public class MenuUtility<T> {
      * @param player The player that currently closing the menu.
      */
     protected void unregister(@Nonnull final Player player) {
-        final MetadataPlayer playerMeta = this.menuAPI.getPlayerMeta();
+        final MetadataPlayer metadataPlayer = this.menuAPI.getPlayerMeta();
         final MenuCache menuCache = this.menuAPI.getMenuCache();
 
-        if (playerMeta.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN)) {
-            playerMeta.removePlayerMenuMetadata(this.player, MenuMetadataKey.MENU_OPEN);
+        if (metadataPlayer.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN)) {
+            metadataPlayer.removePlayerMenuMetadata(this.player, MenuMetadataKey.MENU_OPEN);
         }
-        if (playerMeta.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
+        if (metadataPlayer.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
                 this.isAutoClearCache() && this.getAmountOfViewers() < 1) {
-            menuCache.removeMenuCached(playerMeta.getPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION));
+            menuCache.removeMenuCached(metadataPlayer.getPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION));
         }
         closeTasks();
     }

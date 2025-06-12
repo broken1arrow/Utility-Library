@@ -48,8 +48,8 @@ public class LoadInventoryHandler<T> {
         } else {
             MetadataPlayer playerMeta = this.metadataPlayer;
             playerMeta.setPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN, menuUtility);
-            final MenuUtility<?> menuUtility = playerMeta.getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
-            if (menuUtility != null) menu = menuUtility.getMenu();
+            final MenuUtility<?> menuCachedAtPlayer = playerMeta.getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
+            if (menuCachedAtPlayer != null) menu = menuCachedAtPlayer.getMenu();
         }
         return menu;
     }
