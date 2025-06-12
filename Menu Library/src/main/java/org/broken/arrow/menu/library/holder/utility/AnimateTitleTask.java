@@ -1,6 +1,7 @@
 package org.broken.arrow.menu.library.holder.utility;
 
 import org.broken.arrow.menu.library.MenuUtility;
+import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -8,15 +9,23 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class AnimateTitleTask<T> extends BukkitRunnable {
 
+    private final Function<?> animateTitle;
     private final MenuUtility<T> menuUtility;
     private final Player player;
     private int taskId;
     private volatile boolean cancelled = false;
 
-    public AnimateTitleTask(@Nonnull final MenuUtility<T> menuUtility, @Nonnull final Player player) {
+    public AnimateTitleTask(@Nullable final MenuUtility<T> menuUtility, @Nonnull final Player player) {
+        this(menuUtility.getAnimateTitle(), menuUtility, player);
+    }
+
+
+    public AnimateTitleTask(@Nullable final Function<?> animateTitle, @Nonnull final MenuUtility<T> menuUtility, @Nonnull final Player player) {
+        this.animateTitle = animateTitle;
         this.menuUtility = menuUtility;
         this.player = player;
     }
@@ -42,14 +51,14 @@ public class AnimateTitleTask<T> extends BukkitRunnable {
     public void run() {
         if (this.cancelled) return;
 
-        Object text = menuUtility.getAnimateTitle().apply();
+        Object text = this.animateTitle != null ? this.animateTitle.apply(): null;
         if (itShouldNotAnimateTitle(text)) {
             this.cancelled = true;
             this.cancel();
             menuUtility.updateTitle(this.player);
             return;
         }
-        if (!text.equals("")) {
+        if (text != null && !text.equals("")) {
             menuUtility.updateTitle(this.player, text);
         } else {
             this.cancelled = true;
