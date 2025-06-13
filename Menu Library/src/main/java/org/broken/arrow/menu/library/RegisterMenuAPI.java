@@ -228,14 +228,14 @@ public class RegisterMenuAPI {
 
             Object menukey = null;
 
-            MetadataPlayer playerMeta = getPlayerMeta();
-            if (playerMeta.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
-                menukey = playerMeta.getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
+            MetadataPlayer metadataPlayer = getPlayerMeta();
+            if (metadataPlayer.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
+                menukey = metadataPlayer.getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
             }
 
             final MenuUtility<?> menuUtility;
-            if (playerMeta.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
-                menuUtility = playerMeta.getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
+            if (metadataPlayer.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
+                menuUtility = metadataPlayer.getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
             } else {
                 menuUtility = menuCache.getMenuInCache(menukey, MenuUtility.class);
             }
