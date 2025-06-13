@@ -1,7 +1,8 @@
 package org.broken.arrow.menu.library.utility;
 
-import org.broken.arrow.menu.library.MenuMetadataKey;
 import org.broken.arrow.menu.library.MenuUtility;
+import org.broken.arrow.menu.library.utility.metadata.MenuMetadataKey;
+import org.broken.arrow.menu.library.utility.metadata.MetadataKey;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -23,16 +24,16 @@ public final class MetadataPlayer {
         this.plugin = plugin;
     }
 
-    public boolean hasPlayerMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+    public boolean hasPlayerMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
         return player.hasMetadata(this.getMenuMetadataKey(key) + "_" + plugin);
     }
 
-    public List<MetadataValue> getPlayerMenuMetadataList(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+    public List<MetadataValue> getPlayerMenuMetadataList(@Nonnull final Player player, @Nonnull final MetadataKey key) {
         return player.getMetadata(this.getMenuMetadataKey(key) + "_" + plugin);
     }
 
     @Nullable
-    public MenuUtility<?> getPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+    public MenuUtility<?> getPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
         final List<MetadataValue> playerMetadata = player.getMetadata(this.getMenuMetadataKey(key) + "_" + plugin);
         if (playerMetadata.isEmpty())
             return null;
@@ -42,14 +43,14 @@ public final class MetadataPlayer {
     }
 
     @Nullable
-    public Object getPlayerMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+    public Object getPlayerMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
         final List<MetadataValue> playerMetadata = player.getMetadata(this.getMenuMetadataKey(key) + "_" + plugin);
         if (playerMetadata.isEmpty())
             return null;
         return playerMetadata.get(0).value();
     }
 
-    public void setPlayerMetaKey(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+    public void setPlayerMetaKey(@Nonnull final Player player, @Nonnull final MetadataKey key) {
         this.setMetadata(player, key, true);
     }
 
@@ -57,20 +58,20 @@ public final class MetadataPlayer {
         player.setMetadata(key + "_" + plugin, new FixedMetadataValue(plugin, object));
     }
 
-    public void setPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key, @Nonnull final MenuUtility<?> menu) {
+    public void setPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key, @Nonnull final MenuUtility<?> menu) {
         this.setMetadata(player, key, menu);
     }
 
-    public void setPlayerLocationMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key, @Nonnull final Object location) {
+    public void setPlayerLocationMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key, @Nonnull final Object location) {
         this.setMetadata(player, key, location);
 
     }
 
-    private void setMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key, @Nonnull final Object object) {
+    private void setMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key, @Nonnull final Object object) {
         player.setMetadata(this.getMenuMetadataKey(key) + "_" + plugin, new FixedMetadataValue(plugin, object));
     }
 
-    public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MenuMetadataKey key) {
+    public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
         removePlayerMenuMetadata(player, this.getMenuMetadataKey(key));
     }
 
@@ -112,8 +113,8 @@ public final class MetadataPlayer {
         return null;
     }
 
-    private String getMenuMetadataKey(@Nonnull MenuMetadataKey key) {
-        String metadataKey = key.name();
+    private String getMenuMetadataKey(@Nonnull MetadataKey key) {
+        String metadataKey = key.getBaseKey().name();
         if (key.getId() > 0)
             metadataKey += "_" + key.getId();
 

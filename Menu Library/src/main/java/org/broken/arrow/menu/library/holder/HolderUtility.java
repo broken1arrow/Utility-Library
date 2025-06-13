@@ -1,7 +1,7 @@
 package org.broken.arrow.menu.library.holder;
 
 import com.google.gson.JsonObject;
-import org.broken.arrow.menu.library.MenuMetadataKey;
+import org.broken.arrow.menu.library.utility.metadata.MenuMetadataKey;
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.menu.library.builders.ButtonData;

@@ -7,6 +7,7 @@ import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.menu.library.utility.Action;
 import org.broken.arrow.menu.library.utility.MetadataPlayer;
 import org.broken.arrow.menu.library.utility.ServerVersion;
+import org.broken.arrow.menu.library.utility.metadata.MenuMetadataKey;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

@@ -18,6 +18,7 @@ import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.MenuInteractionChecks;
 import org.broken.arrow.menu.library.utility.MetadataPlayer;
 import org.broken.arrow.menu.library.utility.SoundUtility;
+import org.broken.arrow.menu.library.utility.metadata.MenuMetadataKey;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.bukkit.Location;
 import org.bukkit.Material;
