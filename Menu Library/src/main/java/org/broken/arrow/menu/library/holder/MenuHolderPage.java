@@ -288,8 +288,9 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
         final int fillSlot = isLastFillSlot ? -1 : fillSlotIndex;
 
-        final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlot);
-        final ItemStack result = getItemAtSlot(menuButton, slot, fillSlot);
+        boolean isFillSlot = isFillSlot(slot);
+        final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlot, isFillSlot);
+        final ItemStack result = getItemAtSlot(menuButton, slot, fillSlot, isFillSlot);
 
         if (pageNumber == getPageNumber() && fillSlot >= 0) {
             this.fillSlotsMapping.put(slot, fillSlot);
@@ -297,7 +298,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
         if (menuButton != null) {
             T fillItem = getFillItem(fillSlot);
-            boolean shallAddMenuButton = !isLastFillSlot && isFillSlot(slot) && this.getListOfFillItems() != null && !this.getListOfFillItems().isEmpty();
+            boolean shallAddMenuButton = !isLastFillSlot && isFillSlot && this.getListOfFillItems() != null && !this.getListOfFillItems().isEmpty();
             if (menuButton.shouldUpdateButtons()) this.getButtonsToUpdate().add(menuButton);
 
             final ButtonData<T> buttonData = new ButtonData<>(result, shallAddMenuButton ? null : menuButton, fillItem);
@@ -306,13 +307,11 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     }
 
     @Override
-    protected ItemStack getItemAtSlot(final MenuButton menuButton, final int slot, final int fillSlot) {
+    protected ItemStack getItemAtSlot(final MenuButton menuButton, final int slot, final int fillSlot,final boolean isFillSlot) {
         if (menuButton == null) return null;
 
-        final List<Integer> fillSlots = this.getFillSpace();
         ItemStack result = null;
-
-        if (fillSlots.contains(slot)) {
+        if (isFillSlot) {
             MenuButtonPage<T> menuButtonPage = getPagedMenuButton(menuButton);
             T fillItem = getFillItem(fillSlot);
 
@@ -320,7 +319,6 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
                 if (fillItem != null) result = menuButtonPage.getItem(fillItem);
                 if (result == null) result = menuButtonPage.getItem(fillSlot, fillItem);
             }
-
         }
         if (result == null) result = menuButton.getItem();
         if (result == null) result = menuButton.getItem(fillSlot);

@@ -814,8 +814,8 @@ public class MenuUtility<T> {
      * @param isLastFillSlot  whether this is the final slot in the fill space range.
      */
     public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
-        final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex);
-        final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex);
+        final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex,!this.getFillSpace().isEmpty() && this.getFillSpace().contains(slot));
+        final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex,true);
 
         if (menuButton != null) {
             if (menuButton.shouldUpdateButtons()) this.buttonsToUpdate.add(menuButton);
@@ -926,9 +926,17 @@ public class MenuUtility<T> {
         return inventoryHandler.loadInventory(player, loadToCache);
     }
 
-    protected MenuButton getMenuButtonAtSlot(final int slot, final int fillSlot) {
+    /**
+     * Retrieves the menu button from the specified slot, or from the fill slot if applicable.
+     *
+     * @param slot       the inventory slot currently being processed.
+     * @param fillSlot   the index within {@link #fillSpace} that maps to list of items or objects.
+     * @param isFillSlot {@code true} if this slot corresponds to a fill item, otherwise {@code false}.
+     * @return the corresponding {@link MenuButton} instance, or {@code null} if none found.
+     */
+    protected MenuButton getMenuButtonAtSlot(final int slot, final int fillSlot,final boolean isFillSlot) {
         final MenuButton result;
-        if (!this.getFillSpace().isEmpty() && this.getFillSpace().contains(slot)) {
+        if (isFillSlot) {
             result = getFillButtonAt(fillSlot);
         } else {
             result = getButtonAt(slot);
@@ -948,9 +956,10 @@ public class MenuUtility<T> {
      * @param menuButton the menu button to retrieve the item from.
      * @param slot       the current inventory slot being rendered.
      * @param fillSlot   the index within {@link #fillSpace} representing the inventory slot.
+     * @param isFillSlot {@code true} if this slot corresponds to a fill item, otherwise {@code false}.
      * @return the corresponding {@link ItemStack}, or {@code null} if none is found.
      */
-    protected ItemStack getItemAtSlot(final MenuButton menuButton, final int slot, final int fillSlot) {
+    protected ItemStack getItemAtSlot(final MenuButton menuButton, final int slot, final int fillSlot,final boolean isFillSlot) {
         if (menuButton == null) return null;
 
         ItemStack result;
