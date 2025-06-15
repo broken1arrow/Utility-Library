@@ -814,8 +814,9 @@ public class MenuUtility<T> {
      * @param isLastFillSlot  whether this is the final slot in the fill space range.
      */
     public void setButton(final int pageNumber, final MenuDataUtility<T> menuDataUtility, final int slot, final int fillSlotIndex, final boolean isLastFillSlot) {
-        final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex,!this.getFillSpace().isEmpty() && this.getFillSpace().contains(slot));
-        final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex,true);
+        boolean isFillSlot = !this.getFillSpace().isEmpty() && this.getFillSpace().contains(slot);
+        final MenuButton menuButton = getMenuButtonAtSlot(slot, fillSlotIndex, isFillSlot);
+        final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex,isFillSlot);
 
         if (menuButton != null) {
             if (menuButton.shouldUpdateButtons()) this.buttonsToUpdate.add(menuButton);
