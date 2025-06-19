@@ -108,8 +108,8 @@ import java.util.Map;
  */
 public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
-    private FillItems<T> listOfFillItems;
     private final Map<Integer, Integer> fillSlotsMapping = new HashMap<>();
+    private FillItems<T> listOfFillItems;
 
     /**
      * Constructs a paged menu instance specified list of objects. You need to
@@ -187,7 +187,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
      *
      * @param slot the slot number to register the button in.
      * @return The {@link MenuButton} set in the specified slot. Specifically, in this case,
-     *         it returns an instance of {@link MenuButtonPage}.
+     * it returns an instance of {@link MenuButtonPage}.
      */
     @Nullable
     @Override
@@ -275,7 +275,8 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             if (this.itemsPerPage > 0) {
                 if (!fillSlots.isEmpty()) {
                     return (double) fillSlots.size() / this.itemsPerPage;
-                } else if (fillItems != null && !fillItems.isEmpty()) return (double) fillItems.size() / this.itemsPerPage;
+                } else if (fillItems != null && !fillItems.isEmpty())
+                    return (double) fillItems.size() / this.itemsPerPage;
             }
             if (fillItems != null && !fillItems.isEmpty()) {
                 return (double) fillItems.size() / (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size());
@@ -302,12 +303,16 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             if (menuButton.shouldUpdateButtons()) this.getButtonsToUpdate().add(menuButton);
 
             final ButtonData<T> buttonData = new ButtonData<>(result, shallAddMenuButton ? null : menuButton, fillItem);
+            menuDataUtility.putButton(this.getSlot(slot), menuButton, buttonDataWrapper -> buttonDataWrapper
+                    .setItemStack(result)
+                    .setIsFillButton(isFillSlot)
+                    .setObject(fillItem));
             menuDataUtility.putButton(this.getSlot(slot), buttonData, shallAddMenuButton ? menuButton : null);
         }
     }
 
     @Override
-    protected ItemStack getItemAtSlot(final MenuButton menuButton, final int slot, final int fillSlot,final boolean isFillSlot) {
+    protected ItemStack getItemAtSlot(final MenuButton menuButton, final int slot, final int fillSlot, final boolean isFillSlot) {
         if (menuButton == null) return null;
 
         ItemStack result = null;
@@ -353,7 +358,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     }
 
     private boolean isFillSlot(final int slot) {
-        final List<Integer> fillSlots =  this.getFillSpace();
+        final List<Integer> fillSlots = this.getFillSpace();
         return !fillSlots.isEmpty() && fillSlots.contains(slot);
     }
 }

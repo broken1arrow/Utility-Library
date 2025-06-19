@@ -1,7 +1,6 @@
 package org.broken.arrow.menu.library.holder;
 
 import com.google.gson.JsonObject;
-import org.broken.arrow.menu.library.utility.metadata.MenuMetadataKey;
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.menu.library.builders.ButtonData;
@@ -9,6 +8,7 @@ import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButton;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
 import org.broken.arrow.menu.library.utility.Function;
+import org.broken.arrow.menu.library.utility.metadata.MenuMetadataKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -132,7 +132,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         }
         redrawInventory();
 
-        final Inventory menu = loadInventory(player,location, loadToCahe);
+        final Inventory menu = loadInventory(player, location, loadToCahe);
         if (menu == null) return;
 
         player.openInventory(menu);
@@ -145,7 +145,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
             this.updateButtonsInList();
         this.runAnimateTitle();
 
-        Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), ()->this.updateTitle(), 1);
+        Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), () -> this.updateTitle(), 1);
     }
 
     /**
@@ -425,8 +425,9 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      * @param menuButton the current button.
      */
     public void updateButton(final MenuButton menuButton) {
-        final MenuDataUtility<T> menuDataUtility = getMenuData(getPageNumber());
-        final Set<Integer> buttonSlots = this.getButtonSlots(menuDataUtility, menuButton);
+        final int page = this.getPageNumber();
+        final MenuDataUtility<T> menuDataUtility = getMenuData(page);
+        final Set<Integer> buttonSlots = this.getButtonSlots(page, menuDataUtility, menuButton);
         final Inventory menu = this.getMenu();
 
         if (menuDataUtility != null && menu != null) {
@@ -442,16 +443,21 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
                     menuDataUtility.putButton(menuSlot, buttonData.copy(menuItem));
                 }
             } else {
-                final int buttonSlot = this.getButtonSlot(menuButton);
+                final int buttonSlot = this.getButtonSlot(page, menuButton);
                 int slot = this.getSlot(buttonSlot);
                 final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
                 if (buttonData == null) return;
 
                 final ItemStack itemStack = getMenuItem(menuButton, buttonData, buttonSlot, true);
                 menu.setItem(buttonSlot, itemStack);
-                menuDataUtility.putButton(slot, new ButtonData<>(itemStack, menuButton, buttonData.getObject()));
+                menuDataUtility.putButton(slot, menuButton, tButtonDataWrapper -> tButtonDataWrapper
+                        .setItemStack(itemStack)
+                        .setObject(buttonData.getObject())
+                        .setIsFillButton(buttonData.isFillButton())
+                );
+                //menuDataUtility.putButton(slot, new ButtonData<>(menuButton,itemStack, buttonData.isFillButton(), buttonData.getObject()));
             }
-            this.putAddedButtonsCache(this.getPageNumber(), menuDataUtility);
+            this.putAddedButtonsCache(page, menuDataUtility);
         }
     }
 

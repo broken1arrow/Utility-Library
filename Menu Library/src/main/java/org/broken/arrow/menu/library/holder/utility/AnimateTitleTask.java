@@ -19,7 +19,7 @@ public class AnimateTitleTask<T> extends BukkitRunnable {
     private int taskId;
     private volatile boolean cancelled = false;
 
-    public AnimateTitleTask(@Nullable final MenuUtility<T> menuUtility, @Nonnull final Player player) {
+    public AnimateTitleTask(@Nonnull final MenuUtility<T> menuUtility, @Nonnull final Player player) {
         this(menuUtility.getAnimateTitle(), menuUtility, player);
     }
 

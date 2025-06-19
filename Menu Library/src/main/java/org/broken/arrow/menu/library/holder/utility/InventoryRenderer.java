@@ -26,9 +26,10 @@ public class InventoryRenderer<T> {
 
     @Nonnull
     public Inventory redraw() {
+        final int page = utility.getPageNumber();
+        final int size = utility.getInventorySize();
+        final List<Integer> fillSpace = utility.getFillSpace();
         Inventory menu = utility.getMenu();
-        int size = utility.getInventorySize();
-        List<Integer> fillSpace = utility.getFillSpace();
 
         if (menu == null || size > menu.getSize()) {
             menu = createInventory();
@@ -40,10 +41,10 @@ public class InventoryRenderer<T> {
             menu.setItem(i, new ItemStack(Material.AIR));
         }
 
-        Map<Integer, ButtonData<T>> buttons = utility.getMenuButtons(utility.getPageNumber());
+        Map<Integer, ButtonData<T>> buttons = utility.getMenuButtons(page);
         if (buttons != null && !buttons.isEmpty()) {
             for (int i = 0; i < menu.getSize(); i++) {
-                ButtonData<?> data = buttons.get(utility.getPageNumber() * size + i);
+                ButtonData<?> data = buttons.get(page * size + i);
                 menu.setItem(i, data != null ? data.getItemStack() : null);
             }
         }

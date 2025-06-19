@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public final class MenuDataUtility<T> {
 
@@ -28,6 +29,22 @@ public final class MenuDataUtility<T> {
 				this.fillMenuButtons.put(slot, fillMenuButton);
 			} else
 				return this.setFillMenuButton(fillMenuButton);
+		}
+		return this;
+	}
+
+	public MenuDataUtility<T> putButton(final int slot, @Nonnull  final MenuButton menuButton ,@Nonnull final Consumer<ButtonDataWrapper<T>> buttonData) {
+		final ButtonDataWrapper<T> buttonDataWrapper = new ButtonDataWrapper<>(menuButton);
+		buttonData.accept(buttonDataWrapper);
+		buttons.put(slot, buttonDataWrapper.build());
+
+		if (buttonDataWrapper.isFillButton()) {
+			if (this.getFillMenuButton() != null && this.getFillMenuButton().getId() != menuButton.getId()) {
+				if (this.fillMenuButtons == null)
+					this.fillMenuButtons = new HashMap<>();
+				this.fillMenuButtons.put(slot, menuButton);
+			} else
+				return this.setFillMenuButton(menuButton);
 		}
 		return this;
 	}

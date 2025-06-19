@@ -3,65 +3,101 @@ package org.broken.arrow.menu.library.builders;
 import org.broken.arrow.menu.library.button.MenuButton;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nullable;
+
 public class ButtonData<T> {
 
-	private final ItemStack itemStack;
-	private final MenuButton menuButtonLinkedToThisItem;
-	private final int id;
-	private final T object;
+    private final ItemStack itemStack;
+    private final MenuButton menuButtonLinkedToThisItem;
+    private final int id;
+    private final boolean isFillButton;
+    private final T object;
 
-	public ButtonData(final ItemStack itemStack, final MenuButton menuButton, final T object) {
-		this.itemStack = itemStack;
-		this.menuButtonLinkedToThisItem = menuButton;
-		this.id = menuButton != null ? menuButton.getId() : -1;
-		this.object = object;
-	}
+    /**
+     * Constructs a new {@link ButtonData} instance with the specified item and menu button.
+     * Defaults to a non-fill button.
+     *
+     * @param itemStack  the item to display, or {@code null} if none.
+     * @param menuButton the menu button this item is linked to.
+     * @param object     optional data object related to the button, or {@code null}.
+     */
+    public ButtonData(@Nullable final ItemStack itemStack, final MenuButton menuButton, @Nullable final T object) {
+        this(menuButton, itemStack, false, object);
+    }
 
-	/**
-	 * the itemstack you want to be displayed in the menu.
-	 *
-	 * @return the itemstack you added in the menu.
-	 */
-	public ItemStack getItemStack() {
-		return itemStack;
-	}
+    /**
+     * Constructs a new {@link ButtonData} instance with full customization.
+     *
+     * @param menuButton   the menu button this item is linked to, or {@code null}.
+     * @param itemStack    the item to be rendered in the inventory slot, or {@code null}.
+     * @param isFillButton set to {@code true} if this is a fill button that may span multiple slots.
+     * @param object       optional data object associated with this button, or {@code null}.
+     */
+    public ButtonData(@Nullable final MenuButton menuButton, @Nullable final ItemStack itemStack, final boolean isFillButton, @Nullable final T object) {
+        this.itemStack = itemStack;
+        this.menuButtonLinkedToThisItem = menuButton;
+        this.id = menuButton != null ? menuButton.getId() : -1;
+        this.isFillButton = isFillButton;
+        this.object = object;
+    }
 
-	/**
-	 * The button linked to this item.
-	 *
-	 * @return menuButton.
-	 */
-	public MenuButton getMenuButton() {
-		return menuButtonLinkedToThisItem;
-	}
 
-	/**
-	 * Get the unique id for this button.
-	 *
-	 * @return the id or -1 if not set.
-	 */
+    /**
+     * the itemstack you want to be displayed in the menu.
+     *
+     * @return the itemstack you added in the menu.
+     */
+    @Nullable
+    public ItemStack getItemStack() {
+        return itemStack;
+    }
 
-	public int getId() {
-		return id;
-	}
+    /**
+     * The button linked to this item.
+     *
+     * @return menuButton.
+     */
+    @Nullable
+    public MenuButton getMenuButton() {
+        return menuButtonLinkedToThisItem;
+    }
 
-	/**
-	 * get the data linked to this item.
-	 *
-	 * @return object data you want this item contains.
-	 */
-	public T getObject() {
-		return object;
-	}
+    /**
+     * Get the unique id for this button.
+     *
+     * @return the id or -1 if not set.
+     */
 
-	/**
-	 * Create a copy with your new itemstack set.
-	 *
-	 * @param itemStack the itemstack to replace the old menu button item with.
-	 * @return new instance of this class where it copy the old button instance and the object/fill item.
-	 */
-	public ButtonData<T> copy(final ItemStack itemStack) {
-		return new ButtonData<>(itemStack, this.menuButtonLinkedToThisItem , this.object);
-	}
+    public int getId() {
+        return id;
+    }
+
+    /**
+     * get the data linked to this item.
+     *
+     * @return object data you want this item contains.
+     */
+    public T getObject() {
+        return object;
+    }
+
+    /**
+     * Checks whether this is a fill button that spans one or multiple inventory slots.
+     *
+     * @return {@code true} if this button is used as a fill button; {@code false} otherwise.
+     */
+    public boolean isFillButton() {
+        return isFillButton;
+    }
+
+    /**
+     * Create a copy with your new itemstack set.
+     *
+     * @param itemStack the itemstack to replace the old menu button item with.
+     * @return new instance of this class where it copy the old button instance and the object/fill item.
+     */
+    public ButtonData<T> copy(final ItemStack itemStack) {
+        return new ButtonData<>(this.menuButtonLinkedToThisItem, itemStack, this.isFillButton, this.object);
+    }
 }
 
