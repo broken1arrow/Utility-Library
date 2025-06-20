@@ -26,7 +26,7 @@ public class MenuInteractionChecks<T> {
         if (!this.menuUtility.isAddedButtonsCacheEmpty()) {
             final int clickedSlot = event.getSlot();
             MenuUtility<T> menu = this.menuUtility;
-            final int clickedPos = menu.getSlot(clickedSlot);
+            final int clickedPos = clickedSlot;
             Inventory clickedInventory = event.getClickedInventory();
             if (clickedInventory == null) return false;
             if (checkClickIsAllowed(event,  clickedPos, clickedInventory)) return false;
@@ -51,7 +51,7 @@ public class MenuInteractionChecks<T> {
             if (clickedSlot > size)
                 continue;
 
-            final int clickedPos = this.menuUtility.getSlot(clickedSlot);
+            final int clickedPos = clickedSlot; //this.menuUtility.getSlot(clickedSlot);
 
             final ItemStack cursor = checkIfNull(event.getCursor(), event.getOldCursor());
             if (this.menuUtility.isSlotsYouCanAddItems()) {

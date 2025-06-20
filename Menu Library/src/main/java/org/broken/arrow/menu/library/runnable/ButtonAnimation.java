@@ -107,13 +107,13 @@ public class ButtonAnimation<T> extends BukkitRunnable {
             final Integer slot = slotList.next();
 
             int slotPageCalculated = menuUtility.getSlot(slot);
-            final ButtonData<T> buttonData = menuDataUtility.getButton(slotPageCalculated);
+            final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
             if (buttonData == null) continue;
 
             final ItemStack menuItem = getMenuItemStack(menuButton, buttonData, slot);
             final ButtonData<T> newButtonData = buttonData.copy(menuItem);
 
-            menuDataUtility.putButton(slotPageCalculated, newButtonData);
+            menuDataUtility.putButton(slot, newButtonData);
             menu.setItem(slot, menuItem);
             slotList.remove();
         }
@@ -156,7 +156,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         if (menuDataMap == null) return slotList;
 
         for (int slot = 0; slot < inventorySize; slot++) {
-            int menuSlot = this.menuUtility.getSlot(slot);
+            int menuSlot = slot;//this.menuUtility.getSlot(slot);
             final ButtonData<T> addedButtons = menuDataMap.getButton(menuSlot);
             if (addedButtons == null) continue;
 

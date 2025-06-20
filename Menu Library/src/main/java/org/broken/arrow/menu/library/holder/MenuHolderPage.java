@@ -302,12 +302,13 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             boolean shallAddMenuButton = !isLastFillSlot && isFillSlot && this.getListOfFillItems() != null && !this.getListOfFillItems().isEmpty();
             if (menuButton.shouldUpdateButtons()) this.getButtonsToUpdate().add(menuButton);
 
-            final ButtonData<T> buttonData = new ButtonData<>(result, shallAddMenuButton ? null : menuButton, fillItem);
-            menuDataUtility.putButton(this.getSlot(slot), menuButton, buttonDataWrapper -> buttonDataWrapper
+            menuDataUtility.putButton(slot, menuButton, buttonDataWrapper -> buttonDataWrapper
                     .setItemStack(result)
-                    .setIsFillButton(isFillSlot)
+                    .setIsFillButton(shallAddMenuButton)
                     .setObject(fillItem));
-            menuDataUtility.putButton(this.getSlot(slot), buttonData, shallAddMenuButton ? menuButton : null);
+
+            //final ButtonData<T> buttonData = new ButtonData<>(result, shallAddMenuButton ? null : menuButton, fillItem);
+            //menuDataUtility.putButton(this.getSlot(slot), buttonData, shallAddMenuButton ? menuButton : null);
         }
     }
 

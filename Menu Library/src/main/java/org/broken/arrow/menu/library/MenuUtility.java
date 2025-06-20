@@ -307,17 +307,21 @@ public class MenuUtility<T> {
      * use {@link #getButtonSlots(int, MenuDataUtility, MenuButton)} (MenuButton)}.
      * Because this only return first match.
      *
-     * @param page
+     * @param page the current page you want to retrieve the item.
      * @param menuButton to get first slot connected to this button.
-     * @return slot number or -1 if not fund data or if cache is null.
+     * @return the actual slot number without the calculation or -1 if not fund data or if cache is null.
      */
     public int getButtonSlot(int page, final MenuButton menuButton) {
         final Map<Integer, ButtonData<T>> data = this.getMenuButtons(page);
 
         if (data == null) return -1;
         for (final Entry<Integer, ButtonData<T>> entry : data.entrySet()) {
-            if (entry.getValue().getMenuButton().getId() == menuButton.getId())
-                return entry.getKey() - (page * this.getInventorySize());
+            ButtonData<T> buttonData = entry.getValue();
+            if(buttonData == null) continue;
+            final MenuButton cacheMenuButton = buttonData.getMenuButton();
+
+            if (cacheMenuButton != null && cacheMenuButton.getId() == menuButton.getId())
+                return entry.getKey() ;//- (page * this.getInventorySize());
         }
         return -1;
     }
@@ -335,7 +339,7 @@ public class MenuUtility<T> {
         final Set<Integer> slots = new HashSet<>();
         if (menuDataUtility == null) return slots;
         final int menuButtonId = menuButton.getId();
-        final int inventorySize = this.getInventorySize();
+       // final int inventorySize = this.getInventorySize();
 
         for (final Entry<Integer, ButtonData<T>> entry : menuDataUtility.getButtons().entrySet()) {
             ButtonData<T> buttonData = entry.getValue();
@@ -345,10 +349,10 @@ public class MenuUtility<T> {
             final MenuButton fillMenuButton = buttonData.isFillButton() ? menuDataUtility.getFillMenuButton(menuButton) : null;
 
             if (fillMenuButton != null && fillMenuButton.getId() == menuButtonId) {
-                slots.add(entry.getKey() - (page * inventorySize));
+                slots.add(entry.getKey() );//- (page * inventorySize));
             } else {
                 if (cacheMenuButton != null && menuButtonId == cacheMenuButton.getId()) {
-                    slots.add(entry.getKey() - (page * inventorySize));
+                    slots.add(entry.getKey());// - (page * inventorySize));
                 }
             }
         }
@@ -799,7 +803,7 @@ public class MenuUtility<T> {
         if (updateButton) {
             ItemStack itemStack = menuButton.getItem();
             if (itemStack != null) return itemStack;
-            itemStack = menuButton.getItem(this.getSlot(slot));
+            itemStack = menuButton.getItem(slot);
             return itemStack;
         }
         return null;
@@ -828,7 +832,7 @@ public class MenuUtility<T> {
         if (menuButton != null) {
             if (menuButton.shouldUpdateButtons()) this.buttonsToUpdate.add(menuButton);
 
-            menuDataUtility.putButton(this.getSlot(slot), menuButton, tButtonDataWrapper -> tButtonDataWrapper.setItemStack(result));
+            menuDataUtility.putButton(slot, menuButton, tButtonDataWrapper -> tButtonDataWrapper.setItemStack(result));
 
             // final ButtonData<T> buttonData = new ButtonData<>(result, menuButton, null);
             // menuDataUtility.putButton(this.getSlot(slot), buttonData, null);

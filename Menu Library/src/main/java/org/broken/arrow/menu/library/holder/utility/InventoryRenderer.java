@@ -35,16 +35,17 @@ public class InventoryRenderer<T> {
             menu = createInventory();
         }
 
-        int fillSlots = !fillSpace.isEmpty() ? fillSpace.size() : menu.getSize();
+        //int fillSlots = !fillSpace.isEmpty() ? fillSpace.size() : menu.getSize();
 
-        for (int i = fillSpace.stream().findFirst().orElse(0); i < fillSlots; i++) {
-            menu.setItem(i, new ItemStack(Material.AIR));
-        }
+        Inventory finalMenu = menu;
+        fillSpace.forEach(fillSlot -> {
+            finalMenu.setItem(fillSlot, new ItemStack(Material.AIR));
+        });
 
         Map<Integer, ButtonData<T>> buttons = utility.getMenuButtons(page);
         if (buttons != null && !buttons.isEmpty()) {
             for (int i = 0; i < menu.getSize(); i++) {
-                ButtonData<?> data = buttons.get(page * size + i);
+                ButtonData<?> data = buttons.get(i);
                 menu.setItem(i, data != null ? data.getItemStack() : null);
             }
         }

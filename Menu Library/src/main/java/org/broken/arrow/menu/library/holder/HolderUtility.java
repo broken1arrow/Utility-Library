@@ -435,22 +435,22 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
                 for (final int slot : buttonSlots) {
 
                     int menuSlot = this.getSlot(slot);
-                    final ButtonData<T> buttonData = menuDataUtility.getButton(menuSlot);
+                    final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
                     if (buttonData == null) return;
 
                     final ItemStack menuItem = getMenuItem(menuButton, buttonData, slot, true);
                     menu.setItem(slot, menuItem);
-                    menuDataUtility.putButton(menuSlot, buttonData.copy(menuItem));
+                    menuDataUtility.putButton(slot, buttonData.copy(menuItem));
                 }
             } else {
                 final int buttonSlot = this.getButtonSlot(page, menuButton);
                 int slot = this.getSlot(buttonSlot);
-                final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
+                final ButtonData<T> buttonData = menuDataUtility.getButton(buttonSlot);
                 if (buttonData == null) return;
 
                 final ItemStack itemStack = getMenuItem(menuButton, buttonData, buttonSlot, true);
                 menu.setItem(buttonSlot, itemStack);
-                menuDataUtility.putButton(slot, menuButton, tButtonDataWrapper -> tButtonDataWrapper
+                menuDataUtility.putButton(buttonSlot, menuButton, tButtonDataWrapper -> tButtonDataWrapper
                         .setItemStack(itemStack)
                         .setObject(buttonData.getObject())
                         .setIsFillButton(buttonData.isFillButton())
