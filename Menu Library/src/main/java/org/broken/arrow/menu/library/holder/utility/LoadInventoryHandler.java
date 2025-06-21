@@ -31,7 +31,7 @@ public class LoadInventoryHandler<T> {
     public Inventory loadInventory(final Player player, final boolean loadToCache) {
         Inventory menu = null;
         if (loadToCache && this.location != null) {
-            this.setLocationMetaOnPlayer(player, this.location);
+            this.storeMenuAtPlayer(player, this.location);
             MenuUtility<T> menuCached = this.getMenuCache();
 
             if (menuCached == null || menuCached.getMenu() == null) {
@@ -89,7 +89,7 @@ public class LoadInventoryHandler<T> {
         return menuCache.getMenuInCache(this.menuCacheKey, MenuUtility.class);
     }
 
-    public void setLocationMetaOnPlayer(final Player player, final Location location) {
+    public void storeMenuAtPlayer(final Player player, final Location location) {
         String key = this.uniqueKey;
         if (key != null && key.isEmpty()) {
             this.uniqueKey = this.getClass().getName();

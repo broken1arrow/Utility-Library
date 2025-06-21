@@ -121,22 +121,21 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      *
      * @param player     some open menu.
      * @param location   location you open menu.
-     * @param loadToCahe if it shall load menu to cache.
+     * @param loadToCache if it shall load menu to cache.
      */
-    public void menuOpen(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCahe) {
+    public void menuOpen(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
         this.player = player;
         player.closeInventory();
 
         if (!shallCacheItems) {
-            this.getMenuRenderer().setMenuItemsToPage(0);
+            this.getMenuRenderer().setMenuItemsToPage(this.getPageNumber());
         }
         redrawInventory();
 
-        final Inventory menu = loadInventory(player, location, loadToCahe);
+        final Inventory menu = loadInventory(player, location, loadToCache);
         if (menu == null) return;
 
         player.openInventory(menu);
-
 
         onMenuOpenPlaySound();
         setMetadataKey(MenuMetadataKey.MENU_OPEN.name());
