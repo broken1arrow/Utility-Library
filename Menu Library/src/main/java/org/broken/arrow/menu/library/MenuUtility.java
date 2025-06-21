@@ -304,7 +304,7 @@ public class MenuUtility<T> {
 
     /**
      * Get slot this menu button is added to, if you want get all slots this button is set to
-     * use {@link #getButtonSlots( MenuDataUtility, MenuButton)} (MenuButton)}.
+     * use {@link #getButtonSlots(MenuDataUtility, MenuButton)} (MenuButton)}.
      * Because this only return first match.
      *
      * @param page       the current page you want to retrieve the item from.
@@ -334,7 +334,7 @@ public class MenuUtility<T> {
      * @return set of slot number or empty if not find data or if cache is null.
      */
     @Nonnull
-    public Set<Integer> getButtonSlots( final MenuDataUtility<T> menuDataUtility, final MenuButton menuButton) {
+    public Set<Integer> getButtonSlots(final MenuDataUtility<T> menuDataUtility, final MenuButton menuButton) {
         final Set<Integer> slots = new HashSet<>();
         if (menuDataUtility == null) return slots;
         final int menuButtonId = menuButton.getId();
@@ -401,14 +401,18 @@ public class MenuUtility<T> {
     }
 
     /**
-     * Set the number of pages manually. Note that it is important to ensure that the number of
-     * pages is appropriate for the size of the items you want too display, setting the wrong
-     * number of pages can result in an insufficient or unnecessary amount of pages being displayed.
+     * Manually sets the number of pages to use.
      * <p>
-     * Please be sure to double-check your calculations when setting the number of pages.
+     * It's important to ensure that the number of pages you set matches the amount of items you want to display.
+     * If the value is incorrect, the API will attempt to adjust it automatically so that your items fit.
+     * </p>
      * <p>
+     * If you're not using the {@link MenuHolderPage} class, it's recommended to override {@link #getListOfFillItems()}.
+     * Doing so allows the system to accurately calculate how many pages are needed based on your content and ensures
+     * you don’t accidentally display too few pages, which could result in items not being shown at all.
+     * </p>
      *
-     * @param amountOfPages the number of pages to set manually
+     * @param amountOfPages the number of pages to set manually.
      */
     public void setManuallyAmountOfPages(final int amountOfPages) {
         this.manuallySetPages = amountOfPages;

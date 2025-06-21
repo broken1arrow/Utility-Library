@@ -122,7 +122,7 @@ public class MenuRenderer<T> {
             this.setHighestFillSlot(this.utility.getHighestFillSlot());
         this.cacheButton(pageNumber);
 
-        if (numberOfFillItems <= 0 )
+        if (numberOfFillItems <= 0)
             numberOfFillItems = this.getStartItemIndex();
 
         return requiredPages;
@@ -172,26 +172,38 @@ public class MenuRenderer<T> {
     }
 
     /**
-     * Calculates or retrieves the amount of pages needed for the menu.
+     * Calculates the raw amount of pages needed for the menu.
+     * This method does NOT round the result; it may return fractional pages.
+     * Use {@link Math#ceil(double)} to convert to an integer.
      *
-     * @return the number of pages required.
+     * @return the raw number of pages required.
      */
     private double amountOfPages() {
         Double setPages = getSetPages();
-        if (setPages != null) return setPages;
+        final List<T> fillItems = this.utility.getListOfFillItems();
 
-        final List<Integer> fillSlots = this.utility.getFillSpace();
-        int manualAmount = this.utility.getItemsPerPage();
+        int perPageItems = this.utility.getItemsPerPage();
         int size = this.utility.getInventorySize();
-        if (manualAmount > 0) {
-            if (manualAmount > size) {
-                this.logger.log(Level.WARNING, () -> Logging.of("Items per page are bigger an Inventory size, items items per page " + manualAmount + ". Inventory size " + size));
-            }
-            if (!fillSlots.isEmpty()) {
-                return (double) fillSlots.size() / manualAmount;
-            }
+        int itemCount = (fillItems == null || fillItems.isEmpty()) ? (size - 9) : fillItems.size();
+
+        if (perPageItems > size) {
+            this.logger.log(Level.WARNING, () -> Logging.of(
+                    "Items per page are greater than inventory size. Items per page: " + perPageItems + ". Inventory size: " + size));
+            return (double) itemCount / fallbackPerPage(size);
+        } else if (perPageItems <= 0) {
+            this.logger.log(Level.WARNING, () -> Logging.of("Items per page must be greater than 0."));
+            return 0;
         }
-        return (double) (fillSlots.isEmpty() ? size - 9 : fillSlots.size()) / manualAmount;
+
+        double requiredPages = (double) itemCount / perPageItems;
+        int manuallySetPages = this.utility.getManuallySetPages();
+        if (setPages != null) {
+            return Math.max(setPages, requiredPages);
+        } else if (manuallySetPages > 0) {
+            return Math.max(manuallySetPages, requiredPages);
+        }
+
+        return requiredPages;
     }
 
     /**
@@ -216,4 +228,8 @@ public class MenuRenderer<T> {
         itemIndex++;
     }
 
+    private int fallbackPerPage(int size) {
+        int adjusted = size - 9;
+        return adjusted <= 1 ? 45 : adjusted;
+    }
 }

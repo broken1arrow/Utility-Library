@@ -1,5 +1,6 @@
 package org.broken.arrow.menu.library.holder;
 
+import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * Represents a utility class for setting up one or several pages with special objects tied to specific buttons
@@ -107,7 +109,7 @@ import java.util.Map;
  * @param <T> the type of objects added to the list.
  */
 public abstract class MenuHolderPage<T> extends HolderUtility<T> {
-
+    private final Logging logger = new Logging(MenuHolderPage.class);
     private final Map<Integer, Integer> fillSlotsMapping = new HashMap<>();
     private FillItems<T> listOfFillItems;
 
@@ -268,20 +270,30 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
     protected final void amountOfPages() {
         this.getMenuRenderer().setAmountOfPages(() -> {
-            if (getListOfFillItem() == null) return (double) getManuallySetPages();
+            int setPages = getManuallySetPages();
+            final List<T> fillItems = this.getListOfFillItems();
 
-            final List<T> fillItems = this.getListOfFillItem().getFillItems();
-            final List<Integer> fillSlots = this.getFillSpace();
-            if (this.itemsPerPage > 0) {
-                if (!fillSlots.isEmpty()) {
-                    return (double) fillSlots.size() / this.itemsPerPage;
-                } else if (fillItems != null && !fillItems.isEmpty())
-                    return (double) fillItems.size() / this.itemsPerPage;
+            int perPageItems = this.getItemsPerPage();
+            int size = this.getInventorySize();
+            int itemCount = (fillItems == null || fillItems.isEmpty()) ? (size - 9) : fillItems.size();
+
+            if (perPageItems > size) {
+                this.logger.log(Level.WARNING, () -> Logging.of(
+                        "Items per page are greater than inventory size. Items per page: " + perPageItems + ". Inventory size: " + size));
+
+                return (double) itemCount / fallbackPerPage(size);
+            } else if (perPageItems <= 0) {
+                this.logger.log(Level.WARNING, () -> Logging.of("Items per page must be greater than 0."));
+                return 0.0;
             }
-            if (fillItems != null && !fillItems.isEmpty()) {
-                return (double) fillItems.size() / (fillSlots.isEmpty() ? this.inventorySize - 9 : fillSlots.size());
+
+            double requiredPages = (double) itemCount / perPageItems;
+
+            if (setPages > 0) {
+                return Math.max(setPages, requiredPages);
             }
-            return (double) getManuallySetPages();
+
+            return requiredPages;
         });
     }
 
@@ -353,6 +365,11 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         if (menuButton instanceof MenuButtonPage)
             return (MenuButtonPage<T>) menuButton;
         return null;
+    }
+
+    private int fallbackPerPage(int size) {
+        int adjusted = size - 9;
+        return adjusted <= 1 ? 9 : adjusted;
     }
 
     private boolean isFillSlot(final int slot) {
