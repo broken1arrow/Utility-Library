@@ -84,16 +84,23 @@ public class SetNmsData {
 				inventoryNMS = new InventoryPacketSeventeen();
 				break;
 			default:
-				if (serverVersion < 14.0F) {
-					inventoryNMS = new InventoryPacketTwelve();
-				} else {
-					if (serverVersion > 19)
-						inventoryNMS = new InventoryPacketTwenty();
-					else
-						inventoryNMS = new InventoryPacketSixteen();
-				}
+				inventoryNMS = getInventoryNMS(serverVersion);
 		}
 		return new ContainerUtility(inventoryNMS, serverVersion);
+	}
+
+	@Nonnull
+	private InventoryNMS getInventoryNMS(final float serverVersion) {
+		InventoryNMS inventoryNMS;
+		if (serverVersion < 14.0F) {
+			inventoryNMS = new InventoryPacketTwelve();
+		} else {
+			if (serverVersion > 19)
+				inventoryNMS = new InventoryPacketTwenty();
+			else
+				inventoryNMS = new InventoryPacketSixteen();
+		}
+		return inventoryNMS;
 	}
 
 }

@@ -142,10 +142,7 @@ public class ConfigUpdater {
 		for (final String fullKey : defaultConfig.getKeys(true)) {
 			final String indents = KeyUtils.getIndents(fullKey, SEPARATOR);
 
-			if (!ignoredSectionsValues.isEmpty()) {
-				if (writeIgnoredSectionValueIfExists(ignoredSectionsValues, bufferedWriter, fullKey))
-					continue;
-			}
+			if (ignoredSectionValueIfExists(ignoredSectionsValues, fullKey, bufferedWriter)) continue;
 			writeCommentIfExists(comments, bufferedWriter, fullKey, indents);
 
 			Object currentValue = this.getCurrentValue(fullKey, defaultConfig, currentConfig);
@@ -167,6 +164,13 @@ public class ConfigUpdater {
 
 		bufferedWriter.close();
 		return stringWriter;
+	}
+
+	private boolean ignoredSectionValueIfExists(final Map<String, String> ignoredSectionsValues,final String fullKey,final BufferedWriter bufferedWriter) throws IOException {
+		if (!ignoredSectionsValues.isEmpty()) {
+            return writeIgnoredSectionValueIfExists(ignoredSectionsValues, bufferedWriter, fullKey);
+		}
+		return false;
 	}
 
 	/**

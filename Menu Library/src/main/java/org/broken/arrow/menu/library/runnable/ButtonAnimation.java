@@ -75,8 +75,8 @@ public class ButtonAnimation<T> extends BukkitRunnable {
 
             if (timeLeft == null || timeLeft == 0)
                 putTimeWhenUpdatesButtons(menuButton, counter + getTime(menuButton));
-            else if (counter >= timeLeft) {
-                if (startUpdateButton(menuButton, buttonAnimationData)) return;
+            else if (counter >= timeLeft && startUpdateButton(menuButton, buttonAnimationData)) {
+                return;
             }
         }
         counter++;
