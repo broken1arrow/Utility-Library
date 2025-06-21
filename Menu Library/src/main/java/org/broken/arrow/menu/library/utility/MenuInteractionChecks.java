@@ -25,13 +25,11 @@ public class MenuInteractionChecks<T> {
 
         if (!this.menuUtility.isAddedButtonsCacheEmpty()) {
             final int clickedSlot = event.getSlot();
-            MenuUtility<T> menu = this.menuUtility;
-            final int clickedPos = clickedSlot;
             Inventory clickedInventory = event.getClickedInventory();
             if (clickedInventory == null) return false;
-            if (checkClickIsAllowed(event,  clickedPos, clickedInventory)) return false;
+            if (checkClickIsAllowed(event, clickedSlot, clickedInventory)) return false;
 
-            final MenuButton menuButton = getClickedButton(clickedItem, clickedPos);
+            final MenuButton menuButton = getClickedButton(clickedItem, clickedSlot);
             if (menuButton != null) {
                 event.setCancelled(true);
                 if (clickedInventory.getType() == InventoryType.PLAYER ) {
@@ -51,8 +49,6 @@ public class MenuInteractionChecks<T> {
             if (clickedSlot > size)
                 continue;
 
-            final int clickedPos = clickedSlot; //this.menuUtility.getSlot(clickedSlot);
-
             final ItemStack cursor = checkIfNull(event.getCursor(), event.getOldCursor());
             if (this.menuUtility.isSlotsYouCanAddItems()) {
                 if (this.menuUtility.getFillSpace().contains(clickedSlot)) {
@@ -63,7 +59,7 @@ public class MenuInteractionChecks<T> {
             } else {
                 event.setCancelled(true);
             }
-            if (getClickedButton(cursor, clickedPos) == null)
+            if (getClickedButton(cursor, clickedSlot) == null)
                 event.setCancelled(true);
         }
     }

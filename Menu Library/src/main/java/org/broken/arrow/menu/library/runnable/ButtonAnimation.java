@@ -76,17 +76,21 @@ public class ButtonAnimation<T> extends BukkitRunnable {
             if (timeLeft == null || timeLeft == 0)
                 putTimeWhenUpdatesButtons(menuButton, counter + getTime(menuButton));
             else if (counter >= timeLeft) {
-                int pageNumber = buttonAnimationData.getPage();// menuUtility.getPageNumber();
-                final MenuDataUtility<T> menuDataUtility = menuUtility.getMenuData(pageNumber);
-                if (menuDataUtility == null) {
-                    cancel();
-                    return;
-                }
-                final Set<Integer> itemSlots = getItemSlotsMap(menuDataUtility, menuButton);
-                if (updateButtonsData(buttonAnimationData,menuButton, menuDataUtility, itemSlots)) return;
+                if (startUpdateButton(menuButton, buttonAnimationData)) return;
             }
         }
         counter++;
+    }
+
+    private boolean startUpdateButton(MenuButton menuButton, ButtonAnimationData buttonAnimationData) {
+        int pageNumber = buttonAnimationData.getPage();
+        final MenuDataUtility<T> menuDataUtility = menuUtility.getMenuData(pageNumber);
+        if (menuDataUtility == null) {
+            cancel();
+            return true;
+        }
+        final Set<Integer> itemSlots = getItemSlotsMap(menuDataUtility, menuButton);
+        return updateButtonsData(buttonAnimationData, menuButton, menuDataUtility, itemSlots);
     }
 
     private boolean updateButtonsData(@Nonnull final ButtonAnimationData buttonAnimationData, final MenuButton menuButton, final MenuDataUtility<T> menuDataUtility, final Set<Integer> itemSlots) {
