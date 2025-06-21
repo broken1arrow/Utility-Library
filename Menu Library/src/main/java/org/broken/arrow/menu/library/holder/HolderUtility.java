@@ -427,7 +427,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
     public void updateButton(final MenuButton menuButton) {
         final int page = this.getPageNumber();
         final MenuDataUtility<T> menuDataUtility = getMenuData(page);
-        final Set<Integer> buttonSlots = this.getButtonSlots(page, menuDataUtility, menuButton);
+        final Set<Integer> buttonSlots = this.getButtonSlots(menuDataUtility, menuButton);
         final Inventory menu = this.getMenu();
 
         if (menuDataUtility != null && menu != null) {

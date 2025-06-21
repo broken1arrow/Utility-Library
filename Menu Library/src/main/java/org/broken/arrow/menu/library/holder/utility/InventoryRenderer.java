@@ -8,7 +8,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -26,19 +25,13 @@ public class InventoryRenderer<T> {
     public Inventory redraw() {
         final int page = utility.getPageNumber();
         final int size = utility.getInventorySize();
-        final List<Integer> fillSpace = utility.getFillSpace();
         Inventory menu = utility.getMenu();
 
         if (menu == null || size > menu.getSize()) {
             menu = createInventory();
         }
 
-        //int fillSlots = !fillSpace.isEmpty() ? fillSpace.size() : menu.getSize();
         menu.clear();
-  /*      Inventory finalMenu = menu;
-        fillSpace.forEach(fillSlot -> {
-            finalMenu.setItem(fillSlot, new ItemStack(Material.AIR));
-        });*/
 
         Map<Integer, ButtonData<T>> buttons = utility.getMenuButtons(page);
         if (buttons != null && !buttons.isEmpty()) {
