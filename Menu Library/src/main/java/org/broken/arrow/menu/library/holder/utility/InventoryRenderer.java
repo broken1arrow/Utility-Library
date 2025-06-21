@@ -4,10 +4,8 @@ import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -36,11 +34,11 @@ public class InventoryRenderer<T> {
         }
 
         //int fillSlots = !fillSpace.isEmpty() ? fillSpace.size() : menu.getSize();
-
-        Inventory finalMenu = menu;
+        menu.clear();
+  /*      Inventory finalMenu = menu;
         fillSpace.forEach(fillSlot -> {
             finalMenu.setItem(fillSlot, new ItemStack(Material.AIR));
-        });
+        });*/
 
         Map<Integer, ButtonData<T>> buttons = utility.getMenuButtons(page);
         if (buttons != null && !buttons.isEmpty()) {

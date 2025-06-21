@@ -106,7 +106,6 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         while (slotList.hasNext()) {
             final Integer slot = slotList.next();
 
-            int slotPageCalculated = menuUtility.getSlot(slot);
             final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
             if (buttonData == null) continue;
 
@@ -156,17 +155,20 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         if (menuDataMap == null) return slotList;
 
         for (int slot = 0; slot < inventorySize; slot++) {
-            int menuSlot = slot;//this.menuUtility.getSlot(slot);
-            final ButtonData<T> addedButtons = menuDataMap.getButton(menuSlot);
+            final ButtonData<T> addedButtons = menuDataMap.getButton(slot);
             if (addedButtons == null) continue;
 
             final MenuButton cacheMenuButton = addedButtons.getMenuButton();
-            final MenuButton fillMenuButton = menuDataMap.getFillMenuButton(menuSlot);
+            final MenuButton fillMenuButton = menuDataMap.getFillMenuButton(slot);
             final int menuButtonId = menuButton.getId();
-            if ((cacheMenuButton == null && fillMenuButton != null && fillMenuButton.getId() == menuButtonId) || (cacheMenuButton != null && Objects.equals(menuButtonId, cacheMenuButton.getId())))
+            if (isValidButton(cacheMenuButton, fillMenuButton, menuButtonId))
                 slotList.add(slot);
         }
         return slotList;
+    }
+
+    private boolean isValidButton(final  MenuButton cacheMenuButton,final  MenuButton fillMenuButton,final  int menuButtonId) {
+        return (cacheMenuButton == null && fillMenuButton != null && fillMenuButton.getId() == menuButtonId) || (cacheMenuButton != null && Objects.equals(menuButtonId, cacheMenuButton.getId()));
     }
 
 }

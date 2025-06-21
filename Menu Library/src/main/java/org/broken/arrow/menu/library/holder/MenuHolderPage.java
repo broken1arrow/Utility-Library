@@ -306,9 +306,6 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
                     .setItemStack(result)
                     .setIsFillButton(shallAddMenuButton)
                     .setObject(fillItem));
-
-            //final ButtonData<T> buttonData = new ButtonData<>(result, shallAddMenuButton ? null : menuButton, fillItem);
-            //menuDataUtility.putButton(this.getSlot(slot), buttonData, shallAddMenuButton ? menuButton : null);
         }
     }
 

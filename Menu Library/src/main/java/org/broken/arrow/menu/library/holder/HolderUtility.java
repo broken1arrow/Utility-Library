@@ -433,8 +433,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         if (menuDataUtility != null && menu != null) {
             if (!buttonSlots.isEmpty()) {
                 for (final int slot : buttonSlots) {
-
-                    int menuSlot = this.getSlot(slot);
                     final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
                     if (buttonData == null) return;
 
@@ -444,7 +442,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
                 }
             } else {
                 final int buttonSlot = this.getButtonSlot(page, menuButton);
-                int slot = this.getSlot(buttonSlot);
                 final ButtonData<T> buttonData = menuDataUtility.getButton(buttonSlot);
                 if (buttonData == null) return;
 
@@ -455,7 +452,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
                         .setObject(buttonData.getObject())
                         .setIsFillButton(buttonData.isFillButton())
                 );
-                //menuDataUtility.putButton(slot, new ButtonData<>(menuButton,itemStack, buttonData.isFillButton(), buttonData.getObject()));
             }
             this.putAddedButtonsCache(page, menuDataUtility);
         }

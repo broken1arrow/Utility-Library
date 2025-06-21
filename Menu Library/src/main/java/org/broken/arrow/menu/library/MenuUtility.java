@@ -552,7 +552,9 @@ public class MenuUtility<T> {
      *
      * @param slot the slot index, from 0 to 53, to calculate.
      * @return the calculated slot index based on the current page number and inventory size.
+     * @deprecated is not needed any more, as I'm using alternative approach.
      */
+    @Deprecated
     public int getSlot(final int slot) {
         return (this.getPageNumber() * this.getInventorySize()) + slot;
     }
@@ -739,7 +741,7 @@ public class MenuUtility<T> {
      *
      * @param menuButton  the MenuButton instance that the player is currently clicking on.
      * @param player      the player who performs the action.
-     * @param clickedPos  the actual slot the player is clicking on, excluding the page calculation. You can look at {@link #getSlot(int)}.
+     * @param clickedPos  the actual slot the player is clicking on.
      * @param clickType   the type of click the player is performing, such as right-click, left-click, or shift-click.
      * @param clickedItem the item clicked on.
      */
@@ -833,9 +835,6 @@ public class MenuUtility<T> {
             if (menuButton.shouldUpdateButtons()) this.buttonsToUpdate.add(menuButton);
 
             menuDataUtility.putButton(slot, menuButton, tButtonDataWrapper -> tButtonDataWrapper.setItemStack(result));
-
-            // final ButtonData<T> buttonData = new ButtonData<>(result, menuButton, null);
-            // menuDataUtility.putButton(this.getSlot(slot), buttonData, null);
         }
     }
 
