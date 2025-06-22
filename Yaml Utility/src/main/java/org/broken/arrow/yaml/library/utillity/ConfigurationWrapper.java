@@ -165,23 +165,23 @@ public class ConfigurationWrapper {
      */
     public FileConfiguration applyToConfiguration() {
         getConfigurationsCache().forEach(helper -> {
-            Map<String, Object> serializedData = helper.serialize();
-            String basePath = getPath(helper);
+            final Map<String, Object> serializedData = helper.serialize();
+            final String basePath = getPath(helper);
             serializedData.forEach((key, value) -> setToConfig(helper, basePath, key, value));
         });
         return configuration;
     }
 
     private void setToConfig(final ConfigHelper helper, final String basePath, final String key, final Object value) {
-        Object data = SerializeUtility.serialize(value);
+        final Object data = SerializeUtility.serialize(value);
 
         if (this.isConvertNestedSections() && data instanceof Map) {
             Map<String, Object> encodeMap = MapYamlConverter.encodeMap((Map<String, Object>) data);
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) encodeMap).entrySet()) {
-                configuration.set(basePath + (helper.isPathSet() ? "." : "") + key + "." + entry.getKey(), entry.getValue());
+                this.configuration.set((helper.isPathSet() ? basePath + "." : "") + key + "." + entry.getKey(), entry.getValue());
             }
         } else
-            configuration.set(basePath + (helper.isPathSet() ? "." : "") + key, data);
+            this.configuration.set((helper.isPathSet() ? basePath + "." : "") + key, data);
 
     }
 
