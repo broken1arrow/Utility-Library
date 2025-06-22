@@ -5,6 +5,12 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nullable;
 
+/**
+ * Represents a menu button along with its current properties,
+ * the display item, and the associated data object provided by the user.
+ *
+ * @param <T> the type of the data object linked to the button's display item.
+ */
 public class ButtonData<T> {
 
     private final ItemStack itemStack;

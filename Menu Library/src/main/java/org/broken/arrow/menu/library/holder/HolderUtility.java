@@ -423,7 +423,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      */
     public void updateButton(final MenuButton menuButton) {
         final int page = this.getPageNumber();
-        final MenuDataUtility<T> menuDataUtility = getMenuData(page);
+        final MenuDataUtility<T> menuDataUtility = getMenuData(null, page);
         final Set<Integer> buttonSlots = this.getButtonSlots(menuDataUtility, menuButton);
         final Inventory menu = this.getMenu();
 
@@ -447,7 +447,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
                 menuDataUtility.putButton(buttonSlot, menuButton, tButtonDataWrapper -> tButtonDataWrapper
                         .setItemStack(itemStack)
                         .setObject(buttonData.getObject())
-                        .setIsFillButton(buttonData.isFillButton())
+                        .setFillButton(buttonData.isFillButton())
                 );
             }
             this.putAddedButtonsCache(page, menuDataUtility);

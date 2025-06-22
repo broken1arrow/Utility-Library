@@ -84,7 +84,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
 
     private boolean startUpdateButton(MenuButton menuButton, ButtonAnimationData buttonAnimationData) {
         int pageNumber = buttonAnimationData.getPage();
-        final MenuDataUtility<T> menuDataUtility = menuUtility.getMenuData(pageNumber);
+        final MenuDataUtility<T> menuDataUtility = menuUtility.getMenuData(null,pageNumber);
         if (menuDataUtility == null) {
             cancel();
             return true;

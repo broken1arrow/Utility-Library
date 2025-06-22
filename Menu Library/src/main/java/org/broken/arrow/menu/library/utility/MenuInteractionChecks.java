@@ -12,6 +12,8 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
+
 import static org.broken.arrow.menu.library.utility.ItemCreator.isItemSimilar;
 
 public class MenuInteractionChecks<T> {
@@ -29,7 +31,7 @@ public class MenuInteractionChecks<T> {
             if (clickedInventory == null) return false;
             if (checkClickIsAllowed(event, clickedSlot, clickedInventory)) return false;
 
-            final MenuButton menuButton = getClickedButton(clickedItem, clickedSlot);
+            final MenuButton menuButton = getClickedButton(player,clickedItem, clickedSlot);
             if (menuButton != null) {
                 event.setCancelled(true);
                 if (clickedInventory.getType() == InventoryType.PLAYER ) {
@@ -59,13 +61,13 @@ public class MenuInteractionChecks<T> {
             } else {
                 event.setCancelled(true);
             }
-            if (getClickedButton(cursor, clickedSlot) == null)
+            if (getClickedButton((Player) event.getWhoClicked(), cursor, clickedSlot) == null)
                 event.setCancelled(true);
         }
     }
 
-    public MenuButton getClickedButton(final ItemStack item, final int clickedPos) {
-        final MenuDataUtility<T> menuData = this.menuUtility.getMenuData(this.menuUtility.getPageNumber());
+    public MenuButton getClickedButton(@Nonnull final Player player, final ItemStack item, final int clickedPos) {
+        final MenuDataUtility<T> menuData = this.menuUtility.getMenuData(player);
         if (menuData != null) {
             final ButtonData<?> buttonData = menuData.getButton(clickedPos);
             if (buttonData == null) return null;

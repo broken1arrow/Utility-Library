@@ -263,21 +263,39 @@ public class MenuUtility<T> {
     }
 
     /**
-     * Get all slots and items inside the cache, on this page.
+     * Retrieves all slots and items from the cache for the current page.
+     * <p>
+     * If you plan to override this method, it's recommended to do so with
+     * {@link MenuHolder#getMenuData(Player, int)} instead.
+     * </p>
      *
-     * @param pageNumber of the page you want to get.
-     * @return map with slots for every item are placed and items.
+     * @param clickedPlayer the player for whom to retrieve the data.
+     * @return a {@link MenuDataUtility} instance containing all slots and items on this page,
+     * or {@code null} if no data is available.
      */
     @Nullable
-    public MenuDataUtility<T> getMenuData(final int pageNumber) {
+    public MenuDataUtility<T> getMenuData(@Nullable final Player clickedPlayer) {
+        return getMenuData(clickedPlayer, this.getPageNumber());
+    }
+
+    /**
+     * Retrieves all slots and items from the cache for a specific page.
+     *
+     * @param clickedPlayer the player for whom to retrieve the data.
+     * @param pageNumber    the page number to retrieve data from.
+     * @return a {@link MenuDataUtility} instance containing all slots and
+     * associated items for the specified page, or {@code null} if not available.
+     */
+    @Nullable
+    public MenuDataUtility<T> getMenuData(@Nullable final Player clickedPlayer, final int pageNumber) {
         return this.pagesOfButtonsData.get(pageNumber);
     }
 
     /**
      * Get slots and items inside the cache, on this page.
      *
-     * @param pageNumber of the page you want to get.
-     * @return map with slots for every item are placed and items.
+     * @param pageNumber of the page you want to get the buttons from.
+     * @return map with all set buttons..
      */
     public Map<Integer, ButtonData<T>> getMenuButtons(final int pageNumber) {
         final MenuDataUtility<T> utilityMap = this.pagesOfButtonsData.get(pageNumber);
@@ -419,9 +437,10 @@ public class MenuUtility<T> {
     }
 
     /**
-     * get current page.
+     * Retrieve the current page. Start from zero and
+     * never should be negative numbers.
      *
-     * @return curent page you has open.
+     * @return current page you has open.
      */
 
     public int getPageNumber() {
