@@ -8,7 +8,7 @@ import org.broken.arrow.menu.library.button.MenuButton;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.holder.MenuHolder;
 import org.broken.arrow.menu.library.holder.MenuHolderPage;
-import org.broken.arrow.menu.library.holder.utility.AnimateTitleTask;
+import org.broken.arrow.menu.library.runnable.AnimateTitleTask;
 import org.broken.arrow.menu.library.holder.utility.InventoryRenderer;
 import org.broken.arrow.menu.library.holder.utility.LoadInventoryHandler;
 import org.broken.arrow.menu.library.holder.utility.MenuRenderer;

@@ -1,4 +1,4 @@
-package org.broken.arrow.menu.library.holder.utility;
+package org.broken.arrow.menu.library.runnable;
 
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.utility.Function;
