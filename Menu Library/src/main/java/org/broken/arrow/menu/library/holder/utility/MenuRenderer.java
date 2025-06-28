@@ -230,6 +230,6 @@ public class MenuRenderer<T> {
 
     private int fallbackPerPage(int size) {
         int adjusted = size - 9;
-        return adjusted <= 1 ? 45 : adjusted;
+        return adjusted <= 1 ? size : adjusted;
     }
 }
