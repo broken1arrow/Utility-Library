@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library;
+package org.broken.arrow.library.serialize;
 
 import java.util.HashMap;
 import java.util.Map;

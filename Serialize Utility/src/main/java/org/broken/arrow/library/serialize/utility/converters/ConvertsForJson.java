@@ -1,7 +1,7 @@
-package org.broken.arrow.serialize.library.utility.converters;
+package org.broken.arrow.library.serialize.utility.converters;
 
 import com.google.gson.Gson;
-import org.broken.arrow.serialize.library.SerializeUtility;
+import org.broken.arrow.library.serialize.SerializeUtility;
 import org.bukkit.Location;
 
 import java.lang.reflect.Type;

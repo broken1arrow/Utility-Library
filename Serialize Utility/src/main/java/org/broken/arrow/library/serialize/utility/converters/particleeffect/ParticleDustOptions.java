@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library.utility.converters.particleeffect;
+package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
 
 import org.bukkit.Color;

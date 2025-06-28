@@ -1,6 +1,6 @@
-package org.broken.arrow.serialize.library.utility.converters;
+package org.broken.arrow.library.serialize.utility.converters;
 
-import org.broken.arrow.serialize.library.utility.Pair;
+import org.broken.arrow.library.serialize.utility.Pair;
 
 import java.util.ArrayList;
 import java.util.List;

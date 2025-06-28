@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library.utility.serialize;
+package org.broken.arrow.library.serialize.utility.serialize;
 
 import org.broken.arrow.logging.library.Validate;
 

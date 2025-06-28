@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library.utility;
+package org.broken.arrow.library.serialize.utility;
 
 import java.util.Objects;
 

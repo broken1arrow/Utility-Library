@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library.utility.converters;
+package org.broken.arrow.library.serialize.utility.converters;
 
 import org.bukkit.Sound;
 

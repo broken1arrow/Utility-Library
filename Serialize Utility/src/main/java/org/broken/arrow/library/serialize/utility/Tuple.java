@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library.utility;
+package org.broken.arrow.library.serialize.utility;
 
 public class Tuple<K,U, V> {
 

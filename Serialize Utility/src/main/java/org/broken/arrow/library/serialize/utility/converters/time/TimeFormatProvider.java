@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library.utility.converters.time;
+package org.broken.arrow.library.serialize.utility.converters.time;
 
 import javax.annotation.Nonnull;
 

@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library;
+package org.broken.arrow.library.serialize;
 
 import com.google.gson.Gson;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -6,8 +6,8 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
-import org.broken.arrow.serialize.library.utility.converters.LocationSerializer;
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.library.serialize.utility.converters.LocationSerializer;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

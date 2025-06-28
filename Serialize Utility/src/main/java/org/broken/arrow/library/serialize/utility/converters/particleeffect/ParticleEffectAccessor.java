@@ -1,6 +1,6 @@
-package org.broken.arrow.serialize.library.utility.converters.particleeffect;
+package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
-import org.broken.arrow.serialize.library.utility.converters.particleeffect.ParticleEffect.Builder;
+import org.broken.arrow.library.serialize.utility.converters.particleeffect.ParticleEffect.Builder;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Particle;

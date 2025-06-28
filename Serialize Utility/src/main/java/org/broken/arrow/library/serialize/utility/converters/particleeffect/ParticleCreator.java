@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library.utility.converters.particleeffect;
+package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
 import org.broken.arrow.logging.library.Validate;
 import org.bukkit.Effect;
@@ -261,7 +261,7 @@ public class ParticleCreator {
                     Potion potion = potionsData.getPotion();
                     this.player.playEffect(location, this.effect, potion);
                 } catch (NoClassDefFoundError ignore) {
-                    logger.warning("Could not find the Potion class, this class is removed in Minecraft 1.20.5+.");
+                    logger.warning("Could not find the Potion class, this class is removed in Minecraft 1.20.5+. Working on a solution.");
                 }
             }
         } else {
@@ -292,7 +292,7 @@ public class ParticleCreator {
                 Potion potion = potionsData.getPotion();
                 this.world.playEffect(location, this.effect, potion);
             } catch (NoClassDefFoundError ignore) {
-                logger.warning("Could not find the Potion class, this class is removed in Minecraft 1.20.5+.");
+                logger.warning("Could not find the Potion class, this class is removed in Minecraft 1.20.5+. Working on a solution.");
             }
         }
     }

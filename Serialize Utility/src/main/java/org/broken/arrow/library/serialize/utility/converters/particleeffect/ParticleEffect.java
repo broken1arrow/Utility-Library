@@ -1,10 +1,10 @@
-package org.broken.arrow.serialize.library.utility.converters.particleeffect;
+package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
 
+import org.broken.arrow.library.serialize.utility.converters.SpigotBlockFace;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
-import org.broken.arrow.serialize.library.utility.converters.SpigotBlockFace;
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -17,8 +17,6 @@ import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
-
-import static org.broken.arrow.logging.library.Logging.of;
 
 /**
  * A simple wrapper class that provides support for serialization to file or other database.
@@ -503,14 +501,14 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 
 		final Class<?> finalDataType = dataType;
 		if (material == null && dataType.isInstance(Material.class)) {
-			logger.log(Level.WARNING, () -> of("you have to set the material for this particle effect, this particle use this class '" + finalDataType + "' ."));
+			logger.log(Level.WARNING, () -> "you have to set the material for this particle effect, this particle use this class '" + finalDataType + "' .");
 		}
 		if (blockFace == null && dataType.isInstance(BlockFace.class)) {
-			logger.log(Level.WARNING, () -> of("you have to set the block face for this particle effect, from this class '" + finalDataType + "' ."));
+			logger.log(Level.WARNING, () ->"you have to set the block face for this particle effect, from this class '" + finalDataType + "' .");
 		}
 		PotionsData potionsData = new PotionsData(null,potion);
 		if (potion == -1 && potionsData.checkDataType(dataType)) {
-			logger.log(Level.WARNING, () -> of("you have to set the potion number for this particle effect, from this class '" + finalDataType + "' ."));
+			logger.log(Level.WARNING, () ->"you have to set the potion number for this particle effect, from this class '" + finalDataType + "' .");
 		}
 		BlockFace facing = SpigotBlockFace.getBlockFace(blockFace);
 		if (potion >= 0) {

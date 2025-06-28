@@ -1,8 +1,8 @@
-package org.broken.arrow.serialize.library.utility.converters.particleeffect;
+package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.serialize.library.utility.Pair;
-import org.broken.arrow.serialize.library.utility.converters.particleeffect.ParticleEffect.Builder;
+import org.broken.arrow.library.serialize.utility.Pair;
+import org.broken.arrow.library.serialize.utility.converters.particleeffect.ParticleEffect.Builder;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Material;
@@ -339,9 +339,13 @@ public class ConvertParticlesUtility {
 			if (potionsData.isPotion())
 				builder.setPotion(potionsData);
 		} else {
-			if (particleData != null)
-				logger.warn(()-> Logging.of("You must set the extra data for this '" + part.name() + "' or the effect will not spawn. The class you should use is '" + part.getDataType() + "'"));
-		}
+            if (particleData != null)
+                logger.warn(messageWrapper -> {
+                    messageWrapper.setMessage("You must set the extra data for this '{effect-name}' or the effect will not spawn. The class you should use is '{data-type}'.")
+                            .putPlaceholder("{effect-name}", part.name())
+                            .putPlaceholder("{data-type}", part.getDataType() + "");
+                });
+        }
 	}
 
 	public static void setBuilderExtraDataEffect(ParticleEffect.Builder builder, Object particleData, Effect effect) {
@@ -358,7 +362,11 @@ public class ConvertParticlesUtility {
 				builder.setPotion(potionsData);
 		} else {
 			if (particleData != null && effectData != null)
-				logger.warn(()-> Logging.of("You must set the extra data for this '" + effect.name() + "' or the effect will not spawn. The class you should use is '" + effectData + "'"));
+                logger.warn(messageWrapper -> {
+                    messageWrapper.setMessage("You must set the extra data for this '{effect-name}' or the effect will not spawn. The class you should use is '{data-type}'.")
+                            .putPlaceholder("{effect-name}", effect.name())
+                            .putPlaceholder("{data-type}", effectData + "");
+                });
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package org.broken.arrow.serialize.library.utility.converters;
+package org.broken.arrow.library.serialize.utility.converters;
 
 import org.broken.arrow.logging.library.Logging;
 import org.bukkit.inventory.ItemStack;
@@ -10,8 +10,6 @@ import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
-import static org.broken.arrow.logging.library.Logging.of;
 
 /**
  * This class provides methods to convert an array of ItemStacks to and from a Base64 string representation.
@@ -44,7 +42,7 @@ public class Base64ItemStackConverter {
 			// Serialize that array
 			dataOutput.close();
 		} catch (final IOException exception) {
-			log.log(exception, () -> of("Failed to convert the items to base64"));
+			log.log(exception, () -> "Failed to convert the items to base64");
 		}
 		return Base64Coder.encodeLines(outputStream.toByteArray());
 	}
@@ -68,7 +66,7 @@ public class Base64ItemStackConverter {
 			}
 			dataInput.close();
 		} catch (final IOException | ClassNotFoundException e) {
-			log.log(e, () -> of("Failed to convert the itemsfrom base64"));
+			log.log(e, () -> "Failed to convert the items from base64");
 		}
 		return items;
 	}
