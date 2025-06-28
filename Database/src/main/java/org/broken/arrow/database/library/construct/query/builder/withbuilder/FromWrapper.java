@@ -5,8 +5,6 @@ import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
 import org.broken.arrow.logging.library.Logging;
 
-import java.util.logging.Level;
-
 public class FromWrapper {
     private final StringBuilder withCommandBuilder = new StringBuilder();
     private final StringBuilder fromClaus = new StringBuilder();
@@ -49,9 +47,14 @@ public class FromWrapper {
                     .append(build)
                     .append(") ");
         else if (!build.isEmpty()) {
-            this.logging.log(Level.WARNING, () -> Logging.of("The number of columns in '" + aliasName +
-                    "' does not match the expected amount. When setting new column names for the WITH clause, the " +
-                    "number of columns must be equal. Current number of columns: " + size + ", expected: " + columnsSet));
+            this.logging.warn(messageWrapper -> {
+                messageWrapper.setMessage("The number of columns in '{alias-name}' does not match the expected amount. " +
+                                "When setting new column names for the WITH clause, the number of columns must be equal. " +
+                                "Current number of columns: {size}, expected: '{columnsSet}'.")
+                        .putPlaceholder("{alias-name}", aliasName)
+                        .putPlaceholder("{size}", size +"")
+                        .putPlaceholder("{columnsSet}", columnsSet +"");
+            });
         }
 
         withCommand.append("AS (")

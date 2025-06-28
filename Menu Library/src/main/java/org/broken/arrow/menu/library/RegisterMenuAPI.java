@@ -58,21 +58,21 @@ public class RegisterMenuAPI {
         this.menuCache = new MenuCache();
         versionCheck(turnOffLogger);
         if (this.plugin == null) {
-            logger.log(Level.WARNING, () -> Logging.of("You have not set a plugin."));
-            logger.log(Level.WARNING, () -> Logging.of("If you're unsure how to use this library, " +
-                    "contact plugin developer for assistance."));
+            logger.log(Level.WARNING, () -> "You have not set a plugin.");
+            logger.log(Level.WARNING, () -> "If you're unsure how to use this library, " +
+                    "contact the developer for assistance.");
             return;
         }
         try {
             UpdateTitle.update(null, "");
         } catch (NoClassDefFoundError ignore) {
-            logger.log(() -> Logging.of("Important: Dynamic change menu titles not available."));
-            logger.log(() -> Logging.of("To enable the option to change the menu title while the menu is open,"));
-            logger.log(() -> Logging.of("please make sure you have imported the Title Update module into your plugin."));
-            logger.log(() -> Logging.of("Without the Title Update module, you won't be able to dynamically update"));
-            logger.log(() -> Logging.of("the menu title while the menu is open."));
-            logger.log(() -> Logging.of("If you're unsure how to import the module, please refer to the documentation"));
-            logger.log(() -> Logging.of("or contact plugin developer for assistance."));
+            logger.log(() -> "Important: Dynamic change menu titles not available.");
+            logger.log(() -> "To enable the option to change the menu title while the menu is open,");
+            logger.log(() -> "please make sure you have imported the Title Update module into your plugin.");
+            logger.log(() -> "Without the Title Update module, you won't be able to dynamically update");
+            logger.log(() -> "the menu title while the menu is open.");
+            logger.log(() -> "If you're unsure how to import the module, please refer to the documentation");
+            logger.log(() -> "or contact the developer for assistance.");
             notFoundUpdateTitle = true;
         }
         registerMenuEvent(plugin);
@@ -92,12 +92,12 @@ public class RegisterMenuAPI {
 
     private void versionCheck(boolean turnOffLogger) {
         if (!turnOffLogger)
-            logger.log(() -> Logging.of("Now starting MenuApi.. Any errors will be shown below."));
+            logger.log(() -> "Now starting MenuApi.. Will check server version and what modules is included.");
         ServerVersion.getCurrentServerVersion();
     }
 
     public void getLogger(final Level level, final String message) {
-        logger.log(level, () -> Logging.of(message));
+        logger.log(level, () -> message);
     }
 
     public Plugin getPlugin() {

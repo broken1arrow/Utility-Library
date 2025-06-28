@@ -323,7 +323,7 @@ public class CreateItemStack {
     public CreateItemStack addEnchantments(final Map<Enchantment, Tuple<Integer, Boolean>> enchantmentMap, final boolean override) {
         Validate.checkNotNull(enchantmentMap, "this map is null");
         if (enchantmentMap.isEmpty())
-            logger.log(() -> Logging.of("This map is empty so no enchantments will be added"));
+            logger.log(() -> "This map is empty so no enchantments will be added");
 
         enchantmentMap.forEach((key, value) -> {
             if (!override)
@@ -354,7 +354,7 @@ public class CreateItemStack {
         if (enchantment != null)
             this.enchantments.put(enchantment, new Tuple<>(enchantmentLevel, levelRestriction));
         else
-            logger.log(() -> Logging.of("your enchantment: " + enchant + " ,are not valid."));
+            logger.log(() -> "your enchantment: " + enchant + " ,are not valid.");
 
         return this;
     }
@@ -518,7 +518,7 @@ public class CreateItemStack {
      */
     public CreateItemStack addPortionEffects(final List<PotionEffect> potionEffects) {
         if (potionEffects.isEmpty()) {
-            logger.log(() -> Logging.of("This list of portion effects is empty so no values will be added"));
+            logger.log(() -> "This list of portion effects is empty so no values will be added");
             return this;
         }
 
@@ -534,7 +534,7 @@ public class CreateItemStack {
      */
     public CreateItemStack setPortionEffects(final List<PotionEffect> potionEffects) {
         if (potionEffects.isEmpty()) {
-            logger.log(() -> Logging.of("This list of portion effects is empty so no values will be added"));
+            logger.log(() -> "This list of portion effects is empty so no values will be added");
             return this;
         }
         portionEffects.clear();
@@ -576,7 +576,7 @@ public class CreateItemStack {
             green = Integer.parseInt(colors[2]);
             blue = Integer.parseInt(colors[1]);
         } catch (final NumberFormatException exception) {
-            logger.log(Level.WARNING, exception, () -> Logging.of("you don´t use numbers inside this " + rgb));
+            logger.log(Level.WARNING, exception, () -> "you don´t use numbers inside this " + rgb);
         }
 
         return this;
@@ -832,7 +832,7 @@ public class CreateItemStack {
 
             for (final Map.Entry<Enchantment, Tuple<Integer, Boolean>> enchant : this.getEnchantments().entrySet()) {
                 if (enchant == null) {
-                    logger.log(() -> Logging.of("Your enchantment are null."));
+                    logger.log(() -> "Your enchantment are null.");
                     continue;
                 }
                 final Tuple<Integer, Boolean> level = enchant.getValue();
@@ -898,7 +898,7 @@ public class CreateItemStack {
             }
             if (getPortionEffects() != null && !getPortionEffects().isEmpty()) {
                 if (!isColorSet() || getRgb() == null) {
-                    logger.log(Level.WARNING, () -> Logging.of("You have not set colors correctly and need to be zero or above, you have set like this: " + getRgb() + " should be in this format Rgb: #,#,#"));
+                    logger.log(Level.WARNING, () -> "You have not set colors correctly and need to be zero or above, you have set like this: " + getRgb() + " should be in this format Rgb: #,#,#");
                 } else {
                     potionMeta.setColor(Color.fromBGR(getBlue(), getGreen(), getRed()));
                 }

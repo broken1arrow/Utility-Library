@@ -1,7 +1,7 @@
 package org.broken.arrow.yaml.library.utillity;
 
-import org.broken.arrow.serialize.library.SerializeUtility;
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.library.serialize.SerializeUtility;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.yaml.library.utillity.transform.MapYamlConverter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;

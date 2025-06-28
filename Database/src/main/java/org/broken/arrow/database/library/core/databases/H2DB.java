@@ -13,8 +13,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static org.broken.arrow.logging.library.Logging.of;
-
 public class H2DB extends SQLDatabaseQuery {
     private final Logging log = new Logging(H2DB.class);
 
@@ -47,7 +45,7 @@ public class H2DB extends SQLDatabaseQuery {
             return setupConnection();
         } catch (SQLException e) {
             this.hasCastException = true;
-            log.log(e, () -> of("Fail to connect to H2 database. With the file path: " + this.dbFile));
+            log.log(e, () -> "Fail to connect to H2 database. With the file path: " + this.dbFile);
         }
         return null;
     }

@@ -23,10 +23,10 @@ import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.database.library.utility.DatabaseType;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.library.serialize.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
-import org.broken.arrow.serialize.library.utility.serialize.MethodReflectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,8 +46,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
-
-import static org.broken.arrow.logging.library.Logging.of;
 
 @SuppressWarnings("unused")
 public abstract class Database {
@@ -138,7 +136,7 @@ public abstract class Database {
      */
     public void createTables() {
         if (tablesCache.isEmpty()) {
-            log.log(() -> of("You don't have added any tables, so it can't check or create your tables."));
+            log.log(() -> "You don't have added any tables, so it can't check or create your tables.");
             return;
         }
         Connection connection = this.attemptToConnect();
@@ -153,7 +151,7 @@ public abstract class Database {
                     this.createMissingColumns(connection, entityTables.getValue(), columns);
                 }
             } catch (final SQLException throwable) {
-                log.log(throwable, () -> of("Fail to update columns in your table."));
+                log.log(throwable, () -> "Fail to update columns in your table.");
             }
         } finally {
             closeConnection(connection);
@@ -347,7 +345,7 @@ public abstract class Database {
 
         final SqlQueryTable table = this.getTableFromName(tableName);
         if (table == null) {
-            this.log.log(Level.WARNING, () -> Logging.of("Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?"));
+            this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
             return;
         }
         batchExecutor.removeAll(tableName, values, table::createWhereClauseFromPrimaryColumns);
@@ -374,7 +372,7 @@ public abstract class Database {
         final SqlQueryTable table = this.getTableFromName(tableName);
 
         if (table == null) {
-            this.log.log(Level.WARNING, () -> Logging.of("Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?"));
+            this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
             return;
         }
         batchExecutor.remove(tableName, value, table::createWhereClauseFromPrimaryColumns);
@@ -428,7 +426,7 @@ public abstract class Database {
         }
         final SqlQueryTable table = this.getTableFromName(tableName);
         if (table == null) {
-            log.log(() -> of("Could not find this table: '" + tableName + "'"));
+            log.log(() -> "Could not find this table: '" + tableName + "'");
             return false;
         }
         return batchExecutor.checkIfRowExist(tableName, primaryKeyValue, whereClause -> table.createWhereClauseFromPrimaryColumns(whereClause, "'" + primaryKeyValue + "'"));
@@ -533,7 +531,7 @@ public abstract class Database {
             if (preparedStatement != null) preparedStatement.close();
             if (resultSet != null) resultSet.close();
         } catch (final SQLException ex) {
-            log.log(ex, () -> of("Fail to close preparedStatement."));
+            log.log(ex, () -> "Fail to close preparedStatement.");
         }
     }
 
@@ -611,7 +609,7 @@ public abstract class Database {
     private void createMissingColumns(Connection connection, SqlQueryTable queryTable, List<String> existingColumns) {
         if (existingColumns == null) return;
         if (connection == null) {
-            log.log(Level.WARNING, () -> of("You must set the connection instance."));
+            log.log(Level.WARNING, () -> "You must set the connection instance.");
             return;
         }
 
@@ -625,7 +623,7 @@ public abstract class Database {
             try (final PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.execute();
             } catch (final SQLException throwable) {
-                log.log(throwable, () -> of("Could not add this '" + columnName + "' missing column. To this table '" + queryTable.getTableName() + "'"));
+                log.log(throwable, () -> "Could not add this '" + columnName + "' missing column. To this table '" + queryTable.getTableName() + "'");
             }
         }
 
@@ -665,9 +663,9 @@ public abstract class Database {
                 checkIfTableExist(connection, tableQuery.getTableName(), column.getColumnName());
             }
         } catch (final SQLException e) {
-            log.log(() -> of("Something not working when try create this table: '" + tableQuery.getTableName() + "'"));
+            log.log(() ->"Something not working when try create this table: '" + tableQuery.getTableName() + "'");
             final String finalTable = table;
-            log.log(e, () -> of("With this command: " + finalTable));
+            log.log(e, () -> "With this command: " + finalTable);
         } finally {
             close(statement);
         }
@@ -703,9 +701,9 @@ public abstract class Database {
             return true;
 
         } catch (final SQLException e) {
-            log.log(() -> of("Something not working when try create this table: '" + tableName + "'"));
+            log.log(() -> "Something not working when try create this table: '" + tableName + "'");
             final String finalTable = table;
-            log.log(e, () -> of("With this command: " + finalTable));
+            log.log(e, () -> "With this command: " + finalTable);
             return false;
         } finally {
             close(statement);
@@ -737,7 +735,7 @@ public abstract class Database {
             close(preparedStatement, resultSet);
 
         } catch (final SQLException ex) {
-            log.log(ex, () -> of("Unable to check if table is created."));
+            log.log(ex, () -> "Unable to check if table is created.");
         }
     }
 
@@ -792,7 +790,7 @@ public abstract class Database {
                 connection.close();
             }
         } catch (final SQLException exception) {
-            log.log(Level.WARNING, exception, () -> of("Something went wrong, when attempt to close connection."));
+            log.log(Level.WARNING, exception, () -> "Something went wrong, when attempt to close connection.");
         }
     }
 
@@ -984,7 +982,7 @@ public abstract class Database {
         try {
             Class.forName(path);
         } catch (ClassNotFoundException e) {
-            log.log(() -> of("Could not load this driver: " + path));
+            log.log(() -> "Could not load this driver: " + path);
         }
     }
 
@@ -1001,19 +999,19 @@ public abstract class Database {
 
     public void printPressesCount(int processedCount) {
         if (processedCount > 10_000)
-            log.log(() -> of(("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.")));
+            log.log(() -> "Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
     }
 
     public void printFailToOpen() {
-        log.log(Level.WARNING, () -> of("Could not open connection, check the logs for more details."));
+        log.log(Level.WARNING, () -> "Could not open connection, check the logs for more details.");
     }
 
     public void printFailConnect() {
-        log.log(Level.WARNING, () -> of("Previous attempt to connect have failed, so can't execute your sql command. Will do an attempt to connect again, if it will not work you get 'Could not open connection, check the logs for more details.' message."));
+        log.log(Level.WARNING, () -> "Previous attempt to connect have failed, so can't execute your sql command. Will do an attempt to connect again, if it will not work you get 'Could not open connection, check the logs for more details.' message.");
     }
 
     public void printFailFindTable(String tableName) {
-        log.log(Level.WARNING, () -> of("Could not find table " + tableName));
+        log.log(Level.WARNING, () -> "Could not find table " + tableName);
     }
 
     public boolean checkIfNotNull(Object object) {

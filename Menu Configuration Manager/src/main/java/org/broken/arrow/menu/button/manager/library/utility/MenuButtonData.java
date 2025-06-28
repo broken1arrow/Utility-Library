@@ -1,7 +1,7 @@
 package org.broken.arrow.menu.button.manager.library.utility;
 
 
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

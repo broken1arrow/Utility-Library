@@ -2,7 +2,7 @@ package org.broken.arrow.menu.button.manager.library.utility;
 
 
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.serialize.library.utility.converters.SpigotSound;
+import org.broken.arrow.library.serialize.utility.converters.SpigotSound;
 import org.bukkit.Sound;
 
 import javax.annotation.Nullable;
@@ -64,7 +64,7 @@ public class MenuTemplate {
 		if (size < 36) return 36;
 		if (size < 45) return 45;
 		if (size > 54)
-			LOG.log(() -> Logging.of("This menu '" + menu + "' has set bigger inventory size an it can handle, your set size '" + size + "'. Will set it to default value 54."));
+			LOG.log(() -> "This menu '" + menu + "' has set bigger inventory size an it can handle, your set size '" + size + "'. Will set it to default value 54.");
 		return 54;
 	}
 

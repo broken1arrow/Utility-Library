@@ -14,8 +14,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 
-import static org.broken.arrow.logging.library.Logging.of;
-
 public class BatchExecutorUnsafe<T> extends BatchExecutor<T> {
     private final Logging log = new Logging(BatchExecutorUnsafe.class);
     private volatile boolean batchUpdateGoingOn;
@@ -50,7 +48,7 @@ public class BatchExecutorUnsafe<T> extends BatchExecutor<T> {
                     @Override
                     public void run() {
                         if (batchUpdateGoingOn)
-                            log.log(Level.WARNING, () -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
+                            log.log(Level.WARNING, () -> "Still executing, DO NOT SHUTDOWN YOUR SERVER.");
                         else cancel();
                     }
                 }, 1000 * 30L, 1000 * 30L);
@@ -60,12 +58,12 @@ public class BatchExecutorUnsafe<T> extends BatchExecutor<T> {
                 // This will block the thread
                 connection.commit();
             } catch (final Exception t) {
-                this.log.log(t, () -> of("Could not execute one or several batches."));
+                this.log.log(t, () -> "Could not execute one or several batches.");
             } finally {
                 try {
                     connection.setAutoCommit(true);
                 } catch (final SQLException ex) {
-                    this.log.log(ex, () -> of("Could not set auto commit back to true."));
+                    this.log.log(ex, () -> "Could not set auto commit back to true.");
                 } finally {
                     this.database.closeConnection(connection);
                 }
@@ -100,7 +98,7 @@ public class BatchExecutorUnsafe<T> extends BatchExecutor<T> {
                     @Override
                     public void run() {
                         if (batchUpdateGoingOn)
-                            log.log(Level.WARNING, () -> of("Still executing, DO NOT SHUTDOWN YOUR SERVER."));
+                            log.log(Level.WARNING, () -> "Still executing, DO NOT SHUTDOWN YOUR SERVER.");
                         else cancel();
                     }
                 }, 1000 * 30L, 1000 * 30L);
@@ -110,12 +108,12 @@ public class BatchExecutorUnsafe<T> extends BatchExecutor<T> {
                 // This will block the thread
                 connection.commit();
             } catch (final Exception t) {
-                this.log.log(t, () -> of("Could not execute one or several batches."));
+                this.log.log(t, () -> "Could not execute one or several batches.");
             } finally {
                 try {
                     connection.setAutoCommit(true);
                 } catch (final SQLException ex) {
-                    this.log.log(ex, () -> of("Could not set auto commit back to true."));
+                    this.log.log(ex, () -> "Could not set auto commit back to true.");
                 } finally {
                     this.database.closeConnection(connection);
                 }

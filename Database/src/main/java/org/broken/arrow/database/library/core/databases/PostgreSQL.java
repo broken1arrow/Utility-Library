@@ -15,8 +15,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 
-import static org.broken.arrow.logging.library.Logging.of;
-
 public class PostgreSQL extends SQLDatabaseQuery {
 
     private final Logging log = new Logging(PostgreSQL.class);
@@ -86,12 +84,12 @@ public class PostgreSQL extends SQLDatabaseQuery {
             hasCastException = false;
         } catch (SQLRecoverableException exception) {
             hasCastException = true;
-            log.log(exception, () -> of("Unable to connect to the database. Please try this action again after re-establishing the " +
-                    "connection. This issue might be caused by a temporary connectivity problem or a timeout."));
+            log.log(exception, () -> "Unable to connect to the database. Please try this action again after re-establishing the " +
+                    "connection. This issue might be caused by a temporary connectivity problem or a timeout.");
 
         } catch (SQLException throwable) {
             hasCastException = true;
-            log.log(throwable, () -> of("Could not connect to the database. Check the error message and make sure the database is running."));
+            log.log(throwable, () -> "Could not connect to the database. Check the error message and make sure the database is running.");
         }
         return connection;
     }
@@ -155,7 +153,7 @@ public class PostgreSQL extends SQLDatabaseQuery {
                 }
             }
         } catch (SQLException e) {
-            log.log(e, () -> of("Failed to connect to the database with the database name: " + databaseName));
+            log.log(e, () -> "Failed to connect to the database with the database name: " + databaseName);
         }
     }
 

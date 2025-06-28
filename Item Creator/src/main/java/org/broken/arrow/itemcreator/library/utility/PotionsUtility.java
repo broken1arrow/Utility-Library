@@ -33,7 +33,7 @@ public class PotionsUtility {
                 final PotionData potionData = new PotionData(potion);
                 potionMeta.setBasePotionData(potionData);
             } catch (NoClassDefFoundError ex) {
-                logger.logError(ex,() -> Logging.of("Could not find PotionData class and your Minecraft version missing the setBasePotionType method."));
+                logger.logError(ex,() -> "Could not find PotionData class and your Minecraft version missing the setBasePotionType method.");
 
             }
         }

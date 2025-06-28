@@ -187,11 +187,11 @@ public class MenuRenderer<T> {
         int itemCount = (fillItems == null || fillItems.isEmpty()) ? (size - 9) : fillItems.size();
 
         if (perPageItems > size) {
-            this.logger.log(Level.WARNING, () -> Logging.of(
-                    "Items per page are greater than inventory size. Items per page: " + perPageItems + ". Inventory size: " + size));
+            this.logger.log(Level.WARNING, () ->
+                    "Items per page are greater than inventory size. Items per page: " + perPageItems + ". Inventory size: " + size);
             return (double) itemCount / fallbackPerPage(size);
         } else if (perPageItems <= 0) {
-            this.logger.log(Level.WARNING, () -> Logging.of("Items per page must be greater than 0."));
+            this.logger.log(Level.WARNING, () -> "Items per page must be greater than 0.");
             return 0;
         }
 

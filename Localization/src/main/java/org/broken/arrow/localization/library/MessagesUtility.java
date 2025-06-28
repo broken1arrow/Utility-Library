@@ -3,7 +3,7 @@ package org.broken.arrow.localization.library;
 import org.broken.arrow.color.library.TextTranslator;
 import org.broken.arrow.localization.library.builders.PlaceholderText;
 import org.broken.arrow.localization.library.builders.PluginMessages;
-import org.broken.arrow.serialize.library.utility.converters.PlaceholderTranslator;
+import org.broken.arrow.library.serialize.utility.converters.PlaceholderTranslator;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.broken.arrow.serialize.library.utility.converters.PlaceholderTranslator.translatePlaceholders;
+import static org.broken.arrow.library.serialize.utility.converters.PlaceholderTranslator.translatePlaceholders;
 
 /**
  * Utility class for handling messages and localization.

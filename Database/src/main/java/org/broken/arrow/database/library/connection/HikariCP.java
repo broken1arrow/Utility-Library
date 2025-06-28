@@ -80,12 +80,12 @@ public class HikariCP {
                 try {
                     this.hikari.close();
                 } catch (Exception e) {
-                    log.log(e, () -> Logging.of("Failed to close the connection pool. Continuing with recreation."));
+                    log.log(e, () -> "Failed to close the connection pool. Continuing with recreation.");
                 }
                 this.hikari = new HikariDataSource(config);
             }
             if (this.hikari.isClosed()) {
-                log.log(java.util.logging.Level.WARNING, () -> Logging.of("Failed to initialize HikariDataSource: The connection pool is closed. Unable to proceed with the connection process. Try again later."));
+                log.log(java.util.logging.Level.WARNING, () -> "Failed to initialize HikariDataSource: The connection pool is closed. Unable to proceed with the connection process. Try again later.");
                 return null;
             }
         }

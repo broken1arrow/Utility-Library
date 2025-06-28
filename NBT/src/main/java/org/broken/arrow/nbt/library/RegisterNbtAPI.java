@@ -47,7 +47,7 @@ public class RegisterNbtAPI {
             NBT.itemStackArrayToNBT((itemStacks == null ? new ItemStack[0] : itemStacks)).writeCompound(outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
-            logger.log(e,() -> Logging.of("Could not serialize the itemStacks."));
+            logger.log(e,() -> "Could not serialize the itemStacks.");
         }
         return new byte[0];
     }
@@ -59,7 +59,7 @@ public class RegisterNbtAPI {
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(itemStacks)) {
             return NBT.itemStackArrayFromNBT(  new NBTContainer(byteArrayInputStream));
         } catch (IOException e) {
-            logger.log(e,() -> Logging.of("Could not deserialize the itemStacks."));
+            logger.log(e,() -> "Could not deserialize the itemStacks.");
         }
         return new ItemStack[0];
     }

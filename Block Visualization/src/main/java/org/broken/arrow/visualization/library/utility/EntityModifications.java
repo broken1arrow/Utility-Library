@@ -13,8 +13,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.logging.Level;
 
-import static org.broken.arrow.logging.library.Logging.of;
-
 /**
  * Handle the logic around spawn in the block entity.
  */
@@ -45,7 +43,7 @@ public class EntityModifications {
 			if (name != null && !name.equals(""))
 				en.setCustomName(TextTranslator.toSpigotFormat(name));
 		} catch (final NoSuchMethodError ignored) {
-			log.log(Level.INFO,()-> of("Could not set name on the entity " + en.getName()));
+			log.log(Level.INFO,()-> "Could not set name on the entity " + en.getName());
 		}
 
 	}
@@ -94,7 +92,7 @@ public class EntityModifications {
 			try {
 				return (FallingBlock) loc.getWorld().getClass().getMethod("spawnFallingBlock", Location.class, Integer.TYPE, Byte.TYPE).invoke(loc.getWorld(), loc, material.getId(), data);
 			} catch (final ReflectiveOperationException error) {
-				log.logError(error,() -> of("Could create a falling block. You probably trying this on to old version of Minecraft as it does only supports 1.8.8 and up, your version: " + serverVersion));
+				log.logError(error,() -> "Could create a falling block. You probably trying this on to old version of Minecraft as it does only supports 1.8.8 and up, your version: " + serverVersion);
 				return null;
 			}
 		}

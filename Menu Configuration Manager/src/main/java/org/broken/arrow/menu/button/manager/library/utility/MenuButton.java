@@ -1,6 +1,6 @@
 package org.broken.arrow.menu.button.manager.library.utility;
 
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.bukkit.DyeColor;
 
 import javax.annotation.Nonnull;

@@ -11,8 +11,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.logging.Level;
 
-import static org.broken.arrow.logging.library.Logging.of;
-
 
 public class UpdateTitle {
 	private static final Logging logger = new Logging(UpdateTitle.class);
@@ -136,14 +134,14 @@ public class UpdateTitle {
 
 	private static void update(final Player player, @Nonnull final TitleUtility titleUtility) {
 		if (hasCastEx) {
-			logger.log(Level.WARNING, () -> of("There was an error while updating the title. Please contact the developer for assistance."));
+			logger.log(Level.WARNING, () -> "There was an error while updating the title. Please contact the developer for assistance.");
 			if (SERVER_VERSION < 20.2F)
-				logger.log(Level.WARNING, () -> of("The set NMS values: " + containerUtility));
+				logger.log(Level.WARNING, () -> "The set NMS values: " + containerUtility);
 
 			return;
 		}
 		if (SERVER_VERSION <= 0) {
-			logger.log(Level.WARNING, () -> of("The server version is 0 or below " + SERVER_VERSION));
+			logger.log(Level.WARNING, () -> "The server version is 0 or below " + SERVER_VERSION);
 			return;
 		}
 		if (showTitleNewerMinecraft(player, titleUtility)) return;
@@ -151,11 +149,11 @@ public class UpdateTitle {
 		if (player != null && containerUtility != null && SERVER_VERSION > 0)
 			try {
 				if (!titleUtility.isTitleSet())
-					logger.log(Level.WARNING, () -> of("Title is not set, so can't update the title."));
+					logger.log(Level.WARNING, () -> "Title is not set, so can't update the title.");
 				else
 					containerUtility.updateInventory(player, titleUtility);
 			} catch (Exception exception) {
-				logger.log(Level.WARNING, exception, () -> of("There was an error while updating the title. Please contact the developer for assistance."));
+				logger.log(Level.WARNING, exception, () -> "There was an error while updating the title. Please contact the developer for assistance.");
 				hasCastEx = true;
 			}
 	}
@@ -167,13 +165,13 @@ public class UpdateTitle {
 			InventoryView inventoryView = player.getOpenInventory();
 			try {
 				if (!titleUtility.isTitleSet())
-					logger.log(Level.WARNING, () -> of("Title is not set, so can't update the title."));
+					logger.log(Level.WARNING, () ->"Title is not set, so can't update the title.");
 
 				inventoryView.setTitle(titleUtility.getTitle(SERVER_VERSION) + "");
 			} catch (IllegalArgumentException e) {
-				logger.log(Level.INFO, () -> Logging.of("Could not render this inventory: " + inventoryView.getType()));
+				logger.log(Level.INFO, () -> "Could not render this inventory: " + inventoryView.getType());
 			} catch (Exception exception) {
-				logger.log(Level.WARNING, exception, () -> Logging.of("Something was not working when update the title: " + inventoryView.getType()));
+				logger.log(Level.WARNING, exception, () -> "Something was not working when update the title: " + inventoryView.getType());
 				hasCastEx = true;
 			}
 			return true;

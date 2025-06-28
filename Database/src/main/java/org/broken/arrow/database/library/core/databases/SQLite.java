@@ -14,8 +14,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static org.broken.arrow.logging.library.Logging.of;
-
 public class SQLite extends SQLDatabaseQuery {
     private final Logging log = new Logging(SQLite.class);
     private File dbFile;
@@ -53,7 +51,7 @@ public class SQLite extends SQLDatabaseQuery {
             return setupConnection();
         } catch (final SQLException ex) {
             this.hasCastException = true;
-            log.log(ex, () -> of("Fail to connect to SQLITE database"));
+            log.log(ex, () -> "Fail to connect to SQLITE database");
         }
         return null;
     }

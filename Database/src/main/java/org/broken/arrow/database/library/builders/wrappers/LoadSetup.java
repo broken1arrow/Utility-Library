@@ -1,7 +1,7 @@
 package org.broken.arrow.database.library.builders.wrappers;
 
 import org.broken.arrow.database.library.builders.LoadDataWrapper;
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import java.util.function.Consumer;
 

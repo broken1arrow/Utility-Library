@@ -76,7 +76,7 @@ public final class SimpleCanceller implements ConversationCanceller {
             simpleCanceller.cancelPhrases.addAll(cancelPhrases);
             return simpleCanceller;
         } catch (CloneNotSupportedException e) {
-            logger.log(e,()-> Logging.of("Fail to clone this class " + SimpleCanceller.class.getName()));
+            logger.log(e,()-> "Fail to clone this class " + SimpleCanceller.class.getName());
             return new SimpleCanceller("quit", "cancel", "exit");
         }
     }

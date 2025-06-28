@@ -1,101 +1,126 @@
 package org.broken.arrow.logging.library;
 
 import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class Logging {
 
-	private final Logger log;
-	private static final Builder logBuilder = new Builder();
+    private final Logger log;
 
-	public Logging(@Nonnull Class<?> clazz) {
-		log = Logger.getLogger(clazz.getName());
-	}
+    public Logging(@Nonnull final Class<?> clazz) {
+        log = Logger.getLogger(clazz.getName());
+    }
 
-	/**
-	 * will as default only send the message under info tag.
-	 * @param msg the message builder.
-	 */
-	public void log(Supplier<Builder> msg) {
-		this.log(Level.INFO, null, msg);
-	}
+    public static MessageWrapper of(final String msg) {
+        MessageWrapper logBuilder = new MessageWrapper();
+        return logBuilder.setMessage(msg);
+    }
 
-	public void log(Exception exception, Supplier<Builder> msg) {
-		this.log(Level.WARNING, exception, msg);
-	}
+    /**
+     * will as default only send the message under info tag.
+     *
+     * @param msg the message builder.
+     */
+    public void log(final Supplier<String> msg) {
+        this.log(Level.INFO, null, msg);
+    }
 
-	public void log(Level level, Supplier<Builder> msg) {
-		this.log(level, null, msg);
-	}
+    public void log(final Exception exception, final Supplier<String> msg) {
+        this.log(Level.WARNING, exception, msg);
+    }
 
-	public void log(Level level, Exception exception, Supplier<Builder> msg) {
-		Builder logMessageBuilder = msg.get();
-		if (level != null) {
-			if (exception != null) log.log(level, logMessageBuilder.getMessage(), exception);
+    public void log(final Level level, final Supplier<String> msg) {
+        this.log(level, null, msg);
+    }
 
-			else log.log(level, logMessageBuilder.getMessage());
-		}
-		logMessageBuilder.reset();
-	}
-	public void warn(Supplier<Builder> msg) {
-		this. log(Level.WARNING, null,  msg);
-	}
+    public void log(final Level level, final Throwable exception, final Supplier<String> msg) {
+        String message = msg.get();
+        final Level logLevel = level == null ? Level.INFO : level;
 
-	public void logError(Throwable exception, Supplier<Builder> msg) {
-		if (msg == null)
-			msg = Builder::new;
 
-		Builder logMessageBuilder = msg.get();
-		log.log(Level.WARNING , exception , logMessageBuilder::getMessage);
-	}
+        if (exception != null) log.log(logLevel, message, exception);
+        else log.log(logLevel, message);
+    }
+    public void logError(@Nonnull final Throwable exception, @Nonnull final Supplier<String> msg) {
+        this.log(Level.WARNING, exception, msg);
+    }
 
-	public static Builder of(final String msg) {
-		return logBuilder.setMessage(msg);
-	}
-	public static Builder of(final String msg, Map<String,String> placeholders) {
-		return logBuilder.setMessage(msg).setPlaceholders(placeholders);
-	}
+    public void warn(final Supplier<String> msg) {
+        this.log(Level.WARNING, null, msg);
+    }
+    public void warn(final Consumer<MessageWrapper> wrapper) {
+        this.log(Level.WARNING, null,  wrapper);
+    }
+    public void logError(final Exception exception, final Consumer<MessageWrapper> wrapper) {
+        this.log(Level.WARNING, exception,  wrapper);
+    }
+    public void log(final Level level, final Exception exception, final Consumer<MessageWrapper> wrapper) {
+        final MessageWrapper messageWrapper = new MessageWrapper();
+        wrapper.accept(messageWrapper);
 
-	public static final class Builder {
-		private String message;
-		private String msgCopy;
-		private Map<String,String> placeholders;
+        final String message = messageWrapper.getMessage();
+        final Level logLevel = level == null ? Level.INFO : level;
 
-		private Builder() {
-		}
+        if (exception != null) log.log(logLevel, message, exception);
+        else log.log(logLevel, message);
 
-		private Builder setMessage(final String msg) {
-			this.message = msg;
-			return this;
-		}
+    }
 
-		private Builder setPlaceholders(final Map<String,String> placeholders) {
-			this.placeholders = placeholders;
-			return this;
-		}
+    public static final class MessageWrapper {
+        private String message;
+        private String msgCopy;
+        private Map<String, String> placeholders = new HashMap<>();
 
-		public String getMessage() {
-			if (placeholders == null) {
-				return message;
-			}
-			return setPlaceholders();
-		}
+        private MessageWrapper() {
+        }
 
-		private String setPlaceholders() {
-			if (placeholders == null) {
-				return message;
-			}
-			placeholders.forEach((placeholderKey,value) ->
-					msgCopy = message.replace(placeholderKey, value != null ? value : ""));
-			return msgCopy;
-		}
+        public MessageWrapper putPlaceholder(final String key, final String value) {
+            placeholders.put(key, value);
+            return this;
+        }
 
-		private void reset() {
-			message = null;
-			placeholders = null;
-		}
-	}
+        public MessageWrapper putPlaceholders(final MapPair... mapPairs) {
+            if(mapPairs == null)
+                return this;
+
+            for (MapPair pair : mapPairs) {
+                if (pair == null || pair.getKey() == null) continue;
+
+                String value = pair.getValue() != null ? pair.getValue().toString() : "";
+                placeholders.put(pair.getKey(), value);
+            }
+            return this;
+        }
+
+        public String getMessage() {
+            if (placeholders == null) {
+                return message;
+            }
+            return setPlaceholders();
+        }
+
+        public MessageWrapper setMessage(final String msg) {
+            this.message = msg;
+            return this;
+        }
+
+        private String setPlaceholders() {
+            if (placeholders == null) {
+                return message;
+            }
+            placeholders.forEach((placeholderKey, value) ->
+                    msgCopy = message.replace(placeholderKey, value != null ? value : ""));
+            return msgCopy;
+        }
+
+        private void reset() {
+            message = null;
+            placeholders = null;
+        }
+    }
 }

@@ -7,8 +7,8 @@ import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBui
 import org.broken.arrow.database.library.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.core.SQLDatabaseQuery;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
 import java.sql.PreparedStatement;
@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
-
-import static org.broken.arrow.logging.library.Logging.of;
 
 public class QueryLoader<T extends ConfigurationSerializable> extends QueryContext<LoadDataWrapper<T>> {
     @Nonnull
@@ -66,7 +64,7 @@ public class QueryLoader<T extends ConfigurationSerializable> extends QueryConte
         final QueryBuilder selectTableBuilder = this.databaseQueryHandler.getQueryBuilder();
         SQLDatabaseQuery databaseQuery = this.getSqlDatabaseQuery();
         if (selectTableBuilder == null) {
-            log.log(Level.WARNING, () -> of("The query is not set: " + databaseQueryHandler + ". Make sure you set your query into the consumer."));
+            log.log(Level.WARNING, () -> "The query is not set: " + databaseQueryHandler + ". Make sure you set your query into the consumer.");
             return;
         }
 
@@ -78,7 +76,7 @@ public class QueryLoader<T extends ConfigurationSerializable> extends QueryConte
                     try {
                         preparedStatement.setObject(index, value);
                     } catch (SQLException e) {
-                        log.log(Level.WARNING, e, () -> of("Failed to set where clause values. The values that could not be executed: " + selectTableBuilder.getValues() + ". Check the stacktrace."));
+                        log.log(Level.WARNING, e, () -> "Failed to set where clause values. The values that could not be executed: " + selectTableBuilder.getValues() + ". Check the stacktrace.");
                     }
                 });
             }
@@ -97,7 +95,7 @@ public class QueryLoader<T extends ConfigurationSerializable> extends QueryConte
                     databaseQueryHandler.add(loadDataWrapper);
                 }
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + this.getTableName() + "'. Check the stacktrace."));
+                log.log(Level.WARNING, e, () -> "Could not load all data for this table '" + this.getTableName() + "'. Check the stacktrace.");
             }
         });
     }

@@ -21,8 +21,8 @@ import org.broken.arrow.database.library.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.database.library.utility.StatementContext;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -37,8 +37,6 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
-
-import static org.broken.arrow.logging.library.Logging.of;
 
 public class MongoDB extends Database {
 
@@ -145,7 +143,7 @@ public class MongoDB extends Database {
                 loadDataWrappers.add(new LoadDataWrapper<>(map, deserialize));
             }
         } else {
-            log.log(() -> of("Could not find any row within this table " + tableName));
+            log.log(() -> "Could not find any row within this table " + tableName);
         }
         this.closeConnection();
         return loadDataWrappers;
@@ -188,7 +186,7 @@ public class MongoDB extends Database {
                 loadDataWrapper = new LoadDataWrapper<>(map , deserialize);
             }
         } else {
-            log.log(() -> of("Could not find any row with this value " + columnValue));
+            log.log(() -> "Could not find any row with this value " + columnValue);
         }
         // Close the MongoDB connection
         this.closeConnection();
@@ -342,7 +340,7 @@ public class MongoDB extends Database {
     }
 
     private void errorCouldConnect() {
-        log.log(Level.WARNING, () -> of("Could not open connection to the database."));
+        log.log(Level.WARNING, () -> "Could not open connection to the database.");
     }
 
 

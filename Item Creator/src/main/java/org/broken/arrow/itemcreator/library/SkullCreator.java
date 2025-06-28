@@ -26,8 +26,6 @@ import java.net.URL;
 import java.util.Base64;
 import java.util.UUID;
 
-import static org.broken.arrow.logging.library.Logging.of;
-
 /**
  * A library for the Bukkit API to create player skulls
  * from names, base64 strings, and texture URLs.
@@ -305,7 +303,7 @@ public class SkullCreator {
             }
             blockProfileField.set(block, makeProfile(b64));
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            LOG.log(e, () -> of("Failed to change the skull block"));
+            LOG.log(e, () -> "Failed to change the skull block");
         }
     }
 
@@ -315,7 +313,7 @@ public class SkullCreator {
             try {
                 meta.setOwnerProfile(makePlayerProfile(b64));
             } catch (MalformedURLException ex2) {
-                LOG.log(ex2, () -> Logging.of("Can't invoke the profile from the SkullMeta."));
+                LOG.log(ex2, () -> "Can't invoke the profile from the SkullMeta.");
             }
             return;
         }
@@ -336,7 +334,7 @@ public class SkullCreator {
                 metaProfileField.set(meta, makeProfile(b64));
 
             } catch (NoSuchFieldException | IllegalAccessException ex2) {
-                LOG.log(ex2, () -> Logging.of("Fail to get the profile"));
+                LOG.log(ex2, () -> "Fail to get the profile");
             }
         }
     }
@@ -361,7 +359,7 @@ public class SkullCreator {
             Material.valueOf("SKULL");
 
             if (!warningPosted) {
-                LOG.log(() -> Logging.of("SKULLCREATOR API - Using the legacy bukkit API with 1.13+ bukkit versions is not supported!"));
+                LOG.log(() -> "SKULLCREATOR API - Using the legacy bukkit API with 1.13+ bukkit versions is not supported!");
                 warningPosted = true;
             }
         } catch (NoSuchFieldException | IllegalArgumentException ignored) {
@@ -373,7 +371,7 @@ public class SkullCreator {
         try {
             return Material.valueOf(name);
         } catch (Exception e) {
-            LOG.log(() -> Logging.of("Could not find this material: " + name));
+            LOG.log(() -> "Could not find this material: " + name);
         }
         return null;
     }
@@ -411,7 +409,7 @@ public class SkullCreator {
             String decoded = new String(Base64.getDecoder().decode(base64));
             return new URL(decoded.substring("{\"textures\":{\"SKIN\":{\"url\":\"".length(), decoded.length() - "\"}}}".length()));
         } catch (IllegalArgumentException exception) {
-            LOG.log(() -> Logging.of("Failed to parse the Base64 string, does you provide a valid base64 string? The input string: " +base64));
+            LOG.log(() -> "Failed to parse the Base64 string, does you provide a valid base64 string? The input string: " +base64);
         }
         return null;
     }

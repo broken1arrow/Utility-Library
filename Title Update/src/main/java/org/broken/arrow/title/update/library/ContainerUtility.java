@@ -15,8 +15,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 
-import static org.broken.arrow.logging.library.Logging.of;
-
 public class ContainerUtility {
 	private static final Logging logger = new Logging(ContainerUtility.class);
 	private Class<?> packetClass;
@@ -61,7 +59,7 @@ public class ContainerUtility {
 
 		String fieldName = nms.getContainerFieldName(inventory);
 		if (fieldName == null || fieldName.isEmpty()) {
-			logger.log(Level.WARNING,()-> of("Could not update title for this inventory: " + inventory));
+			logger.log(Level.WARNING,()-> "Could not update title for this inventory: " + inventory);
 			return;
 		}
 
@@ -106,7 +104,7 @@ public class ContainerUtility {
 			this.packetConstructor = nms.getPacketPlayOutOpenWindow();
 
 		} catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException exception) {
-			logger.log(Level.WARNING,exception,()-> of( "An error occurred while updating the inventory title: "));
+			logger.log(Level.WARNING,exception,()-> "An error occurred while updating the inventory title: ");
 		}
 	}
 

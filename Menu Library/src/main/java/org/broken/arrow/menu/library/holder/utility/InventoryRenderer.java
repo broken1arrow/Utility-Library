@@ -53,7 +53,7 @@ public class InventoryRenderer<T> {
         if (type != null) return Bukkit.createInventory(null, type, title);
 
         if (!(size == 5 || size % 9 == 0)) {
-            this.logger.log(Level.WARNING, () -> Logging.of("Wrong inventory size , you has put in " + size + " it need to be valid number."));
+            this.logger.log(Level.WARNING, () -> "Wrong inventory size , you has put in " + size + " it need to be valid number.");
         }
 
         if (size == 5) return Bukkit.createInventory(null, InventoryType.HOPPER, title);

@@ -5,7 +5,7 @@ import org.broken.arrow.database.library.core.SQLDatabaseQuery;
 import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
@@ -58,7 +58,7 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
 
         final List<SaveRecord<K, V>> data = cacheToSave.entrySet().stream().map(kvEntry -> this.applyQuery(new SaveRecord<>(this.tableName, kvEntry))).collect(Collectors.toList());
         if (data.isEmpty()) {
-            this.log.log(Level.WARNING, () -> Logging.of("No data in the map for the table:'" + this.tableName + "' . Just must provide data and also don't forget to set your where clause."));
+            this.log.log(Level.WARNING, () -> "No data in the map for the table:'" + this.tableName + "' . Just must provide data and also don't forget to set your where clause.");
             return;
         }
 

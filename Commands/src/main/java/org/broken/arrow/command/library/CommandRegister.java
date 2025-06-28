@@ -355,7 +355,7 @@ public class CommandRegister implements CommandRegistering {
 
 			commandMap.register(fallbackPrefix, command);
 		} catch (final NoSuchFieldException | IllegalAccessException e) {
-			log.log(e,() -> Logging.of("It failed to register your command"));
+			log.log(e,() -> "It failed to register your command");
 		}
 	}
 

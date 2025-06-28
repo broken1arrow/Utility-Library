@@ -18,9 +18,9 @@ import org.broken.arrow.database.library.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
 import org.broken.arrow.database.library.utility.StatementContext;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.logging.library.Logging;
 import org.broken.arrow.logging.library.Validate;
-import org.broken.arrow.serialize.library.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
-
-import static org.broken.arrow.logging.library.Logging.of;
 
 public abstract class SQLDatabaseQuery extends Database {
     private final Logging log = new Logging(Database.class);
@@ -63,7 +61,7 @@ public abstract class SQLDatabaseQuery extends Database {
         SqlQueryTable table = getDatabase().getTableFromName(tableName);
 
         if (table == null) {
-            this.log.log(Level.WARNING, () -> Logging.of("Could not find this table:'" + tableName + "' . Did you register your table?"));
+            this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' . Did you register your table?");
             return;
         }
 
@@ -87,11 +85,11 @@ public abstract class SQLDatabaseQuery extends Database {
         }
         SqlQueryTable table = getDatabase().getTableFromName(tableName);
         if (table == null) {
-            this.log.log(Level.WARNING, () -> Logging.of("Could not find this table:'" + tableName + "' . Did you register your table?"));
+            this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' . Did you register your table?");
             return;
         }
         if (table.getPrimaryColumns().isEmpty()) {
-            this.log.log(Level.WARNING, () -> Logging.of("Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?"));
+            this.log.log(Level.WARNING, () -> "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
             return;
         }
 
@@ -133,7 +131,7 @@ public abstract class SQLDatabaseQuery extends Database {
                     loadDataWrappers.add(new LoadDataWrapper<>(objectList, deserialize));
                 }
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Could not load all data for this table '" + tableName + "'. Check the stacktrace."));
+                log.log(Level.WARNING, e, () -> "Could not load all data for this table '" + tableName + "'. Check the stacktrace.");
             }
         });
 
@@ -165,14 +163,14 @@ public abstract class SQLDatabaseQuery extends Database {
                 try {
                     preparedStatement.setObject(index, value);
                 } catch (SQLException e) {
-                    log.log(Level.WARNING, e, () -> of("Failed to set where clause values. for this column value " + columnValue + ". Check the stacktrace."));
+                    log.log(Level.WARNING, e, () -> "Failed to set where clause values. for this column value " + columnValue + ". Check the stacktrace.");
                 }
             });
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next())
                     dataFromDB.putAll(getDatabase().getDataFromDB(resultSet, table.getTable().getColumns()));
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> of("Could not load the data from " + columnValue + ". Check the stacktrace."));
+                log.log(Level.WARNING, e, () -> "Could not load the data from " + columnValue + ". Check the stacktrace.");
             }
         });
         if (dataFromDB.isEmpty())
@@ -222,7 +220,7 @@ public abstract class SQLDatabaseQuery extends Database {
         final String query = queryBuilder.getQuery();
 
         if (query.isEmpty()) {
-            log.log(() -> of("This query command is not set"));
+            log.log(() -> "This query command is not set");
             return null;
         }
 
@@ -234,7 +232,7 @@ public abstract class SQLDatabaseQuery extends Database {
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             return function.apply(new StatementContext<>(preparedStatement));
         } catch (SQLException e) {
-            log.log(e, () -> of("could not execute this command: " + query));
+            log.log(e, () -> "could not execute this command: " + query);
         } finally {
             getDatabase().closeConnection(connection);
         }
@@ -263,7 +261,7 @@ public abstract class SQLDatabaseQuery extends Database {
         final String query = queryBuilder.getQuery();
 
         if (query.isEmpty()) {
-            log.log(() -> of("This query command is not set"));
+            log.log(() -> "This query command is not set");
             return;
         }
         Connection connection = getDatabase().attemptToConnect();
@@ -273,7 +271,7 @@ public abstract class SQLDatabaseQuery extends Database {
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             consumer.accept(new StatementContext<>(preparedStatement));
         } catch (SQLException e) {
-            log.log(e, () -> of("Could not execute this command: " + query));
+            log.log(e, () -> "Could not execute this command: " + query);
         } finally {
             getDatabase().closeConnection(connection);
         }

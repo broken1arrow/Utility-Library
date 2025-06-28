@@ -125,7 +125,7 @@ public abstract class SimplePrompt extends ValidatingPrompt {
             simplePrompt = (SimplePrompt) super.clone();
             simplePrompt.player = player;
         } catch (CloneNotSupportedException e) {
-            logger.log(e,()-> Logging.of("Fail to clone this class " + SimplePrompt.class.getName()));
+            logger.log(e,()-> "Fail to clone this class " + SimplePrompt.class.getName());
             return null;
         }
         return simplePrompt;

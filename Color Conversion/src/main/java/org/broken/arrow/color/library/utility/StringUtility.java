@@ -124,7 +124,7 @@ public class StringUtility {
 					Integer.valueOf(blue + blue, 16));
 		}
 		if (colorStr.length() < 7) {
-			LOG.log(() -> Logging.of("This `" + colorStr + "` hex color is not valid, set color to white."));
+			LOG.log(() -> "This `" + colorStr + "` hex color is not valid, set color to white.");
 			return new Color(Color.WHITE.getRGB());
 		}
 		return new Color(
