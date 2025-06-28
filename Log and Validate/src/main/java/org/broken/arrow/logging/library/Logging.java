@@ -74,7 +74,7 @@ public final class Logging {
     public static final class MessageWrapper {
         private String message;
         private String msgCopy;
-        private Map<String, String> placeholders = new HashMap<>();
+        private final Map<String, String> placeholders = new HashMap<>();
 
         private MessageWrapper() {
         }
@@ -98,9 +98,6 @@ public final class Logging {
         }
 
         public String getMessage() {
-            if (placeholders == null) {
-                return message;
-            }
             return setPlaceholders();
         }
 
@@ -110,17 +107,12 @@ public final class Logging {
         }
 
         private String setPlaceholders() {
-            if (placeholders == null) {
+            if (placeholders.isEmpty()) {
                 return message;
             }
             placeholders.forEach((placeholderKey, value) ->
                     msgCopy = message.replace(placeholderKey, value != null ? value : ""));
             return msgCopy;
-        }
-
-        private void reset() {
-            message = null;
-            placeholders = null;
         }
     }
 }
