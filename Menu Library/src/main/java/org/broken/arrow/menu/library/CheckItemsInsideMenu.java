@@ -1,6 +1,7 @@
 package org.broken.arrow.menu.library;
 
 
+import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.menu.library.utility.FilterMatch;
 import org.broken.arrow.menu.library.utility.ItemCreator;
 import org.broken.arrow.menu.library.utility.MatchCheckItemStack;
@@ -236,7 +237,7 @@ public class CheckItemsInsideMenu {
 			player.getLocation().getWorld().dropItemNaturally(player.getLocation(), ifInventorFull.get(0));
 
 		if (!this.sendMsgPlayer) {
-			this.registerMenuAPI.getMessages().sendBlacklistMessage(player, itemStack.getType().name().toLowerCase());
+			this.registerMenuAPI.getMessages().sendBlacklistMessage(player, itemStack);
 			this.sendMsgPlayer = true;
 		}
 	}
@@ -255,7 +256,7 @@ public class CheckItemsInsideMenu {
 					if (!ifInventorFull.isEmpty() && offlinePlayer.getPlayer().getLocation().getWorld() != null)
 						offlinePlayer.getPlayer().getLocation().getWorld().dropItemNaturally(offlinePlayer.getPlayer().getLocation(), ifInventorFull.get(0));
 
-					this.registerMenuAPI.getMessages().sendDuplicatedMessage(offlinePlayer.getPlayer(), itemStack.getType(), mapEntry.getValue().size(), amount);
+					this.registerMenuAPI.getMessages().sendDuplicatedMessage(offlinePlayer.getPlayer(), new SendMsgDuplicatedItems.PlaceholderHelper(itemStack, mapEntry.getValue().size(), amount));
 				} else if (location != null && location.getWorld() != null)
 					location.getWorld().dropItemNaturally(location, itemStack);
 			}
