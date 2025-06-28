@@ -287,13 +287,13 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
                 return 0.0;
             }
 
-            double requiredPages = (double) itemCount / perPageItems;
+            final double pagesAmount = (double) itemCount / perPageItems;
 
             if (setPages > 0) {
-                return Math.max(setPages, requiredPages);
+                return Math.max(setPages, pagesAmount);
             }
 
-            return requiredPages;
+            return pagesAmount;
         });
     }
 
