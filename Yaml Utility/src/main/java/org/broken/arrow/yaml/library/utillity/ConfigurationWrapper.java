@@ -182,7 +182,6 @@ public class ConfigurationWrapper {
             }
         } else
             this.configuration.set((helper.isPathSet() ? basePath + "." : "") + key, data);
-
     }
 
     /**
