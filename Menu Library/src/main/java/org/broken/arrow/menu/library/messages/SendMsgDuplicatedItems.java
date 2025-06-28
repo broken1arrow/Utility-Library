@@ -109,6 +109,7 @@ public class SendMsgDuplicatedItems {
 
     /**
      * Sets the message format to display when a player attempts to add items and some are duplicates.
+     *
      * <p>
      * Supports both hex color codes and legacy {@code &} codes. This function allows you to handle placeholder
      * replacement yourself instead of using a predefined message format, giving you more dynamic control, particularly useful
@@ -117,11 +118,11 @@ public class SendMsgDuplicatedItems {
      *
      * <p><b>Supported color formats:</b></p>
      * <ul>
-     *   <li>Hex colors: {@code <#8000ff>} or gradients like {@code <#8000ff:#ff0080>} (requires color conversion module).</li>
+     *   <li>Hex colors: {@code <#8000ff>} or gradients like {@code <#8000ff:#ff0080>} (requires the color conversion module).</li>
      *   <li>Fallback to Spigot's legacy format: {@code &x&6&6&6&6&6&6}, or for white: {@code &x&F&F&F&F&F&F}, if color conversion is not enabled.</li>
      * </ul>
      *
-     *  <p><b>Available placeholders:</b></p>
+     * <p><b>Available placeholders:</b></p>
      * <ul>
      *   <li>{@code {0}} – The item type (e.g., {@code DIAMOND_SWORD})</li>
      *   <li>{@code {1}} – Total number of duplicated stacks</li>
@@ -140,7 +141,7 @@ public class SendMsgDuplicatedItems {
      * an empty string or {@code null} to skip the default message generation and formatting.
      * </p>
      *
-     * @param duplicatedMessage a function that takes the item type, duplicated {@link ItemStack}, and total duplicated item count,
+     * @param duplicatedMessage a function that takes the item type, duplicated {@link ItemStack}, and duplicated item count,
      *                          and returns the base message string to be processed.
      */
     public void setDuplicatedMessage(final TriFunction<String, ItemStack, Integer, Integer> duplicatedMessage) {
