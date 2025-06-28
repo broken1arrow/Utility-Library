@@ -156,7 +156,7 @@ public class RegisterMenuAPI {
 
             if (event.getSlotType() == InventoryType.SlotType.OUTSIDE) menuUtility.menuClickOutside(event, menuUtility);
 
-            if (!menuUtility.checkValidMenu(event.getView().getTopInventory(), Action.OPEN)) {
+            if (!menuUtility.checkValidMenu(event.getView().getTopInventory(), Action.CLICKED)) {
                 return;
             }
 

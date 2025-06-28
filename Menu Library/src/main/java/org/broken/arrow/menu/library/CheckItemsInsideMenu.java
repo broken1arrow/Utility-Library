@@ -256,7 +256,7 @@ public class CheckItemsInsideMenu {
 					if (!ifInventorFull.isEmpty() && offlinePlayer.getPlayer().getLocation().getWorld() != null)
 						offlinePlayer.getPlayer().getLocation().getWorld().dropItemNaturally(offlinePlayer.getPlayer().getLocation(), ifInventorFull.get(0));
 
-					this.registerMenuAPI.getMessages().sendDuplicatedMessage(offlinePlayer.getPlayer(), new SendMsgDuplicatedItems.PlaceholderHelper(itemStack, mapEntry.getValue().size(), amount));
+					this.registerMenuAPI.getMessages().sendDuplicatedMessage(offlinePlayer.getPlayer(), new SendMsgDuplicatedItems.DuplicatedItemWrapper(itemStack, mapEntry.getValue().size(), amount));
 				} else if (location != null && location.getWorld() != null)
 					location.getWorld().dropItemNaturally(location, itemStack);
 			}

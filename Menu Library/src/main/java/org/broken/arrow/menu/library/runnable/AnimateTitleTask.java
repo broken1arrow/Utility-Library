@@ -1,7 +1,6 @@
 package org.broken.arrow.menu.library.runnable;
 
 import org.broken.arrow.menu.library.MenuUtility;
-import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -10,10 +9,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public class AnimateTitleTask<T> extends BukkitRunnable {
 
-    private final Function<?> animateTitle;
+    private final Supplier<?> animateTitle;
     private final MenuUtility<T> menuUtility;
     private final Player player;
     private int taskId;
@@ -24,7 +24,7 @@ public class AnimateTitleTask<T> extends BukkitRunnable {
     }
 
 
-    public AnimateTitleTask(@Nullable final Function<?> animateTitle, @Nonnull final MenuUtility<T> menuUtility, @Nonnull final Player player) {
+    public AnimateTitleTask(@Nullable final Supplier<?> animateTitle, @Nonnull final MenuUtility<T> menuUtility, @Nonnull final Player player) {
         this.animateTitle = animateTitle;
         this.menuUtility = menuUtility;
         this.player = player;
@@ -51,7 +51,7 @@ public class AnimateTitleTask<T> extends BukkitRunnable {
     public void run() {
         if (this.cancelled) return;
 
-        Object text = this.animateTitle != null ? this.animateTitle.apply(): null;
+        Object text = this.animateTitle != null ? this.animateTitle.get(): null;
         if (itShouldNotAnimateTitle(text)) {
             this.cancelled = true;
             this.cancel();

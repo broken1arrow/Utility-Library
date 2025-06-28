@@ -7,7 +7,6 @@ import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButton;
 import org.broken.arrow.menu.library.cache.MenuCacheKey;
-import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.metadata.MenuMetadataKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -24,6 +23,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -157,7 +157,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
 
     /**
      * Set menu title inside your menu. If you want to use
-     * placeholders in the text use {@link #setTitle(Function)}.
+     * placeholders in the text use {@link #setTitle(Supplier)}.
      *
      * @param title you want to show inside the menu.
      */
@@ -171,7 +171,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      *
      * @param function a function that takes a String input, used to correctly update placeholders in the menu title.
      */
-    public void setTitle(final Function<String> function) {
+    public void setTitle(final Supplier<String> function) {
         this.titleFunction = function;
     }
 
@@ -212,7 +212,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      *
      * @param function a function that takes a String input, used to correctly update placeholders in the menu title.
      */
-    public void setTitleJson(final Function<JsonObject> function) {
+    public void setTitleJson(final Supplier<JsonObject> function) {
         this.titleFunctionJson = function;
     }
 
@@ -223,7 +223,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      * @param time     set how often it shall update, in seconds.
      * @param function a function that takes a String, for animate title.
      */
-    public void setAnimateTitle(final int time, final Function<String> function) {
+    public void setAnimateTitle(final int time, final Supplier<String> function) {
         this.animateTitleTime = time;
         this.animateTitle = function;
     }
@@ -266,7 +266,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      * @param time     set how often it shall update, in seconds.
      * @param function a function that takes a JsonObject, for animate title.
      */
-    public void setAnimateTitleJson(final int time, final Function<JsonObject> function) {
+    public void setAnimateTitleJson(final int time, final Supplier<JsonObject> function) {
         this.animateTitleTime = time;
         this.animateTitleJson = function;
     }

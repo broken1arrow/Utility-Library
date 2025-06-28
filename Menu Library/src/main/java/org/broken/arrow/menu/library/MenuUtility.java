@@ -8,13 +8,12 @@ import org.broken.arrow.menu.library.button.MenuButton;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.holder.MenuHolder;
 import org.broken.arrow.menu.library.holder.MenuHolderPage;
-import org.broken.arrow.menu.library.runnable.AnimateTitleTask;
 import org.broken.arrow.menu.library.holder.utility.InventoryRenderer;
 import org.broken.arrow.menu.library.holder.utility.LoadInventoryHandler;
 import org.broken.arrow.menu.library.holder.utility.MenuRenderer;
+import org.broken.arrow.menu.library.runnable.AnimateTitleTask;
 import org.broken.arrow.menu.library.runnable.ButtonAnimation;
 import org.broken.arrow.menu.library.utility.Action;
-import org.broken.arrow.menu.library.utility.Function;
 import org.broken.arrow.menu.library.utility.MenuInteractionChecks;
 import org.broken.arrow.menu.library.utility.MetadataPlayer;
 import org.broken.arrow.menu.library.utility.SoundUtility;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static org.broken.arrow.menu.library.utility.ItemCreator.convertMaterialFromString;
 
@@ -67,10 +67,10 @@ public class MenuUtility<T> {
     protected InventoryType inventoryType;
     protected Player player;
     protected Sound menuOpenSound;
-    protected Function<String> titleFunction;
-    protected Function<JsonObject> titleFunctionJson;
-    protected Function<String> animateTitle;
-    protected Function<JsonObject> animateTitleJson;
+    protected Supplier<String> titleFunction;
+    protected Supplier<JsonObject> titleFunctionJson;
+    protected Supplier<String> animateTitle;
+    protected Supplier<JsonObject> animateTitleJson;
 
     protected boolean shallCacheItems;
     protected boolean slotsYouCanAddItems;
@@ -590,15 +590,15 @@ public class MenuUtility<T> {
         final int page = getPageNumber();
 
         if (this.titleFunction != null) {
-            title = this.titleFunction.apply();
+            title = this.titleFunction.get();
         }
         if (this.titleFunctionJson != null) {
-            title = this.titleFunctionJson.apply();
+            title = this.titleFunctionJson.get();
         }
 
         if (title == null || title.equals("")) {
             this.titleFunction = () -> "Menu" + (getRequiredPages() > 1 ? " page: " + (page + 1) : "");
-            title = this.titleFunction.apply();
+            title = this.titleFunction.get();
         }
         if (this.titleFunctionJson == null)
             title = title + (getRequiredPages() > 1 && this.isAutoTitleCurrentPage() ? "page: " + (page + 1) : "");
@@ -670,7 +670,7 @@ public class MenuUtility<T> {
     }
 
     public void cancelAnimateTitle() {
-        Function<?> task = getAnimateTitle();
+        Supplier<?> task = getAnimateTitle();
         if (task == null) return;
         this.animateTitle = null;
         this.animateTitleJson = null;
@@ -715,7 +715,7 @@ public class MenuUtility<T> {
         this.pagesOfButtonsData.put(pageNumber, menuDataUtility);
     }
 
-    public Function<?> getAnimateTitle() {
+    public Supplier<?> getAnimateTitle() {
         if (this.animateTitle != null)
             return this.animateTitle;
         if (this.animateTitleJson != null)
@@ -775,18 +775,18 @@ public class MenuUtility<T> {
      * Check if the close or open Inventory is a valid menu.
      *
      * @param topInventory the inventory player open or close.
-     * @param action       the action player does, such as open or close.
+     * @param action       the action player does, such as open, close or click in the menu.
      * @return true if valid menu, in other cases this will return false.
      */
     public boolean checkValidMenu(@Nonnull final Inventory topInventory, @Nonnull final Action action) {
-        if (action == Action.OPEN)
+        if (action == Action.OPEN || action == Action.CLICKED)
             return true;
         return topInventory.equals(getMenu());
     }
 
     /**
      * Update the title while player has the menu open. It will just update the set title
-     * rom this method {@link org.broken.arrow.menu.library.holder.HolderUtility#setTitle(Function)}.
+     * rom this method {@link org.broken.arrow.menu.library.holder.HolderUtility#setTitle(Supplier)}.
      */
     public void updateTitle() {
         this.updateTitle(this.player);
@@ -794,7 +794,7 @@ public class MenuUtility<T> {
 
     /**
      * Update the title while player has the menu open. It will just update the set title
-     * from this method {@link org.broken.arrow.menu.library.holder.HolderUtility#setTitle(Function)}.
+     * from this method {@link org.broken.arrow.menu.library.holder.HolderUtility#setTitle(Supplier)}.
      *
      * @param player the player you want to update the title for.
      */
@@ -1015,7 +1015,7 @@ public class MenuUtility<T> {
     }
 
     protected void runAnimateTitle() {
-        Function<?> task = getAnimateTitle();
+        Supplier<?> task = getAnimateTitle();
         if (task == null) return;
         if (menuAPI.isNotFoundUpdateTitleClazz()) return;
 

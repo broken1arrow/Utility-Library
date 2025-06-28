@@ -137,11 +137,11 @@ public class SendMsgDuplicatedItems {
      *
      * <p>
      * You may also choose to handle placeholder translation yourself by including resolved values directly
-     * in the returned string. If you want full control over the output, including color formatting, simply return
+     * in the lambda. If you want full control over the output, including color formatting, simply return
      * an empty string or {@code null} to skip the default message generation and formatting.
      * </p>
      *
-     * @param duplicatedMessage a function that takes the item type, duplicated {@link ItemStack}, and duplicated item count,
+     * @param duplicatedMessage a function that takes the item type, duplicated {@link ItemStack}, and finally duplicated item count,
      *                          and returns the base message string to be processed.
      */
     public void setDuplicatedMessage(final TriFunction<String, ItemStack, Integer, Integer> duplicatedMessage) {
@@ -166,7 +166,7 @@ public class SendMsgDuplicatedItems {
     }
 
 
-    public void sendDuplicatedMessage(@Nonnull final Player player, @Nonnull final PlaceholderHelper placeholderData) {
+    public void sendDuplicatedMessage(@Nonnull final Player player, @Nonnull final DuplicatedItemWrapper placeholderData) {
         String message;
         if (duplicatedMessage == null) {
             message = "&fYou can't add more if this &6 {0} &ftype, you get back &6 {2}&f items.You have added totally &4{1}&f extra itemstacks";
@@ -191,13 +191,13 @@ public class SendMsgDuplicatedItems {
     }
 
 
-    public static class PlaceholderHelper {
+    public static class DuplicatedItemWrapper {
 
         private final ItemStack itemStack;
         private final int size;
         private final int itemAmount;
 
-        public PlaceholderHelper(final ItemStack itemStack, final int size, final int itemAmount) {
+        public DuplicatedItemWrapper(final ItemStack itemStack, final int size, final int itemAmount) {
             this.itemStack = itemStack;
             this.size = size;
             this.itemAmount = itemAmount;
