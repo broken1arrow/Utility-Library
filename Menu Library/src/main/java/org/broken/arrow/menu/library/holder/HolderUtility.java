@@ -2,7 +2,6 @@ package org.broken.arrow.menu.library.holder;
 
 import com.google.gson.JsonObject;
 import org.broken.arrow.menu.library.MenuUtility;
-import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButton;
@@ -65,22 +64,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      */
     protected HolderUtility(List<Integer> fillSlots, boolean shallCacheItems) {
         super(fillSlots, shallCacheItems);
-    }
-
-
-    /**
-     * Constructs a menu instance with specified parameters.
-     * <p>&nbsp;</p>
-     * <strong>Note:</strong> Use this constructor only if you are not shading this library into your plugin.
-     *
-     * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin.
-     * @param fillSlots       The slots to be filled with items. Can be null if not filling specific slots.
-     * @param shallCacheItems Set this to false items and slots should be cached in this class,
-     *                        other case override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
-     *                        this in own implementation.
-     */
-    protected HolderUtility(RegisterMenuAPI menuAPI, List<Integer> fillSlots, boolean shallCacheItems) {
-        super(menuAPI, fillSlots, shallCacheItems);
     }
 
     /**

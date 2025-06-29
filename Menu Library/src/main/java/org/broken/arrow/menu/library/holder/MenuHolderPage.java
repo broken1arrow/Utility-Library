@@ -1,7 +1,6 @@
 package org.broken.arrow.menu.library.holder;
 
 import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButton;
@@ -144,23 +143,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
      *                        them in your own implementation.
      */
     protected MenuHolderPage(@Nullable List<Integer> fillSlots, @Nullable List<T> fillItems, boolean shallCacheItems) {
-        this(RegisterMenuAPI.getMenuAPI(), fillSlots, fillItems, shallCacheItems);
-    }
-
-    /**
-     * Constructs a paged menu instance with specified parameters.
-     * <p>&nbsp;</p>
-     * <strong>Note:</strong> Use this constructor if you are not shading this library into your plugin.
-     *
-     * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin.
-     * @param fillSlots       The slots to be filled with items on each page.
-     * @param fillItems       The list of items to be displayed inside the GUI.
-     * @param shallCacheItems Set this to false if items and slots should be cached in this class;
-     *                        otherwise, override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache
-     *                        them in your own implementation.
-     */
-    protected MenuHolderPage(@Nonnull RegisterMenuAPI menuAPI, @Nullable List<Integer> fillSlots, @Nullable List<T> fillItems, boolean shallCacheItems) {
-        super(menuAPI, fillSlots, shallCacheItems);
+        super(fillSlots, shallCacheItems);
         if (fillItems != null) {
             this.listOfFillItems = new FillItems<>();
             this.listOfFillItems.setFillItems(fillItems);

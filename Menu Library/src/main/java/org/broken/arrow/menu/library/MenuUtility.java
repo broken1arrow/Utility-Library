@@ -98,27 +98,14 @@ public class MenuUtility<T> {
 
     private int manuallySetPages = -1;
 
-
-    /**
-     * Create menu instance.
-     *
-     * @param fillSlots       Witch slots you want fill with items.
-     * @param shallCacheItems if it shall cache items and slots in this class, other case override {@link #retrieveMenuButtons(int, MenuDataUtility)}  to cache it own class.
-     */
-    public MenuUtility(@Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
-        this(RegisterMenuAPI.getMenuAPI(), fillSlots, shallCacheItems);
-    }
-
     /**
      * Creates a menu instance.
      *
-     * @param menuAPI         The instance of RegisterMenuAPI where you have registered your plugin. Use this constructor
-     *                        only if you are using the plugin and you don't need provide this when you shaded it.
      * @param fillSlots       The slots you want to fill with items. Can be null if not filling specific slots.
      * @param shallCacheItems Indicates whether items and slots should be cached in this class. If false,
      *                        override {@link #retrieveMenuButtons(int, MenuDataUtility)} to cache it own class.
      */
-    public MenuUtility(@Nonnull final RegisterMenuAPI menuAPI, @Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
+    public MenuUtility(@Nullable final List<Integer> fillSlots, final boolean shallCacheItems) {
         this.fillSpace = fillSlots;
         if (fillSlots != null)
             this.highestFillSlot = fillSlots.stream().mapToInt(Integer::intValue).max().orElse(-1);
@@ -136,7 +123,7 @@ public class MenuUtility<T> {
         this.slotIndex = 0;
         this.updateTime = -1;
         this.menuOpenSound = new SoundUtility().getMenuOpenSound();
-        this.menuAPI = menuAPI;
+        this.menuAPI = RegisterMenuAPI.getMenuAPI();
         this.checkItemsInsideMenu = new CheckItemsInsideMenu(menuAPI);
     }
 
