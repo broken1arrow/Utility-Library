@@ -25,26 +25,27 @@ public final class MetadataPlayer {
     }
 
     public boolean hasPlayerMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
-        return player.hasMetadata(this.getMenuMetadataKey(key) + "_" + plugin);
+        return player.hasMetadata(this.getMenuMetadataKey(key));
     }
 
     public List<MetadataValue> getPlayerMenuMetadataList(@Nonnull final Player player, @Nonnull final MetadataKey key) {
-        return player.getMetadata(this.getMenuMetadataKey(key) + "_" + plugin);
+        return player.getMetadata(this.getMenuMetadataKey(key));
     }
 
     @Nullable
     public MenuUtility<?> getPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
-        final List<MetadataValue> playerMetadata = player.getMetadata(this.getMenuMetadataKey(key) + "_" + plugin);
+        final List<MetadataValue> playerMetadata = player.getMetadata(this.getMenuMetadataKey(key));
         if (playerMetadata.isEmpty())
             return null;
-        if (!(playerMetadata.get(0).value() instanceof MenuUtility))
+        Object value = playerMetadata.get(0).value();
+        if (!(value instanceof MenuUtility))
             return null;
-        return (MenuUtility<?>) playerMetadata.get(0).value();
+        return (MenuUtility<?>) value;
     }
 
     @Nullable
     public Object getPlayerMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
-        final List<MetadataValue> playerMetadata = player.getMetadata(this.getMenuMetadataKey(key) + "_" + plugin);
+        final List<MetadataValue> playerMetadata = player.getMetadata(this.getMenuMetadataKey(key));
         if (playerMetadata.isEmpty())
             return null;
         return playerMetadata.get(0).value();
@@ -55,7 +56,7 @@ public final class MetadataPlayer {
     }
 
     public void setPlayerMetadata(@Nonnull final Player player, @Nonnull final String key, @Nonnull final Object object) {
-        player.setMetadata(key + "_" + plugin, new FixedMetadataValue(plugin, object));
+        player.setMetadata(key + "_" + plugin.getName(), new FixedMetadataValue(plugin, object));
     }
 
     public void setPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key, @Nonnull final MenuUtility<?> menu) {
@@ -68,7 +69,7 @@ public final class MetadataPlayer {
     }
 
     private void setMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key, @Nonnull final Object object) {
-        player.setMetadata(this.getMenuMetadataKey(key) + "_" + plugin, new FixedMetadataValue(plugin, object));
+        player.setMetadata(this.getMenuMetadataKey(key), new FixedMetadataValue(plugin, object));
     }
 
     public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
@@ -76,7 +77,7 @@ public final class MetadataPlayer {
     }
 
     public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final String key) {
-        player.removeMetadata(key + "_" + plugin, plugin);
+        player.removeMetadata(key + "_" + plugin.getName(), plugin);
     }
 
     /**
@@ -116,9 +117,9 @@ public final class MetadataPlayer {
     private String getMenuMetadataKey(@Nonnull MetadataKey key) {
         String metadataKey = key.getBaseKey().name();
         if (key.getId() > 0)
-            metadataKey += "_" + key.getId();
+            metadataKey += ":" + key.getId();
 
-        return metadataKey;
+        return metadataKey + ":" + plugin.getName();
     }
 
 }
