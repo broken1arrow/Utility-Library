@@ -27,6 +27,9 @@ public class TranslatePlaceholdersItem {
         }
     }
 
+    private TranslatePlaceholdersItem() {
+    }
+
     /**
      * Translates the {@link ItemStack}'s display name and lore, replacing any placeholders in the text.
      *
@@ -89,7 +92,7 @@ public class TranslatePlaceholdersItem {
         item.setItemMeta(meta);
     }
 
-    private static void applyChangesToDisplayName(final String placeHolder,final Object value, @Nonnull final UnaryOperator<String> callBackText,final ItemMeta meta) {
+    private static void applyChangesToDisplayName(final String placeHolder, final Object value, @Nonnull final UnaryOperator<String> callBackText, final ItemMeta meta) {
         if (!meta.hasDisplayName()) return;
 
         final String displayName = meta.getDisplayName();
@@ -104,7 +107,7 @@ public class TranslatePlaceholdersItem {
         }
     }
 
-    private static void applyChangesToLore(final String placeHolder, Object value, @Nonnull final UnaryOperator<String> callBackText,final ItemMeta meta) {
+    private static void applyChangesToLore(final String placeHolder, Object value, @Nonnull final UnaryOperator<String> callBackText, final ItemMeta meta) {
         List<String> lore = meta.getLore();
         if (lore == null) return;
 
@@ -112,14 +115,21 @@ public class TranslatePlaceholdersItem {
             lore = getStringList(placeHolder, split((List<?>) value, 50), lore, callBackText);
         else
             lore = lore.stream()
-                    .map(line -> (line == null ? null
-                            : callBackText.apply(line.replace(placeHolder, value != null ? value.toString() : ""))))
+                    .map(line -> getTextProcessed(placeHolder, value, callBackText, line))
                     .collect(Collectors.toList());
         meta.setLore(lore);
     }
 
+    @Nullable
+    private static String getTextProcessed(String placeHolder, Object value, @Nonnull UnaryOperator<String> callBackText, String line) {
+        if(line == null){
+            return null;
+        }
+        return callBackText.apply(line.replace(placeHolder, value != null ? value.toString() : ""));
+    }
+
     @Nonnull
-    private static List<String> getStringList(final String placeHolder,final List<?> value,final List<String> lore,final UnaryOperator<String> callBackText) {
+    private static List<String> getStringList(final String placeHolder, final List<?> value, final List<String> lore, final UnaryOperator<String> callBackText) {
         final List<String> list = new ArrayList<>(lore.size());
 
         int index = getIndexOf(placeHolder, lore);
