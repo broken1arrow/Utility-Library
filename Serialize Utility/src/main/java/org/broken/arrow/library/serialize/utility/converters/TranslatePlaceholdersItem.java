@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class TranslatePlaceholdersItem {
@@ -53,7 +53,7 @@ public class TranslatePlaceholdersItem {
      *                     Typically used to handle color codes or other string post-processing.
      * @return the updated {@link ItemStack}, or {@code null} if the input item was {@code null}.
      */
-    public static ItemStack replacePlaceHolders(@Nullable final ItemStack item, @Nullable final Map<String, Object> placeholders, @Nonnull final Function<String, String> callBackText) {
+    public static ItemStack replacePlaceHolders(@Nullable final ItemStack item, @Nullable final Map<String, Object> placeholders, @Nonnull final UnaryOperator<String> callBackText) {
         if (item == null)
             return null;
         if (placeholders != null)
@@ -75,7 +75,7 @@ public class TranslatePlaceholdersItem {
      * @param value        the replacement value; can be a {@link List} or any {@link Object}.
      * @param callBackText a post-processing function applied to each updated line.
      */
-    private static void replacePlaceHolder(final ItemStack item, final String placeHolder, final Object value, @Nonnull final Function<String, String> callBackText) {
+    private static void replacePlaceHolder(final ItemStack item, final String placeHolder, final Object value, @Nonnull final UnaryOperator<String> callBackText) {
         if (item == null)
             return;
 
@@ -89,7 +89,7 @@ public class TranslatePlaceholdersItem {
         item.setItemMeta(meta);
     }
 
-    private static void applyChangesToDisplayName(String placeHolder, Object value, @Nonnull Function<String, String> callBackText, ItemMeta meta) {
+    private static void applyChangesToDisplayName(final String placeHolder,final Object value, @Nonnull final UnaryOperator<String> callBackText,final ItemMeta meta) {
         if (!meta.hasDisplayName()) return;
 
         final String displayName = meta.getDisplayName();
@@ -104,7 +104,7 @@ public class TranslatePlaceholdersItem {
         }
     }
 
-    private static void applyChangesToLore(String placeHolder, Object value, @Nonnull Function<String, String> callBackText, ItemMeta meta) {
+    private static void applyChangesToLore(final String placeHolder, Object value, @Nonnull final UnaryOperator<String> callBackText,final ItemMeta meta) {
         List<String> lore = meta.getLore();
         if (lore == null) return;
 
@@ -119,8 +119,7 @@ public class TranslatePlaceholdersItem {
     }
 
     @Nonnull
-    private static List<String> getStringList(String placeHolder, List<?> value, List<String> lore,
-                                              Function<String, String> callBackText) {
+    private static List<String> getStringList(final String placeHolder,final List<?> value,final List<String> lore,final UnaryOperator<String> callBackText) {
         final List<String> list = new ArrayList<>(lore.size());
 
         int index = getIndexOf(placeHolder, lore);
@@ -191,7 +190,7 @@ public class TranslatePlaceholdersItem {
      * @return the translated string with appropriate color formatting
      */
     @Nonnull
-    private static String translateColorCodes(String text) {
+    private static String translateColorCodes(final String text) {
         if (hasTextTranslator)
             return TextTranslator.toSpigotFormat(text);
         return ChatColor.translateAlternateColorCodes('&', text);
