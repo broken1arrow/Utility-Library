@@ -16,11 +16,6 @@ public final class Logging {
         log = Logger.getLogger(clazz.getName());
     }
 
-    public static MessageWrapper of(final String msg) {
-        MessageWrapper logBuilder = new MessageWrapper();
-        return logBuilder.setMessage(msg);
-    }
-
     /**
      * will as default only send the message under info tag.
      *
