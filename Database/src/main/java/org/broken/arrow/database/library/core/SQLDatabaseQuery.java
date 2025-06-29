@@ -19,8 +19,8 @@ import org.broken.arrow.database.library.utility.BatchExecutor;
 import org.broken.arrow.database.library.utility.BatchExecutorUnsafe;
 import org.broken.arrow.database.library.utility.StatementContext;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
-import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

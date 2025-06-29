@@ -1,6 +1,6 @@
 package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Validate;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;

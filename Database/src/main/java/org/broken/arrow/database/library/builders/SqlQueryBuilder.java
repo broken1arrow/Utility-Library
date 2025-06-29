@@ -2,7 +2,7 @@ package org.broken.arrow.database.library.builders;
 
 import org.broken.arrow.database.library.builders.tables.ColumnWrapper;
 import org.broken.arrow.database.library.utility.SQLCommandPrefix;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 
 import java.util.Collections;
 import java.util.HashMap;

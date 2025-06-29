@@ -3,8 +3,8 @@ package org.broken.arrow.itemcreator.library;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;

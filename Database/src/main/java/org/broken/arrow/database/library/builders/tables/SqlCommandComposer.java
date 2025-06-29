@@ -2,7 +2,7 @@ package org.broken.arrow.database.library.builders.tables;
 
 import org.broken.arrow.database.library.builders.SqlQueryBuilder;
 import org.broken.arrow.database.library.core.Database;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 
 import java.util.Arrays;
 import java.util.Collections;

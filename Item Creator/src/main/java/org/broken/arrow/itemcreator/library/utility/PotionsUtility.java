@@ -1,6 +1,6 @@
 package org.broken.arrow.itemcreator.library.utility;
 
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;

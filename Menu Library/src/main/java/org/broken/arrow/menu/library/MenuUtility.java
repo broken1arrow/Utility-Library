@@ -1,7 +1,7 @@
 package org.broken.arrow.menu.library;
 
 import com.google.gson.JsonObject;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.menu.library.builders.ButtonData;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 import org.broken.arrow.menu.library.button.MenuButton;

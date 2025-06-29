@@ -1,7 +1,7 @@
 package org.broken.arrow.prompt.library.utility;
 
-import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationCanceller;
 import org.bukkit.conversations.ConversationContext;

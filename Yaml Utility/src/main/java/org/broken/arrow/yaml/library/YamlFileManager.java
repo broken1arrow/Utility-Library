@@ -3,8 +3,8 @@ package org.broken.arrow.yaml.library;
 
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.serialize.utility.serialize.MethodReflectionUtils;
-import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.yaml.library.config.updater.ConfigUpdater;
 import org.broken.arrow.yaml.library.utillity.ConfigurationWrapper;
 import org.broken.arrow.yaml.library.utillity.Valid;

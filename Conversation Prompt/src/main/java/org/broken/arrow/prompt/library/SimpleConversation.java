@@ -1,6 +1,6 @@
 package org.broken.arrow.prompt.library;
 
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.prompt.library.utility.CustomCanceller;
 import org.broken.arrow.prompt.library.utility.CustomConversation;
 import org.broken.arrow.prompt.library.utility.SimpleCanceller;

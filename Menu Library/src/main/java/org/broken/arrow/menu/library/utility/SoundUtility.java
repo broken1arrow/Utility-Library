@@ -1,7 +1,7 @@
 package org.broken.arrow.menu.library.utility;
 
 import com.google.common.base.Enums;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.Sound;

@@ -2,7 +2,7 @@ package org.broken.arrow.visualization.library.utility;
 
 import de.tr7zw.changeme.nbtapi.NBTEntity;
 import org.broken.arrow.color.library.TextTranslator;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;

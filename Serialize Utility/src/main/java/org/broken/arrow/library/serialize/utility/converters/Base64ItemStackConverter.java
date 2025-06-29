@@ -1,6 +1,6 @@
 package org.broken.arrow.library.serialize.utility.converters;
 
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;

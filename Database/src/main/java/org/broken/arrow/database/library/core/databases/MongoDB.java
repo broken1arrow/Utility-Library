@@ -22,7 +22,7 @@ import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
 import org.broken.arrow.database.library.utility.StatementContext;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 

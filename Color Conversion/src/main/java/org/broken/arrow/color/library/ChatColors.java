@@ -1,7 +1,7 @@
 package org.broken.arrow.color.library;
 
 import net.md_5.bungee.api.ChatColor;
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Validate;
 
 import java.awt.*;
 import java.util.HashMap;

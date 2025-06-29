@@ -1,6 +1,6 @@
 package org.broken.arrow.menu.library.utility;
 
-import org.broken.arrow.logging.library.Validate.ValidateExceptions;
+import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

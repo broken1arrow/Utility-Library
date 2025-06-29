@@ -1,4 +1,4 @@
-package org.broken.arrow.logging.library;
+package org.broken.arrow.library.logging;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;

@@ -1,6 +1,6 @@
 package org.broken.arrow.menu.library.holder.utility;
 
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.builders.MenuDataUtility;
 

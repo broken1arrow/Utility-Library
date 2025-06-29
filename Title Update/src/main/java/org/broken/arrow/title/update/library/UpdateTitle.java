@@ -2,7 +2,7 @@ package org.broken.arrow.title.update.library;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.title.update.library.utility.TitleUtility;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;

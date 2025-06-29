@@ -15,7 +15,7 @@ import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnManger;
 import org.broken.arrow.database.library.core.Database;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -3,7 +3,7 @@ package org.broken.arrow.database.library.construct.query.builder.withbuilder;
 import org.broken.arrow.database.library.construct.query.QueryBuilder;
 import org.broken.arrow.database.library.construct.query.columnbuilder.Column;
 import org.broken.arrow.database.library.construct.query.columnbuilder.ColumnBuilder;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 
 public class FromWrapper {
     private final StringBuilder withCommandBuilder = new StringBuilder();

@@ -1,6 +1,6 @@
 package org.broken.arrow.library.serialize.utility.serialize;
 
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;

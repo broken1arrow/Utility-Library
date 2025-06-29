@@ -4,8 +4,8 @@ import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.database.library.connection.HikariCP;
 import org.broken.arrow.database.library.core.SQLDatabaseQuery;
 import org.broken.arrow.database.library.utility.DatabaseCommandConfig;
-import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;

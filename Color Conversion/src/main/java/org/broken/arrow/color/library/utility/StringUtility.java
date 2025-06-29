@@ -1,7 +1,7 @@
 package org.broken.arrow.color.library.utility;
 
 import org.broken.arrow.color.library.ChatColors;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 
 import java.awt.*;
 import java.util.regex.Matcher;

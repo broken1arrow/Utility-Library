@@ -3,8 +3,8 @@ package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
 import org.broken.arrow.library.serialize.utility.converters.SpigotBlockFace;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
-import org.broken.arrow.logging.library.Logging;
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Particle;

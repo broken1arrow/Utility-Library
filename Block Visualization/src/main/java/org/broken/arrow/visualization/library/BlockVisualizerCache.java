@@ -1,7 +1,7 @@
 package org.broken.arrow.visualization.library;
 
-import org.broken.arrow.logging.library.Validate;
-import org.broken.arrow.logging.library.Validate.ValidateExceptions;
+import org.broken.arrow.library.logging.Validate;
+import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.visualization.library.builders.VisualizeData;
 import org.broken.arrow.visualization.library.runnable.VisualTask;
 import org.broken.arrow.visualization.library.utility.EntityModifications;

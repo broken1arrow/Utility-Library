@@ -1,6 +1,6 @@
 package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.serialize.utility.Pair;
 import org.broken.arrow.library.serialize.utility.converters.particleeffect.ParticleEffect.Builder;
 import org.bukkit.Bukkit;

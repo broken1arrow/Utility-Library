@@ -1,6 +1,6 @@
 package org.broken.arrow.menu.library.holder.utility;
 
-import org.broken.arrow.logging.library.Validate;
+import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.menu.library.utility.metadata.MenuMetadataKey;
 import org.broken.arrow.menu.library.MenuUtility;
 import org.broken.arrow.menu.library.RegisterMenuAPI;

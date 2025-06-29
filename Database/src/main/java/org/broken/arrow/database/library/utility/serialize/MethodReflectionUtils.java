@@ -1,7 +1,7 @@
 package org.broken.arrow.database.library.utility.serialize;
 
-import org.broken.arrow.logging.library.Validate;
-import org.broken.arrow.logging.library.Validate.ValidateExceptions;
+import org.broken.arrow.library.logging.Validate;
+import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import java.lang.reflect.InvocationTargetException;

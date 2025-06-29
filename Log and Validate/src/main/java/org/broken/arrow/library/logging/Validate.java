@@ -1,4 +1,4 @@
-package org.broken.arrow.logging.library;
+package org.broken.arrow.library.logging;
 
 public class Validate {
 

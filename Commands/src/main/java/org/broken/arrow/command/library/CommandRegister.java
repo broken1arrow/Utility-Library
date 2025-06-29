@@ -4,7 +4,7 @@ package org.broken.arrow.command.library;
 import org.broken.arrow.command.library.command.CommandProperty;
 import org.broken.arrow.command.library.commandhandler.CommandExecutor;
 import org.broken.arrow.command.library.commandhandler.CommandRegistering;
-import org.broken.arrow.logging.library.Logging;
+import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandException;
