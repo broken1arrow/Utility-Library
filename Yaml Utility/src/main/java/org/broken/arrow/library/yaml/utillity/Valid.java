@@ -1,4 +1,4 @@
-package org.broken.arrow.yaml.library.utillity;
+package org.broken.arrow.library.yaml.utillity;
 
 public final class Valid extends RuntimeException {
 	public static void checkBoolean(final boolean b, final String s) {

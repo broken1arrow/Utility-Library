@@ -1,8 +1,9 @@
-package org.broken.arrow.yaml.library.utillity;
+package org.broken.arrow.library.yaml.utillity;
 
 import org.broken.arrow.library.serialize.SerializeUtility;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
-import org.broken.arrow.yaml.library.utillity.transform.MapYamlConverter;
+import org.broken.arrow.library.yaml.YamlFileManager;
+import org.broken.arrow.library.yaml.utillity.transform.MapYamlConverter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -18,7 +19,7 @@ import java.util.Objects;
 
 /**
  * This class allow you easy set list of data to the file.
- * You then parse the data to {@link org.broken.arrow.yaml.library.YamlFileManager#setData(boolean, ConfigurationWrapper)}
+ * You then parse the data to {@link YamlFileManager#setData(boolean, ConfigurationWrapper)}
  */
 public class ConfigurationWrapper {
 

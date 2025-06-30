@@ -1,4 +1,4 @@
-package org.broken.arrow.yaml.library.config.updater.utility;
+package org.broken.arrow.library.yaml.config.updater.utility;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;

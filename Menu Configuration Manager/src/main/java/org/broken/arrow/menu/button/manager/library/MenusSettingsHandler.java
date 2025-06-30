@@ -2,8 +2,8 @@ package org.broken.arrow.menu.button.manager.library;
 
 import org.broken.arrow.menu.button.manager.library.utility.MenuButtonData;
 import org.broken.arrow.menu.button.manager.library.utility.MenuTemplate;
-import org.broken.arrow.yaml.library.YamlFileManager;
-import org.broken.arrow.yaml.library.utillity.ConfigurationWrapper;
+import org.broken.arrow.library.yaml.YamlFileManager;
+import org.broken.arrow.library.yaml.utillity.ConfigurationWrapper;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;

@@ -1,8 +1,8 @@
-package org.broken.arrow.yaml.library.config.updater;
+package org.broken.arrow.library.yaml.config.updater;
 
-import org.broken.arrow.yaml.library.config.updater.utility.KeyBuilder;
-import org.broken.arrow.yaml.library.config.updater.utility.KeyUtils;
-import org.broken.arrow.yaml.library.utillity.Valid;
+import org.broken.arrow.library.yaml.config.updater.utility.KeyBuilder;
+import org.broken.arrow.library.yaml.config.updater.utility.KeyUtils;
+import org.broken.arrow.library.yaml.utillity.Valid;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -31,8 +31,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.broken.arrow.yaml.library.config.updater.utility.KeyUtils.addIndentation;
-import static org.broken.arrow.yaml.library.config.updater.utility.KeyUtils.getKeyAsObject;
+import static org.broken.arrow.library.yaml.config.updater.utility.KeyUtils.addIndentation;
+import static org.broken.arrow.library.yaml.config.updater.utility.KeyUtils.getKeyAsObject;
 
 /**
  * A library for updating configuration files while preserving comments.

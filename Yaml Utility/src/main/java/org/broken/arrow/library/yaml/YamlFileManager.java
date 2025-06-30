@@ -1,14 +1,14 @@
-package org.broken.arrow.yaml.library;
+package org.broken.arrow.library.yaml;
 
 
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.serialize.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
-import org.broken.arrow.yaml.library.config.updater.ConfigUpdater;
-import org.broken.arrow.yaml.library.utillity.ConfigurationWrapper;
-import org.broken.arrow.yaml.library.utillity.Valid;
-import org.broken.arrow.yaml.library.utillity.transform.MapYamlConverter;
+import org.broken.arrow.library.yaml.config.updater.ConfigUpdater;
+import org.broken.arrow.library.yaml.utillity.ConfigurationWrapper;
+import org.broken.arrow.library.yaml.utillity.Valid;
+import org.broken.arrow.library.yaml.utillity.transform.MapYamlConverter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemorySection;
