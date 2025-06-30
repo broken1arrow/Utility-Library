@@ -1,4 +1,4 @@
-package org.broken.arrow.nbt.library;
+package org.broken.arrow.library.nbt;
 
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.NBTCompound;
@@ -7,8 +7,8 @@ import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.logging.Validate.ValidateExceptions;
-import org.broken.arrow.nbt.library.utility.NBTDataWriterWrapper;
-import org.broken.arrow.nbt.library.utility.NBTReaderWrapper;
+import org.broken.arrow.library.nbt.utility.NBTDataWriterWrapper;
+import org.broken.arrow.library.nbt.utility.NBTReaderWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -30,8 +30,8 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.broken.arrow.nbt.library.RegisterNbtAPI.isHasScoreboardTags;
-import static org.broken.arrow.nbt.library.utility.ConvertObjectType.setNBTValue;
+import static org.broken.arrow.library.nbt.RegisterNbtAPI.isHasScoreboardTags;
+import static org.broken.arrow.library.nbt.utility.ConvertObjectType.setNBTValue;
 
 
 /**
@@ -95,7 +95,7 @@ public final class CompMetadata {
 	 * @param value The value you want to set on this item, it will try convert it
 	 *              to right class, if not fund it will be converted to string.
 	 * @return The original itemStack with the metadata set.
-	 * @see org.broken.arrow.nbt.library.utility.NBTReaderWrapper
+	 * @see NBTReaderWrapper
 	 */
 	public ItemStack setMetadata(@Nonnull final ItemStack item, @Nonnull final String key, @Nonnull final Object value) {
 		Validate.checkNotNull(item, ITEM_IS_NULL);
@@ -149,7 +149,7 @@ public final class CompMetadata {
 	 * @param item   The item on which you want to set metadata.
 	 * @param nbtMap A map containing all the key-value pairs you want to set.
 	 * @return the original itemStack with the metadata set.
-	 * @see org.broken.arrow.nbt.library.utility.NBTReaderWrapper
+	 * @see NBTReaderWrapper
 	 */
 	public ItemStack setAllMetadata(@Nonnull final ItemStack item, @Nonnull final Map<String, Object> nbtMap) {
 		Validate.checkNotNull(item, ITEM_IS_NULL);
@@ -569,7 +569,8 @@ public final class CompMetadata {
 	 * Returns persistent metadata with our plugin assigned as namedspaced key for MC 1.14+
 	 */
 	private String getPersistentMetadata(final Object entity, final String key) {
-		Validate.checkBoolean(entity instanceof PersistentDataHolder, "Can only use CompMetadata#setMetadata(" + key + ") for persistent data holders, got " + entity.getClass());
+		Validate.checkBoolean(!(entity instanceof PersistentDataHolder), "Can only use CompMetadata#setMetadata(" + key + ") for persistent data holders, got " + entity.getClass());
+
 		final PersistentDataContainer data = ((PersistentDataHolder) entity).getPersistentDataContainer(); // Prevents no class def error on legacy MC
 
 		return getOrNull(data.get(new NamespacedKey(plugin, key), PersistentDataType.STRING));

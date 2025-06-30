@@ -1,4 +1,4 @@
-package org.broken.arrow.nbt.library.utility;
+package org.broken.arrow.library.nbt.utility;
 
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;

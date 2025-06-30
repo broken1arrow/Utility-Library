@@ -1,4 +1,4 @@
-package org.broken.arrow.nbt.library;
+package org.broken.arrow.library.nbt;
 
 
 import de.tr7zw.changeme.nbtapi.NBT;

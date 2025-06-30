@@ -8,7 +8,7 @@ import org.broken.arrow.itemcreator.library.utility.Tuple;
 import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
-import org.broken.arrow.nbt.library.RegisterNbtAPI;
+import org.broken.arrow.library.nbt.RegisterNbtAPI;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
