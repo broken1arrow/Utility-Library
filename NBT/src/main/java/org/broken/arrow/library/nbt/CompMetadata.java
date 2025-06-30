@@ -1,7 +1,6 @@
 package org.broken.arrow.library.nbt;
 
 import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
@@ -427,16 +426,17 @@ public final class CompMetadata {
 	 * @return true if it has this key.
 	 */
 	public boolean hasMetadata(@Nonnull final ItemStack item, @Nonnull final String key) {
-		Validate.checkBoolean(true, "NBT ItemStack tags only support MC 1.7.10+");
+		Validate.checkBoolean(SERVER_VERSION < 7.0, "NBT ItemStack tags only support MC 1.7.10+");
 		Validate.checkNotNull(item);
 
 		if (item.getType() == Material.AIR)
 			return false;
 
-		final NBTItem nbt = new NBTItem(item);
-		final NBTCompound tag = nbt.getCompound(getCompoundKey());
-
-		return tag != null && tag.hasKey(key);
+		return NBT.get(item, itemNBT -> {
+					final ReadableNBT tag = itemNBT.getCompound(getCompoundKey());
+					return tag != null && tag.hasTag(key);
+				}
+		);
 	}
 
 	/**
@@ -470,7 +470,7 @@ public final class CompMetadata {
 		Validate.checkNotNull(key);
 
 		if (SERVER_VERSION >= 1.14F) {
-			Validate.checkBoolean(tileEntity instanceof TileState,
+			Validate.checkBoolean(!(tileEntity instanceof TileState),
 					BLOCK_STATE + tileEntity);
 
 			return hasNameSpacedKey((TileState) tileEntity, key);
