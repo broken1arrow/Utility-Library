@@ -1,6 +1,6 @@
-package org.broken.arrow.command.library.commandhandler;
+package org.broken.arrow.library.command.commandhandler;
 
-import org.broken.arrow.command.library.command.CommandProperty;
+import org.broken.arrow.library.command.command.CommandProperty;
 import org.bukkit.command.CommandException;
 
 import java.util.List;

@@ -1,8 +1,8 @@
-package org.broken.arrow.command.library.commandhandler;
+package org.broken.arrow.library.command.commandhandler;
 
 import org.broken.arrow.library.color.TextTranslator;
-import org.broken.arrow.command.library.CommandRegister;
-import org.broken.arrow.command.library.command.CommandProperty;
+import org.broken.arrow.library.command.CommandRegister;
+import org.broken.arrow.library.command.command.CommandProperty;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

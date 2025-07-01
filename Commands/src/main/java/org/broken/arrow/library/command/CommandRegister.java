@@ -1,9 +1,9 @@
-package org.broken.arrow.command.library;
+package org.broken.arrow.library.command;
 
 
-import org.broken.arrow.command.library.command.CommandProperty;
-import org.broken.arrow.command.library.commandhandler.CommandExecutor;
-import org.broken.arrow.command.library.commandhandler.CommandRegistering;
+import org.broken.arrow.library.command.command.CommandProperty;
+import org.broken.arrow.library.command.commandhandler.CommandExecutor;
+import org.broken.arrow.library.command.commandhandler.CommandRegistering;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;

@@ -1,4 +1,4 @@
-package org.broken.arrow.command.library.command;
+package org.broken.arrow.library.command.command;
 
 import org.bukkit.command.CommandSender;
 
@@ -74,7 +74,7 @@ public class CommandProperty  {
     /**
      * Sets a list of messages to suggest to the player how to use the command. These usage messages provide guidance on how to properly
      * use the command and its arguments.
-     * Note: When you use the {@link org.broken.arrow.command.library.command.CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
+     * Note: When you use the {@link CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
      * method and set it to false to indicate that the specified usage message or messages should be displayed.
      *
      * @param usageMessages The array of usage messages.
@@ -97,7 +97,7 @@ public class CommandProperty  {
     /**
      * Sets a list of messages to suggest to the player how to use the command. These usage messages provide guidance on how to properly
      * use the command and its arguments.
-     * Note: When you use the {@link org.broken.arrow.command.library.command.CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
+     * Note: When you use the {@link CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
      * method and it returns false, the specified usage message or messages should be displayed.
      *
      * @param usageMessages The list of usage messages.
@@ -193,7 +193,7 @@ public class CommandProperty  {
     }
 
     /**
-     * Returns the list of usage messages for the command. When use method {@link org.broken.arrow.command.library.command.CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
+     * Returns the list of usage messages for the command. When use method {@link CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
      * and it return false to indicate that the specified usage message should be displayed.
      *
      * @return The list of usage messages.

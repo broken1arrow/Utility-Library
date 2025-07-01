@@ -1,8 +1,8 @@
 package org.broken.arrow.utility.library;
 
 
-import org.broken.arrow.command.library.CommandRegister;
-import org.broken.arrow.command.library.commandhandler.CommandRegistering;
+import org.broken.arrow.library.command.CommandRegister;
+import org.broken.arrow.library.command.commandhandler.CommandRegistering;
 import org.broken.arrow.database.library.core.databases.MySQL;
 import org.broken.arrow.database.library.core.databases.SQLite;
 import org.broken.arrow.database.library.builders.ConnectionSettings;
