@@ -1,7 +1,7 @@
-package org.broken.arrow.visualization.library.utility;
+package org.broken.arrow.library.visualization.utility;
 
 import de.tr7zw.changeme.nbtapi.NBTEntity;
-import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Location;
 import org.bukkit.Material;

@@ -9,7 +9,7 @@ import org.broken.arrow.database.library.builders.ConnectionSettings;
 import org.broken.arrow.itemcreator.library.ItemCreator;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.title.update.library.UpdateTitle;
-import org.broken.arrow.visualization.library.BlockVisualize;
+import org.broken.arrow.library.visualization.BlockVisualize;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 

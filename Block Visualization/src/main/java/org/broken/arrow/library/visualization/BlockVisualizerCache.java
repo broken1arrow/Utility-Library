@@ -1,10 +1,10 @@
-package org.broken.arrow.visualization.library;
+package org.broken.arrow.library.visualization;
 
 import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.logging.Validate.ValidateExceptions;
-import org.broken.arrow.visualization.library.builders.VisualizeData;
-import org.broken.arrow.visualization.library.runnable.VisualTask;
-import org.broken.arrow.visualization.library.utility.EntityModifications;
+import org.broken.arrow.library.visualization.builders.VisualizeData;
+import org.broken.arrow.library.visualization.runnable.VisualTask;
+import org.broken.arrow.library.visualization.utility.EntityModifications;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;

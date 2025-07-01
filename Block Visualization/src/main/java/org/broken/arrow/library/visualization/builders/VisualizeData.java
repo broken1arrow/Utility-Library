@@ -1,6 +1,7 @@
-package org.broken.arrow.visualization.library.builders;
+package org.broken.arrow.library.visualization.builders;
 
-import org.broken.arrow.visualization.library.utility.Function;
+import org.broken.arrow.library.visualization.BlockVisualize;
+import org.broken.arrow.library.visualization.utility.Function;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.FallingBlock;
@@ -100,8 +101,8 @@ public final class VisualizeData {
     /**
      * Sets whether to stop visualizing the block.
      * <p>&nbsp;</p>
-     * Recommends using {@link org.broken.arrow.visualization.library.BlockVisualize#stopVisualizing(Block)}
-     * or {@link org.broken.arrow.visualization.library.BlockVisualize#visualizeBlock(Player, Block, Function, boolean)}
+     * Recommends using {@link BlockVisualize#stopVisualizing(Block)}
+     * or {@link BlockVisualize#visualizeBlock(Player, Block, Function, boolean)}
      * and setting the last argument to false.
      *
      * @param stopVisualizeBlock true if the visualization should stop, false otherwise.

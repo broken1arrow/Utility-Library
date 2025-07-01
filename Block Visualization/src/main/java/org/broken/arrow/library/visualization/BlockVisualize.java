@@ -1,7 +1,7 @@
-package org.broken.arrow.visualization.library;
+package org.broken.arrow.library.visualization;
 
-import org.broken.arrow.visualization.library.builders.VisualizeData;
-import org.broken.arrow.visualization.library.utility.Function;
+import org.broken.arrow.library.visualization.builders.VisualizeData;
+import org.broken.arrow.library.visualization.utility.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

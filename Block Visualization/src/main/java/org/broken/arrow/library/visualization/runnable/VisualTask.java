@@ -1,7 +1,7 @@
-package org.broken.arrow.visualization.library.runnable;
+package org.broken.arrow.library.visualization.runnable;
 
-import org.broken.arrow.visualization.library.BlockVisualizerCache;
-import org.broken.arrow.visualization.library.builders.VisualizeData;
+import org.broken.arrow.library.visualization.BlockVisualizerCache;
+import org.broken.arrow.library.visualization.builders.VisualizeData;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
