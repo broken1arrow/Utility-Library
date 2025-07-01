@@ -1,6 +1,6 @@
 package org.broken.arrow.library.serialize.utility.converters;
 
-import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.library.color.TextTranslator;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
