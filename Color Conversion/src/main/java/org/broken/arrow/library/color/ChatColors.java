@@ -1,4 +1,4 @@
-package org.broken.arrow.color.library;
+package org.broken.arrow.library.color;
 
 import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.library.logging.Validate;

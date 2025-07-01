@@ -1,11 +1,11 @@
-package org.broken.arrow.color.library;
+package org.broken.arrow.library.color;
 
 import com.google.gson.JsonObject;
 import net.md_5.bungee.api.ChatColor;
-import org.broken.arrow.color.library.Component.Builder;
-import org.broken.arrow.color.library.utility.CreateComponent;
-import org.broken.arrow.color.library.utility.CreateFromLegacyText;
-import org.broken.arrow.color.library.utility.TextGradientUtil;
+import org.broken.arrow.library.color.Component.Builder;
+import org.broken.arrow.library.color.utility.CreateComponent;
+import org.broken.arrow.library.color.utility.CreateFromLegacyText;
+import org.broken.arrow.library.color.utility.TextGradientUtil;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

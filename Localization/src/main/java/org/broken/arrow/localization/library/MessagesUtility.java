@@ -1,6 +1,6 @@
 package org.broken.arrow.localization.library;
 
-import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.localization.library.builders.PlaceholderText;
 import org.broken.arrow.localization.library.builders.PluginMessages;
 import org.broken.arrow.library.serialize.utility.converters.PlaceholderTranslator;

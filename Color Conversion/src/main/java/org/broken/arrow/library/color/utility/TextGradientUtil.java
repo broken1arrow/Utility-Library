@@ -1,9 +1,9 @@
-package org.broken.arrow.color.library.utility;
+package org.broken.arrow.library.color.utility;
 
 import com.google.common.base.Preconditions;
-import org.broken.arrow.color.library.TextTranslator.GradientType;
-import org.broken.arrow.color.library.interpolate.GradientInterpolation;
-import org.broken.arrow.color.library.interpolate.Interpolator;
+import org.broken.arrow.library.color.TextTranslator.GradientType;
+import org.broken.arrow.library.color.interpolate.GradientInterpolation;
+import org.broken.arrow.library.color.interpolate.Interpolator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -12,15 +12,15 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.broken.arrow.color.library.ChatColors.COLOR_AMPERSAND;
-import static org.broken.arrow.color.library.utility.StringUtility.checkPortions;
-import static org.broken.arrow.color.library.utility.StringUtility.convertColorToHex;
-import static org.broken.arrow.color.library.utility.StringUtility.getHexFromString;
-import static org.broken.arrow.color.library.utility.StringUtility.getMultiColors;
-import static org.broken.arrow.color.library.utility.StringUtility.getNextColor;
-import static org.broken.arrow.color.library.utility.StringUtility.getStringStriped;
-import static org.broken.arrow.color.library.utility.StringUtility.getValuesInside;
-import static org.broken.arrow.color.library.utility.StringUtility.hexToRgb;
+import static org.broken.arrow.library.color.ChatColors.COLOR_AMPERSAND;
+import static org.broken.arrow.library.color.utility.StringUtility.checkPortions;
+import static org.broken.arrow.library.color.utility.StringUtility.convertColorToHex;
+import static org.broken.arrow.library.color.utility.StringUtility.getHexFromString;
+import static org.broken.arrow.library.color.utility.StringUtility.getMultiColors;
+import static org.broken.arrow.library.color.utility.StringUtility.getNextColor;
+import static org.broken.arrow.library.color.utility.StringUtility.getStringStriped;
+import static org.broken.arrow.library.color.utility.StringUtility.getValuesInside;
+import static org.broken.arrow.library.color.utility.StringUtility.hexToRgb;
 
 /**
  * Utility class for working with text gradients.

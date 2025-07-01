@@ -1,7 +1,7 @@
 package org.broken.arrow.itemcreator.library;
 
 
-import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.itemcreator.library.utility.ConvertToItemStack;
 import org.broken.arrow.itemcreator.library.utility.PotionsUtility;
 import org.broken.arrow.itemcreator.library.utility.Tuple;

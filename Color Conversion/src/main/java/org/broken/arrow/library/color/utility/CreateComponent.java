@@ -1,14 +1,14 @@
-package org.broken.arrow.color.library.utility;
+package org.broken.arrow.library.color.utility;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.broken.arrow.color.library.ChatColors;
-import org.broken.arrow.color.library.Component;
-import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.library.color.ChatColors;
+import org.broken.arrow.library.color.Component;
+import org.broken.arrow.library.color.TextTranslator;
 
 import javax.annotation.Nonnull;
 
-import static org.broken.arrow.color.library.utility.StringUtility.checkIfColor;
+import static org.broken.arrow.library.color.utility.StringUtility.checkIfColor;
 
 public class CreateComponent {
 

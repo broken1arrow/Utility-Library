@@ -1,6 +1,6 @@
-package org.broken.arrow.color.library.utility;
+package org.broken.arrow.library.color.utility;
 
-import org.broken.arrow.color.library.interpolate.Interpolator;
+import org.broken.arrow.library.color.interpolate.Interpolator;
 
 import javax.annotation.Nonnull;
 

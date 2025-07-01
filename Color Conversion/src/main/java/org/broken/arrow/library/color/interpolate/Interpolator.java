@@ -1,4 +1,4 @@
-package org.broken.arrow.color.library.interpolate;
+package org.broken.arrow.library.color.interpolate;
 
 
 /**

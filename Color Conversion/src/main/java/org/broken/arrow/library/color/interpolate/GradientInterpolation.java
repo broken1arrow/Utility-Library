@@ -1,4 +1,4 @@
-package org.broken.arrow.color.library.interpolate;
+package org.broken.arrow.library.color.interpolate;
 
 /**
  * A utility class that provides interpolation methods for color calculations when applying gradients.

@@ -2,8 +2,8 @@ package org.broken.arrow.title.update.library.utility;
 
 import com.google.gson.JsonObject;
 import net.md_5.bungee.api.ChatColor;
-import org.broken.arrow.color.library.ChatColors;
-import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.library.color.ChatColors;
+import org.broken.arrow.library.color.TextTranslator;
 
 import javax.annotation.Nonnull;
 

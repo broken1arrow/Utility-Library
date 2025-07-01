@@ -1,4 +1,4 @@
-package org.broken.arrow.color.library;
+package org.broken.arrow.library.color;
 
 
 import com.google.gson.JsonObject;

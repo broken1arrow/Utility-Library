@@ -1,13 +1,13 @@
-package org.broken.arrow.color.library.utility;
+package org.broken.arrow.library.color.utility;
 
-import org.broken.arrow.color.library.ChatColors;
+import org.broken.arrow.library.color.ChatColors;
 import org.broken.arrow.library.logging.Logging;
 
 import java.awt.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.broken.arrow.color.library.ChatColors.COLOR_AMPERSAND;
+import static org.broken.arrow.library.color.ChatColors.COLOR_AMPERSAND;
 
 public class StringUtility {
 

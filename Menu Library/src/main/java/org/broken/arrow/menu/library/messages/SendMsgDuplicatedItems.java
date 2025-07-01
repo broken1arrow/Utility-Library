@@ -2,7 +2,7 @@ package org.broken.arrow.menu.library.messages;
 
 
 import net.md_5.bungee.api.ChatColor;
-import org.broken.arrow.color.library.TextTranslator;
+import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.menu.library.utility.TriFunction;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
