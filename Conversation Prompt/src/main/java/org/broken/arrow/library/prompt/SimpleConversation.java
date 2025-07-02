@@ -1,10 +1,10 @@
-package org.broken.arrow.prompt.library;
+package org.broken.arrow.library.prompt;
 
 import org.broken.arrow.library.logging.Validate;
-import org.broken.arrow.prompt.library.utility.CustomCanceller;
-import org.broken.arrow.prompt.library.utility.CustomConversation;
-import org.broken.arrow.prompt.library.utility.SimpleCanceller;
-import org.broken.arrow.prompt.library.utility.SimplePrefix;
+import org.broken.arrow.library.prompt.utility.CustomCanceller;
+import org.broken.arrow.library.prompt.utility.CustomConversation;
+import org.broken.arrow.library.prompt.utility.SimpleCanceller;
+import org.broken.arrow.library.prompt.utility.SimplePrefix;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.conversations.ConversationAbandonedListener;
 import org.bukkit.conversations.ConversationCanceller;
@@ -131,7 +131,7 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 	 * <p>
 	 * By default we use the plugins tell prefix
 	 * <p>
-	 * TIP: You can use {@link org.broken.arrow.prompt.library.utility.SimplePrefix}
+	 * TIP: You can use {@link SimplePrefix}
 	 *
 	 * @return prefix you set or the plugin name if not set a prefix.
 	 */

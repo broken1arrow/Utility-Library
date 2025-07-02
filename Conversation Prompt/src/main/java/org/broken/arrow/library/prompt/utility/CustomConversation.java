@@ -1,7 +1,7 @@
-package org.broken.arrow.prompt.library.utility;
+package org.broken.arrow.library.prompt.utility;
 
-import org.broken.arrow.prompt.library.SimpleConversation;
-import org.broken.arrow.prompt.library.SimplePrompt;
+import org.broken.arrow.library.prompt.SimpleConversation;
+import org.broken.arrow.library.prompt.SimplePrompt;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;

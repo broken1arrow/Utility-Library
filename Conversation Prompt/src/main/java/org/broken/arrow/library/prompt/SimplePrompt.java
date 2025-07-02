@@ -1,4 +1,4 @@
-package org.broken.arrow.prompt.library;
+package org.broken.arrow.library.prompt;
 
 
 import org.broken.arrow.library.logging.Logging;

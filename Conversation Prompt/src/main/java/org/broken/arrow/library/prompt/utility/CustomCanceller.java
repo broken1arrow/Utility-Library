@@ -1,4 +1,4 @@
-package org.broken.arrow.prompt.library.utility;
+package org.broken.arrow.library.prompt.utility;
 
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.InactivityConversationCanceller;
