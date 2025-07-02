@@ -273,7 +273,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      */
     public void setItemsPerPage(final int itemsPerPage) {
         if (itemsPerPage <= 0 || itemsPerPage > this.inventorySize)
-            this.itemsPerPage = this.inventorySize - 9;
+            this.itemsPerPage = this.getFillSpace().size();
         else
             this.itemsPerPage = itemsPerPage;
     }

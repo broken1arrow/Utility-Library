@@ -9,6 +9,7 @@ import org.broken.arrow.library.menu.button.logic.ButtonUpdateAction;
 import org.broken.arrow.library.menu.button.logic.FillMenuButton;
 import org.broken.arrow.library.menu.button.logic.OnRetrieveItem;
 import org.broken.arrow.library.menu.utility.FillItems;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
@@ -148,7 +149,6 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             this.listOfFillItems = new FillItems<>();
             this.listOfFillItems.setFillItems(fillItems);
         }
-        this.amountOfPages();
     }
 
     /**
@@ -251,6 +251,12 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         return null;
     }
 
+    @Override
+    public void menuOpen(@Nonnull Player player, @Nullable Location location, boolean loadToCache) {
+        amountOfPages();
+        super.menuOpen(player, location, loadToCache);
+    }
+
     protected final void amountOfPages() {
         this.getMenuRenderer().setAmountOfPages(() -> {
             int setPages = getManuallySetPages();
@@ -266,12 +272,11 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
                 return (double) itemCount / fallbackPerPage(size);
             } else if (perPageItems <= 0) {
-                this.logger.log(Level.WARNING, () -> "Items per page must be greater than 0.");
+                this.logger.log(Level.WARNING, () -> "Items per page must be greater than 0. ");
                 return 0.0;
             }
 
             final double pagesAmount = (double) itemCount / perPageItems;
-
             if (setPages > 0) {
                 return Math.max(setPages, pagesAmount);
             }

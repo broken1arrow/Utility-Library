@@ -85,7 +85,7 @@ public class MenuUtility<T> {
     protected int animateButtonTime = 20;
     protected int slotIndex;
     protected int inventorySize;
-    protected int itemsPerPage = this.inventorySize - 9;
+    protected int itemsPerPage;
     protected int pageNumber;
     protected int updateTime;
     protected int animateTitleTime = 5;
@@ -447,6 +447,9 @@ public class MenuUtility<T> {
     }
 
     public int getItemsPerPage() {
+        if(this.itemsPerPage <= 0) {
+            this.itemsPerPage = this.getFillSpace().size();
+        }
         return this.itemsPerPage;
     }
 
