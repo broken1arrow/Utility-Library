@@ -1,8 +1,8 @@
-package org.broken.arrow.localization.library;
+package org.broken.arrow.library.localization;
 
 import org.broken.arrow.library.color.TextTranslator;
-import org.broken.arrow.localization.library.builders.PlaceholderText;
-import org.broken.arrow.localization.library.builders.PluginMessages;
+import org.broken.arrow.library.localization.builders.PlaceholderText;
+import org.broken.arrow.library.localization.builders.PluginMessages;
 import org.broken.arrow.library.serialize.utility.converters.PlaceholderTranslator;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

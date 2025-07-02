@@ -1,8 +1,8 @@
-package org.broken.arrow.localization.library;
+package org.broken.arrow.library.localization;
 
-import org.broken.arrow.localization.library.builders.Localization;
-import org.broken.arrow.localization.library.builders.PlaceholderText;
-import org.broken.arrow.localization.library.builders.PluginMessages;
+import org.broken.arrow.library.localization.builders.Localization;
+import org.broken.arrow.library.localization.builders.PlaceholderText;
+import org.broken.arrow.library.localization.builders.PluginMessages;
 import org.broken.arrow.library.yaml.YamlFileManager;
 import org.broken.arrow.library.yaml.utillity.ConfigurationWrapper;
 import org.bukkit.configuration.ConfigurationSection;
