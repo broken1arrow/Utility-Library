@@ -1,4 +1,4 @@
-package org.broken.arrow.itemcreator.library.utility.matrials;
+package org.broken.arrow.library.itemcreator.utility.matrials;
 
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;

@@ -1,11 +1,11 @@
-package org.broken.arrow.itemcreator.library;
+package org.broken.arrow.library.itemcreator;
 
 
 import org.broken.arrow.library.color.TextTranslator;
-import org.broken.arrow.itemcreator.library.utility.ConvertToItemStack;
-import org.broken.arrow.itemcreator.library.utility.PotionsUtility;
-import org.broken.arrow.itemcreator.library.utility.Tuple;
-import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
+import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
+import org.broken.arrow.library.itemcreator.utility.PotionsUtility;
+import org.broken.arrow.library.itemcreator.utility.Tuple;
+import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;

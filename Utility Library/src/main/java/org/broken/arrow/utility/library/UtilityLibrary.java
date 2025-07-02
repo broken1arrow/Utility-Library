@@ -3,10 +3,10 @@ package org.broken.arrow.utility.library;
 
 import org.broken.arrow.library.command.CommandRegister;
 import org.broken.arrow.library.command.commandhandler.CommandRegistering;
-import org.broken.arrow.database.library.core.databases.MySQL;
-import org.broken.arrow.database.library.core.databases.SQLite;
-import org.broken.arrow.database.library.builders.ConnectionSettings;
-import org.broken.arrow.itemcreator.library.ItemCreator;
+import org.broken.arrow.library.database.core.databases.MySQL;
+import org.broken.arrow.library.database.core.databases.SQLite;
+import org.broken.arrow.library.database.builders.ConnectionSettings;
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.menu.library.RegisterMenuAPI;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.broken.arrow.library.visualization.BlockVisualize;

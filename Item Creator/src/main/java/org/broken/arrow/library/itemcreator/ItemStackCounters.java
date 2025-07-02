@@ -1,4 +1,4 @@
-package org.broken.arrow.itemcreator.library;
+package org.broken.arrow.library.itemcreator;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;

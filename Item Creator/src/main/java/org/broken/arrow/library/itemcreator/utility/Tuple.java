@@ -1,4 +1,4 @@
-package org.broken.arrow.itemcreator.library.utility;
+package org.broken.arrow.library.itemcreator.utility;
 
 public class Tuple<K, V> {
 

@@ -1,4 +1,4 @@
-package org.broken.arrow.itemcreator.library.utility;
+package org.broken.arrow.library.itemcreator.utility;
 
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.meta.PotionMeta;

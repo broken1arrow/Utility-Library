@@ -1,8 +1,8 @@
-package org.broken.arrow.itemcreator.library;
+package org.broken.arrow.library.itemcreator;
 
 
-import org.broken.arrow.itemcreator.library.utility.ConvertToItemStack;
-import org.broken.arrow.itemcreator.library.utility.builders.ItemBuilder;
+import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
+import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
 import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
 import org.bukkit.Material;

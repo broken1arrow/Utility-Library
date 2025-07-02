@@ -1,4 +1,4 @@
-package org.broken.arrow.itemcreator.library;
+package org.broken.arrow.library.itemcreator;
 
 
 import com.mojang.authlib.GameProfile;

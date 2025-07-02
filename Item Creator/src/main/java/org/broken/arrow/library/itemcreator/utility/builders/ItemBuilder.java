@@ -1,7 +1,7 @@
-package org.broken.arrow.itemcreator.library.utility.builders;
+package org.broken.arrow.library.itemcreator.utility.builders;
 
-import org.broken.arrow.itemcreator.library.CreateItemStack;
-import org.broken.arrow.itemcreator.library.ItemCreator;
+import org.broken.arrow.library.itemcreator.CreateItemStack;
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 

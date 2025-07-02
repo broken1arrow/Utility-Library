@@ -1,6 +1,6 @@
 package org.broken.arrow.menu.library;
 
-import org.broken.arrow.itemcreator.library.ItemCreator;
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.menu.library.cache.MenuCache;
 import org.broken.arrow.menu.library.messages.SendMsgDuplicatedItems;

@@ -1,7 +1,7 @@
-package org.broken.arrow.itemcreator.library.utility;
+package org.broken.arrow.library.itemcreator.utility;
 
 import com.google.common.base.Enums;
-import org.broken.arrow.itemcreator.library.utility.matrials.Materials;
+import org.broken.arrow.library.itemcreator.utility.matrials.Materials;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -10,7 +10,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Locale;
 
-import static org.broken.arrow.itemcreator.library.utility.matrials.Materials.checkColor;
+import static org.broken.arrow.library.itemcreator.utility.matrials.Materials.checkColor;
 
 /**
  * This class convert object to itemStack (if the object can be translated), It also check if you
