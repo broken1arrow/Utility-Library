@@ -8,7 +8,7 @@ import org.broken.arrow.library.menu.utility.Action;
 import org.broken.arrow.library.menu.utility.MetadataPlayer;
 import org.broken.arrow.library.menu.utility.ServerVersion;
 import org.broken.arrow.library.menu.utility.metadata.MenuMetadataKey;
-import org.broken.arrow.title.update.library.UpdateTitle;
+import org.broken.arrow.library.title.update.UpdateTitle;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

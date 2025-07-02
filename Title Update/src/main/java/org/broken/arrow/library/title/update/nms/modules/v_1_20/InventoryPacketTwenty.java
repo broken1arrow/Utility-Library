@@ -1,14 +1,13 @@
-package org.broken.arrow.title.update.library.nms.modules.v_1_18;
+package org.broken.arrow.library.title.update.nms.modules.v_1_20;
 
-import org.broken.arrow.title.update.library.nms.InventoryNMS;
-import org.bukkit.event.inventory.InventoryType;
+import org.broken.arrow.library.title.update.nms.InventoryNMS;
 import org.bukkit.inventory.Inventory;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-public class InventoryPacketEighteen implements InventoryNMS {
+public class InventoryPacketTwenty implements InventoryNMS {
 
 	@Override
 	public Class<?> getPacket() throws ClassNotFoundException {
@@ -17,7 +16,7 @@ public class InventoryPacketEighteen implements InventoryNMS {
 
 	@Override
 	public Field getPlayerConnection() throws ClassNotFoundException, NoSuchFieldException {
-		return Class.forName("net.minecraft.server.level.EntityPlayer").getField("b");
+		return Class.forName("net.minecraft.server.level.EntityPlayer").getField("c");
 	}
 
 	@Override
@@ -49,7 +48,7 @@ public class InventoryPacketEighteen implements InventoryNMS {
 	@Nonnull
 	@Override
 	public String getContainerField() {
-		return "bW";
+		return "bR";
 	}
 
 	@Nonnull
@@ -72,9 +71,7 @@ public class InventoryPacketEighteen implements InventoryNMS {
 
 	@Override
 	public String getContainerFieldName(@Nonnull final Inventory currentlyOpenInventory) {
-
-		InventoryType inventoryType = currentlyOpenInventory.getType();
-		switch (inventoryType) {
+		switch (currentlyOpenInventory.getType()) {
 			case CHEST:
 				final int inventorySize = currentlyOpenInventory.getSize();
 				switch (inventorySize) {
@@ -105,7 +102,8 @@ public class InventoryPacketEighteen implements InventoryNMS {
 				return "p";
 			case SHULKER_BOX:
 				return "t";
-        /*todo should this be implemented? class do you find in net.minecraft.world.level.block.entity.TileEntityBarrel.
+        /*todo should this be implemented? class do you find in net.minecraft.world.level.block.entity.TileEntityBarrel
+            and source is from InventoryEnderChest inside net.minecraft.world.entity.player.EntityHuman and what I looking for.
            Check this nms code it use the field 'protected static final DataWatcherObject<NBTTagCompound> bR;':
               protected boolean a(EntityHuman entityhuman) {
                 if (entityhuman.bR instanceof ContainerChest) {

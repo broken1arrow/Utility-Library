@@ -1,4 +1,4 @@
-package org.broken.arrow.title.update.library.utility;
+package org.broken.arrow.library.title.update.utility;
 
 import com.google.gson.JsonObject;
 import net.md_5.bungee.api.ChatColor;

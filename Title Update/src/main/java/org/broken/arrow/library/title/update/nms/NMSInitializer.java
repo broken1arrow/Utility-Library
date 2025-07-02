@@ -1,4 +1,4 @@
-package org.broken.arrow.title.update.library.nms;
+package org.broken.arrow.library.title.update.nms;
 
 import org.bukkit.Bukkit;
 

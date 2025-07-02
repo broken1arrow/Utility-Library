@@ -1,109 +1,112 @@
-package org.broken.arrow.title.update.library.nms.modules.v_1_20;
+package org.broken.arrow.library.title.update.nms.modules.v_1_16;
 
-import org.broken.arrow.title.update.library.nms.InventoryNMS;
+import org.broken.arrow.library.title.update.nms.InventoryNMS;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-public class InventoryPacketTwenty implements InventoryNMS {
+public class InventoryPacketSixteen implements InventoryNMS {
 
 	@Override
 	public Class<?> getPacket() throws ClassNotFoundException {
-		return Class.forName("net.minecraft.network.protocol.Packet");
+		return Class.forName(retrieveNMSPackage("Packet"));
 	}
 
 	@Override
 	public Field getPlayerConnection() throws ClassNotFoundException, NoSuchFieldException {
-		return Class.forName("net.minecraft.server.level.EntityPlayer").getField("c");
+		return Class.forName(retrieveNMSPackage("EntityPlayer")).getField("playerConnection");
 	}
 
 	@Override
 	public Class<?> getPlayerConnectionClass() throws ClassNotFoundException {
-		return Class.forName("net.minecraft.server.network.PlayerConnection");
+		return Class.forName(retrieveNMSPackage("PlayerConnection"));
 	}
 
 	@Override
 	public Class<?> getContainersClass() throws ClassNotFoundException {
-		return Class.forName("net.minecraft.world.inventory.Containers");
+		return Class.forName(retrieveNMSPackage("Containers"));
 	}
 
 	@Override
 	public Class<?> getContainerClass() throws ClassNotFoundException {
-		return Class.forName("net.minecraft.world.inventory.Container");
+		return Class.forName(retrieveNMSPackage("Container"));
 	}
 
 	@Override
 	public Class<?> getChatSerializer() throws ClassNotFoundException {
-		return Class.forName("net.minecraft.network.chat.IChatBaseComponent$ChatSerializer");
+		return Class.forName(retrieveNMSPackage("IChatBaseComponent$ChatSerializer"));
 	}
 
 	@Override
 	public Constructor<?> getPacketPlayOutOpenWindow() throws ClassNotFoundException, NoSuchMethodException {
-		Class<?> iChatBaseComponent = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
-		return Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenWindow").getConstructor(int.class, this.getContainersClass(), iChatBaseComponent);
+		Class<?> iChatBaseComponent = Class.forName(retrieveNMSPackage("IChatBaseComponent"));
+		return Class.forName(retrieveNMSPackage("PacketPlayOutOpenWindow")).getConstructor(int.class, this.getContainersClass(), iChatBaseComponent);
 	}
 
 	@Nonnull
 	@Override
 	public String getContainerField() {
-		return "bR";
+		return "activeContainer";
 	}
 
 	@Nonnull
 	@Override
 	public String getWindowId() {
-		return "j";
+		return "windowId";
 	}
 
 	@Nonnull
 	@Override
 	public String getSendPacketName() {
-		return "a";
+		return "sendPacket";
 	}
 
 	@Nonnull
 	@Override
 	public String getUpdateInventoryMethodName() {
-		return "a";
+		return "updateInventory";
 	}
 
 	@Override
 	public String getContainerFieldName(@Nonnull final Inventory currentlyOpenInventory) {
-		switch (currentlyOpenInventory.getType()) {
+		InventoryType inventoryType = currentlyOpenInventory.getType();
+
+		switch (inventoryType) {
 			case CHEST:
 				final int inventorySize = currentlyOpenInventory.getSize();
 				switch (inventorySize) {
 					case 9:
-						return "a";
+						return "GENERIC_9X1";
 					case 18:
-						return "b";
+						return "GENERIC_9X2";
 					case 27:
-						return "c";
+						return "GENERIC_9X3";
 					case 36:
-						return "d";
+						return "GENERIC_9X4";
 					case 45:
-						return "e";
-					case 54:
-						return "f";
+						return "GENERIC_9X5";
 					default:
-						return "c";
+						if (inventorySize == 54)
+							return "GENERIC_9X6";
+						break;
 				}
+				break;
 			case DISPENSER:
 			case DROPPER:
-				return "g";
+				return "GENERIC_3X3";
 		/*todo should this be implemented and can you update title? you find the field for InventoryEnderChest inside net.minecraft.world.entity.player.EntityHuman
 			case ENDER_CHEST:
 				break;*/
 			case ANVIL:
-				return "h";
+				return "ANVIL";
 			case HOPPER:
-				return "p";
+				return "HOPPER";
 			case SHULKER_BOX:
-				return "t";
-        /*todo should this be implemented? class do you find in net.minecraft.world.level.block.entity.TileEntityBarrel
-            and source is from InventoryEnderChest inside net.minecraft.world.entity.player.EntityHuman and what I looking for.
+				return "SHULKER_BOX";
+        /*todo should this be implemented? class do you find in net.minecraft.world.level.block.entity.TileEntityBarrel.
            Check this nms code it use the field 'protected static final DataWatcherObject<NBTTagCompound> bR;':
               protected boolean a(EntityHuman entityhuman) {
                 if (entityhuman.bR instanceof ContainerChest) {

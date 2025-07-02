@@ -1,15 +1,15 @@
-package org.broken.arrow.title.update.library;
+package org.broken.arrow.library.title.update;
 
-import org.broken.arrow.title.update.library.nms.InventoryNMS;
-import org.broken.arrow.title.update.library.nms.modules.v_1_12.InventoryPacketTwelve;
-import org.broken.arrow.title.update.library.nms.modules.v_1_16.InventoryPacketSixteen;
-import org.broken.arrow.title.update.library.nms.modules.v_1_17.InventoryPacketSeventeen;
-import org.broken.arrow.title.update.library.nms.modules.v_1_18.InventoryPacketEighteenTwo;
-import org.broken.arrow.title.update.library.nms.modules.v_1_18.InventoryPacketEighteen;
-import org.broken.arrow.title.update.library.nms.modules.v_1_19.InventoryPacketNineteenFour;
-import org.broken.arrow.title.update.library.nms.modules.v_1_19.InventoryPacketNineteen;
-import org.broken.arrow.title.update.library.nms.modules.v_1_20.InventoryPacketTwentyTwo;
-import org.broken.arrow.title.update.library.nms.modules.v_1_20.InventoryPacketTwenty;
+import org.broken.arrow.library.title.update.nms.InventoryNMS;
+import org.broken.arrow.library.title.update.nms.modules.v_1_12.InventoryPacketTwelve;
+import org.broken.arrow.library.title.update.nms.modules.v_1_16.InventoryPacketSixteen;
+import org.broken.arrow.library.title.update.nms.modules.v_1_17.InventoryPacketSeventeen;
+import org.broken.arrow.library.title.update.nms.modules.v_1_18.InventoryPacketEighteenTwo;
+import org.broken.arrow.library.title.update.nms.modules.v_1_18.InventoryPacketEighteen;
+import org.broken.arrow.library.title.update.nms.modules.v_1_19.InventoryPacketNineteenFour;
+import org.broken.arrow.library.title.update.nms.modules.v_1_19.InventoryPacketNineteen;
+import org.broken.arrow.library.title.update.nms.modules.v_1_20.InventoryPacketTwentyTwo;
+import org.broken.arrow.library.title.update.nms.modules.v_1_20.InventoryPacketTwenty;
 import org.bukkit.Bukkit;
 
 import javax.annotation.Nonnull;

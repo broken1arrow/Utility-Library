@@ -1,6 +1,6 @@
-package org.broken.arrow.title.update.library.nms.modules.v_1_19;
+package org.broken.arrow.library.title.update.nms.modules.v_1_19;
 
-import org.broken.arrow.title.update.library.nms.InventoryNMS;
+import org.broken.arrow.library.title.update.nms.InventoryNMS;
 import org.bukkit.inventory.Inventory;
 
 import javax.annotation.Nonnull;

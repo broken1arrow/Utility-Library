@@ -1,6 +1,6 @@
-package org.broken.arrow.title.update.library.nms.modules.v_1_18;
+package org.broken.arrow.library.title.update.nms.modules.v_1_18;
 
-import org.broken.arrow.title.update.library.nms.InventoryNMS;
+import org.broken.arrow.library.title.update.nms.InventoryNMS;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-public class InventoryPacketEighteenTwo implements InventoryNMS {
+public class InventoryPacketEighteen implements InventoryNMS {
 
 	@Override
 	public Class<?> getPacket() throws ClassNotFoundException {
@@ -49,7 +49,7 @@ public class InventoryPacketEighteenTwo implements InventoryNMS {
 	@Nonnull
 	@Override
 	public String getContainerField() {
-		return "bV";
+		return "bW";
 	}
 
 	@Nonnull
