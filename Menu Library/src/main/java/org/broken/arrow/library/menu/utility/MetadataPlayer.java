@@ -56,7 +56,7 @@ public final class MetadataPlayer {
     }
 
     public void setPlayerMetadata(@Nonnull final Player player, @Nonnull final String key, @Nonnull final Object object) {
-        player.setMetadata(key + "_" + plugin.getName(), new FixedMetadataValue(plugin, object));
+        player.setMetadata(key + ":" + plugin.getName(), new FixedMetadataValue(plugin, object));
     }
 
     public void setPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key, @Nonnull final MenuUtility<?> menu) {
@@ -77,7 +77,7 @@ public final class MetadataPlayer {
     }
 
     public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final String key) {
-        player.removeMetadata(key + "_" + plugin.getName(), plugin);
+        player.removeMetadata(key, plugin);
     }
 
     /**
