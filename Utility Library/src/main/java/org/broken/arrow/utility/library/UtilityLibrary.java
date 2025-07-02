@@ -7,7 +7,7 @@ import org.broken.arrow.library.database.core.databases.MySQL;
 import org.broken.arrow.library.database.core.databases.SQLite;
 import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.itemcreator.ItemCreator;
-import org.broken.arrow.menu.library.RegisterMenuAPI;
+import org.broken.arrow.library.menu.RegisterMenuAPI;
 import org.broken.arrow.title.update.library.UpdateTitle;
 import org.broken.arrow.library.visualization.BlockVisualize;
 import org.bukkit.plugin.Plugin;
