@@ -48,9 +48,10 @@ tasks {
             setArchiveFileName()
             dependencies {
                 exclusions.forEach { exclude(it) }
-                exclude("de/tr7zw/changeme/nbtapi/")
+                //exclude("de/tr7zw/changeme/nbtapi/")
             }
-           // relocate("de.tr7zw.changeme.nbtapi", formatDependency("nbt_util"))
+            relocate("de.tr7zw.changeme.nbtapi", formatDependency("nbt_util"))
+            relocate("org.broken.arrow.library", formatDependency("api"))
         }
     }
     processResources {
