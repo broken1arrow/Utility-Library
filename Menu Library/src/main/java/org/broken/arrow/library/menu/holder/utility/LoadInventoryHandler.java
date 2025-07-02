@@ -22,7 +22,7 @@ public class LoadInventoryHandler<T> {
     private String uniqueKey;
     private MenuCacheKey menuCacheKey;
 
-    public LoadInventoryHandler(MenuUtility<T> menuUtility, RegisterMenuAPI menuAPI) {
+    public LoadInventoryHandler(@Nonnull final MenuUtility<T> menuUtility,@Nonnull final RegisterMenuAPI menuAPI) {
         this.menuUtility = menuUtility;
         this.metadataPlayer = menuAPI.getPlayerMeta();
         this.menuCache = menuAPI.getMenuCache();

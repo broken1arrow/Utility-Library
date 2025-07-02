@@ -111,6 +111,8 @@ public class MenuUtility<T> {
         if (fillSlots != null)
             this.highestFillSlot = fillSlots.stream().mapToInt(Integer::intValue).max().orElse(-1);
 
+        this.menuAPI = RegisterMenuAPI.getMenuAPI();
+
         this.menuRenderer = new MenuRenderer<>(this);
         this.inventoryRender = new InventoryRenderer<>(this);
         this.menuInteractionChecks = new MenuInteractionChecks<>(this);
@@ -124,7 +126,6 @@ public class MenuUtility<T> {
         this.slotIndex = 0;
         this.updateTime = -1;
         this.menuOpenSound = new SoundUtility().getMenuOpenSound();
-        this.menuAPI = RegisterMenuAPI.getMenuAPI();
         this.checkItemsInsideMenu = new CheckItemsInsideMenu(menuAPI);
     }
 
