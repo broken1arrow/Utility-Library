@@ -1,4 +1,4 @@
-package org.broken.arrow.menu.button.manager.library.utility;
+package org.broken.arrow.library.menu.button.manager.utility;
 
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.bukkit.DyeColor;
