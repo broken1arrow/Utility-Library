@@ -15,8 +15,8 @@ import java.util.function.Consumer;
  */
 public class PlaceholderTranslator {
 
-    private static final String falseText = "false";
-    private static final String    trueText = "true";;
+    private static final String FALSE_TEXT = "false";
+    private static final String TRUE_TEXT = "true";
 
     private PlaceholderTranslator() {
     }
@@ -249,11 +249,11 @@ public class PlaceholderTranslator {
      */
     private static String replaceBooleans(String text, Pair<String, String> replacements) {
         if (text != null) {
-            if (text.contains(trueText)) {
-                return text.replace(trueText, replacements.getFirst());
+            if (text.contains(TRUE_TEXT)) {
+                return text.replace(TRUE_TEXT, replacements.getFirst());
             } else {
-                if (text.contains(falseText)) {
-                    return text.replace(falseText, replacements.getSecond());
+                if (text.contains(FALSE_TEXT)) {
+                    return text.replace(FALSE_TEXT, replacements.getSecond());
                 } else {
                     return text;
                 }
@@ -277,8 +277,8 @@ public class PlaceholderTranslator {
         }
 
         public void putBooleans(final String replaceTrue, final String replaceFalse) {
-            placeholders.put(trueText, replaceTrue);
-            placeholders.put(falseText, replaceFalse);
+            placeholders.put(TRUE_TEXT, replaceTrue);
+            placeholders.put(FALSE_TEXT, replaceFalse);
         }
 
         public Map<String, Object> getPlaceholders() {
