@@ -92,7 +92,7 @@ public final class MenuCache {
 	 * @return the menu cached or null if it not exist.
 	 */
 	@Nullable
-	public <T> T getMenuInCache(@Nonnull final MenuCacheKey key, Class<T> clazz) {
+	public <T> T getMenuInCache(@Nullable final MenuCacheKey key, Class<T> clazz) {
 		MenuUtility<?> cachedMenu = this.menusCached.get(key);
 		if (clazz.isInstance(cachedMenu))
 			return clazz.cast(cachedMenu);
@@ -102,23 +102,11 @@ public final class MenuCache {
 	/**
 	 * Remove menu from cache.
 	 *
-	 * @param object the MenuCacheKey you want to remove.
-	 * @return true if it could find the menu.
-	 */
-	public boolean removeMenuCached(final Object object) {
-		if (object instanceof MenuCacheKey)
-			return this.menusCached.remove(object) != null;
-		return false;
-	}
-
-	/**
-	 * Remove menu from cache.
-	 *
 	 * @param key the key you want to remove.
-	 * @return true if it could find the menu.
+	 * @return true if it could find the menu and the key is not {@code null}.
 	 */
-	public boolean removeMenuCached(@Nonnull final MenuCacheKey key) {
-		return this.menusCached.remove(key) != null;
+	public boolean removeMenuCached(@Nullable final MenuCacheKey key) {
+		return key != null && this.menusCached.remove(key) != null;
 	}
 
 	/**

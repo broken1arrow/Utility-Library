@@ -3,6 +3,7 @@ package org.broken.arrow.library.menu;
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.menu.cache.MenuCache;
+import org.broken.arrow.library.menu.cache.MenuCacheKey;
 import org.broken.arrow.library.menu.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.library.menu.utility.Action;
 import org.broken.arrow.library.menu.utility.MetadataPlayer;
@@ -226,11 +227,11 @@ public class RegisterMenuAPI {
         @Nullable
         private MenuUtility<?> getMenuHolder(final Player player) {
 
-            Object menukey = null;
+            MenuCacheKey menukey = null;
 
             MetadataPlayer metadataPlayer = getPlayerMeta();
             if (metadataPlayer.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
-                menukey = metadataPlayer.getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION);
+                menukey = metadataPlayer.getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION,MenuCacheKey.class);
             }
 
             final MenuUtility<?> menuUtility;

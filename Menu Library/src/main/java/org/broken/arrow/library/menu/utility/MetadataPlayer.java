@@ -1,6 +1,7 @@
 package org.broken.arrow.library.menu.utility;
 
 import org.broken.arrow.library.menu.MenuUtility;
+import org.broken.arrow.library.menu.cache.MenuCacheKey;
 import org.broken.arrow.library.menu.utility.metadata.MenuMetadataKey;
 import org.broken.arrow.library.menu.utility.metadata.MetadataKey;
 import org.bukkit.entity.Player;
@@ -44,6 +45,18 @@ public final class MetadataPlayer {
     }
 
     @Nullable
+    public <T> T getPlayerMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key,  @Nonnull final  Class<T> clazz) {
+        final List<MetadataValue> playerMetadata = player.getMetadata(this.getMenuMetadataKey(key));
+        if (playerMetadata.isEmpty())
+            return null;
+        Object value = playerMetadata.get(0).value();
+        if (clazz.isInstance(value))
+            return clazz.cast(value);
+        else
+            return null;
+    }
+
+    @Nullable
     public Object getPlayerMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
         final List<MetadataValue> playerMetadata = player.getMetadata(this.getMenuMetadataKey(key));
         if (playerMetadata.isEmpty())
@@ -55,15 +68,11 @@ public final class MetadataPlayer {
         this.setMetadata(player, key, true);
     }
 
-    public void setPlayerMetadata(@Nonnull final Player player, @Nonnull final String key, @Nonnull final Object object) {
-        player.setMetadata(key + ":" + plugin.getName(), new FixedMetadataValue(plugin, object));
-    }
-
     public void setPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key, @Nonnull final MenuUtility<?> menu) {
         this.setMetadata(player, key, menu);
     }
 
-    public void setPlayerLocationMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key, @Nonnull final Object location) {
+    public void setPlayerLocationMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key, @Nonnull final MenuCacheKey location) {
         this.setMetadata(player, key, location);
 
     }
@@ -73,11 +82,7 @@ public final class MetadataPlayer {
     }
 
     public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
-        removePlayerMenuMetadata(player, this.getMenuMetadataKey(key));
-    }
-
-    public void removePlayerMenuMetadata(@Nonnull final Player player, @Nonnull final String key) {
-        player.removeMetadata(key, plugin);
+        player.removeMetadata(this.getMenuMetadataKey(key), plugin);
     }
 
     /**

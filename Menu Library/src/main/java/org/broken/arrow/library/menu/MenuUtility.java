@@ -5,8 +5,9 @@ import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.menu.builders.ButtonData;
 import org.broken.arrow.library.menu.builders.MenuDataUtility;
 import org.broken.arrow.library.menu.button.MenuButton;
-import org.broken.arrow.library.menu.holder.HolderUtility;
 import org.broken.arrow.library.menu.cache.MenuCache;
+import org.broken.arrow.library.menu.cache.MenuCacheKey;
+import org.broken.arrow.library.menu.holder.HolderUtility;
 import org.broken.arrow.library.menu.holder.MenuHolder;
 import org.broken.arrow.library.menu.holder.MenuHolderPage;
 import org.broken.arrow.library.menu.holder.utility.InventoryRenderer;
@@ -447,7 +448,7 @@ public class MenuUtility<T> {
     }
 
     public int getItemsPerPage() {
-        if(this.itemsPerPage <= 0) {
+        if (this.itemsPerPage <= 0) {
             this.itemsPerPage = this.getFillSpace().size();
         }
         return this.itemsPerPage;
@@ -915,7 +916,8 @@ public class MenuUtility<T> {
     }
 
     /**
-     * This method just remove all associated data to the player with the menu and also stop the animation.
+     * This method just remove all associated data to the player with the menu and also stop the animation
+     * if no players view the menu.
      *
      * @param player The player that currently closing the menu.
      */
@@ -928,9 +930,12 @@ public class MenuUtility<T> {
         }
         if (metadataPlayer.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
                 this.isAutoClearCache() && this.getAmountOfViewers() < 1) {
-            menuCache.removeMenuCached(metadataPlayer.getPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION));
+            final MenuCacheKey menuCacheKey = metadataPlayer.getPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION, MenuCacheKey.class);
+            menuCache.removeMenuCached(menuCacheKey);
         }
-        closeTasks();
+
+        if (this.getAmountOfViewers() < 1)
+            closeTasks();
     }
 
     /**
