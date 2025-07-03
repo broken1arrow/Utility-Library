@@ -33,6 +33,13 @@ public final class MetadataPlayer {
         return player.getMetadata(this.getMenuMetadataKey(key));
     }
 
+    /**
+     * Get current menu player has stored or currently open menu.
+     *
+     * @param player      the player that open menu.
+     * @param key the menu key set for this menu.
+     * @return the menu instance or null if player currently no menu open.
+     */
     @Nullable
     public MenuUtility<?> getPlayerMenuMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key) {
         final List<MetadataValue> playerMetadata = player.getMetadata(this.getMenuMetadataKey(key));
@@ -92,20 +99,7 @@ public final class MetadataPlayer {
      * @return older menuHolder instance.
      */
     public MenuUtility<?> getPreviousMenuHolder(final Player player) {
-        return getMenuHolder(player, MenuMetadataKey.MENU_OPEN_PREVIOUS);
-    }
-
-    /**
-     * Get current menu player has stored or currently open menu.
-     *
-     * @param player      the player that open menu.
-     * @param metadataKey the menu key set for this menu.
-     * @return the menu instance or null if player currently no menu open.
-     */
-    private MenuUtility<?> getMenuHolder(final Player player, final MenuMetadataKey metadataKey) {
-        if (hasPlayerMetadata(player, metadataKey)) return getPlayerMenuMetadata(player, metadataKey);
-
-        return null;
+        return getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN_PREVIOUS);
     }
 
     private String getMenuMetadataKey(@Nonnull MetadataKey key) {
