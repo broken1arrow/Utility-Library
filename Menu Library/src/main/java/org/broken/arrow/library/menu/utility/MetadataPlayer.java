@@ -86,24 +86,13 @@ public final class MetadataPlayer {
     }
 
     /**
-     * Get menuholder instance from player metadata.
+     * Get previous menuHolder instance from player metadata.
      *
      * @param player the player you want to get metadata on.
-     * @return menuholder instance.
+     * @return older menuHolder instance.
      */
-    @Nullable
-    public MenuUtility<?> getMenuholder(final Player player) {
-        return getMenuholder(player, MenuMetadataKey.MENU_OPEN);
-    }
-
-    /**
-     * Get previous menuholder instance from player metadata.
-     *
-     * @param player the player you want to get metadata on.
-     * @return older menuholder instance.
-     */
-    public MenuUtility<?> getPreviousMenuholder(final Player player) {
-        return getMenuholder(player, MenuMetadataKey.MENU_OPEN_PREVIOUS);
+    public MenuUtility<?> getPreviousMenuHolder(final Player player) {
+        return getMenuHolder(player, MenuMetadataKey.MENU_OPEN_PREVIOUS);
     }
 
     /**
@@ -113,9 +102,9 @@ public final class MetadataPlayer {
      * @param metadataKey the menu key set for this menu.
      * @return the menu instance or null if player currently no menu open.
      */
-    private MenuUtility<?> getMenuholder(final Player player, final MenuMetadataKey metadataKey) {
-
+    private MenuUtility<?> getMenuHolder(final Player player, final MenuMetadataKey metadataKey) {
         if (hasPlayerMetadata(player, metadataKey)) return getPlayerMenuMetadata(player, metadataKey);
+
         return null;
     }
 
