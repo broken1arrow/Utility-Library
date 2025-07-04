@@ -541,10 +541,21 @@ public class MenuUtility<T> {
      *
      * @param event close inventory
      * @param menu  class some are now closed.
+     * @deprecated no point passing in the menu instance.
      */
-
+    @Deprecated
     public void menuClose(final InventoryCloseEvent event, final MenuUtility<?> menu) {
         //optional you can override this if you plan to do something when menu is closing.
+    }
+
+    /**
+     * When you close the menu
+     *
+     * @param event close inventory
+     */
+    public void menuClose(final InventoryCloseEvent event) {
+        //optional you can override this if you plan to do something when menu is closing.
+        this.menuClose(event, this);
     }
 
     /**

@@ -201,7 +201,7 @@ public class RegisterMenuAPI {
                 return;
             }
             try {
-                menuUtility.menuClose(event, menuUtility);
+                menuUtility.menuClose(event);
             } finally {
                 menuUtility.unregister(player);
             }

@@ -12,7 +12,6 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -64,17 +63,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      */
     protected HolderUtility(List<Integer> fillSlots, boolean shallCacheItems) {
         super(fillSlots, shallCacheItems);
-    }
-
-    /**
-     * When you close the menu
-     *
-     * @param event close inventory
-     * @param menu  class some are now closed.
-     */
-
-    @Override
-    public void menuClose(final InventoryCloseEvent event, final MenuUtility<?> menu) {
     }
 
     /**
