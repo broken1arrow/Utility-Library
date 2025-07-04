@@ -189,10 +189,10 @@ public class TranslatePlaceholdersItem {
     }
 
     /**
-     * Translates color codes in the given string using either {@link TextTranslator} (if available),
+     * Translates color codes in the given string using either {@link TextTranslator#toSpigotFormat(String)} (if available),
      * or falls back to {@link ChatColor#translateAlternateColorCodes(char, String)}.
      *
-     * <p>If this utility is shaded into your own plugin, it will attempt to use {@code TextTranslator}.
+     * <p>If this utility is shaded into your own plugin, it will attempt to use {@link TextTranslator#toSpigotFormat(String)}.
      * If you're using the Utility Library by installing its plugin JAR (rather than shading it),
      * this behavior is always enabled.</p>
      *
@@ -200,7 +200,7 @@ public class TranslatePlaceholdersItem {
      * @return the translated string with appropriate color formatting
      */
     @Nonnull
-    private static String translateColorCodes(final String text) {
+    public static String translateColorCodes(final String text) {
         if (hasTextTranslator)
             return TextTranslator.toSpigotFormat(text);
         return ChatColor.translateAlternateColorCodes('&', text);

@@ -29,7 +29,7 @@ public class PlaceholderTranslator {
      * @param placeholders The values to replace the placeholders with.
      * @return The translated list of lore strings.
      */
-    public static List<String> translatePlaceholdersLore(List<String> listOfText, Object... placeholders) {
+    public static List<String> translatePlaceholdersLore(final List<String> listOfText, final Object... placeholders) {
         return translatePlaceholdersLore(null, listOfText, placeholders);
     }
 
@@ -43,7 +43,7 @@ public class PlaceholderTranslator {
      *                     The first element will replace 'true' and the second will replace 'false'.
      * @return The translated list of lore strings.
      */
-    public static List<String> translatePlaceholdersLore(Pair<String, String> replacements, List<String> listOfText, Object... placeholders) {
+    public static List<String> translatePlaceholdersLore(final Pair<String, String> replacements, final List<String> listOfText, final Object... placeholders) {
         if (listOfText == null) return new ArrayList<>();
         List<String> clonedLore = new ArrayList<>(listOfText);
         List<String> list = new ArrayList<>();
@@ -67,7 +67,7 @@ public class PlaceholderTranslator {
      * @param placeholders The consumer where you provide the placeholder data.
      * @return The translated list of lore strings.
      */
-    public static List<String> translatePlaceholders(List<String> listOfText, Consumer<PlaceholderWrapper> placeholders) {
+    public static List<String> translatePlaceholders(final List<String> listOfText, final Consumer<PlaceholderWrapper> placeholders) {
         if (listOfText == null) return new ArrayList<>();
         List<String> clonedLore = new ArrayList<>(listOfText);
         List<String> list = new ArrayList<>();
@@ -91,7 +91,7 @@ public class PlaceholderTranslator {
      * @param wrapperConsumer The consumer where you provide the placeholder data.
      * @return The translated text.
      */
-    public static String translatePlaceholder(String rawText, final Consumer<PlaceholderWrapper> wrapperConsumer) {
+    public static String translatePlaceholder(final String rawText, final Consumer<PlaceholderWrapper> wrapperConsumer) {
         final PlaceholderWrapper placeholderWrapper = new PlaceholderWrapper();
         wrapperConsumer.accept(placeholderWrapper);
         final Map<String, Object> placeholderMap = placeholderWrapper.getPlaceholders();
@@ -285,6 +285,4 @@ public class PlaceholderTranslator {
             return placeholders;
         }
     }
-
-
 }
