@@ -1,7 +1,4 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
-import groovy.lang.Closure
-import org.broken.arrow.library.*
+import org.broken.arrow.library.ShadeLogic
 
 plugins {
     alias(libs.plugins.shadow)
@@ -16,6 +13,7 @@ description = "Utility-Library"
 version = "1.0-SNAPSHOT"
 
 dependencies {
+    api(project(":color-conversion"))
     api(project(":menu-library"))
     api(project(":item-creator"))
     api(project(":database"))
@@ -38,20 +36,45 @@ java {
     withJavadocJar()
 }
 
-tasks {
+/* work in progress
+val sourcesJar = tasks.findByName("sourcesJar") ?: tasks.register("sourcesJar", Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
 
+afterEvaluate {
+
+    tasks.named("publishMavenJavaPublicationToMavenLocal") {
+        dependsOn(tasks.named("jar"))
+    }
+*/
+/*    publishing {
+        publications {
+            named<MavenPublication>("mavenJava") {
+                // Attach sources and javadoc explicitly
+                from(components["java"])
+            }
+        }
+    }*//*
+
+}
+*/
+
+
+tasks {
     shadowJar {
         mustRunAfter(":block-visualization:shadowJar")
         mustRunAfter(":nbt:shadowJar")
         duplicatesStrategy = DuplicatesStrategy.INHERIT
         ShadeLogic(project, this) {
+            archiveClassifier.set("")
             setArchiveFileName()
             dependencies {
                 exclusions.forEach { exclude(it) }
                 //exclude("de/tr7zw/changeme/nbtapi/")
             }
             relocate("de.tr7zw.changeme.nbtapi", formatDependency("nbt_util"))
-            relocate("org.broken.arrow.library", formatDependency("api"))
+            //relocate("org.broken.arrow.library", formatDependency("api"))
         }
     }
     processResources {
@@ -60,7 +83,7 @@ tasks {
             expand(
                 mapOf(
                     "version" to project.version,
-                    "main" to "${project.group}.UtilityLibrary",//"${project.group}.${project.name}",
+                    "main" to "org.broken.arrow.utility.library.UtilityLibrary",//"${project.group}.${project.name}",
                     "name" to project.name
                 )
             )

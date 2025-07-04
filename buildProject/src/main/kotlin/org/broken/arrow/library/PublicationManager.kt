@@ -51,7 +51,6 @@ class PublicationManager(project: Project, configure: MavenPublication.() -> Uni
                 publications {
                     create<MavenPublication>("${projectName}_mavenJava") {
                         configure(this)
-
                         artifact(project.tasks.named<Jar>(sourcesName).get()) {
                             classifier = "sources"
                         }
