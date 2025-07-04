@@ -195,15 +195,15 @@ public class MenuRenderer<T> {
             return 0;
         }
 
-        double requiredPages = (double) itemCount / perPageItems;
+        double pagesNeeded = (double) itemCount / perPageItems;
         int manuallySetPages = this.utility.getManuallySetPages();
         if (setPages != null) {
-            return Math.max(setPages, requiredPages);
+            return Math.max(setPages, pagesNeeded);
         } else if (manuallySetPages > 0) {
-            return Math.max(manuallySetPages, requiredPages);
+            return Math.max(manuallySetPages, pagesNeeded);
         }
 
-        return requiredPages;
+        return pagesNeeded;
     }
 
     /**
