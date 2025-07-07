@@ -55,9 +55,9 @@ public class MetaHandler {
      * @param metaFunction a consumer that modifies and returns a value from the {@link BannerMeta}.
      */
     public void setBanner(Consumer<BannerMeta> metaFunction) {
-        final BannerMeta bannerMeta = new BannerMeta();
-        metaFunction.accept(bannerMeta);
-        this.banner = bannerMeta;
+        final BannerMeta bannerData = new BannerMeta();
+        metaFunction.accept(bannerData);
+        this.banner = bannerData;
     }
 
     public BottleEffectMeta getBottleEffect() {
@@ -115,9 +115,9 @@ public class MetaHandler {
      * @param metaFunction a consumer that modifies and returns a value from the {@link LeatherMeta}.
      */
     public void setLeatherMeta(final Consumer<LeatherMeta> metaFunction) {
-        final LeatherMeta leatherMeta = new LeatherMeta();
-        metaFunction.accept(leatherMeta);
-        this.leatherMeta = leatherMeta;
+        final LeatherMeta leatherData = new LeatherMeta();
+        metaFunction.accept(leatherData);
+        this.leatherMeta = leatherData;
     }
 
     /**
@@ -126,9 +126,9 @@ public class MetaHandler {
      * @param metaFunction a consumer that modifies and returns a value from the {@link ShieldMeta}.
      */
     public void setShieldMeta(final Consumer<ShieldMeta> metaFunction) {
-        final ShieldMeta shieldMeta = new ShieldMeta();
-        metaFunction.accept(shieldMeta);
-        this.shieldMeta = shieldMeta;
+        final ShieldMeta shieldData = new ShieldMeta();
+        metaFunction.accept(shieldData);
+        this.shieldMeta = shieldData;
     }
 
     /**

@@ -231,7 +231,7 @@ public class ItemCreator {
         return serverVersion;
     }
 
-    private void setServerVersion(final Plugin plugin) {
+    private static void setServerVersion(final Plugin plugin) {
         final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
         final String firstNumber;
         String secondNumber;
