@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.utility;
 
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
@@ -14,7 +15,8 @@ import javax.annotation.Nonnull;
  */
 public class PotionsUtility {
     private final Logging logger = new Logging(PotionsUtility.class);
-    PotionMeta potionMeta;
+    private final float serverVersion = ItemCreator.getServerVersion();
+    private final PotionMeta potionMeta;
 
     public PotionsUtility(@Nonnull PotionMeta potionMeta) {
         this.potionMeta = potionMeta;
@@ -30,10 +32,10 @@ public class PotionsUtility {
             potionMeta.setBasePotionType(potion);
         } catch (NoClassDefFoundError | NoSuchMethodError e) {
             try {
-                final PotionData potionData = new PotionData(potion);
+                final PotionData potionData = new PotionData(potion,potion.isExtendable(),potion.isUpgradeable());
                 potionMeta.setBasePotionData(potionData);
             } catch (NoClassDefFoundError ex) {
-                logger.logError(ex,() -> "Could not find PotionData class and your Minecraft version missing the setBasePotionType method.");
+                logger.logError(ex,() -> "Could not find PotionData class as fallback when your Minecraft version missing the setBasePotionType method.");
 
             }
         }

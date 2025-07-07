@@ -48,8 +48,11 @@ public class ItemCreator {
 		if (material != null) {
 			return material;
 		} else {
-			if (!registerMenuAPI.isNotFoundItemCreator())
-				return registerMenuAPI.getItemCreator().of(name).makeItemStack().getType();
+			if (!registerMenuAPI.isNotFoundItemCreator()) {
+				final org.broken.arrow.library.itemcreator.ItemCreator itemCreator = registerMenuAPI.getItemCreator();
+				if (itemCreator != null)
+					return itemCreator.of(name).makeItemStack().getType();
+			}
 		}
 		return null;
 	}
