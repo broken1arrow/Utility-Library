@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.meta;
 
+import org.broken.arrow.library.itemcreator.utility.PotionData;
 import org.broken.arrow.library.itemcreator.utility.PotionsUtility;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Color;
@@ -23,7 +24,7 @@ public class BottleEffectMeta {
     private boolean waterBottle;
     private boolean override = true;
     private ColorMeta colorMeta;
-    private PotionType potionType;
+    private PotionData potionType;
     private boolean extended;
     private boolean upgraded;
 
@@ -129,11 +130,22 @@ public class BottleEffectMeta {
      */
     @Nullable
     public PotionType getPotionType() {
-        return potionType;
+        return (potionType == null ? null : potionType.getPotionType());
     }
 
     /**
-     * Sets the predefined {@link PotionType} to apply to the potion item.
+     * Sets the predefined {@link PotionData} to apply to this potion item.
+     * <p>
+     * This automatically handles version compatibility. You can specify the desired
+     * potion variant (e.g., long, strong, or base version), and it will use the correct
+     * {@link org.bukkit.potion.PotionType} for the server version.
+     * </p>
+     * <p>
+     * Alternatively, you may use {@link #setUpgraded(boolean)} or {@link #setExtended(boolean)}
+     * if you're working with the older base potion types. However, this approach is not supported
+     * on Minecraft 1.20 and newer, as the underlying API no longer includes the older potion classes,
+     * and handling has changed.
+     * </p>
      * <p>
      * If a potion type is set, it will override any custom effects or colors you
      * might otherwise apply with {@link #addPotionEffects(PotionEffect...)},{@link #addPotionEffect(Consumer)}
@@ -145,9 +157,9 @@ public class BottleEffectMeta {
      * </p>
      *
      * @param potionType the potion type to apply; set {@code null} to allow custom effects
-     * @return this instance for method chaining
+     * @return this instance for method chaining.
      */
-    public BottleEffectMeta setPotionType(@Nullable final PotionType potionType) {
+    public BottleEffectMeta setPotionType(@Nullable final PotionData potionType) {
         this.potionType = potionType;
         return this;
     }
@@ -219,9 +231,19 @@ public class BottleEffectMeta {
             }
 
             if (this.potionType != null) {
-                PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
-                potionsUtility.setPotion(this.potionType, this.extended, this.upgraded);
-                return;
+                final PotionType potionType = this.getPotionType();
+                if (potionType != null) {
+                    PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
+                    PotionData.Type modifier = this.potionType.getModifier();
+                    boolean extendedPotion = this.extended;
+                    boolean upgradedPotion = this.upgraded;
+                    if (modifier != PotionData.Type.NORMAL) {
+                        extendedPotion = modifier == PotionData.Type.LONG;
+                        upgradedPotion = modifier == PotionData.Type.STRONG;
+                    }
+                    potionsUtility.setPotion(potionType, extendedPotion, upgradedPotion);
+                    return;
+                }
             }
 
             final List<PotionEffect> effects = getPotionEffects();
