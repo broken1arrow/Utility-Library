@@ -10,11 +10,55 @@ import org.bukkit.inventory.meta.ItemMeta;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class EnhancementMeta {
     private static final Logging logger = new Logging(ColorMeta.class);
     private final Map<Enchantment, EnhancementWrapper> enchantments = new HashMap<>();
     private boolean showEnchantments = true;
+
+    /**
+     * Set enchantments on an itemStack. Set {@link #setShowEnchantments(boolean)} to true
+     * if you want to hide all enchants (default so will it not hide enchants).
+     *
+     * @param enchantment     The enchantment type you want to set.
+     * @param wrapperConsumer The wrapper class to set the enhancement data.
+     * @return this class.
+     */
+    public EnhancementMeta setEnchantment(@Nonnull final Enchantment enchantment, @Nonnull final Consumer<EnhancementWrapper> wrapperConsumer) {
+        final EnhancementWrapper enhancementWrapper = new EnhancementWrapper(enchantment, 1);
+        wrapperConsumer.accept(enhancementWrapper);
+
+        this.enchantments.put(enchantment, enhancementWrapper);
+        return this;
+    }
+
+    /**
+     * Set enchantments on an itemStack. Set {@link #setShowEnchantments(boolean)} to false
+     * if you want to hide all enchants (default so will it not hide enchants).
+     *
+     * @param enchantment The enchantment type you want to set.
+     * @return this class.
+     */
+    public EnhancementWrapper setEnchantment(@Nonnull final Enchantment enchantment) {
+        final EnhancementWrapper enhancementWrapper = new EnhancementWrapper(enchantment, 1);
+        this.enchantments.put(enchantment, enhancementWrapper);
+        return enhancementWrapper;
+    }
+
+    /**
+     * Add enchantments on an itemStack. Set {@link #setShowEnchantments(boolean)} to false
+     * if you want to hide all enchants (default so will it not hide enchants).
+     *
+     * @param enchantments list of enchantments you want to add.
+     * @return this class.
+     */
+    public EnhancementMeta addEnchantments(final EnhancementWrapper... enchantments) {
+        for (final EnhancementWrapper enchant : enchantments) {
+            setEnchantment(enchant);
+        }
+        return this;
+    }
 
     /**
      * Add enchantments on an itemStack. Set {@link #setShowEnchantments(boolean)} to true
@@ -29,7 +73,6 @@ public class EnhancementMeta {
      * @param enchantments list of enchantments you want to add.
      * @return this class.
      */
-
     public EnhancementMeta addEnchantments(final String... enchantments) {
         for (final String enchant : enchantments) {
             final int middle = enchant.indexOf(";");
@@ -39,7 +82,7 @@ public class EnhancementMeta {
             final Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(enchant));
             if (enchantment != null) {
                 final EnhancementWrapper enhancementWrapper = new EnhancementWrapper(enchantment, level, last > 0 && ignoreLevel);
-                addEnchantment(enhancementWrapper);
+                setEnchantment(enhancementWrapper);
             } else {
                 logger.log(() -> "your enchantment string: " + enchant + " , are not valid. You must build your string like this 'PROTECTION_FIRE;1;false' or 'PROTECTION_FIRE;1'. " +
                         "If everything is correctly setup, then your minecraft version doesn't have that enchantment.");
@@ -49,43 +92,13 @@ public class EnhancementMeta {
         return this;
     }
 
-
-    /**
-     * Add enchantment on an itemStack. Set {@link #setShowEnchantments(boolean)} to true
-     * if you want to hide all enchants (default so will it not hide enchants).
-     *
-     * @param enhancementWrapper The wrapper class to set the enhancement data.
-     * @return this class.
-     */
-    public EnhancementMeta addEnchantment(@Nonnull final EnhancementWrapper enhancementWrapper) {
-        Enchantment enchantment = enhancementWrapper.getEnchantment();
-        this.enchantments.put(enchantment, enhancementWrapper);
-        return this;
-    }
-
-    /**
-     * Add enchantments on an itemStack. Set {@link #setShowEnchantments(boolean)} to true
-     * if you want to hide all enchants (default so will it not hide enchants).
-     *
-     * @param enchantments list of enchantments you want to add.
-     * @return this class.
-     */
-
-    public EnhancementMeta addEnchantments(final EnhancementWrapper... enchantments) {
-        for (final EnhancementWrapper enchant : enchantments) {
-            addEnchantment(enchant);
-        }
-        return this;
-    }
-
-
     public boolean isShowEnchantments() {
         return showEnchantments;
     }
 
     /**
-     * When use {@link #addEnchantment(EnhancementWrapper)}   or {@link #addEnchantments(String...)} and
-     * want to not show enchants. When set this to true it will ignore what you set in this method
+     * When use {@link #setEnchantment(Enchantment)},{@link #setEnchantment(Enchantment, Consumer)}  or {@link #addEnchantments(String...)} and
+     * want to not show enchants. When set this to false it will ignore what you set in this method
      * {@link CreateItemStack#setGlow(boolean)}.
      *
      * @param showEnchantments {@code true} and will show enchants.
@@ -105,8 +118,7 @@ public class EnhancementMeta {
         return enchantments;
     }
 
-
-    public void applyEnchantments(@Nonnull final ItemMeta itemMeta){
+    public void applyEnchantments(@Nonnull final ItemMeta itemMeta) {
         Map<Enchantment, EnhancementWrapper> wrapperMap = this.getEnchantments();
         if (!wrapperMap.isEmpty()) {
 
@@ -119,21 +131,31 @@ public class EnhancementMeta {
                 itemMeta.addEnchant(enchant.getKey(), enchantData.getLevel(), enchantData.isIgnoreLevelRestriction());
             }
             if (!isShowEnchantments()) {
-                    itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
             }
         }
     }
 
+    /**
+     * Add enchantment on an itemStack. Set {@link #setShowEnchantments(boolean)} to false
+     * if you want to hide all enchants (default so will it not hide enchants).
+     *
+     * @param enhancementWrapper The wrapper class to set the enhancement data.
+     */
+    private void setEnchantment(@Nonnull final EnhancementWrapper enhancementWrapper) {
+        final Enchantment enchantment = enhancementWrapper.getEnchantment();
+        this.enchantments.put(enchantment, enhancementWrapper);
+    }
 
     public static class EnhancementWrapper {
 
         @Nonnull
         private final Enchantment enchantment;
-        private final int level;
-        private final boolean ignoreLevelRestriction;
+        private int level;
+        private boolean ignoreLevelRestriction;
 
-        public EnhancementWrapper(@Nonnull Enchantment enchantment, int level) {
+        public EnhancementWrapper(@Nonnull final Enchantment enchantment, final int level) {
             this(enchantment, level, false);
         }
 
@@ -152,8 +174,18 @@ public class EnhancementMeta {
             return Math.max(this.level, 1);
         }
 
+        public EnhancementWrapper setLevel(int level) {
+            this.level = level;
+            return this;
+        }
+
         public boolean isIgnoreLevelRestriction() {
             return ignoreLevelRestriction;
+        }
+
+        public EnhancementWrapper setIgnoreLevelRestriction(boolean ignoreLevelRestriction) {
+            this.ignoreLevelRestriction = ignoreLevelRestriction;
+            return this;
         }
 
         @Override

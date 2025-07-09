@@ -10,18 +10,22 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class BottleEffectMeta {
-    private static final Logging logger = new Logging(ColorMeta.class);
+    private static final Logging logger = new Logging(BottleEffectMeta.class);
 
     private final List<PotionEffect> potionEffects = new ArrayList<>();
     private boolean waterBottle;
     private boolean override = true;
     private ColorMeta colorMeta;
+    private PotionType potionType;
+    private boolean extended;
+    private boolean upgraded;
 
 
     /**
@@ -117,6 +121,88 @@ public class BottleEffectMeta {
     }
 
     /**
+     * Gets the predefined {@link PotionType} to apply to the potion, if any.
+     * <p>
+     * If a type is set, it overrides any custom potion effects and color.
+     *
+     * @return the potion type, or {@code null} if using custom effects instead
+     */
+    @Nullable
+    public PotionType getPotionType() {
+        return potionType;
+    }
+
+    /**
+     * Sets the predefined {@link PotionType} to apply to the potion item.
+     * <p>
+     * If a potion type is set, it will override any custom effects or colors you
+     * might otherwise apply with {@link #addPotionEffects(PotionEffect...)},{@link #addPotionEffect(Consumer)}
+     * or {@link #setPotionEffects(List)} and the color {@link #setBottleColor(Consumer)}.
+     * </p>
+     * <p>
+     * If you instead want a custom-colored potion with custom effects, do not set
+     * a potion type (or set it to {@code null}) and use the appropriate setters instead.
+     * </p>
+     *
+     * @param potionType the potion type to apply; set {@code null} to allow custom effects
+     * @return this instance for method chaining
+     */
+    public BottleEffectMeta setPotionType(@Nullable final PotionType potionType) {
+        this.potionType = potionType;
+        return this;
+    }
+
+    /**
+     * Checks if the potion is in an upgraded state.
+     * This refers to Tier 2 potions (e.g., Potion of Strength II).
+     *
+     * @return {@code true} if the potion is upgraded.
+     */
+    public boolean isUpgraded() {
+        return upgraded;
+    }
+
+    /**
+     * Sets the potion to its upgraded (Tier 2) state. If the potion type
+     * does not support upgrading, this value will be ignored automatically.
+     *
+     * <p>
+     * <strong>Note:</strong> A potion cannot be both upgraded and extended
+     * at the same time. If both are set to {@code true}, an exception will be thrown.
+     * </p>
+     *
+     * @param upgraded {@code true} if the potion shall be upgraded (Tier 2), {@code false} otherwise.
+     */
+    public void setUpgraded(boolean upgraded) {
+        this.upgraded = upgraded;
+    }
+
+    /**
+     * Checks if the potion is in an extended state.
+     * This refers to potions with longer duration (e.g., Potion of Swiftness (8:00)).
+     *
+     * @return {@code true} if the potion is extended.
+     */
+    public boolean isExtended() {
+        return extended;
+    }
+
+    /**
+     * Sets the potion to an extended duration state. If the potion type does not
+     * support extension, this value will be ignored automatically.
+     *
+     * <p>
+     * <strong>Note:</strong> A potion cannot be both upgraded and extended
+     * at the same time. If both are set to {@code true}, an exception will be thrown.
+     * </p>
+     *
+     * @param extended {@code true} to apply extended duration, {@code false} otherwise.
+     */
+    public void setExtended(boolean extended) {
+        this.extended = extended;
+    }
+
+    /**
      * Applies all potion and visual effects to the given {@link ItemMeta},
      * if it is an instance of {@link PotionMeta}.
      *
@@ -128,9 +214,16 @@ public class BottleEffectMeta {
 
             if (isWaterBottle()) {
                 PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
-                potionsUtility.setPotion(PotionType.WATER);
+                potionsUtility.setPotion(PotionType.WATER, false, false);
                 return;
             }
+
+            if (this.potionType != null) {
+                PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
+                potionsUtility.setPotion(this.potionType, this.extended, this.upgraded);
+                return;
+            }
+
             final List<PotionEffect> effects = getPotionEffects();
 
             if (effects != null && !effects.isEmpty()) {
@@ -174,9 +267,11 @@ public class BottleEffectMeta {
          * @param ambient   the ambient status, see {@link PotionEffect#isAmbient()}
          * @param particles whether the effect should display particles.
          * @param icon      whether the effect icon is shown.
+         * @return Returns this class for chaining.
          */
-        public void add(@Nonnull PotionEffectType type, final int duration, final int amplifier, final boolean ambient, final boolean particles, final boolean icon) {
+        public PotionEffectWrapper add(@Nonnull PotionEffectType type, final int duration, final int amplifier, final boolean ambient, final boolean particles, final boolean icon) {
             portionEffects.add(new PotionEffect(type, duration, amplifier, ambient, particles, icon));
+            return this;
         }
 
         /**
@@ -187,9 +282,11 @@ public class BottleEffectMeta {
          * @param amplifier the amplifier, see {@link PotionEffect#getAmplifier()}
          * @param ambient   the ambient status, see {@link PotionEffect#isAmbient()}
          * @param particles whether the effect should display particles.
+         * @return Returns this class for chaining.
          */
-        public void add(@Nonnull PotionEffectType type, final int duration, final int amplifier, final boolean ambient, final boolean particles) {
+        public PotionEffectWrapper add(@Nonnull PotionEffectType type, final int duration, final int amplifier, final boolean ambient, final boolean particles) {
             portionEffects.add(new PotionEffect(type, duration, amplifier, ambient, particles));
+            return this;
         }
 
         /**
@@ -199,9 +296,11 @@ public class BottleEffectMeta {
          * @param duration  measured in ticks, see {@link PotionEffect#getDuration()}
          * @param amplifier the amplifier, see {@link PotionEffect#getAmplifier()}
          * @param ambient   the ambient status, see {@link PotionEffect#isAmbient()}
+         * @return Returns this class for chaining.
          */
-        public void add(@Nonnull PotionEffectType type, final int duration, final int amplifier, final boolean ambient) {
+        public PotionEffectWrapper add(@Nonnull PotionEffectType type, final int duration, final int amplifier, final boolean ambient) {
             portionEffects.add(new PotionEffect(type, duration, amplifier, ambient));
+            return this;
         }
 
         /**
@@ -210,9 +309,11 @@ public class BottleEffectMeta {
          * @param type      the {@link PotionEffectType} for the effect; must not be null.
          * @param duration  measured in ticks, see {@link PotionEffect#getDuration()}
          * @param amplifier the amplifier, see {@link PotionEffect#getAmplifier()}
+         * @return Returns this class for chaining.
          */
-        public void add(@Nonnull PotionEffectType type, final int duration, final int amplifier) {
+        public PotionEffectWrapper add(@Nonnull PotionEffectType type, final int duration, final int amplifier) {
             portionEffects.add(new PotionEffect(type, duration, amplifier));
+            return this;
         }
 
         /**

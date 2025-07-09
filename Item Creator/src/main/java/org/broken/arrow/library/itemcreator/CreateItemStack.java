@@ -4,7 +4,6 @@ package org.broken.arrow.library.itemcreator;
 import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
-import org.broken.arrow.library.itemcreator.meta.EnhancementMeta;
 import org.broken.arrow.library.itemcreator.meta.MetaHandler;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.Tuple;
@@ -377,7 +376,10 @@ public class CreateItemStack {
             this.metaHandler = new MetaHandler();
         enchantmentMap.forEach((key, value) -> {
             this.metaHandler.setEnhancements(enhancementMeta ->
-                    enhancementMeta.addEnchantment(new EnhancementMeta.EnhancementWrapper(key, value.getFirst(), value.getSecond()))
+                    enhancementMeta
+                            .setEnchantment(key)
+                            .setLevel(value.getFirst())
+                            .setIgnoreLevelRestriction(value.getSecond())
             );
         });
         return this;
@@ -410,7 +412,9 @@ public class CreateItemStack {
 
         Enchantment finalEnchantment = enchantment;
         this.metaHandler.setEnhancements(enhancementMeta ->
-                enhancementMeta.addEnchantment(new EnhancementMeta.EnhancementWrapper(finalEnchantment, enchantmentLevel, levelRestriction))
+                enhancementMeta.setEnchantment(finalEnchantment)
+                        .setLevel(enchantmentLevel)
+                        .setIgnoreLevelRestriction(levelRestriction)
         );
         return this;
     }
@@ -894,7 +898,7 @@ public class CreateItemStack {
     }
 
     private List<String> translateColors(final List<String> rawLore) {
-        if(!this.enableColorTranslation){
+        if (!this.enableColorTranslation) {
             return new ArrayList<>(rawLore);
         }
         final List<String> listOfLore = new ArrayList<>();
@@ -905,7 +909,7 @@ public class CreateItemStack {
     }
 
     private String translateColors(final String rawSingleLine) {
-        if(!this.enableColorTranslation){
+        if (!this.enableColorTranslation) {
             return rawSingleLine;
         }
         return setColors(rawSingleLine);

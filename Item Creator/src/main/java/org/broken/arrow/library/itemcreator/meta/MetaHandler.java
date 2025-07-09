@@ -38,13 +38,6 @@ public class MetaHandler {
     private LeatherMeta leatherMeta;
     private ShieldMeta shieldMeta;
 
-    /**
-     * Constructs a new {@code MetaHandler} for the given item.
-     */
-    public MetaHandler() {
-    }
-
-
     public BannerMeta getBanner() {
         return banner;
     }
@@ -58,6 +51,17 @@ public class MetaHandler {
         final BannerMeta bannerData = new BannerMeta();
         metaFunction.accept(bannerData);
         this.banner = bannerData;
+    }
+
+    /**
+     * Initializes and configures the banner metadata by using
+     * {@link BannerMeta} class.
+     *
+     * @return the {@link BannerMeta} where you set the properties for your banner.
+     */
+    public BannerMeta createBannerMeta() {
+        this.banner = new BannerMeta();
+        return this.banner;
     }
 
     public BottleEffectMeta getBottleEffect() {
@@ -75,6 +79,17 @@ public class MetaHandler {
         this.bottleEffect = bottleEffectMeta;
     }
 
+    /**
+     * Initializes and configures the potion bottle effect metadata by using
+     * {@link BottleEffectMeta} class.
+     *
+     * @return the {@link BottleEffectMeta} where you set the properties for your potion.
+     */
+    public BottleEffectMeta createBottleEffectMeta() {
+        this.bottleEffect = new BottleEffectMeta();
+        return this.bottleEffect;
+    }
+
     public EnhancementMeta getEnhancements() {
         return enhancements;
     }
@@ -82,12 +97,28 @@ public class MetaHandler {
     /**
      * Initializes and configures the enchantment metadata using the provided function.
      *
-     * @param metaFunction a consumer that modifies and returns a value from the {@link EnhancementMeta}.
+     * <p>This method is useful when you want to configure {@link EnhancementMeta} inline
+     * using a lambda expression.</p>
+     *
+     * @param metaFunction a consumer that accepts and modifies the {@link EnhancementMeta} instance.
      */
     public void setEnhancements(Consumer<EnhancementMeta> metaFunction) {
         final EnhancementMeta enhancementMeta = new EnhancementMeta();
         metaFunction.accept(enhancementMeta);
         this.enhancements = enhancementMeta;
+    }
+
+    /**
+     * Initializes and returns the enchantment metadata instance.
+     *
+     * <p>This method is useful when you prefer to configure {@link EnhancementMeta}
+     * manually instead of using a lambda.</p>
+     *
+     * @return the {@link EnhancementMeta} instance to configure enhancement properties.
+     */
+    public EnhancementMeta createEnhancementMeta() {
+        this.enhancements = new EnhancementMeta();
+        return this.enhancements;
     }
 
     public FireworkMeta getFirework() {
@@ -103,6 +134,17 @@ public class MetaHandler {
         final FireworkMeta fireworkMeta = new FireworkMeta();
         metaFunction.accept(fireworkMeta);
         this.firework = fireworkMeta;
+    }
+
+    /**
+     * Initializes and configures the firework metadata by using
+     * {@link FireworkMeta} class.
+     *
+     * @return the {@link FireworkMeta}} where you set the properties for your firework effect.
+     */
+    public FireworkMeta createFireworkMeta() {
+        this.firework = new FireworkMeta();
+        return this.firework;
     }
 
     public LeatherMeta getLeatherMeta() {
@@ -121,6 +163,14 @@ public class MetaHandler {
     }
 
     /**
+     * Initializes and configures the firework metadata by using
+     * {@link LeatherMeta}class.
+     */
+    public void createLeatherMeta() {
+        this.leatherMeta = new LeatherMeta();
+    }
+
+    /**
      * Initializes and configures the shield metadata using the provided function.
      *
      * @param metaFunction a consumer that modifies and returns a value from the {@link ShieldMeta}.
@@ -129,6 +179,17 @@ public class MetaHandler {
         final ShieldMeta shieldData = new ShieldMeta();
         metaFunction.accept(shieldData);
         this.shieldMeta = shieldData;
+    }
+
+    /**
+     * Initializes and configures the shield metadata by using
+     * {@link ShieldMeta} class.
+     *
+     * @return the {@link ShieldMeta}} where you set the propitiates for your shield.
+     */
+    public ShieldMeta createShieldMeta() {
+        this.shieldMeta = new ShieldMeta();
+        return this.shieldMeta;
     }
 
     /**
@@ -145,10 +206,11 @@ public class MetaHandler {
      * where each banner color uses a separate material. If no base color is set,
      * or you're on an older Minecraft version, the item type will remain unchanged.
      * </p>
+     *
      * @param itemStack the item whose material may be updated (e.g., for banner colors).
      * @param itemMeta  the metadata instance to modify by applying patterns, effects, or colors.
      */
-    public void applyMeta(@Nonnull final ItemStack itemStack,@Nullable final ItemMeta itemMeta) {
+    public void applyMeta(@Nonnull final ItemStack itemStack, @Nullable final ItemMeta itemMeta) {
         if (itemMeta != null) {
             BannerMeta bannerMeta = this.banner;
             if (bannerMeta != null && bannerMeta.isBanner(itemMeta)) {

@@ -23,21 +23,28 @@ public class PotionsUtility {
     }
 
     /**
-     * Set the portions to the itemstacks metadata.
+     * Set the portions to the itemStacks metadata.
      *
-     * @param potion the portion type you want to set for the item.
+     * @param potion   the portion type you want to set for the item.
+     * @param extended whether the potion is extended {@link PotionType#isExtendable()} must be true
+     * @param upgraded whether the potion is upgraded {@link PotionType#isUpgradeable()} must be true
      */
-    public void setPotion(PotionType potion) {
-        try {
+    public void setPotion(@Nonnull final PotionType potion, final boolean extended, final boolean upgraded) {
+        if (serverVersion >= 20.0) {
             potionMeta.setBasePotionType(potion);
-        } catch (NoClassDefFoundError | NoSuchMethodError e) {
-            try {
-                final PotionData potionData = new PotionData(potion,potion.isExtendable(),potion.isUpgradeable());
-                potionMeta.setBasePotionData(potionData);
-            } catch (NoClassDefFoundError ex) {
-                logger.logError(ex,() -> "Could not find PotionData class as fallback when your Minecraft version missing the setBasePotionType method.");
-
-            }
+            return;
         }
+
+        try {
+            boolean couldUpgrade = upgraded;
+            boolean couldExtended = extended;
+            if (couldUpgrade && !potion.isUpgradeable()) couldUpgrade = false;
+            if (couldExtended && !potion.isExtendable()) couldExtended = false;
+            final PotionData potionData = new PotionData(potion, couldExtended, couldUpgrade);
+            potionMeta.setBasePotionData(potionData);
+        } catch (NoClassDefFoundError ex) {
+            logger.logError(ex, () -> "Could not find PotionData class as fallback when your Minecraft version missing the setBasePotionType method.");
+        }
+
     }
 }
