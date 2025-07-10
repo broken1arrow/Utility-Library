@@ -6,6 +6,14 @@ import org.bukkit.potion.PotionType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Represents a mapping of potion data types to Minecraft's {@link PotionType},
+ * supporting both legacy and modern server versions. This enum abstracts potion logic,
+ * including special base types (e.g., {@code AWKWARD}, {@code THICK}) and variations with
+ * modifiers such as {@link Type#LONG} and {@link Type#STRONG}.
+ * <p>
+ * Designed to follow the modern style used in Spigot and Paper APIs as of Minecraft 1.20 and above.
+ */
 public enum PotionData {
     UNCRAFTABLE(null, Type.NORMAL),
     WATER(null, Type.NORMAL),
@@ -56,11 +64,24 @@ public enum PotionData {
     private final Type type;
     private final float serverVersion = ItemCreator.getServerVersion();
 
+    /**
+     * Constructs a new {@code PotionData} entry.
+     *
+     * @param potionType The base {@link PotionType} associated with this potion data,
+     *                   or {@code null} for special cases like MUNDANE or WATER.
+     * @param type       The {@link Type} modifier for the potion, e.g., NORMAL, LONG, or STRONG.
+     */
     PotionData(@Nullable final PotionType potionType, @Nonnull final Type type) {
         this.potionType = potionType;
         this.type = type;
     }
 
+    /**
+     * Retrieves the associated {@link PotionType} for this enum constant.
+     * Handles version differences and special cases like uncraftable or water potions.
+     *
+     * @return The correct {@link PotionType} representing this potion data.
+     */
     public PotionType getPotionType() {
         PotionType potion = getSpecialPotion();
         if (potion != null) {
@@ -69,15 +90,27 @@ public enum PotionData {
         if (this.serverVersion < 20.0) {
             return this.potionType;
         } else {
-            return getPotionMapping();
+            return this.getPotionMapping();
         }
     }
 
+    /**
+     * Returns the {@link Type} modifier associated with this potion (e.g., LONG, STRONG).
+     *
+     * @return The {@link Type} modifier.
+     */
     @Nonnull
     public Type getModifier() {
         return type;
     }
 
+    /**
+     * Returns a {@link PotionType} for potions that are classified as "special",
+     * which don't follow the regular crafting or modifier rules.
+     *
+     * @return The special {@link PotionType}, or {@code null} if not applicable.
+     */
+    @Nullable
     private PotionType getSpecialPotion() {
         switch (this) {
             case UNCRAFTABLE:
@@ -95,6 +128,12 @@ public enum PotionData {
         }
     }
 
+    /**
+     * Returns the updated {@link PotionType} for this data entry,
+     * mapping it to modern potion variants if applicable.
+     *
+     * @return The updated {@link PotionType}.
+     */
     private PotionType getPotionMapping() {
         switch (this) {
             case LONG_NIGHT_VISION:
@@ -146,9 +185,26 @@ public enum PotionData {
         }
     }
 
+    /**
+     * Enum for potion modifiers that represent how the potion is enhanced or extended.
+     */
     public enum Type {
+        /**
+         * The default version of the potion with standard duration and potency.
+         */
         NORMAL,
+        /**
+         * A longer-lasting version of the potion, typically increasing the duration
+         * from 3 minutes to 8 minutes.
+         */
         LONG,
+        /**
+         * A stronger version of the potion with amplified effects,
+         * typically at the cost of half the duration.
+         * <p>
+         * The only exception is the Turtle Master potion,
+         * which retains the same duration as the base potion.
+         */
         STRONG,
     }
 }
