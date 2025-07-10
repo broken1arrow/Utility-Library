@@ -24,7 +24,7 @@ public class BottleEffectMeta {
     private boolean waterBottle;
     private boolean override = true;
     private ColorMeta colorMeta;
-    private PotionData potionType;
+    private PotionData potionData;
     private boolean extended;
     private boolean upgraded;
 
@@ -130,7 +130,7 @@ public class BottleEffectMeta {
      */
     @Nullable
     public PotionType getPotionType() {
-        return (potionType == null ? null : potionType.getPotionType());
+        return (potionData == null ? null : potionData.getPotionType());
     }
 
     /**
@@ -156,11 +156,11 @@ public class BottleEffectMeta {
      * a potion type (or set it to {@code null}) and use the appropriate setters instead.
      * </p>
      *
-     * @param potionType the potion type to apply; set {@code null} to allow custom effects
+     * @param potionData the potion type to apply; set {@code null} to allow custom effects
      * @return this instance for method chaining.
      */
-    public BottleEffectMeta setPotionType(@Nullable final PotionData potionType) {
-        this.potionType = potionType;
+    public BottleEffectMeta setPotionData(@Nullable final PotionData potionData) {
+        this.potionData = potionData;
         return this;
     }
 
@@ -230,11 +230,11 @@ public class BottleEffectMeta {
                 return;
             }
 
-            if (this.potionType != null) {
+            if (this.potionData != null) {
                 final PotionType potionType = this.getPotionType();
                 if (potionType != null) {
                     PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
-                    PotionData.Type modifier = this.potionType.getModifier();
+                    PotionData.Type modifier = this.potionData.getModifier();
                     boolean extendedPotion = this.extended;
                     boolean upgradedPotion = this.upgraded;
                     if (modifier != PotionData.Type.NORMAL) {

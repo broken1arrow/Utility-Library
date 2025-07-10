@@ -21,17 +21,17 @@ public class ShieldMeta {
      * @param metaConsumer the color you want to set on your item.
      */
     public void setBannerPattern(@Nonnull final Consumer<BannerMeta> metaConsumer) {
-        BannerMeta bannerMeta = new BannerMeta();
-        metaConsumer.accept(bannerMeta);
-        this.bannerMeta = bannerMeta;
+        BannerMeta bannerPattern = new BannerMeta();
+        metaConsumer.accept(bannerPattern);
+        this.bannerMeta = bannerPattern;
     }
 
     public void applyShieldBanner(@Nonnull final ItemMeta itemMeta) {
-        BannerMeta bannerData = this.bannerMeta;
-        if (bannerData == null)
+        BannerMeta bannerPattern = this.bannerMeta;
+        if (bannerPattern == null)
             return;
-        final List<Pattern> patternList = bannerData.getPatterns();
-        final DyeColor baseColor = bannerData.getBannerBaseColor();
+        final List<Pattern> patternList = bannerPattern.getPatterns();
+        final DyeColor baseColor = bannerPattern.getBannerBaseColor();
         if (itemMeta instanceof BlockStateMeta) {
             if (patternList.isEmpty())
                 return;
