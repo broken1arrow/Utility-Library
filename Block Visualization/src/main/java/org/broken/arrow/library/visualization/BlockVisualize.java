@@ -1,7 +1,6 @@
 package org.broken.arrow.library.visualization;
 
 import org.broken.arrow.library.visualization.builders.VisualizeData;
-import org.broken.arrow.library.visualization.utility.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -10,6 +9,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 /**
  * The BlockVisualize class provides functionality for visualizing blocks in the Minecraft server.
@@ -50,23 +50,23 @@ public class BlockVisualize {
 	/**
 	 * Visualizes a block with the given visualization data.
 	 *
-	 * @param block            The block to visualize.
-	 * @param visualizeData    A function that provides the visualization data.
-	 * @param shallBeVisualize Specifies whether the block should be visualized.
+	 * @param block            The block to visualize, must not be {@code null}.
+	 * @param visualizeData    A supplier that provides the {@link VisualizeData} to use for visualization.
+	 * @param shallBeVisualize {@code true} if the block should be visualized; {@code false} to remove or skip visualization.
 	 */
-	public void visualizeBlock(@Nonnull final Block block,@Nonnull final Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
+	public void visualizeBlock(@Nonnull final Block block, @Nonnull final Supplier<VisualizeData> visualizeData, final boolean shallBeVisualize) {
 		visualizeBlock(null, block, visualizeData, shallBeVisualize);
 	}
 
 	/**
-	 * Visualizes a block for a specific player with the given visualization data.
+	 * Visualizes a block for a specific player using the provided visualization data.
 	 *
-	 * @param player           The player for whom to visualize the block.
-	 * @param block            The block to visualize.
-	 * @param visualizeData    A function that provides the visualization data.
-	 * @param shallBeVisualize Specifies whether the block should be visualized.
+	 * @param player           the player for whom the block will be visualized; may be {@code null}.
+	 * @param block            the block to visualize; must not be {@code null}.
+	 * @param visualizeData    A supplier that provides the {@link VisualizeData} to use for visualization.
+	 * @param shallBeVisualize {@code true} if the block should be visualized; {@code false} to remove or skip visualization.
 	 */
-	public void visualizeBlock(@Nullable final Player player, @Nonnull final Block block, @Nonnull final Function<VisualizeData> visualizeData, final boolean shallBeVisualize) {
+	public void visualizeBlock(@Nullable final Player player, @Nonnull final Block block, @Nonnull final Supplier<VisualizeData> visualizeData, final boolean shallBeVisualize) {
 		BlockVisualizerCache blockVisualizer = this.blockVisualizerCache;
 		if (blockVisualizer == null) {
 			blockVisualizer = new BlockVisualizerCache(plugin, this);
@@ -75,9 +75,9 @@ public class BlockVisualize {
 		boolean isVisualized = blockVisualizer.isVisualized(block);
 		if (shallBeVisualize) {
 			if (!isVisualized)
-				blockVisualizer.visualize(player, block, visualizeData.apply());
+				blockVisualizer.visualize(player, block, visualizeData.get());
 		} else if (isVisualized) {
-			blockVisualizer.stopVisualizing(block, visualizeData.apply());
+			blockVisualizer.stopVisualizing(block, visualizeData.get());
 		}
 		blockVisualizer.getVisualTask().start();
 	}
