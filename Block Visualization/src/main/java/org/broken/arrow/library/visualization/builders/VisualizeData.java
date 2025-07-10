@@ -1,7 +1,6 @@
 package org.broken.arrow.library.visualization.builders;
 
 import org.broken.arrow.library.visualization.BlockVisualize;
-import org.broken.arrow.library.visualization.utility.Function;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.FallingBlock;
@@ -12,6 +11,7 @@ import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * This class stores the data set for visualizing a block glow
@@ -102,7 +102,7 @@ public final class VisualizeData {
      * Sets whether to stop visualizing the block.
      * <p>&nbsp;</p>
      * Recommends using {@link BlockVisualize#stopVisualizing(Block)}
-     * or {@link BlockVisualize#visualizeBlock(Player, Block, Function, boolean)}
+     * or {@link BlockVisualize#visualizeBlock(Player, Block, Supplier, boolean)}
      * and setting the last argument to false.
      *
      * @param stopVisualizeBlock true if the visualization should stop, false otherwise.
