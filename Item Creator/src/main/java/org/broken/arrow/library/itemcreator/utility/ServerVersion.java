@@ -1,0 +1,40 @@
+package org.broken.arrow.library.itemcreator.utility;
+
+import org.bukkit.plugin.Plugin;
+
+import javax.annotation.Nonnull;
+
+public class ServerVersion {
+
+    private float serverVersion;
+
+    public ServerVersion(@Nonnull final Plugin plugin) {
+        setServerVersion( plugin);
+    }
+
+    public float getServerVersion() {
+        return serverVersion;
+    }
+
+
+    private void setServerVersion(final Plugin plugin) {
+        final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
+        final String firstNumber;
+        String secondNumber;
+        final String firstString = versionPieces[1];
+        if (firstString.contains("-")) {
+            firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
+
+            secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
+            final int index = secondNumber.toUpperCase().indexOf("R");
+            if (index >= 0)
+                secondNumber = secondNumber.substring(index + 1);
+        } else {
+            final String secondString = versionPieces[2];
+            firstNumber = firstString;
+            secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
+        }
+        serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+    }
+
+}

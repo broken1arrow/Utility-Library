@@ -3,6 +3,7 @@ package org.broken.arrow.library.itemcreator;
 
 import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
+import org.broken.arrow.library.itemcreator.utility.ServerVersion;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
 import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class ItemCreator {
 
-    private static float serverVersion;
+    private static ServerVersion serverVersion;
     private final NBTManger nbtManger;
     private ConvertToItemStack convertItems;
     private boolean haveTextTranslator = true;
@@ -33,10 +34,10 @@ public class ItemCreator {
     public ItemCreator(Plugin plugin, boolean turnOffLogger) {
 
         this.nbtManger = new NBTManger(plugin, turnOffLogger);
-        setServerVersion(plugin);
+        serverVersion = new ServerVersion(plugin);
 
         if (convertItems == null)
-            convertItems = new ConvertToItemStack(serverVersion);
+            convertItems = new ConvertToItemStack(serverVersion.getServerVersion());
 
         try {
             TextTranslator.getInstance();
@@ -228,27 +229,7 @@ public class ItemCreator {
     }
 
     public static float getServerVersion() {
-        return serverVersion;
-    }
-
-    private static void setServerVersion(final Plugin plugin) {
-        final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
-        final String firstNumber;
-        String secondNumber;
-        final String firstString = versionPieces[1];
-        if (firstString.contains("-")) {
-            firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
-
-            secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
-            final int index = secondNumber.toUpperCase().indexOf("R");
-            if (index >= 0)
-                secondNumber = secondNumber.substring(index + 1);
-        } else {
-            final String secondString = versionPieces[2];
-            firstNumber = firstString;
-            secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
-        }
-        serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+        return serverVersion.getServerVersion();
     }
 
     @Nullable

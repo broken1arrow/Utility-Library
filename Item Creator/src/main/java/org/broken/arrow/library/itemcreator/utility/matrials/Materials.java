@@ -571,17 +571,17 @@ public enum Materials {
 	private static class Constants {
 		private static final String STAINED_GLASS_PANE = "STAINED_GLASS_PANE";
 		private static final String STAINED_GLASS = "STAINED_GLASS";
-		public static final String WOOL = "WOOL";
-		public static final String CARPET = "CARPET";
-		public static final String CONCRETE = "CONCRETE";
-		public static final String CONCRETE_POWDER = "CONCRETE_POWDER";
-		public static final String STAINED_CLAY = "STAINED_CLAY";
-		public static final String INK_SACK = "INK_SACK";
-		public static final String WOOD_STEP = "WOOD_STEP";
-		public static final String SPRUCE = "SPRUCE";
+		private static final String WOOL = "WOOL";
+		private static final String CARPET = "CARPET";
+		private static final String CONCRETE = "CONCRETE";
+		private static final String CONCRETE_POWDER = "CONCRETE_POWDER";
+		private static final String STAINED_CLAY = "STAINED_CLAY";
+		private static final String INK_SACK = "INK_SACK";
+		private static final String WOOD_STEP = "WOOD_STEP";
+		private static final String SPRUCE = "SPRUCE";
 		private static final String BIRCH = "BIRCH";
-		public static final String JUNGLE = "JUNGLE";
-		public static final String ACACIA = "ACACIA";
+		private static final String JUNGLE = "JUNGLE";
+		private static final String ACACIA = "ACACIA";
 		private static final String STONE = "STONE";
 		private static final String RAW_FISH = "RAW_FISH";
 		private static final String FENCE = "FENCE";
