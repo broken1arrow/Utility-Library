@@ -1,5 +1,6 @@
 package org.broken.arrow.library.visualization;
 
+import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.visualization.builders.VisualizeData;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -49,6 +50,9 @@ public class BlockVisualize {
 
 	/**
 	 * Visualizes a block with the given visualization data.
+	 * <p>
+	 * This will attempt to visualize the block for the players defined in the {@link VisualizeData}.
+	 * </p>
 	 *
 	 * @param block            The block to visualize, must not be {@code null}.
 	 * @param visualizeData    A supplier that provides the {@link VisualizeData} to use for visualization.
@@ -59,7 +63,10 @@ public class BlockVisualize {
 	}
 
 	/**
-	 * Visualizes a block for a specific player using the provided visualization data.
+	 * Visualizes a block for a specific player or using the player(s) provided in the {@link VisualizeData}.
+	 * <p>
+	 * If the player is {@code null}, the method will fall back to the players defined in the {@link VisualizeData}.
+	 * </p>
 	 *
 	 * @param player           the player for whom the block will be visualized; may be {@code null}.
 	 * @param block            the block to visualize; must not be {@code null}.
@@ -67,6 +74,8 @@ public class BlockVisualize {
 	 * @param shallBeVisualize {@code true} if the block should be visualized; {@code false} to remove or skip visualization.
 	 */
 	public void visualizeBlock(@Nullable final Player player, @Nonnull final Block block, @Nonnull final Supplier<VisualizeData> visualizeData, final boolean shallBeVisualize) {
+        Validate.checkBoolean(checkAtLeastOnePlayerProvided(player,visualizeData.get()),"You must provide at least one player to visualize the block.");
+
 		BlockVisualizerCache blockVisualizer = this.blockVisualizerCache;
 		if (blockVisualizer == null) {
 			blockVisualizer = new BlockVisualizerCache(plugin, this);
@@ -111,4 +120,13 @@ public class BlockVisualize {
 		else
 			return Bukkit.getScheduler().runTaskLater(plugin, task, tick);
 	}
+
+
+	private boolean checkAtLeastOnePlayerProvided(final Player player, final VisualizeData visualizeData) {
+		if (player == null){
+			return visualizeData.getPlayersAllowed().isEmpty() || visualizeData.getViewer() == null;
+		}
+        return false;
+    }
+
 }

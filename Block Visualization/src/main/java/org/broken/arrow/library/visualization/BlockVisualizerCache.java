@@ -46,22 +46,23 @@ public final class BlockVisualizerCache {
 
     }
 
-    private void setVisualData(VisualizeData visualizeData, Location location, Iterator<Player> players, Player viewer) {
+    private void setVisualData(final VisualizeData visualizeData,final Location location, final Iterator<Player> players,final Player viewer) {
         if (viewer == null) {
             while (players.hasNext()) {
                 final Player player = players.next();
-                this.setPlayersInCache(visualizeData, location, player);
+                if (this.hasPermission(visualizeData,  player, null)) {
+                    this.setPlayersInCache(visualizeData, location, player);
+                }
             }
         } else {
             while (players.hasNext()) {
                 final Player player = players.next();
-                if (visualizeData.getPermission() == null || player.hasPermission(visualizeData.getPermission()) || player.getUniqueId().equals(viewer.getUniqueId())) {
+                if (this.hasPermission(visualizeData,  player,viewer)) {
                     this.setPlayersInCache(visualizeData, location, player);
                 }
             }
         }
     }
-
 
     public void stopVisualizing(@Nonnull final Block block, VisualizeData visualizeData) {
         this.throwErrorBlockNull(block );
@@ -160,4 +161,12 @@ public final class BlockVisualizerCache {
         if (b == null)
             throw new ValidateExceptions("Block is marked non-null but is set to null.");
     }
+
+    private boolean hasPermission(@Nonnull final VisualizeData visualizeData,@Nonnull final Player player,@Nullable final Player viewer) {
+        if(visualizeData.getPermission() != null){
+            return player.hasPermission(visualizeData.getPermission()) && (viewer == null || player.getUniqueId().equals(viewer.getUniqueId()));
+        }
+        return viewer == null || player.getUniqueId().equals(viewer.getUniqueId());
+    }
+
 }
