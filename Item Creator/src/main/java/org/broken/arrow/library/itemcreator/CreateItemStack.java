@@ -24,12 +24,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 
 /**
@@ -88,6 +90,27 @@ public class CreateItemStack {
     public CreateItemStack setAmountOfItems(final int amountOfItems) {
         this.amountOfItems = amountOfItems;
         return this;
+    }
+
+    /**
+     * Applies properties specific to a certain item meta type. This method safely verifies whether the metadata
+     * can be applied to the item, so using it on an incompatible item type will have no effect and cause no issues.
+     *
+     * <p>
+     * Use this method when you need to both apply metadata and return a custom value from the operation.
+     * If you only need to modify metadata without returning a result, consider using
+     * {@link #setItemMeta(Consumer)} instead it uses {@code CreateItemStack} so you can chain
+     * multiple methods.
+     * </p>
+     *
+     * @param metaModifier a function that receives a {@link MetaHandler} and returns a result of type {@code T}.
+     * @param <T>          the type of value to return from the modifier function.
+     * @return the result of applying the {@code metaModifier}, or {@code null} if none is returned.
+     */
+    @Nullable
+    public <T> T setItemMeta(@Nonnull final Function<MetaHandler, T> metaModifier) {
+        this.metaHandler = new MetaHandler();
+        return metaModifier.apply(metaHandler);
     }
 
     /**
