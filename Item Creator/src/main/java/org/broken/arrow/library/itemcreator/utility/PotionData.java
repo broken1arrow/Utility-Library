@@ -4,7 +4,6 @@ import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Represents a mapping of potion data types to Minecraft's {@link PotionType},
@@ -15,11 +14,11 @@ import javax.annotation.Nullable;
  * Designed to follow the modern style used in Spigot and Paper APIs as of Minecraft 1.20 and above.
  */
 public enum PotionData {
-    UNCRAFTABLE(null, Type.NORMAL),
-    WATER(null, Type.NORMAL),
-    MUNDANE(null, Type.NORMAL),
-    THICK(null, Type.NORMAL),
-    AWKWARD(null, Type.NORMAL),
+    UNCRAFTABLE(PotionType.UNCRAFTABLE, Type.NORMAL),
+    WATER( PotionType.WATER, Type.NORMAL),
+    MUNDANE(PotionType.MUNDANE, Type.NORMAL),
+    THICK(PotionType.THICK, Type.NORMAL),
+    AWKWARD( PotionType.AWKWARD, Type.NORMAL),
     NIGHT_VISION(PotionType.NIGHT_VISION, Type.NORMAL),
     LONG_NIGHT_VISION(PotionType.NIGHT_VISION, Type.LONG),
     INVISIBILITY(PotionType.INVISIBILITY, Type.NORMAL),
@@ -53,9 +52,9 @@ public enum PotionData {
     WEAKNESS(PotionType.WEAKNESS, Type.NORMAL),
     LONG_WEAKNESS(PotionType.WEAKNESS, Type.LONG),
     LUCK(PotionType.LUCK, Type.NORMAL),
-    TURTLE_MASTER(PotionType.SLOWNESS, Type.NORMAL),
-    LONG_TURTLE_MASTER(PotionType.SLOWNESS, Type.LONG),
-    STRONG_TURTLE_MASTER(PotionType.SLOWNESS, Type.STRONG),
+    TURTLE_MASTER(   PotionType.TURTLE_MASTER, Type.NORMAL),
+    LONG_TURTLE_MASTER(   PotionType.TURTLE_MASTER, Type.LONG),
+    STRONG_TURTLE_MASTER(   PotionType.TURTLE_MASTER, Type.STRONG),
     SLOW_FALLING(PotionType.SLOW_FALLING, Type.NORMAL),
     LONG_SLOW_FALLING(PotionType.SLOW_FALLING, Type.LONG),
     ;
@@ -71,22 +70,19 @@ public enum PotionData {
      *                   or {@code null} for special cases like MUNDANE or WATER.
      * @param type       The {@link Type} modifier for the potion, e.g., NORMAL, LONG, or STRONG.
      */
-    PotionData(@Nullable final PotionType potionType, @Nonnull final Type type) {
+    PotionData(@Nonnull final PotionType potionType, @Nonnull final Type type) {
         this.potionType = potionType;
+
         this.type = type;
     }
 
     /**
-     * Retrieves the associated {@link PotionType} for this enum constant.
-     * Handles version differences and special cases like uncraftable or water potions.
+     * Retrieves the associated {@link PotionType} for this enum constant. Handles version differences
+     * and special cases like uncraftable or water potions.
      *
      * @return The correct {@link PotionType} representing this potion data.
      */
     public PotionType getPotionType() {
-        PotionType potion = getSpecialPotion();
-        if (potion != null) {
-            return potion;
-        }
         if (this.serverVersion < 20.0) {
             return this.potionType;
         } else {
@@ -105,34 +101,11 @@ public enum PotionData {
     }
 
     /**
-     * Returns a {@link PotionType} for potions that are classified as "special",
-     * which don't follow the regular crafting or modifier rules.
+     * Resolves the appropriate {@link PotionType} for this enum constant,
+     * mapping to the modern potion representation (as introduced in newer Minecraft versions)
+     * if applicable.
      *
-     * @return The special {@link PotionType}, or {@code null} if not applicable.
-     */
-    @Nullable
-    private PotionType getSpecialPotion() {
-        switch (this) {
-            case UNCRAFTABLE:
-                return PotionType.UNCRAFTABLE;
-            case MUNDANE:
-                return PotionType.MUNDANE;
-            case THICK:
-                return PotionType.THICK;
-            case AWKWARD:
-                return PotionType.AWKWARD;
-            case WATER:
-                return PotionType.WATER;
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * Returns the updated {@link PotionType} for this data entry,
-     * mapping it to modern potion variants if applicable.
-     *
-     * @return The updated {@link PotionType}.
+     * @return the resolved {@link PotionType}, matching the current enum and modifier.
      */
     private PotionType getPotionMapping() {
         switch (this) {
