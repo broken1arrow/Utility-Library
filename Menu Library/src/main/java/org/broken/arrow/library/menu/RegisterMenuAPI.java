@@ -54,7 +54,7 @@ public class RegisterMenuAPI {
     }
 
     public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
-        menuAPI = this;
+        this.registerInstance();
         this.plugin = plugin;
         this.menuCache = new MenuCache();
         versionCheck(turnOffLogger);
@@ -85,6 +85,10 @@ public class RegisterMenuAPI {
         } catch (NoClassDefFoundError ignore) {
             notFoundItemCreator = true;
         }
+    }
+
+    private void registerInstance() {
+        menuAPI = this;
     }
 
     public static RegisterMenuAPI getMenuAPI() {
