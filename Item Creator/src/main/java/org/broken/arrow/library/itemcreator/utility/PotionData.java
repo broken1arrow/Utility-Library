@@ -15,10 +15,10 @@ import javax.annotation.Nonnull;
  */
 public enum PotionData {
     UNCRAFTABLE(PotionType.UNCRAFTABLE, Type.NORMAL),
-    WATER( PotionType.WATER, Type.NORMAL),
+    WATER(PotionType.WATER, Type.NORMAL),
     MUNDANE(PotionType.MUNDANE, Type.NORMAL),
     THICK(PotionType.THICK, Type.NORMAL),
-    AWKWARD( PotionType.AWKWARD, Type.NORMAL),
+    AWKWARD(PotionType.AWKWARD, Type.NORMAL),
     NIGHT_VISION(PotionType.NIGHT_VISION, Type.NORMAL),
     LONG_NIGHT_VISION(PotionType.NIGHT_VISION, Type.LONG),
     INVISIBILITY(PotionType.INVISIBILITY, Type.NORMAL),
@@ -52,9 +52,9 @@ public enum PotionData {
     WEAKNESS(PotionType.WEAKNESS, Type.NORMAL),
     LONG_WEAKNESS(PotionType.WEAKNESS, Type.LONG),
     LUCK(PotionType.LUCK, Type.NORMAL),
-    TURTLE_MASTER(   PotionType.TURTLE_MASTER, Type.NORMAL),
-    LONG_TURTLE_MASTER(   PotionType.TURTLE_MASTER, Type.LONG),
-    STRONG_TURTLE_MASTER(   PotionType.TURTLE_MASTER, Type.STRONG),
+    TURTLE_MASTER(PotionType.TURTLE_MASTER, Type.NORMAL),
+    LONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, Type.LONG),
+    STRONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, Type.STRONG),
     SLOW_FALLING(PotionType.SLOW_FALLING, Type.NORMAL),
     LONG_SLOW_FALLING(PotionType.SLOW_FALLING, Type.LONG),
     ;

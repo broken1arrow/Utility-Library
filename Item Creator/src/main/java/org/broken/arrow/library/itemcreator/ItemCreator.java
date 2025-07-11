@@ -34,7 +34,7 @@ public class ItemCreator {
     public ItemCreator(Plugin plugin, boolean turnOffLogger) {
 
         this.nbtManger = new NBTManger(plugin, turnOffLogger);
-        serverVersion = new ServerVersion(plugin);
+        setServerVersion(plugin);
 
         if (convertItems == null)
             convertItems = new ConvertToItemStack(serverVersion.getServerVersion());
@@ -244,4 +244,9 @@ public class ItemCreator {
     public boolean isHaveTextTranslator() {
         return haveTextTranslator;
     }
+    
+    private static void setServerVersion(Plugin plugin) {
+        serverVersion = new ServerVersion(plugin);
+    }
+
 }
