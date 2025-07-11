@@ -6,14 +6,14 @@ import javax.annotation.Nonnull;
 
 public class ServerVersion {
 
-    private float serverVersion;
+    private float version;
 
     public ServerVersion(@Nonnull final Plugin plugin) {
         setServerVersion( plugin);
     }
 
     public float getServerVersion() {
-        return serverVersion;
+        return version;
     }
 
 
@@ -34,7 +34,7 @@ public class ServerVersion {
             firstNumber = firstString;
             secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
         }
-        serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+        version = Float.parseFloat(firstNumber + "." + secondNumber);
     }
 
 }

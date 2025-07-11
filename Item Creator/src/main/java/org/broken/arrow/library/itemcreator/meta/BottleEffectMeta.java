@@ -229,8 +229,8 @@ public class BottleEffectMeta {
                 return;
             }
 
-            if (this.potionData != null) {
-                if (setPotionType(potionMeta)) return;
+            if (this.potionData != null && this.setPotionType(potionMeta)) {
+               return;
             }
 
             final List<PotionEffect> effects = getPotionEffects();
