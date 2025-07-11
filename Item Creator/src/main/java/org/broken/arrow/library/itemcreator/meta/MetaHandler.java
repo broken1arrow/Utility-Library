@@ -212,13 +212,8 @@ public class MetaHandler {
      */
     public void applyMeta(@Nonnull final ItemStack itemStack, @Nullable final ItemMeta itemMeta) {
         if (itemMeta != null) {
-            BannerMeta bannerMeta = this.banner;
-            if (bannerMeta != null && bannerMeta.isBanner(itemMeta)) {
-                Material materialFromColor = bannerMeta.getBannerMaterialFromColor();
-                if (materialFromColor != null && materialFromColor != itemStack.getType())
-                    itemStack.setType(materialFromColor);
-                bannerMeta.applyBannerPattern(itemMeta);
-            }
+            this.setBannerMeta(itemStack, itemMeta);
+
             if (bottleEffect != null)
                 bottleEffect.applyBottleEffects(itemMeta);
             if (enhancements != null)
@@ -230,6 +225,16 @@ public class MetaHandler {
             if (shieldMeta != null) {
                 shieldMeta.applyShieldBanner(itemMeta);
             }
+        }
+    }
+
+    private void setBannerMeta(@Nonnull ItemStack itemStack, @Nonnull ItemMeta itemMeta) {
+        BannerMeta bannerMeta = this.banner;
+        if (bannerMeta != null && bannerMeta.isBanner(itemMeta)) {
+            Material materialFromColor = bannerMeta.getBannerMaterialFromColor();
+            if (materialFromColor != null && materialFromColor != itemStack.getType())
+                itemStack.setType(materialFromColor);
+            bannerMeta.applyBannerPattern(itemMeta);
         }
     }
 }

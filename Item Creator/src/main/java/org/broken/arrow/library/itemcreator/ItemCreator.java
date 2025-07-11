@@ -244,7 +244,7 @@ public class ItemCreator {
     public boolean isHaveTextTranslator() {
         return haveTextTranslator;
     }
-    
+
     private static void setServerVersion(Plugin plugin) {
         serverVersion = new ServerVersion(plugin);
     }

@@ -46,7 +46,6 @@ public class BottleEffectMeta {
      */
     public BottleEffectMeta setPotionEffects(final List<PotionEffect> potionEffects) {
         if (potionEffects == null || potionEffects.isEmpty()) {
-            //logger.log(() -> "This list of portion effects is empty so no values will be added");
             return this;
         }
         this.potionEffects.clear();
@@ -231,19 +230,7 @@ public class BottleEffectMeta {
             }
 
             if (this.potionData != null) {
-                final PotionType potionType = this.getPotionType();
-                if (potionType != null) {
-                    PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
-                    PotionData.Type modifier = this.potionData.getModifier();
-                    boolean extendedPotion = this.extended;
-                    boolean upgradedPotion = this.upgraded;
-                    if (modifier != PotionData.Type.NORMAL) {
-                        extendedPotion = modifier == PotionData.Type.LONG;
-                        upgradedPotion = modifier == PotionData.Type.STRONG;
-                    }
-                    potionsUtility.setPotion(potionType, extendedPotion, upgradedPotion);
-                    return;
-                }
+                if (setPotionType(potionMeta)) return;
             }
 
             final List<PotionEffect> effects = getPotionEffects();
@@ -256,6 +243,23 @@ public class BottleEffectMeta {
                 effects.forEach((portionEffect) -> potionMeta.addCustomEffect(portionEffect, this.override));
             }
         }
+    }
+
+    private boolean setPotionType(@Nonnull final PotionMeta potionMeta) {
+        final PotionType potionType = this.getPotionType();
+        if (potionType != null) {
+            PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
+            PotionData.Type modifier = this.potionData.getModifier();
+            boolean extendedPotion = this.extended;
+            boolean upgradedPotion = this.upgraded;
+            if (modifier != PotionData.Type.NORMAL) {
+                extendedPotion = modifier == PotionData.Type.LONG;
+                upgradedPotion = modifier == PotionData.Type.STRONG;
+            }
+            potionsUtility.setPotion(potionType, extendedPotion, upgradedPotion);
+            return true;
+        }
+        return false;
     }
 
     /**
