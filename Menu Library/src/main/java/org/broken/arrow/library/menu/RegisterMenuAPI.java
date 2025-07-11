@@ -25,6 +25,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +55,7 @@ public class RegisterMenuAPI {
     }
 
     public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
-        this.registerInstance();
+        registerInstance(this);
         this.plugin = plugin;
         this.menuCache = new MenuCache();
         versionCheck(turnOffLogger);
@@ -87,8 +88,8 @@ public class RegisterMenuAPI {
         }
     }
 
-    private void registerInstance() {
-        menuAPI = this;
+    private static void registerInstance(@Nonnull final RegisterMenuAPI registerMenu) {
+        menuAPI = registerMenu;
     }
 
     public static RegisterMenuAPI getMenuAPI() {
