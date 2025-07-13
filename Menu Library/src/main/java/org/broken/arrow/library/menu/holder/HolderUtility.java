@@ -90,8 +90,8 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      * open menu and make one instance. If you set location to null, it will be removed
      * when you close menu.
      *
-     * @param player     some open menu.
-     * @param location   location you open menu.
+     * @param player      some open menu.
+     * @param location    location you open menu.
      * @param loadToCache if it shall load menu to cache.
      */
     public void menuOpen(@Nonnull final Player player, @Nullable final Location location, final boolean loadToCache) {
@@ -253,16 +253,21 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
     }
 
     /**
-     * Sets the number of items to be displayed on each page of the inventory. If the specified value is zero or negative,
-     * or if it exceeds the size of the inventory, the value will be set to the inventory size minus nine slots,
-     * which is the default value.
+     * Sets the number of items to display on each page of the inventory.
+     * <p>
+     * If the specified value is zero, negative, or exceeds the inventory size, a fallback is used,
+     * the value will default to the highest fill slot if set, or the inventory size minus 9 slots
+     * (to account for reserved slots).
      *
-     * @param itemsPerPage The number of items to be displayed on each page.
+     * @param itemsPerPage the number of items to display per page
      */
     public void setItemsPerPage(final int itemsPerPage) {
-        if (itemsPerPage <= 0 || itemsPerPage > this.inventorySize)
-            this.itemsPerPage = this.getFillSpace().size();
-        else
+        if (itemsPerPage <= 0 || itemsPerPage > this.getInventorySize()) {
+            int maxSlotNumber = findMaxFillSlot();
+            if (maxSlotNumber <= 0)
+                maxSlotNumber = this.getInventorySize() - 9;
+            this.itemsPerPage = maxSlotNumber;
+        } else
             this.itemsPerPage = itemsPerPage;
     }
 

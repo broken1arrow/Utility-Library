@@ -16,7 +16,6 @@ public class ServerVersion {
         return version;
     }
 
-
     private void setServerVersion(final Plugin plugin) {
         final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
         final String firstNumber;

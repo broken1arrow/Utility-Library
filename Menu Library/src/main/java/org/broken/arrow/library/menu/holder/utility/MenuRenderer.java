@@ -7,7 +7,7 @@ import org.broken.arrow.library.menu.builders.MenuDataUtility;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.DoubleSupplier;
 import java.util.logging.Level;
 
 /**
@@ -19,7 +19,7 @@ import java.util.logging.Level;
 public class MenuRenderer<T> {
     private final Logging logger = new Logging(MenuRenderer.class);
     private final MenuUtility<T> utility;
-    private Supplier<Double> amountOfPages;
+    private DoubleSupplier amountOfPages;
     private int itemIndex;
     private int lastFillSlot;
     private int numberOfFillItems;
@@ -167,7 +167,7 @@ public class MenuRenderer<T> {
      *
      * @param amountOfPages a supplier that returns a number representing the page count
      */
-    public void setAmountOfPages(@Nonnull final Supplier<Double> amountOfPages) {
+    public void setAmountOfPages(@Nonnull final DoubleSupplier amountOfPages) {
         this.amountOfPages = amountOfPages;
     }
 
@@ -184,19 +184,22 @@ public class MenuRenderer<T> {
 
         int perPageItems = this.utility.getItemsPerPage();
         int size = this.utility.getInventorySize();
-        int itemCount = (fillItems == null || fillItems.isEmpty()) ? (size - 9) : fillItems.size();
+        int itemCount = (fillItems == null || fillItems.isEmpty()) ? -1: fillItems.size();
 
-        if (perPageItems > size) {
-            this.logger.log(Level.WARNING, () ->
-                    "Items per page are greater than inventory size. Items per page: " + perPageItems + ". Inventory size: " + size);
-            return (double) itemCount / fallbackPerPage(size);
-        } else if (perPageItems <= 0) {
-            this.logger.log(Level.WARNING, () -> "Items per page must be greater than 0.");
-            return 0;
+        if (itemCount > 0) {
+            if (perPageItems > size) {
+                this.logger.log(Level.WARNING, () ->
+                        "Items per page are greater than inventory size. Items per page: " + perPageItems + ". Inventory size: " + size);
+                return (double) itemCount / fallbackPerPage(size);
+            } else if (perPageItems <= 0) {
+                this.logger.log(Level.WARNING, () -> "Items per page must be greater than 0.");
+                return 0;
+            }
         }
 
-        double pagesNeeded = (double) itemCount / perPageItems;
         int manuallySetPages = this.utility.getManuallySetPages();
+        double pagesNeeded = (double) itemCount / perPageItems;
+
         if (setPages != null) {
             return Math.max(setPages, pagesNeeded);
         } else if (manuallySetPages > 0) {
@@ -214,8 +217,8 @@ public class MenuRenderer<T> {
     @Nullable
     private Double getSetPages() {
         if (this.amountOfPages != null) {
-            Double pagesTotal = this.amountOfPages.get();
-            if (pagesTotal != null && pagesTotal > 0)
+            double pagesTotal = this.amountOfPages.getAsDouble();
+            if (pagesTotal > 0)
                 return pagesTotal;
         }
         return null;

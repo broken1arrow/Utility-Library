@@ -236,7 +236,7 @@ public class RegisterMenuAPI {
 
             MetadataPlayer metadataPlayer = getPlayerMeta();
             if (metadataPlayer.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION)) {
-                menukey = metadataPlayer.getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION,MenuCacheKey.class);
+                menukey = metadataPlayer.getPlayerMetadata(player, MenuMetadataKey.MENU_OPEN_LOCATION, MenuCacheKey.class);
             }
 
             final MenuUtility<?> menuUtility;

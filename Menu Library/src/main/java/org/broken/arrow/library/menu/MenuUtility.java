@@ -448,8 +448,12 @@ public class MenuUtility<T> {
     }
 
     public int getItemsPerPage() {
-        if (this.itemsPerPage <= 0) {
-            this.itemsPerPage = this.getFillSpace().size();
+        int itemsSize = this.itemsPerPage;
+        if (itemsSize <= 0) {
+            int maxSlotNumber = findMaxFillSlot();
+            if (maxSlotNumber <= 0)
+                maxSlotNumber = this.getInventorySize() - 9;
+            this.itemsPerPage = maxSlotNumber;
         }
         return this.itemsPerPage;
     }
@@ -1032,6 +1036,18 @@ public class MenuUtility<T> {
             this.animateTitleTask.runTask(20L + this.animateTitleTime);
         }
 
+    }
+
+    /**
+     * Calculates the highest slot number from the list of fill slots.
+     * <p>
+     * If you only need to retrieve the previously calculated value, use {@link #getHighestFillSlot()}
+     * instead, as this method performs the calculation every time it is called.
+     *
+     * @return the highest slot number, or -1 if the list is null or empty.
+     */
+    protected int findMaxFillSlot() {
+        return this.getFillSpace().stream().mapToInt(Integer::intValue).max().orElse(-1);
     }
 
     public Plugin getPlugin() {
