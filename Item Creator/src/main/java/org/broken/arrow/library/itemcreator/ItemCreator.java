@@ -19,7 +19,7 @@ public class ItemCreator {
 
     private static ServerVersion serverVersion;
     private final NBTManger nbtManger;
-    private ConvertToItemStack convertItems;
+    private final ConvertToItemStack convertItems;
     private boolean haveTextTranslator = true;
     private boolean enableColorTranslation = true;
 
@@ -36,8 +36,7 @@ public class ItemCreator {
         this.nbtManger = new NBTManger(plugin, turnOffLogger);
         setServerVersion(plugin);
 
-        if (convertItems == null)
-            convertItems = new ConvertToItemStack(serverVersion.getServerVersion());
+        this.convertItems = new ConvertToItemStack(serverVersion.getServerVersion());
 
         try {
             TextTranslator.getInstance();
