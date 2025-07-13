@@ -34,7 +34,7 @@ public final class UtilityLibrary extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version=" + getDescription().getVersion());
+		getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version= " + getDescription().getVersion());
 		this.menuAPI = new RegisterMenuAPI(this);
 	}
 
