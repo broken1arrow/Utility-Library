@@ -168,7 +168,8 @@ Temporary Items
 .apdisk
 
 # End of https://www.gitignore.io/api/osx,java,eclipse,intellij,maven
-.gradle/8.7/*
-.gradle
+.gradle/*
+buildSrc/.gradle/*
+buildProject/.gradle/*
 */build
 build/*
