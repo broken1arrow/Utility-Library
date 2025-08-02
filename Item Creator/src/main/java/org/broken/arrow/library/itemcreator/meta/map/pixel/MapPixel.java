@@ -10,7 +10,6 @@ public abstract class MapPixel {
         this.x = x;
         this.y = y;
     }
-
     public int getX() {
         return x;
     }
