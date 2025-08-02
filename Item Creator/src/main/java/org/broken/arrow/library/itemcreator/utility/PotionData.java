@@ -4,6 +4,7 @@ import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Represents a mapping of potion data types to Minecraft's {@link PotionType},
@@ -14,7 +15,7 @@ import javax.annotation.Nonnull;
  * Designed to follow the modern style used in Spigot and Paper APIs as of Minecraft 1.20 and above.
  */
 public enum PotionData {
-    UNCRAFTABLE(PotionType.UNCRAFTABLE, Type.NORMAL),
+    UNCRAFTABLE(getUncraftable(), Type.NORMAL),
     WATER(PotionType.WATER, Type.NORMAL),
     MUNDANE(PotionType.MUNDANE, Type.NORMAL),
     THICK(PotionType.THICK, Type.NORMAL),
@@ -72,7 +73,6 @@ public enum PotionData {
      */
     PotionData(@Nonnull final PotionType potionType, @Nonnull final Type type) {
         this.potionType = potionType;
-
         this.type = type;
     }
 
@@ -82,12 +82,46 @@ public enum PotionData {
      *
      * @return The correct {@link PotionType} representing this potion data.
      */
+    @Nonnull
     public PotionType getPotionType() {
         if (this.serverVersion < 20.0) {
             return this.potionType;
         } else {
             return this.getPotionMapping();
         }
+    }
+
+    /**
+     * Find the portion mapping from the bukkit potion type.
+     *
+     * @param bukkitPortionType the type you want to find.
+     * @return the PotionData instance or null if it could not find the PotionType.
+     */
+    @Nullable
+    public static PotionData findPotionByType(PotionType bukkitPortionType) {
+        PotionData[] potionTypes = values();
+        for (PotionData potion : potionTypes) {
+            if (potion.getPotionType() == bukkitPortionType)
+                return potion;
+        }
+        return null;
+    }
+
+    /**
+     * Find the portion from the bukkit potion type.
+     *
+     * @param bukkitPortionType the type you want to find.
+     * @return the PotionData instance or null if it could not find the PotionType.
+     */
+    @Nullable
+    public static PotionType findPotionByName(String bukkitPortionType) {
+        PotionType[] potionTypes = PotionType.values();
+        String bukkitPortion = bukkitPortionType.toUpperCase();
+        for (PotionType potion : potionTypes) {
+            if (potion.name().equals(bukkitPortion))
+                return potion;
+        }
+        return null;
     }
 
     /**
@@ -102,11 +136,11 @@ public enum PotionData {
 
     /**
      * Resolves the appropriate {@link PotionType} for this enum constant,
-     * mapping to the modern potion representation (as introduced in newer Minecraft versions)
-     * if applicable.
+     * mapping to the modern potion representation (as introduced in newer Minecraft versions).
      *
      * @return the resolved {@link PotionType}, matching the current enum and modifier.
      */
+    @Nonnull
     private PotionType getPotionMapping() {
         switch (this) {
             case LONG_NIGHT_VISION:
@@ -180,4 +214,17 @@ public enum PotionData {
          */
         STRONG,
     }
+
+    /**
+     * Attempting to get the uncraftable type, this default back
+     * to mundane on newer Minecraft versions like 1.21 and beyond.
+     * @return A {@link PotionType#UNCRAFTABLE} if it exist
+     * other cases {@link PotionType#MUNDANE}
+     */
+    @Nonnull
+    private static PotionType getUncraftable() {
+        PotionType potion = findPotionByName("UNCRAFTABLE");
+        return potion != null ? potion : PotionType.MUNDANE;
+    }
+
 }

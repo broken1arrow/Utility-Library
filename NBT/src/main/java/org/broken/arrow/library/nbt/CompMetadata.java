@@ -284,7 +284,7 @@ public final class CompMetadata {
      * @return The NBTReaderWrapper instance if the compound key was found and applied, null otherwise.
      */
 	@Nullable
-	public <T> T getMetadata(@Nonnull final ItemStack item, Function<NBTReaderWrapper, T> function) {
+	public <T> T getMetadata(@Nonnull final ItemStack item, Function<NBTReaderWrapper<ReadableNBT>, T> function) {
 		Validate.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			return null;
@@ -295,7 +295,7 @@ public final class CompMetadata {
 			if (hasTag) {
 				ReadableNBT compound = nbt.getCompound(compoundTag);
 				if (compound != null) {
-					T returnedObject = function.apply(new NBTReaderWrapper(compound));
+					T returnedObject = function.apply(new NBTReaderWrapper<>(compound));
 					if (returnedObject instanceof NBTReaderWrapper)
 						throw new ValidateExceptions("You can't return NBTReaderWrapper instance, because it will be closed after this call.");
 					return getOrNull (returnedObject);
@@ -318,7 +318,7 @@ public final class CompMetadata {
 	 * @param item     The item from which to retrieve metadata.
 	 * @param consumer The consumer that return NBT values you can read on your item.
 	 */
-	public void getMetadata(@Nonnull final ItemStack item, Consumer<NBTReaderWrapper> consumer) {
+	public void getMetadata(@Nonnull final ItemStack item, Consumer<NBTReaderWrapper<ReadableNBT>> consumer) {
 		Validate.checkNotNull(item, this.setMessageItemNull());
 		if (item.getType() == Material.AIR)
 			return;
@@ -329,7 +329,7 @@ public final class CompMetadata {
 			if (hasTag) {
 				ReadableNBT compound = nbt.getCompound(compoundTag);
 				if (compound != null) {
-					consumer.accept(new NBTReaderWrapper(compound));
+					consumer.accept(new NBTReaderWrapper<>(compound));
 				}
 			}
 		});

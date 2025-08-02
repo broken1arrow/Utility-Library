@@ -6,6 +6,7 @@ import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadableNBTList;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.util.Set;
@@ -15,16 +16,29 @@ import java.util.UUID;
  * This class provides methods for retrieving data from an underlying object without modifying it.
  * <p>&nbsp;</p>
  * <p>
- * Note: The {@link ReadableNBT#getCompound(String)} method has been removed, as it is unnecessary
- * to self-retrieve the compound since it is already retrieved in the constructor.
+ * <p>
+ * Note: The {@link ReadableNBT#getCompound(String)} method was removed because retrieving
+ * a compound by key is unnecessary. The compound instance is now supplied directly via
+ * the constructor. Since this library wraps your primary compound, exposing access to
+ * nested compounds directly would go against its goal of simplicity and ease of use.
  * </p>
+ * <p>
+ * If you need low-level access to nested compounds, you can use the
+ * {@link de.tr7zw.changeme.nbtapi.NBT} class directly, or call
+ * {@link NBTReaderWrapper#getCompound()} to access a specific nested compound —
+ * but this is only recommended if you're familiar with the structure of the top-level compound.
+ * </p>
+ *
  * <p>&nbsp;</p>
+ *
+ * @param <T> the type of NBT compound being wrapped; must extend {@link ReadableNBT}.
+ *            This type determines which NBT structure is accessible through this wrapper
  */
-public class NBTReaderWrapper {
+public class NBTReaderWrapper<T extends ReadableNBT>  {
 
-	private final ReadableNBT readableNBT;
+	private final T readableNBT;
 
-	public NBTReaderWrapper(ReadableNBT readableNBT) {
+	public NBTReaderWrapper(T readableNBT) {
 		this.readableNBT = readableNBT;
 	}
 
@@ -274,18 +288,27 @@ public class NBTReaderWrapper {
 	}
 
 	/**
+	 * Returns the underlying compound instance provided during construction.
+	 *
+	 * @return The generic compound instance held by this wrapper.
+	 */
+	public T getCompound() {
+		return this.readableNBT;
+	}
+
+	/**
 	 * Returns the stored value if exists, or provided value otherwise.
 	 * <p>
 	 * Supported types:
 	 * {@code byte/Byte, short/Short, int/Integer, long/Long, float/Float, double/Double, byte[], int[]},
 	 * {@link String}, {@link java.util.UUID}
 	 *
-	 * @param key          The key to retrive the set value.
+	 * @param key          The key to retrieve the set value.
 	 * @param defaultValue default non-null value.
-	 * @param <T>          the generic class type for the value.
+	 * @param <E>       the generic class type for the value.
 	 * @return Stored or provided value.
 	 */
-	public <T> T getOrDefault(final String key, final T defaultValue) {
+	public <E> E getOrDefault(final String key,@Nonnull final E defaultValue) {
 		return readableNBT.getOrDefault(key, defaultValue);
 	}
 
@@ -296,12 +319,12 @@ public class NBTReaderWrapper {
 	 * {@code Byte, Short, Integer, Long, Float, Double, byte[], int[]},
 	 * {@link String}, {@link java.util.UUID}
 	 *
-	 * @param key  The key to retrive the set value.
+	 * @param key  The key to retrieve the set value.
 	 * @param type The data type.
-	 * @param <T>  the generic class type for the value.
+	 * @param <E>  the generic class type for the value.
 	 * @return Stored or provided value
 	 */
-	public <T> T getOrNull(final String key, final Class<?> type) {
+	public <E> E getOrNull(final String key,@Nonnull final Class<?> type) {
 		return readableNBT.getOrNull(key, type);
 	}
 

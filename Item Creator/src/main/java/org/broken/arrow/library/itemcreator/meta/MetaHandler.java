@@ -37,6 +37,7 @@ public class MetaHandler {
     private FireworkMeta firework;
     private LeatherMeta leatherMeta;
     private ShieldMeta shieldMeta;
+    private MapWrapperMeta mapMeta;
 
     public BannerMeta getBanner() {
         return banner;
@@ -193,6 +194,30 @@ public class MetaHandler {
     }
 
     /**
+     * Initializes and configures the shield metadata using the provided function.
+     *
+     * @param metaFunction a consumer that modifies and returns a value from the {@link ShieldMeta}.
+     */
+    public void setMapMeta(final Consumer<MapWrapperMeta> metaFunction) {
+        final MapWrapperMeta mapMeta = new MapWrapperMeta();
+        metaFunction.accept(mapMeta );
+        this.mapMeta = mapMeta ;
+    }
+
+    /**
+     * Initializes and configures the shield metadata by using
+     * {@link ShieldMeta} class.
+     *
+     * @return the {@link ShieldMeta}} where you set the propitiates for your shield.
+     */
+    public MapWrapperMeta createMapMeta() {
+        this.mapMeta = new MapWrapperMeta();
+        return this.mapMeta;
+    }
+
+
+
+    /**
      * Applies all configured metadata (if any) to the provided {@link ItemMeta},
      * and updates the {@link ItemStack}'s type when necessary (e.g., for banner base colors).
      * <p>
@@ -224,6 +249,9 @@ public class MetaHandler {
                 leatherMeta.applyLeatherColor(itemMeta);
             if (shieldMeta != null) {
                 shieldMeta.applyShieldBanner(itemMeta);
+            }
+            if (mapMeta != null) {
+                mapMeta.applyMapMeta(itemMeta);
             }
         }
     }

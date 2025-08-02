@@ -2,6 +2,7 @@ package org.broken.arrow.library.itemcreator.meta;
 
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
+import org.bukkit.Color;
 
 import java.util.logging.Level;
 
@@ -70,6 +71,20 @@ public class ColorMeta {
         return this;
     }
 
+    public ColorMeta setRgb(final Color color) {
+        final int red = color.getRed();
+        final int green = color.getGreen();
+        final int blue = color.getBlue();
+        Validate.checkBoolean(red < 0 || green < 0 || blue < 0, "You can't use negative numbers for the rbg color.");
+
+        this.rgb = red + "," + green + "," + blue;
+        this.red = red;
+        this.green = green;
+        this.blue = blue;
+
+        return this;
+    }
+
     /**
      * Set the rbg color.
      *
@@ -97,5 +112,6 @@ public class ColorMeta {
     public boolean isColorSet() {
         return getRed() >= 0 && getGreen() >= 0 && getBlue() >= 0;
     }
+
 
 }

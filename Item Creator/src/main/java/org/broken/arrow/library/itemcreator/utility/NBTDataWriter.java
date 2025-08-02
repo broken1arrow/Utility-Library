@@ -1,9 +1,10 @@
-package org.broken.arrow.library.nbt.utility;
+package org.broken.arrow.library.itemcreator.utility;
 
-import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
-import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -11,28 +12,15 @@ import java.util.UUID;
  * This class provides methods to set string, integer, double, byte, short, long, float, byte array,
  * integer array, boolean, ItemStack, ItemStack array, and UUID values.
  */
-public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
-
-	private final ReadWriteNBT readWriteNBT;
-
-	/**
-	 * Constructs a new NBTDataWriterWrapper instance.
-	 *
-	 * @param readWriteNBT The ReadWriteNBT instance used for interacting with NBT data.
-	 */
-	public NBTDataWriterWrapper(ReadWriteNBT readWriteNBT) {
-		super(readWriteNBT);
-		this.readWriteNBT = readWriteNBT;
-	}
+public final class NBTDataWriter  {
+	private final Map<String, NBTValue> nbtCache = new HashMap<>();
+	private boolean clearNBT;
 
 	/**
-	 * Merges all data from the provided compound tag into this compound. This is done in one action, so
-	 * it also works with Tiles/Entities
+	 * Constructs a new NBTDataWriter instance.
 	 *
-	 * @param comp The ReadableNBT instance containing the data to merge.
 	 */
-	public void mergeCompound(ReadableNBT comp) {
-		this.readWriteNBT.mergeCompound(comp);
+	public NBTDataWriter() {
 	}
 
 	/**
@@ -42,7 +30,8 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The string value to set.
 	 */
 	public void setString(String key, String value) {
-		this.readWriteNBT.setString(key, value);
+		this.putNBT(key,value);
+
 	}
 
 	/**
@@ -52,7 +41,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The integer value to set.
 	 */
 	public void setInteger(String key, Integer value) {
-		this.readWriteNBT.setInteger(key, value);
+		this.putNBT(key,value);
 	}
 
 	/**
@@ -62,7 +51,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The double value to set.
 	 */
 	public void setDouble(String key, Double value) {
-		this.readWriteNBT.setDouble(key, value);
+		this.putNBT(key,value);
 	}
 
 	/**
@@ -72,7 +61,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The byte value to set.
 	 */
 	public void setByte(String key, Byte value) {
-		this.readWriteNBT.setByte(key, value);
+		this.putNBT(key,value);
 	}
 
 	/**
@@ -82,7 +71,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The short value to set.
 	 */
 	public void setShort(String key, Short value) {
-		this.readWriteNBT.setShort(key, value);
+		this.putNBT(key,value);
 	}
 
 	/**
@@ -92,7 +81,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The long value to set.
 	 */
 	public void setLong(String key, Long value) {
-		this.readWriteNBT.setLong(key, value);
+		this.putNBT(key,value);
 	}
 
 	/**
@@ -102,7 +91,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The float value to set.
 	 */
 	public void setFloat(String key, Float value) {
-		this.readWriteNBT.setFloat(key, value);
+		this.putNBT(key,value);
 	}
 
 	/**
@@ -112,7 +101,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The byte array value to set.
 	 */
 	public void setByteArray(String key, byte[] value) {
-		this.readWriteNBT.setByteArray(key, value);
+		this.putNBT(key,value);
 	}
 
 	/**
@@ -122,7 +111,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The integer array value to set.
 	 */
 	public void setIntArray(String key, int[] value) {
-		this.readWriteNBT.setIntArray(key, value);
+		this.putNBT(key,value);
 	}
 
 	/**
@@ -132,7 +121,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value The boolean value to set.
 	 */
 	public void setBoolean(String key, Boolean value) {
-		this.readWriteNBT.setBoolean(key, value);
+		this.putNBT(key,value);
 	}
 
 	/**
@@ -142,7 +131,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param item The ItemStack value to set.
 	 */
 	public void setItemStack(String key, ItemStack item) {
-		this.readWriteNBT.setItemStack(key, item);
+		this.putNBT(key,item);
 	}
 
 	/**
@@ -152,7 +141,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param items The ItemStack array value to set.
 	 */
 	public void setItemStackArray(String key, ItemStack[] items) {
-		this.readWriteNBT.setItemStackArray(key, items);
+		this.putNBT(key,items);
 	}
 
 	/**
@@ -162,7 +151,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value the UUID value to set.
 	 */
 	public void setUUID(String key, UUID value) {
-		this.readWriteNBT.setUUID(key, value);
+		this.putNBT(key,value);
 	}
 	
 	/**
@@ -173,7 +162,7 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param value the Enum value to set.
 	 */
 	public <E extends Enum<?>> void setEnum(String key, E value){
-		this.readWriteNBT.setEnum(key, value);
+		this.putNBT(key,value);
 	}
 	
 	/**
@@ -182,13 +171,31 @@ public final class NBTDataWriterWrapper extends NBTReaderWrapper<ReadWriteNBT> {
 	 * @param key The key to delete.
 	 */
 	public void removeKey(String key) {
-		this.readWriteNBT.removeKey(key);
+		this.putNBT(key,null);
 	}
+
+	public Map<String, NBTValue> getNbtCache() {
+		return nbtCache;
+	}
+
+	public boolean isClearNBT() {
+		return clearNBT;
+	}
+
+	public void putNBT(@Nonnull final String key, final Object value) {
+		this.putNBT(key,value,false);
+	}
+
+	public void putNBT(@Nonnull final String key, final Object value,final boolean removeKey) {
+		this.nbtCache.put(key,new NBTValue(value, true));
+	}
+
+
 
 	/**
 	 * Remove all keys from this compound
 	 */
 	public void clearNBT(){
-		this.readWriteNBT.clearNBT();
+		this.clearNBT = true;
 	}
 }

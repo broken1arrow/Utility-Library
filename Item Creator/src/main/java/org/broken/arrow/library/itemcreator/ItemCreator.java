@@ -20,6 +20,7 @@ public class ItemCreator {
     private static ServerVersion serverVersion;
     private final NBTManger nbtManger;
     private final ConvertToItemStack convertItems;
+    private final Plugin plugin;
     private boolean haveTextTranslator = true;
     private boolean enableColorTranslation = true;
 
@@ -27,12 +28,12 @@ public class ItemCreator {
         throw new ValidateExceptions("should not use empty constructor");
     }
 
-    public ItemCreator(Plugin plugin) {
+    public ItemCreator(final Plugin plugin) {
         this(plugin, false);
     }
 
-    public ItemCreator(Plugin plugin, boolean turnOffLogger) {
-
+    public ItemCreator(final Plugin plugin, boolean turnOffLogger) {
+this.plugin = plugin;
         this.nbtManger = new NBTManger(plugin, turnOffLogger);
         setServerVersion(plugin);
 
@@ -238,6 +239,10 @@ public class ItemCreator {
 
     public ConvertToItemStack getConvertItems() {
         return convertItems;
+    }
+
+    public Plugin getPlugin() {
+        return plugin;
     }
 
     public boolean isHaveTextTranslator() {

@@ -42,7 +42,7 @@ import java.util.function.Function;
 
 public class CreateItemStack {
     private static final Logging logger = new Logging(CreateItemStack.class);
-
+    private final ItemCreator itemCreator;
     private final ConvertToItemStack convertItems;
     private final ItemBuilder itemBuilder;
     private final Iterable<?> itemArray;
@@ -55,20 +55,20 @@ public class CreateItemStack {
 
     private String color;
     private List<ItemFlag> itemFlags;
-    private MetaDataWrapper metadata;
+    private NBTDataWrapper nbtDataWrapper;
     private MetaHandler metaHandler;
     private int amountOfItems;
     private byte data = -1;
     private int customModelData = -1;
     private short damage = 0;
     private boolean glow;
-    private boolean waterBottle;
     private boolean unbreakable;
     private boolean keepAmount;
     private boolean keepOldMeta = true;
     private boolean copyOfItem;
 
     public CreateItemStack(final ItemCreator itemCreator, final ItemBuilder itemBuilder) {
+        this.itemCreator = itemCreator;
         this.serverVersion = ItemCreator.getServerVersion();
         this.convertItems = itemCreator.getConvertItems();
 
@@ -241,7 +241,9 @@ public class CreateItemStack {
      * @return true if it a water Bottle item.
      */
     public boolean isWaterBottle() {
-        return waterBottle;
+        if (this.metaHandler == null)
+            return false;
+        return this.metaHandler.createBottleEffectMeta().isWaterBottle();
     }
 
     /**
@@ -254,7 +256,9 @@ public class CreateItemStack {
      */
     @Deprecated
     public CreateItemStack setWaterBottle(final boolean waterBottle) {
-        this.waterBottle = waterBottle;
+        if (this.metaHandler == null)
+            this.metaHandler = new MetaHandler();
+        this.metaHandler.createBottleEffectMeta().setWaterBottle(waterBottle);
         return this;
     }
 
@@ -320,8 +324,8 @@ public class CreateItemStack {
         if (this.metaHandler == null)
             this.metaHandler = new MetaHandler();
 
-        this.metaHandler.setFirework(bannerMeta -> {
-            bannerMeta.setFireworkEffect(fireworkEffect);
+        this.metaHandler.setFirework(fireworkMeta -> {
+            fireworkMeta.addFireworkEffect(fireworkEffect);
         });
     }
 
@@ -443,7 +447,7 @@ public class CreateItemStack {
     }
 
     /**
-     * Set custom metadata on item.
+     * Set custom nbt data on item.
      *
      * @param itemMetaKey   key for get value.
      * @param itemMetaValue value you want to set.
@@ -454,27 +458,27 @@ public class CreateItemStack {
     }
 
     /**
-     * Set custom metadata on item.
+     * Set custom nbt data on item.
      *
      * @param itemMetaKey   key for get value.
      * @param itemMetaValue value you want to set.
-     * @param keepclazz     true if it shall keep all data on the item or false to convert value to string.
+     * @param keepClazz     true if it shall keep all data on the item or false to convert value to string.
      * @return this class.
      */
-    public CreateItemStack setItemMetaData(final String itemMetaKey, final Object itemMetaValue, final boolean keepclazz) {
-        metadata = MetaDataWrapper.of().add(itemMetaKey, itemMetaValue, keepclazz);
+    public CreateItemStack setItemMetaData(final String itemMetaKey, final Object itemMetaValue, final boolean keepClazz) {
+        nbtDataWrapper = NBTDataWrapper.of(this.itemCreator).add(itemMetaKey, itemMetaValue, keepClazz);
         return this;
     }
 
     /**
-     * Set your metadata on the item. Use {@link MetaDataWrapper} class.
+     * Set your metadata on the item. Use {@link NBTDataWrapper} class.
      * To set key and value.
      *
      * @param wrapper values from MetaDataWrapper.
      * @return this class.
      */
-    public CreateItemStack setItemMetaDataList(final MetaDataWrapper wrapper) {
-        metadata = wrapper;
+    public CreateItemStack setItemMetaDataList(final NBTDataWrapper wrapper) {
+        nbtDataWrapper = wrapper;
         return this;
     }
 
@@ -487,11 +491,11 @@ public class CreateItemStack {
      */
     public CreateItemStack setItemMetaDataList(final Map<String, Object> itemMetaMap) {
         if (itemMetaMap != null && !itemMetaMap.isEmpty()) {
-            final MetaDataWrapper wrapper = MetaDataWrapper.of();
+            final NBTDataWrapper wrapper = NBTDataWrapper.of(this.itemCreator);
             for (final Map.Entry<String, Object> itemData : itemMetaMap.entrySet()) {
                 wrapper.add(itemData.getKey(), itemData.getValue());
             }
-            metadata = wrapper;
+            nbtDataWrapper = wrapper;
         }
         return this;
     }
@@ -803,10 +807,16 @@ public class CreateItemStack {
     private ItemStack getItemStack(@Nonnull ItemStack itemStack) {
         if (!isAir(itemStack.getType())) {
             final RegisterNbtAPI nbt = this.nbtApi;
+
             if (nbt != null) {
-                final Map<String, Object> metadataMap = this.getMetadataMap();
-                if (metadataMap != null && !metadataMap.isEmpty())
+                final Map<String, Object> metadataMap = this.getNBTdataMap();
+                if (!metadataMap.isEmpty())
                     itemStack = nbt.getCompMetadata().setAllMetadata(itemStack, metadataMap);
+                else {
+                    NBTDataWrapper dataWrapper = this.getNbtDataWrapper();
+                    if(dataWrapper != null)
+                        itemStack = dataWrapper.applyNBT(itemStack);
+                }
             }
 
             final ItemMeta itemMeta = itemStack.getItemMeta();
@@ -948,12 +958,14 @@ public class CreateItemStack {
         return convertItems;
     }
 
-    public MetaDataWrapper getMetadata() {
-        return metadata;
+    @Nullable
+    public NBTDataWrapper getNbtDataWrapper() {
+        return nbtDataWrapper;
     }
 
-    private Map<String, Object> getMetadataMap() {
-        MetaDataWrapper meta = getMetadata();
+    @Nonnull
+    private Map<String, Object> getNBTdataMap() {
+        NBTDataWrapper meta = getNbtDataWrapper();
         if (meta != null)
             return meta.getMetaDataMap();
         return new HashMap<>();
