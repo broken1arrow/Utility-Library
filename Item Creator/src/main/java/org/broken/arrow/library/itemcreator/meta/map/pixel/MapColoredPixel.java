@@ -6,14 +6,14 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PixelData extends MapPixel {
+public class MapColoredPixel extends MapPixel {
   private final Color color;
 
-  public PixelData(final int x, final int y) {
+  public MapColoredPixel(final int x, final int y) {
     this(x, y, null);
   }
 
-  public PixelData(final int x, final int y, @Nullable final Color color) {
+  public MapColoredPixel(final int x, final int y, @Nullable final Color color) {
     super(x, y);
     this.color = color;
   }
@@ -35,11 +35,11 @@ public class PixelData extends MapPixel {
     return map;
   }
 
-  public static PixelData deserialize(Map<String, Object> map) {
+  public static MapColoredPixel deserialize(Map<String, Object> map) {
     int x = (int) map.get("x");
     int y = (int) map.get("y");
     Object colorObject = map.get("color");
     Color color = colorObject != null ? new Color((int) colorObject) : null;
-    return new PixelData(x, y, color);
+    return new MapColoredPixel(x, y, color);
   }
 }

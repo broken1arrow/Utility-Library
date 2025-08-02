@@ -7,16 +7,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public final class MapCursorWrapper {
     private static int id;
     private final int cursorId;
-    private byte x, y;
-    private byte direction;
+    private final MapCursor cursor;
     private final byte rawType;
-    private final MapCursor.Type type;
-    private boolean visible;
-    private String caption;
 
     /**
      * Initialize the map cursor.
@@ -27,10 +24,9 @@ public final class MapCursorWrapper {
      * @param type      The type (color/style) of the map cursor.
      * @param visible   Whether the cursor is visible by default.
      */
-    public MapCursorWrapper(final byte x,final byte y,final byte direction,final @Nonnull MapCursor.Type type,final boolean visible) {
+    public MapCursorWrapper(final byte x, final byte y, final byte direction, final @Nonnull MapCursor.Type type, final boolean visible) {
         this(x, y, direction, type, visible, null);
     }
-
 
     /**
      * Initialize the map cursor.
@@ -42,15 +38,14 @@ public final class MapCursorWrapper {
      * @param visible   Whether the cursor is visible by default.
      * @param caption   cursor caption
      */
-    public MapCursorWrapper(final byte x,final byte y,final byte direction, @Nonnull final MapCursor.Type type,final boolean visible, @Nullable final String caption) {
-        this.x = x;
-        this.y = y;
+    public MapCursorWrapper(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible, @Nullable final String caption) {
         this.cursorId = id++;
-        this.type = type;
         this.rawType = retrieveRawType(type);
+        if (ItemCreator.getServerVersion() < 12.1f)
+            this.cursor = new MapCursor(x, y, direction, rawType, visible, caption);
+        else
+            this.cursor = new MapCursor(x, y, direction, type, visible, caption);
         setDirection(direction);
-        this.visible = visible;
-        this.caption = caption;
     }
 
     public int getCursorId() {
@@ -63,7 +58,7 @@ public final class MapCursorWrapper {
      * @return The X coordinate.
      */
     public byte getX() {
-        return x;
+        return cursor.getX();
     }
 
     /**
@@ -72,7 +67,7 @@ public final class MapCursorWrapper {
      * @param x The X coordinate.
      */
     public void setX(final byte x) {
-        this.x = x;
+        cursor.setX(x);
     }
 
     /**
@@ -81,7 +76,7 @@ public final class MapCursorWrapper {
      * @return The Y coordinate.
      */
     public byte getY() {
-        return y;
+        return cursor.getY();
     }
 
     /**
@@ -90,7 +85,7 @@ public final class MapCursorWrapper {
      * @param y The Y coordinate.
      */
     public void setY(final byte y) {
-        this.y = y;
+        cursor.setY(y);
     }
 
     /**
@@ -99,7 +94,7 @@ public final class MapCursorWrapper {
      * @return The facing of the cursor, from 0 to 15.
      */
     public byte getDirection() {
-        return direction;
+        return cursor.getDirection();
     }
 
     /**
@@ -109,9 +104,7 @@ public final class MapCursorWrapper {
      */
     @Nonnull
     public MapCursor.Type getType() {
-        if(type == null)
-            return MapCursor.Type.WHITE_POINTER;
-        return type;
+        return cursor.getType();
     }
 
     /**
@@ -122,8 +115,6 @@ public final class MapCursorWrapper {
      */
     @Deprecated
     public byte getRawType() {
-        if(type == null)
-            return MapCursor.Type.WHITE_POINTER.getValue();
         return rawType;
     }
 
@@ -133,7 +124,7 @@ public final class MapCursorWrapper {
      * @return True if visible, false otherwise.
      */
     public boolean isVisible() {
-        return visible;
+        return this.cursor.isVisible();
     }
 
 
@@ -142,11 +133,8 @@ public final class MapCursorWrapper {
      *
      * @param direction The facing of the cursor, from 0 to 15.
      */
-    public void setDirection(byte direction) {
-        if (direction < 0 || direction > 15) {
-            throw new IllegalArgumentException("Direction must be in the range 0-15");
-        }
-        this.direction = direction;
+    public void setDirection(final byte direction) {
+        this.cursor.setDirection(direction);
     }
 
     /**
@@ -155,7 +143,7 @@ public final class MapCursorWrapper {
      * @param visible True if visible.
      */
     public void setVisible(boolean visible) {
-        this.visible = visible;
+        this.cursor.setVisible(visible);
     }
 
     /**
@@ -165,7 +153,7 @@ public final class MapCursorWrapper {
      */
     @Nullable
     public String getCaption() {
-        return caption;
+        return this.cursor.getCaption();
     }
 
     /**
@@ -174,21 +162,19 @@ public final class MapCursorWrapper {
      * @param caption new caption
      */
     public void setCaption(@Nullable String caption) {
-        this.caption = caption;
+        this.cursor.setCaption(caption);
     }
 
-    public MapCursor build() {
-        if (ItemCreator.getServerVersion() < 12.1f)
-            return new MapCursor(x, y, direction, rawType, visible, caption);
-        return new MapCursor(x, y, direction, type, visible, caption);
+    public MapCursor getCursor() {
+        return this.cursor;
     }
 
     @Nonnull
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
         map.put("cursor_type", getType() + "");
-        map.put("x", x);
-        map.put("y", y);
+        map.put("x", getX());
+        map.put("y", getY());
         map.put("direction", getDirection());
         map.put("visible", isVisible() + "");
         map.put("caption", getCaption());
@@ -197,9 +183,9 @@ public final class MapCursorWrapper {
 
     public static MapCursorWrapper deserialize(Map<String, Object> map) {
         String type = (String) map.get("cursor_type");
-        byte x = (byte) (int) map.get("x");
-        byte y = (byte) (int) map.get("y");
-        byte direction = (byte) (int) map.get("direction");
+        byte x = ((Number) map.get("x")).byteValue();
+        byte y = ((Number) map.get("y")).byteValue();
+        byte direction = ((Number) map.get("direction")).byteValue();
         boolean visible = Boolean.parseBoolean(map.get("visible") + "");
         String caption = (String) map.get("caption");
 
@@ -217,8 +203,20 @@ public final class MapCursorWrapper {
         return MapCursor.Type.WHITE_POINTER;
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        final MapCursorWrapper that = (MapCursorWrapper) o;
+        return cursorId == that.cursorId && rawType == that.rawType && Objects.equals(cursor, that.cursor);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cursorId, cursor, rawType);
+    }
+
     private byte retrieveRawType(final MapCursor.Type type) {
-        if(type == null)
+        if (type == null)
             return 0;
         return type.getValue();
     }

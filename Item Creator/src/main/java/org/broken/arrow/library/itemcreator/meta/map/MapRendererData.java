@@ -1,12 +1,12 @@
 package org.broken.arrow.library.itemcreator.meta.map;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
-import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorHandler;
+import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorAdapter;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorWrapper;
 import org.broken.arrow.library.itemcreator.meta.map.font.CharacterSprite;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
-import org.broken.arrow.library.itemcreator.meta.map.pixel.PixelData;
+import org.broken.arrow.library.itemcreator.meta.map.pixel.MapColoredPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.TextOverlay;
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;
@@ -29,7 +29,7 @@ public class MapRendererData {
     private static int id;
     private final int mapRenderId;
     private final MapRenderer mapRenderer;
-    private MapCursorHandler mapCursors = new MapCursorHandler();
+    private MapCursorAdapter mapCursors = new MapCursorAdapter();
     private final List<MapPixel> pixels = new ArrayList<>();
 
     private MapRenderHandler dynamicRenderer;
@@ -49,11 +49,11 @@ public class MapRendererData {
     }
 
     public void addPixel(int x, int y, Color color) {
-        pixels.add(new PixelData(x, y, color));
+        pixels.add(new MapColoredPixel(x, y, color));
     }
 
-    public void addPixel(@Nonnull final PixelData pixelData) {
-        pixels.add(pixelData);
+    public void addPixel(@Nonnull final MapColoredPixel mapColoredPixel) {
+        pixels.add(mapColoredPixel);
     }
 
     public void addText(final int x, int y, final String text) {
@@ -79,11 +79,11 @@ public class MapRendererData {
         pixels.add(imageOverlay);
     }
 
-    public MapCursorWrapper addCursor(final byte x,final byte y,final byte direction,@Nonnull final MapCursor.Type type,final boolean visible) {
+    public MapCursorWrapper addCursor(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible) {
         return this.addCursor(x, y, direction, type, visible, null);
     }
 
-    public MapCursorWrapper addCursor(final byte x,final byte y,final byte direction,@Nonnull final MapCursor.Type type,final boolean visible,@Nullable final String caption) {
+    public MapCursorWrapper addCursor(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible, @Nullable final String caption) {
         final MapCursorWrapper cursorWrapper = new MapCursorWrapper(x, y, direction, type, visible, caption);
         return this.addCursor(cursorWrapper);
     }
@@ -97,7 +97,8 @@ public class MapRendererData {
         return mapRenderId;
     }
 
-    public MapCursorHandler getMapCursors() {
+    public MapCursorAdapter getMapCursors() {
+        mapCursors.getCursor(1);
         return mapCursors;
     }
 
@@ -117,11 +118,11 @@ public class MapRendererData {
                 canvas.setCursors(mapCursors.getMapCursorCollection());
                 if (!getPixels().isEmpty()) {
                     getPixels().forEach(mapPixel -> {
-                        if (mapPixel instanceof PixelData) {
+                        if (mapPixel instanceof MapColoredPixel) {
                             if (ItemCreator.getServerVersion() < 20.0F)
-                                canvas.setPixel(mapPixel.getX(), mapPixel.getY(), MapPalette.matchColor(((PixelData) mapPixel).getColor()));
+                                canvas.setPixel(mapPixel.getX(), mapPixel.getY(), MapPalette.matchColor(((MapColoredPixel) mapPixel).getColor()));
                             else
-                                canvas.setPixelColor(mapPixel.getX(), mapPixel.getY(), ((PixelData) mapPixel).getColor());
+                                canvas.setPixelColor(mapPixel.getX(), mapPixel.getY(), ((MapColoredPixel) mapPixel).getColor());
                         }
                         if (mapPixel instanceof TextOverlay) {
                             TextOverlay textOverlay = (TextOverlay) mapPixel;
@@ -152,7 +153,7 @@ public class MapRendererData {
     @Nonnull
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        map.put("cursors", mapCursors.serialize());
+        map.putAll(mapCursors.serialize());
         map.put("pixels", this.pixels.stream().map(MapPixel::serialize).collect(Collectors.toList()));
         return map;
     }
@@ -162,22 +163,26 @@ public class MapRendererData {
         final Object pixels = map.get("pixels");
         final MapRendererData mapRendererData = new MapRendererData();
 
-        if (cursors instanceof Map<?, ?>) {
-            mapRendererData.mapCursors = MapCursorHandler.deserialize((Map<String, Object>) cursors);
+        if (cursors instanceof List<?>) {
+            MapCursorAdapter mapCursorAdapter = new MapCursorAdapter();
+            for (Object cursor : (List<?>) cursors) {
+                Map<String, Object> pixelMap = (Map<String, Object>) cursor;
+                mapCursorAdapter.addCursor(MapCursorWrapper.deserialize(pixelMap));
+            }
+            mapRendererData.mapCursors = mapCursorAdapter ;
         }
         if (pixels instanceof List<?>) {
             for (Object pixel : (List<?>) pixels) {
                 Map<String, Object> pixelMap = (Map<String, Object>) pixel;
                 String type = (String) pixelMap.get("type");
                 if (type.equals("PixelData"))
-                    mapRendererData.addPixel(PixelData.deserialize(pixelMap));
+                    mapRendererData.addPixel(MapColoredPixel.deserialize(pixelMap));
                 if (type.equals("TextOverlay"))
                     mapRendererData.addText(TextOverlay.deserialize(pixelMap));
                 if (type.equals("ImageOverlay"))
                     mapRendererData.addImage(ImageOverlay.deserialize(pixelMap));
             }
         }
-
         return mapRendererData;
     }
 }

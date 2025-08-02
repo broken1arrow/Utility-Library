@@ -1,6 +1,5 @@
 package org.broken.arrow.library.itemcreator.meta.map.cursor;
 
-import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapCursorCollection;
 
@@ -16,8 +15,9 @@ import java.util.stream.Collectors;
  * Represents all the map cursors on a {@link org.bukkit.map.MapCanvas}. Like MapCanvas, a
  * MapCursorCollection is linked to a specific {@link org.bukkit.map.MapRenderer}.
  */
-public final class MapCursorHandler {
+public final class MapCursorAdapter {
     private final List<MapCursorWrapper> cursors = new ArrayList<>();
+    private final MapCursorCollection mapCursorCollection = new MapCursorCollection();
 
     /**
      * Get the amount of cursors in this collection.
@@ -29,24 +29,47 @@ public final class MapCursorHandler {
     }
 
     /**
-     * Get a cursor from this collection.
+     * Retrieves a cursor from this collection.
      * <p>
-     * Note: if the index is larger than the collection
-     * it will try get the last valid index and if the list
-     * is empty it will return a new {@link MapCursorWrapper}.
+     * Note: If the index is larger than the size of the collection,
+     * it will attempt to return the last valid cursor. If the list
+     * is empty, it returns a new {@link MapCursorWrapper} that
+     * is not visible on the map.
      *
      * @param index The index of the cursor.
-     * @return The MapCursor.
+     * @return The {@link MapCursorWrapper} at the specified index, or a fallback cursor if out of bounds.
      */
     @Nonnull
     public MapCursorWrapper getCursor(int index) {
         if (index > cursors.size()) {
             if (!cursors.isEmpty())
                 return cursors.get(index - 1);
-            return new MapCursorWrapper((byte) 0, (byte) 0, (byte) 0, MapCursor.Type.BANNER_BLACK,false);
+            return new MapCursorWrapper((byte) 0, (byte) 0, (byte) 0, MapCursor.Type.BANNER_BLACK, false);
         }
         return cursors.get(index);
     }
+
+    /**
+     * Retrieves a cursor from this collection by its ID.
+     * <p>
+     * Note: If the list is empty or the ID is not found,
+     * it returns a new {@link MapCursorWrapper} that
+     * is not visible on the map.
+     *
+     * @param id The ID of the cursor.
+     * @return The {@link MapCursorWrapper} with the specified ID, or a fallback cursor if not found.
+     */
+    @Nonnull
+    public MapCursorWrapper getCursorFromID(int id) {
+        if (cursors.isEmpty())
+            return new MapCursorWrapper((byte) 0, (byte) 0, (byte) 0, MapCursor.Type.BANNER_BLACK, false);
+        for (MapCursorWrapper cursor : cursors) {
+            if (cursor.getCursorId() == id)
+                return cursor;
+        }
+        return new MapCursorWrapper((byte) 0, (byte) 0, (byte) 0, MapCursor.Type.BANNER_BLACK, false);
+    }
+
 
     public List<MapCursorWrapper> getCursors() {
         return cursors;
@@ -122,33 +145,19 @@ public final class MapCursorHandler {
 
     public MapCursorWrapper addCursor(@Nonnull final MapCursorWrapper cursorWrapper) {
         cursors.add(cursorWrapper);
+        mapCursorCollection.addCursor(cursorWrapper.getCursor());
         return cursorWrapper;
     }
 
     public MapCursorCollection getMapCursorCollection() {
-        MapCursorCollection mapCursorCollection = new MapCursorCollection();
-        if (!cursors.isEmpty())
-            cursors.forEach(cursorWrapper -> mapCursorCollection.addCursor(cursorWrapper.build()));
         return mapCursorCollection;
     }
 
     @Nonnull
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        map.put("cursor", cursors.stream().map(MapCursorWrapper::serialize).collect(Collectors.toList()));
+        map.put("cursors", cursors.stream().map(MapCursorWrapper::serialize).collect(Collectors.toList()));
         return map;
-    }
-
-    public static MapCursorHandler deserialize(Map<String, Object> map) {
-        MapCursorHandler mapCursor = new MapCursorHandler();
-        List<?> cursors = (List<?>) map.getOrDefault("cursor", new ArrayList<>());
-        for (Object cursor : cursors) {
-            if (cursor instanceof Map<?, ?>) {
-                Map<String, Object> cursorMap = ((Map<String, Object>) cursor);
-                mapCursor.addCursor(MapCursorWrapper.deserialize(cursorMap));
-            }
-        }
-        return mapCursor;
     }
 
     @Nonnull
