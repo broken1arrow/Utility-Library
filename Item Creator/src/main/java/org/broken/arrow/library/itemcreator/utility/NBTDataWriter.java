@@ -181,10 +181,8 @@ public final class NBTDataWriter  {
 	}
 
 	public void putNBT(@Nonnull final String key, final Object value,final boolean removeKey) {
-		this.nbtCache.put(key,new NBTValue(value, true));
+		this.nbtCache.put(key,new NBTValue(value, removeKey));
 	}
-
-
 
 	/**
 	 * Remove all keys from this compound
