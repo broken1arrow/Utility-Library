@@ -16,12 +16,6 @@ public final class NBTDataWriter  {
 	private final Map<String, NBTValue> nbtCache = new HashMap<>();
 	private boolean clearNBT;
 
-	/**
-	 * Constructs a new NBTDataWriter instance.
-	 *
-	 */
-	public NBTDataWriter() {
-	}
 
 	/**
 	 * Sets a string value in the item or entity's compound tag.
