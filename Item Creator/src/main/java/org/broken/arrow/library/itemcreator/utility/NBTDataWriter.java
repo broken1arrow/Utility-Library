@@ -165,7 +165,7 @@ public final class NBTDataWriter  {
 	 * @param key The key to delete.
 	 */
 	public void removeKey(String key) {
-		this.putNBT(key,null);
+		this.putNBT(key,null,true);
 	}
 
 	public Map<String, NBTValue> getNbtCache() {
@@ -176,11 +176,11 @@ public final class NBTDataWriter  {
 		return clearNBT;
 	}
 
-	public void putNBT(@Nonnull final String key, final Object value) {
+	private void putNBT(@Nonnull final String key, final Object value) {
 		this.putNBT(key,value,false);
 	}
 
-	public void putNBT(@Nonnull final String key, final Object value,final boolean removeKey) {
+	private void putNBT(@Nonnull final String key, final Object value,final boolean removeKey) {
 		this.nbtCache.put(key,new NBTValue(value, removeKey));
 	}
 

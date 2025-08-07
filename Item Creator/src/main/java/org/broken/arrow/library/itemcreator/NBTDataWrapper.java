@@ -80,10 +80,6 @@ public final class NBTDataWrapper {
     }
 
     public Consumer<NBTDataWriter> getConsumer() {
-        applyNBT(nbtDataWriterWrapper ->
-                nbtDataWriterWrapper.setBoolean("", false)
-        );
-
         return consumer;
     }
 
