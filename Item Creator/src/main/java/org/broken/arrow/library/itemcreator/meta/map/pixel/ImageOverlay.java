@@ -40,8 +40,7 @@ public class ImageOverlay extends MapPixel {
       try {
         map.put("image", imageToBytes());
       } catch (IOException e) {
-        System.out.println("Fail to serialize the image ");
-        e.printStackTrace();
+        logger.logError(e, ()-> "Fail to serialize the image.");
       }
     }
     return map;
@@ -56,7 +55,7 @@ public class ImageOverlay extends MapPixel {
     try {
       image = ImageOverlay.getImageId((byte[]) imageByte);
     } catch (IOException e) {
-      logger.logError(e, ()-> "Fail to retrieve the image ");
+      logger.logError(e, ()-> "Fail to retrieve the image.");
     }
 
     return new ImageOverlay(x, y, image);
