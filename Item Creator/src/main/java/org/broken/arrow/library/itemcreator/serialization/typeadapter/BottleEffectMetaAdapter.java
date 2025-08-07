@@ -16,6 +16,7 @@ import java.io.IOException;
 
 public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
     private static final Logging logger = new Logging(ColorMeta.class);
+
     @Override
     public void write(final JsonWriter out, final BottleEffectMeta value) throws IOException {
         JsonWriterHelper json = new JsonWriterHelper(out);
@@ -118,7 +119,7 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
                         )
                 );
             } else {
-                logger.warn(() -> "The potion effect type is invalid, the current name is: '" + effectValues.typeName );
+                logger.warn(() -> "The potion effect type is invalid, the current name is: '" + effectValues.typeName);
                 return null;
             }
         });
@@ -126,13 +127,13 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
 
 
     private static class PotionEffectValues {
-        PotionEffectType type;
-        String typeName;
-        int duration;
-        int amplifier;
-        boolean isAmbient;
-        boolean hasParticles;
-        public boolean hasIcon;
+        private PotionEffectType type;
+        private String typeName;
+        private int duration;
+        private int amplifier;
+        private boolean isAmbient;
+        private boolean hasParticles;
+        private boolean hasIcon;
 
         /**
          * Valid if a type is present and duration is either infinite (-1) or positive.
