@@ -117,25 +117,29 @@ public class MapRendererData {
                     return;
                 canvas.setCursors(mapCursors.getMapCursorCollection());
                 if (!getPixels().isEmpty()) {
-                    getPixels().forEach(mapPixel -> {
-                        if (mapPixel instanceof MapColoredPixel) {
-                            if (ItemCreator.getServerVersion() < 20.0F)
-                                canvas.setPixel(mapPixel.getX(), mapPixel.getY(), MapPalette.matchColor(((MapColoredPixel) mapPixel).getColor()));
-                            else
-                                canvas.setPixelColor(mapPixel.getX(), mapPixel.getY(), ((MapColoredPixel) mapPixel).getColor());
-                        }
-                        if (mapPixel instanceof TextOverlay) {
-                            TextOverlay textOverlay = (TextOverlay) mapPixel;
-                            canvas.drawText(mapPixel.getX(), mapPixel.getY(), textOverlay.getMapFont(), textOverlay.getText());
-                        }
-                        if (mapPixel instanceof ImageOverlay) {
-                            ImageOverlay textOverlay = (ImageOverlay) mapPixel;
-                            canvas.drawImage(mapPixel.getX(), mapPixel.getY(), textOverlay.getImage());
-                        }
-                    });
+                    setPixels(canvas);
                 }
             }
         };
+    }
+
+    private void setPixels(final MapCanvas canvas) {
+        getPixels().forEach(mapPixel -> {
+            if (mapPixel instanceof MapColoredPixel) {
+                if (ItemCreator.getServerVersion() < 20.0F)
+                    canvas.setPixel(mapPixel.getX(), mapPixel.getY(), MapPalette.matchColor(((MapColoredPixel) mapPixel).getColor()));
+                else
+                    canvas.setPixelColor(mapPixel.getX(), mapPixel.getY(), ((MapColoredPixel) mapPixel).getColor());
+            }
+            if (mapPixel instanceof TextOverlay) {
+                TextOverlay textOverlay = (TextOverlay) mapPixel;
+                canvas.drawText(mapPixel.getX(), mapPixel.getY(), textOverlay.getMapFont(), textOverlay.getText());
+            }
+            if (mapPixel instanceof ImageOverlay) {
+                ImageOverlay textOverlay = (ImageOverlay) mapPixel;
+                canvas.drawImage(mapPixel.getX(), mapPixel.getY(), textOverlay.getImage());
+            }
+        });
     }
 
     @Override

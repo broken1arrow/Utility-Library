@@ -17,8 +17,6 @@ public class BookMeta {
     static final int MAX_PAGES = Integer.MAX_VALUE;
     static final int MAX_PAGE_LENGTH = 256;
 
-    public BookMeta() {
-    }
 
     @Nonnull
     public static BookMeta setBookMeta(@Nonnull final org.bukkit.inventory.meta.BookMeta bukkitBookMeta) {
@@ -157,11 +155,11 @@ public class BookMeta {
      * Pages are 1-indexed.
      *
      * @param page the page number to get, in range [1, getPageCount()]
-     * @return the page from the book
+     * @return the page from the book or empty string if not found the page.
      */
     public String getPage(final int page) {
-        //Preconditions.checkArgument(isValidPage(page), "Invalid page number (%s)", page);
-        // assert: pages != null
+        if (!isValidPage(page))
+            return "";
         return pages.get(page - 1);
     }
 

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class ItemStacksSerializer implements Iterable<ItemStack> {
     private final List<SerializeItem> items = new ArrayList<>();
-    private transient final List<ItemStack> itemStacks = new ArrayList<>();
+    private final transient List<ItemStack> itemStacks = new ArrayList<>();
 
     public void add(@Nonnull final ItemStack itemStack) {
         this.items.add(SerializeItem.fromItemStack(itemStack));

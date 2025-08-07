@@ -111,9 +111,7 @@ public final class MapCursorWrapper {
      * Get the type of this cursor.
      *
      * @return The type (color/style) of the map cursor.
-     * @deprecated Magic value
      */
-    @Deprecated
     public byte getRawType() {
         return rawType;
     }

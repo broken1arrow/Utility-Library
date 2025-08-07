@@ -12,6 +12,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.tags.CustomItemTagContainer;
 import org.bukkit.inventory.meta.tags.ItemTagAdapterContext;
 import org.bukkit.inventory.meta.tags.ItemTagType;
+import org.bukkit.persistence.PersistentDataAdapterContext;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
@@ -103,13 +106,14 @@ public final class NBTDataWrapper {
                     });
         } else {
             final ItemMeta meta = itemStack.getItemMeta();
-            if (meta != null) {
-                if (this.serverVersion > 13.1F && this.serverVersion < 15.0F) {
-                    nbtCache.forEach((key, nbtValue) -> {
-                        setCustomTagContainer(key, nbtValue, meta);
-                    });
-                }
-
+            if (meta != null && this.serverVersion > 13.1F && this.serverVersion < 14.0F) {
+                nbtCache.forEach((key, nbtValue) -> {
+                    setCustomTagContainer(key, nbtValue, meta);
+                });
+            } else if (this.serverVersion > 13.2F && meta != null) {
+                nbtCache.forEach((key, nbtValue) -> {
+                    this.setPersistentDataContainer(key, nbtValue, meta);
+                });
             }
             itemStack.setItemMeta(meta);
         }
@@ -122,7 +126,7 @@ public final class NBTDataWrapper {
         final Class<?> targetType = value.getClass();
         final CustomItemTagContainer customTagContainer = meta.getCustomTagContainer();
         final NamespacedKey namespacedKey = new NamespacedKey(this.plugin, key);
-        if(nbtValue.isRemoveKey()){
+        if (nbtValue.isRemoveKey()) {
             customTagContainer.removeCustomTag(namespacedKey);
         }
 
@@ -151,32 +155,102 @@ public final class NBTDataWrapper {
             return;
         }
         if (targetType == ItemStack.class) {
-            ItemTagType<String, ItemStack> itemStackTagType = new ItemStackTagType();
+            ItemTagType<String, ItemStack> itemStackTagType = new ItemStackTagTypeOld();
             customTagContainer.setCustomTag(namespacedKey, itemStackTagType, (ItemStack) value);
             return;
         }
         if (targetType == UUID.class) {
-            ItemTagType<byte[], UUID> uuidItemTagType = new UUIDItemTagType();
+            ItemTagType<byte[], UUID> uuidItemTagType = new UUIDItemTagTypeOld();
             customTagContainer.setCustomTag(namespacedKey, uuidItemTagType, (UUID) value);
             return;
         }
+        if (setArrays(nbtValue, targetType, value, customTagContainer, namespacedKey)) return;
 
+        customTagContainer.setCustomTag(namespacedKey, ItemTagType.STRING, value + "");
+    }
+
+    private boolean setArrays(final NBTValue nbtValue, final Class<?> targetType, final Object value, final CustomItemTagContainer customTagContainer, final NamespacedKey namespacedKey) {
         if (targetType.isArray() && nbtValue.getClass().isArray()) {
-            // Handle array casting here, e.g., for int[] or ItemStack[]
             if (value instanceof byte[]) {
                 customTagContainer.setCustomTag(namespacedKey, ItemTagType.BYTE_ARRAY, (byte[]) value);
-                return;
+                return true;
             }
             if (value instanceof int[]) {
                 customTagContainer.setCustomTag(namespacedKey, ItemTagType.INTEGER_ARRAY, (int[]) value);
-                return;
+                return true;
             }
             if (value instanceof long[]) {
                 customTagContainer.setCustomTag(namespacedKey, ItemTagType.LONG_ARRAY, (long[]) value);
-                return;
+                return true;
             }
         }
-        customTagContainer.setCustomTag(namespacedKey, ItemTagType.STRING, value + "");
+        return false;
+    }
+
+    private void setPersistentDataContainer(String key, NBTValue nbtValue, ItemMeta meta) {
+        final Object value = nbtValue.getValue();
+        final Class<?> targetType = value.getClass();
+        final PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
+        final NamespacedKey namespacedKey = new NamespacedKey(this.plugin, key);
+        if (nbtValue.isRemoveKey()) {
+            dataContainer.remove(namespacedKey);
+        }
+
+        if (targetType == String.class) {
+            dataContainer.set(namespacedKey, PersistentDataType.STRING, (String) value);
+            return;
+        }
+        if (targetType == Integer.class) {
+            dataContainer.set(namespacedKey, PersistentDataType.INTEGER, (Integer) value);
+            return;
+        }
+        if (targetType == Double.class) {
+            dataContainer.set(namespacedKey, PersistentDataType.DOUBLE, (Double) value);
+            return;
+        }
+        if (targetType == Byte.class) {
+            dataContainer.set(namespacedKey, PersistentDataType.BYTE, (Byte) value);
+            return;
+        }
+        if (targetType == Long.class) {
+            dataContainer.set(namespacedKey, PersistentDataType.LONG, (Long) value);
+            return;
+        }
+        if (targetType == Float.class) {
+            dataContainer.set(namespacedKey, PersistentDataType.FLOAT, (Float) value);
+            return;
+        }
+        if (targetType == ItemStack.class) {
+            PersistentDataType<String, ItemStack> itemStackTagType = new ItemStackTagType();
+            dataContainer.set(namespacedKey, itemStackTagType, (ItemStack) value);
+            return;
+        }
+        if (targetType == UUID.class) {
+            PersistentDataType<byte[], UUID> uuidItemTagType = new UUIDItemTagType();
+            dataContainer.set(namespacedKey, uuidItemTagType, (UUID) value);
+            return;
+        }
+        if (setArrays(nbtValue, targetType, value, dataContainer, namespacedKey)) return;
+
+        dataContainer.set(namespacedKey, PersistentDataType.STRING, value + "");
+    }
+
+    private boolean setArrays(final NBTValue nbtValue, final Class<?> targetType, final Object value, final PersistentDataContainer dataContainer, final NamespacedKey namespacedKey) {
+        if (targetType.isArray() && nbtValue.getClass().isArray()) {
+            if (value instanceof byte[]) {
+                dataContainer.set(namespacedKey, PersistentDataType.BYTE_ARRAY, (byte[]) value);
+                return true;
+            }
+            if (value instanceof int[]) {
+                dataContainer.set(namespacedKey, PersistentDataType.INTEGER_ARRAY, (int[]) value);
+                return true;
+            }
+            if (value instanceof long[]) {
+                dataContainer.set(namespacedKey, PersistentDataType.LONG_ARRAY, (long[]) value);
+                return true;
+            }
+        }
+        return false;
     }
 
     public void apply(@Nonnull final NBTDataWriter nbtData) {
@@ -185,7 +259,70 @@ public final class NBTDataWrapper {
         this.consumer.accept(nbtData);
     }
 
-    public class UUIDItemTagType implements ItemTagType<byte[], UUID> {
+    public class UUIDItemTagType implements PersistentDataType<byte[], UUID> {
+
+        @Nonnull
+        @Override
+        public Class<byte[]> getPrimitiveType() {
+            return byte[].class;
+        }
+
+        @Nonnull
+        @Override
+        public Class<UUID> getComplexType() {
+            return UUID.class;
+        }
+
+        @Nonnull
+        @Override
+        public byte[] toPrimitive(UUID uuid, PersistentDataAdapterContext context) {
+            ByteBuffer buffer = ByteBuffer.allocate(16);
+            buffer.putLong(uuid.getLeastSignificantBits());
+            buffer.putLong(uuid.getMostSignificantBits());
+            return buffer.array();
+        }
+
+        @Nonnull
+        @Override
+        public UUID fromPrimitive(@Nonnull byte[] bytes, PersistentDataAdapterContext context) {
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
+            long leastBits = buffer.getLong();
+            long mostBits = buffer.getLong();
+            return new UUID(mostBits, leastBits);
+        }
+    }
+
+    public class ItemStackTagType implements PersistentDataType<String, ItemStack> {
+
+        @Nonnull
+        @Override
+        public Class<String> getPrimitiveType() {
+            return String.class;
+        }
+
+        @Nonnull
+        @Override
+        public Class<ItemStack> getComplexType() {
+            return ItemStack.class;
+        }
+
+        @Override
+        public String toPrimitive(final ItemStack complex, final PersistentDataAdapterContext context) {
+            Map<String, Object> serialized = complex.serialize();
+            String json = new Gson().toJson(serialized);
+            return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public ItemStack fromPrimitive(final String primitive, final PersistentDataAdapterContext context) {
+            String json = new String(Base64.getDecoder().decode(primitive), StandardCharsets.UTF_8);
+            Map<String, Object> map = new Gson().fromJson(json, new TypeToken<Map<String, Object>>() {
+            }.getType());
+            return ItemStack.deserialize(map);
+        }
+    }
+
+    public class UUIDItemTagTypeOld implements ItemTagType<byte[], UUID> {
 
         @Nonnull
         @Override
@@ -218,11 +355,11 @@ public final class NBTDataWrapper {
         }
     }
 
-    public class ItemStackTagType implements ItemTagType<String , ItemStack> {
+    public class ItemStackTagTypeOld implements ItemTagType<String, ItemStack> {
 
         @Nonnull
         @Override
-        public Class<String > getPrimitiveType() {
+        public Class<String> getPrimitiveType() {
             return String.class;
         }
 
@@ -244,8 +381,10 @@ public final class NBTDataWrapper {
         @Override
         public ItemStack fromPrimitive(@Nonnull String primitive, ItemTagAdapterContext itemTagAdapterContext) {
             String json = new String(Base64.getDecoder().decode(primitive), StandardCharsets.UTF_8);
-            Map<String, Object> map = new Gson().fromJson(json, new TypeToken<Map<String, Object>>(){}.getType());
+            Map<String, Object> map = new Gson().fromJson(json, new TypeToken<Map<String, Object>>() {
+            }.getType());
             return ItemStack.deserialize(map);
         }
     }
+
 }

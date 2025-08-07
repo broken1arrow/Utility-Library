@@ -4,12 +4,14 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 
 public abstract class MapPixel {
-    private final int x, y;
+    private final int x;
+    private final int y;
 
-    public MapPixel(int x, int y) {
+    protected MapPixel(int x, int y) {
         this.x = x;
         this.y = y;
     }
+
     public int getX() {
         return x;
     }

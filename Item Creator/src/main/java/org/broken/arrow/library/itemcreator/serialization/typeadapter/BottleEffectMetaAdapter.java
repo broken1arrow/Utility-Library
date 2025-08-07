@@ -4,16 +4,18 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
+import org.broken.arrow.library.itemcreator.meta.ColorMeta;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonReaderHelper;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonWriterHelper;
 import org.broken.arrow.library.itemcreator.utility.PotionData;
+import org.broken.arrow.library.logging.Logging;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
 import java.io.IOException;
 
 public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
-
+    private static final Logging logger = new Logging(ColorMeta.class);
     @Override
     public void write(final JsonWriter out, final BottleEffectMeta value) throws IOException {
         JsonWriterHelper json = new JsonWriterHelper(out);
@@ -116,7 +118,7 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
                         )
                 );
             } else {
-                System.out.println("type is invalid, it is currently: '" + effectValues.typeName + "' duration =" + effectValues.duration);
+                logger.warn(() -> "The potion effect type is invalid, the current name is: '" + effectValues.typeName );
                 return null;
             }
         });

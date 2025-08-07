@@ -1,6 +1,5 @@
 package org.broken.arrow.library.itemcreator.meta.map.pixel;
 
-import org.broken.arrow.library.itemcreator.meta.ColorMeta;
 import org.broken.arrow.library.logging.Logging;
 
 import javax.annotation.Nonnull;
@@ -63,7 +62,7 @@ public class ImageOverlay extends MapPixel {
 
   public byte[] imageToBytes() throws IOException {
     if (this.imageId == null)
-      return null;
+      return new byte[0];
 
     final BufferedImage image = toBufferedImage(this.imageId);
     try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {

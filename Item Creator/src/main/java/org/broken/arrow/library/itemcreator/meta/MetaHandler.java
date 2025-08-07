@@ -199,9 +199,9 @@ public class MetaHandler {
      * @param metaFunction a consumer that modifies and returns a value from the {@link ShieldMeta}.
      */
     public void setMapMeta(final Consumer<MapWrapperMeta> metaFunction) {
-        final MapWrapperMeta mapMeta = new MapWrapperMeta();
-        metaFunction.accept(mapMeta );
-        this.mapMeta = mapMeta ;
+        final MapWrapperMeta meta = new MapWrapperMeta();
+        metaFunction.accept(meta);
+        this.mapMeta = meta;
     }
 
     /**
