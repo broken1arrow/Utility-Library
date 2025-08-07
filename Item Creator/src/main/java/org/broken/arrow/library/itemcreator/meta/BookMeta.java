@@ -1,5 +1,7 @@
 package org.broken.arrow.library.itemcreator.meta;
 
+import org.bukkit.inventory.meta.ItemMeta;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -188,6 +190,17 @@ public class BookMeta {
         return page > 0 && page <= getPageCount();
     }
 
+
+    public void applyBookMenta(final ItemMeta bookMeta) {
+        if (!(bookMeta instanceof org.bukkit.inventory.meta.BookMeta))
+            return;
+        final org.bukkit.inventory.meta.BookMeta meta = (org.bukkit.inventory.meta.BookMeta) bookMeta;
+        meta.setTitle(this.getTitle());
+        meta.setAuthor(this.getAuthor());
+        meta.setGeneration(this.getGeneration());
+        meta.setPages(this.getPages());
+    }
+
     private String validatePage(String page) {
         if (page == null) {
             page = "";
@@ -206,7 +219,5 @@ public class BookMeta {
         }
         this.pages.add(page);
     }
-
-
 
 }

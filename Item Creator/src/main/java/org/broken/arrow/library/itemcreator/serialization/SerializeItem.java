@@ -1,13 +1,19 @@
 package org.broken.arrow.library.itemcreator.serialization;
 
+import com.google.common.collect.Multimap;
+import com.google.gson.GsonBuilder;
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
+import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
+import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
 import org.broken.arrow.library.itemcreator.utility.PotionData;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -20,14 +26,11 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerProfile;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Nonnull;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class SimpleItemData {
+public class SerializeItem {
     private Material type;
     private int amount = 1;
     private String name;
@@ -43,7 +46,7 @@ public class SimpleItemData {
     // Potion
     private BottleEffectMeta potionEffects;
     // Attributes
-    private List<AttributeModifierData> attributeModifiers;
+    private List<AttributeModifierWrapper> attributeModifiers;
     // Armor Color
     private Color armorColor;
     // Banner
@@ -54,8 +57,8 @@ public class SimpleItemData {
     private org.broken.arrow.library.itemcreator.meta.BookMeta bookMenta;
 
 
-    public static SimpleItemData fromItemStack(ItemStack item) {
-        final SimpleItemData data = new SimpleItemData();
+    public static SerializeItem fromItemStack(@Nonnull final ItemStack item) {
+        final SerializeItem data = new SerializeItem();
         data.type = item.getType();
         data.amount = item.getAmount();
 
@@ -68,6 +71,7 @@ public class SimpleItemData {
             data.itemFlags.addAll(meta.getItemFlags());
 
             meta.getEnchants().forEach((e, lvl) -> data.enchantments.put(e.getKey().getKey(), lvl));
+            getAttributeModifiers(meta, data);
 
             if (meta instanceof SkullMeta && ((SkullMeta) meta).hasOwner()) {
                 final SkullMeta skull = (SkullMeta) meta;
@@ -103,7 +107,7 @@ public class SimpleItemData {
             }
             if (meta instanceof BookMeta) {
                 final BookMeta bookMeta = (BookMeta) meta;
-                data.bookMenta =  org.broken.arrow.library.itemcreator.meta.BookMeta.setBookMeta(bookMeta);
+                data.bookMenta = org.broken.arrow.library.itemcreator.meta.BookMeta.setBookMeta(bookMeta);
 
             }
             if (meta instanceof FireworkMeta) {
@@ -126,9 +130,23 @@ public class SimpleItemData {
             meta.setUnbreakable(unbreakable);
             itemFlags.forEach(meta::addItemFlags);
 
+            if (!enchantments.isEmpty())
+                for (Map.Entry<String, Integer> e : enchantments.entrySet()) {
+                    Enchantment enchant = Enchantment.getByKey(NamespacedKey.minecraft(e.getKey()));
+                    if (enchant != null) meta.addEnchant(enchant, e.getValue(), true);
+                }
+            final List<AttributeModifierWrapper> modifiers = this.attributeModifiers;
+            if (modifiers != null && !modifiers.isEmpty()) {
+                modifiers.forEach(attributeModifierWrapper -> {
+                            final AttributeModifierWrapper.AttributeEntry modifier = attributeModifierWrapper.toModifier();
+                            meta.addAttributeModifier(modifier.getAttribute(), modifier.getAttributeModifier());
+                        }
+                );
+            }
+
             for (Map.Entry<String, Integer> e : enchantments.entrySet()) {
-                Enchantment ench = Enchantment.getByKey(NamespacedKey.minecraft(e.getKey()));
-                if (ench != null) meta.addEnchant(ench, e.getValue(), true);
+                Enchantment enchant = Enchantment.getByKey(NamespacedKey.minecraft(e.getKey()));
+                if (enchant != null) meta.addEnchant(enchant, e.getValue(), true);
             }
 
             if (meta instanceof SkullMeta) {
@@ -152,6 +170,10 @@ public class SimpleItemData {
                 bannerMeta.setPatterns(patterns.stream().flatMap(bannerPatterns -> bannerPatterns.getPatterns().stream())
                         .collect(Collectors.toList()));
             }
+            if (meta instanceof BookMeta && this.bookMenta != null) {
+                final BookMeta bookMeta = (BookMeta) meta;
+                this.bookMenta.applyBookMenta(bookMeta);
+            }
 
             if (meta instanceof FireworkMeta && fireworkMeta != null) {
                 FireworkMeta fwm = (FireworkMeta) meta;
@@ -161,6 +183,36 @@ public class SimpleItemData {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+
+    public String toJson() {
+        return new GsonBuilder()
+                .setPrettyPrinting()
+                .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())
+                .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
+                .create()
+                .toJson(this);
+    }
+
+    public static SerializeItem fromJson(String json) {
+        return new GsonBuilder()
+                .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())
+                .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
+                .create()
+                .fromJson(json, SerializeItem.class);
+    }
+
+    private static void getAttributeModifiers(final ItemMeta meta, final SerializeItem data) {
+        if (meta.hasAttributeModifiers()) {
+            Multimap<Attribute, AttributeModifier> attributeModifierData = meta.getAttributeModifiers();
+            if (attributeModifierData != null) {
+                data.attributeModifiers = new ArrayList<>();
+                attributeModifierData.forEach((attribute, attributeModifier) ->
+                        data.attributeModifiers.add(AttributeModifierWrapper.from(attribute, attributeModifier)
+                        ));
+            }
+        }
     }
 
     private void setOwnerToMeta(SkullMeta skull) {
@@ -175,7 +227,7 @@ public class SimpleItemData {
     }
 
 
-    private static void setOwner(SimpleItemData data, SkullMeta skull) {
+    private static void setOwner(SerializeItem data, SkullMeta skull) {
         final float serverVersion = ItemCreator.getServerVersion();
         if (serverVersion < 12.0f) {
             try {
@@ -189,5 +241,32 @@ public class SimpleItemData {
         if (serverVersion > 18.0f) {
             data.ownerProfile = skull.getOwnerProfile();
         }
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        final SerializeItem that = (SerializeItem) o;
+        return amount == that.amount && unbreakable == that.unbreakable &&
+                type == that.type &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(lore, that.lore) &&
+                Objects.equals(enchantments, that.enchantments) &&
+                Objects.equals(customModelData, that.customModelData) &&
+                Objects.equals(itemFlags, that.itemFlags) &&
+                Objects.equals(skullOwner, that.skullOwner) &&
+                Objects.equals(owningPlayer, that.owningPlayer) &&
+                Objects.equals(ownerProfile, that.ownerProfile) &&
+                Objects.equals(potionEffects, that.potionEffects) &&
+                Objects.equals(attributeModifiers, that.attributeModifiers) &&
+                Objects.equals(armorColor, that.armorColor) && baseColor == that.baseColor &&
+                Objects.equals(patterns, that.patterns) &&
+                Objects.equals(fireworkMeta, that.fireworkMeta) &&
+                Objects.equals(bookMenta, that.bookMenta);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, owningPlayer, ownerProfile, potionEffects, attributeModifiers, armorColor, baseColor, patterns, fireworkMeta, bookMenta);
     }
 }

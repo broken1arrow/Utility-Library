@@ -50,40 +50,38 @@ public class ColorMeta {
     }
 
     /**
-     * Set the 3 colors auto.
+     * Set the 3 colors from Bukkit Color.
+     *
+     * @param color you want to convert to split up in three colors.
+     */
+    public void setRgb(final Color color) {
+        final int colorRed = color.getRed();
+        final int colorGreen = color.getGreen();
+        final int colorBlue = color.getBlue();
+        this.setRgb(colorRed, colorGreen, colorBlue);
+    }
+
+    /**
+     * Set the 3 colors from a string. The color order is R,B,G
+     * and the string should look like this 20,15,47.
      *
      * @param rgb string need to be formatted like this #,#,#.
-     * @return this class.
      */
-    public ColorMeta setRgb(final String rgb) {
+    public void setRgb(final String rgb) {
         this.rgb = rgb;
-
-        final String[] colors = this.getRgb().split(",");
-        Validate.checkBoolean(colors.length < 4, "rgb is not format correctly. Should be formatted like this 'r,b,g'. Example '20,15,47'.");
+        final String[] colors = this.getRgb() != null ? this.getRgb().split(",") : new String[]{""};
+        Validate.checkBoolean(colors.length < 3, "rgb is not format correctly. Should be formatted like this 'r,b,g'. Example '20,15,47'. Current input is " + rgb + " length "+ colors.length);
         try {
-            red = Integer.parseInt(colors[0]);
-            green = Integer.parseInt(colors[2]);
-            blue = Integer.parseInt(colors[1]);
+            final int colorRed = Integer.parseInt(colors[0]);
+            final int colorGreen = Integer.parseInt(colors[2]);
+            final int colorBlue = Integer.parseInt(colors[1]);
+
+            this.setRgb(colorRed, colorGreen, colorBlue);
         } catch (final NumberFormatException exception) {
             logger.log(Level.WARNING, exception, () -> "you don´t use numbers inside this string. Your input: " + rgb);
         }
-
-        return this;
     }
 
-    public ColorMeta setRgb(final Color color) {
-        final int red = color.getRed();
-        final int green = color.getGreen();
-        final int blue = color.getBlue();
-        Validate.checkBoolean(red < 0 || green < 0 || blue < 0, "You can't use negative numbers for the rbg color.");
-
-        this.rgb = red + "," + green + "," + blue;
-        this.red = red;
-        this.green = green;
-        this.blue = blue;
-
-        return this;
-    }
 
     /**
      * Set the rbg color.
@@ -91,9 +89,8 @@ public class ColorMeta {
      * @param red   color.
      * @param green color.
      * @param blue  color.
-     * @return this class.
      */
-    public ColorMeta setRgb(final int red, final int green, final int blue) {
+    public void setRgb(final int red, final int green, final int blue) {
         Validate.checkBoolean(red < 0 || green < 0 || blue < 0, "You can't use negative numbers for the rbg color.");
 
         this.rgb = red + "," + green + "," + blue;
@@ -101,7 +98,6 @@ public class ColorMeta {
         this.green = green;
         this.blue = blue;
 
-        return this;
     }
 
     /**

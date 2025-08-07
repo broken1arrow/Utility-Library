@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class BottleEffectMeta {
-    private static final Logging logger = new Logging(BottleEffectMeta.class);
-
     private final List<PotionEffect> potionEffects = new ArrayList<>();
     private boolean waterBottle;
     private boolean override = true;
@@ -129,7 +127,7 @@ public class BottleEffectMeta {
      */
     @Nullable
     public PotionType getPotionType() {
-        return (potionData == null ? null : potionData.getPotionType());
+        return (this.potionData == null ? null : this.potionData.getPotionType());
     }
 
     /**
@@ -214,6 +212,15 @@ public class BottleEffectMeta {
     }
 
     /**
+     * Retrieve the portion color.
+     *
+     * @return the color set.
+     */
+    public ColorMeta getColorMeta() {
+        return colorMeta;
+    }
+
+    /**
      * Applies all potion and visual effects to the given {@link ItemMeta},
      * if it is an instance of {@link PotionMeta}.
      *
@@ -230,7 +237,7 @@ public class BottleEffectMeta {
             }
 
             if (this.potionData != null && this.setPotionType(potionMeta)) {
-               return;
+                return;
             }
 
             final List<PotionEffect> effects = getPotionEffects();
@@ -238,7 +245,7 @@ public class BottleEffectMeta {
             if (effects != null && !effects.isEmpty()) {
                 final ColorMeta colorEffect = this.colorMeta;
                 if (colorEffect != null && colorEffect.isColorSet()) {
-                    potionMeta.setColor(Color.fromBGR(colorEffect.getBlue(), colorEffect.getGreen(), colorEffect.getRed()));
+                    potionMeta.setColor(Color.fromRGB(colorEffect.getRed(), colorEffect.getGreen(), colorEffect.getBlue()));
                 }
                 effects.forEach((portionEffect) -> potionMeta.addCustomEffect(portionEffect, this.override));
             }

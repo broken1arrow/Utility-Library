@@ -90,6 +90,15 @@ public class FireworkMeta {
     }
 
     /**
+     * Gets the approximate height the firework will fly.
+     *
+     * @return approximate flight height of the firework.
+     */
+    public int getPower() {
+        return power;
+    }
+
+    /**
      * Sets the approximate power of the firework. Each level of power is half
      * a second of flight time. The typical range is {@literal minimum height > 0 and maximum height < 127}.
      * Refer to the Spigot or PaperMC documentation for the most up-to-date limits and behavior.

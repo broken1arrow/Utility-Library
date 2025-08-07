@@ -162,20 +162,19 @@ public class MapRendererData {
         final Object cursors = map.get("cursors");
         final Object pixels = map.get("pixels");
         final MapRendererData mapRendererData = new MapRendererData();
-
         if (cursors instanceof List<?>) {
             MapCursorAdapter mapCursorAdapter = new MapCursorAdapter();
             for (Object cursor : (List<?>) cursors) {
                 Map<String, Object> pixelMap = (Map<String, Object>) cursor;
                 mapCursorAdapter.addCursor(MapCursorWrapper.deserialize(pixelMap));
             }
-            mapRendererData.mapCursors = mapCursorAdapter ;
+            mapRendererData.mapCursors = mapCursorAdapter;
         }
         if (pixels instanceof List<?>) {
             for (Object pixel : (List<?>) pixels) {
                 Map<String, Object> pixelMap = (Map<String, Object>) pixel;
                 String type = (String) pixelMap.get("type");
-                if (type.equals("PixelData"))
+                if (type.equals("MapColoredPixel"))
                     mapRendererData.addPixel(MapColoredPixel.deserialize(pixelMap));
                 if (type.equals("TextOverlay"))
                     mapRendererData.addText(TextOverlay.deserialize(pixelMap));
@@ -184,5 +183,16 @@ public class MapRendererData {
             }
         }
         return mapRendererData;
+    }
+
+    @Override
+    public String toString() {
+        return "MapRendererData{" +
+                "mapRenderId=" + mapRenderId +
+                ", mapRenderer=" + mapRenderer +
+                ", mapCursors=" + mapCursors +
+                ", pixels=" + pixels +
+                ", dynamicRenderer=" + dynamicRenderer +
+                '}';
     }
 }
