@@ -1,5 +1,8 @@
 package org.broken.arrow.library.itemcreator.meta.map.pixel;
 
+import org.broken.arrow.library.itemcreator.meta.ColorMeta;
+import org.broken.arrow.library.logging.Logging;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
@@ -13,8 +16,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ImageOverlay extends MapPixel {
+  private static final Logging logger = new Logging(ImageOverlay.class);
+  private final Image imageId;
 
-  private Image imageId;
 
   public ImageOverlay(final int x, final int y, @Nullable final Image imageId) {
     super(x, y);
@@ -52,8 +56,7 @@ public class ImageOverlay extends MapPixel {
     try {
       image = ImageOverlay.getImageId((byte[]) imageByte);
     } catch (IOException e) {
-      System.out.println("Fail to retrieve the image " + imageByte);
-      e.printStackTrace();
+      logger.logError(e, ()-> "Fail to retrieve the image ");
     }
 
     return new ImageOverlay(x, y, image);
