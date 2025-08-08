@@ -15,7 +15,7 @@ import org.bukkit.potion.PotionType;
 import java.io.IOException;
 
 public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
-    private static final Logging logger = new Logging(ColorMeta.class);
+    private static final Logging logger = new Logging(BottleEffectMetaAdapter.class);
 
     @Override
     public void write(final JsonWriter out, final BottleEffectMeta value) throws IOException {
