@@ -15,6 +15,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 
+/**
+ * Represents a PostgreSQL database connection handler, supporting both direct JDBC connections
+ * and HikariCP connection pooling if available.
+ * <p>
+ * This class extends {@link SQLDatabaseQuery} to provide PostgreSQL-specific connection
+ * handling, including automatic database creation and connection management.
+ */
 public class PostgreSQL extends SQLDatabaseQuery {
 
     private final Logging log = new Logging(PostgreSQL.class);
@@ -27,17 +34,17 @@ public class PostgreSQL extends SQLDatabaseQuery {
     private boolean databaseExists;
 
     /**
-     * Creates a new PostgreSQL instance with the given MySQL preferences. This
-     * constructor will not check if the database is created or not.
+     * Creates a new PostgreSQL instance with the given connection preferences.
+     * This constructor will check and create the database if needed.
      *
-     * @param preferences The set preference information to connect to the database.
+     * @param preferences The preferences for connecting to the database.
      */
     public PostgreSQL(final ConnectionSettings preferences) {
         this(preferences, true, "com.zaxxer.hikari.HikariConfig");
     }
 
     /**
-     * Creates a new PostgreSQL instance with the given MySQL preferences.
+     * Creates a new PostgreSQL instance with the given connection preferences.
      *
      * @param preferences    The set preference information to connect to the database.
      * @param createDatabase If it shall check and create the database if it not created yet.
@@ -47,24 +54,26 @@ public class PostgreSQL extends SQLDatabaseQuery {
     }
 
     /**
-     * Creates a new PostgreSQL instance with the given MySQL preferences.
+     * Creates a new PostgreSQL instance with the given connection preferences.
      * <p>
-     * This below is the suggested drivers, but they don't work.
-     * this.driver = "com.impossibl.postgres.jdbc.PGDataSource";
-     * this.driver = "org.postgresql.ds.PGConnectionPoolDataSource";
-     * this.driver = "org.postgresql.xa.PGXADataSource";
-     * this.driver = "org.postgresql.ds.PGSimpleDataSource";
+     * <strong>This below is the suggested drivers, but they don't work.</strong>
+     * <ul>
+     * <li>"com.impossibl.postgres.jdbc.PGDataSource";</li>
+     * <li>"org.postgresql.ds.PGConnectionPoolDataSource";</li>
+     * <li>"org.postgresql.xa.PGXADataSource";</li>
+     * <li>"org.postgresql.ds.PGSimpleDataSource";</li>
+     * </ul>
      * <p>
-     * The working driver is: "org.postgresql.Driver"
+     * <strong>The working driver is: "org.postgresql.Driver"</strong>
      *
      * @param preferences    The set preference information to connect to the database.
      * @param hikariClazz    If you shade the lib to your plugin, so for this api shall find it you need to set the path.
-     * @param createDatabase If it shall check and create the database if it not created yet.
+     * @param createDatabase If it shall check and create the database if it is not created yet.
      */
     public PostgreSQL(@Nonnull ConnectionSettings preferences, boolean createDatabase, String hikariClazz) {
         super(preferences);
         this.preferences = preferences;
-        this.isHikariAvailable = isHikariAvailable(hikariClazz);
+        this.isHikariAvailable = isDriverFound(hikariClazz);
         this.startSQLUrl = "jdbc:postgresql://";
 
         this.loadDriver("org.postgresql.Driver");
@@ -106,10 +115,18 @@ public class PostgreSQL extends SQLDatabaseQuery {
     }
 
     @Override
-    public boolean isHasCastException() {
+    public boolean hasConnectionFailed() {
         return hasCastException;
     }
 
+    /**
+     * Sets up and returns a new connection to the PostgreSQL database.
+     * <p>
+     * Uses HikariCP if available; otherwise, establishes a direct JDBC connection.
+     *
+     * @return a new {@link Connection} instance.
+     * @throws SQLException if the connection setup fails.
+     */
     public Connection setupConnection() throws SQLException {
         Connection connection;
 
@@ -132,6 +149,12 @@ public class PostgreSQL extends SQLDatabaseQuery {
         return connection;
     }
 
+    /**
+     * Checks if the database specified in the connection settings exists, and creates it if missing.
+     * <p>
+     * This method establishes a connection to the PostgreSQL server without selecting a database,
+     * then attempts to create the database if it does not already exist.
+     */
     private void createMissingDatabase() {
         String databaseName = preferences.getDatabaseName();
         String hostAddress = preferences.getHostAddress();

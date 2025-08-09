@@ -34,6 +34,11 @@ public class TextGradientUtil {
 	private boolean firstMatch;
 	private static String deliminator = "_,_";
 
+	/**
+	 * Create a gradient instance
+	 * @param type the type of gradient to translate.
+	 * @param text the text to format.
+	 */
 	public TextGradientUtil(GradientType type, String text) {
 		this.type = type;
 		this.text = text;
@@ -59,11 +64,11 @@ public class TextGradientUtil {
 	}
 
 	/**
-	 * Check if it first match or second match.
+	 * Check if it first matches or second match.
 	 * @param text the text you want to add.
 	 * @param builder to build the text
 	 * @param currentIndex index where it should check in the string after the color.
-	 * @return true if it first match.
+	 * @return true if it first matches.
 	 */
 	private boolean processGradientMatch(final String text, final StringBuilder builder, final int currentIndex) {
 		boolean match = this.firstMatch;
@@ -316,6 +321,12 @@ public class TextGradientUtil {
 		return lastDecoration;
 	}
 
+	/**
+	 * Retrieve the last match.
+	 *
+	 * @param message the text.
+	 * @return returns last match or -1 if could not find a match.
+	 */
 	public int getLastGradientMatch(String message) {
 		Matcher gradientsMatcher = GRADIENT_PATTERN.matcher(message);
 
@@ -324,6 +335,12 @@ public class TextGradientUtil {
 		return -1;
 	}
 
+	/**
+	 * Retrieve the first match.
+	 *
+	 * @param message the text.
+	 * @return returns first match or -1 if could not find a match.
+	 */
 	public int getFirstGradientMatch(String message) {
 		Matcher gradientsMatcher = GRADIENT_PATTERN.matcher(message);
 

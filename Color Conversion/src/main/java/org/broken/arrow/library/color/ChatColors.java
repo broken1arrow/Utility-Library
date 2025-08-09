@@ -3,14 +3,26 @@ package org.broken.arrow.library.color;
 import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.library.logging.Validate;
 
+import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * A utility class that provides a consistent and stable set of chat colors and formatting codes,
+ * inspired by Bukkit's old {@link org.bukkit.ChatColor}, with some added improvements and extended functionality.
+ * <p>
+ * This class ensures that your chat color handling remains consistent, even if the original
+ * Bukkit/Minecraft color definitions change in the future. It supports both predefined named
+ * colors (e.g., {@link #RED}, {@link #GREEN}) and custom RGB hex colors, along with text formatting
+ * such as bold, italic, and underline.
+ * </p>
+ *
+ * <p><strong>Note:</strong> This class is immutable and thread-safe.</p>
+ */
 public final class ChatColors {
-
 
 	/**
 	 * The special character which prefixes all chat colour codes. Use this if
@@ -140,10 +152,23 @@ public final class ChatColors {
 	private final Color color;
 	private final char code;
 
+	/**
+	 * Creates a new chat color/formatting with the given code and name.
+	 *
+	 * @param code  the single-character code
+	 * @param name  the human-readable name
+	 */
 	public ChatColors(char code, String name) {
 		this(code, name, null);
 	}
 
+	/**
+	 * Creates a new chat color/formatting with the given code, name, and RGB value.
+	 *
+	 * @param code   the single-character code
+	 * @param name   the human-readable name
+	 * @param color  the RGB color, or {@code null} if this represents formatting only
+	 */
 	public ChatColors(char code, String name, Color color) {
 		this.name = name;
 		this.toString = new String(new char[]{
@@ -173,14 +198,36 @@ public final class ChatColors {
 		return BY_CHAR.get(code);
 	}
 
+	/**
+	 * Returns the special formatting codes (bold, italic, underline, etc.).
+	 *
+	 * @return an array of special formatting characters
+	 */
 	public char[] getSpecialSign() {
 		return SPECIAL_SIGN;
 	}
 
+	/**
+	 * Creates a new {@link ChatColors} from a {@link Color} instance.
+	 *
+	 * @param color the RGB color
+	 * @return the corresponding {@link ChatColors}
+	 */
 	public static ChatColors of(Color color) {
 		return of("#" + String.format("%08x", color.getRGB()).substring(2));
 	}
 
+	/**
+	 * Parses a string into a {@link ChatColors} instance.
+	 * <ul>
+	 *     <li>Hex colors in the format {@code #RRGGBB} are supported.</li>
+	 *     <li>Named colors (e.g., "RED") are matched case-insensitively.</li>
+	 * </ul>
+	 *
+	 * @param string the string to parse
+	 * @return the corresponding {@link ChatColors}
+	 * @throws IllegalArgumentException if the string cannot be parsed
+	 */
 	public static ChatColors of(String string) {
 		if (string == null)
 			throw new Validate.ValidateExceptions("String can't be null");
@@ -209,6 +256,13 @@ public final class ChatColors {
 		throw new IllegalArgumentException("Could not parse ChatColors " + string);
 	}
 
+	/**
+	 * Translates alternate color code prefixes into the standard {@link #COLOR_CHAR}.
+	 *
+	 * @param altColorChar   the alternate prefix character (e.g., '&amp;')
+	 * @param textToTranslate the text containing color codes
+	 * @return the translated text
+	 */
 	public static String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
 		char[] b = textToTranslate.toCharArray();
 		for (int i = 0; i < b.length - 1; i++) {
@@ -220,6 +274,26 @@ public final class ChatColors {
 		return new String(b);
 	}
 
+	/**
+	 * Strips the given message of all color codes
+	 *
+	 * @param input String to strip of color
+	 * @return A copy of the input string, without any coloring
+	 */
+	@Nullable
+	public static String stripColor(@Nullable final String input) {
+		if (input == null) {
+			return null;
+		}
+		return STRIP_COLOR_PATTERN.matcher(input).replaceAll("");
+	}
+
+	/**
+	 * Checks if a character represents a valid color code.
+	 *
+	 * @param letter the character to check
+	 * @return {@code 1} if valid, {@code -1} otherwise
+	 */
 	public static int getColorCode(char letter) {
 		for (char color : ChatColors.ALL_CHAR_COLOR_CODES)
 			if (color == letter)
@@ -227,30 +301,65 @@ public final class ChatColors {
 		return -1;
 	}
 
+	/**
+	 * Returns the number of colors and formatting codes registered.
+	 *
+	 * @return the count
+	 */
 	public static int getCount() {
 		return count;
 	}
 
+	/**
+	 * Returns the formatted string representation of this color/formatting.
+	 *
+	 * @return the color/formatting code string
+	 */
 	public String getToString() {
 		return toString;
 	}
 
+	/**
+	 * Returns the name of this color/formatting.
+	 *
+	 * @return the name
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Returns the RGB color value for this {@link ChatColors}, or {@code null} for formatting.
+	 *
+	 * @return the color or {@code null}
+	 */
 	public Color getColor() {
 		return color;
 	}
 
+	/**
+	 * Returns the single-character code for this color/formatting.
+	 *
+	 * @return the code
+	 */
 	public char getCode() {
 		return code;
 	}
 
+	/**
+	 * Returns all valid color and formatting codes.
+	 *
+	 * @return the codes
+	 */
 	public static char[] getAllColorCodes(){
 		return ALL_CODES;
 	}
 
+	/**
+	 * Returns all valid color codes (excluding formatting).
+	 *
+	 * @return the color codes
+	 */
 	public static char[] getAllCharColorCodes(){
 		return ALL_CHAR_COLOR_CODES;
 	}

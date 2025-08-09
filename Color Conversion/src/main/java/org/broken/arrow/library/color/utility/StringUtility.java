@@ -9,6 +9,11 @@ import java.util.regex.Pattern;
 
 import static org.broken.arrow.library.color.ChatColors.COLOR_AMPERSAND;
 
+/**
+ * Utility class for working with strings containing Minecraft-style color codes,
+ * including legacy color codes,these modules hexadecimal colors, and extracting parts of text
+ * related to color formatting.
+ */
 public class StringUtility {
 
 	private static final Logging LOG = new Logging(StringUtility.class);
@@ -17,10 +22,10 @@ public class StringUtility {
 	}
 
 	/**
-	 * Convert RGB to hex.
+	 * Convert a {@link Color} object to its hexadecimal string representation.
 	 *
-	 * @param color the color you want to convert to hex.
-	 * @return hex color or 0 if RGB values are over 255 or below 0.
+	 * @param color the {@link Color} instance to convert
+	 * @return the hex string in the format "#RRGGBB"
 	 */
 	public static String convertColorToHex(Color color) {
 		StringBuilder hex = new StringBuilder(String.format("%06X", color.getRGB() & 0xffffff));
@@ -29,10 +34,10 @@ public class StringUtility {
 	}
 
 	/**
-	 * Check if it valid color symbol.
+	 * Check if a given character is a valid Minecraft color code symbol.
 	 *
-	 * @param letter check color symbol.
-	 * @return true if it is valid color symbol.
+	 * @param letter the character to check
+	 * @return true if the character is a valid color code, false otherwise
 	 */
 	public static boolean checkIfColor(char letter) {
 
@@ -43,10 +48,11 @@ public class StringUtility {
 	}
 
 	/**
-	 * Check if it is a valid hex or not.
+	 * Validate if the given string is a proper hexadecimal color code.
+	 * Supports 3 or 6 digit hex codes with a leading '#'.
 	 *
-	 * @param str you want to check
-	 * @return true if it valid hex color.
+	 * @param str the string to validate
+	 * @return true if the string is a valid hex color code, false otherwise
 	 */
 	public static boolean isValidHexCode(String str) {
 		// Regex to check valid hexadecimal color code.
@@ -71,6 +77,12 @@ public class StringUtility {
 		return matcher.matches();
 	}
 
+	/**
+	 * Checks if the given message contains a Minecraft color code.
+	 *
+	 * @param message the text to search within
+	 * @return the index where the color code starts, or -1 if none found
+	 */
 	public static int checkIfContainsColor(String message) {
 		int index = message.indexOf(ChatColors.COLOR_CHAR);
 		if (index < 0)
@@ -86,11 +98,11 @@ public class StringUtility {
 	}
 
 	/**
-	 * Get values inside &lt; &gt;.
+	 * Extracts the values contained inside angle brackets (&lt; and &gt;) up to a specified end index.
 	 *
-	 * @param string the string to check for it.
-	 * @param end    where it shall stop split the hex.
-	 * @return null if not exist or list of values.
+	 * @param string the input string containing the values
+	 * @param end the end index where extraction stops (exclusive)
+	 * @return an array of strings split by ':' or an empty array if not found
 	 */
 	public static String[] getValuesInside(String string, int end) {
 		int start = string.indexOf("<") + 1;
@@ -98,20 +110,36 @@ public class StringUtility {
 
 		return string.substring(start, end).split(":");
 	}
-
+	/**
+	 * Extracts a substring between two indices.
+	 *
+	 * @param hex the string containing the hex code
+	 * @param from the start index (inclusive)
+	 * @param to the end index (exclusive)
+	 * @return the extracted substring
+	 */
 	public static String getHexFromString(String hex, int from, int to) {
 		return hex.substring(from, to);
 	}
 
+	/**
+	 * Extracts a substring from a start index to the end.
+	 *
+	 * @param hex the string containing the hex code
+	 * @param from the start index (inclusive)
+	 * @return the extracted substring from 'from' to the end
+	 */
 	public static String getHexFromString(String hex, int from) {
 		return hex.substring(from);
 	}
 
 	/**
-	 * Convert hex to RGB.
+	 * Converts a hexadecimal color string to a {@link Color} object.
+	 * Supports shorthand 3-digit hex (#RGB) and full 6-digit hex (#RRGGBB).
+	 * If invalid, returns white color and logs a warning.
 	 *
-	 * @param colorStr hex you want to transform.
-	 * @return the Colors instance with set colors from the hex string.
+	 * @param colorStr the hex color string, e.g. "#FFF" or "#FFFFFF"
+	 * @return a {@link Color} object representing the hex color
 	 */
 	public static Color hexToRgb(String colorStr) {
 		if (colorStr.length() == 4) {
@@ -133,6 +161,12 @@ public class StringUtility {
 				Integer.valueOf(colorStr.substring(5, 7), 16));
 	}
 
+	/**
+	 * Finds the position of the next hex color or color code in the given substring.
+	 *
+	 * @param subMessage the substring to check for color codes
+	 * @return the lowest index of the next color code or -1 if none found
+	 */
 	public static int getNextColor(String subMessage) {
 		int nextGrad = subMessage.indexOf("<#");
 		int vanillaColor = checkIfContainsColor(subMessage);
@@ -144,6 +178,12 @@ public class StringUtility {
 		return Math.min(nextGrad, vanillaColor);
 	}
 
+	/**
+	 * Finds the index in the string where a hex code ends.
+	 *
+	 * @param subMessage the substring to check
+	 * @return the index position where the color code ends
+	 */
 	public static int getEndOfColor(String subMessage) {
 		int nextGrad = subMessage.indexOf(">");
 		int vanillaColor = checkIfContainsColor(subMessage);
@@ -151,6 +191,14 @@ public class StringUtility {
 		return Math.max(nextGrad, vanillaColor);
 	}
 
+	/**
+	 * Validates and adjusts the portions array for a gradient color list to ensure
+	 * the sum of portions does not exceed 1.0. Missing or null values are set to 0.
+	 *
+	 * @param colorList an array of {@link Color}s used in the gradient
+	 * @param portionsList an array of {@link Double}s representing portion sizes
+	 * @return the adjusted portions array with corrected values
+	 */
 	public static Double[] checkPortions(Color[] colorList, Double[] portionsList) {
 		if (colorList == null || portionsList == null) return new Double[0];
 		if (colorList.length == portionsList.length) return new Double[0];
@@ -169,12 +217,28 @@ public class StringUtility {
 		return portionsList;
 	}
 
+	/**
+	 * Removes a substring from the message between given start and end indices.
+	 *
+	 * @param message the original message
+	 * @param startIndex the start index to remove from (inclusive)
+	 * @param endIndex the end index to remove to (exclusive)
+	 * @return the message with the specified substring removed
+	 */
 	public static String getStringStriped(String message, int startIndex, int endIndex) {
 		String subColor = message.substring(startIndex);
 		final String substring = subColor.substring(0, endIndex > 0 ? endIndex + 1 : message.length());
 		return message.replace(substring, "");
 	}
 
+	/**
+	 * Extracts multiple color values from a substring starting at a given index.
+	 * The colors are expected to be separated by ':' and enclosed in &lt;&gt;.
+	 *
+	 * @param message the full message containing the colors
+	 * @param startIndex the index at which the color substring starts (should be '&lt;')
+	 * @return an array of color strings extracted between the brackets
+	 */
 	public static String[] getMultiColors(String message, int startIndex) {
 		String subcolor = message.substring(startIndex);
 		int endOfColor = subcolor.indexOf(">");

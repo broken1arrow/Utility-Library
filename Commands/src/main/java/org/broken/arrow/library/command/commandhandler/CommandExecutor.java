@@ -15,22 +15,42 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * The main command executor that handles subcommands for a base command.
+ * <p>
+ * This class routes the main command to specific registered subcommands,
+ * manages permissions, tab completions, and help/usage messages.
+ * </p>
+ */
 public class CommandExecutor extends Command {
 
     private final CommandRegister commandRegister;
 
+    /**
+     * Constructs the main command executor.
+     *
+     * @param commandRegister the registry that holds all subcommands
+     * @param name            the main command name
+     * @param description     the main command description
+     * @param usageMessage    usage message shown on invalid usage
+     * @param aliases         list of aliases for the main command
+     */
     public CommandExecutor(@Nonnull CommandRegister commandRegister, @Nonnull final String name, @Nonnull final String description, @Nonnull final String usageMessage, @Nonnull final List<String> aliases) {
         super(name, description, usageMessage, aliases);
         this.commandRegister = commandRegister;
     }
 
     /**
-     * Executes the command, returning its success
+     * Executes the main command or delegates to a subcommand.
+     * <p>
+     * If no arguments are given, sends general help or usage information.
+     * If the first argument matches a subcommand, delegates execution to it.
+     * </p>
      *
-     * @param sender       Source object which is executing this command
-     * @param commandLabel The alias of the command used
-     * @param args         All arguments passed to the command, split via ' '
-     * @return true if the command was successful, otherwise false
+     * @param sender       the source who executed the command
+     * @param commandLabel the command alias used
+     * @param args         the arguments passed to the command
+     * @return {@code true} if the command was handled successfully; {@code false} otherwise
      */
     @Override
     public boolean execute(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] args) {
@@ -54,7 +74,15 @@ public class CommandExecutor extends Command {
         return false;
     }
 
-
+    /**
+     * Provides tab completion suggestions for the main command and its subcommands.
+     *
+     * @param sender the command sender requesting tab completion
+     * @param alias  the alias of the command being completed
+     * @param args   the current command arguments typed by the sender
+     * @return a list of possible completions for the current argument
+     * @throws IllegalArgumentException if arguments are invalid
+     */
     @Nonnull
     @Override
     public List<String> tabComplete(@Nonnull final CommandSender sender, @Nonnull final String alias, @Nonnull final String[] args) throws IllegalArgumentException {
@@ -67,7 +95,6 @@ public class CommandExecutor extends Command {
         }
         return new ArrayList<>();
     }
-
 
     @Nonnull
     @Override
@@ -103,6 +130,12 @@ public class CommandExecutor extends Command {
         return tab;
     }
 
+    /**
+     * Send sub command.
+     *
+     * @param sender the sender of the command.
+     * @param commandLabel the label of the sub command.
+     */
     public void sendSubDescription(final CommandSender sender, final String commandLabel) {
         for (final CommandProperty subcommand : commandRegister.getCommands()) {
             if (isSendLabelMessage(sender, subcommand)) continue;
@@ -152,7 +185,7 @@ public class CommandExecutor extends Command {
         }
     }
 
-    private boolean sendDescription(@Nonnull CommandSender sender, @Nonnull String commandLabel,@Nonnull String[] args, CommandProperty executor) {
+    private boolean sendDescription(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] args, CommandProperty executor) {
         if (executor.getDescription() != null) {
             String arguments = Arrays.toString(args);
 
@@ -164,13 +197,19 @@ public class CommandExecutor extends Command {
         return false;
     }
 
-    public String placeholders(final String message, final String commandLabel, final CommandProperty subcommand) {
+    private String placeholders(final String message, final String commandLabel, final CommandProperty subcommand) {
         if (message == null) return "";
         String permission = subcommand != null ? subcommand.getPermission() : null;
         if (permission == null) permission = "";
         return message.replace("{label}", "/" + commandLabel + (subcommand != null ? " " + this.formatSet(subcommand.getCommandLabels()) : "")).replace("{perm}", permission);
     }
 
+    /**
+     * Translate colors on a text.
+     *
+     * @param message the message to check the colors.
+     * @return string that has formated colors.
+     */
     public String colors(final String message) {
         if (message == null) return "";
         return TextTranslator.toSpigotFormat(message);
@@ -211,7 +250,7 @@ public class CommandExecutor extends Command {
             labelsFormatted.append(label)
                     .append(", ");
         }
-        labelsFormatted.setLength(labelsFormatted.length()-2);
+        labelsFormatted.setLength(labelsFormatted.length() - 2);
         return labelsFormatted.toString();
     }
 }

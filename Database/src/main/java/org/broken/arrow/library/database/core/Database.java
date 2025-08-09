@@ -3,7 +3,6 @@ package org.broken.arrow.library.database.core;
 import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
-import org.broken.arrow.library.database.builders.SqlQueryBuilder;
 import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
 import org.broken.arrow.library.database.builders.wrappers.LoadSetup;
 import org.broken.arrow.library.database.builders.wrappers.QueryLoader;
@@ -13,7 +12,7 @@ import org.broken.arrow.library.database.connection.HikariCP;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManger;
+import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.core.databases.H2DB;
 import org.broken.arrow.library.database.core.databases.MongoDB;
 import org.broken.arrow.library.database.core.databases.MySQL;
@@ -47,6 +46,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 
+/**
+ * The main database class that handle the general logic around database queries.
+ */
 @SuppressWarnings("unused")
 public abstract class Database {
     private final Logging log = new Logging(Database.class);
@@ -63,6 +65,11 @@ public abstract class Database {
     private long maxLifeTime;
     private int minimumIdle;
 
+    /**
+     * The  database instance.
+     *
+     * @param connectionSettings the settings for the connection.
+     */
     protected Database(ConnectionSettings connectionSettings) {
         if (this instanceof SQLite) {
             this.databaseType = DatabaseType.SQLITE;
@@ -100,8 +107,25 @@ public abstract class Database {
      */
     public abstract boolean usingHikari();
 
-    public abstract boolean isHasCastException();
+    /**
+     * Checks whether the last attempt to connect to the database has failed.
+     *
+     * @return {@code true} if the connection failed; {@code false} otherwise.
+     */
+    public abstract boolean hasConnectionFailed();
 
+    /**
+     * @deprecated This method is outdated and only checks for connection exceptions.
+     * Use {@link #hasConnectionFailed()} instead for clearer semantics.
+     * <p>
+     * Checks whether a connection exception has occurred.
+     *
+     * @return {@code true} if a connection exception was detected; {@code false} otherwise.
+     */
+    @Deprecated
+    public  boolean isHasCastException(){
+        return false;
+    }
 
     /**
      * Retrieves the configuration settings for a specific database type. This includes settings
@@ -125,6 +149,14 @@ public abstract class Database {
         this.tablesCache.put(sqlQueryTable.getTableName(), sqlQueryTable);
     }
 
+    /**
+     * Retrieves the {@link SqlQueryTable} associated with the given table name.
+     * <p>
+     * The lookup is case-sensitive.
+     *
+     * @param tableName the exact name of the table (case-sensitive).
+     * @return the {@link SqlQueryTable} for the specified table, or {@code null} if no such table exists.
+     */
     @Nullable
     public SqlQueryTable getTableFromName(String tableName) {
         return tablesCache.get(tableName);
@@ -267,7 +299,7 @@ public abstract class Database {
      * @param tableName   The name of the target table. It must exist in the database, but does not need to be registered in this library.
      * @param cacheToSave A map of data to save. The values must implement {@link ConfigurationSerializable}.
      *                    The keys are available during query setup via {@link QuerySaver#forEachQuery(Consumer)}.
-     * @param saveSetup    Provides access to define primary keys, WHERE clauses, and column filters for updates.
+     * @param saveSetup   Provides access to define primary keys, WHERE clauses, and column filters for updates.
      * @param <K>         The type of keys used in your cache map.
      * @param <V>         The type of values, which must implement {@link ConfigurationSerializable}.
      * @return a {@link QuerySaver} instance used to configure and execute the query, and to access results if needed.
@@ -444,39 +476,6 @@ public abstract class Database {
 
     }
 
-    /**
-     * This method enables you to set up and execute custom SQL commands on a database table. This method use the batch
-     * to effectively run several commands at the same time. While this method uses preparedStatement and parameterized
-     * queries to reduce SQL injection risks (if you do not turn it off with {@link #setSecureQuery(boolean)}),
-     * it is crucial for you to follow safe practices:
-     * <p>&nbsp;</p>
-     * <p>
-     * * Don't pass unsanitized user input directly into SQL commands. Always validate and sanitize
-     * any user-provided values before using them in SQL commands.
-     * </p>
-     * <p>&nbsp;</p>
-     * <p>
-     * * You need to be aware of the potentially security risks of running your own custom SQL
-     * commands, and only give access to trusted individuals only.
-     * </p>
-     *
-     * @param sqlQueryBuilders The SQL command or commands you want to run
-     * @deprecated should not be used any more, is it no longer work.
-     */
-    @Deprecated
-    public void runSQLCommand(@Nonnull final SqlQueryBuilder... sqlQueryBuilders) {
-        BatchExecutor<DataWrapper> batchExecutor;
-        Connection connection = this.attemptToConnect();
-        if (connection == null) {
-            return;
-        }
-        if (this.secureQuery)
-            batchExecutor = new BatchExecutor<>(this, connection, new ArrayList<>());
-        else {
-            batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
-        }
-        batchExecutor.runSQLCommand(sqlQueryBuilders);
-    }
 
     /**
      * Get the type of quote, it currently uses around
@@ -520,12 +519,23 @@ public abstract class Database {
         this.characterSet = characterSet;
     }
 
+    /**
+     * Try to close the connection.
+     *
+     * @param preparedStatement the database statement to close.
+     */
     protected void close(final PreparedStatement... preparedStatement) {
         if (preparedStatement == null) return;
         for (final PreparedStatement statement : preparedStatement)
             close(statement, null);
     }
 
+    /**
+     * Try to close the connection.
+     *
+     * @param preparedStatement the database statement to close.
+     * @param resultSet the database result set to close.
+     */
     public void close(final PreparedStatement preparedStatement, final ResultSet resultSet) {
         try {
             if (preparedStatement != null) preparedStatement.close();
@@ -550,7 +560,7 @@ public abstract class Database {
         try {
             final List<String> column = new ArrayList<>();
             final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.select(ColumnManger.of().column("*").finish()).from(tableName);
+            queryBuilder.select(ColumnManager.of().column("*").finish()).from(tableName);
             final String queryAllColumns = queryBuilder.build();
             statement = connection.prepareStatement(queryAllColumns);
             rs = statement.executeQuery();
@@ -663,7 +673,7 @@ public abstract class Database {
                 checkIfTableExist(connection, tableQuery.getTableName(), column.getColumnName());
             }
         } catch (final SQLException e) {
-            log.log(() ->"Something not working when try create this table: '" + tableQuery.getTableName() + "'");
+            log.log(() -> "Something not working when try create this table: '" + tableQuery.getTableName() + "'");
             final String finalTable = table;
             log.log(e, () -> "With this command: " + finalTable);
         } finally {
@@ -710,10 +720,15 @@ public abstract class Database {
         }
     }
 
+    /**
+     * Trying to connect to the database.
+     *
+     * @return the connection {@code null} if it fails.
+     */
     @Nullable
     public Connection attemptToConnect() {
         Connection connection = this.connect();
-        if (isHasCastException()) {
+        if (hasConnectionFailed()) {
             this.printFailConnect();
             if (connection == null) {
                 this.printFailToOpen();
@@ -724,9 +739,25 @@ public abstract class Database {
         return connection;
     }
 
+    /**
+     * Checks whether a given table exists and contains a specific column.
+     * <p>
+     * This method runs a simple {@code SELECT} query against the specified table
+     * using the provided column name. It is primarily used as a lightweight
+     * existence check — if the query fails, it is assumed that the table or column
+     * does not exist.
+     * <p>
+     * Note: This method does not return a value; instead, it logs a warning if
+     * the check fails. It is intended for internal validation rather than
+     * production-grade existence checks.
+     *
+     * @param connection the active JDBC connection to use for the check (must not be {@code null}).
+     * @param tableName  the name of the table to check.
+     * @param columName  the name of the column to check within the table.
+     */
     private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
         final QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.select(ColumnManger.of().column("*").finish()).from(tableName).where(where -> where.where(columName).equal(""));
+        queryBuilder.select(ColumnManager.of().column("*").finish()).from(tableName).where(where -> where.where(columName).equal(""));
         final String checkTableQuery = queryBuilder.build();
 
         try (final PreparedStatement preparedStatement = connection.prepareStatement(checkTableQuery)) {
@@ -739,7 +770,13 @@ public abstract class Database {
         }
     }
 
-
+    /**
+     * Converts a list of {@link Column} objects into a single space-separated
+     * string of column names.
+     *
+     * @param columns the list of columns to extract names from.
+     * @return a string containing all column names separated by spaces.
+     */
     protected String getColumnsFromTable(final List<Column> columns) {
         final StringBuilder columRow = new StringBuilder();
         for (final Column colum : columns) {
@@ -748,42 +785,81 @@ public abstract class Database {
         return columRow.toString();
     }
 
+    /**
+     * Joins a list of strings into a single comma-separated string without
+     * enclosing brackets.
+     *
+     * @param columns the list of strings to join.
+     * @return the joined string, with elements separated by commas.
+     */
     protected String textUtils(final List<String> columns) {
         return columns.toString().replace("[", "").replace("]", "");
     }
 
+    /**
+     * Indicates whether writing to the database has started.
+     * <p>
+     * This implementation always returns {@code false}, and should be overridden
+     * if actual state tracking is needed.
+     *
+     * @return {@code false} by default.
+     */
     public boolean isHasStartWriteToDb() {
         return false;
     }
 
+    /**
+     * Retrieves the set of columns scheduled for removal.
+     *
+     * @return the set of column names to be removed.
+     */
     public Set<String> getRemoveColumns() {
         return removeColumns;
     }
 
+    /**
+     * Sets the collection of columns to be removed.
+     *
+     * @param removeColumns the set of column names to mark for removal.
+     */
     public void setRemoveColumns(final Set<String> removeColumns) {
         this.removeColumns = removeColumns;
     }
 
     /**
-     * V of database set.
+     * Gets the database type currently configured for this utility.
      *
-     * @return the database type currently set.
+     * @return the active {@link DatabaseType}.
      */
     public DatabaseType getDatabaseType() {
         return databaseType;
     }
 
+    /**
+     * Retrieves the cached mapping of table names to their associated SQL query definitions.
+     *
+     * @return a map where keys are table names and values are {@link SqlQueryTable} objects.
+     */
     @Nonnull
     public Map<String, SqlQueryTable> getTables() {
         return tablesCache;
     }
 
-
+    /**
+     * Opens a new database connection using the configured settings.
+     *
+     * @return a new {@link Connection} instance, or {@code null} if the connection could not be established.
+     */
     @Nullable
     public Connection openConnection() {
         return connect();
     }
 
+    /**
+     * Closes the given database connection if it is not {@code null}.
+     *
+     * @param connection the connection to close.
+     */
     public void closeConnection(Connection connection) {
         try {
             if (connection != null) {
@@ -794,6 +870,11 @@ public abstract class Database {
         }
     }
 
+    /**
+     * Determines whether secure query execution is enabled.
+     *
+     * @return {@code true} if secure query mode is active, otherwise {@code false}.
+     */
     public boolean isSecureQuery() {
         return secureQuery;
     }
@@ -852,14 +933,31 @@ public abstract class Database {
         return columnName;
     }
 
-
-    public boolean isHikariAvailable(final String path) {
+    /**
+     * Checks if a database driver class exists using reflection.
+     *
+     * @param path the fully qualified class name of the driver to check.
+     * @return {@code true} if the driver class is found; {@code false} otherwise.
+     */
+    public boolean isDriverFound(final String path) {
         try {
             Class.forName(path);
         } catch (ClassNotFoundException e) {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Attempts to load the database driver class.
+     * <p>
+     * If the driver is not found, logs a warning message.
+     *
+     * @param path the fully qualified class name of the driver to load.
+     */
+    public void loadDriver(final String path) {
+        if(!isDriverFound( path))
+            log.log(() -> "Could not load this driver: " + path);
     }
 
     /**
@@ -978,18 +1076,19 @@ public abstract class Database {
         return connectionSettings;
     }
 
-    public void loadDriver(final String path) {
-        try {
-            Class.forName(path);
-        } catch (ClassNotFoundException e) {
-            log.log(() -> "Could not load this driver: " + path);
-        }
-    }
 
-    public MethodReflectionUtils getMethodReflectionUtils() {
-        return null;
-    }
-
+    /**
+     * Deserializes the given data into an instance of the specified class.
+     * <p>
+     * The target class must implement {@link ConfigurationSerializable} and provide
+     * either a static {@code deserialize(Map<String, Object>)} method or a static
+     * {@code valueOf(Map<String, Object>)} method for reconstruction.
+     *
+     * @param <T>            the type of object to deserialize, which must extend {@link ConfigurationSerializable}.
+     * @param clazz          the class type to instantiate (must extend {@link ConfigurationSerializable}).
+     * @param serializedData the serialized key-value data to be used for deserialization.
+     * @return an instance of {@code T} populated from the serialized data.
+     */
     public <T extends ConfigurationSerializable> T deSerialize(@Nonnull final Class<T> clazz, @Nonnull final Map<String, Object> serializedData) {
         Method deserializeMethod = MethodReflectionUtils.getMethod(clazz, "deserialize", Map.class);
         if (deserializeMethod == null)
@@ -997,25 +1096,26 @@ public abstract class Database {
         return MethodReflectionUtils.invokeStaticMethod(clazz, deserializeMethod, serializedData);
     }
 
-    public void printPressesCount(int processedCount) {
-        if (processedCount > 10_000)
-            log.log(() -> "Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed.");
-    }
-
+    /**
+     * Print a message when can't open connection
+     */
     public void printFailToOpen() {
         log.log(Level.WARNING, () -> "Could not open connection, check the logs for more details.");
     }
 
+    /**
+     * Print a message when fail to connect.
+     */
     public void printFailConnect() {
         log.log(Level.WARNING, () -> "Previous attempt to connect have failed, so can't execute your sql command. Will do an attempt to connect again, if it will not work you get 'Could not open connection, check the logs for more details.' message.");
     }
 
+    /**
+     * Print a message when can't find the table.
+     * @param tableName The name for the table it could not find.
+     */
     public void printFailFindTable(String tableName) {
         log.log(Level.WARNING, () -> "Could not find table " + tableName);
-    }
-
-    public boolean checkIfNotNull(Object object) {
-        return object != null;
     }
 
 }

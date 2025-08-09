@@ -30,6 +30,18 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Represents a serializable version of a Bukkit {@link ItemStack} including its
+ * type, metadata, enchantments, attributes, colors, and other special properties.
+ * <p>
+ * Provides methods for converting between {@link ItemStack} and its JSON form,
+ * and reconstructing fully-featured items from serialized data.
+ * </p>
+ * <p>
+ * Supports advanced item data such as banners, books, potions, skull owners,
+ * armor colors, attributes, and firework effects.
+ * </p>
+ */
 public class SerializeItem {
     private Material type;
     private int amount = 1;
@@ -56,7 +68,12 @@ public class SerializeItem {
     private org.broken.arrow.library.itemcreator.meta.FireworkMeta fireworkMeta;
     private org.broken.arrow.library.itemcreator.meta.BookMeta bookMenta;
 
-
+    /**
+     * Creates a serializable item representation from an ItemStack.
+     *
+     * @param item the ItemStack to serialize.
+     * @return the created SerializeItem instance.
+     */
     public static SerializeItem fromItemStack(@Nonnull final ItemStack item) {
         final SerializeItem data = new SerializeItem();
         data.type = item.getType();
@@ -94,6 +111,11 @@ public class SerializeItem {
         return data;
     }
 
+    /**
+     * Converts this serialized item back to a Bukkit ItemStack.
+     *
+     * @return a new ItemStack with the stored properties
+     */
     public ItemStack toItemStack() {
         ItemStack item = new ItemStack(type, amount);
         ItemMeta meta = item.getItemMeta();
@@ -138,6 +160,11 @@ public class SerializeItem {
         return item;
     }
 
+    /**
+     * Serializes this item to a pretty-printed JSON string.
+     *
+     * @return JSON representation of this item
+     */
     public String toJson() {
         return new GsonBuilder()
                 .setPrettyPrinting()
@@ -147,6 +174,12 @@ public class SerializeItem {
                 .toJson(this);
     }
 
+    /**
+     * Creates a serialized item from a JSON string.
+     *
+     * @param json the JSON data
+     * @return the deserialized SerializeItem
+     */
     public static SerializeItem fromJson(String json) {
         return new GsonBuilder()
                 .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())
@@ -155,6 +188,167 @@ public class SerializeItem {
                 .fromJson(json, SerializeItem.class);
     }
 
+    /**
+     * Retrieve the item-stack type.
+     *
+     * @return the item material type
+     */
+    public Material getType() {
+        return type;
+    }
+
+    /**
+     * Retrieve the item-stack amount.
+     *
+     * @return the item amount
+     */
+    public int getAmount() {
+        return amount;
+    }
+
+    /**
+     * Retrieve the item-stack display name.
+     *
+     * @return the display name, or null if not set
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Retrieve the item-stack lore.
+     *
+     * @return the item lore, or null if not set
+     */
+    public List<String> getLore() {
+        return lore;
+    }
+
+    /**
+     * Retrieve the item-stack enchantments.
+     *
+     * @return the stored enchantments mapped by key
+     */
+    public Map<String, Integer> getEnchantments() {
+        return enchantments;
+    }
+
+    /**
+     * Retrieve the item-stack custom model data.
+     *
+     * @return the custom model data, or null if not set
+     */
+    public Integer getCustomModelData() {
+        return customModelData;
+    }
+
+    /**
+     * Retrieve the item-stack is unbreakable.
+     *
+     * @return true if the item is unbreakable
+     */
+    public boolean isUnbreakable() {
+        return unbreakable;
+    }
+
+    /**
+     * Retrieve the item-stack flags.
+     *
+     * @return the set of item flags
+     */
+    public Set<ItemFlag> getItemFlags() {
+        return itemFlags;
+    }
+
+    /**
+     * Retrieve the item-stack owner profile if item is skull.
+     *
+     * @return the skull owner name, or null if not set
+     */
+    public String getSkullOwner() {
+        return skullOwner;
+    }
+
+    /**
+     * Retrieve the item-stack owner profile if item is skull.
+     *
+     * @return the owning player, or null if not set
+     */
+    public OfflinePlayer getOwningPlayer() {
+        return owningPlayer;
+    }
+
+    /**
+     * Retrieve the item-stack owner profile if item is skull.
+     *
+     * @return the skull owner profile, or null if not set
+     */
+    public PlayerProfile getOwnerProfile() {
+        return ownerProfile;
+    }
+
+    /**
+     * Retrieve the item-stack potion effects.
+     *
+     * @return the stored potion effects, or null if not set
+     */
+    public BottleEffectMeta getPotionEffects() {
+        return potionEffects;
+    }
+
+    /**
+     * Retrieve the item-stack attribute modifier.
+     *
+     * @return the attribute modifiers, or null if not set
+     */
+    public List<AttributeModifierWrapper> getAttributeModifiers() {
+        return attributeModifiers;
+    }
+
+    /**
+     * Retrieve the item-stack leather armor color.
+     *
+     * @return the leather armor color, or null if not set
+     */
+    public Color getArmorColor() {
+        return armorColor;
+    }
+
+    /**
+     * Retrieve the item-stack banner base color.
+     *
+     * @return the banner base color, or null if not set
+     */
+    public DyeColor getBaseColor() {
+        return baseColor;
+    }
+
+    /**
+     * Retrieve the item-stack banner patterns.
+     *
+     * @return the banner patterns, or null if not set
+     */
+    public List<org.broken.arrow.library.itemcreator.meta.BannerMeta> getPatterns() {
+        return patterns;
+    }
+
+    /**
+     * Retrieve the item-stack firework metadata.
+     *
+     * @return the firework metadata, or null if not set
+     */
+    public org.broken.arrow.library.itemcreator.meta.FireworkMeta getFireworkMeta() {
+        return fireworkMeta;
+    }
+
+    /**
+     * Retrieve the item-stack book metadata.
+     *
+     * @return the book metadata, or null if not set
+     */
+    public org.broken.arrow.library.itemcreator.meta.BookMeta getBookMenta() {
+        return bookMenta;
+    }
 
     @Override
     public boolean equals(final Object o) {

@@ -129,7 +129,6 @@ public class CommandProperty  {
      * For example, if a player types "/mainCommand sub-label ?" or "/mainCommand sub-label help", it will
      * trigger the {@link #getDescription()} method as long as the description is not empty or null.
      * </p>
-     * <p>
      *
      * @param helpKeyword The trigger word for the help message.
      * @return The class instance.

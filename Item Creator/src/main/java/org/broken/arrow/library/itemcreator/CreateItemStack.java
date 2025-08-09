@@ -820,18 +820,10 @@ public class CreateItemStack {
         return itemStack;
     }
 
-    private ItemStack setNbt(ItemStack itemStack){
-        final RegisterNbtAPI nbt = this.nbtApi;
-        if (nbt != null) {
-            final Map<String, Object> metadataMap = this.getNBTdataMap();
-            if (!metadataMap.isEmpty())
-                itemStack = nbt.getCompMetadata().setAllMetadata(itemStack, metadataMap);
-            else {
-                NBTDataWrapper dataWrapper = this.getNbtDataWrapper();
-                if(dataWrapper != null)
-                    itemStack = dataWrapper.applyNBT(itemStack);
-            }
-        }
+    private ItemStack setNbt(ItemStack itemStack) {
+        NBTDataWrapper dataWrapper = this.getNbtDataWrapper();
+        if (dataWrapper != null)
+            itemStack = dataWrapper.applyNBT(itemStack);
         return itemStack;
     }
 

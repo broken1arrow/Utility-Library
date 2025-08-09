@@ -16,10 +16,14 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
- * Represents a helper to set values before execute the save to the database.
+ * Handles the persistence of data from an in-memory cache into a database table.
+ * <p>
+ * This class coordinates mapping the provided cache entries into SQL insert or update
+ * statements, applying any configured save strategy, and executing the queries in batch.
+ * </p>
  *
- * @param <K> the type of the map key used in the save operation
- * @param <V> the type of the value, which must implement {@link ConfigurationSerializable}
+ * @param <K> the type of the cache key
+ * @param <V> the type of the cache value, which must implement {@link ConfigurationSerializable}
  */
 public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryContext<SaveRecord<K, V>> {
     @Nonnull
@@ -31,8 +35,25 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
     @Nonnull
     final Consumer<SaveSetup> strategy;
 
-
-
+    /**
+     * Creates a new {@code QuerySaver} instance responsible for persisting data
+     * from a provided cache into a specific database table.
+     * <p>
+     * This class uses the configured save strategy to map cache entries to the
+     * appropriate database columns and executes the generated SQL statements
+     * in batch mode.
+     * </p>
+     *
+     * @param sqlDatabaseQuery the active {@link SQLDatabaseQuery} instance
+     *                         providing database access and query-building utilities.
+     * @param tableName        the name of the database table where data will be stored.
+     * @param cacheToSave      the in-memory map containing the entries to be saved,
+     *                         where the key is the identifier and the value is
+     *                         a {@link ConfigurationSerializable} object.
+     * @param strategy         a consumer that configures the {@link SaveSetup} for
+     *                         this save operation, defining how data should be mapped
+     *                         and what constraints or clauses to apply.
+     */
     public QuerySaver(@Nonnull final SQLDatabaseQuery sqlDatabaseQuery, @Nonnull String tableName, @Nonnull Map<K, V> cacheToSave, @Nonnull Consumer<SaveSetup> strategy) {
         super(sqlDatabaseQuery,tableName);
         this.tableName = tableName;
@@ -40,7 +61,13 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
         this.strategy = strategy;
     }
 
-
+    /**
+     * Executes the save process for the provided cache data.
+     * <p>
+     * The configured {@link SaveSetup} is applied before batch execution.
+     * If the database is configured for secure queries, a safe executor is used.
+     * </p>
+     */
     public void save() {
         Database database = this.getSqlDatabaseQuery().getDatabase();
         final Connection connection = database.attemptToConnect();
@@ -52,7 +79,7 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
             database.printFailToOpen();
             return;
         }
-        SaveSetup saveSetup = new SaveSetup();
+        final SaveSetup saveSetup = new SaveSetup();
         this.strategy.accept(saveSetup);
         saveSetup.applyConfigure(databaseSettings);
 

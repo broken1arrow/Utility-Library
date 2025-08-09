@@ -37,7 +37,27 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
-
+/**
+ * MongoDB database handler extending the generic {@link Database} class.
+ * <p>
+ * This class manages connections to a MongoDB instance and provides
+ * methods for saving and loading data using MongoDB collections as tables.
+ * It handles connection lifecycle internally and supports basic CRUD operations
+ * via {@link DataWrapper} and serialization interfaces.
+ * </p>
+ * <p>
+ * Unlike SQL databases, this implementation directly interacts with
+ * {@link MongoClient} and MongoDB collections without using connection pooling.
+ * </p>
+ * <p>
+ * Key features:
+ * <ul>
+ *   <li>Automatic connection management with open/close handling</li>
+ *   <li>Save and load data wrappers with flexible serialization</li>
+ *   <li>Support for executing queries using MongoDB's native API with functional callbacks</li>
+ *   <li>Collection creation based on configured table metadata</li>
+ * </ul>
+ */
 public class MongoDB extends Database {
 
     private final Logging log = new Logging(MongoDB.class);
@@ -47,6 +67,11 @@ public class MongoDB extends Database {
     private MongoClient mongoClient;
     private boolean isClosed;
 
+    /**
+     * Creates a new MongoDB instance with the given connection settings.
+     *
+     * @param preferences The connection settings for the MongoDB  database.
+     */
     public MongoDB(final ConnectionSettings preferences) {
         super(preferences);
         this.preferences = preferences;
@@ -209,8 +234,6 @@ public class MongoDB extends Database {
      * @param <T>          The type you want the method to return.
      * @return the value you set as the lambda should return or null if something did go wrong.
      */
-
-
     @Nullable
     public <T> T executeQuery(@Nonnull final QueryDefinition queryBuilder, Function<StatementContext<MongoCollection<Document>>, T> function) {
         if (!openMongo()) {
@@ -288,14 +311,78 @@ public class MongoDB extends Database {
         this.closeConnection();
     }
 
-
+    /**
+     * Returns the database command configuration.
+     * <p>
+     * This operation is not supported for MongoDB and will throw an exception.
+     *
+     * @throws UnsupportedOperationException always
+     */
     @Nonnull
     @Override
     public DatabaseCommandConfig databaseConfig() {
-        throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
+        throw new UnsupportedOperationException("This function is not implemented for this database type." + this);
+    }
+
+    /**
+     * Opens the MongoDB connection if it is closed.
+     *
+     * @return true if connection is open or was successfully opened, false otherwise.
+     */
+    public boolean openMongo() {
+        if (isClosed())
+            connect();
+        this.isClosed = false;
+        return this.mongoClient != null;
+    }
+
+    /**
+     * Closes the MongoDB connection.
+     * <p>
+     * After calling this, you must use {@link #connect()} or {@link #openMongo()}
+     * to reopen the connection.
+     */
+    public void closeConnection() {
+        if (mongoClient == null) return;
+        mongoClient.close();
+        this.isClosed = true;
+    }
+
+    /**
+     * This method check if connection is null or close.
+     *
+     * @return true if connection is closed or null.
+     */
+    public boolean isClosed() {
+        return mongoClient == null || isClosed;
     }
 
 
+    @Override
+    public boolean usingHikari() {
+        return false;
+    }
+
+    @Override
+    public boolean hasConnectionFailed() {
+        return false;
+    }
+
+    /**
+     * Logs a warning indicating that the connection to MongoDB could not be established.
+     */
+    private void errorCouldConnect() {
+        log.log(Level.WARNING, () -> "Could not open connection to the database.");
+    }
+
+    /**
+     * Saves the given {@link DataWrapper} to the specified MongoDB collection.
+     * Updates the document if it exists, otherwise inserts a new document.
+     *
+     * @param dataWrapper the data wrapper containing data to save
+     * @param tableWrapper the SQL query table metadata
+     * @param collection the MongoDB collection to save into
+     */
     private void saveData(final DataWrapper dataWrapper, final SqlQueryTable tableWrapper, final MongoCollection<Document> collection) {
         Document document = new Document("_id", dataWrapper.getPrimaryValue());
         Bson filter = Filters.eq("_id", dataWrapper.getPrimaryValue());
@@ -313,55 +400,18 @@ public class MongoDB extends Database {
             collection.insertOne(document);
     }
 
-    private static Column getColumn(SqlQueryTable tableWrapper,String columnName) {
+    /**
+     * Retrieves the {@link Column} object from the table metadata for a given column name.
+     *
+     * @param tableWrapper the SQL query table metadata
+     * @param columnName   the column name to look for
+     * @return the matching column or null if not found
+     */
+    private Column getColumn(final SqlQueryTable tableWrapper,final String columnName) {
         for(Column colum :tableWrapper.getTable().getColumns()){
             if(colum.getColumnName().equals(columnName))
                 return colum;
         }
         return null;
-    }
-
-    public boolean openMongo() {
-        if (isClosed())
-            connect();
-        this.isClosed = false;
-        return this.mongoClient != null;
-    }
-
-    /**
-     * This method close the connection to the mongo db.
-     * <p>
-     * You need to use {@link #connect()} or {@link #openMongo()} for open the connection again.
-     */
-    public void closeConnection() {
-        if (mongoClient == null) return;
-        mongoClient.close();
-        this.isClosed = true;
-    }
-
-    private void errorCouldConnect() {
-        log.log(Level.WARNING, () -> "Could not open connection to the database.");
-    }
-
-
-    /**
-     * This method check if connection is null or close.
-     *
-     * @return true if connection is closed or null.
-     */
-
-    public boolean isClosed() {
-        return mongoClient == null || isClosed;
-    }
-
-
-    @Override
-    public boolean usingHikari() {
-        return false;
-    }
-
-    @Override
-    public boolean isHasCastException() {
-        return false;
     }
 }

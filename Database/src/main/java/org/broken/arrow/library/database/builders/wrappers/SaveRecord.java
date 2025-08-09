@@ -5,7 +5,7 @@ import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManger;
+import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -137,7 +137,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
         final QueryBuilder builder = new QueryBuilder();
         builder.setGlobalEnableQueryPlaceholders(queryPlaceholder);
         List<Column> columnList = value.serialize().keySet().stream()
-                .map(columnName -> ColumnManger.of().column(columnName).getColumn())
+                .map(columnName -> ColumnManager.of().column(columnName).getColumn())
                 .collect(Collectors.toList());
         this.whereClause = whereClause;
         this.selectData = builder.select(columnList).from(this.tableName).where(whereClause);
@@ -155,7 +155,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      * @param value      the value to be stored under the column.
      */
     public void addKeys(String columnName, Object value) {
-        keys.put(ColumnManger.of().column(columnName).getColumn(), value);
+        keys.put(ColumnManager.of().column(columnName).getColumn(), value);
     }
 
     /**
@@ -173,7 +173,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      * @param obj the object to test and cast.
      * @param <Z> expected key type.
      * @param <Y> expected value type.
-     * @return a casted {@code SaveContext<k, v>} if the types match, or {@code null} otherwise.
+     * @return a cast {@code SaveContext<k, v>} if the types match, or {@code null} otherwise.
      */
     @Nullable
     public <Z, Y extends ConfigurationSerializable> SaveRecord<Z, Y> isSaveContext(Object obj) {

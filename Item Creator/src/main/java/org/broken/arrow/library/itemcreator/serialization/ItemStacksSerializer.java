@@ -12,48 +12,102 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class for serializing and deserializing collections of {@link ItemStack}
+ * objects to and from JSON format.
+ * <p>
+ * Maintains both the original {@link ItemStack} list and their serialized
+ * representations ({@link SerializeItem}) for easy conversion.
+ * </p>
+ * <p>
+ * Use {@link #toJson()} to export as JSON, {@link #fromJson(String)} to load from JSON,
+ * or {@link #getItems()} to obtain the serializable objects directly.
+ * </p>
+ */
 public class ItemStacksSerializer implements Iterable<ItemStack> {
     private final List<SerializeItem> items = new ArrayList<>();
     private final transient List<ItemStack> itemStacks = new ArrayList<>();
 
+    /**
+     * Adds a single ItemStack to the serializer.
+     *
+     * @param itemStack the ItemStack to add (not null)
+     */
     public void add(@Nonnull final ItemStack itemStack) {
-        this.items.add(SerializeItem.fromItemStack(itemStack));
-        this.itemStacks.add(this.createNewItemstack(itemStack));
+        final ItemStack stack = new ItemStack(itemStack);
+        this.items.add(SerializeItem.fromItemStack(stack));
+        this.itemStacks.add(this.createNewItemstack(stack));
     }
 
+    /**
+     * Adds multiple ItemStacks to the serializer.
+     *
+     * @param itemStacks the ItemStacks to add (ignored if null or empty)
+     */
     public void addAll(@Nonnull final ItemStack... itemStacks) {
         if (itemStacks == null || itemStacks.length == 0)
             return;
         for (ItemStack itemStack : itemStacks) {
-            this.items.add(SerializeItem.fromItemStack(itemStack));
-            this.itemStacks.add(this.createNewItemstack(itemStack));
+            final ItemStack stack = new ItemStack(itemStack);
+            this.items.add(SerializeItem.fromItemStack(stack));
+            this.itemStacks.add(this.createNewItemstack(stack));
         }
     }
 
+    /**
+     * Removes the given ItemStack from the serializer.
+     *
+     * @param itemStack the ItemStack to remove (not null)
+     */
     public void remove(@Nonnull final ItemStack itemStack) {
         this.items.remove(SerializeItem.fromItemStack(itemStack));
         this.itemStacks.remove(itemStack);
     }
 
+    /**
+     * Removes all stored items from the serializer.
+     */
     public void clear() {
         this.items.clear();
         this.itemStacks.clear();
     }
 
+    /**
+     * Returns a copy of the serialized item data list.
+     *
+     * @return a new List containing {@link SerializeItem} objects.
+     */
     public List<SerializeItem> getItems() {
         return new ArrayList<>(items);
     }
 
+    /**
+     * Returns the list of stored ItemStacks.
+     * <p>
+     * The returned list is the internal list, so changes will affect this object.
+     *
+     * @return the ItemStack list.
+     */
     public List<ItemStack> getItemStacks() {
         return itemStacks;
     }
 
+    /**
+     * Returns an iterator over the stored ItemStacks.
+     *
+     * @return an iterator for the ItemStacks
+     */
     @Override
     @Nonnull
     public Iterator<ItemStack> iterator() {
         return itemStacks.iterator();
     }
 
+    /**
+     * Serializes the stored items to a pretty-printed JSON string.
+     *
+     * @return JSON representation of this serializer
+     */
     public String toJson() {
         return new GsonBuilder()
                 .setPrettyPrinting()
@@ -63,6 +117,12 @@ public class ItemStacksSerializer implements Iterable<ItemStack> {
                 .toJson(this);
     }
 
+    /**
+     * Creates an ItemStacksSerializer from a JSON string.
+     *
+     * @param json the JSON data
+     * @return the deserialized ItemStacksSerializer
+     */
     public static ItemStacksSerializer fromJson(String json) {
         final ItemStacksSerializer serializer = new GsonBuilder()
                 .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())

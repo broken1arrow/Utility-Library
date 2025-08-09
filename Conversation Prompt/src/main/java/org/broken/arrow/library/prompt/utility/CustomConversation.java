@@ -9,6 +9,9 @@ import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
 
+/**
+ * A chat conversation that extends on {@link Conversation}.
+ */
 public class CustomConversation extends Conversation {
 	private SimplePrompt lastSimplePrompt;
 	private final SimpleConversation simpleConversation;

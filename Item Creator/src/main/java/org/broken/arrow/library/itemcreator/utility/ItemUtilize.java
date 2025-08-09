@@ -20,8 +20,6 @@ public class ItemUtilize {
     }
 
 
-
-
     public static String translateColors(final String rawSingleLine) {
         return translateHexCodes(rawSingleLine);
     }

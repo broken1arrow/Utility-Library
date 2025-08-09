@@ -142,8 +142,21 @@ public interface CommandRegistering {
 	 */
 	List<CommandProperty> getCommands();
 
+	/**
+	 * Returns the command builder with the specified sub-label.
+	 *
+	 * @param label The sub-label of the command builder to retrieve.
+	 * @return The command builder with the specified sub-label, or null if not found.
+	 */
 	CommandProperty getCommandBuilder(String label);
 
+	/**
+	 * Returns the command builder with the specified sub-label.
+	 *
+	 * @param label      The sub-label of the command builder to retrieve.
+	 * @param startsWith Specifies whether the sub-label should match the beginning of the command builder's sub-label.
+	 * @return The command builder with the specified sub-label, or null if not found.
+	 */
 	CommandProperty getCommandBuilder(String label, boolean startsWith);
 
 	/**

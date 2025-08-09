@@ -29,11 +29,24 @@ public class HikariCP {
     private final Database database;
     private final String driver;
 
+    /**
+     * Constructs a new HikariCP manager for the specified database and JDBC driver.
+     *
+     * @param database the database instance providing connection settings and configuration
+     * @param driver the fully qualified class name of the JDBC driver
+     */
     public HikariCP(@Nonnull Database database, String driver) {
         this.database = database;
         this.driver = driver;
     }
-
+    /**
+     * Retrieves a connection from the HikariCP pool configured with the provided driver connection prefix.
+     * If the pool does not exist or the configuration has changed, a new pool is created.
+     *
+     * @param driverConnection the JDBC connection prefix (e.g., "jdbc:mysql://")
+     * @return a {@link Connection} instance from the pool
+     * @throws SQLException if a database access error occurs or the pool cannot be created
+     */
     public Connection getConnection(String driverConnection) throws SQLException {
         final ConnectionSettings connectionSettings = this.database.getConnectionSettings();
         final String databaseName = connectionSettings.getDatabaseName();
@@ -66,6 +79,14 @@ public class HikariCP {
         return createPoolIfSetDataNotMatch(config);
     }
 
+    /**
+     * Creates or recreates the connection pool if the current pool is closed or
+     * its configuration differs from the given config.
+     *
+     * @param config the {@link HikariConfig} to configure the pool
+     * @return a {@link Connection} from the pool
+     * @throws SQLException if a database access error occurs
+     */
     private Connection createPoolIfSetDataNotMatch(HikariConfig config) throws SQLException {
         synchronized (this) {
             if (this.hikari == null || this.hikari.isClosed()) {
@@ -92,6 +113,14 @@ public class HikariCP {
         return this.hikari.getConnection();
     }
 
+    /**
+     * Builds a {@link HikariConfig} instance based on the connection parameters.
+     *
+     * @param driverConnection the JDBC connection prefix (e.g., "jdbc:mysql://")
+     * @param hostAddress the database host address
+     * @param databaseName the database name
+     * @return the configured {@link HikariConfig} object
+     */
     @Nonnull
     private HikariConfig getHikariConfig(String driverConnection, String hostAddress, String databaseName) {
         final ConnectionSettings connectionSettings = this.database.getConnectionSettings();
@@ -110,6 +139,14 @@ public class HikariCP {
         return config;
     }
 
+    /**
+     * Gets a connection for file-based databases (or similar), initializing the pool accordingly.
+     * Closes any existing pool connection before creating a new one.
+     *
+     * @param driverConnection the JDBC connection prefix for the file database
+     * @return a {@link Connection} instance
+     * @throws SQLException if a database access error occurs
+     */
     public Connection getFileConnection(String driverConnection) throws SQLException {
         final ConnectionSettings connectionSettings = this.database.getConnectionSettings();
         String hostAddress = connectionSettings.getHostAddress();
@@ -123,6 +160,10 @@ public class HikariCP {
         return this.hikari.getConnection();
     }
 
+    /**
+     * Disables verbose logging for the HikariCP connection pool internals,
+     * setting the logging level to WARN to reduce noise in logs.
+     */
     public void turnOfLogs() {
         Configurator.setAllLevels("com.zaxxer.hikari.pool.PoolBase", Level.WARN);
         Configurator.setAllLevels("com.zaxxer.hikari.HikariDataSource", Level.WARN);

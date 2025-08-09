@@ -227,6 +227,19 @@ public abstract class CommandHolder extends CommandProperty {
         return message.toString();
     }
 
+    /**
+     * Clamps the given value to be within the specified minimum and maximum range.
+     * <p>
+     * If the value is less than {@code min}, {@code min} is returned.
+     * If the value is greater than {@code max}, {@code max} is returned.
+     * Otherwise, the value itself is returned.
+     * </p>
+     *
+     * @param value the value to clamp
+     * @param min   the minimum allowed value (inclusive)
+     * @param max   the maximum allowed value (inclusive)
+     * @return the clamped value within the range [min, max]
+     */
     protected int range(final int value, final int min, final int max) {
         return Math.min(Math.max(value, min), max);
     }

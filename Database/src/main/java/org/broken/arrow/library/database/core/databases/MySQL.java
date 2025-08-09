@@ -15,6 +15,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLRecoverableException;
 
+/**
+ * Represents a MySQL database connection handler, supporting both direct JDBC connections
+ * and HikariCP connection pooling if available.
+ * <p>
+ * This class extends {@link SQLDatabaseQuery} to provide MySQL-specific connection
+ * handling, including automatic database creation and connection management.
+ */
 public class MySQL extends SQLDatabaseQuery {
     private final Logging log = new Logging(MySQL.class);
     private final ConnectionSettings mysqlPreference;
@@ -26,10 +33,10 @@ public class MySQL extends SQLDatabaseQuery {
 
 
     /**
-     * Creates a new MySQL instance with the given MySQL preferences.This
-     * constructor will not check if the database is created or not.
+     * Creates a new MySQL instance with the given connection settings.
+     * This constructor assumes the database already exists and does not attempt to create it.
      *
-     * @param mysqlPreference The set preference information to connect to the database.
+     * @param mysqlPreference The connection settings for the MySQL database.
      */
     public MySQL(@Nonnull ConnectionSettings mysqlPreference) {
         this(mysqlPreference, "com.zaxxer.hikari.HikariConfig");
@@ -65,7 +72,7 @@ public class MySQL extends SQLDatabaseQuery {
     public MySQL(@Nonnull ConnectionSettings mysqlPreference, boolean createDatabase, String hikariClazz) {
         super(mysqlPreference);
         this.mysqlPreference = mysqlPreference;
-        this.isHikariAvailable = isHikariAvailable(hikariClazz);
+        this.isHikariAvailable = isDriverFound(hikariClazz);
         this.setCharacterSet("DEFAULT CHARSET=utf8mb4");
         this.startSQLUrl = "jdbc:mysql://";
         this.driver = "com.mysql.cj.jdbc.Driver";
@@ -104,7 +111,14 @@ public class MySQL extends SQLDatabaseQuery {
         return new DatabaseCommandConfig(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
     }
 
-
+    /**
+     * Sets up and returns a new connection to the MySQL database.
+     * <p>
+     * Uses HikariCP if available; otherwise, establishes a direct JDBC connection.
+     *
+     * @return a new {@link Connection} instance.
+     * @throws SQLException if the connection setup fails.
+     */
     public Connection setupConnection() throws SQLException {
         Connection connection;
 
@@ -124,6 +138,12 @@ public class MySQL extends SQLDatabaseQuery {
         return connection;
     }
 
+    /**
+     * Checks if the database specified in the connection settings exists, and creates it if missing.
+     * <p>
+     * This method establishes a connection to the MySQL server without selecting a database,
+     * then attempts to create the database if it does not already exist.
+     */
     public void createMissingDatabase() {
         String databaseName = mysqlPreference.getDatabaseName();
         String hostAddress = mysqlPreference.getHostAddress();
@@ -147,7 +167,7 @@ public class MySQL extends SQLDatabaseQuery {
     }
 
     @Override
-    public boolean isHasCastException() {
+    public boolean hasConnectionFailed() {
         return hasCastException;
     }
 }

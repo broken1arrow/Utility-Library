@@ -116,8 +116,7 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
                                 effectValues.isAmbient,
                                 effectValues.hasParticles,
                                 effectValues.hasIcon
-                        )
-                );
+                        ));
             } else {
                 logger.warn(() -> "The potion effect type is invalid, the current name is: '" + effectValues.typeName);
                 return null;
@@ -137,6 +136,8 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
 
         /**
          * Valid if a type is present and duration is either infinite (-1) or positive.
+         *
+         * @return Returns {@code true} if the type and duration is -1 or more than zero.
          */
         public boolean isValid() {
             return type != null && (duration == -1 || duration > 0);

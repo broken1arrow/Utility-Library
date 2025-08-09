@@ -13,27 +13,64 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Configuration holder for database command execution options.
+ * <p>
+ * This class encapsulates settings related to the result set behavior for database commands,
+ * such as the {@code resultSetType} and {@code resultSetConcurrency}, and optionally allows
+ * a custom function query to modify the command execution behavior.
+ * <p>
+ * The class supports two usage modes:
+ * <ul>
+ *   <li>Basic configuration with result set type and concurrency only.</li>
+ *   <li>Extended configuration with a {@link FunctionQuery} to customize query execution.</li>
+ * </ul>
+ */
 public class DatabaseCommandConfig {
-    protected final int resultSetType;
-    protected final int resultSetConcurrency;
-    private final ConfigConsumer config;
+    private final int resultSetType;
+    private final int resultSetConcurrency;
     private final FunctionQuery query;
 
+    /**
+     * Creates a new configuration with the specified result set type and concurrency.
+     *
+     * @param resultSetType        the type of the {@link java.sql.ResultSet} (e.g., {@code ResultSet.TYPE_SCROLL_INSENSITIVE})
+     * @param resultSetConcurrency the concurrency mode of the {@link java.sql.ResultSet} (e.g., {@code ResultSet.CONCUR_UPDATABLE})
+     */
     public DatabaseCommandConfig(int resultSetType, int resultSetConcurrency) {
-        this(resultSetType, resultSetConcurrency,  null);
+        this(resultSetType, resultSetConcurrency, null);
     }
 
+    /**
+     * Creates a new configuration with the specified result set type, concurrency, and
+     * an optional custom function query to modify command behavior.
+     *
+     * @param resultSetType        the type of the {@link java.sql.ResultSet}
+     * @param resultSetConcurrency the concurrency mode of the {@link java.sql.ResultSet}
+     * @param query                an optional {@link FunctionQuery} to customize query execution
+     */
     public DatabaseCommandConfig(final int resultSetType, final int resultSetConcurrency, final FunctionQuery query) {
         this.resultSetType = resultSetType;
         this.resultSetConcurrency = resultSetConcurrency;
-        this.config = null;
         this.query = query;
     }
 
+    /**
+     * Gets the configured result set type for this database command.
+     *
+     * @return the {@code ResultSet} type (e.g., {@code ResultSet.TYPE_FORWARD_ONLY},
+     * {@code ResultSet.TYPE_SCROLL_INSENSITIVE}, etc.)
+     */
     public int getResultSetType() {
         return resultSetType;
     }
 
+    /**
+     * Gets the configured result set concurrency mode for this database command.
+     *
+     * @return the concurrency mode of the {@code ResultSet} (e.g., {@code ResultSet.CONCUR_READ_ONLY},
+     * {@code ResultSet.CONCUR_UPDATABLE}, etc.)
+     */
     public int getResultSetConcurrency() {
         return resultSetConcurrency;
     }

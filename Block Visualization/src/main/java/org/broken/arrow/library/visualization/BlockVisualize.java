@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  * It allows you to add text and glow effects to blocks.
  */
 public class BlockVisualize {
-	private BlockVisualizerCache blockVisualizerCache;
+	private BlockVisualizerUtility blockVisualizerCache;
 	private final Plugin plugin;
 	private final float serverVersion;
 
@@ -76,9 +76,9 @@ public class BlockVisualize {
 	public void visualizeBlock(@Nullable final Player player, @Nonnull final Block block, @Nonnull final Supplier<VisualizeData> visualizeData, final boolean shallBeVisualize) {
         Validate.checkBoolean(checkAtLeastOnePlayerProvided(player,visualizeData.get()),"You must provide at least one player to visualize the block.");
 
-		BlockVisualizerCache blockVisualizer = this.blockVisualizerCache;
+		BlockVisualizerUtility blockVisualizer = this.blockVisualizerCache;
 		if (blockVisualizer == null) {
-			blockVisualizer = new BlockVisualizerCache(plugin, this);
+			blockVisualizer = new BlockVisualizerUtility(plugin, this);
 			this.blockVisualizerCache = blockVisualizer;
 		}
 		boolean isVisualized = blockVisualizer.isVisualized(block);
@@ -114,6 +114,16 @@ public class BlockVisualize {
 		return serverVersion;
 	}
 
+	/**
+	 * Run a task later, using the bukkit scheduler to run the task.
+	 *
+	 * @param tick amount of ticks before run your code.
+	 * @param task the task to execute.
+	 * @param async if the task shall be asynchronous set it to {@code true}.
+	 *                 Don't use asynchronous on most of the bukkits methods,
+	 *              if it not explicit says it works.
+	 * @return a BukkitTask instance.
+	 */
 	public BukkitTask runTaskLater(long tick, Runnable task, boolean async) {
 		if (async)
 			return Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, task, tick);

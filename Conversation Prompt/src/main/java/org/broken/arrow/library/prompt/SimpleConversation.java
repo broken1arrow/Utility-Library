@@ -129,7 +129,7 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 	/**
 	 * Get conversation prefix before each message
 	 * <p>
-	 * By default we use the plugins tell prefix
+	 * By default, we use the plugins tell prefix
 	 * <p>
 	 * TIP: You can use {@link SimplePrefix}
 	 *
@@ -139,10 +139,19 @@ public abstract class SimpleConversation implements ConversationAbandonedListene
 		return new SimplePrefix(this.prefix != null ? this.prefix : this.plugin.getName());
 	}
 
+	/**
+	 * Set the prefix to use.
+	 * @param prefix the prefix on the message.
+	 */
 	protected void setPrefix(final String prefix) {
 		this.prefix = prefix;
 	}
 
+	/**
+	 * If it shall set prefix or not.
+	 *
+	 * @return returns tru if it can set prefix.
+	 */
 	public boolean insertPrefix() {
 		return this.prefix != null && !this.prefix.isEmpty();
 	}

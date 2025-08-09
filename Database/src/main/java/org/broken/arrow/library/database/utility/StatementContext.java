@@ -11,8 +11,8 @@ public class StatementContext<T> {
     private final T statement;
 
     /**
-     * Constructs a PreparedStatementWrapper for use with MongoDB,
-     * initializing it with the provided MongoCollection.
+     * Constructs a PreparedStatementWrapper for use with
+     * initializing it with the provided generic type.
      *
      * @param result the result from the type set.
      */

@@ -13,6 +13,13 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * Represents an H2 database connection handler, supporting both direct JDBC connections
+ * and HikariCP connection pooling if available.
+ * <p>
+ * This class extends {@link SQLDatabaseQuery} to provide H2-specific connection
+ * handling, driver loading, and database configuration.
+ */
 public class H2DB extends SQLDatabaseQuery {
     private final Logging log = new Logging(H2DB.class);
 
@@ -21,19 +28,38 @@ public class H2DB extends SQLDatabaseQuery {
     private HikariCP hikari;
     private boolean hasCastException;
 
+    /**
+     * Creates a new H2 database handler using the default HikariCP classpath to check for availability.
+     *
+     * @param parent the parent directory path of the database file.
+     * @param child  the child path (database file name).
+     */
     public H2DB(@Nonnull final String parent, @Nonnull final String child) {
         this("com.zaxxer.hikari.HikariConfig", parent, child);
     }
 
+    /**
+     * Creates a new H2 database handler with a custom HikariCP classpath.
+     *
+     * @param hikariClazzPath the fully qualified class name of the HikariCP configuration class to check.
+     * @param parent          the parent directory path of the database file.
+     * @param child           the child path (database file name).
+     */
     public H2DB(@Nonnull final String hikariClazzPath, @Nonnull final String parent, @Nonnull final String child) {
         this(hikariClazzPath, new DBPath(parent, child));
     }
 
+    /**
+     * Creates a new H2 database handler with a resolved database file path.
+     *
+     * @param hikariClazzPath the fully qualified class name of the HikariCP configuration class to check.
+     * @param dbPath          a {@link DBPath} object containing the database file location.
+     */
     public H2DB(String hikariClazzPath, DBPath dbPath) {
         super(new ConnectionSettings(dbPath.getDbFile().getPath()));
         this.dbFile = dbPath.getDbFile();
 
-        this.isHikariAvailable = isHikariAvailable(hikariClazzPath);
+        this.isHikariAvailable = isDriverFound(hikariClazzPath);
         this.loadDriver("org.h2.Driver");
         connect();
     }
@@ -66,8 +92,16 @@ public class H2DB extends SQLDatabaseQuery {
                 return sqlHandler.insertIntoTable(insertHandler -> insertHandler.addAll(columnData));
         });
     }
-    
 
+    /**
+     * Sets up and returns a database connection.
+     * <p>
+     * If HikariCP is available, it uses the connection pool; otherwise, it falls back to a
+     * standard JDBC connection.
+     *
+     * @return a valid {@link Connection} to the H2 database.
+     * @throws SQLException if the connection setup fails.
+     */
     public Connection setupConnection() throws SQLException {
         Connection connection;
 
@@ -82,13 +116,22 @@ public class H2DB extends SQLDatabaseQuery {
     }
 
     @Override
-    public boolean isHasCastException() {
+    public boolean hasConnectionFailed() {
         return this.hasCastException;
     }
 
+    /**
+     * Helper class to resolve and store the database file path for the H2 database.
+     */
     private static class DBPath {
         private final File dbFile;
 
+        /**
+         * Constructs a new database path.
+         *
+         * @param parent the parent directory path of the database file.
+         * @param child  the child path (database file name).
+         */
         public DBPath(String parent, String child) {
             if (parent != null && child == null)
                 dbFile = new File(parent);
@@ -96,6 +139,11 @@ public class H2DB extends SQLDatabaseQuery {
                 dbFile = new File(parent, child);
         }
 
+        /**
+         * Gets the resolved database file reference.
+         *
+         * @return the {@link File} object representing the database file.
+         */
         public File getDbFile() {
             return dbFile;
         }

@@ -3,6 +3,9 @@ package org.broken.arrow.library.database.builders.tables;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Wraps around your column and value.
+ */
 public class ColumnWrapper {
 
 	private final String columnName;

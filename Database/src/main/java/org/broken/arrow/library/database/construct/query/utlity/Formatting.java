@@ -4,12 +4,29 @@ import org.broken.arrow.library.database.construct.query.builder.comparison.Comp
 import org.broken.arrow.library.database.construct.query.builder.condition.ConditionQuery;
 
 import java.util.List;
-
+/**
+ * Utility class for formatting SQL conditions from a list of ComparisonHandlers.
+ * <p>
+ * Provides logic to combine multiple conditions with logical operators (AND/OR)
+ * and correctly handle parentheses grouping for complex condition expressions.
+ * </p>
+ * <p>
+ * This is used internally by WhereBuilder and HavingBuilder to create the final SQL clause string.
+ * </p>
+ */
 public class Formatting {
 
     private Formatting() {
     }
 
+    /**
+     * Formats a list of conditions into a valid SQL clause segment with proper logical operators
+     * and parentheses to ensure correct logical grouping.
+     *
+     * @param <T> The type of the builder (e.g. WhereBuilder or HavingBuilder) that owns the conditions.
+     * @param conditionsList List of ComparisonHandler conditions to format.
+     * @return The formatted SQL condition string.
+     */
     public static <T> String formatConditions(final List<ComparisonHandler<T>> conditionsList) {
         final StringBuilder whereClause = new StringBuilder();
         boolean openParenthesis = false;

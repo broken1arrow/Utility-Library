@@ -10,12 +10,35 @@ import org.broken.arrow.library.color.utility.TextGradientUtil;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Utility class for translating and formatting text with color codes and gradients.
+ * <p>
+ * Supports:
+ * <ul>
+ * <li> For vanilla color codes <strong>&amp; or &#167;</strong> and the color code.</li>
+ * <li> For hex <strong>&lt;#5e4fa2&gt;</strong> </li>
+ * <li> For normal gradients <strong>&lt;#5e4fa2:#f79459&gt;</strong> </li>
+ * <li> For hsv use <strong>gradients_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
+ * <li> For use multicolor <strong>gradients_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
+ * <li> For change balance between colors add this to the end of gradients or gradients_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
+ *  Like these <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
+ *  If you not add this it will have even balanced between colors.</li>
+ * </ul>
+ * <p>
+ * Provides methods to translate these formats into Spigot-compatible color codes or
+ * into Minecraft component JSON objects suitable for vanilla Minecraft message serialization.
+ * </p>
+ */
 public final class TextTranslator {
 	private static final Pattern HEX_PATTERN = Pattern.compile("(?<!\\\\\\\\)(<#[a-fA-F0-9]{6}>)|(?<!\\\\\\\\)(<#[a-fA-F0-9]{3}>)");
 	private static final Pattern GRADIENT_PATTERN = Pattern.compile("(<#[a-fA-F0-9]{6}:#[a-fA-F0-9]{6}>)");
 	private static final Pattern url = Pattern.compile("^(?:(https?)://)?([-\\w_.]{2,}\\.[a-z]{2,4})(/\\S*)?$");
 	private static final TextTranslator instance = new TextTranslator();
 
+	/**
+	 * Get the instance of this class.
+	 * @return Returns the singleton instance of the {@link TextTranslator}.
+	 */
 	public static TextTranslator getInstance() {
 		return instance;
 	}
@@ -29,7 +52,7 @@ public final class TextTranslator {
 	 * <li> For hsv use <strong>gradients_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
 	 * <li> For use multicolor <strong>gradients_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
 	 * <li> For change balance between colors add this to the end of gradients or gradients_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
-	 *  Like this <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
+	 *  Like these <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
 	 *  If you not add this it will have even balance between colors.</li>
 	 * </ul>
 	 *
@@ -51,8 +74,8 @@ public final class TextTranslator {
 	 * <li> For hsv use <strong>gradients_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
 	 * <li> For use multicolor <strong>gradients_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
 	 * <li> For change balance between colors add this to the end of gradients or gradients_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
-	 *  Like this <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
-	 *  If you not add this it will have even balance between colors.</li>
+	 *  Like these <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
+	 *  If you not add this it will have even balanced between colors.</li>
 	 * </ul>
 	 *
 	 * @param message      your string message.
@@ -74,7 +97,7 @@ public final class TextTranslator {
 	 * <li> For hsv use <strong>gradients_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
 	 * <li> For use multicolor <strong>gradients_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
 	 * <li> For change balance between colors add this to the end of gradients or gradients_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
-	 *  Like this <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
+	 *  Like these <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
 	 *  If you not add this it will have even balance between colors.</li>
 	 * </ul>
 	 *
@@ -87,8 +110,8 @@ public final class TextTranslator {
 	}
 
 	/**
-	 * This is for component when you want to send message
-	 * thru vanilla minecraft MNS for example..DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
+	 * This is for component when you want to send message through vanilla minecraft MNS for example.
+	 * DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
 	 *
 	 * @param message      your string message.
 	 * @param defaultColor set default color when colors are not set in the message.
@@ -103,8 +126,8 @@ public final class TextTranslator {
 	/**
 	 * Type your message/string text here. you use
 	 * <p>
-	 * §/& color code or <#55F758> for normal hex and
-	 * <#5e4fa2:#f79459> for gradient (use any color code to stop gradient).
+	 * §/&amp; color code or &lt;#55F758&gt; for normal hex and
+	 * &lt;#5e4fa2:#f79459&gt; for gradient (use any color code to stop gradient).
 	 *
 	 * @param message your string message.
 	 * @return spigot compatible translation.
@@ -187,6 +210,12 @@ public final class TextTranslator {
 		return CreateFromLegacyText.fromLegacyText( message,defaultColor);
 	}
 
+	/**
+	 * Sets the color for the text.
+	 * @param defaultColor The default color if not provided one.
+	 * @param component the builder so apply the color
+	 * @param format the color format.
+	 */
 	public void setColor(final String defaultColor, final Builder component, String format) {
 		if (format.equals(ChatColors.BOLD.getName())) {
 			component.bold(true);
@@ -207,8 +236,17 @@ public final class TextTranslator {
 		}
 	}
 
+	/**
+	 * The type of gradients set.
+	 */
 	public enum GradientType {
+		/**
+		 * Simple linear gradients, identified by the prefix {@code "gradients_"}.
+		 */
 		SIMPLE_GRADIENT_PATTERN("gradients_"),
+		/**
+		 * HSV-based gradients, identified by the prefix {@code "gradients_hsv_"}.
+		 */
 		HSV_GRADIENT_PATTERN("gradients_hsv_");
 		private final String type;
 
@@ -216,6 +254,10 @@ public final class TextTranslator {
 			this.type = type;
 		}
 
+		/**
+		 * Get the gradient start of the string.
+		 * @return the type of gradients.
+		 */
 		public String getType() {
 			return type;
 		}

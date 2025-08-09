@@ -5,7 +5,7 @@ import org.broken.arrow.library.database.construct.query.builder.InsertHandler;
 import org.broken.arrow.library.database.construct.query.builder.UpdateBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManger;
+import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.core.Database;
 
 import javax.annotation.Nonnull;
@@ -13,12 +13,26 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * A convenience wrapper around the {@link QueryBuilder} class that operates on a specific table
+ * defined in the {@link Database} instance.
+ * <p>
+ * This class provides high-level methods for common SQL operations (INSERT, UPDATE, DELETE, SELECT, etc.)
+ * and automatically applies the configured table name and quoting style from the {@link Database}.
+ * </p>
+ */
 public class SqlHandler {
     private final Database database;
     private final char quote;
     private final String tableName;
     private boolean setGlobalEnableQueryPlaceholders = true;
 
+    /**
+     * Creates a new {@code SqlHandler} for the specified table using the provided database context.
+     *
+     * @param tableName the name of the table this handler operates on
+     * @param database  the database instance that provides quoting rules and stored table metadata
+     */
     public SqlHandler(@Nonnull final String tableName, @Nonnull final Database database) {
         this.tableName = tableName;
         this.database = database;
@@ -27,42 +41,42 @@ public class SqlHandler {
 
 
     /**
-     * Replace data in your database, on columns you added.
+     * Replaces data in the table for the specified columns.
      *
-     * @param callback Consumer where you add your column and value pair.
-     * @return the command and also values with help of a wrapper class.
+     * @param callback a consumer to define the column-value pairs.
+     * @return a {@link SqlQueryPair} containing the generated SQL command and associated values.
      */
     public SqlQueryPair replaceIntoTable(@Nonnull final Consumer<InsertHandler> callback) {
         QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
+        queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.replaceInto(this.tableName, callback);
         return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
     /**
-     * Replace data in your database, on columns you added.
+     * Inserts data into the table for the specified columns.
      *
-     * @param callback Consumer where you add your column and value pair.
-     * @return the command and also values with help of a wrapper class.
+     * @param callback a consumer to define the column-value pairs.
+     * @return a {@link SqlQueryPair} containing the generated SQL command and associated values.
      */
     public SqlQueryPair insertIntoTable(@Nonnull final Consumer<InsertHandler> callback) {
         QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
+        queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.insertInto(this.tableName, callback);
         return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
     /**
-     * Replace data in your database, on columns you added. This do same thing as
-     * "REPLACE INTO", but this command is often used with a database that not support
-     * "REPLACE INTO" for example H2 database.
+     * Merges data into the table for the specified columns.
+     * <p>This works similarly to <code>REPLACE INTO</code> but is often used for databases
+     * that do not support that command (e.g., H2 database).</p>
      *
-     * @param callback Consumer where you add your column and value pair.
-     * @return the command and also values with help of a wrapper class.
+     * @param callback a consumer to define the column-value pairs.
+     * @return a {@link SqlQueryPair} containing the generated SQL command and associated values.
      */
     public SqlQueryPair mergeIntoTable(@Nonnull final Consumer<InsertHandler> callback) {
         QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
+        queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.mergeInto(this.tableName, callback);
         return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
@@ -77,7 +91,7 @@ public class SqlHandler {
      */
     public SqlQueryPair updateTable(@Nonnull final Consumer<UpdateBuilder> callback, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
+        queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.update(this.tableName, callback).getSelector().where(whereClause);
         return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
@@ -91,12 +105,12 @@ public class SqlHandler {
      * @param whereClause       The conditions used to filter which row(s) should be selected.
      * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, final boolean queryPlaceholders, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManager> callback, final boolean queryPlaceholders, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
-        ColumnManger columnManger = new ColumnManger();
+        ColumnManager columnManger = new ColumnManager();
         callback.accept(columnManger);
         queryBuilder.setGlobalEnableQueryPlaceholders(queryPlaceholders);
-        queryBuilder.select(columnManger).from(this.tableName).where( whereClause);
+        queryBuilder.select(columnManger).from(this.tableName).where(whereClause);
         return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
@@ -108,9 +122,9 @@ public class SqlHandler {
      * @param whereClause what conditions you want to filter your rows from.
      * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManger> callback, @Nonnull final WhereBuilder whereClause) {
+    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManager> callback, @Nonnull final WhereBuilder whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
-        ColumnManger columnManger = new ColumnManger();
+        ColumnManager columnManger = new ColumnManager();
         callback.accept(columnManger);
 
         queryBuilder.select(columnManger).from(this.tableName).where(whereClause);
@@ -125,7 +139,7 @@ public class SqlHandler {
      */
     public SqlQueryPair removeRow(@Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.setGlobalEnableQueryPlaceholders(this.isSetQueryPlaceholders());
+        queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.deleteFrom(this.tableName).where(whereClause);
         return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
@@ -152,10 +166,30 @@ public class SqlHandler {
         return new SqlQueryPair(queryBuilder, queryBuilder.getValues());
     }
 
-    public boolean isSetQueryPlaceholders() {
+    /**
+     * Checks whether SQL query values should be replaced with placeholders.
+     * <p>
+     * When enabled, values are represented by placeholders (e.g., {@code ?})
+     * in the generated SQL query, allowing the use of prepared statements for
+     * improved security and performance.
+     *
+     * @return {@code true} if placeholders should be used; {@code false} if actual
+     * values should be embedded directly in the query.
+     */
+    public boolean isQueryPlaceholdersEnabled() {
         return setGlobalEnableQueryPlaceholders;
     }
 
+    /**
+     * Sets whether SQL query values should be replaced with placeholders.
+     * <p>
+     * When enabled, the generated SQL will use placeholders (e.g., {@code ?}) instead
+     * of directly embedding the actual values, making it suitable for prepared statements.
+     * When disabled, values will be embedded directly into the query, which may be less safe.
+     *
+     * @param setPlaceholders {@code true} to enable placeholders; {@code false} to insert
+     *                        values directly into the SQL query.
+     */
     public void setQueryPlaceholders(final boolean setPlaceholders) {
         this.setGlobalEnableQueryPlaceholders = setPlaceholders;
     }

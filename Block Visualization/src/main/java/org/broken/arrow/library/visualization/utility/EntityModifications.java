@@ -14,16 +14,35 @@ import javax.annotation.Nullable;
 import java.util.logging.Level;
 
 /**
- * Handle the logic around spawn in the block entity.
+ * Handles spawning and modifying block-related entities, such as falling blocks,
+ * with compatibility across different Minecraft server versions.
  */
 public class EntityModifications {
 
 	private final float serverVersion;
 	private final Logging log = new Logging(EntityModifications.class);
+
+	/**
+	 * Creates a new entity modifications handler.
+	 *
+	 * @param serverVersion the current server version, used to determine which methods are available.
+	 */
 	public EntityModifications(float serverVersion) {
 		this.serverVersion = serverVersion;
 	}
 
+	/**
+	 * Spawns a falling block at the given location.
+	 * <p>
+	 * If the server version is too old to support falling block spawning,
+	 * this method returns {@code null}.
+	 * </p>
+	 *
+	 * @param location the location to spawn the block at.
+	 * @param mask     the material mask to apply to the block.
+	 * @param text     the custom name text to display above the block, or {@code null} for none.
+	 * @return a {@link FallingBlock} instance, or {@code null} if unsupported.
+	 */
 	public FallingBlock spawnFallingBlock(@Nonnull final Location location, @Nonnull final Material mask, @Nullable final String text) {
 		if (serverVersion < 9) {
 			return null;
@@ -37,6 +56,12 @@ public class EntityModifications {
 		}
 	}
 
+	/**
+	 * Sets a custom name on the given entity.
+	 *
+	 * @param en   the entity to name.
+	 * @param name the name to set, or {@code null} / empty to skip setting a name.
+	 */
 	public void setCustomName(@Nonnull final Entity en, final String name) {
 		try {
 			en.setCustomNameVisible(true);
@@ -48,11 +73,21 @@ public class EntityModifications {
 
 	}
 
-	public void apply(@Nonnull final Object instance, final boolean key) {
-		if (instance instanceof Entity) {
-			final Entity entity = ((Entity) instance);
+	/**
+	 * Applies gravity and glowing settings to an entity or falling block.
+	 * <p>
+	 * On older server versions, NBT tags are used to disable gravity. On newer versions,
+	 * built-in API methods are used.
+	 * </p>
+	 *
+	 * @param object the entity or falling block to modify.
+	 * @param key    {@code true} to disable gravity and enable glowing, {@code false} to restore defaults.
+	 */
+	public void apply(@Nonnull final Object object, final boolean key) {
+		if (object instanceof Entity) {
+			final Entity entity = ((Entity) object);
 			if (this.serverVersion < 13) {
-				final NBTEntity nbtEntity = new NBTEntity((Entity) instance);
+				final NBTEntity nbtEntity = new NBTEntity((Entity) object);
 				nbtEntity.setInteger("NoGravity", !key ? 0 : 1);
 				entity.setGlowing(key);
 			} else {
@@ -60,9 +95,18 @@ public class EntityModifications {
 				entity.setGlowing(key);
 			}
 		}
-		setFallingBlockData(instance, key);
+		setFallingBlockData(object, key);
 	}
 
+	/**
+	 * Sets gravity and glowing flags for a falling block.
+	 * <p>
+	 * On older server versions, NBT tags are used. On newer versions, built-in API methods are used.
+	 * </p>
+	 *
+	 * @param instance the falling block to modify.
+	 * @param key      {@code true} to disable gravity and enable glowing, {@code false} to restore defaults.
+	 */
 	private void setFallingBlockData(@Nonnull final Object instance, final boolean key) {
 		if (instance instanceof FallingBlock) {
 			FallingBlock entity = ((FallingBlock) instance);
@@ -77,10 +121,25 @@ public class EntityModifications {
 		}
 	}
 
+	/**
+	 * Spawns a falling block with the given material.
+	 *
+	 * @param loc      the spawn location.
+	 * @param material the block material.
+	 * @return the spawned falling block, or {@code null} if unsupported.
+	 */
 	private FallingBlock spawnFallingBlock(final Location loc, final Material material) {
 		return spawnFallingBlock(loc, material, (byte) 0);
 	}
 
+	/**
+	 * Spawns a falling block with the given material and data value.
+	 *
+	 * @param loc      the spawn location.
+	 * @param material the block material.
+	 * @param data     the legacy data value for the block.
+	 * @return the spawned falling block, or {@code null} if unsupported.
+	 */
 	private FallingBlock spawnFallingBlock(final Location loc, final Material material, final byte data) {
 		if (loc.getWorld() == null) return null;
 

@@ -1,6 +1,7 @@
 package org.broken.arrow.library.color;
 
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -92,9 +93,9 @@ public final class Component {
 	}
 
 	/**
-	 * Get if color are reseted or not.
+	 * Get if color are reset or not.
 	 *
-	 * @return true if color are reseted.
+	 * @return true if color are reset.
 	 */
 	public boolean isReset() {
 		return reset;
@@ -102,27 +103,15 @@ public final class Component {
 
 	@Override
 	public String toString() {
-		JsonObject json = new JsonObject();
-		if (colorCode != null)
-			json.addProperty("color", colorCode);
-		if (!reset) {
-			if (bold)
-				json.addProperty("bold", true);
-			if (strikethrough)
-				json.addProperty("strikethrough", true);
-			if (underline)
-				json.addProperty("underline", true);
-			if (italic)
-				json.addProperty("italic", true);
-			if (obfuscated)
-				json.addProperty("obfuscated", true);
-		}
-		if (message != null)
-			json.addProperty("text", message);
-		return json + "";
+		return toJson() + "";
 
 	}
 
+	/**
+	 * Convert the set data to json.
+	 *
+	 * @return It returns an {@link JsonObject}.
+	 */
 	public JsonObject toJson() {
 		JsonObject json = new JsonObject();
 		if (colorCode != null)
@@ -148,7 +137,6 @@ public final class Component {
 	/**
 	 * Create json, you have several options to chose from.
 	 */
-
 	public static class Builder {
 
 		private String message;
@@ -161,7 +149,7 @@ public final class Component {
 		private boolean reset;
 
 		/**
-		 * Text/message you whant to add.
+		 * Text/message you want to add.
 		 *
 		 * @param message you want to add.
 		 * @return this class.
@@ -172,9 +160,9 @@ public final class Component {
 		}
 
 		/**
-		 * color code you want to add. Mojang suport §5 or purple
+		 * color code you want to add. Mojang support §5 or purple
 		 * and in 1.16+ you can parse #55F758. if you not set this
-		 * it will be ether purple or white. I have not set any defult
+		 * it will be ether purple or white. I have not set any default
 		 * color.
 		 *
 		 * @param color you whant to add.
@@ -188,7 +176,7 @@ public final class Component {
 		/**
 		 * If you want thick letters.
 		 * <p>
-		 * You dont need add false. If you
+		 * You don't need add false. If you
 		 * don´t set this value, it will
 		 * be false.
 		 *
@@ -203,7 +191,7 @@ public final class Component {
 		/**
 		 * If you want italic letters.
 		 * <p>
-		 * You dont need add false. If you
+		 * You don't need add false. If you
 		 * don´t set this value, it will
 		 * be false.
 		 *
@@ -218,7 +206,7 @@ public final class Component {
 		/**
 		 * If you want underline letters.
 		 * <p>
-		 * You dont need add false. If you
+		 * You don't need add false. If you
 		 * don´t set this value, it will
 		 * be false.
 		 *
@@ -233,7 +221,7 @@ public final class Component {
 		/**
 		 * If you want strikethrough letters.
 		 * <p>
-		 * You dont need add false. If you
+		 * You don't need add false. If you
 		 * don´t set this value, it will
 		 * be false.
 		 *
@@ -248,7 +236,7 @@ public final class Component {
 		/**
 		 * If you want hide/obfuscated letters.
 		 * <p>
-		 * You dont need add false. If you
+		 * You don't need add false. If you
 		 * don´t set this value, it will
 		 * be false.
 		 *
@@ -263,7 +251,7 @@ public final class Component {
 		/**
 		 * If you want reset colors.
 		 * <p>
-		 * You dont need add false. If you
+		 * You don't need add false. If you
 		 * don´t set this value, it will
 		 * be false.
 		 *
@@ -277,7 +265,7 @@ public final class Component {
 
 		/**
 		 * build your values. You need add this in the
-		 * end or it will not return finish json.
+		 * end, or it will not return finish json.
 		 *
 		 * @return json with one row, if you want an array you have to add
 		 * it inside an array.

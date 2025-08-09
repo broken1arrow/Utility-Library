@@ -36,14 +36,44 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 
+/**
+ * This class providing SQL database query capabilities.
+ * <p>
+ * Extends the {@link Database} class and offers implementations for
+ * saving and loading data, as well as executing custom SQL commands
+ * using prepared statements with support for secure parameter handling.
+ * </p>
+ * <p>
+ * This class is designed to work with table metadata and
+ * {@link ConfigurationSerializable} data wrappers to abstract
+ * database operations for typical CRUD use cases.
+ * </p>
+ */
 public abstract class SQLDatabaseQuery extends Database {
     private final Logging log = new Logging(Database.class);
 
+    /**
+     * Constructs a new SQLDatabaseQuery with the given connection settings.
+     *
+     * @param connectionSettings the database connection settings to use.
+     */
     protected SQLDatabaseQuery(@Nonnull final ConnectionSettings connectionSettings) {
         super(connectionSettings);
 
     }
 
+    /**
+     * Saves multiple records to the specified table.
+     * <p>
+     * Depending on {@link Database#isSecureQuery()}, it chooses a safe or unsafe batch executor.
+     * If the table does not exist or cannot be found, logs a warning and returns without saving.
+     * </p>
+     *
+     * @param tableName       the name of the table to save data to.
+     * @param dataWrapperList the list of data wrappers representing rows to save.
+     * @param shallUpdate     if true, existing records will be updated.
+     * @param columns         optional columns to save or update.
+     */
     @Override
     public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns) {
         final Connection connection = getDatabase().attemptToConnect();
@@ -68,6 +98,19 @@ public abstract class SQLDatabaseQuery extends Database {
         batchExecutor.saveAll(tableName, shallUpdate, table::createWhereClauseFromPrimaryColumns, columns);
     }
 
+    /**
+     * Saves a single record to the specified table.
+     * <p>
+     * Similar to {@link #saveAll}, chooses batch executor based on security setting.
+     * Checks for table existence and the presence of primary key columns.
+     * If missing, logs warnings and aborts save.
+     * </p>
+     *
+     * @param tableName   the table name.
+     * @param dataWrapper the data wrapper representing the row.
+     * @param shallUpdate if true, existing record will be updated.
+     * @param columns     optional columns to save or update.
+     */
     @Override
     public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
         final Connection connection = getDatabase().attemptToConnect();
@@ -96,6 +139,19 @@ public abstract class SQLDatabaseQuery extends Database {
         batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> table.createWhereClauseFromPrimaryColumns(where, dataWrapper.getPrimaryValue()), columns);
     }
 
+    /**
+     * Returns a {@link QuerySaver} for batch saving a map of objects.
+     * <p>
+     * The caller provides a consumer that defines the save setup logic.
+     * </p>
+     *
+     * @param tableName   the table name.
+     * @param cacheToSave the map of keys to serializable values to save.
+     * @param saveSetup   a consumer configuring save behavior.
+     * @param <K>         the key type of the cache.
+     * @param <V>         the type of objects to save, which must be {@link ConfigurationSerializable}.
+     * @return a new {@link QuerySaver} instance for saving the given cache.
+     */
     @Nonnull
     @Override
     public <K, V extends ConfigurationSerializable> QuerySaver<K, V> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave,
@@ -103,6 +159,18 @@ public abstract class SQLDatabaseQuery extends Database {
         return new QuerySaver<>(this, tableName, cacheToSave, saveSetup);
     }
 
+    /**
+     * Loads all rows from the specified table and deserializes them into objects of type {@code T}.
+     * <p>
+     * Returns a list of {@link LoadDataWrapper} objects containing the deserialized objects and their key values.
+     * Returns null if the table cannot be found.
+     * </p>
+     *
+     * @param tableName the name of the table to load data from.
+     * @param clazz     the class of the objects to deserialize into.
+     * @param <T>       the type of the deserialized objects.
+     * @return a list of load data wrappers or null if table is not found.
+     */
     @Override
     @Nullable
     public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
@@ -138,6 +206,19 @@ public abstract class SQLDatabaseQuery extends Database {
         return loadDataWrappers;
     }
 
+    /**
+     * Loads a single row identified by a primary key value from the specified table.
+     * <p>
+     * Returns a {@link LoadDataWrapper} containing the deserialized object and its key values,
+     * or null if no matching record is found or the table is missing.
+     * </p>
+     *
+     * @param tableName   the table name.
+     * @param clazz       the class of the object to deserialize into.
+     * @param columnValue the primary key value to identify the row.
+     * @param <T>         the type of the deserialized object.
+     * @return the load data wrapper or null if not found.
+     */
     @Override
     @Nullable
     public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final String columnValue) {
@@ -188,7 +269,16 @@ public abstract class SQLDatabaseQuery extends Database {
         return new LoadDataWrapper<>(objectList, deserialize);
     }
 
-
+    /**
+     * Returns a {@link QueryLoader} that can be configured via the given setup consumer
+     * to load objects of type {@code T} from the specified table.
+     *
+     * @param tableName the table name.
+     * @param clazz     the class of the objects to load.
+     * @param setup     a consumer to configure the loading setup.
+     * @param <T>       the type of objects to load.
+     * @return a new {@link QueryLoader} instance.
+     */
     @Nonnull
     @Override
     public <T extends ConfigurationSerializable> QueryLoader<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<LoadSetup<T>> setup) {
@@ -256,7 +346,6 @@ public abstract class SQLDatabaseQuery extends Database {
      * @param queryBuilder the query command you want to execute.
      * @param consumer     a consumer to handle the result returned by the database.
      */
-
     public void executeQuery(@Nonnull final QueryDefinition queryBuilder, final Consumer<StatementContext<PreparedStatement>> consumer) {
         final String query = queryBuilder.getQuery();
 
@@ -276,7 +365,12 @@ public abstract class SQLDatabaseQuery extends Database {
             getDatabase().closeConnection(connection);
         }
     }
-
+    
+    /**
+     * Returns the current instance cast as {@link Database}.
+     *
+     * @return this instance as a {@link Database}.
+     */
     public Database getDatabase() {
         return this;
     }

@@ -6,7 +6,12 @@ import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSeriali
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
-
+/**
+ * Encapsulates the context for running a SQL query related to a specific table,
+ * including a consumer to process query results or prepare query data.
+ *
+ * @param <T> the type of query result or data wrapper to be handled
+ */
 public class QueryContext<T> {
 
     @Nonnull
@@ -16,16 +21,32 @@ public class QueryContext<T> {
 
     private Consumer<T> context;
 
+    /**
+     * Creates a new QueryContext instance.
+     *
+     * @param sqlDatabaseQuery the query utility class to run the database queries
+     * @param tableName        the table name
+     */
     public QueryContext(@Nonnull final SQLDatabaseQuery sqlDatabaseQuery, @Nonnull final String tableName) {
         this.sqlDatabaseQuery = sqlDatabaseQuery;
         this.tableName = tableName;
     }
 
+    /**
+     * Returns the SQLDatabaseQuery instance associated with this context.
+     *
+     * @return the SQLDatabaseQuery instance
+     */
     @Nonnull
     public SQLDatabaseQuery getSqlDatabaseQuery() {
         return sqlDatabaseQuery;
     }
 
+    /**
+     * Returns the table name associated with this context.
+     *
+     * @return the table name
+     */
     @Nonnull
     public String getTableName() {
         return tableName;
