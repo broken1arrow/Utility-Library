@@ -101,6 +101,12 @@ public class MenuButtonData implements ConfigurationSerializable {
 		return map;
 	}
 
+	/**
+	 * Deserializes a MenuButtonData object from a map of key-value pairs.
+	 *
+	 * @param map the map containing the menu button data
+	 * @return the deserialized MenuButtonData object
+	 */
 	public static MenuButtonData deserialize(final Map<String, Object> map) {
 		Map<String, Object> activeData = new LinkedHashMap<>();
 		Map<String, Object> passiveData = new LinkedHashMap<>();

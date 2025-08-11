@@ -398,14 +398,15 @@ public class QueryBuilder {
      * <p>
      * If no parameters exist for the query, returns an empty map.
      *
+     * @param queryModifier the query modification like join, where, groupBy and more.
      * @return a map of parameter index to parameter value
      */
     @Nonnull
-    private StringBuilder getBuiltCommand(final QueryModifier modifierType) {
+    private StringBuilder getBuiltCommand(final QueryModifier queryModifier) {
         StringBuilder sql = new StringBuilder();
         switch (this.queryType) {
             case SELECT:
-                createSelectQuery(modifierType, sql);
+                createSelectQuery(queryModifier, sql);
                 break;
             case DELETE:
                 sql.append("DELETE FROM ").append(table);
@@ -452,7 +453,8 @@ public class QueryBuilder {
      *   <li>For SELECT queries, returns the number of columns selected.</li>
      *   <li>For DELETE queries, returns -1.</li>
      * </ul>
-     *
+     * @param  queryModifier the query modification like join, where, groupBy and more.
+     * @param sql the builder for the sql command.
      */
     private void createSelectQuery(final QueryModifier queryModifier, final StringBuilder sql) {
         sql.append("SELECT ");

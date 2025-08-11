@@ -322,6 +322,7 @@ public class ConfigUpdater {
 	 * @param ignoredSectionsValues The map containing the ignored section-value mappings.
 	 * @param bufferedWriter        The writer to write the value to.
 	 * @param fullKey               The full key to search for in the ignoredSectionsValues map.
+	 * @return returns true if found a sub key.
 	 * @throws IOException If an I/O error occurs while writing the value.
 	 */
 	private boolean writeIgnoredSectionValueIfExists(final Map<String, String> ignoredSectionsValues, final BufferedWriter bufferedWriter, final String fullKey) throws IOException {

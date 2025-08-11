@@ -15,50 +15,178 @@ import javax.annotation.Nullable;
  * Designed to follow the modern style used in Spigot and Paper APIs as of Minecraft 1.20 and above.
  */
 public enum PotionData {
+    /**
+     * Uncraftable potion (special case).
+     */
     UNCRAFTABLE(getUncraftable(), Type.NORMAL),
+    /**
+     * Water potion.
+     */
     WATER(PotionType.WATER, Type.NORMAL),
+    /**
+     * Mundane potion (no special effects).
+     */
     MUNDANE(PotionType.MUNDANE, Type.NORMAL),
+    /**
+     * Thick potion (usually for brewing).
+     */
     THICK(PotionType.THICK, Type.NORMAL),
+    /**
+     * Awkward potion (base potion for many effects).
+     */
     AWKWARD(PotionType.AWKWARD, Type.NORMAL),
+    /**
+     * Night Vision potion, normal duration.
+     */
     NIGHT_VISION(PotionType.NIGHT_VISION, Type.NORMAL),
+    /**
+     * Night Vision potion, long duration.
+     */
     LONG_NIGHT_VISION(PotionType.NIGHT_VISION, Type.LONG),
+    /**
+     * Invisibility potion, normal duration.
+     */
     INVISIBILITY(PotionType.INVISIBILITY, Type.NORMAL),
+    /**
+     * Invisibility potion, long duration.
+     */
     LONG_INVISIBILITY(PotionType.INVISIBILITY, Type.LONG),
+    /**
+     * Jump boost potion, normal duration.
+     */
     JUMP(PotionType.JUMP, Type.NORMAL),
+    /**
+     * Jump boost potion, long duration.
+     */
     LONG_LEAPING(PotionType.JUMP, Type.LONG),
+    /**
+     * Jump boost potion, strong effect.
+     */
     STRONG_LEAPING(PotionType.JUMP, Type.STRONG),
+    /**
+     * Fire Resistance potion, normal duration.
+     */
     FIRE_RESISTANCE(PotionType.FIRE_RESISTANCE, Type.NORMAL),
+    /**
+     * Fire Resistance potion, long duration.
+     */
     LONG_FIRE_RESISTANCE(PotionType.FIRE_RESISTANCE, Type.LONG),
+    /**
+     * Speed potion, normal duration.
+     */
     SPEED(PotionType.SPEED, Type.NORMAL),
+    /**
+     * Speed potion, long duration.
+     */
     LONG_SWIFTNESS(PotionType.SPEED, Type.LONG),
+    /**
+     * Speed potion, strong effect.
+     */
     STRONG_SWIFTNESS(PotionType.SPEED, Type.STRONG),
+    /**
+     * Slowness potion, normal duration.
+     */
     SLOWNESS(PotionType.SLOWNESS, Type.NORMAL),
+    /**
+     * Slowness potion, long duration.
+     */
     LONG_SLOWNESS(PotionType.SLOWNESS, Type.LONG),
+    /**
+     * Slowness potion, strong effect.
+     */
     STRONG_SLOWNESS(PotionType.SLOWNESS, Type.STRONG),
+    /**
+     * Water Breathing potion, normal duration.
+     */
     WATER_BREATHING(PotionType.WATER_BREATHING, Type.NORMAL),
+    /**
+     * Water Breathing potion, long duration.
+     */
     LONG_WATER_BREATHING(PotionType.WATER_BREATHING, Type.LONG),
+    /**
+     * Instant Heal potion, normal effect.
+     */
     INSTANT_HEAL(PotionType.INSTANT_HEAL, Type.NORMAL),
+    /**
+     * Instant Heal potion, strong effect.
+     */
     STRONG_HEALING(PotionType.INSTANT_HEAL, Type.STRONG),
+    /**
+     * Instant Damage potion, normal effect.
+     */
     INSTANT_DAMAGE(PotionType.INSTANT_DAMAGE, Type.NORMAL),
+    /**
+     * Instant Damage potion, strong effect.
+     */
     STRONG_HARMING(PotionType.INSTANT_DAMAGE, Type.STRONG),
+    /**
+     * Poison potion, normal duration.
+     */
     POISON(PotionType.POISON, Type.NORMAL),
+    /**
+     * Poison potion, long duration.
+     */
     LONG_POISON(PotionType.POISON, Type.LONG),
+    /**
+     * Poison potion, strong effect.
+     */
     STRONG_POISON(PotionType.POISON, Type.STRONG),
+    /**
+     * Regeneration potion, normal duration.
+     */
     REGEN(PotionType.REGEN, Type.NORMAL),
+    /**
+     * Regeneration potion, long duration.
+     */
     LONG_REGENERATION(PotionType.REGEN, Type.LONG),
+    /**
+     * Regeneration potion, strong effect.
+     */
     STRONG_REGENERATION(PotionType.REGEN, Type.STRONG),
+    /**
+     * Strength potion, normal duration.
+     */
     STRENGTH(PotionType.STRENGTH, Type.NORMAL),
+    /**
+     * Strength potion, long duration.
+     */
     LONG_STRENGTH(PotionType.STRENGTH, Type.LONG),
+    /**
+     * Strength potion, strong effect.
+     */
     STRONG_STRENGTH(PotionType.STRENGTH, Type.STRONG),
+    /**
+     * Weakness potion, normal duration.
+     */
     WEAKNESS(PotionType.WEAKNESS, Type.NORMAL),
+    /**
+     * Weakness potion, long duration.
+     */
     LONG_WEAKNESS(PotionType.WEAKNESS, Type.LONG),
+    /**
+     * Luck potion, normal duration (if applicable).
+     */
     LUCK(PotionType.LUCK, Type.NORMAL),
+    /**
+     * Turtle Master potion, normal duration.
+     */
     TURTLE_MASTER(PotionType.TURTLE_MASTER, Type.NORMAL),
+    /**
+     * Turtle Master potion, long duration.
+     */
     LONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, Type.LONG),
+    /**
+     * Turtle Master potion, strong effect.
+     */
     STRONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, Type.STRONG),
+    /**
+     * Slow Falling potion, normal duration.
+     */
     SLOW_FALLING(PotionType.SLOW_FALLING, Type.NORMAL),
-    LONG_SLOW_FALLING(PotionType.SLOW_FALLING, Type.LONG),
-    ;
+    /**
+     * Slow Falling potion, long duration.
+     */
+    LONG_SLOW_FALLING(PotionType.SLOW_FALLING, Type.LONG);;
 
     private final PotionType potionType;
     private final Type type;
@@ -218,6 +346,7 @@ public enum PotionData {
     /**
      * Attempting to get the uncraftable type, this default back
      * to mundane on newer Minecraft versions like 1.21 and beyond.
+     *
      * @return A {@link PotionType#UNCRAFTABLE} if it exist
      * other cases {@link PotionType#MUNDANE}
      */

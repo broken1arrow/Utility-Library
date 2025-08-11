@@ -56,6 +56,14 @@ public class ObjectConverter {
 		return (T) obj;
 	}
 
+	/**
+	 * Casts a string to a specific number type.
+	 *
+	 * @param object the string to be cast.
+	 * @param clazz  the class representing the number type to convert to.
+	 * @param <T>    the type for the number you want to convert to.
+	 * @return the number with the specified class type.
+	 */
 	public static <T> T convertStringToNumber(@Nonnull final String object, final Class<T> clazz) {
 		Object obj = object;
 		try {

@@ -9,6 +9,23 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Represents the metadata for a book item, including its title, author,
+ * generation, and pages.
+ * <p>
+ * This class provides methods to get and set the book’s metadata, manipulate
+ * its pages (which are 1-indexed), and apply the metadata to Bukkit's
+ * {@link org.bukkit.inventory.meta.BookMeta} instances.
+ * </p>
+ * <p>
+ * Pages have a maximum length of 256 characters, and the book supports up
+ * to a very high maximum page count (limited by {@link Integer#MAX_VALUE}).
+ * </p>
+ * <p>
+ * Titles are limited to 32 characters (as per Minecraft limitations),
+ * and generation refers to how the book was created (original, copy, etc.).
+ * </p>
+ */
 public class BookMeta {
     private List<String> pages = new ArrayList<>();
     private org.bukkit.inventory.meta.BookMeta.Generation generation;
@@ -17,7 +34,13 @@ public class BookMeta {
     static final int MAX_PAGES = Integer.MAX_VALUE;
     static final int MAX_PAGE_LENGTH = 256;
 
-
+    /**
+     * Creates a new {@code BookMeta} instance by copying data from an existing
+     * Bukkit {@link org.bukkit.inventory.meta.BookMeta} instance.
+     *
+     * @param bukkitBookMeta the source Bukkit book meta to copy from; must not be null.
+     * @return a new {@code BookMeta} instance containing copied data.
+     */
     @Nonnull
     public static BookMeta setBookMeta(@Nonnull final org.bukkit.inventory.meta.BookMeta bukkitBookMeta) {
         BookMeta bookMeta = new BookMeta();
@@ -29,10 +52,8 @@ public class BookMeta {
         return bookMeta;
     }
 
-
     /**
      * Gets the title of the book.
-     * <p>
      *
      * @return the title of the book
      */
@@ -43,9 +64,11 @@ public class BookMeta {
     /**
      * Sets the title of the book.
      * <p>
-     * Limited to 32 characters. Removes title when given null.
+     * The title is limited to 32 characters. Passing {@code null} will remove
+     * the title.
+     * </p>
      *
-     * @param title the title to set.
+     * @param title the title to set, or {@code null} to remove it.
      */
     public void setTitle(@Nullable final String title) {
         this.title = title;
@@ -53,7 +76,6 @@ public class BookMeta {
 
     /**
      * Gets the author of the book.
-     * <p>
      *
      * @return the author of the book
      */
@@ -72,7 +94,6 @@ public class BookMeta {
 
     /**
      * Gets the generation of the book.
-     * <p>
      *
      * @return the generation of the book
      */
@@ -183,12 +204,18 @@ public class BookMeta {
         return (pages == null) ? 0 : pages.size();
     }
 
-
-    private boolean isValidPage(int page) {
-        return page > 0 && page <= getPageCount();
-    }
-
-
+    /**
+     * Applies the data stored in this {@code BookMeta} instance to the given
+     * Bukkit {@link org.bukkit.inventory.meta.BookMeta} object.
+     * <p>
+     * This method copies the title, author, generation, and pages from this
+     * instance onto the provided Bukkit book meta.
+     * If the given {@code ItemMeta} is not an instance of Bukkit's
+     * {@code BookMeta}, this method does nothing.
+     * </p>
+     *
+     * @param bookMeta the Bukkit {@code ItemMeta} to apply this book metadata to
+     */
     public void applyBookMenta(final ItemMeta bookMeta) {
         if (!(bookMeta instanceof org.bukkit.inventory.meta.BookMeta))
             return;
@@ -197,6 +224,10 @@ public class BookMeta {
         meta.setAuthor(this.getAuthor());
         meta.setGeneration(this.getGeneration());
         meta.setPages(this.getPages());
+    }
+
+    private boolean isValidPage(int page) {
+        return page > 0 && page <= getPageCount();
     }
 
     private String validatePage(String page) {

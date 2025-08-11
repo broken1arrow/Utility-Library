@@ -20,6 +20,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
+/**
+ * Handles the periodic animation updates of buttons within a menu inventory.
+ * <p>
+ * This task runs on a timer and updates specific menu buttons based on configured update times,
+ * animating button states or appearances dynamically.
+ * </p>
+ *
+ * @param <T> the generic type associated with the {@link MenuUtility} used for menu management
+ */
 public class ButtonAnimation<T> extends BukkitRunnable {
     private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
     private final MenuUtility<T> menuUtility;
@@ -28,34 +37,62 @@ public class ButtonAnimation<T> extends BukkitRunnable {
     private int counter = 0;
     private int taskId;
 
-
+    /**
+     * Creates a ButtonAnimation tied to a specific {@link MenuUtility}.
+     * Initializes the animation data supplier to provide current menu and page information.
+     *
+     * @param menuUtility the menu utility managing the menu and buttons to animate
+     */
     public ButtonAnimation(MenuUtility<T> menuUtility) {
         this.menuUtility = menuUtility;
         this.dataSupplier = () -> new ButtonAnimationData(menuUtility.getMenu(), menuUtility.getPageNumber());
         this.inventorySize = menuUtility.getInventorySize();
     }
 
+    /**
+     * Starts the animation task with a fixed delay between each run cycle.
+     *
+     * @param delay the delay in ticks between each animation update
+     */
     public void runTask(long delay) {
         taskId = runTaskTimer(menuUtility.getPlugin(), 1L, delay).getTaskId();
     }
 
+    /**
+     * Check if the task is currently running.
+     *
+     * @return Returns {@code true} if the task is running.
+     */
     public boolean isRunning() {
         return taskId > 0 &&
                 (Bukkit.getScheduler().isCurrentlyRunning(taskId) ||
                         Bukkit.getScheduler().isQueued(taskId));
     }
 
+    /**
+     * Stops this animation task if it is running.
+     * Cancels the scheduled task to cease button updates.
+     */
     public void stopTask() {
         if (this.isRunning()) {
             Bukkit.getScheduler().cancelTask(this.taskId);
         }
     }
 
+    /**
+     * Set an dynamic animation for the buttons as an option.
+     *
+     * @param dataSupplier the custom task to run instead of the default one.
+     */
     public void setDataForAnimation(@Nonnull final Supplier<ButtonAnimationData> dataSupplier) {
         if (dataSupplier.get() != null)
             this.dataSupplier = dataSupplier;
     }
 
+    /**
+     * Called on each run cycle of the task to update buttons that are due for animation.
+     * Cancels the task if animation data is unavailable or invalid.
+     */
     @Override
     public void run() {
         ButtonAnimationData buttonAnimationData = this.dataSupplier.get();
@@ -122,20 +159,44 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         }
     }
 
+    /**
+     * Gets the mapping of button IDs to the counter tick at which they should next update.
+     *
+     * @return the map tracking update timings per button ID
+     */
     @Nonnull
     protected Map<Integer, Long> getTimeWhenUpdatesButtons() {
         return timeWhenUpdatesButtons;
     }
 
+    /**
+     * Gets the scheduled counter tick when the specified button should update next.
+     *
+     * @param menuButton the button to query for update timing
+     * @return the counter tick for next update, or null if none scheduled
+     */
     @Nullable
     public Long getTimeWhenUpdatesButton(final MenuButton menuButton) {
         return getTimeWhenUpdatesButtons().getOrDefault(menuButton.getId(), null);
     }
 
+    /**
+     * Sets the scheduled counter tick when the specified button should update next.
+     *
+     * @param menuButton the button to schedule for update
+     * @param time       the counter tick at which update should occur
+     */
     protected void putTimeWhenUpdatesButtons(final MenuButton menuButton, final Long time) {
         this.getTimeWhenUpdatesButtons().put(menuButton.getId(), time);
     }
 
+    /**
+     * Determines the update interval for the specified button.
+     * Returns the button's own configured update time, or the default from {@link MenuUtility} if none set.
+     *
+     * @param menuButton the button whose update time is requested
+     * @return the update interval in ticks, or -1 for never update
+     */
     private long getTime(final MenuButton menuButton) {
         if (menuButton.setUpdateTime() == -1) return this.menuUtility.getUpdateTime();
         return menuButton.setUpdateTime();
@@ -174,5 +235,4 @@ public class ButtonAnimation<T> extends BukkitRunnable {
     private boolean isValidButton(final  MenuButton cacheMenuButton,final  MenuButton fillMenuButton,final  int menuButtonId) {
         return (cacheMenuButton == null && fillMenuButton != null && fillMenuButton.getId() == menuButtonId) || (cacheMenuButton != null && Objects.equals(menuButtonId, cacheMenuButton.getId()));
     }
-
 }

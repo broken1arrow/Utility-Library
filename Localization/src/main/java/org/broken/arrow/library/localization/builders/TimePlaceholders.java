@@ -242,7 +242,12 @@ public class TimePlaceholders implements ConfigurationSerializable {
 		map.put("seconds", seconds);
 		return map;
 	}
-
+	/**
+	 * Deserializes a TimePlaceholders object from a map of key-value pairs.
+	 *
+	 * @param map the map containing the time placeholders data
+	 * @return the deserialized TimePlaceholders object
+	 */
 	public static TimePlaceholders deserialize(Map<String, Object> map) {
 		String day = (String) map.getOrDefault("day", "");
 		String hour = (String) map.getOrDefault("hour", "");

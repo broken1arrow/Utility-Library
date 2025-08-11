@@ -7,6 +7,9 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
+/**
+ * The leather colors for item type like leather armor.
+ */
 public class LeatherMeta {
 
     private ColorMeta colorMeta;
@@ -22,6 +25,10 @@ public class LeatherMeta {
         this.colorMeta = colorData;
     }
 
+    /**
+     * Apply the metadata if it set.
+     * @param itemMeta the metadata from the item to modify.
+     */
     public void applyLeatherColor(@Nonnull final ItemMeta itemMeta) {
         ColorMeta color = this.colorMeta;
         if (color == null || !color.isColorSet())

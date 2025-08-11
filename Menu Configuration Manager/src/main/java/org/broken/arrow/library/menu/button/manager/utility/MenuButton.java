@@ -23,6 +23,11 @@ public class MenuButton implements ConfigurationSerializable {
 	private final String actionType;
     private final String extra;
 
+	/**
+	 * The instance of the MenuButton.
+	 *
+	 * @param builder the builder instance of the button settings.
+	 */
     public MenuButton(final Builder builder) {
 		this.color = builder.color;
 		this.material = builder.material;
@@ -211,6 +216,10 @@ public class MenuButton implements ConfigurationSerializable {
             return this;
         }
 
+		/**
+		 * Build your menu button.
+		 * @return the menu button with your settings.
+		 */
 		public MenuButton build() {
 			return new MenuButton(this);
 		}
@@ -218,6 +227,11 @@ public class MenuButton implements ConfigurationSerializable {
 
     }
 
+	/**
+	 * Serialised data for the button.
+	 *
+	 * @return the map with the menu data set.
+	 */
 	@Nonnull
 	@Override
 	public Map<String, Object> serialize() {
@@ -232,6 +246,12 @@ public class MenuButton implements ConfigurationSerializable {
 		return map;
 	}
 
+	/**
+	 * Deserializes a MenuButton  object from a map of key-value pairs.
+	 *
+	 * @param map the map containing the menu button data
+	 * @return the deserialized MenuButton  object
+	 */
     public static MenuButton deserialize(final Map<String, Object> map) {
         final String color = (String) map.get("color");
         final String extra = (String) map.get("extra");
@@ -265,6 +285,12 @@ public class MenuButton implements ConfigurationSerializable {
                 '}';
     }
 
+	/**
+	 * get the dye color from a string.
+	 *
+	 * @param dyeColor the dyecolor name.
+	 * @return a dye color or null if it could not find it.
+	 */
     @Nullable
 	public static DyeColor dyeColor(final String dyeColor) {
 		final DyeColor[] dyeColors = DyeColor.values();

@@ -21,10 +21,23 @@ public class FillMenuButton<T> {
     private boolean updateButtonsTimer;
     private long updateTime;
 
+    /**
+     * Constructs a new {@code FillMenuButton} with default behaviors.
+     * <p>
+     * The default click action returns {@link ButtonUpdateAction#NONE} (no update),
+     * and the fill item retriever returns {@code null} (no item).
+     * </p>
+     */
     public FillMenuButton() {
         this((player, menu, clickType, clickedItem, fillObject) -> ButtonUpdateAction.NONE, (slot, itemStack) -> null);
     }
 
+    /**
+     * Constructs a new {@code FillMenuButton} with specified click and fill item behaviors.
+     *
+     * @param click        the click handler defining the action when this button is clicked; must not be {@code null}.
+     * @param menuFillItem the function that retrieves the fill item for this button based on slot and item; must not be {@code null}.
+     */
     public FillMenuButton(OnClick<ButtonUpdateAction, Player, Inventory, ClickType, ItemStack, T> click,
                           OnRetrieveItem<ItemStack, Integer, T> menuFillItem) {
         this.click = click;

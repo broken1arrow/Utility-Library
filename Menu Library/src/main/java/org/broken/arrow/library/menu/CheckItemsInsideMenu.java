@@ -42,6 +42,11 @@ public class CheckItemsInsideMenu {
 
 	private boolean checkDuplicates;
 
+	/**
+	 * Creates a new instance of CheckItemsInsideMenu.
+	 *
+	 * @param registerMenuAPI The RegisterMenuAPI instance used to send messages and interact with item creation.
+	 */
 	public CheckItemsInsideMenu(RegisterMenuAPI registerMenuAPI) {
 		this.registerMenuAPI = registerMenuAPI;
 	}
@@ -193,6 +198,15 @@ public class CheckItemsInsideMenu {
 		else return inventoryItems;
 	}
 
+	/**
+	 * Adds an item to the given map if it is not blacklisted.
+	 * If the item is blacklisted, it is returned back to the player.
+	 *
+	 * @param items  The map collecting items with slot indices as keys.
+	 * @param slot   The slot index of the item.
+	 * @param player The player using the menu/inventory.
+	 * @param item   The ItemStack to check and add.
+	 */
 	public void getInventoryItems(final Map<Integer, ItemStack> items, final int slot, final Player player, ItemStack item) {
 		if (item == null) return;
 
@@ -205,6 +219,16 @@ public class CheckItemsInsideMenu {
 
 	}
 
+	/**
+	 * Removes extra quantities of items greater than one and duplicate items,
+	 * returning unique items and handling returning or dropping extras.
+	 *
+	 * @param items       Map of slot indices and items found.
+	 * @param player      The player using the menu/inventory.
+	 * @param itemStacks  All items in the inventory.
+	 * @param location    Location to drop items if player is offline or inventory is full.
+	 * @return Map of slot indices and corresponding unique ItemStacks with quantity set to one.
+	 */
 	private Map<Integer, ItemStack> addToMuchItems(final Map<Integer, ItemStack> items, final Player player, final ItemStack[] itemStacks, final Location location) {
 		final Map<Integer, ItemStack> itemStacksNoDoubleEntity = new HashMap<>();
 		final Map<ItemStack, Integer> cachedDuplicatedItems = new HashMap<>();
@@ -230,6 +254,13 @@ public class CheckItemsInsideMenu {
 		return itemStacksNoDoubleEntity;
 	}
 
+	/**
+	 * Returns the given item stack back to the player's inventory, or drops it at the player's location if inventory is full.
+	 * Also sends a blacklist message once per call if an item was rejected.
+	 *
+	 * @param player    The player to return the item to.
+	 * @param itemStack The item stack to return.
+	 */
 	private void addItemsBackToPlayer(final Player player, final ItemStack itemStack) {
 
 		final HashMap<Integer, ItemStack> ifInventorFull = player.getInventory().addItem(itemStack);
@@ -242,6 +273,11 @@ public class CheckItemsInsideMenu {
 		}
 	}
 
+	/**
+	 * Drops back all items currently stored in the duplicated items map for all players.
+	 *
+	 * @param location the location to drop the items if could not add it to the player.
+	 */
 	private void addItemsBackToPlayer(final Location location) {
 
 		for (final Entry<UUID, Map<ItemStack, Integer>> mapEntry : this.duplicatedItems.entrySet()) {
@@ -265,6 +301,12 @@ public class CheckItemsInsideMenu {
 
 	}
 
+	/**
+	 * Checks whether the given item is blacklisted.
+	 *
+	 * @param itemStack ItemStack to check.
+	 * @return true if the item is blacklisted, false otherwise.
+	 */
 	private boolean checkItemAreOnBlacklist(final ItemStack itemStack) {
 		final List<ItemStack> itemStacks = blacklistedItems;
 		if (itemStack != null && itemStacks != null && !itemStacks.isEmpty())
@@ -276,6 +318,12 @@ public class CheckItemsInsideMenu {
 
 	}
 
+	/**
+	 * convert items from string to material.
+	 *
+	 * @param materialName the enum name for the material
+	 * @return the material from the enum name or null if it could not find it.
+	 */
 	public Material convertMaterialFromString(final String materialName) {
 		if (materialName == null) return null;
 		Material material = Material.getMaterial(materialName.toUpperCase());
@@ -288,10 +336,23 @@ public class CheckItemsInsideMenu {
 		return null;
 	}
 
+	/**
+	 * Checks if a material is AIR.
+	 *
+	 * @param material The material to check.
+	 * @return true if material is AIR, false otherwise.
+	 */
 	public static boolean isAir(final Material material) {
 		return nameEquals(material, "AIR", "CAVE_AIR", "VOID_AIR", "LEGACY_AIR");
 	}
 
+	/**
+	 * Sets the amount of the item in the slot to exactly one.
+	 *
+	 * @param inventory  The inventory.
+	 * @param slot The slot to update.
+	 * @param item The ItemStack currently in the slot.
+	 */
 	public void setToOneItem(final Inventory inventory, final int slot, final ItemStack item) {
 		if (checkDuplicates && item != null) {
 			ItemStack clone = new ItemStack(item);

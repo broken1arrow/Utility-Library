@@ -17,13 +17,29 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static de.tr7zw.changeme.nbtapi.utils.MinecraftVersion.getVersion;
-
-
+/**
+ * Utility class for registering and interacting with the NBT API
+ * ({@link de.tr7zw.changeme.nbtapi}) in a Bukkit/Spigot/Paper environment.
+ * <p>
+ * This class provides:
+ * <ul>
+ *   <li>Initialization and compatibility checks for the NBT API</li>
+ *   <li>Optional suppression of the NBT API's internal logger</li>
+ *   <li>Serialization and deserialization of {@link ItemStack} arrays to and from byte arrays</li>
+ *   <li>Convenience access to {@link CompMetadata} for metadata handling</li>
+ * </ul>
+ */
 public class RegisterNbtAPI {
     private static final Logging logger = new Logging(RegisterNbtAPI.class);
     private final CompMetadata compMetadata;
     private static boolean hasScoreboardTags = true;
 
+    /**
+     * Creates a new {@code RegisterNbtAPI} instance.
+     *
+     * @param plugin         the owning {@link Plugin} instance
+     * @param turnOffLogger  if {@code true}, suppresses the default {@code NBTAPI} logger output
+     */
     public RegisterNbtAPI(Plugin plugin, boolean turnOffLogger) {
         Logger nbtLogger = Logger.getLogger("NBTAPI");
         if (turnOffLogger)
@@ -33,6 +49,10 @@ public class RegisterNbtAPI {
         checkClassesExist();
     }
 
+    /**
+     * Checks whether the {@link Entity#getScoreboardTags()} method exists,
+     * indicating scoreboard tag support in the running server version.
+     */
     private static void checkClassesExist() {
         try {
             Entity.class.getMethod("getScoreboardTags");
@@ -41,6 +61,15 @@ public class RegisterNbtAPI {
         }
     }
 
+    /**
+     * Serializes an array of {@link ItemStack}s into a compressed byte array
+     * using the NBT API. In the shaded NBT API version (from 2.15.0),
+     * this process also automatically applies data fixes via DataFixerUpper
+     * when upgrading the server version.
+     *
+     * @param itemStacks the array of item stacks to serialize; may be {@code null}
+     * @return a byte array representation of the items, or an empty array if serialization fails
+     */
     @Nonnull
     public static byte[] serializeItemStack(final ItemStack[] itemStacks) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -52,18 +81,31 @@ public class RegisterNbtAPI {
         return new byte[0];
     }
 
+    /**
+     * Deserializes a byte array into an array of {@link ItemStack}s using the NBT API.
+     * In the shaded NBT API version (from 2.15.0), this process also automatically applies
+     * data fixes via DataFixerUpper when upgrading the server version.
+     *
+     * @param itemStacks the serialized byte array; may be {@code null}
+     * @return the deserialized item stacks, or an empty array if deserialization fails
+     */
     @Nullable
     public static ItemStack[] deserializeItemStack(final byte[] itemStacks) {
         if (itemStacks == null) return new ItemStack[0];
 
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(itemStacks)) {
-            return NBT.itemStackArrayFromNBT(  new NBTContainer(byteArrayInputStream));
+            return NBT.itemStackArrayFromNBT(NBT.readNBT(  byteArrayInputStream));
         } catch (IOException e) {
             logger.log(e,() -> "Could not deserialize the itemStacks.");
         }
         return new ItemStack[0];
     }
 
+    /**
+     * Checks whether the current server version supports scoreboard tags.
+     *
+     * @return {@code true} if scoreboard tags are available; {@code false} otherwise
+     */
     public static boolean isHasScoreboardTags() {
         return hasScoreboardTags;
     }
@@ -77,21 +119,15 @@ public class RegisterNbtAPI {
     }
 
     /**
-     * Get methods to easy set metadata. If you want to set up self you can start
-     * with this classes {@link de.tr7zw.changeme.nbtapi.NBTItem} and
-     * {@link de.tr7zw.changeme.nbtapi.NBTEntity}
-     * <p>&nbsp;</p>
+     * Gets a {@link CompMetadata} instance, which provides optimized helper methods
+     * for setting and retrieving NBT data from items and entities.
      * <p>
-     * Note: Should use these methods, give you better performance, if you don't use my methods.
-     * </p>
-     * <p>
-     * {@link de.tr7zw.changeme.nbtapi.NBT#get(org.bukkit.inventory.ItemStack, java.util.function.Function)} and {@link de.tr7zw.changeme.nbtapi.NBT#get(org.bukkit.entity.Entity, java.util.function.Function)}
-     * </p>
-     * <p>
-     * {@link de.tr7zw.changeme.nbtapi.NBT#modify(org.bukkit.entity.Entity, java.util.function.Function)} and {@link de.tr7zw.changeme.nbtapi.NBT#modify(org.bukkit.inventory.ItemStack, java.util.function.Function)}
-     * </p>
+     * <b>Note:</b> While you can directly use {@link de.tr7zw.changeme.nbtapi.NBTItem} and
+     * {@link de.tr7zw.changeme.nbtapi.NBTEntity}, using {@code CompMetadata} may be easier
+     * to use as you don't have to deal with the compound key. As that needs to be unique or
+     * it could write over another plugins data.
      *
-     * @return CompMetadata class.
+     * @return the {@code CompMetadata} helper instance
      */
     public CompMetadata getCompMetadata() {
         return compMetadata;

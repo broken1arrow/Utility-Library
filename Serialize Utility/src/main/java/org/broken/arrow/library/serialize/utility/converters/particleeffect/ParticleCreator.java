@@ -1,17 +1,14 @@
 package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
 import org.broken.arrow.library.logging.Validate;
-import org.bukkit.Effect;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionEffect;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,7 +20,9 @@ import java.util.logging.Logger;
  * to the latest version.
  */
 public class ParticleCreator {
-    Logger logger = Logger.getLogger(String.valueOf(ParticleCreator.class));
+    private final Logger logger = Logger.getLogger(String.valueOf(ParticleCreator.class));
+
+    private final float serverVersion;
     private final Effect effect;
     private final Particle particle;
     private final ParticleEffectAccessor effectAccessor;
@@ -103,6 +102,7 @@ public class ParticleCreator {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.serverVersion = ConvertParticlesUtility.getServerVersion();
     }
 
 
@@ -256,12 +256,22 @@ public class ParticleCreator {
             if (this.dataType == BlockFace.class)
                 this.player.playEffect(location, this.effect, this.effectAccessor.getBlockFace());
             PotionsData potionsData = this.effectAccessor.getPotion();
-            if (potionsData != null && potionsData.checkDataType(this.dataType) && potionsData.isPotion()) {
-                try {
+            if(potionsData != null) {
+                if (PotionsData.isOldPotionAvailable()) {
                     Potion potion = potionsData.getPotion();
-                    this.player.playEffect(location, this.effect, potion);
-                } catch (NoClassDefFoundError ignore) {
-                    logger.warning("Could not find the Potion class, this class is removed in Minecraft 1.20.5+. Working on a solution.");
+                    if (potion != null) {
+                        world.playEffect(location, effect, potion);
+                        return;
+                    }
+                }
+                PotionEffect potionEffect = potionsData.getPotionEffect();
+                if (potionEffect != null) {
+                    player.playEffect(location, effect, potionEffect);
+                    if (serverVersion > 20.0F) {
+                        logger.info("Usage of PotionEffect for visual effects is discouraged. Consider using the Particle API for better compatibility and flexibility.");
+                    }
+                } else {
+                    logger.warning("No valid potion or potion effect found, consider using particle effects.");
                 }
             }
         } else {
@@ -287,13 +297,24 @@ public class ParticleCreator {
             this.world.playEffect(location, this.effect, this.effectAccessor.getBlockFace(), radius);
 
         PotionsData potionsData = this.effectAccessor.getPotion();
-        if (potionsData != null && potionsData.checkDataType(this.dataType) && potionsData.isPotion()) {
-            try {
+        if(potionsData != null) {
+            if (PotionsData.isOldPotionAvailable()) {
                 Potion potion = potionsData.getPotion();
-                this.world.playEffect(location, this.effect, potion);
-            } catch (NoClassDefFoundError ignore) {
-                logger.warning("Could not find the Potion class, this class is removed in Minecraft 1.20.5+. Working on a solution.");
+                if (potion != null) {
+                    world.playEffect(location, effect, potion);
+                    return;
+                }
+            }
+            PotionEffect potionEffect = potionsData.getPotionEffect();
+            if (potionEffect != null) {
+                player.playEffect(location, effect, potionEffect);
+                if (serverVersion > 20.0F) {
+                    logger.info("Usage of PotionEffect for visual effects is discouraged. Consider using the Particle API for better compatibility and flexibility.");
+                }
+            } else {
+                logger.warning("No valid potion or potion effect found, consider using particle effects.");
             }
         }
     }
+
 }

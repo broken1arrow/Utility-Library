@@ -16,12 +16,20 @@ import java.util.logging.Logger;
 import static org.broken.arrow.library.serialize.utility.converters.PlaceholderTranslator.translatePlaceholders;
 
 /**
- * Utility class for handling messages and localization.
+ * Utility class responsible for handling plugin messages and localization support.
+ * <p>
+ * Provides access to localized messages and manages logging for the plugin.
  */
 public class MessagesUtility {
 	private final LocalizationCache localizationCache;
 	private final Logger log;
 
+	/**
+	 * Constructs a new MessagesUtility instance.
+	 *
+	 * @param localizationCache the {@link LocalizationCache} to retrieve localization data from
+	 * @param pluginName        the name of the plugin, used to initialize the logger
+	 */
 	public MessagesUtility(LocalizationCache localizationCache, String pluginName) {
 		this.localizationCache = localizationCache;
 		this.log = Logger.getLogger(pluginName);

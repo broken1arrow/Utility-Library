@@ -32,7 +32,21 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-
+/**
+ * Main API class for managing custom menu registration and interaction.
+ * <p>
+ * This class provides access to core components such as menu caching,
+ * player metadata, item creation utilities, and message handling related
+ * to duplicated or blacklisted items in menus.
+ * </p>
+ * <p>
+ * It also handles version checks, event registration, and integration with
+ * optional modules such as dynamic title updates and item creators.
+ * </p>
+ * <p>
+ * This class is a singleton and can be accessed globally via {@link #getMenuAPI()}.
+ * </p>
+ */
 public class RegisterMenuAPI {
     private static RegisterMenuAPI menuAPI;
     private final Logging logger = new Logging(RegisterMenuAPI.class);
@@ -45,15 +59,38 @@ public class RegisterMenuAPI {
     private boolean notFoundItemCreator;
     private boolean notFoundUpdateTitle;
 
+    /**
+     * Private default constructor used internally for singleton instance initialization.
+     * Initializes plugin and menuCache fields to null.
+     */
     private RegisterMenuAPI() {
         menuCache = null;
         plugin = null;
     }
 
+    /**
+     * Constructs the API instance using the provided plugin.
+     * <p>
+     * Automatically registers this instance as the singleton instance.
+     * Performs version checks and event registration.
+     * </p>
+     *
+     * @param plugin the plugin instance to associate with this API.
+     */
     public RegisterMenuAPI(final Plugin plugin) {
         this(plugin, false);
     }
 
+    /**
+     * Constructs the API instance with an option to turn off logging.
+     * <p>
+     * Automatically registers this instance as the singleton instance.
+     * Performs version checks and event registration.
+     * </p>
+     *
+     * @param plugin        the plugin instance to associate with this API.
+     * @param turnOffLogger true to disable version check logging; false to enable.
+     */
     public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
         registerInstance(this);
         this.plugin = plugin;
@@ -88,53 +125,120 @@ public class RegisterMenuAPI {
         }
     }
 
+    /**
+     * Registers the provided {@link RegisterMenuAPI} instance as the singleton API instance.
+     *
+     * @param registerMenu the instance to register
+     */
     private static void registerInstance(@Nonnull final RegisterMenuAPI registerMenu) {
         menuAPI = registerMenu;
     }
 
+    /**
+     * Retrieves the globally registered singleton instance of the {@link RegisterMenuAPI}.
+     *
+     * @return the singleton instance of RegisterMenuAPI.
+     */
     public static RegisterMenuAPI getMenuAPI() {
         return menuAPI;
     }
 
+    /**
+     * Performs a server version check and logs status messages.
+     *
+     * @param turnOffLogger if true, disables the startup logging.
+     */
     private void versionCheck(boolean turnOffLogger) {
         if (!turnOffLogger)
             logger.log(() -> "Now starting MenuApi.. Will check server version and what modules is included.");
         ServerVersion.getCurrentServerVersion();
     }
 
+    /**
+     * Logs a message with the given log level.
+     *
+     * @param level   the logging level (e.g., INFO, WARNING)
+     * @param message the message to log
+     */
     public void getLogger(final Level level, final String message) {
         logger.log(level, () -> message);
     }
 
+    /**
+     * Gets the plugin instance associated with this API.
+     *
+     * @return the plugin instance or null if not set
+     */
     public Plugin getPlugin() {
         return plugin;
     }
 
+    /**
+     * Gets the player metadata utility instance.
+     *
+     * @return the {@link MetadataPlayer} instance
+     */
     public MetadataPlayer getPlayerMeta() {
         return playerMeta;
     }
 
+    /**
+     * Gets the {@link ItemCreator} utility instance.
+     *
+     * @return the item creator, or null if not available
+     */
     @Nullable
     public ItemCreator getItemCreator() {
         return itemCreator;
     }
 
+    /**
+     * Gets the {@link CheckItemsInsideMenu} utility instance used to check items inside menus.
+     *
+     * @return the CheckItemsInsideMenu instance
+     */
     public CheckItemsInsideMenu getCheckItemsInsideInventory() {
         return checkItemsInsideMenu;
     }
 
+    /**
+     * Gets the menu cache which holds cached menus.
+     *
+     * @return the {@link MenuCache} instance
+     */
     public MenuCache getMenuCache() {
         return menuCache;
     }
 
+    /**
+     * Returns whether the dynamic update title class was not found.
+     * <p>
+     * Indicates if the title update module is missing and menu titles cannot be updated dynamically.
+     * </p>
+     *
+     * @return true if the update title module was not found; false otherwise.
+     */
     public boolean isNotFoundUpdateTitleClazz() {
         return notFoundUpdateTitle;
     }
 
+    /**
+     * Returns whether the item creator class was not found.
+     * <p>
+     * Indicates if the item creator module is missing.
+     * </p>
+     *
+     * @return true if the item creator module was not found; false otherwise.
+     */
     public boolean isNotFoundItemCreator() {
         return notFoundItemCreator;
     }
 
+    /**
+     * Gets the message handler for sending duplicated or blacklisted item messages.
+     *
+     * @return the {@link SendMsgDuplicatedItems} instance
+     */
     public SendMsgDuplicatedItems getMessages() {
         return messages;
     }

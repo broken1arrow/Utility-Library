@@ -154,6 +154,12 @@ public class PluginMessages implements ConfigurationSerializable {
 		return new PluginMessages(messages);
 	}
 
+	/**
+	 * Check if the object is a list or a string value.
+	 *
+	 * @param object the object to check the type of value.
+	 * @return a list with one or several messages.
+	 */
 	public static List<String> convertToList(Object object) {
 		if (object instanceof String) {
 			return Collections.singletonList((String) object);

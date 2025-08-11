@@ -14,9 +14,22 @@ import org.bukkit.potion.PotionType;
 
 import java.io.IOException;
 
+/**
+ * A Gson {@link TypeAdapter} for serializing and deserializing {@link BottleEffectMeta} objects
+ * to and from JSON.
+ * <p>
+ * Handles potion type, bottle color, upgrade/extension flags, and potion effects.
+ */
 public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
     private static final Logging logger = new Logging(BottleEffectMetaAdapter.class);
 
+    /**
+     * Serializes the {@link BottleEffectMeta} into JSON format.
+     *
+     * @param out   the JSON writer to output the serialized data
+     * @param value the BottleEffectMeta instance to serialize
+     * @throws IOException if an I/O error occurs during writing
+     */
     @Override
     public void write(final JsonWriter out, final BottleEffectMeta value) throws IOException {
         JsonWriterHelper json = new JsonWriterHelper(out);
@@ -38,6 +51,13 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
         json.finish();
     }
 
+    /**
+     * Deserializes a {@link BottleEffectMeta} from JSON format.
+     *
+     * @param in the JSON reader containing the serialized BottleEffectMeta data
+     * @return the deserialized BottleEffectMeta instance
+     * @throws IOException if an I/O error occurs during reading
+     */
     @Override
     public BottleEffectMeta read(final JsonReader in) throws IOException {
         JsonReaderHelper json = new JsonReaderHelper(in);

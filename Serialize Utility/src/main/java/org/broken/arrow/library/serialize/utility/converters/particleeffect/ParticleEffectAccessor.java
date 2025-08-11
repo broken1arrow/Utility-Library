@@ -124,5 +124,11 @@ public interface ParticleEffectAccessor {
 	@Nullable
 	ParticleDustOptions getParticleDustOptions();
 
+	/**
+	 * Returns a {@link ParticleEffect.Builder} for creating or modifying
+	 * {@link ParticleEffect} instances based on the current accessor's state.
+	 *
+	 * @return a builder pre-populated with this accessor's data
+	 */
 	Builder getBuilder();
 }

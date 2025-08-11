@@ -4,6 +4,11 @@ import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
+
+/**
+ * Utility class for counting item stacks in various scenarios.
+ */
 public class ItemStackCounters {
     private ItemStackCounters() {
     }
@@ -111,7 +116,20 @@ public class ItemStackCounters {
         return countItems;
     }
 
-    public static boolean isPlaceLeftInventory(Inventory inventory, int amount, Material materialToMatch) {
+    /**
+     * Checks if there is enough space left in the inventory to add the specified amount
+     * of items of the given material.
+     *
+     * <p>This method iterates through the inventory, considering existing stacks of the specified
+     * material and counts partial stacks to determine if the new items can fit without exceeding
+     * the max stack size.</p>
+     *
+     * @param inventory       the inventory to check.
+     * @param amount          the number of items you want to add
+     * @param materialToMatch the material type of the items to match in the inventory
+     * @return true if there is sufficient space left to add the items; false otherwise
+     */
+    public static boolean isPlaceLeftInventory(@Nonnull final Inventory inventory,final int amount,final Material materialToMatch) {
 
         for (ItemStack item : inventory) {
             if (item != null) {

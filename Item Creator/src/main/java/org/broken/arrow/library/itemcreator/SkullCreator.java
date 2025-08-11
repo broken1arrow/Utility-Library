@@ -58,8 +58,9 @@ public class SkullCreator {
         }
 
     }
-
-
+    /**
+     * Private constructor to prevent instantiation.
+     */
     private SkullCreator() {
     }
 
@@ -253,6 +254,11 @@ public class SkullCreator {
         state.update(false, false);
     }
 
+    /**
+     * Sets the block to a skull of type PLAYER_HEAD or legacy SKULL with player skull type.
+     *
+     * @param block The block to convert to a skull.
+     */
     private static void setToSkull(Block block) {
         checkLegacy();
 
@@ -266,12 +272,26 @@ public class SkullCreator {
         }
     }
 
+    /**
+     * Checks if an object is null and throws NullPointerException if so.
+     *
+     * @param o    The object to check.
+     * @param name The name of the object to use in the exception message.
+     * @throws NullPointerException if {@code o} is null.
+     */
     private static void notNull(Object o, String name) {
         if (o == null) {
             throw new NullPointerException(name + " should not be null!");
         }
     }
 
+    /**
+     * Converts a Mojang skin URL to a base64 encoded string for skull textures.
+     *
+     * @param url The Mojang skin URL.
+     * @return The base64 encoded texture string.
+     * @throws Validate.ValidateExceptions if the URL syntax is invalid.
+     */
     private static String urlToBase64(String url) {
 
         URI actualUrl;
@@ -284,6 +304,13 @@ public class SkullCreator {
         return Base64.getEncoder().encodeToString(toEncode.getBytes());
     }
 
+    /**
+     * Creates a GameProfile with a random UUID based on the base64 string and sets
+     * the textures property with the given base64 texture.
+     *
+     * @param b64 The base64 encoded texture string.
+     * @return A GameProfile with the texture property.
+     */
     private static GameProfile makeProfile(String b64) {
         // random uuid based on the b64 string
         UUID id = new UUID(
@@ -295,6 +322,12 @@ public class SkullCreator {
         return profile;
     }
 
+    /**
+     * Mutates the block's Skull state to use the given base64 encoded skin texture.
+     *
+     * @param block The Skull block state to mutate.
+     * @param b64   The base64 texture string.
+     */
     private static void mutateBlockState(Skull block, String b64) {
         try {
             if (blockProfileField == null) {
@@ -307,6 +340,12 @@ public class SkullCreator {
         }
     }
 
+    /**
+     * Mutates the SkullMeta of an item to use the given base64 encoded skin texture.
+     *
+     * @param meta The SkullMeta to mutate.
+     * @param b64  The base64 texture string.
+     */
     private static void mutateItemMeta(SkullMeta meta, String b64) {
         checkIfHasOwnerMethod(meta);
         if (doesHaveOwnerProfile) {
@@ -339,6 +378,12 @@ public class SkullCreator {
         }
     }
 
+    /**
+     * Checks whether the SkullMeta class has the setOwnerProfile method
+     * and updates the flag accordingly.
+     *
+     * @param meta The SkullMeta instance to check.
+     */
     private static void checkIfHasOwnerMethod(SkullMeta meta) {
         if (metaSetProfileMethod == null) {
             try {
@@ -349,8 +394,9 @@ public class SkullCreator {
         }
     }
 
-    // suppress warning since PLAYER_HEAD doesn't exist in 1.12.2,
-    // but we expect this and catch the error at runtime.
+    /**
+     * Checks if running on legacy Bukkit API and logs a warning if using legacy API on modern server.
+     */
     private static void checkLegacy() {
         try {
             // if both of these succeed, then we are running
@@ -366,7 +412,12 @@ public class SkullCreator {
             //We don't need to know a error is thrown. This only checks so you don't use wrong API version.
         }
     }
-
+    /**
+     * Retrieves a Material by name, logging a warning if not found.
+     *
+     * @param name The name of the Material.
+     * @return The Material if found; null otherwise.
+     */
    private static Material getMaterial(String name) {
         try {
             return Material.valueOf(name);
@@ -376,6 +427,12 @@ public class SkullCreator {
         return null;
     }
 
+    /**
+     * Sets the owning player of the SkullMeta using the appropriate method depending on Bukkit API version.
+     *
+     * @param meta   The SkullMeta to modify.
+     * @param player The OfflinePlayer to set as owner.
+     */
     private static void setOwningPlayer(SkullMeta meta, OfflinePlayer player) {
         try {
             if (legacy) {
@@ -388,6 +445,13 @@ public class SkullCreator {
         }
     }
 
+    /**
+     * Creates a PlayerProfile with textures set from the given base64 string.
+     *
+     * @param b64 The base64 encoded texture string.
+     * @return The PlayerProfile with the skin set.
+     * @throws MalformedURLException if the texture URL is malformed.
+     */
     private static PlayerProfile makePlayerProfile(String b64) throws MalformedURLException {
         UUID id = new UUID(
                 b64.substring(b64.length() - 20).hashCode(),
@@ -404,7 +468,13 @@ public class SkullCreator {
         return profile;
     }
 
-    public static URL getUrlFromBase64(String base64) throws MalformedURLException {
+    /**
+     * Parses a URL from the given base64 encoded texture string.
+     *
+     * @param base64 The base64 encoded texture string.
+     * @return The URL of the skin texture, or null if parsing failed.
+     */
+    private static URL getUrlFromBase64(String base64) throws MalformedURLException {
         try {
             String decoded = new String(Base64.getDecoder().decode(base64));
             return new URL(decoded.substring("{\"textures\":{\"SKIN\":{\"url\":\"".length(), decoded.length() - "\"}}}".length()));
@@ -413,6 +483,4 @@ public class SkullCreator {
         }
         return null;
     }
-
-
 }

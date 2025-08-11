@@ -15,6 +15,10 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * A utility class to create and manipulate ItemStacks with ease.
+ * Supports setting display names, lore, NBT data, and color translation.
+ */
 public class ItemCreator {
 
     private static ServerVersion serverVersion;
@@ -24,16 +28,31 @@ public class ItemCreator {
     private boolean haveTextTranslator = true;
     private boolean enableColorTranslation = true;
 
+    /**
+     * Prevents empty constructor usage.
+     * Throws an exception if called.
+     */
     private ItemCreator() {
         throw new ValidateExceptions("should not use empty constructor");
     }
 
+    /**
+     * Constructs an ItemCreator instance associated with the given plugin.
+     *
+     * @param plugin the plugin instance
+     */
     public ItemCreator(final Plugin plugin) {
         this(plugin, false);
     }
 
+    /**
+     * Constructs an ItemCreator instance associated with the given plugin.
+     *
+     * @param plugin       the plugin instance
+     * @param turnOffLogger whether to disable logging for NBT manager
+     */
     public ItemCreator(final Plugin plugin, boolean turnOffLogger) {
-this.plugin = plugin;
+        this.plugin = plugin;
         this.nbtManger = new NBTManger(plugin, turnOffLogger);
         setServerVersion(plugin);
 
@@ -49,72 +68,74 @@ this.plugin = plugin;
     }
 
     /**
-     * Starts the creation of a simple item.The item will not have a display name or lore.
+     * Starts the creation of a simple item. The item will not have a display name or lore.
      * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param item The ItemStack you want to alter.
-     * @return An instance of the CreateItemStack class.
+     * @param item The ItemStack to alter.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(ItemStack item) {
         return of(item, null);
     }
 
     /**
-     * Starts the creation of a simple item.The item will not have a display name or lore.
+     * Starts the creation of a simple item. The item will not have a display name or lore.
      * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param material The Material type.
-     * @return An instance of the CreateItemStack class.
+     * @param material The material type of the item.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(Material material) {
         return of(material, null);
     }
 
     /**
-     * Starts the creation of a simple item.The item will not have a display name or lore.
+     * Starts the creation of a simple item by item name.
+     * The item will not have a display name or lore.
      * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param item The item name.
-     * @return An instance of the CreateItemStack class.
+     * @param item The name of the item.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(String item) {
         return of(item, null);
     }
 
     /**
-     * Starts the creation of an item with a display name and lore.
+     * Starts the creation of an item with a display name and optional lore.
      * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param item        The ItemStack you want to alter.
-     * @param displayName The display name of the item.
-     * @param lore        The lore of the item.
-     * @return An instance of the CreateItemStack class.
+     * @param item        The ItemStack to alter.
+     * @param displayName The display name of the item, or null for none.
+     * @param lore        The lore of the item, varargs or null.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(ItemStack item, String displayName, String... lore) {
         return of(item, displayName, lore != null ? Arrays.asList(lore) : null);
     }
 
+
     /**
-     * Starts the creation of an item with a display name and lore.
+     * Starts the creation of an item with a display name and optional lore.
      * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param material    The Material type.
-     * @param displayName The display name of the item.
-     * @param lore        The lore of the item.
-     * @return An instance of the CreateItemStack class.
+     * @param material    The material type of the item.
+     * @param displayName The display name of the item, or null for none.
+     * @param lore        The lore of the item, varargs or null.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(Material material, String displayName, String... lore) {
         return of(material, displayName, lore != null ? Arrays.asList(lore) : null);
     }
 
     /**
-     * Starts the creation of an item with a display name and lore.
+     * Starts the creation of an item with a display name and optional lore by item name.
      * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param itemName    The item name.
-     * @param displayName The display name of the item.
-     * @param lore        The lore of the item.
-     * @return An instance of the CreateItemStack class.
+     * @param itemName    The name of the item.
+     * @param displayName The display name of the item, or null for none.
+     * @param lore        The lore of the item, varargs or null.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(String itemName, String displayName, String... lore) {
         return of(itemName, displayName, lore != null ? Arrays.asList(lore) : null);
@@ -124,10 +145,10 @@ this.plugin = plugin;
      * Starts the creation of an item with a display name and lore.
      * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param item        The ItemStack you want to alter.
-     * @param displayName The display name of the item.
-     * @param lore        The lore of the item.
-     * @return An instance of the CreateItemStack class.
+     * @param item        The ItemStack to alter.
+     * @param displayName The display name of the item, or null.
+     * @param lore        The lore of the item, or null.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(ItemStack item, String displayName, List<String> lore) {
         return createStack(item, displayName, lore);
@@ -137,36 +158,35 @@ this.plugin = plugin;
      * Starts the creation of an item with a display name and lore.
      * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param material    The material type of the stack.
-     * @param displayName The display name of the item.
-     * @param lore        The lore of the item.
-     * @return An instance of the CreateItemStack class.
+     * @param material    The material type of the item.
+     * @param displayName The display name of the item, or null.
+     * @param lore        The lore of the item, or null.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(Material material, String displayName, List<String> lore) {
         return createStack(material, displayName, lore);
     }
 
     /**
-     * Starts the creation of an item with a display name and lore.
+     * Starts the creation of an item with a display name and lore by item name.
      * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param itemName    The item mame .
-     * @param displayName The display name of the item.
-     * @param lore        The lore of the item.
-     * @return An instance of the CreateItemStack class.
+     * @param itemName    The name of the item.
+     * @param displayName The display name of the item, or null.
+     * @param lore        The lore of the item, or null.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(String itemName, String displayName, List<String> lore) {
         return createStack(itemName, displayName, lore);
     }
 
     /**
-     * Starts the creation of an item with a display name and lore.
-     * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
+     * Creates the item stack based on the given input type, display name, and lore.
      *
      * @param item        The name, Material, or ItemStack of the item.
-     * @param displayName The display name of the item.
-     * @param lore        The lore of the item.
-     * @return An instance of the CreateItemStack class.
+     * @param displayName The display name of the item, or null.
+     * @param lore        The lore of the item, or null.
+     * @return A CreateItemStack instance to build the item.
      */
     private CreateItemStack createStack(Object item, String displayName, List<String> lore) {
         ItemBuilder itemBuilder;
@@ -180,26 +200,26 @@ this.plugin = plugin;
     }
 
     /**
-     * Starts the creation of an item using an existing or new ItemBuilder instance. You can set all the values you want
-     * with the builder. Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
+     * Starts the creation of an item using an existing ItemBuilder.
+     * Complete the creation by calling {@link CreateItemStack#makeItemStack()}.
      *
-     * @param itemBuilder The ItemBuilder instance for creating the item.
-     * @return An instance of the CreateItemStack class.
+     * @param itemBuilder The ItemBuilder instance to use.
+     * @return A CreateItemStack instance to build the item.
      */
     public CreateItemStack of(ItemBuilder itemBuilder) {
         return itemBuilder.build();
     }
 
     /**
-     * Starts the creation of an item from an iterable of items. If you set name and/or lore
-     * it will be shared over all items. Set it to null too keep the original text.
+     * Starts the creation of multiple items from an iterable collection.
+     * The display name and lore will be applied to all items if not null.
      * Complete the creation by calling {@link CreateItemStack#makeItemStackArray()}.
      *
-     * @param itemArray   The iterable of items to convert to ItemStacks.
-     * @param displayName The display name of the items.
-     * @param lore        The lore of the items.
-     * @param <T>         type if class on the item.
-     * @return An instance of the CreateItemStack class.
+     * @param itemArray   The iterable collection of items.
+     * @param displayName The display name to apply to all items, or null to keep original.
+     * @param lore        The lore to apply to all items, or null to keep original.
+     * @param <T>         The type of items in the iterable.
+     * @return A CreateItemStack instance to build the items.
      */
     public <T> CreateItemStack of(Iterable<T> itemArray, String displayName, List<String> lore) {
         ItemBuilder itemBuilder = new ItemBuilder(this, itemArray, displayName, lore);
@@ -209,46 +229,74 @@ this.plugin = plugin;
     /**
      * Checks whether color translation is enabled.
      *
-     * @return {@code true} if color translation is enabled.
+     * @return {@code true} if color translation is enabled, {@code false} otherwise.
      */
     public boolean isEnableColorTranslation() {
         return enableColorTranslation;
     }
 
     /**
-     * Sets whether color translation should be enabled. By default, color codes
-     * in the string text will be translated automatically.
-     * <p>
-     * Set this to {@code false} to disable automatic color translation
-     * and handle it manually instead.
+     * Enables or disables automatic color translation.
+     * By default, color codes in text will be translated automatically.
      *
-     * @param enableColorTranslation {@code true} to enable color translation.
+     * @param enableColorTranslation {@code true} to enable automatic color translation, {@code false} to disable.
      */
     public void setEnableColorTranslation(boolean enableColorTranslation) {
         this.enableColorTranslation = enableColorTranslation;
     }
 
+    /**
+     * Returns the current server version as a float.
+     *
+     * @return the server version
+     */
     public static float getServerVersion() {
         return serverVersion.getServerVersion();
     }
 
+    /**
+     * Gets the NBTManager instance used to manipulate item NBT data.
+     *
+     * @return the NBTManager instance
+     */
     @Nullable
     public RegisterNbtAPI getNbtApi() {
         return nbtManger.getNbtApi();
     }
 
+    /**
+     * Gets the ConvertToItemStack instance used for conversions.
+     *
+     * @return the ConvertToItemStack instance
+     */
     public ConvertToItemStack getConvertItems() {
         return convertItems;
     }
 
+    /**
+     * Retrieves the plugin instance associated with this module.
+     *
+     * @return the plugin instance.
+     */
     public Plugin getPlugin() {
         return plugin;
     }
-
+    /**
+     * Returns true if the correct module is imported
+     * for color translations, it will use bukkits methods
+     * to translate colors.
+     *
+     * @return Returns true if the module exist.
+     */
     public boolean isHaveTextTranslator() {
         return haveTextTranslator;
     }
 
+    /**
+     * Sets the server version based on the plugin's server version.
+     *
+     * @param plugin the plugin instance
+     */
     private static void setServerVersion(Plugin plugin) {
         serverVersion = new ServerVersion(plugin);
     }

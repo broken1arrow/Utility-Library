@@ -25,88 +25,206 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Holds rendering data and state for a Minecraft map renderer.
+ * <p>
+ * This class manages a unique map render ID, a custom {@link MapRenderer},
+ * a collection of {@link MapCursorWrapper} instances via {@link MapCursorAdapter},
+ * and a list of {@link MapPixel} overlays including pixels, text, and images.
+ * It also supports a dynamic renderer handler for custom render logic.
+ * </p>
+ * <p>
+ * The class provides methods to add pixels, text overlays, images, and cursors,
+ * and can serialize/deserialize its state to/from a map for persistence or network transfer.
+ * </p>
+ */
 public class MapRendererData {
     private static int id;
     private final int mapRenderId;
-    private final MapRenderer mapRenderer;
+    private final transient MapRenderer mapRenderer;
     private MapCursorAdapter mapCursors = new MapCursorAdapter();
     private final List<MapPixel> pixels = new ArrayList<>();
-
     private MapRenderHandler dynamicRenderer;
 
+    /**
+     * Constructs a new MapRendererData instance with no associated {@link MapRenderer}.
+     * A unique map render ID is automatically assigned.
+     */
     public MapRendererData() {
-        this.mapRenderer = null;
-        this.mapRenderId = id++;
+        this(null);
     }
 
+    /**
+     * Constructs a new MapRendererData instance with the given {@link MapRenderer}.
+     * A unique map render ID is automatically assigned.
+     *
+     * @param mapRenderer The underlying map renderer, or null to use the dynamic renderer.
+     */
     public MapRendererData(final MapRenderer mapRenderer) {
         this.mapRenderer = mapRenderer;
         this.mapRenderId = id++;
     }
 
+    /**
+     * Sets the dynamic renderer handler that can override rendering behavior.
+     *
+     * @param handler The dynamic {@link MapRenderHandler} to use during rendering.
+     */
     public void setDynamicRenderer(MapRenderHandler handler) {
         this.dynamicRenderer = handler;
     }
 
+    /**
+     * Adds a colored pixel overlay to the map at the specified coordinates.
+     *
+     * @param x     The x-coordinate of the pixel.
+     * @param y     The y-coordinate of the pixel.
+     * @param color The color of the pixel.
+     */
     public void addPixel(int x, int y, Color color) {
         pixels.add(new MapColoredPixel(x, y, color));
     }
 
+    /**
+     * Adds a colored pixel overlay to the map.
+     *
+     * @param mapColoredPixel The {@link MapColoredPixel} to add.
+     */
     public void addPixel(@Nonnull final MapColoredPixel mapColoredPixel) {
         pixels.add(mapColoredPixel);
     }
 
+    /**
+     * Adds a text overlay to the map without a custom font character sprite.
+     *
+     * @param x      The x-coordinate of the text.
+     * @param y      The y-coordinate of the text.
+     * @param text   The text to display.
+     */
     public void addText(final int x, int y, final String text) {
         TextOverlay textOverlay = new TextOverlay(x, y, text);
         pixels.add(textOverlay);
     }
 
-    public void addText(final int x, int y, final String text, final char ch, @Nonnull CharacterSprite sprite) {
+    /**
+     * Adds a text overlay to the map with a custom font character sprite.
+     *
+     * @param x      The x-coordinate of the text.
+     * @param y      The y-coordinate of the text.
+     * @param text   The text to display.
+     * @param ch     The character associated with the custom font.
+     * @param sprite The {@link CharacterSprite} for the font character.
+     */
+    public void addText(final int x, int y, final String text, final char ch, @Nullable CharacterSprite sprite) {
         TextOverlay textOverlay = new TextOverlay(x, y, text);
-        textOverlay.setMapFont(ch, sprite);
+        if (sprite != null)
+            textOverlay.setMapFont(ch, sprite);
         pixels.add(textOverlay);
     }
 
+    /**
+     * Adds a text overlay to the map.
+     *
+     * @param textOverlay The {@link TextOverlay} instance to add.
+     */
     public void addText(@Nonnull final TextOverlay textOverlay) {
         pixels.add(textOverlay);
     }
 
-    public void addImage(int x, int y, Image image) {
+    /**
+     * Adds an image overlay to the map at the specified coordinates.
+     *
+     * @param x     The x-coordinate of the image.
+     * @param y     The y-coordinate of the image.
+     * @param image The image to display.
+     */
+    public void addImage(final int x,final int y,@Nonnull final Image image) {
         pixels.add(new ImageOverlay(x, y, image));
     }
 
+    /**
+     * Adds an image overlay to the map.
+     *
+     * @param imageOverlay The {@link ImageOverlay} instance to add.
+     */
     public void addImage(@Nonnull final ImageOverlay imageOverlay) {
         pixels.add(imageOverlay);
     }
 
+    /**
+     * Adds a cursor overlay to the map.
+     *
+     * @param x         The x-coordinate of the cursor.
+     * @param y         The y-coordinate of the cursor.
+     * @param direction The direction the cursor points to.
+     * @param type      The cursor type.
+     * @param visible   Whether the cursor is visible.
+     * @return The added {@link MapCursorWrapper}.
+     */
     public MapCursorWrapper addCursor(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible) {
         return this.addCursor(x, y, direction, type, visible, null);
     }
 
+    /**
+     * Adds a cursor overlay to the map with an optional caption.
+     *
+     * @param x         The x-coordinate of the cursor.
+     * @param y         The y-coordinate of the cursor.
+     * @param direction The direction the cursor points to.
+     * @param type      The cursor type.
+     * @param visible   Whether the cursor is visible.
+     * @param caption   Optional caption for the cursor, or null if none.
+     * @return The added {@link MapCursorWrapper}.
+     */
     public MapCursorWrapper addCursor(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible, @Nullable final String caption) {
         final MapCursorWrapper cursorWrapper = new MapCursorWrapper(x, y, direction, type, visible, caption);
         return this.addCursor(cursorWrapper);
     }
 
+    /**
+     * Adds a cursor overlay to the map.
+     *
+     * @param cursorWrapper The {@link MapCursorWrapper} to add.
+     * @return The same cursor wrapper instance.
+     */
     public MapCursorWrapper addCursor(@Nonnull final MapCursorWrapper cursorWrapper) {
         mapCursors.addCursor(cursorWrapper);
         return cursorWrapper;
     }
 
+    /**
+     * Returns the unique ID assigned to this map renderer data instance.
+     *
+     * @return The map render ID.
+     */
     public int getMapRenderId() {
         return mapRenderId;
     }
 
+    /**
+     * Returns the {@link MapCursorAdapter} that holds the cursors for this map view.
+     *
+     * @return the {@code MapCursorAdapter} instance containing the map cursors.
+     */
     public MapCursorAdapter getMapCursors() {
-        mapCursors.getCursor(1);
         return mapCursors;
     }
 
+    /**
+     * Returns the current collection of map cursors.
+     *
+     * @return The {@link MapCursorAdapter} managing cursors.
+     */
     public List<MapPixel> getPixels() {
         return pixels;
     }
 
-
+    /**
+     * Returns the associated {@link MapRenderer}, or a default one which
+     * renders the pixels and cursors and supports a dynamic renderer if set.
+     *
+     * @return The {@link MapRenderer} instance.
+     */
     public MapRenderer getMapRenderer() {
         if (this.mapRenderer != null)
             return mapRenderer;
@@ -137,7 +255,9 @@ public class MapRendererData {
             }
             if (mapPixel instanceof ImageOverlay) {
                 ImageOverlay textOverlay = (ImageOverlay) mapPixel;
-                canvas.drawImage(mapPixel.getX(), mapPixel.getY(), textOverlay.getImage());
+                final Image image = textOverlay.getImage();
+                if (image != null)
+                    canvas.drawImage(mapPixel.getX(), mapPixel.getY(), image);
             }
         });
     }
@@ -154,6 +274,12 @@ public class MapRendererData {
         return Objects.hash(mapRenderId, mapRenderer, mapCursors, pixels, dynamicRenderer);
     }
 
+    /**
+     * Serializes this MapRendererData to a map representation for persistence.
+     * The map includes serialized cursors and pixels.
+     *
+     * @return A map representing this MapRendererData's state.
+     */
     @Nonnull
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
@@ -162,6 +288,12 @@ public class MapRendererData {
         return map;
     }
 
+    /**
+     * Deserializes a MapRendererData instance from a map representation.
+     *
+     * @param map The map containing serialized MapRendererData data.
+     * @return A new {@link MapRendererData} instance reconstructed from the map.
+     */
     public static MapRendererData deserialize(Map<String, Object> map) {
         final Object cursors = map.get("cursors");
         final Object pixels = map.get("pixels");

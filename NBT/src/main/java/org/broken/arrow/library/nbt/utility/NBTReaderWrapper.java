@@ -38,6 +38,11 @@ public class NBTReaderWrapper<T extends ReadableNBT>  {
 
 	private final T readableNBT;
 
+	/**
+	 * Create an instance of this wrapper.
+	 *
+	 * @param readableNBT the ReadableNBT data to read nbt data from.
+	 */
 	public NBTReaderWrapper(T readableNBT) {
 		this.readableNBT = readableNBT;
 	}

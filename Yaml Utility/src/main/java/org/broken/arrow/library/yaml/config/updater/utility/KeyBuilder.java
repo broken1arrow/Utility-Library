@@ -117,10 +117,14 @@ public class KeyBuilder implements Cloneable {
 		return this.keyConstructed;
 	}
 
+	/**
+	 * Retrieve the  file configuration currently loaded.
+	 *
+	 * @return the config instance.
+	 */
 	public FileConfiguration getConfig() {
 		return config;
 	}
-
 
 	/**
 	 * Checks if the KeyBuilder's path is a sub-key of the specified parent key.

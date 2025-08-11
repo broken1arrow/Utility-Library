@@ -262,25 +262,73 @@ public class PlaceholderTranslator {
         return "";
     }
 
+    /**
+     * A helper class for managing placeholder key-value pairs.
+     * <p>
+     * This wrapper simplifies storing placeholders where keys can be either integers or strings,
+     * converting integer keys to strings internally for uniformity.
+     * It also supports convenient handling of boolean text replacements.
+     * </p>
+     *
+     * <p><b>Usage example:</b></p>
+     * <pre>{@code
+     * PlaceholderWrapper wrapper = new PlaceholderWrapper()
+     *      .put(1, "Value for 1")
+     *      .put("username", "Steve")
+     *      .putBooleans("Yes", "No");
+     * Map<String, Object> placeholders = wrapper.getPlaceholders();
+     * }</pre>
+     */
     public static class PlaceholderWrapper {
 
         private final Map<String, Object> placeholders = new HashMap<>();
 
+        /**
+         * Adds a placeholder with an integer key.
+         * <p>
+         * The integer key is converted to a string internally.
+         * </p>
+         *
+         * @param placeholderKey the integer key for the placeholder
+         * @param value the value associated with the placeholder
+         * @return this {@code PlaceholderWrapper} instance for chaining
+         */
         public PlaceholderWrapper put(final int placeholderKey, final Object value) {
             placeholders.put(placeholderKey + "", value);
             return this;
         }
 
+        /**
+         * Adds a placeholder with a string key.
+         *
+         * @param placeholderKey the string key for the placeholder
+         * @param value the value associated with the placeholder
+         * @return this {@code PlaceholderWrapper} instance for chaining
+         */
         public PlaceholderWrapper put(final String placeholderKey, final Object value) {
             placeholders.put(placeholderKey, value);
             return this;
         }
 
+        /**
+         * Adds boolean replacement text placeholders for {@code TRUE_TEXT} and {@code FALSE_TEXT} keys.
+         * <p>
+         * This is useful when replacing boolean values with custom string representations.
+         * </p>
+         *
+         * @param replaceTrue the string to use for {@code true} values
+         * @param replaceFalse the string to use for {@code false} values
+         */
         public void putBooleans(final String replaceTrue, final String replaceFalse) {
             placeholders.put(TRUE_TEXT, replaceTrue);
             placeholders.put(FALSE_TEXT, replaceFalse);
         }
 
+        /**
+         * Returns the internal map of placeholder keys and their associated values.
+         *
+         * @return an unmodifiable view of the placeholders map
+         */
         public Map<String, Object> getPlaceholders() {
             return placeholders;
         }

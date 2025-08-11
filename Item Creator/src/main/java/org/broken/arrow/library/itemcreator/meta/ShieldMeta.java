@@ -11,14 +11,19 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Represents metadata for a shield item, allowing the application of banner patterns
+ * to customize the shield's appearance.
+ */
 public class ShieldMeta {
 
     private BannerMeta bannerMeta;
 
     /**
-     * This method just allow you set color on leather.
+     * Sets the banner pattern on this shield metadata by applying a consumer
+     * to a new BannerMeta instance.
      *
-     * @param metaConsumer the color you want to set on your item.
+     * @param metaConsumer the consumer that configures the BannerMeta patterns and colors
      */
     public void setBannerPattern(@Nonnull final Consumer<BannerMeta> metaConsumer) {
         BannerMeta bannerPattern = new BannerMeta();
@@ -26,6 +31,12 @@ public class ShieldMeta {
         this.bannerMeta = bannerPattern;
     }
 
+    /**
+     * Applies the stored banner pattern to the given ItemMeta if it is a BlockStateMeta
+     * representing a Banner. This updates the banner's base color and patterns.
+     *
+     * @param itemMeta the ItemMeta instance to apply the banner pattern to
+     */
     public void applyShieldBanner(@Nonnull final ItemMeta itemMeta) {
         BannerMeta bannerPattern = this.bannerMeta;
         if (bannerPattern == null)

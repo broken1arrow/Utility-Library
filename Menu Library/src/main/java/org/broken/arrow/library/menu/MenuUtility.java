@@ -184,6 +184,12 @@ public class MenuUtility<T> {
         return timeWhenUpdatesButtons;
     }
 
+    /**
+     * Retrieve the update time if it set.
+     *
+     * @param menuButton the button to get the time.
+     * @return the amount of seconds set or {@code null} if not set.
+     */
     @Nullable
     public Long getTimeWhenUpdatesButton(final MenuButton menuButton) {
         return getTimeWhenUpdatesButtons().getOrDefault(menuButton.getId(), null);
@@ -403,7 +409,11 @@ public class MenuUtility<T> {
         return inventory;
     }
 
-
+    /**
+     * Retrieve the menu render. That populate the inventory with items.
+     *
+     * @return the menu render for set items to the actual menu.
+     */
     public MenuRenderer<T> getMenuRenderer() {
         return menuRenderer;
     }
@@ -447,6 +457,11 @@ public class MenuUtility<T> {
         return this.menuRenderer.getRequiredPages();
     }
 
+    /**
+     * Get amount of items set per page.
+     *
+     * @return the amount of items could ber set on one page.
+     */
     public int getItemsPerPage() {
         int itemsSize = this.itemsPerPage;
         if (itemsSize <= 0) {
@@ -531,7 +546,7 @@ public class MenuUtility<T> {
     }
 
     /**
-     * Get if it shall automatic clear cache or not.
+     * Get if it will automatically clear cache or not.
      *
      * @return true if it shall clear menu after last viewer close gui.
      */
@@ -673,10 +688,17 @@ public class MenuUtility<T> {
         return menuInteractionChecks;
     }
 
+    /**
+     * Receive the highest fill slot.
+     * @return the highest full slot if it set or -1 if could not find any slots set.
+     */
     public int getHighestFillSlot() {
         return this.highestFillSlot;
     }
 
+    /**
+     * Invoke this to turn of the title animation.
+     */
     public void cancelAnimateTitle() {
         Supplier<?> task = getAnimateTitle();
         if (task == null) return;
@@ -688,6 +710,11 @@ public class MenuUtility<T> {
         updateTitle();
     }
 
+    /**
+     * Retrieve location of the menu, if it set.
+     *
+     * @return the location if it set.
+     */
     public Location getLocation() {
         return this.getLoadInventoryHandler().getLocation();
     }
@@ -701,10 +728,22 @@ public class MenuUtility<T> {
         return this.menuRenderer.getNumberOfFillItems();
     }
 
+    /**
+     * Retrieve if it shall cache the inventory or
+     * if you handle that externally.
+     *
+     * @return returns {@code true} if it shall not cache the items.
+     */
     public boolean shallCacheItems() {
         return shallCacheItems;
     }
 
+    /**
+     * Get the class that handle inventory loading.
+     *
+     * @return The inventory loading handler where you can retrieve the cached
+     * menu for the player.
+     */
     public LoadInventoryHandler<T> getLoadInventoryHandler() {
         return loadInventoryHandler;
     }
@@ -723,6 +762,11 @@ public class MenuUtility<T> {
         this.pagesOfButtonsData.put(pageNumber, menuDataUtility);
     }
 
+    /**
+     * Retrieve the animated title.
+     *
+     * @return the title supplier, where you can dynamics update the title.
+     */
     public Supplier<?> getAnimateTitle() {
         if (this.animateTitle != null)
             return this.animateTitle;
@@ -731,10 +775,21 @@ public class MenuUtility<T> {
         return null;
     }
 
+    /**
+     * Update the title while player has the menu open.
+     *
+     * @param text the text to set.
+     */
     public void updateTitle(Object text) {
         updateTitle(this.player, text);
     }
 
+    /**
+     * Update the title while player has the menu open.
+     *
+     * @param player the player you want to update the title for.
+     * @param text the text to set.
+     */
     public void updateTitle(@Nullable final Player player, final Object text) {
         if (player == null)
             return;
@@ -806,7 +861,6 @@ public class MenuUtility<T> {
      *
      * @param player the player you want to update the title for.
      */
-
     public void updateTitle(@Nullable final Player player) {
         Object title = getTitle();
         if (!menuAPI.isNotFoundUpdateTitleClazz())
@@ -867,6 +921,12 @@ public class MenuUtility<T> {
         }
     }
 
+    /**
+     * Retrieve the unique key set in cache if location is used.
+     * Allow you have two menus on same location.
+     *
+     * @return the key or {@code null} if not set.
+     */
     public String getUniqueKey() {
         return this.getLoadInventoryHandler().getUniqueKey();
     }
@@ -922,6 +982,13 @@ public class MenuUtility<T> {
         this.onMenuOpenPlaySound(this.player);
     }
 
+    /**
+     * Play a sound when player open menu. You can
+     * use this for your own menu, if you're allowing
+     * several players interact with the same menu.
+     *
+     * @param player the player that open the menu.
+     */
     public void onMenuOpenPlaySound(@Nullable final Player player) {
         final Sound sound = this.menuOpenSound;
         if (sound == null) return;
@@ -1050,6 +1117,10 @@ public class MenuUtility<T> {
         return this.getFillSpace().stream().mapToInt(Integer::intValue).max().orElse(-1);
     }
 
+    /**
+     * Retrieve the set plugin instance.
+     * @return the plugin instance set.
+     */
     public Plugin getPlugin() {
         return menuAPI.getPlugin();
     }

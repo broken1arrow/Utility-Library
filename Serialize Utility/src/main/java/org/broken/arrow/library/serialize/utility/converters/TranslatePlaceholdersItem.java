@@ -66,6 +66,66 @@ public class TranslatePlaceholdersItem {
     }
 
     /**
+     * Splits each string in the input list into multiple lines if the length exceeds a specified threshold.
+     * <p>
+     * This method is primarily designed for splitting long lore or descriptive text (e.g., item lore)
+     * into lines that do not exceed {@code maxLineLength} characters.
+     * It preserves word boundaries by splitting on spaces and attempts to retain color codes
+     * (such as '&' or '§') at the beginning of continued lines for consistent formatting.
+     * </p>
+     *
+     * @param input a list of objects whose string representations will be split into shorter lines
+     * @param maxLineLength the maximum allowed length of each line before splitting occurs
+     * @return a new list of strings, where long lines are split into multiple shorter lines respecting word boundaries
+     */
+    public static List<String> split(final List<?> input, final int maxLineLength) {
+        List<String> output = new ArrayList<>();
+
+        for (Object line : input) {
+            StringTokenizer tok = new StringTokenizer(line + "", " ");
+            StringBuilder currentLine = new StringBuilder();
+
+            while (tok.hasMoreTokens()) {
+                String word = tok.nextToken();
+                String color = "";
+                if (currentLine.length() + word.length() > maxLineLength) {
+                    output.add(currentLine.toString().trim());
+
+                    String start = currentLine.substring(0, Math.min(2, currentLine.length()));
+                    if (start.contains("&") || start.contains("§")) {
+                        color = start;
+                    }
+                    currentLine = new StringBuilder();
+                }
+                currentLine.append(color).append(word).append(" ");
+            }
+            if (currentLine.length() > 0) {
+                output.add(currentLine.toString().trim());
+            }
+        }
+        return output;
+    }
+
+    /**
+     * Translates color codes in the given string using either {@link TextTranslator#toSpigotFormat(String)} (if available),
+     * or falls back to {@link ChatColor#translateAlternateColorCodes(char, String)}.
+     *
+     * <p>If this utility is shaded into your own plugin, it will attempt to use {@link TextTranslator#toSpigotFormat(String)}.
+     * If you're using the Utility Library by installing its plugin JAR (rather than shading it),
+     * this behavior is always enabled.</p>
+     *
+     * @param text the text to translate
+     * @return the translated string with appropriate color formatting
+     */
+    @Nonnull
+    public static String translateColorCodes(final String text) {
+        if (hasTextTranslator)
+            return TextTranslator.toSpigotFormat(text);
+        return ChatColor.translateAlternateColorCodes('&', text);
+    }
+
+
+    /**
      * Replaces placeholders in the {@link ItemStack}'s display name and lore.
      *
      * <p>If the placeholder exists in either the display name or any lore line, it will be replaced
@@ -122,7 +182,7 @@ public class TranslatePlaceholdersItem {
 
     @Nullable
     private static String getTextProcessed(String placeHolder, Object value, @Nonnull UnaryOperator<String> callBackText, String line) {
-        if(line == null){
+        if (line == null) {
             return null;
         }
         return callBackText.apply(line.replace(placeHolder, value != null ? value.toString() : ""));
@@ -158,52 +218,6 @@ public class TranslatePlaceholdersItem {
                 return i;
         }
         return -1;
-    }
-
-    public static List<String> split(final List<?> input, final int maxLineLength) {
-        List<String> output = new ArrayList<>();
-
-        for (Object line : input) {
-            StringTokenizer tok = new StringTokenizer(line + "", " ");
-            StringBuilder currentLine = new StringBuilder();
-
-            while (tok.hasMoreTokens()) {
-                String word = tok.nextToken();
-                String color = "";
-                if (currentLine.length() + word.length() > maxLineLength) {
-                    output.add(currentLine.toString().trim());
-
-                    String start = currentLine.substring(0, Math.min(2, currentLine.length()));
-                    if (start.contains("&") || start.contains("§")) {
-                        color = start;
-                    }
-                    currentLine = new StringBuilder();
-                }
-                currentLine.append(color).append(word).append(" ");
-            }
-            if (currentLine.length() > 0) {
-                output.add(currentLine.toString().trim());
-            }
-        }
-        return output;
-    }
-
-    /**
-     * Translates color codes in the given string using either {@link TextTranslator#toSpigotFormat(String)} (if available),
-     * or falls back to {@link ChatColor#translateAlternateColorCodes(char, String)}.
-     *
-     * <p>If this utility is shaded into your own plugin, it will attempt to use {@link TextTranslator#toSpigotFormat(String)}.
-     * If you're using the Utility Library by installing its plugin JAR (rather than shading it),
-     * this behavior is always enabled.</p>
-     *
-     * @param text the text to translate
-     * @return the translated string with appropriate color formatting
-     */
-    @Nonnull
-    public static String translateColorCodes(final String text) {
-        if (hasTextTranslator)
-            return TextTranslator.toSpigotFormat(text);
-        return ChatColor.translateAlternateColorCodes('&', text);
     }
 
 }

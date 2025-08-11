@@ -179,7 +179,11 @@ public class UpdateTitle {
 		return false;
 	}
 
-
+	/**
+	 * Gets the parsed server version as a float value representing major.minor version.
+	 *
+	 * @return the server version, e.g., 20.4 or 19.3
+	 */
 	public static float getServerVersion() {
 		return SERVER_VERSION;
 	}

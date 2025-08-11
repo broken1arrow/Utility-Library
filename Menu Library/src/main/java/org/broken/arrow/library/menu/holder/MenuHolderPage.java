@@ -229,6 +229,11 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         }
     }
 
+    /**
+     * Returns the list of fill items wrapped in {@link FillItems}.
+     *
+     * @return the fill items wrapper, or null if none set
+     */
     @Nullable
     public FillItems<T> getListOfFillItem() {
         return listOfFillItems;
@@ -242,6 +247,12 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         return new ArrayList<>();
     }
 
+    /**
+     * Returns the item of type {@code T} at the specified index in the fill items list.
+     *
+     * @param index index of the item to retrieve
+     * @return the item at the index, or null if none exists or list is empty
+     */
     @Nullable
     public T getFillItem(int index) {
         FillItems<T> fillItems = getListOfFillItem();
@@ -257,6 +268,10 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         super.menuOpen(player, location, loadToCache);
     }
 
+    /**
+     * Calculates and sets the amount of pages based on items, fill space, and manual overrides.
+     * This method configures the menu renderer's page count supplier.
+     */
     protected final void amountOfPages() {
         this.getMenuRenderer().setAmountOfPages(() -> {
             int setPages = getManuallySetPages();
@@ -360,6 +375,12 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         return adjusted <= 1 ? 9 : adjusted;
     }
 
+    /**
+     * Checks if a given inventory slot is within the defined fill space slots.
+     *
+     * @param slot the inventory slot index to check
+     * @return true if the slot is part of fill space, false otherwise
+     */
     private boolean isFillSlot(final int slot) {
         final List<Integer> fillSlots = this.getFillSpace();
         return !fillSlots.isEmpty() && fillSlots.contains(slot);

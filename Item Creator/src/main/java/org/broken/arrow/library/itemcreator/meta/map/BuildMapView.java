@@ -16,10 +16,19 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * A builder and wrapper for {@link MapView} instances, providing enhanced
+ * control over map properties such as scale, renderers, and tracking settings.
+ * <p>
+ * This class allows creation of new map views in a specified world or wrapping
+ * existing {@link MapView} instances, while managing additional custom state
+ * and renderer data.
+ * </p>
+ */
 public class BuildMapView {
     private final MapView mapView;
     private final World world;
-    private final Set<MapRendererData> renderers = new HashSet<>();
+    private final transient Set<MapRendererData> renderers = new HashSet<>();
 
     private MapView.Scale scale = MapView.Scale.NORMAL;
 
@@ -32,6 +41,12 @@ public class BuildMapView {
     private int z;
     private int x;
 
+    /**
+     * Constructs a new {@code BuildMapView} for the given {@link World},
+     * creating a fresh {@link MapView} instance tied to that world.
+     *
+     * @param world the {@link World} where the map view is created (non-null)
+     */
     public BuildMapView(@Nonnull final World world) {
         this.mapView = Bukkit.createMap(world);
         this.virtual = mapView.isVirtual();
@@ -39,6 +54,12 @@ public class BuildMapView {
         this.world = mapView.getWorld();
     }
 
+    /**
+     * Wraps an existing {@link MapView} into a {@code BuildMapView},
+     * preserving its current properties and renderers.
+     *
+     * @param mapView the existing {@link MapView} to wrap (non-null)
+     */
     public BuildMapView(@Nonnull final MapView mapView) {
         this.mapView = mapView;
         this.virtual = mapView.isVirtual();
@@ -144,10 +165,12 @@ public class BuildMapView {
     }
 
     /**
-     * Add a renderer to this map.
+     * Adds a map renderer with the specified renderer and applies configuration
+     * via the given data consumer.
      *
-     * @param renderer The MapRenderer to add.
-     * @return Returns the id set on this instance.
+     * @param renderer the {@link MapRenderer} instance to add
+     * @param dataConsumer a consumer to configure the render data for this renderer
+     * @return the {@link MapRendererData} instance representing the added renderer
      */
     public MapRendererData addRenderer(@Nonnull final MapRenderer renderer, @Nonnull final Consumer<MapRendererData> dataConsumer) {
         MapRendererData mapRenderer = new MapRendererData(renderer);
@@ -156,16 +179,16 @@ public class BuildMapView {
         return mapRenderer;
     }
 
-
     /**
-     * Add a renderer to this map.
+     * Adds a map renderer without specifying a renderer instance, and applies
+     * configuration via the given data consumer.
      *
-     * @param renderer The MapRenderer to add.
-     * @return Returns the id set on this instance.
+     * @param dataConsumer a consumer to configure the render data for the new renderer
+     * @return the {@link MapRendererData} instance representing the added renderer
      */
-    public MapRendererData addRenderer(@Nonnull final Consumer<MapRendererData> renderer) {
+    public MapRendererData addRenderer(@Nonnull final Consumer<MapRendererData> dataConsumer) {
         final MapRendererData mapRenderer = new MapRendererData();
-        renderer.accept(mapRenderer);
+        dataConsumer.accept(mapRenderer);
         renderers.add(mapRenderer);
         return mapRenderer;
     }
@@ -250,7 +273,11 @@ public class BuildMapView {
         this.locked = locked;
     }
 
-
+    /**
+     * Build the {@link MapView)} with your settings set.
+     *
+     * @return a new MapView instance with your settings.
+     */
     public MapView build() {
         if (world == null)
             throw new IllegalStateException("World must be set before building MapView.");

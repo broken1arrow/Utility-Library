@@ -10,12 +10,21 @@ import org.bukkit.plugin.Plugin;
 import javax.annotation.Nonnull;
 
 /**
- * A chat conversation that extends on {@link Conversation}.
+ * Represents a chat conversation extending the base {@link Conversation} class,
+ * providing additional context and customization through a {@link SimpleConversation}.
  */
 public class CustomConversation extends Conversation {
 	private SimplePrompt lastSimplePrompt;
 	private final SimpleConversation simpleConversation;
 
+	/**
+	 * Creates a new instance of {@code CustomConversation}.
+	 *
+	 * @param plugin            the plugin instance used to create and manage the conversation
+	 * @param simpleConversation the {@link SimpleConversation} instance providing the conversation logic,
+	 *                           including prompt flow, prefix handling, timeout, and cancellation behavior.
+	 * @param forWhom           the player or conversable entity that started the conversation
+	 */
 	public CustomConversation(@Nonnull final Plugin plugin, @Nonnull final SimpleConversation simpleConversation, @Nonnull final Conversable forWhom) {
 		super(plugin, forWhom, simpleConversation.getFirstPrompt());
 		this.localEchoEnabled = false;

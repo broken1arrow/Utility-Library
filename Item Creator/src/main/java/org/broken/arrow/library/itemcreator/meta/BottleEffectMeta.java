@@ -17,6 +17,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Represents metadata for a potion bottle item, managing its potion effects,
+ * color, base potion data, and bottle type properties.
+ * <p>
+ * This class allows you to get and set potion effects, configure if the bottle
+ * is a water bottle, override existing effects, and manage potion attributes
+ * such as whether the potion is extended or upgraded.
+ * </p>
+ */
 public class BottleEffectMeta {
     private final List<PotionEffect> potionEffects = new ArrayList<>();
     private boolean waterBottle;

@@ -22,14 +22,29 @@ public class ButtonDataWrapper<T> {
     private  boolean isFillButton;
     private  T object;
 
+    /**
+     * Constructs a new {@code ButtonDataWrapper} for the specified menu button.
+     *
+     * @param menuButton the menu button associated with this wrapper; must not be {@code null}.
+     */
     public ButtonDataWrapper(@Nonnull final MenuButton menuButton) {
         this.menuButton = menuButton;
     }
 
+    /**
+     * Gets the {@link MenuButton} associated with this wrapper.
+     *
+     * @return the menu button; never {@code null}.
+     */
     public MenuButton getMenuButton() {
         return menuButton;
     }
 
+    /**
+     * Gets the current {@link ItemStack} set to display for this button.
+     *
+     * @return the item stack, or {@code null} if none is set.
+     */
     public ItemStack getItemStack() {
         return itemStack;
     }
@@ -37,7 +52,7 @@ public class ButtonDataWrapper<T> {
     /**
      * Sets the item to display for the player viewing the menu.
      *
-     * @param itemStack the item stack to set (may be {@code null}).
+     * @param itemStack the item stack to set (maybe {@code null}).
      * @return the current wrapper instance for chaining.
      */
     public ButtonDataWrapper<T> setItemStack(@Nullable final ItemStack itemStack) {
@@ -45,7 +60,11 @@ public class ButtonDataWrapper<T> {
         return this;
     }
 
-
+    /**
+     * Returns whether this button is designated as a fill button.
+     *
+     * @return {@code true} if this is a fill button, {@code false} otherwise.
+     */
     public boolean isFillButton() {
         return isFillButton;
     }
@@ -61,6 +80,11 @@ public class ButtonDataWrapper<T> {
         return this;
     }
 
+    /**
+     * Gets the data object associated with this button.
+     *
+     * @return the associated data object, or {@code null} if none is set.
+     */
     public T getObject() {
         return object;
     }

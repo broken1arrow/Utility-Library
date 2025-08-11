@@ -26,6 +26,9 @@ public abstract class MenuButton {
 	private static int counter = 0;
 	private final int id;
 
+	/**
+	 * new button instance that sets the id for the button.
+	 */
 	protected MenuButton() {
 		this.id = counter++;
 	}

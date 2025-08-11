@@ -15,10 +15,32 @@ import org.bukkit.Bukkit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Utility class responsible for managing NMS (Net Minecraft Server) related data
+ * based on the current Minecraft server version.
+ * <p>
+ * This class determines the server version by parsing the Bukkit version string,
+ * and conditionally initializes a {@link ContainerUtility} instance depending on
+ * whether the server version supports it.
+ * </p>
+ * <p>
+ * For server versions greater than 20.2, the {@code ContainerUtility} is not initialized
+ * and is set to {@code null}, reflecting potential incompatibilities or deprecated support.
+ * </p>
+ * <p>
+ * The server version parsing logic extracts the major and minor version numbers
+ * from the Bukkit version string, handling cases with suffixes such as
+ * build numbers or release tags (e.g., "1.20.2-R1").
+ * </p>
+ */
 public class SetNmsData {
 	private final ContainerUtility containerUtility;
 	private final float serverVersion;
 
+	/**
+	 * Creates a new instance of {@code SetNmsData}, determining the server version and
+	 * initializing the {@link ContainerUtility} if applicable.
+	 */
 	public SetNmsData() {
 		serverVersion = setServerVersion();
 		if (serverVersion > 20.2F) {
@@ -28,15 +50,35 @@ public class SetNmsData {
 		containerUtility = setNmsData(serverVersion);
 	}
 
+	/**
+	 * Gets the {@link ContainerUtility} instance if initialized for the current server version.
+	 *
+	 * @return the container utility, or {@code null} if unsupported for this server version
+	 */
 	@Nullable
 	public ContainerUtility getContainerUtility() {
 		return containerUtility;
 	}
 
+	/**
+	 * Gets the parsed server version as a float value representing major.minor version.
+	 *
+	 * @return the server version, e.g., 20.4 or 19.3
+	 */
 	public float getServerVersion() {
 		return serverVersion;
 	}
 
+	/**
+	 * Parses the Bukkit server version string to extract the major and minor version numbers
+	 * as a float value.
+	 * <p>
+	 * Handles cases where version strings include suffixes like build numbers
+	 * or release candidates, e.g., "1.20.2-R1" or "1.20.2".
+	 * </p>
+	 *
+	 * @return the parsed server version as a float (major.minor)
+	 */
 	private float setServerVersion() {
 		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
 		final String firstNumber;

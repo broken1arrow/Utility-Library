@@ -84,6 +84,12 @@ public class PlaceholderText implements ConfigurationSerializable {
 		return map;
 	}
 
+	/**
+	 * Deserializes a PlaceholderText instance from the provided Map.
+	 *
+	 * @param map the Map containing serialized placeholders data.
+	 * @return a new PlaceholderText instance built from the Map.
+	 */
 	public static PlaceholderText deserialize(Map<String, Object> map) {
 		final Map<String, String> messages = new HashMap<>();
 		for (Entry<String, Object> entry : map.entrySet())

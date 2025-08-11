@@ -6,6 +6,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.print.Book;
 import java.util.function.Consumer;
 
 /**
@@ -38,7 +39,14 @@ public class MetaHandler {
     private LeatherMeta leatherMeta;
     private ShieldMeta shieldMeta;
     private MapWrapperMeta mapMeta;
+    private BookMeta bookMeta;
 
+    /**
+     * Retrieve the banner meta set.
+     *
+     * @return the banner set or null if not set yet.
+     */
+    @Nullable
     public BannerMeta getBanner() {
         return banner;
     }
@@ -65,10 +73,6 @@ public class MetaHandler {
         return this.banner;
     }
 
-    public BottleEffectMeta getBottleEffect() {
-        return bottleEffect;
-    }
-
     /**
      * Initializes and configures the potion bottle effect metadata using the provided function.
      *
@@ -91,9 +95,16 @@ public class MetaHandler {
         return this.bottleEffect;
     }
 
-    public EnhancementMeta getEnhancements() {
-        return enhancements;
+    /**
+     * Retrieve the set {@link BottleEffectMeta}.
+     *
+     * @return instance of the class or {@code null} if not set.
+     */
+    @Nullable
+    public BottleEffectMeta getBottleEffect() {
+        return bottleEffect;
     }
+
 
     /**
      * Initializes and configures the enchantment metadata using the provided function.
@@ -121,9 +132,14 @@ public class MetaHandler {
         this.enhancements = new EnhancementMeta();
         return this.enhancements;
     }
-
-    public FireworkMeta getFirework() {
-        return firework;
+    /**
+     * Retrieve the set {@link EnhancementMeta}.
+     *
+     * @return instance of the class or {@code null} if not set.
+     */
+    @Nullable
+    public EnhancementMeta getEnhancements() {
+        return enhancements;
     }
 
     /**
@@ -148,10 +164,6 @@ public class MetaHandler {
         return this.firework;
     }
 
-    public LeatherMeta getLeatherMeta() {
-        return leatherMeta;
-    }
-
     /**
      * Initializes and configures the firework metadata using the provided function.
      *
@@ -164,11 +176,14 @@ public class MetaHandler {
     }
 
     /**
-     * Initializes and configures the firework metadata by using
-     * {@link LeatherMeta}class.
+     * Initializes and configures the leatherMeta metadata by using
+     * {@link LeatherMeta} class.
+     *
+     * @return the {@link LeatherMeta}} where you set the properties for your firework effect.
      */
-    public void createLeatherMeta() {
+    public LeatherMeta createLeatherMeta() {
         this.leatherMeta = new LeatherMeta();
+        return this.leatherMeta;
     }
 
     /**
@@ -215,8 +230,37 @@ public class MetaHandler {
         return this.mapMeta;
     }
 
+    /**
+     * Initializes and configures the book metadata using the provided function.
+     *
+     * @param metaFunction a consumer that modifies and returns a value from the {@link BookMeta}.
+     */
+    public void setBookMeta(final Consumer<BookMeta>  metaFunction) {
+        BookMeta bookMeta = new BookMeta();
+        metaFunction.accept(bookMeta);
+        this.bookMeta = bookMeta;
+    }
 
+    /**
+     * Initializes and configures the book metadata by using
+     * {@link BookMeta } class.
+     *
+     * @return the {@link BookMeta }} where you set the propitiates for your book.
+     */
+    public BookMeta createBookMeta() {
+        this.bookMeta = new BookMeta();
+        return this.bookMeta;
+    }
 
+    /**
+     * Retrieve the set {@link BookMeta} class.
+     *
+     * @return instance of the {@link BookMeta} class or {@code null} if not set.
+     */
+    @Nullable
+    public BookMeta getBookMeta() {
+        return bookMeta;
+    }
     /**
      * Applies all configured metadata (if any) to the provided {@link ItemMeta},
      * and updates the {@link ItemStack}'s type when necessary (e.g., for banner base colors).
@@ -253,6 +297,8 @@ public class MetaHandler {
             if (mapMeta != null) {
                 mapMeta.applyMapMeta(itemMeta);
             }
+            if(this.bookMeta != null)
+                this.bookMeta.applyBookMenta(itemMeta);
         }
     }
 

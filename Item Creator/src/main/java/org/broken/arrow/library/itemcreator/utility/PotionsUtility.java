@@ -18,6 +18,11 @@ public class PotionsUtility {
     private final float serverVersion = ItemCreator.getServerVersion();
     private final PotionMeta potionMeta;
 
+    /**
+     * Create PotionsUtility instance.
+     *
+     * @param potionMeta the bukkit PotionMeta to set the potion effects too.
+     */
     public PotionsUtility(@Nonnull PotionMeta potionMeta) {
         this.potionMeta = potionMeta;
     }

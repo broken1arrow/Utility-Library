@@ -11,6 +11,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Represents metadata for a firework item, including its visual effects,
+ * colors, and flight power.
+ * <p>
+ * This class allows you to define multiple firework effects, customize
+ * colors via a simple color metadata wrapper, and set the flight duration
+ * (power) of the firework.
+ * </p>
+ * <p>
+ * Some items, such as {@link Material#FIREWORK_STAR}, support only a single
+ * firework effect. In such cases, if multiple effects are set, only the first
+ * effect will be applied.
+ * </p>
+ * <p>
+ * Firework effects can be set either by adding individual effects, setting a
+ * list of effects, or using a builder-style consumer for more complex effect
+ * construction.
+ * </p>
+ * <p>
+ * The power value controls the approximate flight height of the firework,
+ * with each increment representing about half a second of flight time.
+ * </p>
+ */
 public class FireworkMeta {
 
     private List<FireworkEffect> fireworkEffects;
@@ -18,9 +41,10 @@ public class FireworkMeta {
     private int power;
 
     /**
-     * Get list of firework effects
+     * Gets the list of firework effects applied to this item.
+     * Returns an empty list if no effects are set.
      *
-     * @return effects set on this item.
+     * @return a non-null list of {@link FireworkEffect}s
      */
     @Nonnull
     public List<FireworkEffect> getFireworkEffects() {
@@ -30,14 +54,14 @@ public class FireworkMeta {
     }
 
     /**
-     * Sets one or more firework effects for this item using a builder-style consumer.
+     * Sets one or more firework effects on this item using a builder-style consumer.
      * <p>
      * <strong>Note:</strong> Certain items, such as {@link Material#FIREWORK_STAR},
      * only support a single firework effect. In such cases, only the first effect
      * will be used; additional effects will be ignored.
      * </p>
      *
-     * @param fireworkEffectConsumer a consumer to define one or more firework effects
+     * @param fireworkEffectConsumer a consumer that defines one or more firework effects
      *                               using a {@link BuildFireworkEffect} builder.
      */
     public void setFireworkEffects(@Nonnull final Consumer<BuildFireworkEffect> fireworkEffectConsumer) {
@@ -51,11 +75,11 @@ public class FireworkMeta {
      * Adds a single firework effect to this item.
      * <p>
      * <strong>Note:</strong> Certain items, such as {@link Material#FIREWORK_STAR},
-     * only support one firework effect. If multiple effects are added, only the first
+     * only support a single firework effect. If multiple effects are added, only the first
      * will be applied.
      * </p>
      *
-     * @param fireworkEffect the firework effect to add.
+     * @param fireworkEffect the firework effect to add (must not be null).
      */
     public void addFireworkEffect(@Nonnull final FireworkEffect fireworkEffect) {
         if (this.fireworkEffects == null)
@@ -71,17 +95,17 @@ public class FireworkMeta {
      * will be used.
      * </p>
      *
-     * @param fireworkEffect the list of firework effects to set.
+     * @param fireworkEffect the list of firework effects to set (must not be null).
      */
     public void setFireworkEffects(@Nonnull final List<FireworkEffect> fireworkEffect) {
         this.fireworkEffects = fireworkEffect;
     }
 
     /**
-     * This method just allow you set some basic colors only in the firework.
-     * Instead of using the builder method options.
+     * Sets basic color metadata for the firework.
+     * This allows setting colors without using the builder pattern.
      *
-     * @param metaConsumer the color you want to set on your item.
+     * @param metaConsumer a consumer to configure {@link ColorMeta} color data (must not be null).
      */
     public void setFireworkColor(@Nonnull final Consumer<ColorMeta> metaConsumer) {
         ColorMeta colorData = new ColorMeta();
@@ -90,25 +114,33 @@ public class FireworkMeta {
     }
 
     /**
-     * Gets the approximate height the firework will fly.
+     * Gets the approximate power (flight duration) of the firework.
      *
-     * @return approximate flight height of the firework.
+     * @return the flight power of the firework
      */
     public int getPower() {
         return power;
     }
 
     /**
-     * Sets the approximate power of the firework. Each level of power is half
-     * a second of flight time. The typical range is {@literal minimum height > 0 and maximum height < 127}.
-     * Refer to the Spigot or PaperMC documentation for the most up-to-date limits and behavior.
+     * Sets the approximate power of the firework.
+     * Each power level corresponds to roughly half a second of flight time.
+     * Typical values range from greater than 0 to less than 127.
+     * See Spigot or PaperMC documentation for precise limits.
      *
-     * @param power the power of the firework, from 0–127.
+     * @param power the power level of the firework, between 0 and 127 inclusive
      */
     public void setPower(final int power) {
         this.power = power;
     }
 
+    /**
+     * Applies this {@code FireworkMeta} data to the given {@link ItemMeta}.
+     * Supports both custom {@link FireworkEffectMeta} and Bukkit's native
+     * {@link org.bukkit.inventory.meta.FireworkMeta} implementations.
+     *
+     * @param itemMeta the item meta to apply effects and power to (must not be null)
+     */
     public void applyFireworkEffect(@Nonnull final ItemMeta itemMeta) {
         final List<FireworkEffect> effects = this.getFireworkEffects();
         if (itemMeta instanceof FireworkEffectMeta) {
@@ -131,11 +163,20 @@ public class FireworkMeta {
                 fireworkEffectMeta.setPower(this.power);
         }
     }
-
-
+    /**
+     * Builder class to help create multiple {@link FireworkEffect}s using
+     * a fluent consumer-based API.
+     */
     public static class BuildFireworkEffect {
         private final List<FireworkEffect> fireworkEffects = new ArrayList<>();
 
+        /**
+         * Adds a firework effect by applying the given consumer to a new
+         * {@link FireworkEffect.Builder}.
+         *
+         * @param fireworkEffects a consumer to configure the firework effect builder
+         * @return this builder instance for chaining
+         */
         public BuildFireworkEffect add(Consumer<FireworkEffect.Builder> fireworkEffects) {
             FireworkEffect.Builder builderFirework = FireworkEffect.builder();
             fireworkEffects.accept(builderFirework);
@@ -143,6 +184,11 @@ public class FireworkMeta {
             return this;
         }
 
+        /**
+         * Gets the list of built firework effects.
+         *
+         * @return a list of firework effects
+         */
         public List<FireworkEffect> getFireworkEffects() {
             return fireworkEffects;
         }

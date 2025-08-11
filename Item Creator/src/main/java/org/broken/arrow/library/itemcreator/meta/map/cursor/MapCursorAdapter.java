@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public final class MapCursorAdapter {
     private final List<MapCursorWrapper> cursors = new ArrayList<>();
-    private final MapCursorCollection mapCursorCollection = new MapCursorCollection();
+    private final transient MapCursorCollection mapCursorCollection = new MapCursorCollection();
 
     /**
      * Get the amount of cursors in this collection.
@@ -70,7 +70,11 @@ public final class MapCursorAdapter {
         return new MapCursorWrapper((byte) 0, (byte) 0, (byte) 0, MapCursor.Type.BANNER_BLACK, false);
     }
 
-
+    /**
+     * Retrieve the set map cursors.
+     *
+     * @return list of  map cursors from an wrapper class.
+     */
     public List<MapCursorWrapper> getCursors() {
         return cursors;
     }
@@ -143,16 +147,33 @@ public final class MapCursorAdapter {
         return addCursor(new MapCursorWrapper((byte) x, (byte) y, direction, type, visible, caption));
     }
 
+    /**
+     * Add a cursor to the collection.
+     *
+     * @param cursorWrapper add the created object to the list.
+     * @return The newly added MapCursor.
+     */
     public MapCursorWrapper addCursor(@Nonnull final MapCursorWrapper cursorWrapper) {
         cursors.add(cursorWrapper);
         mapCursorCollection.addCursor(cursorWrapper.getCursor());
         return cursorWrapper;
     }
 
+    /**
+     * Retrieve the collection of cursors from bukkit. Not recommended to attempt
+     * to serialize this class.
+     *
+     * @return the MapCursorCollection instance.
+     */
     public MapCursorCollection getMapCursorCollection() {
         return mapCursorCollection;
     }
 
+    /**
+     * Serialize list of MapCursors.
+     *
+     * @return map with data serialized.
+     */
     @Nonnull
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
@@ -160,14 +181,4 @@ public final class MapCursorAdapter {
         return map;
     }
 
-    @Nonnull
-    public static MapCursor.Type byName(final String name) {
-        if (name == null)
-            return MapCursor.Type.WHITE_POINTER;
-        String nameFormatted = name.toUpperCase();
-        for (MapCursor.Type t : MapCursor.Type.values()) {
-            if (t.name().equals(nameFormatted)) return t;
-        }
-        return MapCursor.Type.WHITE_POINTER;
-    }
 }

@@ -3,19 +3,39 @@ package org.broken.arrow.library.itemcreator.meta.map.pixel;
 import javax.annotation.Nonnull;
 import java.util.Map;
 
+/**
+ * Represents a pixel element on a map with a fixed x and y coordinate.
+ * Subclasses define specific pixel types such as colored pixels, text overlays, or images.
+ */
 public abstract class MapPixel {
     private final int x;
     private final int y;
 
+    /**
+     * Constructs a map pixel at the specified (x, y) coordinate.
+     *
+     * @param x the x-coordinate of the pixel.
+     * @param y the y-coordinate of the pixel.
+     */
     protected MapPixel(int x, int y) {
         this.x = x;
         this.y = y;
     }
 
+    /**
+     * Gets the x-coordinate of this pixel.
+     *
+     * @return the x-coordinate.
+     */
     public int getX() {
         return x;
     }
 
+    /**
+     * Gets the y-coordinate of this pixel.
+     *
+     * @return the y-coordinate.
+     */
     public int getY() {
         return y;
     }
@@ -29,6 +49,11 @@ public abstract class MapPixel {
     @Nonnull
     public abstract Map<String, Object> serialize();
 
+    /**
+     * Returns the simple class name representing the pixel type.
+     *
+     * @return the pixel type name.
+     */
     public String type() {
         return this.getClass().getSimpleName();
     }

@@ -9,6 +9,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Represents a cursor on a map. This class encapsulates
+ * the underlying {@link MapCursor} for easier serialization.
+ * <p>
+ * Note that instances of this class are mutable; therefore,
+ * equality and hash code values may change during its lifecycle.
+ */
 public final class MapCursorWrapper {
     private static int id;
     private final int cursorId;
@@ -48,6 +55,15 @@ public final class MapCursorWrapper {
         setDirection(direction);
     }
 
+    /**
+     * Returns the current identifier for this cursor instance.
+     * <p>
+     * This ID is intended to help retrieve the correct data from a collection.
+     * Since this class is mutable, note that the equality and hash code
+     * may change over time, so this ID reflects the current state.
+     *
+     * @return the current cursor ID
+     */
     public int getCursorId() {
         return cursorId;
     }
@@ -163,10 +179,21 @@ public final class MapCursorWrapper {
         this.cursor.setCaption(caption);
     }
 
+    /**
+     * Retrieve the cursor for the map
+     *
+     * @return the cursor.
+     */
+    @Nonnull
     public MapCursor getCursor() {
         return this.cursor;
     }
 
+    /**
+     * Serialize the MapCursor data.
+     *
+     * @return map with data serialized.
+     */
     @Nonnull
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
@@ -179,6 +206,12 @@ public final class MapCursorWrapper {
         return map;
     }
 
+    /**
+     * Deserialize from an map the values set.
+     *
+     * @param map the map to retrieve the data from.
+     * @return a instance of the {@link MapCursorWrapper} class.
+     */
     public static MapCursorWrapper deserialize(Map<String, Object> map) {
         String type = (String) map.get("cursor_type");
         byte x = ((Number) map.get("x")).byteValue();
@@ -190,6 +223,13 @@ public final class MapCursorWrapper {
         return new MapCursorWrapper(x, y, direction, byName(type), visible, caption);
     }
 
+    /**
+     * Retrieve the pointer type from string.
+     *
+     * @param name the name of the pointer case-insensitive.
+     * @return the type or {@link MapCursor.Type#WHITE_POINTER} if name is null or
+     * could not be found.
+     */
     @Nonnull
     public static MapCursor.Type byName(final String name) {
         if (name == null)

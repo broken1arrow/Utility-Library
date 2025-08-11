@@ -18,6 +18,10 @@ public class SendMsgDuplicatedItems {
     private TriFunction<String, ItemStack, Integer, Integer> duplicatedMessage;
     private boolean notFoundTextTranslator;
 
+    /**
+     * When create instance of this class it will check if the
+     * color translation exists.
+     */
     public SendMsgDuplicatedItems() {
         try {
             TextTranslator.getInstance();
@@ -148,10 +152,23 @@ public class SendMsgDuplicatedItems {
         this.duplicatedMessage = duplicatedMessage;
     }
 
+    /**
+     * Sends a raw message to the specified player.
+     *
+     * @param player the player to send the message to
+     * @param msg the message string to send
+     */
     public void sendMessage(Player player, String msg) {
         player.sendMessage(msg);
     }
 
+    /**
+     * Sends the blacklist message to the player regarding the specified blacklisted item.
+     * The message supports color codes and placeholder replacement.
+     *
+     * @param player the player to send the message to
+     * @param itemStack the blacklisted item stack triggering the message
+     */
     public void sendBlacklistMessage(Player player, ItemStack itemStack) {
         String message;
         if (blacklistMessage == null) message = "&fThis item&6 {0}&f are blacklisted and you get the items back.";
@@ -165,7 +182,13 @@ public class SendMsgDuplicatedItems {
         else player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, itemName)));
     }
 
-
+    /**
+     * Sends the duplicated item message to the player, using data from the provided placeholder wrapper.
+     * The message supports color codes and placeholder replacement.
+     *
+     * @param player the player to send the message to
+     * @param placeholderData wrapper containing duplicated item data for placeholders
+     */
     public void sendDuplicatedMessage(@Nonnull final Player player, @Nonnull final DuplicatedItemWrapper placeholderData) {
         String message;
         if (duplicatedMessage == null) {
@@ -183,6 +206,14 @@ public class SendMsgDuplicatedItems {
             player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, placeholderData.retrieveAsPlaceholderData())));
     }
 
+    /**
+     * Replaces placeholders of the form {@code {0}, {1}, ...} in the given text with
+     * the string representation of the provided placeholder objects.
+     *
+     * @param rawText the text containing placeholders to replace
+     * @param placeholders the objects to insert into the placeholders
+     * @return the text with placeholders replaced by their corresponding values
+     */
     public String translatePlaceholders(String rawText, Object... placeholders) {
         for (int i = 0; i < placeholders.length; i++) {
             rawText = rawText.replace("{" + i + "}", placeholders[i] != null ? placeholders[i].toString() : "");
@@ -190,31 +221,61 @@ public class SendMsgDuplicatedItems {
         return rawText;
     }
 
-
+    /**
+     * Wrapper class holding information about duplicated items for placeholder substitution.
+     */
     public static class DuplicatedItemWrapper {
 
         private final ItemStack itemStack;
         private final int size;
         private final int itemAmount;
 
+        /**
+         * Constructs a new wrapper containing duplicated item data.
+         *
+         * @param itemStack the duplicated item stack
+         * @param size the total number of duplicated stacks
+         * @param itemAmount the total number of duplicated items
+         */
         public DuplicatedItemWrapper(final ItemStack itemStack, final int size, final int itemAmount) {
             this.itemStack = itemStack;
             this.size = size;
             this.itemAmount = itemAmount;
         }
 
+        /**
+         * Returns the duplicated item stack.
+         *
+         * @return the item stack
+         */
         public ItemStack getItemStack() {
             return itemStack;
         }
 
+        /**
+         * Returns the total number of duplicated stacks.
+         *
+         * @return duplicated stacks count
+         */
         public int getSize() {
             return size;
         }
 
+        /**
+         * Returns the total number of duplicated items.
+         *
+         * @return duplicated item count
+         */
         public int getItemAmount() {
             return itemAmount;
         }
 
+        /**
+         * Returns an array of objects to be used as placeholders in messages:
+         * item type, duplicated stacks count, and duplicated items count.
+         *
+         * @return an array of placeholder data objects
+         */
         public Object[] retrieveAsPlaceholderData() {
             return new Object[]{itemStack.getType(), size, itemAmount};
         }

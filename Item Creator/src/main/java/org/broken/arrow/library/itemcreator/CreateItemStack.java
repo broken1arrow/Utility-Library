@@ -4,6 +4,7 @@ package org.broken.arrow.library.itemcreator;
 import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
+import org.broken.arrow.library.itemcreator.meta.EnhancementMeta;
 import org.broken.arrow.library.itemcreator.meta.MetaHandler;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.Tuple;
@@ -37,7 +38,7 @@ import java.util.function.Function;
 /**
  * Create items with your set data. When you make a item it will also detect minecraft version
  * and provide help when make items for different minecraft versions (you can ether let it auto convert colors depending
- * on version or hardcode it self).
+ * on version or hardcode itself).
  */
 
 public class CreateItemStack {
@@ -67,6 +68,12 @@ public class CreateItemStack {
     private boolean keepOldMeta = true;
     private boolean copyOfItem;
 
+    /**
+     * Create an instance for the CreateItemStack that wraps your item creation.
+     *
+     * @param itemCreator The main utility class.
+     * @param itemBuilder The builder for the item stacks.
+     */
     public CreateItemStack(final ItemCreator itemCreator, final ItemBuilder itemBuilder) {
         this.itemCreator = itemCreator;
         this.serverVersion = ItemCreator.getServerVersion();
@@ -126,6 +133,11 @@ public class CreateItemStack {
         return this;
     }
 
+    /**
+     * If the items shall have glow effect, without show enchantments.
+     *
+     * @return {@code true} does the item have a glow effect.
+     */
     public boolean isGlow() {
         return glow;
     }
@@ -238,12 +250,15 @@ public class CreateItemStack {
      * Check if it water Bottle. Because
      * only exist material portion, so need this method.
      *
-     * @return true if it a water Bottle item.
+     * @return true if it is a water Bottle item.
      */
     public boolean isWaterBottle() {
         if (this.metaHandler == null)
             return false;
-        return this.metaHandler.createBottleEffectMeta().isWaterBottle();
+        final BottleEffectMeta bottleEffect = this.metaHandler.getBottleEffect();
+        if (bottleEffect == null)
+            return false;
+        return bottleEffect.isWaterBottle();
     }
 
     /**
@@ -730,7 +745,7 @@ public class CreateItemStack {
     }
 
     /**
-     * Get if it has create copy of item or not.
+     * Get if it has created copy of item or not.
      *
      * @return true if it shall make copy of original item.
      */
@@ -750,9 +765,24 @@ public class CreateItemStack {
         return this;
     }
 
+    /**
+     * Set color propitiates for the item.
+     *
+     * @param colorName the color name to set.
+     * @return this class.
+     */
     public CreateItemStack setColor(String colorName) {
         this.color = colorName;
         return this;
+    }
+
+    /**
+     * Get the class for set nbt data on your item.
+     * @return the nbtdata instance.
+     */
+    @Nullable
+    public NBTDataWrapper getNbtDataWrapper() {
+        return nbtDataWrapper;
     }
 
     /**
@@ -785,6 +815,47 @@ public class CreateItemStack {
             }
         return itemstack != null ? list.toArray(new ItemStack[0]) : new ItemStack[]{new ItemStack(Material.AIR)};
     }
+
+    /**
+     * Check if the material is an air block.
+     *
+     * @param material material to check.
+     * @return True if this material is an air block.
+     */
+    public boolean isAir(final Material material) {
+        switch (material) {
+            case AIR:
+            case CAVE_AIR:
+            case VOID_AIR:
+                // ----- Legacy Separator -----
+            case LEGACY_AIR:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * If it shall display the enchantments on the item.
+     *
+     * @return true if it shall show the enchantments.
+     */
+    public boolean isShowEnchantments() {
+        final EnhancementMeta enhancements = this.metaHandler.getEnhancements();
+        if (enhancements == null)
+            return false;
+        return enhancements.isShowEnchantments();
+    }
+
+    /**
+     * The class that translate the item-stack depending on what for type of
+     * item provided, like if it strings,material or the actual item-stack.
+     * @return the ConvertToItemStack instance.
+     */
+    public ConvertToItemStack getConvertItems() {
+        return convertItems;
+    }
+
 
     @Nonnull
     private ItemStack createItem(final ItemStack itemstack) {
@@ -839,24 +910,6 @@ public class CreateItemStack {
         }
     }
 
-    /**
-     * Check if the material is an air block.
-     *
-     * @param material material to check.
-     * @return True if this material is an air block.
-     */
-    public boolean isAir(final Material material) {
-        switch (material) {
-            case AIR:
-            case CAVE_AIR:
-            case VOID_AIR:
-                // ----- Legacy Separator -----
-            case LEGACY_AIR:
-                return true;
-            default:
-                return false;
-        }
-    }
 
     private ItemStack checkTypeOfItem() {
         ItemBuilder builder = this.itemBuilder;
@@ -922,10 +975,6 @@ public class CreateItemStack {
             itemMeta.setCustomModelData(this.getCustomModelData());
     }
 
-    public boolean isShowEnchantments() {
-        return false;
-    }
-
     private List<String> translateColors(final List<String> rawLore) {
         if (!this.enableColorTranslation) {
             return new ArrayList<>(rawLore);
@@ -948,15 +997,6 @@ public class CreateItemStack {
         if (haveTextTranslator)
             return TextTranslator.toSpigotFormat(rawSingleLine);
         return ChatColor.translateAlternateColorCodes('&', rawSingleLine);
-    }
-
-    public ConvertToItemStack getConvertItems() {
-        return convertItems;
-    }
-
-    @Nullable
-    public NBTDataWrapper getNbtDataWrapper() {
-        return nbtDataWrapper;
     }
 
     @Nonnull

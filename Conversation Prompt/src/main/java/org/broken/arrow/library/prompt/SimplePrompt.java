@@ -119,6 +119,11 @@ public abstract class SimplePrompt extends ValidatingPrompt {
         }
     }
 
+    /**
+     * Make a copy of this class.
+     *
+     * @return a copy of {@link SimplePrompt}.
+     */
     public SimplePrompt copy() {
         SimplePrompt simplePrompt;
         try {

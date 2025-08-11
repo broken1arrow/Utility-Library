@@ -411,7 +411,12 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 			return this;
 		}
 
-
+		/**
+		 * Constructs a new {@link ParticleEffect} instance using the
+		 * configuration specified in this builder.
+		 *
+		 * @return a fully configured {@link ParticleEffect} based on the current builder state
+		 */
 		public ParticleEffect build() {
 			return new ParticleEffect(this);
 		}

@@ -123,7 +123,12 @@ public final class MenuCache {
 		return false;
 	}
 
-	public Map<Object, MenuUtility<?>> getMenusCached() {
+	/**
+	 * Get the menu cache.
+	 *
+	 * @return the map with cached menus.
+	 */
+	public Map<MenuCacheKey, MenuUtility<?>> getMenusCached() {
 		return Collections.unmodifiableMap(this.menusCached);
 	}
 

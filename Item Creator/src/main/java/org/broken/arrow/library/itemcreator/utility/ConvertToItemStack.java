@@ -13,8 +13,8 @@ import java.util.Locale;
 import static org.broken.arrow.library.itemcreator.utility.matrials.Materials.checkColor;
 
 /**
- * This class convert object to itemStack (if the object can be translated), It also check if you
- * input string enum of a item. First check and translate it to right item depending
+ * This class convert object to itemStack (if the object can be translated), It is also checking if you
+ * input string enum of an item. First check and translate it to right item depending
  * on minecraft version and then convert to material and last to itemStack.
  */
 @SuppressWarnings("deprecation")
@@ -22,6 +22,11 @@ public class ConvertToItemStack {
 
     private final float serverVersion;
 
+    /**
+     * Create new instance of the conversion class.
+     *
+     * @param serverVersion the version is formatted 16.0,17.0,18.0,19.2 and so on.
+     */
     public ConvertToItemStack(float serverVersion) {
         this.serverVersion = serverVersion;
     }
@@ -114,6 +119,15 @@ public class ConvertToItemStack {
         return result;
     }
 
+    /**
+     * Check the item-stack and convert it with help of the damage depending on the
+     * minecraft version it is. If version is above 1.12 it will just return back same item-stack.
+     *
+     * @param itemStack the item-stack you want to update.
+     * @param damage the damage value used also as data.
+     * @return the item-stack either modified or the original item-stack. Returns {@code null}
+     * if the original item-stack is null.
+     */
     public ItemStack checkItemStack(final ItemStack itemStack, final short damage) {
         if (serverVersion < 13.0F && itemStack != null) {
             final ItemStack stack = new ItemStack(itemStack.getType(), itemStack.getAmount(), damage);
@@ -125,6 +139,14 @@ public class ConvertToItemStack {
         return itemStack;
     }
 
+    /**
+     * Try to receive the item-stack from the string name.
+     *
+     * @param stringName the enum name of the item-stack.
+     * @param data the data only used if Minecraft version is below 1.13.
+     * @return the item-stack either modified or the original item-stack. Returns an item-stack
+     * with {@code Material.AIR} if the original item-stack is null or could not be found.
+     */
     public ItemStack checkString(final String stringName, Byte data) {
         if (serverVersion < 13.0F) {
             final ItemStack stack = createStack(stringName, 1, data);

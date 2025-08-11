@@ -570,7 +570,11 @@ public abstract class YamlFileManager {
 		return this.getPathWithExtension() == null || this.getPathWithExtension().isEmpty();
 	}
 
-
+	/**
+	 * Retrieves all files inside the plugins folder.
+	 *
+	 * @return an array of all files found, or an empty array if no matching files are found.
+	 */
 	public File[] getAllFilesInPluginJar() {
 
 		if (this.shallGenerateFiles) {
@@ -581,15 +585,28 @@ public abstract class YamlFileManager {
 		return getFilesInPluginFolder(getPath());
 	}
 
+	/**
+	 * Retrieves all file names inside the plugins jar.
+	 *
+	 * @return a list of all file names found, or an empty list if no files match
+	 *         the specified extension set or file name criteria.
+	 */
 	public List<String> getAllFilesInDirectory() {
 		return getFilenamesForDirnameFromCP(this.resourcePath);
 	}
 
-	public boolean checkFolderExist(final String fileToSave, final File[] dataFolders) {
-		if (fileToSave != null)
+	/**
+	 * Checks if a specific folder exists within the provided array of files.
+	 *
+	 * @param fileName    the name of the folder to check for existence
+	 * @param dataFolders the array of files to check against
+	 * @return {@code true} if a folder matching the given name is found; {@code false} otherwise
+	 */
+	public boolean checkFolderExist(final String fileName, final File[] dataFolders) {
+		if (fileName != null)
 			for (final File file : dataFolders) {
 				final String name = getNameOfFile(file.getName());
-				if (name.equals(fileToSave))
+				if (name.equals(fileName))
 					return true;
 			}
 		return false;
@@ -599,7 +616,7 @@ public abstract class YamlFileManager {
 	 * Check if the file exist, will also work with folders.
 	 *
 	 * @param path the file name or the file path.
-	 * @return true if it exist.
+	 * @return true if it exists.
 	 */
 	public boolean fileExists(final String path) {
 		final File outFile;
@@ -611,6 +628,16 @@ public abstract class YamlFileManager {
 		return outFile.exists();
 	}
 
+	/**
+	 * Retrieves all files in the plugin folder at the specified directory path.
+	 * <p>
+	 * If this represents a single file, it returns files matching the exact file name.
+	 * Otherwise, it ensures the directory exists (creating it if necessary),
+	 * optionally creates missing files from resources, and returns files with the configured extension.
+	 *
+	 * @param directory the relative directory path inside the plugin's data folder
+	 * @return an array of files matching the criteria, or {@code null} if the directory does not exist or no matching files found
+	 */
 	public File[] getFilesInPluginFolder(final String directory) {
 		if (isSingleFile()) {
 			final File checkFile = new File(this.getDataFolder(), this.getPathWithExtension());
@@ -627,6 +654,13 @@ public abstract class YamlFileManager {
 		return folder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension()));
 	}
 
+	/**
+	 * Extracts the base name of a file from a given path, excluding directory path and file extension.
+	 *
+	 * @param path the file path string, must not be {@code null} or empty
+	 * @return the file name without directory and without extension
+	 * @throws IllegalArgumentException if the given path is {@code null} or empty
+	 */
 	public String getNameOfFile(String path) {
 		Valid.checkBoolean(path != null && !path.isEmpty(), "The given path must not be empty!");
 		int pos;
@@ -645,6 +679,13 @@ public abstract class YamlFileManager {
 		return path;
 	}
 
+	/**
+	 * Extracts the file name from a given path, excluding the directory path but including the extension.
+	 *
+	 * @param path the file path string, must not be {@code null} or empty
+	 * @return the file name including the extension, but excluding directory path
+	 * @throws IllegalArgumentException if the given path is {@code null} or empty
+	 */
 	public String getFileName(String path) {
 		Valid.checkBoolean(path != null && !path.isEmpty(), "The given path must not be empty!");
 		final int pos;
@@ -695,6 +736,15 @@ public abstract class YamlFileManager {
 		return values;
 	}
 
+	/**
+	 * Retrieves a list of filenames located within a specified directory inside the plugin's classpath.
+	 * <p>
+	 * This method supports loading resources from both the file system and from within a JAR archive.
+	 *
+	 * @param directoryName the directory path inside the plugin's classpath to scan for files
+	 * @return a list of filenames (with full paths) found inside the given directory;
+	 *         returns an empty list if the directory does not exist or no files are found
+	 */
 	public List<String> getFilenamesForDirnameFromCP(final String directoryName) {
 		final List<String> filenames = new ArrayList<>();
 		final URL url = this.plugin.getClass().getClassLoader().getResource(directoryName);
@@ -798,6 +848,16 @@ public abstract class YamlFileManager {
 		}
 	}
 
+	/**
+	 * Retrieves a resource as an {@link InputStream} using the plugin's class loader.
+	 * <p>
+	 * This method disables caching on the connection to ensure the latest resource version is read.
+	 *
+	 * @param filename the path to the resource file within the classpath; must not be null
+	 * @return an {@link InputStream} to read the resource, or {@code null} if the resource does not exist
+	 *         or an I/O error occurs while opening the stream
+	 * @throws IllegalArgumentException if the filename parameter is {@code null}
+	 */
 	public InputStream getResource(final String filename) {
 		if (filename == null) {
 			throw new IllegalArgumentException("Filename cannot be null");

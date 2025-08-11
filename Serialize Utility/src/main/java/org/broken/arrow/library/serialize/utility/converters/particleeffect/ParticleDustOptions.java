@@ -171,6 +171,21 @@ public final class ParticleDustOptions implements ConfigurationSerializable {
 		return particleData;
 	}
 
+	/**
+	 * Deserializes a {@link ParticleDustOptions} instance from a map of key-value pairs.
+	 * <p>
+	 * The map is expected to contain the following keys:
+	 * <ul>
+	 *   <li><b>"From_color"</b> – the starting {@link Color}</li>
+	 *   <li><b>"To_color"</b> – the ending {@link Color}</li>
+	 *   <li><b>"Particle_size"</b> – an optional {@link Double} specifying the particle size;
+	 *       defaults to {@code 1} if not present, or {@code 0.5} if {@code null}</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param map a map containing particle dust configuration values
+	 * @return a new {@link ParticleDustOptions} object based on the provided map
+	 */
 	public static ParticleDustOptions deserialize(final Map<String, Object> map) {
 		final Color fromColor = (Color) map.get("From_color");
 		final Color toColor = (Color) map.get("To_color");

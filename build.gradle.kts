@@ -6,6 +6,7 @@ plugins {
     `maven-publish`
     `kotlin-dsl`
     signing
+    checkstyle
     alias(libs.plugins.shadow)
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
@@ -20,14 +21,27 @@ repositories {
     mavenLocal()
     gradlePluginPortal()
 }
-
+checkstyle {
+    toolVersion = "11.0.0"  // use latest stable
+    configFile = file("config/checkstyle/checkstyle.xml")
+}
 subprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "java")
     apply(plugin = "signing")
+    apply(plugin = "checkstyle")
+
     tasks {
+        register("checkstyleAll") {
+            dependsOn(subprojects.map { it.tasks.matching { t -> t.name.startsWith("checkstyle") } })
+        }
         javadoc {
             options.encoding = Charsets.UTF_8.name()
+            options.apply {
+                // Disable specific doclint checks (like missing comments)
+                // You can adjust these to be more or less strict
+                (this as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
+            }
         }
         compileJava {
             options.encoding = Charsets.UTF_8.name()
