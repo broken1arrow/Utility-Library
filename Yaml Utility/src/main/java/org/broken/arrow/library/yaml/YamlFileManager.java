@@ -345,7 +345,7 @@ public abstract class YamlFileManager {
 	 * @param file         The file to which the configuration should be saved.
 	 * @param customConfig The FileConfiguration you want to save to the file.
 	 * @param updateData   Specifies whether the data related to the saved configuration should be updated after saving.
-	 *                     This involve additional commits or changes to the original file shall be added to the file saved on disk.
+	 *                     This involves additional commits or changes to the original file shall be added to the file saved on disk.
 	 */
 	//  IOException Thrown when the given file cannot be written to for any reason.
 	public void saveToFile(@Nonnull final File file, @Nonnull final FileConfiguration customConfig, boolean updateData) {

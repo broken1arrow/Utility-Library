@@ -26,9 +26,10 @@ public class ConfigurationWrapper {
 
     private final String path;
     private final File file;
-    private final FileConfiguration configuration;
+    private FileConfiguration configuration;
     private final List<ConfigHelper> configurationCache;
     private final boolean convertNestedSections;
+    private boolean copyExisting;
 
     /**
      * Creates a new ConfigurationWrapper instance with the specified file and an empty path.
@@ -70,9 +71,7 @@ public class ConfigurationWrapper {
         this.file = file;
         this.path = path;
         this.configurationCache = new ArrayList<>();
-        this.configuration = new YamlConfiguration();
     }
-
 
     /**
      * The file to save data to.
@@ -158,6 +157,38 @@ public class ConfigurationWrapper {
         configurationCache.add(new ConfigHelper(path, configuration));
     }
 
+
+    /**
+     * Determines whether saving should merge data from the existing file
+     * on disk instead of replacing it entirely.
+     * <p>
+     * This flag shall be set <strong>before</strong> the {@link ConfigurationWrapper#applyToConfiguration()}
+     * is invoked.
+     * <p>
+     * This allows you to keep values that you are not explicitly saving.
+     *
+     * @return {@code true} if saving should copy/merge from the existing file;
+     *         {@code false} if the file should be fully overwritten.
+     */
+    public boolean isCopyExisting() {
+        return copyExisting;
+    }
+
+    /**
+     * Sets whether saving should merge data from the existing file
+     * on disk instead of replacing it entirely.
+     * <p>
+     * <strong>Important:</strong> This flag must be set <em>before</em> calling {@link #applyToConfiguration()}.
+     * Setting this after applying configuration will have no effect unless recovery methods are used.
+     *
+     * @param copyExisting {@code true} to preserve keys not explicitly added during save;
+     *                     {@code false} to overwrite the file.
+     */
+    public void setCopyExisting(final boolean copyExisting) {
+        this.copyExisting = copyExisting;
+    }
+
+
     /**
      * Applies the changes from the cached configurations to the internal FileConfiguration.
      * Each configuration is serialized and set in the FileConfiguration according to its specified path.
@@ -165,12 +196,40 @@ public class ConfigurationWrapper {
      * @return The FileConfiguration with the data set.
      */
     public FileConfiguration applyToConfiguration() {
+       loadConfig();
+
         getConfigurationsCache().forEach(helper -> {
             final Map<String, Object> serializedData = helper.serialize();
             final String basePath = getPath(helper);
             serializedData.forEach((key, value) -> setToConfig(helper, basePath, key, value));
         });
         return configuration;
+    }
+
+    /**
+     * Reloads the configuration from the file, replacing the current in-memory configuration.
+     * <p>
+     * This method does NOT apply the cached changes back to the configuration.
+     * It is useful to discard any changes accidentally applied and restore the file's state.
+     * <p>
+     * Note: The cached configurations in {@link #configurationCache} remain intact and
+     * unapplied after this call. To apply them, call {@link #applyToConfiguration()} again.
+     */
+    public void recoverFromFile() {
+        this.configuration = YamlConfiguration.loadConfiguration(file);
+    }
+
+    /**
+     * Reloads the configuration from the file, replacing the current in-memory configuration,
+     * and then reapplies all cached changes to the configuration.
+     * <p>
+     * This method is useful if you want to refresh the configuration and then re-apply the pending changes
+     * in one step, for example if {@link #applyToConfiguration()} was called accidentally, and you want to load the
+     * configuration from the file and apply changes on top of it.
+     */
+    public void recoverAndReapplyCache() {
+        recoverFromFile();
+        applyToConfiguration();
     }
 
     private void setToConfig(final ConfigHelper helper, final String basePath, final String key, final Object value) {
@@ -183,6 +242,15 @@ public class ConfigurationWrapper {
             }
         } else
             this.configuration.set((helper.isPathSet() ? basePath + "." : "") + key, data);
+    }
+
+    private void loadConfig(){
+        if(this.configuration != null)
+            return;
+        if (copyExisting)
+            this.configuration = YamlConfiguration.loadConfiguration(file);
+        else
+            this.configuration = new YamlConfiguration();
     }
 
     /**
