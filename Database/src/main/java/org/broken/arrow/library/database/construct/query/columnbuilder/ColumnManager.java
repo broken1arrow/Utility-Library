@@ -1,9 +1,11 @@
 package org.broken.arrow.library.database.construct.query.columnbuilder;
 
+import com.mongodb.lang.Nullable;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.SQLConstraints;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -32,7 +34,7 @@ public class ColumnManager {
      * @param constraints optional SQL constraints applied to the column
      * @return a new TableColumn.Separator instance for further configuration
      */
-    public static TableColumn.Separator tableOf(final String communeName, final DataType datatype, final SQLConstraints... constraints) {
+    public static TableColumn.Separator tableOf(@Nonnull final String communeName, @Nonnull final DataType datatype, @Nullable final SQLConstraints... constraints) {
         final ColumnManager columnManger = new ColumnManager();
         return new TableColumn.Separator(new TableColumn(columnManger, communeName, datatype, constraints));
     }

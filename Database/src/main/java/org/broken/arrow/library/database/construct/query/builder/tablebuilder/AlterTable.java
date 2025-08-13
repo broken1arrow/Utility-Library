@@ -3,6 +3,7 @@ package org.broken.arrow.library.database.construct.query.builder.tablebuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -24,7 +25,7 @@ public class AlterTable {
      * @param dataType   the SQL data type of the column
      * @return this instance for chaining
      */
-    public AlterTable add(String columnName, final DataType dataType) {
+    public AlterTable add(@Nonnull final String columnName,@Nonnull final DataType dataType) {
         TableColumn tableColumn = new TableColumn(null, columnName, dataType);
         this.add(tableColumn);
         return this;
