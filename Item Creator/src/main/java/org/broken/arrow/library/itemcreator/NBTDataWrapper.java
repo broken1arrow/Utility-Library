@@ -134,7 +134,7 @@ public final class NBTDataWrapper {
         final Map<String, Object> metaDataMap = this.getMetaDataMap();
 
         if (nbtApi != null) {
-            return applyNbt(nbtApi,itemStack, nbtData);
+            return applyNbtToItem(nbtApi,itemStack, nbtData);
         } else {
             this.setPersistentData(itemStack, nbtData);
         }
@@ -248,7 +248,7 @@ public final class NBTDataWrapper {
         itemStack.setItemMeta(meta);
     }
 
-    private ItemStack applyNbt(final RegisterNbtAPI nbtApi,final ItemStack itemStack, final NBTDataWriter nbtData) {
+    private ItemStack applyNbtToItem(final RegisterNbtAPI nbtApi, final ItemStack itemStack, final NBTDataWriter nbtData) {
         final Map<String, NBTValue> nbtCache = nbtData.getNbtCache();
         final Map<String, Object> metaDataMap = this.getMetaDataMap();
         return nbtApi.getCompMetadata().setMetadata(itemStack,
