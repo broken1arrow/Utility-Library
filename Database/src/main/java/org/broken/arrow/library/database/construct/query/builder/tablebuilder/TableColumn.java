@@ -1,9 +1,12 @@
 package org.broken.arrow.library.database.construct.query.builder.tablebuilder;
 
+
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.StringJoiner;
 
 /**
@@ -17,6 +20,7 @@ public class TableColumn extends Column {
 
     private final DataType dataType;
     private final SQLConstraints[] constraints;
+    @javax.annotation.Nullable
     private final ColumnManager columnManger;
     private final boolean isPrimaryKey;
 
@@ -29,7 +33,7 @@ public class TableColumn extends Column {
      * @param dataType     the data type of the column, must not be null
      * @param constraints  zero or more SQL constraints applied to the column
      */
-    public TableColumn(ColumnManager columnManger, final String columnName, final DataType dataType, final SQLConstraints... constraints) {
+    public TableColumn(@Nullable final ColumnManager columnManger, @Nonnull final String columnName, @Nonnull final DataType dataType, @Nullable final SQLConstraints... constraints) {
         super(columnName, "");
         this.dataType = dataType;
         this.constraints = constraints;
@@ -89,13 +93,15 @@ public class TableColumn extends Column {
 
         /**
          * Creates a new {@code Separator} wrapping the given {@link TableColumn}
-         * and registers the column with its manager.
+         * and registers the column with its manager if not {@code null}.
          *
          * @param column the {@link TableColumn} to wrap
          */
-        public Separator(TableColumn column) {
+        public Separator(@Nonnull final TableColumn column) {
             this.column = column;
-            this.column.columnManger.add(column);
+            final ColumnManager manger = this.column.columnManger;
+            if (manger != null)
+                manger.add(column);
         }
 
         /**
@@ -107,7 +113,7 @@ public class TableColumn extends Column {
          * @param constraints zero or more SQL constraints for the new column
          * @return a new {@code Separator} wrapping the newly created column
          */
-        public Separator column(final String communeName, final DataType datatype, final SQLConstraints... constraints) {
+        public Separator column(@Nonnull final String communeName,@Nonnull final DataType datatype,@Nullable final SQLConstraints... constraints) {
             return new Separator(new TableColumn(this.column.columnManger, communeName, datatype, constraints));
         }
 
