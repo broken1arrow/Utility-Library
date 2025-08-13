@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 public class MapRendererData {
     private static int id;
     private final int mapRenderId;
-    private final transient MapRenderer mapRenderer;
+    private final MapRenderer mapRenderer;
     private MapCursorAdapter mapCursors = new MapCursorAdapter();
     private final List<MapPixel> pixels = new ArrayList<>();
     private MapRenderHandler dynamicRenderer;

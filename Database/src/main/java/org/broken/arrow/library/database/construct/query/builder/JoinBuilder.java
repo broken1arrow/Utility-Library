@@ -1,6 +1,5 @@
 package org.broken.arrow.library.database.construct.query.builder;
 
-import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinCondition;
 import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinType;
 

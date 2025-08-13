@@ -236,9 +236,9 @@ public class MetaHandler {
      * @param metaFunction a consumer that modifies and returns a value from the {@link BookMeta}.
      */
     public void setBookMeta(final Consumer<BookMeta>  metaFunction) {
-        BookMeta bookMeta = new BookMeta();
-        metaFunction.accept(bookMeta);
-        this.bookMeta = bookMeta;
+        BookMeta meta = new BookMeta();
+        metaFunction.accept(meta);
+        this.bookMeta = meta;
     }
 
     /**

@@ -1,7 +1,5 @@
 package org.broken.arrow.library.color;
 
-
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**

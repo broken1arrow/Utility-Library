@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class BuildMapView {
     private final MapView mapView;
     private final World world;
-    private final transient Set<MapRendererData> renderers = new HashSet<>();
+    private final Set<MapRendererData> renderers = new HashSet<>();
 
     private MapView.Scale scale = MapView.Scale.NORMAL;
 

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public final class MapCursorAdapter {
     private final List<MapCursorWrapper> cursors = new ArrayList<>();
-    private final transient MapCursorCollection mapCursorCollection = new MapCursorCollection();
+    private final MapCursorCollection mapCursorCollection = new MapCursorCollection();
 
     /**
      * Get the amount of cursors in this collection.

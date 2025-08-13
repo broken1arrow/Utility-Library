@@ -1,10 +1,8 @@
 package org.broken.arrow.library.database.construct.query.builder.tablebuilder;
 
-import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -18,14 +16,7 @@ import java.util.StringJoiner;
 public class AlterTable {
 
     private final List<String> columns = new ArrayList<>();
-
-    /**
-     * Creates a new {@code AlterTable} instance.
-     *
-     */
-    public AlterTable() {
-    }
-
+    
     /**
      * Adds a new column to the ALTER TABLE statement using a name and data type.
      *

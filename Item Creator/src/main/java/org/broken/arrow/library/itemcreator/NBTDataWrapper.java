@@ -12,9 +12,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.tags.CustomItemTagContainer;
 import org.bukkit.inventory.meta.tags.ItemTagAdapterContext;
 import org.bukkit.inventory.meta.tags.ItemTagType;
-import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
@@ -136,42 +134,14 @@ public final class NBTDataWrapper {
         final Map<String, Object> metaDataMap = this.getMetaDataMap();
 
         if (nbtApi != null) {
-            return nbtApi.getCompMetadata().setMetadata(itemStack,
-                    nbtDataWrite -> {
-                        if (nbtData.isClearNBT())
-                            nbtDataWrite.clearNBT();
-                        else {
-                            if (!metaDataMap.isEmpty())
-                                metaDataMap.forEach((s, nbtValue) ->
-                                        ConvertObjectType.setNBTValue(nbtDataWrite.getCompound(), s, nbtValue)
-                                );
-                            else
-                                nbtCache.forEach((key, nbtValue) -> {
-                                    ConvertObjectType.setNBTValue(nbtDataWrite.getCompound(), key, nbtValue);
-                                });
-                        }
-                    });
+            return applyNbt(nbtApi,itemStack, nbtData);
         } else {
-            final ItemMeta meta = itemStack.getItemMeta();
-            if (meta != null && this.serverVersion > 13.1F && this.serverVersion < 14.0F) {
-                nbtCache.forEach((key, nbtValue) -> {
-                    setCustomTagContainer(key, nbtValue, meta);
-                });
-            } else if (this.serverVersion > 13.2F && meta != null) {
-                if (!metaDataMap.isEmpty())
-                    metaDataMap.forEach((s, nbtValue) ->
-                            this.persistentData.setPersistentDataContainer(s, new NBTValue(nbtValue), meta.getPersistentDataContainer())
-                    );
-                else
-                    nbtCache.forEach((key, nbtValue) ->
-                            this.persistentData.setPersistentDataContainer(key, nbtValue, meta.getPersistentDataContainer())
-                    );
-            }
-            itemStack.setItemMeta(meta);
+            this.setPersistentData(itemStack, nbtData);
         }
 
         return itemStack;
     }
+
 
     /**
      * Invokes the current NBT application consumer, if set.
@@ -184,60 +154,6 @@ public final class NBTDataWrapper {
         this.consumer.accept(nbtData);
     }
 
-    /**
-     * Writes a value to a {@link CustomItemTagContainer} for older Minecraft versions.
-     *
-     * @param key      the tag key
-     * @param nbtValue the value to write
-     * @param meta     the item meta containing the custom tag container
-     */
-    private void setCustomTagContainer(String key, NBTValue nbtValue, ItemMeta meta) {
-        final Object value = nbtValue.getValue();
-        final Class<?> targetType = value.getClass();
-        final CustomItemTagContainer customTagContainer = meta.getCustomTagContainer();
-        final NamespacedKey namespacedKey = new NamespacedKey(this.plugin, key);
-        if (nbtValue.isRemoveKey()) {
-            customTagContainer.removeCustomTag(namespacedKey);
-        }
-
-        if (targetType == String.class) {
-            customTagContainer.setCustomTag(namespacedKey, ItemTagType.STRING, (String) value);
-            return;
-        }
-        if (targetType == Integer.class) {
-            customTagContainer.setCustomTag(namespacedKey, ItemTagType.INTEGER, (Integer) value);
-            return;
-        }
-        if (targetType == Double.class) {
-            customTagContainer.setCustomTag(namespacedKey, ItemTagType.DOUBLE, (Double) value);
-            return;
-        }
-        if (targetType == Byte.class) {
-            customTagContainer.setCustomTag(namespacedKey, ItemTagType.BYTE, (Byte) value);
-            return;
-        }
-        if (targetType == Long.class) {
-            customTagContainer.setCustomTag(namespacedKey, ItemTagType.LONG, (Long) value);
-            return;
-        }
-        if (targetType == Float.class) {
-            customTagContainer.setCustomTag(namespacedKey, ItemTagType.FLOAT, (Float) value);
-            return;
-        }
-        if (targetType == ItemStack.class) {
-            ItemTagType<String, ItemStack> itemStackTagType = new ItemStackTagTypeOld();
-            customTagContainer.setCustomTag(namespacedKey, itemStackTagType, (ItemStack) value);
-            return;
-        }
-        if (targetType == UUID.class) {
-            ItemTagType<byte[], UUID> uuidItemTagType = new UUIDItemTagTypeOld();
-            customTagContainer.setCustomTag(namespacedKey, uuidItemTagType, (UUID) value);
-            return;
-        }
-        if (setArrays(targetType, value, customTagContainer, namespacedKey)) return;
-
-        customTagContainer.setCustomTag(namespacedKey, ItemTagType.STRING, value + "");
-    }
 
     /**
      * A legacy {@link ItemTagType} implementation for storing {@link UUID} values.
@@ -311,6 +227,48 @@ public final class NBTDataWrapper {
         }
     }
 
+    private void setPersistentData(final ItemStack itemStack, final NBTDataWriter nbtData) {
+        final Map<String, NBTValue> nbtCache = nbtData.getNbtCache();
+        final Map<String, Object> metaDataMap = this.getMetaDataMap();
+        final ItemMeta meta = itemStack.getItemMeta();
+        if (meta != null && this.serverVersion > 13.1F && this.serverVersion < 14.0F) {
+            nbtCache.forEach((key, nbtValue) -> {
+                setCustomTagContainer(key, nbtValue, meta);
+            });
+        } else if (this.serverVersion > 13.2F && meta != null) {
+            if (!metaDataMap.isEmpty())
+                metaDataMap.forEach((s, nbtValue) ->
+                        this.persistentData.setPersistentDataContainer(s, new NBTValue(nbtValue), meta.getPersistentDataContainer())
+                );
+            else
+                nbtCache.forEach((key, nbtValue) ->
+                        this.persistentData.setPersistentDataContainer(key, nbtValue, meta.getPersistentDataContainer())
+                );
+        }
+        itemStack.setItemMeta(meta);
+    }
+
+    private ItemStack applyNbt(final RegisterNbtAPI nbtApi,final ItemStack itemStack, final NBTDataWriter nbtData) {
+        final Map<String, NBTValue> nbtCache = nbtData.getNbtCache();
+        final Map<String, Object> metaDataMap = this.getMetaDataMap();
+        return nbtApi.getCompMetadata().setMetadata(itemStack,
+                nbtDataWrite -> {
+                    if (nbtData.isClearNBT())
+                        nbtDataWrite.clearNBT();
+                    else {
+                        if (!metaDataMap.isEmpty())
+                            metaDataMap.forEach((s, nbtValue) ->
+                                    ConvertObjectType.setNBTValue(nbtDataWrite.getCompound(), s, nbtValue)
+                            );
+                        else
+                            nbtCache.forEach((key, nbtValue) -> {
+                                ConvertObjectType.setNBTValue(nbtDataWrite.getCompound(), key, nbtValue);
+                            });
+                    }
+                });
+    }
+
+
     /**
      * Attempts to store array types in a custom tag container.
      *
@@ -338,4 +296,58 @@ public final class NBTDataWrapper {
         return false;
     }
 
+    /**
+     * Writes a value to a {@link CustomItemTagContainer} for older Minecraft versions.
+     *
+     * @param key      the tag key
+     * @param nbtValue the value to write
+     * @param meta     the item meta containing the custom tag container
+     */
+    private void setCustomTagContainer(String key, NBTValue nbtValue, ItemMeta meta) {
+        final Object value = nbtValue.getValue();
+        final Class<?> targetType = value.getClass();
+        final CustomItemTagContainer customTagContainer = meta.getCustomTagContainer();
+        final NamespacedKey namespacedKey = new NamespacedKey(this.plugin, key);
+        if (nbtValue.isRemoveKey()) {
+            customTagContainer.removeCustomTag(namespacedKey);
+        }
+
+        if (targetType == String.class) {
+            customTagContainer.setCustomTag(namespacedKey, ItemTagType.STRING, (String) value);
+            return;
+        }
+        if (targetType == Integer.class) {
+            customTagContainer.setCustomTag(namespacedKey, ItemTagType.INTEGER, (Integer) value);
+            return;
+        }
+        if (targetType == Double.class) {
+            customTagContainer.setCustomTag(namespacedKey, ItemTagType.DOUBLE, (Double) value);
+            return;
+        }
+        if (targetType == Byte.class) {
+            customTagContainer.setCustomTag(namespacedKey, ItemTagType.BYTE, (Byte) value);
+            return;
+        }
+        if (targetType == Long.class) {
+            customTagContainer.setCustomTag(namespacedKey, ItemTagType.LONG, (Long) value);
+            return;
+        }
+        if (targetType == Float.class) {
+            customTagContainer.setCustomTag(namespacedKey, ItemTagType.FLOAT, (Float) value);
+            return;
+        }
+        if (targetType == ItemStack.class) {
+            ItemTagType<String, ItemStack> itemStackTagType = new ItemStackTagTypeOld();
+            customTagContainer.setCustomTag(namespacedKey, itemStackTagType, (ItemStack) value);
+            return;
+        }
+        if (targetType == UUID.class) {
+            ItemTagType<byte[], UUID> uuidItemTagType = new UUIDItemTagTypeOld();
+            customTagContainer.setCustomTag(namespacedKey, uuidItemTagType, (UUID) value);
+            return;
+        }
+        if (setArrays(targetType, value, customTagContainer, namespacedKey)) return;
+
+        customTagContainer.setCustomTag(namespacedKey, ItemTagType.STRING, value + "");
+    }
 }
