@@ -22,7 +22,7 @@ repositories {
     gradlePluginPortal()
 }
 checkstyle {
-    toolVersion = "11.0.0"  // use latest stable
+    toolVersion = "11.0.0"
     configFile = file("config/checkstyle/checkstyle.xml")
 }
 subprojects {
@@ -38,8 +38,7 @@ subprojects {
         javadoc {
             options.encoding = Charsets.UTF_8.name()
             options.apply {
-                // Disable specific doclint checks (like missing comments)
-                // You can adjust these to be more or less strict
+                // Disable Javadoc complains as it is handle with checkstyle.
                 (this as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
             }
         }
