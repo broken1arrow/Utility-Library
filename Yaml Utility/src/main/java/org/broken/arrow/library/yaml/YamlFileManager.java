@@ -123,6 +123,57 @@ public abstract class YamlFileManager {
 	protected abstract void loadSettingsFromYaml(final File file, FileConfiguration loadedConfig);
 
 	/**
+	 * Reloads the configuration file.
+	 */
+	public void reload() {
+		try {
+			Set<String> fromResource = this.filesFromResource;
+			if (fromResource == null || fromResource.isEmpty()) {
+				load(getAllFilesInPluginJar());
+			} else {
+				load(getFilesInPluginFolder(this.getPath()));
+			}
+		} catch (final IOException | InvalidConfigurationException e) {
+			log.log(e, () -> "Failed to reload the config");
+		}
+	}
+
+
+	/**
+	 * Saves the data to the appropriate file(s).
+	 */
+	public final void save() {
+		save(null);
+	}
+
+	/**
+	 * Saves the data to the specified file.
+	 *
+	 * @param fileToSave the name of the file to save the data to
+	 */
+	public final void save(final String fileToSave) {
+		if (this.singleFile) {
+			final File file = new File(this.getFullPath());
+			this.saveData(file);
+			return;
+		}
+
+		final File folder = new File(this.getDataFolder(), this.getPath());
+		if (!folder.isDirectory()) return;
+		final File[] listOfFiles = folder.listFiles();
+
+		if (folder.exists() && listOfFiles != null) {
+			if (fileToSave != null) {
+				this.saveSpecificFile(fileToSave, folder, listOfFiles);
+			} else {
+				for (final File file : listOfFiles) {
+					saveData(file);
+				}
+			}
+		}
+	}
+
+	/**
 	 * Updates the configuration file.
 	 *
 	 * @param ignoredSections The sections to ignore when update the file.
@@ -165,22 +216,6 @@ public abstract class YamlFileManager {
 			log.log(e, () -> "Failed to update the file: " + name);
 		} finally {
 			currentConfig = YamlConfiguration.loadConfiguration(file);
-		}
-	}
-
-	/**
-	 * Reloads the configuration file.
-	 */
-	public void reload() {
-		try {
-			Set<String> fromResource = this.filesFromResource;
-			if (fromResource == null || fromResource.isEmpty()) {
-				load(getAllFilesInPluginJar());
-			} else {
-				load(getFilesInPluginFolder(this.getPath()));
-			}
-		} catch (final IOException | InvalidConfigurationException e) {
-			log.log(e, () -> "Failed to reload the config");
 		}
 	}
 
@@ -277,59 +312,6 @@ public abstract class YamlFileManager {
 	}
 
 	/**
-	 * Saves the data to the appropriate file(s).
-	 */
-	public final void save() {
-		save(null);
-	}
-
-	/**
-	 * Saves the data to the specified file.
-	 *
-	 * @param fileToSave the name of the file to save the data to
-	 */
-	public final void save(final String fileToSave) {
-		if (this.singleFile) {
-			final File file = new File(this.getFullPath());
-			this.saveData(file);
-			return;
-		}
-
-		final File folder = new File(this.getDataFolder(), this.getPath());
-		if (!folder.isDirectory()) return;
-		final File[] listOfFiles = folder.listFiles();
-
-		if (folder.exists() && listOfFiles != null) {
-			if (fileToSave != null) {
-				this.saveSpecificFile(fileToSave, folder, listOfFiles);
-			} else {
-				for (final File file : listOfFiles) {
-					saveData(file);
-				}
-			}
-		}
-	}
-
-	private void saveSpecificFile(final String fileToSave, final File folder, final File[] listOfFiles) {
-		if (!checkFolderExist(fileToSave, listOfFiles)) {
-			final File newDataFolder = new File(folder, fileToSave + "." + this.getExtension());
-			try {
-				newDataFolder.createNewFile();
-			} catch (final IOException e) {
-				log.log(e, () -> "Failed to save the file to disk: "+ fileToSave );
-			} finally {
-				saveData(newDataFolder);
-			}
-		} else {
-			for (final File file : listOfFiles) {
-				if (getNameOfFile(file.getName()).equals(fileToSave)) {
-					saveData(file);
-				}
-			}
-		}
-	}
-
-	/**
 	 * Saves the configuration to the specified file.
 	 *
 	 * @param file         the file to which the configuration should be saved
@@ -367,27 +349,6 @@ public abstract class YamlFileManager {
 	public boolean removeFile(final String fileName) {
 		final File folder = new File(this.getPath(), fileName + "." + getExtension());
 		return folder.delete();
-	}
-
-	/**
-	 * Loads data from the specified files.
-	 *
-	 * @param files the array of files to load data from
-	 * @throws IOException                   if an I/O error occurs while loading the files
-	 * @throws InvalidConfigurationException if the configuration is invalid
-	 */
-	public final void load(final File[] files) throws IOException, InvalidConfigurationException {
-		if (files != null)
-			for (final File file : files) {
-				if (file == null) continue;
-				if (!file.exists()) {
-					this.plugin.saveResource(file.getName(), false);
-				}
-				FileConfiguration customConfig = YamlConfiguration.loadConfiguration(file);
-				this.currentConfigFile = file;
-				this.currentConfig = customConfig;
-				loadSettingsFromYaml(file, customConfig);
-			}
 	}
 
 	/**
@@ -701,16 +662,6 @@ public abstract class YamlFileManager {
 		return path;
 	}
 
-	/**
-	 * Method to save data to file
-	 *
-	 * @param file the file to save.
-	 */
-	private void saveData(@Nonnull final File file) {
-		ConfigurationWrapper configurationWrapper = new ConfigurationWrapper(this.isConvertNestedSections(), file);
-		saveDataToFile(file, configurationWrapper);
-	}
-
 
 	/**
 	 * Get data from resource folder from the path or filename.
@@ -767,6 +718,54 @@ public abstract class YamlFileManager {
 			}
 		}
 		return filenames;
+	}
+
+	/**
+	 * Retrieves a resource as an {@link InputStream} using the plugin's class loader.
+	 * <p>
+	 * This method disables caching on the connection to ensure the latest resource version is read.
+	 *
+	 * @param filename the path to the resource file within the classpath; must not be null
+	 * @return an {@link InputStream} to read the resource, or {@code null} if the resource does not exist
+	 *         or an I/O error occurs while opening the stream
+	 * @throws IllegalArgumentException if the filename parameter is {@code null}
+	 */
+	public InputStream getResource(final String filename) {
+		if (filename == null) {
+			throw new IllegalArgumentException("Filename cannot be null");
+		}
+		try {
+			URL url = this.plugin.getClass().getClassLoader().getResource(filename);
+			if (url == null) {
+				return null;
+			}
+			URLConnection connection = url.openConnection();
+			connection.setUseCaches(false);
+			return connection.getInputStream();
+		} catch (IOException ex) {
+			return null;
+		}
+	}
+
+	/**
+	 * Loads data from the specified files.
+	 *
+	 * @param files the array of files to load data from
+	 * @throws IOException                   if an I/O error occurs while loading the files
+	 * @throws InvalidConfigurationException if the configuration is invalid
+	 */
+	public final void load(final File[] files) throws IOException, InvalidConfigurationException {
+		if (files != null)
+			for (final File file : files) {
+				if (file == null) continue;
+				if (!file.exists()) {
+					this.plugin.saveResource(file.getName(), false);
+				}
+				FileConfiguration customConfig = YamlConfiguration.loadConfiguration(file);
+				this.currentConfigFile = file;
+				this.currentConfig = customConfig;
+				loadSettingsFromYaml(file, customConfig);
+			}
 	}
 
 	/**
@@ -848,31 +847,34 @@ public abstract class YamlFileManager {
 		}
 	}
 
-	/**
-	 * Retrieves a resource as an {@link InputStream} using the plugin's class loader.
-	 * <p>
-	 * This method disables caching on the connection to ensure the latest resource version is read.
-	 *
-	 * @param filename the path to the resource file within the classpath; must not be null
-	 * @return an {@link InputStream} to read the resource, or {@code null} if the resource does not exist
-	 *         or an I/O error occurs while opening the stream
-	 * @throws IllegalArgumentException if the filename parameter is {@code null}
-	 */
-	public InputStream getResource(final String filename) {
-		if (filename == null) {
-			throw new IllegalArgumentException("Filename cannot be null");
-		}
-		try {
-			URL url = this.plugin.getClass().getClassLoader().getResource(filename);
-			if (url == null) {
-				return null;
+	private void saveSpecificFile(final String fileToSave, final File folder, final File[] listOfFiles) {
+		if (!checkFolderExist(fileToSave, listOfFiles)) {
+			final File newDataFolder = new File(folder, fileToSave + "." + this.getExtension());
+			try {
+				newDataFolder.createNewFile();
+			} catch (final IOException e) {
+				log.log(e, () -> "Failed to save the file to disk: "+ fileToSave );
+			} finally {
+				saveData(newDataFolder);
 			}
-			URLConnection connection = url.openConnection();
-			connection.setUseCaches(false);
-			return connection.getInputStream();
-		} catch (IOException ex) {
-			return null;
+		} else {
+			for (final File file : listOfFiles) {
+				if (getNameOfFile(file.getName()).equals(fileToSave)) {
+					saveData(file);
+				}
+			}
 		}
 	}
+
+	/**
+	 * Method to save data to file
+	 *
+	 * @param file the file to save.
+	 */
+	private void saveData(@Nonnull final File file) {
+		ConfigurationWrapper configurationWrapper = new ConfigurationWrapper(this.isConvertNestedSections(), file);
+		saveDataToFile(file, configurationWrapper);
+	}
+
 
 }
