@@ -4,8 +4,11 @@ import com.google.common.collect.Multimap;
 import com.google.gson.GsonBuilder;
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
+import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
+import org.broken.arrow.library.itemcreator.meta.map.BuildMapView;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
+import org.broken.arrow.library.itemcreator.serialization.typeadapter.MapMetaAdapter;
 import org.broken.arrow.library.itemcreator.utility.PotionData;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
@@ -17,13 +20,8 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BannerMeta;
-import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.*;
+import org.bukkit.map.MapView;
 import org.bukkit.profile.PlayerProfile;
 
 import javax.annotation.Nonnull;
@@ -67,6 +65,8 @@ public class SerializeItem {
     // Firework
     private org.broken.arrow.library.itemcreator.meta.FireworkMeta fireworkMeta;
     private org.broken.arrow.library.itemcreator.meta.BookMeta bookMenta;
+    private MapWrapperMeta  mapViewMeta;
+
 
     /**
      * Creates a serializable item representation from an ItemStack.
@@ -106,6 +106,17 @@ public class SerializeItem {
                 final BookMeta bookMeta = (BookMeta) meta;
                 data.bookMenta = org.broken.arrow.library.itemcreator.meta.BookMeta.setBookMeta(bookMeta);
 
+            }
+            if (meta instanceof MapMeta) {
+                final MapMeta mapMeta = (MapMeta) meta;
+                if (mapMeta.hasMapView()) {
+                    final MapView mapView = mapMeta.getMapView();
+                    if (mapView != null) {
+                        final MapWrapperMeta mapWrapperMeta = new MapWrapperMeta();
+                        mapWrapperMeta.createMapView(mapView);
+                        data.mapViewMeta = mapWrapperMeta;
+                    }
+                }
             }
         }
         return data;
@@ -155,6 +166,11 @@ public class SerializeItem {
                 fireworkMeta.applyFireworkEffect(fwm);
             }
 
+            if (meta instanceof MapMeta && mapViewMeta != null) {
+                MapMeta fwm = (MapMeta) meta;
+                mapViewMeta.applyMapMeta(fwm);
+            }
+
             item.setItemMeta(meta);
         }
         return item;
@@ -170,6 +186,7 @@ public class SerializeItem {
                 .setPrettyPrinting()
                 .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
+                .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .create()
                 .toJson(this);
     }
@@ -184,6 +201,7 @@ public class SerializeItem {
         return new GsonBuilder()
                 .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
+                .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .create()
                 .fromJson(json, SerializeItem.class);
     }

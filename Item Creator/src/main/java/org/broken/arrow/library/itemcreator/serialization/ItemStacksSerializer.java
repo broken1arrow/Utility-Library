@@ -2,8 +2,10 @@ package org.broken.arrow.library.itemcreator.serialization;
 
 import com.google.gson.GsonBuilder;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
+import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
+import org.broken.arrow.library.itemcreator.serialization.typeadapter.MapMetaAdapter;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 
@@ -113,6 +115,7 @@ public class ItemStacksSerializer implements Iterable<ItemStack> {
                 .setPrettyPrinting()
                 .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
+                .registerTypeAdapter(MapWrapperMeta.class,new MapMetaAdapter())
                 .create()
                 .toJson(this);
     }
@@ -127,6 +130,7 @@ public class ItemStacksSerializer implements Iterable<ItemStack> {
         final ItemStacksSerializer serializer = new GsonBuilder()
                 .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
+                .registerTypeAdapter(MapWrapperMeta.class,new MapMetaAdapter())
                 .create()
                 .fromJson(json, ItemStacksSerializer.class);
         serializer.itemStacks.addAll(serializer.items.stream()

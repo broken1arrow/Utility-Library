@@ -20,7 +20,6 @@ public class TableColumn extends Column {
 
     private final DataType dataType;
     private final SQLConstraints[] constraints;
-    @javax.annotation.Nullable
     private final ColumnManager columnManger;
     private final boolean isPrimaryKey;
 

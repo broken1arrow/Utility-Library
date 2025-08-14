@@ -4,7 +4,6 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * A helper class for writing JSON using Gson's {@link JsonWriter}.
