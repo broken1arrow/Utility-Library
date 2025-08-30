@@ -1,6 +1,8 @@
 package org.broken.arrow.library.itemcreator;
 
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import org.broken.arrow.library.logging.Logging;
@@ -16,6 +18,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -58,6 +62,7 @@ public class SkullCreator {
         }
 
     }
+
     /**
      * Private constructor to prevent instantiation.
      */
@@ -254,6 +259,99 @@ public class SkullCreator {
         state.update(false, false);
     }
 
+
+    /**
+     * Sets the skin URL on the given {@link SkullMeta}.
+     *
+     * <p>This method applies a skin to a skull item, supporting both modern
+     * and legacy server implementations:</p>
+     * <ul>
+     *     <li>Modern API (PlayerProfile-based): uses {@link PlayerProfile} and {@code setOwnerProfile}.</li>
+     *     <li>Legacy API (GameProfile reflection): creates a {@link GameProfile} and sets the
+     *         Base64-encoded texture via the internal {@code profile} field.</li>
+     * </ul>
+     *
+     * <p>If {@code url} is {@code null}, only the {@code uuid} will be applied,
+     * resulting in a skull that displays the player's default skin.</p>
+     *
+     * @param meta the {@link SkullMeta} to modify
+     * @param uuid the UUID to associate with the skull's profile
+     * @param url  the skin URL to apply, or {@code null} to leave only the default player skin
+     */
+    public static void setSkullUrl(final SkullMeta meta, UUID uuid, @Nullable final String url) {
+        checkIfHasOwnerMethod(meta);
+        if (doesHaveOwnerProfile) {
+            PlayerProfile profile = Bukkit.createPlayerProfile(uuid);
+            if (url != null) {
+                try {
+                    profile.getTextures().setSkin(new URL(url));
+                } catch (MalformedURLException e) {
+                    LOG.log(() -> "Can't set back the url '" + url + "' for this skull.");
+                }
+            }
+            meta.setOwnerProfile(profile);
+            return;
+        }
+        GameProfile profile = new GameProfile(uuid, null);
+        setSkin(url, profile);
+        try {
+            if (metaProfileField == null) {
+                metaProfileField = meta.getClass().getDeclaredField("profile");
+                metaProfileField.setAccessible(true);
+            }
+            metaProfileField.set(meta, profile);
+        } catch (NoSuchFieldException e) {
+            LOG.log(e, () -> "Failed to access legacy SkullMeta profile field.");
+        } catch (IllegalAccessException e) {
+            LOG.log(e, () -> "Failed to set the legacy SkullMeta profile to field.");
+        }
+    }
+
+    /**
+     * Retrieves the skin URL from the given {@link SkullMeta}.
+     * <p>
+     * This method attempts to extract the URL of the custom head texture
+     * regardless of whether the server is running a modern API
+     * (using {@link PlayerProfile}) or an older legacy API
+     * (via the internal {@code GameProfile}).
+     * </p>
+     *
+     * @param meta the {@link SkullMeta} to extract the skin URL from
+     * @return the skin URL in string form, or {@code null} if no URL is set
+     *         or if the required methods/fields could not be accessed.
+     */
+    @Nullable
+    public static String getSkullUrl(SkullMeta meta) {
+        checkIfHasOwnerMethod(meta);
+        if (doesHaveOwnerProfile) {
+            try {
+                final PlayerProfile ownerProfile = meta.getOwnerProfile();
+                if (ownerProfile != null) {
+                    final URL skin = ownerProfile.getTextures().getSkin();
+                    if (skin != null)
+                        return skin.toExternalForm();
+                }
+            } catch (NoClassDefFoundError | NoSuchMethodError ex2) {
+                LOG.log(() -> "Could not invoke PlayerProfile and the methods (getTextures, getOwnerProfile, getSkin).");
+            }
+            return null;
+        }
+        try {
+            if (metaProfileField == null) {
+                metaProfileField = meta.getClass().getDeclaredField("profile");
+                metaProfileField.setAccessible(true);
+            }
+            GameProfile profile = (GameProfile) metaProfileField.get(meta);
+            if (profile != null) {
+                String url = getUrl(profile);
+                if (url != null) return url;
+            }
+        } catch (NoSuchFieldException | IllegalAccessException ex2) {
+            LOG.log(ex2, () -> "Failed to access legacy SkullMeta profile field.");
+        }
+        return null;
+    }
+
     /**
      * Sets the block to a skull of type PLAYER_HEAD or legacy SKULL with player skull type.
      *
@@ -378,6 +476,40 @@ public class SkullCreator {
         }
     }
 
+    private static String getUrl(final GameProfile profile) {
+        for (Property property : profile.getProperties().get("textures")) {
+            String value = property.getValue();
+            try {
+            // Decode Base64 -> JSON
+            String json = new String(Base64.getDecoder().decode(value));
+            JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+
+            return obj
+                    .getAsJsonObject("textures")
+                    .getAsJsonObject("SKIN")
+                    .get("url")
+                    .getAsString();
+            } catch (IllegalArgumentException e) {
+                LOG.log(e, () -> "Failed to decode skull texture property for profile: " + profile.getId());
+            }
+        }
+        return null;
+    }
+
+    private static void setSkin(final String url, final GameProfile profile) {
+        if (url == null) return;
+
+        JsonObject skinJson = new JsonObject();
+        JsonObject textures = new JsonObject();
+        JsonObject skin = new JsonObject();
+        skin.addProperty("url", url);
+        textures.add("SKIN", skin);
+        skinJson.add("textures", textures);
+        String encoded = Base64.getEncoder().encodeToString(skinJson.toString().getBytes(StandardCharsets.UTF_8));
+        profile.getProperties().put("textures", new Property("textures", encoded));
+
+    }
+
     /**
      * Checks whether the SkullMeta class has the setOwnerProfile method
      * and updates the flag accordingly.
@@ -412,13 +544,14 @@ public class SkullCreator {
             //We don't need to know a error is thrown. This only checks so you don't use wrong API version.
         }
     }
+
     /**
      * Retrieves a Material by name, logging a warning if not found.
      *
      * @param name The name of the Material.
      * @return The Material if found; null otherwise.
      */
-   private static Material getMaterial(String name) {
+    private static Material getMaterial(String name) {
         try {
             return Material.valueOf(name);
         } catch (Exception e) {
@@ -461,7 +594,7 @@ public class SkullCreator {
         PlayerProfile profile = Bukkit.createPlayerProfile(id);
         PlayerTextures textures = profile.getTextures();
         URL urlFromBase64 = getUrlFromBase64(b64);
-        if(urlFromBase64 == null)
+        if (urlFromBase64 == null)
             return profile;
         textures.setSkin(urlFromBase64);
         profile.setTextures(textures);
@@ -479,7 +612,7 @@ public class SkullCreator {
             String decoded = new String(Base64.getDecoder().decode(base64));
             return new URL(decoded.substring("{\"textures\":{\"SKIN\":{\"url\":\"".length(), decoded.length() - "\"}}}".length()));
         } catch (IllegalArgumentException exception) {
-            LOG.log(() -> "Failed to parse the Base64 string, does you provide a valid base64 string? The input string: " +base64);
+            LOG.log(() -> "Failed to parse the Base64 string, does you provide a valid base64 string? The input string: " + base64);
         }
         return null;
     }

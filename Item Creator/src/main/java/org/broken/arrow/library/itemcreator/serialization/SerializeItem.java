@@ -3,18 +3,14 @@ package org.broken.arrow.library.itemcreator.serialization;
 import com.google.common.collect.Multimap;
 import com.google.gson.GsonBuilder;
 import org.broken.arrow.library.itemcreator.ItemCreator;
+import org.broken.arrow.library.itemcreator.SkullCreator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
-import org.broken.arrow.library.itemcreator.meta.map.BuildMapView;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.MapMetaAdapter;
 import org.broken.arrow.library.itemcreator.utility.PotionData;
-import org.bukkit.Color;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
@@ -51,7 +47,7 @@ public class SerializeItem {
     private final Set<ItemFlag> itemFlags = new HashSet<>();
     // Skull
     private String skullOwner;
-    private OfflinePlayer owningPlayer;
+    private UUID skinPlayerId;
     private PlayerProfile ownerProfile;
     // Potion
     private BottleEffectMeta potionEffects;
@@ -65,7 +61,8 @@ public class SerializeItem {
     // Firework
     private org.broken.arrow.library.itemcreator.meta.FireworkMeta fireworkMeta;
     private org.broken.arrow.library.itemcreator.meta.BookMeta bookMenta;
-    private MapWrapperMeta  mapViewMeta;
+    private MapWrapperMeta mapViewMeta;
+    private String skullUrl;
 
 
     /**
@@ -292,8 +289,8 @@ public class SerializeItem {
      *
      * @return the owning player, or null if not set
      */
-    public OfflinePlayer getOwningPlayer() {
-        return owningPlayer;
+    public UUID getSkinPlayerId() {
+        return skinPlayerId;
     }
 
     /**
@@ -380,7 +377,7 @@ public class SerializeItem {
                 Objects.equals(customModelData, that.customModelData) &&
                 Objects.equals(itemFlags, that.itemFlags) &&
                 Objects.equals(skullOwner, that.skullOwner) &&
-                Objects.equals(owningPlayer, that.owningPlayer) &&
+                Objects.equals(skinPlayerId, that.skinPlayerId) &&
                 Objects.equals(ownerProfile, that.ownerProfile) &&
                 Objects.equals(potionEffects, that.potionEffects) &&
                 Objects.equals(attributeModifiers, that.attributeModifiers) &&
@@ -392,35 +389,38 @@ public class SerializeItem {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, owningPlayer, ownerProfile, potionEffects, attributeModifiers, armorColor, baseColor, patterns, fireworkMeta, bookMenta);
+        return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, skinPlayerId, ownerProfile, potionEffects, attributeModifiers, armorColor, baseColor, patterns, fireworkMeta, bookMenta);
     }
 
     private void setOwnerToMeta(SkullMeta skull) {
+        SkullCreator.setSkullUrl(skull, this.skinPlayerId, this.skullUrl);
         if (this.skullOwner != null) {
             skull.setOwner(this.skullOwner);
             return;
         }
-        if (this.owningPlayer != null)
-            skull.setOwningPlayer(this.owningPlayer);
-        if (this.ownerProfile != null)
-            skull.setOwnerProfile(this.ownerProfile);
+        if (this.skinPlayerId == null) {
+            skull.setOwningPlayer(Bukkit.getOfflinePlayer(this.skinPlayerId));
+        }
     }
 
 
-    private static void setOwner(SerializeItem data, SkullMeta skull) {
+    private static void setOwner(final SerializeItem data, final SkullMeta skull) {
         final float serverVersion = ItemCreator.getServerVersion();
+        data.skullUrl = SkullCreator.getSkullUrl(skull);
         if (serverVersion < 12.0f) {
             try {
                 data.skullOwner = skull.getOwner();
             } catch (NoSuchMethodError ignore) {
-                data.owningPlayer = skull.getOwningPlayer();
+                final OfflinePlayer owningPlayer = skull.getOwningPlayer();
+                if (owningPlayer != null)
+                    data.skinPlayerId = owningPlayer.getUniqueId();
             }
             return;
         }
-        data.owningPlayer = skull.getOwningPlayer();
-        if (serverVersion > 18.0f) {
-            data.ownerProfile = skull.getOwnerProfile();
-        }
+        final OfflinePlayer owningPlayer = skull.getOwningPlayer();
+        if (owningPlayer != null)
+            data.skinPlayerId = owningPlayer.getUniqueId();
+
     }
 
     private static void retrieveFireworkMeta(final ItemMeta meta, final SerializeItem data) {
