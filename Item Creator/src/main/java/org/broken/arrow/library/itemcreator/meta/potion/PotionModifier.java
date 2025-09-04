@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.meta.Potion;
+package org.broken.arrow.library.itemcreator.meta.potion;
 
 /**
  * Enum for potion modifiers that represent how the potion is enhanced or extended.

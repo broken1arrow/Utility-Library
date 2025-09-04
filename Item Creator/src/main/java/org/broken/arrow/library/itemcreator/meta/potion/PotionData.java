@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.meta.Potion;
+package org.broken.arrow.library.itemcreator.meta.potion;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.bukkit.potion.PotionType;

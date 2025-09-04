@@ -1,8 +1,8 @@
 package org.broken.arrow.library.itemcreator.meta;
 
-import org.broken.arrow.library.itemcreator.meta.Potion.PotionData;
-import org.broken.arrow.library.itemcreator.meta.Potion.PotionModifier;
-import org.broken.arrow.library.itemcreator.meta.Potion.PotionsUtility;
+import org.broken.arrow.library.itemcreator.meta.potion.PotionData;
+import org.broken.arrow.library.itemcreator.meta.potion.PotionModifier;
+import org.broken.arrow.library.itemcreator.meta.potion.PotionsUtility;
 import org.bukkit.Color;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -266,12 +266,6 @@ public class BottleEffectMeta {
         if (potionType != null) {
             PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
             PotionModifier modifier = this.potionData.getModifier();
-            boolean extendedPotion = this.extended;
-            boolean upgradedPotion = this.upgraded;
-            if (modifier != PotionModifier.NORMAL) {
-                extendedPotion = modifier == PotionModifier.LONG;
-                upgradedPotion = modifier == PotionModifier.STRONG;
-            }
             potionsUtility.setPotion(potionType, modifier);
             return true;
         }

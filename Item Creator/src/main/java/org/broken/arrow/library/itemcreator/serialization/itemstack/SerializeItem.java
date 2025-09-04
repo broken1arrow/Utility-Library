@@ -10,7 +10,7 @@ import org.broken.arrow.library.itemcreator.serialization.AttributeModifierWrapp
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.MapMetaAdapter;
-import org.broken.arrow.library.itemcreator.meta.Potion.PotionData;
+import org.broken.arrow.library.itemcreator.meta.potion.PotionData;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;

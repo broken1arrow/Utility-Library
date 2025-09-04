@@ -6,7 +6,7 @@ import com.google.gson.stream.JsonWriter;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonReaderHelper;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonWriterHelper;
-import org.broken.arrow.library.itemcreator.meta.Potion.PotionData;
+import org.broken.arrow.library.itemcreator.meta.potion.PotionData;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;

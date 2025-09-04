@@ -44,6 +44,8 @@ public class SkullCreator {
     private static final String PLAYER_HEAD = "PLAYER_HEAD";
     private static final String BLOCK = "block";
     private static final String NAME = "name";
+    public static final String PROFILE = "profile";
+    public static final String TEXTURES = "textures";
     private static boolean legacy;
     private static boolean warningPosted = false;
     private static boolean doesHaveOwnerProfile = true;
@@ -296,7 +298,7 @@ public class SkullCreator {
         setSkin(url, profile);
         try {
             if (metaProfileField == null) {
-                metaProfileField = meta.getClass().getDeclaredField("profile");
+                metaProfileField = meta.getClass().getDeclaredField(PROFILE);
                 metaProfileField.setAccessible(true);
             }
             metaProfileField.set(meta, profile);
@@ -338,7 +340,7 @@ public class SkullCreator {
         }
         try {
             if (metaProfileField == null) {
-                metaProfileField = meta.getClass().getDeclaredField("profile");
+                metaProfileField = meta.getClass().getDeclaredField(PROFILE);
                 metaProfileField.setAccessible(true);
             }
             GameProfile profile = (GameProfile) metaProfileField.get(meta);
@@ -416,7 +418,7 @@ public class SkullCreator {
                 b64.substring(b64.length() - 10).hashCode()
         );
         GameProfile profile = new GameProfile(id, "aaaaa");
-        profile.getProperties().put("textures", new Property("textures", b64));
+        profile.getProperties().put(TEXTURES, new Property(TEXTURES, b64));
         return profile;
     }
 
@@ -429,7 +431,7 @@ public class SkullCreator {
     private static void mutateBlockState(Skull block, String b64) {
         try {
             if (blockProfileField == null) {
-                blockProfileField = block.getClass().getDeclaredField("profile");
+                blockProfileField = block.getClass().getDeclaredField(PROFILE);
                 blockProfileField.setAccessible(true);
             }
             blockProfileField.set(block, makeProfile(b64));
@@ -465,7 +467,7 @@ public class SkullCreator {
             // we set the profile field directly.
             try {
                 if (metaProfileField == null) {
-                    metaProfileField = meta.getClass().getDeclaredField("profile");
+                    metaProfileField = meta.getClass().getDeclaredField(PROFILE);
                     metaProfileField.setAccessible(true);
                 }
                 metaProfileField.set(meta, makeProfile(b64));
@@ -477,7 +479,7 @@ public class SkullCreator {
     }
 
     private static String getUrl(final GameProfile profile) {
-        for (Property property : profile.getProperties().get("textures")) {
+        for (Property property : profile.getProperties().get(TEXTURES)) {
             String value = property.getValue();
             try {
             // Decode Base64 -> JSON
@@ -485,7 +487,7 @@ public class SkullCreator {
             JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
 
             return obj
-                    .getAsJsonObject("textures")
+                    .getAsJsonObject(TEXTURES)
                     .getAsJsonObject("SKIN")
                     .get("url")
                     .getAsString();
@@ -504,9 +506,9 @@ public class SkullCreator {
         JsonObject skin = new JsonObject();
         skin.addProperty("url", url);
         textures.add("SKIN", skin);
-        skinJson.add("textures", textures);
+        skinJson.add(TEXTURES, textures);
         String encoded = Base64.getEncoder().encodeToString(skinJson.toString().getBytes(StandardCharsets.UTF_8));
-        profile.getProperties().put("textures", new Property("textures", encoded));
+        profile.getProperties().put(TEXTURES, new Property(TEXTURES, encoded));
 
     }
 
