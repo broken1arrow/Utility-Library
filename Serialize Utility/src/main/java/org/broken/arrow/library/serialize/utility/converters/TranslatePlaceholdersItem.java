@@ -71,7 +71,7 @@ public class TranslatePlaceholdersItem {
      * This method is primarily designed for splitting long lore or descriptive text (e.g., item lore)
      * into lines that do not exceed {@code maxLineLength} characters.
      * It preserves word boundaries by splitting on spaces and attempts to retain color codes
-     * (such as '&' or '§') at the beginning of continued lines for consistent formatting.
+     * (such as '&amp;' or '§') at the beginning of continued lines for consistent formatting.
      * </p>
      *
      * @param input a list of objects whose string representations will be split into shorter lines
