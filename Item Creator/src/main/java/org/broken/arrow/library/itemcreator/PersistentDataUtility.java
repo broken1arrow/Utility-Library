@@ -2,7 +2,7 @@ package org.broken.arrow.library.itemcreator;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import org.broken.arrow.library.itemcreator.utility.NBTValue;
+import org.broken.arrow.library.itemcreator.utility.nbt.NBTValue;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataAdapterContext;

@@ -1,8 +1,8 @@
 package org.broken.arrow.library.itemcreator.meta;
 
-import org.broken.arrow.library.itemcreator.utility.PotionData;
-import org.broken.arrow.library.itemcreator.utility.PotionsUtility;
-import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.itemcreator.meta.Potion.PotionData;
+import org.broken.arrow.library.itemcreator.meta.Potion.PotionModifier;
+import org.broken.arrow.library.itemcreator.meta.Potion.PotionsUtility;
 import org.bukkit.Color;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -241,7 +241,7 @@ public class BottleEffectMeta {
 
             if (isWaterBottle()) {
                 PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
-                potionsUtility.setPotion(PotionType.WATER, false, false);
+                potionsUtility.setPotion(PotionType.WATER, null);
                 return;
             }
 
@@ -265,14 +265,14 @@ public class BottleEffectMeta {
         final PotionType potionType = this.getPotionType();
         if (potionType != null) {
             PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
-            PotionData.Type modifier = this.potionData.getModifier();
+            PotionModifier modifier = this.potionData.getModifier();
             boolean extendedPotion = this.extended;
             boolean upgradedPotion = this.upgraded;
-            if (modifier != PotionData.Type.NORMAL) {
-                extendedPotion = modifier == PotionData.Type.LONG;
-                upgradedPotion = modifier == PotionData.Type.STRONG;
+            if (modifier != PotionModifier.NORMAL) {
+                extendedPotion = modifier == PotionModifier.LONG;
+                upgradedPotion = modifier == PotionModifier.STRONG;
             }
-            potionsUtility.setPotion(potionType, extendedPotion, upgradedPotion);
+            potionsUtility.setPotion(potionType, modifier);
             return true;
         }
         return false;
