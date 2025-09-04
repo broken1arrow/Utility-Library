@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.utility;
+package org.broken.arrow.library.itemcreator.utility.nbt;
 
 import javax.annotation.Nullable;
 

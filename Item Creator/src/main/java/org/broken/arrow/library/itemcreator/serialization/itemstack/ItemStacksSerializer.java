@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.serialization;
+package org.broken.arrow.library.itemcreator.serialization.itemstack;
 
 import com.google.gson.GsonBuilder;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
@@ -11,7 +11,6 @@ import org.bukkit.inventory.meta.FireworkMeta;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**

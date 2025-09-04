@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.serialization;
+package org.broken.arrow.library.itemcreator.serialization.itemstack;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.GsonBuilder;
@@ -6,10 +6,11 @@ import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.SkullCreator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
+import org.broken.arrow.library.itemcreator.serialization.AttributeModifierWrapper;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.MapMetaAdapter;
-import org.broken.arrow.library.itemcreator.utility.PotionData;
+import org.broken.arrow.library.itemcreator.meta.Potion.PotionData;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;

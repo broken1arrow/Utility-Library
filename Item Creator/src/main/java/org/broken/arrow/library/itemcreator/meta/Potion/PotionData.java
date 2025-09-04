@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.utility;
+package org.broken.arrow.library.itemcreator.meta.Potion;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.bukkit.potion.PotionType;
@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
  * Represents a mapping of potion data types to Minecraft's {@link PotionType},
  * supporting both legacy and modern server versions. This enum abstracts potion logic,
  * including special base types (e.g., {@code AWKWARD}, {@code THICK}) and variations with
- * modifiers such as {@link Type#LONG} and {@link Type#STRONG}.
+ * modifiers such as {@link PotionModifier#LONG} and {@link PotionModifier#STRONG}.
  * <p>
  * Designed to follow the modern style used in Spigot and Paper APIs as of Minecraft 1.20 and above.
  */
@@ -18,178 +18,178 @@ public enum PotionData {
     /**
      * Uncraftable potion (special case).
      */
-    UNCRAFTABLE(getUncraftable(), Type.NORMAL),
+    UNCRAFTABLE(getUncraftable(), PotionModifier.NORMAL),
     /**
      * Water potion.
      */
-    WATER(PotionType.WATER, Type.NORMAL),
+    WATER(PotionType.WATER, PotionModifier.NORMAL),
     /**
      * Mundane potion (no special effects).
      */
-    MUNDANE(PotionType.MUNDANE, Type.NORMAL),
+    MUNDANE(PotionType.MUNDANE, PotionModifier.NORMAL),
     /**
      * Thick potion (usually for brewing).
      */
-    THICK(PotionType.THICK, Type.NORMAL),
+    THICK(PotionType.THICK, PotionModifier.NORMAL),
     /**
      * Awkward potion (base potion for many effects).
      */
-    AWKWARD(PotionType.AWKWARD, Type.NORMAL),
+    AWKWARD(PotionType.AWKWARD, PotionModifier.NORMAL),
     /**
      * Night Vision potion, normal duration.
      */
-    NIGHT_VISION(PotionType.NIGHT_VISION, Type.NORMAL),
+    NIGHT_VISION(PotionType.NIGHT_VISION, PotionModifier.NORMAL),
     /**
      * Night Vision potion, long duration.
      */
-    LONG_NIGHT_VISION(PotionType.NIGHT_VISION, Type.LONG),
+    LONG_NIGHT_VISION(PotionType.NIGHT_VISION, PotionModifier.LONG),
     /**
      * Invisibility potion, normal duration.
      */
-    INVISIBILITY(PotionType.INVISIBILITY, Type.NORMAL),
+    INVISIBILITY(PotionType.INVISIBILITY, PotionModifier.NORMAL),
     /**
      * Invisibility potion, long duration.
      */
-    LONG_INVISIBILITY(PotionType.INVISIBILITY, Type.LONG),
+    LONG_INVISIBILITY(PotionType.INVISIBILITY, PotionModifier.LONG),
     /**
      * Jump boost potion, normal duration.
      */
-    JUMP(PotionType.JUMP, Type.NORMAL),
+    JUMP(PotionType.JUMP, PotionModifier.NORMAL),
     /**
      * Jump boost potion, long duration.
      */
-    LONG_LEAPING(PotionType.JUMP, Type.LONG),
+    LONG_LEAPING(PotionType.JUMP, PotionModifier.LONG),
     /**
      * Jump boost potion, strong effect.
      */
-    STRONG_LEAPING(PotionType.JUMP, Type.STRONG),
+    STRONG_LEAPING(PotionType.JUMP, PotionModifier.STRONG),
     /**
      * Fire Resistance potion, normal duration.
      */
-    FIRE_RESISTANCE(PotionType.FIRE_RESISTANCE, Type.NORMAL),
+    FIRE_RESISTANCE(PotionType.FIRE_RESISTANCE, PotionModifier.NORMAL),
     /**
      * Fire Resistance potion, long duration.
      */
-    LONG_FIRE_RESISTANCE(PotionType.FIRE_RESISTANCE, Type.LONG),
+    LONG_FIRE_RESISTANCE(PotionType.FIRE_RESISTANCE, PotionModifier.LONG),
     /**
      * Speed potion, normal duration.
      */
-    SPEED(PotionType.SPEED, Type.NORMAL),
+    SPEED(PotionType.SPEED, PotionModifier.NORMAL),
     /**
      * Speed potion, long duration.
      */
-    LONG_SWIFTNESS(PotionType.SPEED, Type.LONG),
+    LONG_SWIFTNESS(PotionType.SPEED, PotionModifier.LONG),
     /**
      * Speed potion, strong effect.
      */
-    STRONG_SWIFTNESS(PotionType.SPEED, Type.STRONG),
+    STRONG_SWIFTNESS(PotionType.SPEED, PotionModifier.STRONG),
     /**
      * Slowness potion, normal duration.
      */
-    SLOWNESS(PotionType.SLOWNESS, Type.NORMAL),
+    SLOWNESS(PotionType.SLOWNESS, PotionModifier.NORMAL),
     /**
      * Slowness potion, long duration.
      */
-    LONG_SLOWNESS(PotionType.SLOWNESS, Type.LONG),
+    LONG_SLOWNESS(PotionType.SLOWNESS, PotionModifier.LONG),
     /**
      * Slowness potion, strong effect.
      */
-    STRONG_SLOWNESS(PotionType.SLOWNESS, Type.STRONG),
+    STRONG_SLOWNESS(PotionType.SLOWNESS, PotionModifier.STRONG),
     /**
      * Water Breathing potion, normal duration.
      */
-    WATER_BREATHING(PotionType.WATER_BREATHING, Type.NORMAL),
+    WATER_BREATHING(PotionType.WATER_BREATHING, PotionModifier.NORMAL),
     /**
      * Water Breathing potion, long duration.
      */
-    LONG_WATER_BREATHING(PotionType.WATER_BREATHING, Type.LONG),
+    LONG_WATER_BREATHING(PotionType.WATER_BREATHING, PotionModifier.LONG),
     /**
      * Instant Heal potion, normal effect.
      */
-    INSTANT_HEAL(PotionType.INSTANT_HEAL, Type.NORMAL),
+    INSTANT_HEAL(PotionType.INSTANT_HEAL, PotionModifier.NORMAL),
     /**
      * Instant Heal potion, strong effect.
      */
-    STRONG_HEALING(PotionType.INSTANT_HEAL, Type.STRONG),
+    STRONG_HEALING(PotionType.INSTANT_HEAL, PotionModifier.STRONG),
     /**
      * Instant Damage potion, normal effect.
      */
-    INSTANT_DAMAGE(PotionType.INSTANT_DAMAGE, Type.NORMAL),
+    INSTANT_DAMAGE(PotionType.INSTANT_DAMAGE, PotionModifier.NORMAL),
     /**
      * Instant Damage potion, strong effect.
      */
-    STRONG_HARMING(PotionType.INSTANT_DAMAGE, Type.STRONG),
+    STRONG_HARMING(PotionType.INSTANT_DAMAGE, PotionModifier.STRONG),
     /**
      * Poison potion, normal duration.
      */
-    POISON(PotionType.POISON, Type.NORMAL),
+    POISON(PotionType.POISON, PotionModifier.NORMAL),
     /**
      * Poison potion, long duration.
      */
-    LONG_POISON(PotionType.POISON, Type.LONG),
+    LONG_POISON(PotionType.POISON, PotionModifier.LONG),
     /**
      * Poison potion, strong effect.
      */
-    STRONG_POISON(PotionType.POISON, Type.STRONG),
+    STRONG_POISON(PotionType.POISON, PotionModifier.STRONG),
     /**
      * Regeneration potion, normal duration.
      */
-    REGEN(PotionType.REGEN, Type.NORMAL),
+    REGEN(PotionType.REGEN, PotionModifier.NORMAL),
     /**
      * Regeneration potion, long duration.
      */
-    LONG_REGENERATION(PotionType.REGEN, Type.LONG),
+    LONG_REGENERATION(PotionType.REGEN, PotionModifier.LONG),
     /**
      * Regeneration potion, strong effect.
      */
-    STRONG_REGENERATION(PotionType.REGEN, Type.STRONG),
+    STRONG_REGENERATION(PotionType.REGEN, PotionModifier.STRONG),
     /**
      * Strength potion, normal duration.
      */
-    STRENGTH(PotionType.STRENGTH, Type.NORMAL),
+    STRENGTH(PotionType.STRENGTH, PotionModifier.NORMAL),
     /**
      * Strength potion, long duration.
      */
-    LONG_STRENGTH(PotionType.STRENGTH, Type.LONG),
+    LONG_STRENGTH(PotionType.STRENGTH, PotionModifier.LONG),
     /**
      * Strength potion, strong effect.
      */
-    STRONG_STRENGTH(PotionType.STRENGTH, Type.STRONG),
+    STRONG_STRENGTH(PotionType.STRENGTH, PotionModifier.STRONG),
     /**
      * Weakness potion, normal duration.
      */
-    WEAKNESS(PotionType.WEAKNESS, Type.NORMAL),
+    WEAKNESS(PotionType.WEAKNESS, PotionModifier.NORMAL),
     /**
      * Weakness potion, long duration.
      */
-    LONG_WEAKNESS(PotionType.WEAKNESS, Type.LONG),
+    LONG_WEAKNESS(PotionType.WEAKNESS, PotionModifier.LONG),
     /**
      * Luck potion, normal duration (if applicable).
      */
-    LUCK(PotionType.LUCK, Type.NORMAL),
+    LUCK(PotionType.LUCK, PotionModifier.NORMAL),
     /**
      * Turtle Master potion, normal duration.
      */
-    TURTLE_MASTER(PotionType.TURTLE_MASTER, Type.NORMAL),
+    TURTLE_MASTER(PotionType.TURTLE_MASTER, PotionModifier.NORMAL),
     /**
      * Turtle Master potion, long duration.
      */
-    LONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, Type.LONG),
+    LONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, PotionModifier.LONG),
     /**
      * Turtle Master potion, strong effect.
      */
-    STRONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, Type.STRONG),
+    STRONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, PotionModifier.STRONG),
     /**
      * Slow Falling potion, normal duration.
      */
-    SLOW_FALLING(PotionType.SLOW_FALLING, Type.NORMAL),
+    SLOW_FALLING(PotionType.SLOW_FALLING, PotionModifier.NORMAL),
     /**
      * Slow Falling potion, long duration.
      */
-    LONG_SLOW_FALLING(PotionType.SLOW_FALLING, Type.LONG);;
+    LONG_SLOW_FALLING(PotionType.SLOW_FALLING, PotionModifier.LONG);;
 
     private final PotionType potionType;
-    private final Type type;
+    private final PotionModifier potionModifier;
     private final float serverVersion = ItemCreator.getServerVersion();
 
     /**
@@ -197,11 +197,11 @@ public enum PotionData {
      *
      * @param potionType The base {@link PotionType} associated with this potion data,
      *                   or {@code null} for special cases like MUNDANE or WATER.
-     * @param type       The {@link Type} modifier for the potion, e.g., NORMAL, LONG, or STRONG.
+     * @param potionModifier       The {@link PotionModifier} modifier for the potion, e.g., NORMAL, LONG, or STRONG.
      */
-    PotionData(@Nonnull final PotionType potionType, @Nonnull final Type type) {
+    PotionData(@Nonnull final PotionType potionType, @Nonnull final PotionModifier potionModifier) {
         this.potionType = potionType;
-        this.type = type;
+        this.potionModifier = potionModifier;
     }
 
     /**
@@ -253,13 +253,13 @@ public enum PotionData {
     }
 
     /**
-     * Returns the {@link Type} modifier associated with this potion (e.g., LONG, STRONG).
+     * Returns the {@link PotionModifier} modifier associated with this potion (e.g., LONG, STRONG).
      *
-     * @return The {@link Type} modifier.
+     * @return The {@link PotionModifier} modifier.
      */
     @Nonnull
-    public Type getModifier() {
-        return type;
+    public PotionModifier getModifier() {
+        return potionModifier;
     }
 
     /**
@@ -318,29 +318,6 @@ public enum PotionData {
             default:
                 return this.potionType;
         }
-    }
-
-    /**
-     * Enum for potion modifiers that represent how the potion is enhanced or extended.
-     */
-    public enum Type {
-        /**
-         * The default version of the potion with standard duration and potency.
-         */
-        NORMAL,
-        /**
-         * A longer-lasting version of the potion, typically increasing the duration
-         * from 3 minutes to 8 minutes.
-         */
-        LONG,
-        /**
-         * A stronger version of the potion with amplified effects,
-         * typically at the cost of half the duration.
-         * <p>
-         * The only exception is the Turtle Master potion,
-         * which retains the same duration as the base potion.
-         */
-        STRONG,
     }
 
     /**
