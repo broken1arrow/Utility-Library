@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -56,13 +57,13 @@ public class SkullCreator {
 
     // Check if it legacy version, means before 1.13.
     static {
+        checkLegacy();
         try {
             Class<?> skullMeta = Class.forName("org.bukkit.inventory.meta.SkullMeta");
             skullMeta.getMethod("setOwningPlayer", OfflinePlayer.class);
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             legacy = true;
         }
-
     }
 
     /**
@@ -280,7 +281,7 @@ public class SkullCreator {
      * @param uuid the UUID to associate with the skull's profile
      * @param url  the skin URL to apply, or {@code null} to leave only the default player skin
      */
-    public static void setSkullUrl(final SkullMeta meta, UUID uuid, @Nullable final String url) {
+    public static void setSkullUrl(@Nonnull final SkullMeta meta, @Nonnull final UUID uuid, @Nullable final String url) {
         checkIfHasOwnerMethod(meta);
         if (doesHaveOwnerProfile) {
             PlayerProfile profile = Bukkit.createPlayerProfile(uuid);
@@ -295,7 +296,7 @@ public class SkullCreator {
             return;
         }
         GameProfile profile = new GameProfile(uuid, null);
-        setSkin(url, profile);
+        setSkin(profile, url);
         try {
             if (metaProfileField == null) {
                 metaProfileField = meta.getClass().getDeclaredField(PROFILE);
@@ -320,7 +321,7 @@ public class SkullCreator {
      *
      * @param meta the {@link SkullMeta} to extract the skin URL from
      * @return the skin URL in string form, or {@code null} if no URL is set
-     *         or if the required methods/fields could not be accessed.
+     * or if the required methods/fields could not be accessed.
      */
     @Nullable
     public static String getSkullUrl(SkullMeta meta) {
@@ -360,8 +361,6 @@ public class SkullCreator {
      * @param block The block to convert to a skull.
      */
     private static void setToSkull(Block block) {
-        checkLegacy();
-
         try {
             block.setType(Material.valueOf(PLAYER_HEAD), false);
         } catch (IllegalArgumentException e) {
@@ -383,25 +382,6 @@ public class SkullCreator {
         if (o == null) {
             throw new NullPointerException(name + " should not be null!");
         }
-    }
-
-    /**
-     * Converts a Mojang skin URL to a base64 encoded string for skull textures.
-     *
-     * @param url The Mojang skin URL.
-     * @return The base64 encoded texture string.
-     * @throws Validate.ValidateExceptions if the URL syntax is invalid.
-     */
-    private static String urlToBase64(String url) {
-
-        URI actualUrl;
-        try {
-            actualUrl = new URI(url);
-        } catch (URISyntaxException e) {
-            throw new Validate.ValidateExceptions(e, "Could not create the Base64 from the url");
-        }
-        String toEncode = "{\"textures\":{\"SKIN\":{\"url\":\"" + actualUrl + "\"}}}";
-        return Base64.getEncoder().encodeToString(toEncode.getBytes());
     }
 
     /**
@@ -482,15 +462,15 @@ public class SkullCreator {
         for (Property property : profile.getProperties().get(TEXTURES)) {
             String value = property.getValue();
             try {
-            // Decode Base64 -> JSON
-            String json = new String(Base64.getDecoder().decode(value));
-            JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+                // Decode Base64 -> JSON
+                String json = new String(Base64.getDecoder().decode(value));
+                JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
 
-            return obj
-                    .getAsJsonObject(TEXTURES)
-                    .getAsJsonObject("SKIN")
-                    .get("url")
-                    .getAsString();
+                return obj
+                        .getAsJsonObject(TEXTURES)
+                        .getAsJsonObject("SKIN")
+                        .get("url")
+                        .getAsString();
             } catch (IllegalArgumentException e) {
                 LOG.log(e, () -> "Failed to decode skull texture property for profile: " + profile.getId());
             }
@@ -498,7 +478,7 @@ public class SkullCreator {
         return null;
     }
 
-    private static void setSkin(final String url, final GameProfile profile) {
+    private static void setSkin(@Nonnull final GameProfile profile, @Nullable final String url) {
         if (url == null) return;
 
         JsonObject skinJson = new JsonObject();
@@ -578,6 +558,24 @@ public class SkullCreator {
         } catch (Exception ignored) {
             //We ignore the thrown error.
         }
+    }
+
+    /**
+     * Converts a Mojang skin URL to a base64 encoded string for skull textures.
+     *
+     * @param url The Mojang skin URL.
+     * @return The base64 encoded texture string.
+     * @throws Validate.ValidateExceptions if the URL syntax is invalid.
+     */
+    private static String urlToBase64(String url) {
+        URI actualUrl;
+        try {
+            actualUrl = new URI(url);
+        } catch (URISyntaxException e) {
+            throw new Validate.ValidateExceptions(e, "Could not create the Base64 from the url");
+        }
+        String toEncode = "{\"textures\":{\"SKIN\":{\"url\":\"" + actualUrl + "\"}}}";
+        return Base64.getEncoder().encodeToString(toEncode.getBytes());
     }
 
     /**

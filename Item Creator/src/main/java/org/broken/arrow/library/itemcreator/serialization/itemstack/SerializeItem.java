@@ -393,15 +393,16 @@ public class SerializeItem {
         return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, skinPlayerId, ownerProfile, potionEffects, attributeModifiers, armorColor, baseColor, patterns, fireworkMeta, bookMenta);
     }
 
-    private void setOwnerToMeta(SkullMeta skull) {
-        SkullCreator.setSkullUrl(skull, this.skinPlayerId, this.skullUrl);
+    private void setOwnerToMeta(@Nonnull final SkullMeta skull) {
+        final UUID playerId = this.skinPlayerId;
+        if (playerId == null)
+            return;
+        SkullCreator.setSkullUrl(skull, playerId, this.skullUrl);
         if (this.skullOwner != null) {
             skull.setOwner(this.skullOwner);
             return;
         }
-        if (this.skinPlayerId == null) {
-            skull.setOwningPlayer(Bukkit.getOfflinePlayer(this.skinPlayerId));
-        }
+        skull.setOwningPlayer(Bukkit.getOfflinePlayer(playerId));
     }
 
 
