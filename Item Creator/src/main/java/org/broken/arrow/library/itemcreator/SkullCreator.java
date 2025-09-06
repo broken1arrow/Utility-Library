@@ -12,9 +12,15 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.SkullType;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.material.MaterialData;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
@@ -77,11 +83,15 @@ public class SkullCreator {
      *
      * @return itemstack.
      */
+    @Nullable
     public static ItemStack createSkull() {
         try {
             return new ItemStack(Material.valueOf(PLAYER_HEAD));
         } catch (IllegalArgumentException e) {
-            return new ItemStack(getMaterial("SKULL_ITEM"), 1, (byte) 3);
+            final Material skullItem = getMaterial("SKULL_ITEM");
+            if (skullItem == null)
+                return null;
+            return new ItemStack(skullItem, 1, (byte) 3);
         }
     }
 
@@ -94,7 +104,10 @@ public class SkullCreator {
      */
     @Deprecated
     public static ItemStack itemFromName(String name) {
-        return itemWithName(createSkull(), name);
+        final ItemStack skull = createSkull();
+        checkNull(skull, "[create skull]", "Failed to find the skull material.");
+
+        return itemWithName(skull, name);
     }
 
     /**
@@ -104,7 +117,9 @@ public class SkullCreator {
      * @return The head of the Player.
      */
     public static ItemStack itemFromUuid(UUID id) {
-        return itemWithUuid(createSkull(), id);
+        final ItemStack skull = createSkull();
+        checkNull(skull, "[create skull]", "Failed to find the skull material.");
+        return itemWithUuid(skull, id);
     }
 
     /**
@@ -114,7 +129,9 @@ public class SkullCreator {
      * @return The head of the Player.
      */
     public static ItemStack itemFromUrl(String url) {
-        return itemWithUrl(createSkull(), url);
+        final ItemStack skull = createSkull();
+        checkNull(skull, "[create skull]", "Failed to find the skull material.");
+        return itemWithUrl(skull, url);
     }
 
     /**
@@ -124,7 +141,9 @@ public class SkullCreator {
      * @return The head of the Player.
      */
     public static ItemStack itemFromBase64(String base64) {
-        return itemWithBase64(createSkull(), base64);
+        final ItemStack skull = createSkull();
+        checkNull(skull, "[create skull]", "Failed to find the skull material.");
+        return itemWithBase64(skull, base64);
     }
 
     /**
@@ -136,7 +155,7 @@ public class SkullCreator {
      * @deprecated names don't make for good identifiers.
      */
     @Deprecated
-    public static ItemStack itemWithName(ItemStack item, String name) {
+    public static ItemStack itemWithName(@Nonnull final ItemStack item, @Nonnull final String name) {
         notNull(item, "item");
         notNull(name, NAME);
 
@@ -154,7 +173,7 @@ public class SkullCreator {
      * @param id   The Player's UUID.
      * @return The head of the Player.
      */
-    public static ItemStack itemWithUuid(ItemStack item, UUID id) {
+    public static ItemStack itemWithUuid(@Nonnull final ItemStack item, @Nonnull final UUID id) {
         notNull(item, "item");
         notNull(id, "id");
 
@@ -172,11 +191,20 @@ public class SkullCreator {
      * @param url  The URL of the Mojang skin.
      * @return The head associated with the URL.
      */
-    public static ItemStack itemWithUrl(ItemStack item, String url) {
+    public static ItemStack itemWithUrl(@Nonnull final ItemStack item, @Nonnull final String url) {
         notNull(item, "item");
         notNull(url, "url");
 
-        return itemWithBase64(item, urlToBase64(url));
+        final ItemMeta itemMeta = item.getItemMeta();
+        if (!(itemMeta instanceof SkullMeta)) {
+            return null;
+        }
+
+        SkullMeta meta = (SkullMeta) itemMeta;
+        UUID randomId = UUID.nameUUIDFromBytes(url.getBytes(StandardCharsets.UTF_8));
+        setSkullUrl(meta, randomId, url);
+        item.setItemMeta(meta);
+        return item;
     }
 
     /**
@@ -186,7 +214,7 @@ public class SkullCreator {
      * @param base64 The base64 string containing the texture.
      * @return The head with a custom texture.
      */
-    public static ItemStack itemWithBase64(ItemStack item, String base64) {
+    public static ItemStack itemWithBase64(@Nonnull final ItemStack item, @Nonnull final String base64) {
         notNull(item, "item");
         notNull(base64, "base64");
 
@@ -201,14 +229,15 @@ public class SkullCreator {
     }
 
     /**
-     * Sets the block to a skull with the given name.
+     * Sets the block to a skull with the given name. Recommending to use
+     * {@link #blockWithUuid(Block, UUID)} as this creates performance penitently.
      *
      * @param block The block to set.
      * @param name  The player to set it to.
      * @deprecated names don't make for good identifiers.
      */
     @Deprecated
-    public static void blockWithName(Block block, String name) {
+    public static void blockWithName(@Nonnull final Block block, @Nonnull final String name) {
         notNull(block, BLOCK);
         notNull(name, NAME);
 
@@ -223,7 +252,7 @@ public class SkullCreator {
      * @param block The block to set.
      * @param id    The player to set it to.
      */
-    public static void blockWithUuid(Block block, UUID id) {
+    public static void blockWithUuid(@Nonnull final Block block, @Nonnull final UUID id) {
         notNull(block, BLOCK);
         notNull(id, "id");
 
@@ -234,16 +263,75 @@ public class SkullCreator {
     }
 
     /**
-     * Sets the block to a skull with the skin found at the provided mojang URL.
+     * Sets the block to a skull with the given UUID.
      *
      * @param block The block to set.
-     * @param url   The mojang URL to set it to use.
+     * @param id    The player to set it to.
      */
-    public static void blockWithUrl(Block block, String url) {
+    public static void setBlock(@Nonnull final Block block, @Nonnull final UUID id, String url) {
+        notNull(block, BLOCK);
+        notNull(id, "id");
+
+        setToSkull(block);
+        Skull state = (Skull) block.getState();
+        setSkullUrl(meta, randomId, url);
+        state.setOwningPlayer(Bukkit.getOfflinePlayer(id));
+        state.update(false, false);
+    }
+
+    public static void setSkullBlock(Block block, @Nonnull final UUID id, String url) {
+        // Get old block data
+        final BlockState skullState = block.getState();
+        if (!(skullState instanceof Skull)) return;
+
+        checkIfHasOwnerMethod((SkullMeta) Bukkit.getItemFactory().getItemMeta(Material.PLAYER_HEAD));
+        if (doesHaveOwnerProfile) {
+            PlayerProfile profile = Bukkit.createPlayerProfile(id);
+            if (url != null) {
+                try {
+                    profile.getTextures().setSkin(new URL(url));
+                } catch (MalformedURLException e) {
+                    LOG.log(() -> "Can't set back the url '" + url + "' for this skull.");
+                }
+            }
+            ((Skull) skullState).setOwnerProfile(profile);
+            return;
+        }
+        Skull skull = (Skull) skullState;
+        try {
+            GameProfile profile = new GameProfile(id, "aaaa");
+            setSkin(profile, url);
+            Method setProfileMethod = skull.getClass().getDeclaredMethod("setProfile", GameProfile.class);
+            setProfileMethod.setAccessible(true);
+            setProfileMethod.invoke(skull, profile);
+            skull.update(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sets the block to a skull with the skin found at the provided mojang URL.
+     * <p>
+     * The URL must point to the Minecraft texture server. Example URL:
+     * <a href="http://textures.minecraft.net/texture/b3fbd454b599df593f57101bfca34e67d292a8861213d2202bb575da7fd091ac">
+     * http://textures.minecraft.net/texture/b3fbd454b599df593f57101bfca34e67d292a8861213d2202bb575da7fd091ac</a>
+     *
+     * @param block The block to set.
+     * @param url   The mojang URL to retrieve the texture.
+     */
+    public static void blockWithUrl(@Nonnull final Block block, @Nonnull final String url) {
         notNull(block, BLOCK);
         notNull(url, "url");
 
-        blockWithBase64(block, urlToBase64(url));
+        setToSkull(block);
+        Skull state = (Skull) block.getState();
+        try {
+            mutateBlockStateWithUrl(state, url);
+        } catch (MalformedURLException e) {
+            LOG.log(e, () -> "Invalid URL provided for skull: " + url);
+        }
+        state.update(false, false);
     }
 
     /**
@@ -252,7 +340,7 @@ public class SkullCreator {
      * @param block  The block to set.
      * @param base64 The base64 to set it to use.
      */
-    public static void blockWithBase64(Block block, String base64) {
+    public static void blockWithBase64(@Nonnull final Block block, @Nonnull final String base64) {
         notNull(block, BLOCK);
         notNull(base64, "base64");
 
@@ -295,7 +383,7 @@ public class SkullCreator {
             meta.setOwnerProfile(profile);
             return;
         }
-        GameProfile profile = new GameProfile(uuid, null);
+        GameProfile profile = new GameProfile(uuid, "aaaa");
         setSkin(profile, url);
         try {
             if (metaProfileField == null) {
@@ -385,6 +473,20 @@ public class SkullCreator {
     }
 
     /**
+     * Checks if an object is null and throws RuntimeException if so.
+     *
+     * @param o       The object to check.
+     * @param type    The name of the object to use in the exception message.
+     * @param message the message top send.
+     * @throws RuntimeException if {@code o} is null.
+     */
+    private static void checkNull(final Object o, final String type, final String message) {
+        if (o == null) {
+            throw new RuntimeException(type + ">" + message);
+        }
+    }
+
+    /**
      * Creates a GameProfile with a random UUID based on the base64 string and sets
      * the textures property with the given base64 texture.
      *
@@ -397,7 +499,7 @@ public class SkullCreator {
                 b64.substring(b64.length() - 20).hashCode(),
                 b64.substring(b64.length() - 10).hashCode()
         );
-        GameProfile profile = new GameProfile(id, "aaaaa");
+        GameProfile profile = new GameProfile(id, "aaaa");
         profile.getProperties().put(TEXTURES, new Property(TEXTURES, b64));
         return profile;
     }
@@ -533,9 +635,10 @@ public class SkullCreator {
      * @param name The name of the Material.
      * @return The Material if found; null otherwise.
      */
-    private static Material getMaterial(String name) {
+    @Nullable
+    private static Material getMaterial(final String name) {
         try {
-            return Material.valueOf(name);
+            return Material.getMaterial(name);
         } catch (Exception e) {
             LOG.log(() -> "Could not find this material: " + name);
         }
@@ -607,13 +710,45 @@ public class SkullCreator {
      * @param base64 The base64 encoded texture string.
      * @return The URL of the skin texture, or null if parsing failed.
      */
-    private static URL getUrlFromBase64(String base64) throws MalformedURLException {
+    private static URL getUrlFromBase64(String base64) {
+        try {
+            String decoded = new String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8);
+            JsonObject obj = JsonParser.parseString(decoded).getAsJsonObject();
+
+            if (!obj.has(TEXTURES)) return null;
+            JsonObject textures = obj.getAsJsonObject(TEXTURES);
+            if (!textures.has("SKIN")) return null;
+            JsonObject skin = textures.getAsJsonObject("SKIN");
+            if (!skin.has("url")) return null;
+
+            return new URL(skin.get("url").getAsString());
+        } catch (IllegalArgumentException e) {
+            LOG.log(() -> "Invalid Base64 input, cannot decode texture: " + base64);
+        } catch (MalformedURLException e) {
+            LOG.log(e, () -> "Failed to parse base64 texture to URL. With Base64 input: " + base64);
+        }
+        return null;
+      /*
         try {
             String decoded = new String(Base64.getDecoder().decode(base64));
             return new URL(decoded.substring("{\"textures\":{\"SKIN\":{\"url\":\"".length(), decoded.length() - "\"}}}".length()));
         } catch (IllegalArgumentException exception) {
             LOG.log(() -> "Failed to parse the Base64 string, does you provide a valid base64 string? The input string: " + base64);
         }
-        return null;
+        return null;*/
+    }
+
+    private static void mutateBlockStateWithUrl(Skull block, String url) throws MalformedURLException {
+        if (!legacy) {
+            checkIfHasOwnerMethod((SkullMeta) Bukkit.getItemFactory().getItemMeta(Material.PLAYER_HEAD));
+            if (doesHaveOwnerProfile) {
+                UUID id = UUID.nameUUIDFromBytes(url.getBytes(StandardCharsets.UTF_8));
+                PlayerProfile profile = Bukkit.createPlayerProfile(id);
+                profile.getTextures().setSkin(new URL(url));
+                block.setOwnerProfile(profile);
+            }
+        } else {
+            mutateBlockState(block, urlToBase64(url));
+        }
     }
 }
