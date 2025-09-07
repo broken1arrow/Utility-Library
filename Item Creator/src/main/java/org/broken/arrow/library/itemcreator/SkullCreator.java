@@ -12,15 +12,11 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.SkullType;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.material.MaterialData;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
@@ -56,6 +52,8 @@ public class SkullCreator {
     private static boolean legacy;
     private static boolean warningPosted = false;
     private static boolean doesHaveOwnerProfile = true;
+    private static boolean doesHavePlayerProfile = true;
+
     // some reflection stuff to be used when setting a skull's profile
     private static Field blockProfileField;
     private static Method metaSetProfileMethod;
@@ -69,6 +67,12 @@ public class SkullCreator {
             skullMeta.getMethod("setOwningPlayer", OfflinePlayer.class);
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             legacy = true;
+        }
+        try {
+            final UUID id = UUID.randomUUID();
+            PlayerProfile profile = Bukkit.createPlayerProfile(id);
+        } catch (NoClassDefFoundError | NoSuchMethodError e) {
+            doesHavePlayerProfile = false;
         }
     }
 
@@ -263,29 +267,41 @@ public class SkullCreator {
     }
 
     /**
-     * Sets the block to a skull with the given UUID.
+     * Sets the block to a skull with the skin found at the provided mojang URL.
+     * <p>
+     * The URL must point to the Minecraft texture server. Example URL:
+     * <a href="http://textures.minecraft.net/texture/b3fbd454b599df593f57101bfca34e67d292a8861213d2202bb575da7fd091ac">
+     * http://textures.minecraft.net/texture/b3fbd454b599df593f57101bfca34e67d292a8861213d2202bb575da7fd091ac</a>
+     *
+     * @param block The block to set.
+     * @param url   The mojang URL to retrieve the texture.
+     */
+    public static void blockWithUrl(@Nonnull final Block block, @Nonnull final String url) {
+        notNull(block, BLOCK);
+        notNull(url, "url");
+
+        setToSkull(block);
+        final UUID id = UUID.nameUUIDFromBytes(url.getBytes(StandardCharsets.UTF_8));
+        blockWithUrl(block, id,url);
+    }
+
+    /**
+     * Sets the block to a skull with the skin found at the provided mojang URL.
+     * <p>
+     * The URL must point to the Minecraft texture server. Example URL:
+     * <a href="http://textures.minecraft.net/texture/b3fbd454b599df593f57101bfca34e67d292a8861213d2202bb575da7fd091ac">
+     * http://textures.minecraft.net/texture/b3fbd454b599df593f57101bfca34e67d292a8861213d2202bb575da7fd091ac</a>
      *
      * @param block The block to set.
      * @param id    The player to set it to.
+     * @param url  The mojang URL to retrieve the texture.
      */
-    public static void setBlock(@Nonnull final Block block, @Nonnull final UUID id, String url) {
-        notNull(block, BLOCK);
-        notNull(id, "id");
-
-        setToSkull(block);
-        Skull state = (Skull) block.getState();
-        setSkullUrl(meta, randomId, url);
-        state.setOwningPlayer(Bukkit.getOfflinePlayer(id));
-        state.update(false, false);
-    }
-
-    public static void setSkullBlock(Block block, @Nonnull final UUID id, String url) {
+    public static void blockWithUrl(@Nonnull final Block block, @Nonnull final UUID id, @Nullable final String url) {
         // Get old block data
         final BlockState skullState = block.getState();
         if (!(skullState instanceof Skull)) return;
 
-        checkIfHasOwnerMethod((SkullMeta) Bukkit.getItemFactory().getItemMeta(Material.PLAYER_HEAD));
-        if (doesHaveOwnerProfile) {
+        if (doesHavePlayerProfile) {
             PlayerProfile profile = Bukkit.createPlayerProfile(id);
             if (url != null) {
                 try {
@@ -310,29 +326,6 @@ public class SkullCreator {
         }
     }
 
-    /**
-     * Sets the block to a skull with the skin found at the provided mojang URL.
-     * <p>
-     * The URL must point to the Minecraft texture server. Example URL:
-     * <a href="http://textures.minecraft.net/texture/b3fbd454b599df593f57101bfca34e67d292a8861213d2202bb575da7fd091ac">
-     * http://textures.minecraft.net/texture/b3fbd454b599df593f57101bfca34e67d292a8861213d2202bb575da7fd091ac</a>
-     *
-     * @param block The block to set.
-     * @param url   The mojang URL to retrieve the texture.
-     */
-    public static void blockWithUrl(@Nonnull final Block block, @Nonnull final String url) {
-        notNull(block, BLOCK);
-        notNull(url, "url");
-
-        setToSkull(block);
-        Skull state = (Skull) block.getState();
-        try {
-            mutateBlockStateWithUrl(state, url);
-        } catch (MalformedURLException e) {
-            LOG.log(e, () -> "Invalid URL provided for skull: " + url);
-        }
-        state.update(false, false);
-    }
 
     /**
      * Sets the block to a skull with the skin for the base64 string.
@@ -688,7 +681,7 @@ public class SkullCreator {
      * @return The PlayerProfile with the skin set.
      * @throws MalformedURLException if the texture URL is malformed.
      */
-    private static PlayerProfile makePlayerProfile(String b64) throws MalformedURLException {
+    private static PlayerProfile makePlayerProfile(final String b64) throws MalformedURLException {
         UUID id = new UUID(
                 b64.substring(b64.length() - 20).hashCode(),
                 b64.substring(b64.length() - 10).hashCode()
@@ -710,7 +703,7 @@ public class SkullCreator {
      * @param base64 The base64 encoded texture string.
      * @return The URL of the skin texture, or null if parsing failed.
      */
-    private static URL getUrlFromBase64(String base64) {
+    private static URL getUrlFromBase64(final String base64) {
         try {
             String decoded = new String(Base64.getDecoder().decode(base64), StandardCharsets.UTF_8);
             JsonObject obj = JsonParser.parseString(decoded).getAsJsonObject();
@@ -738,17 +731,4 @@ public class SkullCreator {
         return null;*/
     }
 
-    private static void mutateBlockStateWithUrl(Skull block, String url) throws MalformedURLException {
-        if (!legacy) {
-            checkIfHasOwnerMethod((SkullMeta) Bukkit.getItemFactory().getItemMeta(Material.PLAYER_HEAD));
-            if (doesHaveOwnerProfile) {
-                UUID id = UUID.nameUUIDFromBytes(url.getBytes(StandardCharsets.UTF_8));
-                PlayerProfile profile = Bukkit.createPlayerProfile(id);
-                profile.getTextures().setSkin(new URL(url));
-                block.setOwnerProfile(profile);
-            }
-        } else {
-            mutateBlockState(block, urlToBase64(url));
-        }
-    }
 }
