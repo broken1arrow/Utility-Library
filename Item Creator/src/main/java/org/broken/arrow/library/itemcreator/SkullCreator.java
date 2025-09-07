@@ -679,11 +679,14 @@ public class SkullCreator {
     }
 
     public static class CheckClassesExist {
-        private  boolean legacy;
-        private  boolean warningPosted = false;
-        private  boolean doesHaveOwnerProfile = true;
-        private  boolean doesHavePlayerProfile = true;
+        private boolean legacy;
+        private boolean warningPosted = false;
+        private boolean doesHaveOwnerProfile = true;
+        private boolean doesHavePlayerProfile = true;
 
+        /**
+         * When instance is created it will check what classes exists for your minecraft version.
+         */
         public CheckClassesExist() {
             checkLegacy();
             try {
@@ -707,18 +710,38 @@ public class SkullCreator {
             }
         }
 
-        public  boolean isLegacy() {
+        /**
+         * Check if the Minecraft version is below 1.13.
+         *
+         * @return true if its legacy.
+         */
+        public boolean isLegacy() {
             return legacy;
         }
 
-        public  boolean isWarningPosted() {
+        /**
+         * Check if you running legacy on modern minecraft version.
+         *
+         * @return Returns true if you did not set up correct API version.
+         */
+        public boolean isWarningPosted() {
             return warningPosted;
         }
 
-        public  boolean isDoesHaveOwnerProfile() {
+        /**
+         * Checks if it has OwnerProfile setter in the metadata class.
+         *
+         * @return Returns true if the profile exists.
+         */
+        public boolean isDoesHaveOwnerProfile() {
             return doesHaveOwnerProfile;
         }
 
+        /**
+         * If it modern version where PlayerProfile class exists.
+         *
+         * @return Returns true if PlayerProfile class exists.
+         */
         public boolean isDoesHavePlayerProfile() {
             return doesHavePlayerProfile;
         }
@@ -748,7 +771,7 @@ public class SkullCreator {
          *
          * @param meta The SkullMeta instance to check.
          */
-        private  void checkIfHasOwnerMethod(final SkullMeta meta) {
+        private void checkIfHasOwnerMethod(final SkullMeta meta) {
             try {
                 meta.getClass().getDeclaredMethod("setOwnerProfile", PlayerProfile.class);
             } catch (NoSuchMethodException | NoClassDefFoundError exception) {
