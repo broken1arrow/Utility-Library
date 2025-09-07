@@ -42,43 +42,22 @@ import java.util.UUID;
  * @author Dean B on 12/28/2016.
  */
 public class SkullCreator {
-
     private static final Logging LOG = new Logging(SkullCreator.class);
+    private static final CheckClassesExist checks = new CheckClassesExist();
+
     private static final String PLAYER_HEAD = "PLAYER_HEAD";
     private static final String BLOCK = "block";
     private static final String NAME = "name";
     public static final String PROFILE = "profile";
     public static final String TEXTURES = "textures";
-    private static boolean legacy;
-    private static boolean warningPosted = false;
-    private static boolean doesHaveOwnerProfile = true;
-    private static boolean doesHavePlayerProfile = true;
 
     // some reflection stuff to be used when setting a skull's profile
     private static Field blockProfileField;
     private static Method metaSetProfileMethod;
     private static Field metaProfileField;
 
-    // Check if it legacy version, means before 1.13.
+    // Check if its legacy version, means before 1.13.
     static {
-        checkLegacy();
-        try {
-            Class<?> skullMeta = Class.forName("org.bukkit.inventory.meta.SkullMeta");
-            skullMeta.getMethod("setOwningPlayer", OfflinePlayer.class);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            legacy = true;
-        }
-        try {
-            final UUID id = UUID.randomUUID();
-            PlayerProfile profile = Bukkit.createPlayerProfile(id);
-        } catch (NoClassDefFoundError | NoSuchMethodError e) {
-            doesHavePlayerProfile = false;
-        }
-        final ItemStack skull = createSkull();
-        if (skull != null) {
-            final ItemMeta skullMeta = Bukkit.getItemFactory().getItemMeta(skull.getType());
-            checkIfHasOwnerMethod((SkullMeta) skullMeta);
-        }
     }
 
     /**
@@ -90,7 +69,7 @@ public class SkullCreator {
     /**
      * Creates a player skull, should work in both legacy and new Bukkit APIs.
      *
-     * @return itemstack.
+     * @return Returns the itemStack instance or null.
      */
     @Nullable
     public static ItemStack createSkull() {
@@ -306,7 +285,7 @@ public class SkullCreator {
         final BlockState skullState = block.getState();
         if (!(skullState instanceof Skull)) return;
 
-        if (doesHavePlayerProfile) {
+        if (checks.isDoesHavePlayerProfile()) {
             PlayerProfile profile = Bukkit.createPlayerProfile(id);
             if (url != null) {
                 try {
@@ -368,7 +347,7 @@ public class SkullCreator {
      * @param url  the skin URL to apply, or {@code null} to leave only the default player skin
      */
     public static void setSkullUrl(@Nonnull final SkullMeta meta, @Nonnull final UUID uuid, @Nullable final String url) {
-        if (doesHaveOwnerProfile) {
+        if (checks.isDoesHaveOwnerProfile()) {
             PlayerProfile profile = Bukkit.createPlayerProfile(uuid);
             if (url != null) {
                 try {
@@ -410,7 +389,7 @@ public class SkullCreator {
      */
     @Nullable
     public static String getSkullUrl(SkullMeta meta) {
-        if (doesHaveOwnerProfile) {
+        if (checks.isDoesHaveOwnerProfile()) {
             try {
                 final PlayerProfile ownerProfile = meta.getOwnerProfile();
                 if (ownerProfile != null) {
@@ -525,7 +504,7 @@ public class SkullCreator {
      * @param b64  The base64 texture string.
      */
     private static void mutateItemMeta(SkullMeta meta, String b64) {
-        if (doesHaveOwnerProfile) {
+        if (checks.isDoesHaveOwnerProfile()) {
             try {
                 meta.setOwnerProfile(makePlayerProfile(b64));
             } catch (MalformedURLException ex2) {
@@ -589,38 +568,6 @@ public class SkullCreator {
 
     }
 
-    /**
-     * Checks whether the SkullMeta class has the setOwnerProfile method
-     * and updates the flag accordingly.
-     *
-     * @param meta The SkullMeta instance to check.
-     */
-    private static void checkIfHasOwnerMethod(final SkullMeta meta) {
-        try {
-            meta.getClass().getDeclaredMethod("setOwnerProfile", PlayerProfile.class);
-        } catch (NoSuchMethodException | NoClassDefFoundError exception) {
-            doesHaveOwnerProfile = false;
-        }
-    }
-
-    /**
-     * Checks if running on legacy Bukkit API and logs a warning if using legacy API on modern server.
-     */
-    private static void checkLegacy() {
-        try {
-            // if both of these succeed, then we are running
-            // in a legacy api, but on a modern (1.13+) server.
-            Material.class.getDeclaredField(PLAYER_HEAD);
-            Material.valueOf("SKULL");
-
-            if (!warningPosted) {
-                LOG.log(() -> "SKULLCREATOR API - Using the legacy bukkit API with 1.13+ bukkit versions is not supported!");
-                warningPosted = true;
-            }
-        } catch (NoSuchFieldException | IllegalArgumentException ignored) {
-            //We don't need to know a error is thrown. This only checks so you don't use wrong API version.
-        }
-    }
 
     /**
      * Retrieves a Material by name, logging a warning if not found.
@@ -646,7 +593,7 @@ public class SkullCreator {
      */
     private static void setOwningPlayer(SkullMeta meta, OfflinePlayer player) {
         try {
-            if (legacy) {
+            if (checks.isLegacy()) {
                 meta.setOwner(player.getName());
             } else {
                 meta.setOwningPlayer(player);
@@ -729,6 +676,87 @@ public class SkullCreator {
             LOG.log(() -> "Failed to parse the Base64 string, does you provide a valid base64 string? The input string: " + base64);
         }
         return null;*/
+    }
+
+    public static class CheckClassesExist {
+        private  boolean legacy;
+        private  boolean warningPosted = false;
+        private  boolean doesHaveOwnerProfile = true;
+        private  boolean doesHavePlayerProfile = true;
+
+        public CheckClassesExist() {
+            checkLegacy();
+            try {
+                Class<?> skullMeta = Class.forName("org.bukkit.inventory.meta.SkullMeta");
+                skullMeta.getMethod("setOwningPlayer", OfflinePlayer.class);
+            } catch (ClassNotFoundException | NoSuchMethodException e) {
+                legacy = true;
+            }
+            try {
+                final UUID id = UUID.randomUUID();
+                PlayerProfile profile = Bukkit.createPlayerProfile(id);
+            } catch (NoClassDefFoundError | NoSuchMethodError e) {
+                doesHavePlayerProfile = false;
+            }
+            final ItemStack skull = createSkull();
+            if (skull != null) {
+                final ItemMeta skullMeta = Bukkit.getItemFactory().getItemMeta(skull.getType());
+                if (skullMeta != null) {
+                    checkIfHasOwnerMethod((SkullMeta) skullMeta);
+                }
+            }
+        }
+
+        public  boolean isLegacy() {
+            return legacy;
+        }
+
+        public  boolean isWarningPosted() {
+            return warningPosted;
+        }
+
+        public  boolean isDoesHaveOwnerProfile() {
+            return doesHaveOwnerProfile;
+        }
+
+        public boolean isDoesHavePlayerProfile() {
+            return doesHavePlayerProfile;
+        }
+
+        /**
+         * Checks if running on legacy Bukkit API and logs a warning if using legacy API on modern server.
+         */
+        private void checkLegacy() {
+            try {
+                // if both of these succeed, then we are running
+                // in a legacy api, but on a modern (1.13+) server.
+                Material.class.getDeclaredField(PLAYER_HEAD);
+                Material.valueOf("SKULL");
+
+                if (!warningPosted) {
+                    LOG.log(() -> "SKULLCREATOR API - Using the legacy bukkit API with 1.13+ bukkit versions is not supported!");
+                    warningPosted = true;
+                }
+            } catch (NoSuchFieldException | IllegalArgumentException ignored) {
+                //We don't need to know a error is thrown. This only checks so you don't use wrong API version.
+            }
+        }
+
+        /**
+         * Checks whether the SkullMeta class has the setOwnerProfile method
+         * and updates the flag accordingly.
+         *
+         * @param meta The SkullMeta instance to check.
+         */
+        private  void checkIfHasOwnerMethod(final SkullMeta meta) {
+            try {
+                meta.getClass().getDeclaredMethod("setOwnerProfile", PlayerProfile.class);
+            } catch (NoSuchMethodException | NoClassDefFoundError exception) {
+                doesHaveOwnerProfile = false;
+            }
+        }
+
+
     }
 
 }
