@@ -75,7 +75,7 @@ public class SkullCreator {
             doesHavePlayerProfile = false;
         }
         final ItemStack skull = createSkull();
-        if(skull != null) {
+        if (skull != null) {
             final ItemMeta skullMeta = Bukkit.getItemFactory().getItemMeta(skull.getType());
             checkIfHasOwnerMethod((SkullMeta) skullMeta);
         }
@@ -287,7 +287,7 @@ public class SkullCreator {
 
         setToSkull(block);
         final UUID id = UUID.nameUUIDFromBytes(url.getBytes(StandardCharsets.UTF_8));
-        blockWithUrl(block, id,url);
+        blockWithUrl(block, id, url);
     }
 
     /**
@@ -299,7 +299,7 @@ public class SkullCreator {
      *
      * @param block The block to set.
      * @param id    The player to set it to.
-     * @param url  The mojang URL to retrieve the texture.
+     * @param url   The mojang URL to retrieve the texture.
      */
     public static void blockWithUrl(@Nonnull final Block block, @Nonnull final UUID id, @Nullable final String url) {
         // Get old block data
@@ -596,12 +596,10 @@ public class SkullCreator {
      * @param meta The SkullMeta instance to check.
      */
     private static void checkIfHasOwnerMethod(final SkullMeta meta) {
-        if (metaSetProfileMethod == null) {
-            try {
-                metaSetProfileMethod = meta.getClass().getDeclaredMethod("setOwnerProfile", PlayerProfile.class);
-            } catch (NoSuchMethodException | NoClassDefFoundError exception) {
-                doesHaveOwnerProfile = false;
-            }
+        try {
+            meta.getClass().getDeclaredMethod("setOwnerProfile", PlayerProfile.class);
+        } catch (NoSuchMethodException | NoClassDefFoundError exception) {
+            doesHaveOwnerProfile = false;
         }
     }
 
