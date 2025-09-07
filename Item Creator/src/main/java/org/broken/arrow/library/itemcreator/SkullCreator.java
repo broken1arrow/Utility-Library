@@ -74,6 +74,11 @@ public class SkullCreator {
         } catch (NoClassDefFoundError | NoSuchMethodError e) {
             doesHavePlayerProfile = false;
         }
+        final ItemStack skull = createSkull();
+        if(skull != null) {
+            final ItemMeta skullMeta = Bukkit.getItemFactory().getItemMeta(skull.getType());
+            checkIfHasOwnerMethod((SkullMeta) skullMeta);
+        }
     }
 
     /**
@@ -363,7 +368,6 @@ public class SkullCreator {
      * @param url  the skin URL to apply, or {@code null} to leave only the default player skin
      */
     public static void setSkullUrl(@Nonnull final SkullMeta meta, @Nonnull final UUID uuid, @Nullable final String url) {
-        checkIfHasOwnerMethod(meta);
         if (doesHaveOwnerProfile) {
             PlayerProfile profile = Bukkit.createPlayerProfile(uuid);
             if (url != null) {
@@ -406,7 +410,6 @@ public class SkullCreator {
      */
     @Nullable
     public static String getSkullUrl(SkullMeta meta) {
-        checkIfHasOwnerMethod(meta);
         if (doesHaveOwnerProfile) {
             try {
                 final PlayerProfile ownerProfile = meta.getOwnerProfile();
@@ -522,7 +525,6 @@ public class SkullCreator {
      * @param b64  The base64 texture string.
      */
     private static void mutateItemMeta(SkullMeta meta, String b64) {
-        checkIfHasOwnerMethod(meta);
         if (doesHaveOwnerProfile) {
             try {
                 meta.setOwnerProfile(makePlayerProfile(b64));
@@ -593,7 +595,7 @@ public class SkullCreator {
      *
      * @param meta The SkullMeta instance to check.
      */
-    private static void checkIfHasOwnerMethod(SkullMeta meta) {
+    private static void checkIfHasOwnerMethod(final SkullMeta meta) {
         if (metaSetProfileMethod == null) {
             try {
                 metaSetProfileMethod = meta.getClass().getDeclaredMethod("setOwnerProfile", PlayerProfile.class);
