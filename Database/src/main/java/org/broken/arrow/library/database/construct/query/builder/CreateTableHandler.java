@@ -148,15 +148,14 @@ public class CreateTableHandler {
      * @return the generated SQL statement as a string
      */
     public String build() {
-        StringBuilder sql = new StringBuilder();
+        final StringBuilder sql = new StringBuilder();
+        final Selector<?, ?> selectorData = this.selector != null ? this.selector.getSelector() : null;
+        final TableSelectorWrapper selectorWrapper = this.selectorWrapper;
+        final SqlExpressionType copyOption = this.getCopyMethod();
 
-        Selector<?, ?> selectorData = this.selector != null ? this.selector.getSelector() : null;
-        if (this.selectorWrapper != null)
-            selectorData = this.selectorWrapper.getTableSelector();
-
-        if (copyMethod != null && selectorData != null) {
+        if (copyOption != null && selectorWrapper == null && selectorData != null) {
             sql.append(" ")
-                    .append(this.getCopyMethod().toString())
+                    .append(copyOption.toString())
                     .append(" ")
                     .append("SELECT")
                     .append(" ")
@@ -167,13 +166,17 @@ public class CreateTableHandler {
                     .append(selectorData.getTableWithAlias())
                     .append(selectorData.getWhereBuilder().build());
 
-
             return sql + "";
 
         }
-        if (selectorData != null) {
+
+        Selector<?, ?> selectorDataTable = null;
+        if (selectorWrapper != null)
+            selectorDataTable = this.selectorWrapper.getTableSelector();
+
+        if (selectorDataTable != null) {
             sql.append(" (");
-            sql.append(selectorData.getSelectBuilder().build());
+            sql.append(selectorDataTable.getSelectBuilder().build());
             sql.append(")");
         }
 

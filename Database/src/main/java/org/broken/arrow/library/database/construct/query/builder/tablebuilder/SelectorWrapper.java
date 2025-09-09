@@ -64,7 +64,7 @@ public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrap
      *
      * @param callback a function to build the WHERE clause
      * @return this SelectorWrapper instance for method chaining; after calling this,
-     *         {@link #build()} can be invoked to obtain the create table handler.
+     *         {@link #build()} can be invoked to obtain the creation table handler.
      */
     @Override
     public SelectorWrapper where(Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
