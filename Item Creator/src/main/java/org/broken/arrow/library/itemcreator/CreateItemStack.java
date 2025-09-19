@@ -57,6 +57,7 @@ public class CreateItemStack {
     private String color;
     private List<ItemFlag> itemFlags;
     private NBTDataWrapper nbtDataWrapper;
+
     private MetaHandler metaHandler;
     private int amountOfItems;
     private byte data = -1;
@@ -174,11 +175,11 @@ public class CreateItemStack {
     @Deprecated
     public CreateItemStack addPattern(final Pattern... patterns) {
         if (patterns == null || patterns.length < 1) return this;
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
-        org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = this.metaHandler.getBanner();
 
-        this.metaHandler.setBanner(bannerMeta -> {
+        final MetaHandler metadata = this.getOrCreateMetaHandler();
+        final org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = metadata.getBanner();
+
+        metadata.setBanner(bannerMeta -> {
             bannerMeta.addPatterns(patterns);
             bannerMeta.setBannerBaseColor(bannerData != null ? bannerData.getBannerBaseColor() : null);
         });
@@ -194,11 +195,10 @@ public class CreateItemStack {
      */
     @Deprecated
     public CreateItemStack addPattern(final List<Pattern> patterns) {
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
+        final MetaHandler metadata = this.getOrCreateMetaHandler();
+        org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = metadata.getBanner();
 
-        org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = this.metaHandler.getBanner();
-        this.metaHandler.setBanner(bannerMeta -> {
+        metadata.setBanner(bannerMeta -> {
             bannerMeta.addPatterns(patterns);
             bannerMeta.setBannerBaseColor(bannerData != null ? bannerData.getBannerBaseColor() : null);
         });
@@ -224,10 +224,10 @@ public class CreateItemStack {
      */
     @Deprecated
     public CreateItemStack setBannerBaseColor(DyeColor bannerBaseColor) {
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
-        org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = this.metaHandler.getBanner();
-        this.metaHandler.setBanner(bannerMeta -> {
+        final MetaHandler metadata = this.getOrCreateMetaHandler();
+        final org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = metadata.getBanner();
+
+        metadata.setBanner(bannerMeta -> {
             bannerMeta.addPatterns(bannerData != null ? bannerData.getPatterns() : null);
             bannerMeta.setBannerBaseColor(bannerBaseColor);
         });
@@ -253,9 +253,10 @@ public class CreateItemStack {
      * @return true if it is a water Bottle item.
      */
     public boolean isWaterBottle() {
-        if (this.metaHandler == null)
+        MetaHandler meta = getMetaHandler();
+        if (meta == null)
             return false;
-        final BottleEffectMeta bottleEffect = this.metaHandler.getBottleEffect();
+        final BottleEffectMeta bottleEffect = meta.getBottleEffect();
         if (bottleEffect == null)
             return false;
         return bottleEffect.isWaterBottle();
@@ -271,9 +272,8 @@ public class CreateItemStack {
      */
     @Deprecated
     public CreateItemStack setWaterBottle(final boolean waterBottle) {
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
-        this.metaHandler.createBottleEffectMeta().setWaterBottle(waterBottle);
+        final MetaHandler metadata = this.getOrCreateMetaHandler();
+        metadata.createBottleEffectMeta().setWaterBottle(waterBottle);
         return this;
     }
 
@@ -336,10 +336,9 @@ public class CreateItemStack {
      */
     @Deprecated
     public void setFireworkEffect(final FireworkEffect fireworkEffect) {
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
+        MetaHandler metadata = this.getOrCreateMetaHandler();
 
-        this.metaHandler.setFirework(fireworkMeta -> {
+        metadata.setFirework(fireworkMeta -> {
             fireworkMeta.addFireworkEffect(fireworkEffect);
         });
     }
@@ -414,10 +413,10 @@ public class CreateItemStack {
         Validate.checkNotNull(enchantmentMap, "this map is null");
         if (enchantmentMap.isEmpty())
             logger.log(() -> "This map is empty so no enchantments will be added");
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
+        final MetaHandler metadata = this.getOrCreateMetaHandler();
+
         enchantmentMap.forEach((key, value) -> {
-            this.metaHandler.setEnhancements(enhancementMeta ->
+            metadata.setEnhancements(enhancementMeta ->
                     enhancementMeta
                             .setEnchantment(key)
                             .setLevel(value.getFirst())
@@ -448,12 +447,10 @@ public class CreateItemStack {
             logger.log(() -> "your enchantment: " + enchant + " ,are not valid.");
             return this;
         }
+        final MetaHandler meta = getOrCreateMetaHandler();
+        final Enchantment finalEnchantment = enchantment;
 
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
-
-        Enchantment finalEnchantment = enchantment;
-        this.metaHandler.setEnhancements(enhancementMeta ->
+        meta.setEnhancements(enhancementMeta ->
                 enhancementMeta.setEnchantment(finalEnchantment)
                         .setLevel(enchantmentLevel)
                         .setIgnoreLevelRestriction(levelRestriction)
@@ -598,10 +595,9 @@ public class CreateItemStack {
             logger.log(() -> "This list of portion effects is empty so no values will be added");
             return this;
         }
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
+        final MetaHandler metadata = this.getOrCreateMetaHandler();
 
-        this.metaHandler.setBottleEffect(enhancementMeta ->
+        metadata.setBottleEffect(enhancementMeta ->
                 enhancementMeta.setPotionEffects((potionEffects)
                 ));
         return this;
@@ -618,11 +614,10 @@ public class CreateItemStack {
     public CreateItemStack addPortionEffects(final PotionEffect... potionEffects) {
         if (potionEffects.length == 0) return this;
 
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
-        BottleEffectMeta bottleEffectMeta = this.metaHandler.getBottleEffect();
+        final MetaHandler metadata = this.getOrCreateMetaHandler();
+        final BottleEffectMeta bottleEffectMeta = metadata.getBottleEffect();
 
-        this.metaHandler.setBottleEffect(effectMeta -> {
+        metadata.setBottleEffect(effectMeta -> {
             effectMeta.setPotionEffects(bottleEffectMeta != null ? bottleEffectMeta.getPotionEffects() : null);
             effectMeta.addPotionEffects(potionEffects);
         });
@@ -640,11 +635,10 @@ public class CreateItemStack {
             logger.log(() -> "This list of portion effects is empty so no values will be added");
             return this;
         }
-        if (this.metaHandler == null)
-            this.metaHandler = new MetaHandler();
-        BottleEffectMeta bottleEffectMeta = this.metaHandler.getBottleEffect();
+        final MetaHandler metadata = this.getOrCreateMetaHandler();
+        final BottleEffectMeta bottleEffectMeta = metadata.getBottleEffect();
 
-        this.metaHandler.setBottleEffect(effectMeta -> {
+        metadata.setBottleEffect(effectMeta -> {
             List<PotionEffect> potionEffectsList = new ArrayList<>();
             if (bottleEffectMeta != null)
                 potionEffectsList = bottleEffectMeta.getPotionEffects();
@@ -778,6 +772,7 @@ public class CreateItemStack {
 
     /**
      * Get the class for set nbt data on your item.
+     *
      * @return the nbtdata instance.
      */
     @Nullable
@@ -841,7 +836,10 @@ public class CreateItemStack {
      * @return true if it shall show the enchantments.
      */
     public boolean isShowEnchantments() {
-        final EnhancementMeta enhancements = this.metaHandler.getEnhancements();
+        MetaHandler handler = this.getMetaHandler();
+        if (handler == null) return false;
+
+        final EnhancementMeta enhancements = handler.getEnhancements();
         if (enhancements == null)
             return false;
         return enhancements.isShowEnchantments();
@@ -850,6 +848,7 @@ public class CreateItemStack {
     /**
      * The class that translate the item-stack depending on what for type of
      * item provided, like if it strings,material or the actual item-stack.
+     *
      * @return the ConvertToItemStack instance.
      */
     public ConvertToItemStack getConvertItems() {
@@ -997,6 +996,19 @@ public class CreateItemStack {
         if (haveTextTranslator)
             return TextTranslator.toSpigotFormat(rawSingleLine);
         return ChatColor.translateAlternateColorCodes('&', rawSingleLine);
+    }
+
+    @Nullable
+    private MetaHandler getMetaHandler() {
+        return this.metaHandler;
+    }
+
+    @Nonnull
+    private MetaHandler getOrCreateMetaHandler() {
+        if (this.metaHandler == null) {
+            this.metaHandler = new MetaHandler();
+        }
+        return this.metaHandler;
     }
 
     @Nonnull

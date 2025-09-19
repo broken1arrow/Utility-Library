@@ -31,7 +31,11 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
      */
     @Override
     public void write(final JsonWriter out, final BottleEffectMeta value) throws IOException {
-        JsonWriterHelper json = new JsonWriterHelper(out);
+        if (value == null) {
+            out.nullValue();
+            return;
+        }
+        final JsonWriterHelper json = new JsonWriterHelper(out);
         final PotionType potionType = value.getPotionType();
 
         json.value("potion_type", potionType != null ? potionType.name() : "");

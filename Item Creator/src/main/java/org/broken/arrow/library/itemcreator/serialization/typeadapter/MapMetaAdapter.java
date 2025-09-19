@@ -33,7 +33,12 @@ public class MapMetaAdapter extends TypeAdapter<MapWrapperMeta> {
      */
     @Override
     public void write(final JsonWriter out, final MapWrapperMeta value) throws IOException {
-        JsonWriterHelper json = new JsonWriterHelper(out);
+        if (value == null) {
+            out.nullValue();
+            return;
+        }
+        final JsonWriterHelper json = new JsonWriterHelper(out);
+
         final MapView mapView = value.getMapView();
         if (mapView != null) {
             json.value("id", mapView.getId());
@@ -81,7 +86,7 @@ public class MapMetaAdapter extends TypeAdapter<MapWrapperMeta> {
                     mapViewValues.locked = reader.nextBoolean();
                     break;
                 case "is_tracking_position":
-                    mapViewValues.trackingPosition= reader.nextBoolean();
+                    mapViewValues.trackingPosition = reader.nextBoolean();
                     break;
                 case "is_unlimited_tracking":
                     mapViewValues.unlimitedTracking = reader.nextBoolean();
@@ -96,19 +101,22 @@ public class MapMetaAdapter extends TypeAdapter<MapWrapperMeta> {
                     reader.skipValue();
             }
         });
-        MapView mapView = Bukkit.getMap(mapViewValues.id);
-        if (mapView == null) mapView = Bukkit.createMap(mapViewValues.world);
+        final World world = mapViewValues.world;
+        if(world != null) {
+            MapView mapView = Bukkit.getMap(mapViewValues.id);
+            if (mapView == null) mapView = Bukkit.createMap(world);
 
-        mapView.setWorld(mapViewValues.world);
-        mapView.setCenterX(mapViewValues.centerX);
-        mapView.setCenterZ(mapViewValues.centerZ);
-        mapView.setScale(mapViewValues.scale);
+            mapView.setWorld(world);
+            mapView.setCenterX(mapViewValues.centerX);
+            mapView.setCenterZ(mapViewValues.centerZ);
+            mapView.setScale(mapViewValues.scale);
 
-        mapView.setLocked(mapViewValues.locked);
-        mapView.setTrackingPosition(mapViewValues.trackingPosition);
-        mapView.setUnlimitedTracking(mapViewValues.unlimitedTracking);
+            mapView.setLocked(mapViewValues.locked);
+            mapView.setTrackingPosition(mapViewValues.trackingPosition);
+            mapView.setUnlimitedTracking(mapViewValues.unlimitedTracking);
 
-        meta.createMapView(mapView);
+            meta.createMapView(mapView);
+        }
         json.endObject();
         return meta;
     }

@@ -536,6 +536,8 @@ public class SkullCreator {
 
     private static String getUrl(final GameProfile profile) {
         for (Property property : profile.getProperties().get(TEXTURES)) {
+            if(property == null) continue;
+
             String value = property.getValue();
             try {
                 // Decode Base64 -> JSON
@@ -778,8 +780,5 @@ public class SkullCreator {
                 doesHaveOwnerProfile = false;
             }
         }
-
-
     }
-
 }

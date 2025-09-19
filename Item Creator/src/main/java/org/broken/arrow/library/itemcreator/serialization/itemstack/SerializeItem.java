@@ -38,33 +38,26 @@ import java.util.stream.Collectors;
  * </p>
  */
 public class SerializeItem {
+
+    private final Set<ItemFlag> itemFlags = new HashSet<>();
+    private final Map<String, Integer> enchantments = new HashMap<>();
+    private List<AttributeModifierWrapper> attributeModifiers;
+    private List<org.broken.arrow.library.itemcreator.meta.BannerMeta> patterns;
     private Material type;
-    private int amount = 1;
+    private Color armorColor;
+    private DyeColor baseColor;
     private String name;
     private List<String> lore;
-    private final Map<String, Integer> enchantments = new HashMap<>();
     private Integer customModelData;
-    private boolean unbreakable;
-    private final Set<ItemFlag> itemFlags = new HashSet<>();
-    // Skull
     private String skullOwner;
     private UUID skinPlayerId;
-    private PlayerProfile ownerProfile;
-    // Potion
     private BottleEffectMeta potionEffects;
-    // Attributes
-    private List<AttributeModifierWrapper> attributeModifiers;
-    // Armor Color
-    private Color armorColor;
-    // Banner
-    private DyeColor baseColor;
-    private List<org.broken.arrow.library.itemcreator.meta.BannerMeta> patterns;
-    // Firework
     private org.broken.arrow.library.itemcreator.meta.FireworkMeta fireworkMeta;
     private org.broken.arrow.library.itemcreator.meta.BookMeta bookMenta;
     private MapWrapperMeta mapViewMeta;
     private String skullUrl;
-
+    private int amount = 1;
+    private boolean unbreakable;
 
     /**
      * Creates a serializable item representation from an ItemStack.
@@ -295,15 +288,6 @@ public class SerializeItem {
     }
 
     /**
-     * Retrieve the item-stack owner profile if item is skull.
-     *
-     * @return the skull owner profile, or null if not set
-     */
-    public PlayerProfile getOwnerProfile() {
-        return ownerProfile;
-    }
-
-    /**
      * Retrieve the item-stack potion effects.
      *
      * @return the stored potion effects, or null if not set
@@ -379,7 +363,6 @@ public class SerializeItem {
                 Objects.equals(itemFlags, that.itemFlags) &&
                 Objects.equals(skullOwner, that.skullOwner) &&
                 Objects.equals(skinPlayerId, that.skinPlayerId) &&
-                Objects.equals(ownerProfile, that.ownerProfile) &&
                 Objects.equals(potionEffects, that.potionEffects) &&
                 Objects.equals(attributeModifiers, that.attributeModifiers) &&
                 Objects.equals(armorColor, that.armorColor) && baseColor == that.baseColor &&
@@ -390,7 +373,7 @@ public class SerializeItem {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, skinPlayerId, ownerProfile, potionEffects, attributeModifiers, armorColor, baseColor, patterns, fireworkMeta, bookMenta);
+        return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, skinPlayerId,  potionEffects, attributeModifiers, armorColor, baseColor, patterns, fireworkMeta, bookMenta);
     }
 
     private void setOwnerToMeta(@Nonnull final SkullMeta skull) {

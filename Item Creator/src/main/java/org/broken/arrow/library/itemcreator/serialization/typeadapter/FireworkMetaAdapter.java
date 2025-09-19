@@ -29,8 +29,12 @@ public class FireworkMetaAdapter extends TypeAdapter<FireworkMeta> {
      */
     @Override
     public void write(JsonWriter out, FireworkMeta value) throws IOException {
-        JsonWriterHelper json = new JsonWriterHelper(out);
+        if (value == null) {
+            out.nullValue();
+            return;
+        }
 
+        final JsonWriterHelper json = new JsonWriterHelper(out);
         json.value("fireworkPower", value.getPower());
 
         json.forEachObject("fireworkEffects", value.getFireworkEffects(), effect -> {
