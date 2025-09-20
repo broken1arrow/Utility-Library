@@ -21,8 +21,8 @@ public class AttributeModifierWrapper {
     private String equipmentSlot;
     private String attribute;
     private String name;
-    private double amount;
     private String operation;
+    private double amount;
 
     /**
      * Creates a wrapper from the given {@link Attribute} and {@link AttributeModifier}.

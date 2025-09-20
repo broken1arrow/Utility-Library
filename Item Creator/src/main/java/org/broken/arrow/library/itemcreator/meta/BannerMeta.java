@@ -10,6 +10,7 @@ import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +40,7 @@ public class BannerMeta {
      *
      * @return the base {@link DyeColor} of the banner, or null if not set.
      */
+    @Nullable
     public DyeColor getBannerBaseColor() {
         return bannerBaseColor;
     }

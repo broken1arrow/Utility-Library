@@ -45,7 +45,6 @@ public class SerializeItem {
     private List<org.broken.arrow.library.itemcreator.meta.BannerMeta> patterns;
     private Material type;
     private Color armorColor;
-    private DyeColor baseColor;
     private String name;
     private List<String> lore;
     private Integer customModelData;
@@ -314,14 +313,6 @@ public class SerializeItem {
         return armorColor;
     }
 
-    /**
-     * Retrieve the item-stack banner base color.
-     *
-     * @return the banner base color, or null if not set
-     */
-    public DyeColor getBaseColor() {
-        return baseColor;
-    }
 
     /**
      * Retrieve the item-stack banner patterns.
@@ -365,7 +356,7 @@ public class SerializeItem {
                 Objects.equals(skinPlayerId, that.skinPlayerId) &&
                 Objects.equals(potionEffects, that.potionEffects) &&
                 Objects.equals(attributeModifiers, that.attributeModifiers) &&
-                Objects.equals(armorColor, that.armorColor) && baseColor == that.baseColor &&
+                Objects.equals(armorColor, that.armorColor)  &&
                 Objects.equals(patterns, that.patterns) &&
                 Objects.equals(fireworkMeta, that.fireworkMeta) &&
                 Objects.equals(bookMenta, that.bookMenta);
@@ -373,7 +364,7 @@ public class SerializeItem {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, skinPlayerId,  potionEffects, attributeModifiers, armorColor, baseColor, patterns, fireworkMeta, bookMenta);
+        return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, skinPlayerId,  potionEffects, attributeModifiers, armorColor, patterns, fireworkMeta, bookMenta);
     }
 
     private void setOwnerToMeta(@Nonnull final SkullMeta skull) {
@@ -433,10 +424,9 @@ public class SerializeItem {
         if (meta instanceof BannerMeta) {
             final BannerMeta bannerMeta = (BannerMeta) meta;
             org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = new org.broken.arrow.library.itemcreator.meta.BannerMeta();
-            data.baseColor = bannerMeta.getBaseColor();
+            bannerData.setBannerBaseColor(bannerMeta.getBaseColor());
             data.patterns = bannerMeta.getPatterns().stream()
                     .map(pattern -> {
-                        bannerData.setBannerBaseColor(pattern.getColor());
                         bannerData.addPatterns(pattern);
                         return bannerData;
                     })
@@ -459,6 +449,7 @@ public class SerializeItem {
     private void setBannerMeta(final ItemMeta meta) {
         if (meta instanceof BannerMeta && patterns != null) {
             BannerMeta bannerMeta = (BannerMeta) meta;
+            final DyeColor baseColor = bannerMeta.getBaseColor();
             if (baseColor != null) bannerMeta.setBaseColor(baseColor);
             bannerMeta.setPatterns(patterns.stream().flatMap(bannerPatterns -> bannerPatterns.getPatterns().stream())
                     .collect(Collectors.toList()));

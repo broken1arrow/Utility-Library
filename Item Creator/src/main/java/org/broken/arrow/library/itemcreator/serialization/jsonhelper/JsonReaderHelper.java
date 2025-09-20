@@ -162,7 +162,6 @@ public class JsonReaderHelper {
 			String name = nextName();
 			handler.handle(name, this);
 		}
-
 	}
 
 	/**
