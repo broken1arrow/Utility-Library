@@ -306,7 +306,7 @@ public class SkullCreator {
             setProfileMethod.invoke(skull, profile);
             skull.update(true);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.log(e, () -> "Could not find the GameProfile for your minecraft version.");
         }
     }
 
@@ -536,7 +536,7 @@ public class SkullCreator {
 
     private static String getUrl(final GameProfile profile) {
         for (Property property : profile.getProperties().get(TEXTURES)) {
-            if(property == null) continue;
+            if (property == null) continue;
 
             String value = property.getValue();
             try {
