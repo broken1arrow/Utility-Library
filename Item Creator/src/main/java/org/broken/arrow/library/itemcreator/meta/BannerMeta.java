@@ -47,9 +47,15 @@ public class BannerMeta {
 
     /**
      * Sets the base color of the banner.
+     * <p>
+     * On servers running Minecraft 1.13 or later, the base color is determined
+     * by the banner's material type. In those versions, this value is used only
+     * to select the correct banner material, this method allows you
+     * to use the same logic regardless of server version.
+     * </p>
      *
-     * @param bannerBaseColor the {@link DyeColor} to set as the base color.
-     * @return this {@code BannerMeta} instance for chaining.
+     * @param bannerBaseColor the {@link DyeColor} to set as the base color
+     * @return this {@code BannerMeta} instance for chaining
      */
     public BannerMeta setBannerBaseColor(final DyeColor bannerBaseColor) {
         this.bannerBaseColor = bannerBaseColor;
