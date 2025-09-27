@@ -254,7 +254,7 @@ public class BottleEffectMeta {
             if (effects != null && !effects.isEmpty()) {
                 final ColorMeta colorEffect = this.colorMeta;
                 if (colorEffect != null && colorEffect.isColorSet()) {
-                    potionMeta.setColor(Color.fromRGB(colorEffect.getRed(), colorEffect.getGreen(), colorEffect.getBlue()));
+                    potionMeta.setColor(colorEffect.getColor());
                 }
                 effects.forEach((portionEffect) -> potionMeta.addCustomEffect(portionEffect, this.override));
             }

@@ -42,7 +42,7 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
         json.value("is_water_bottle", value.isWaterBottle());
         json.value("is_upgraded", value.isUpgraded());
         json.value("is_extended", value.isExtended());
-        json.value("color", value.getColorMeta().getRgb());
+        json.value("color", value.getColorMeta().toRgb());
         json.forEachObject("potion_effects", value.getPotionEffects(), potionEffect -> {
             json.value("type", potionEffect.getType().getName());
             json.value("duration", potionEffect.getDuration());
@@ -86,7 +86,7 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
                     meta.setExtended(extended);
                     break;
                 case "color":
-                    final String color = reader.nextString();
+                    final int color = reader.nextInt();
                     meta.setBottleColor(colorMeta -> colorMeta.setRgb(color));
                     break;
                 case "potion_effects":

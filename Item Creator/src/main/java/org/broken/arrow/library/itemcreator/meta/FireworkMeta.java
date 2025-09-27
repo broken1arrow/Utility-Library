@@ -152,7 +152,7 @@ public class FireworkMeta {
                 final ColorMeta colorEffect = this.colorMeta;
 
                 if (colorEffect.isColorSet())
-                    builder.withColor(Color.fromBGR(colorEffect.getBlue(), colorEffect.getGreen(), colorEffect.getRed()));
+                    builder.withColor(colorEffect.getColor());
                 fireworkEffectMeta.setEffect(builder.build());
             }
         }

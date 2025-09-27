@@ -14,6 +14,7 @@ public class ColorMeta {
     private int red = -1;
     private int green = -1;
     private int blue = -1;
+    private int alpha = 255;
 
 
     /**
@@ -44,6 +45,15 @@ public class ColorMeta {
     }
 
     /**
+     * Get alpha for the color.
+     *
+     * @return alpha number from 0 to 255.
+     */
+    public int getAlpha() {
+        return alpha;
+    }
+
+    /**
      * Get the rbg colors, used to dye leather armor,potions and fireworks.
      *
      * @return string with the colors, like this #,#,#.
@@ -71,9 +81,18 @@ public class ColorMeta {
     }
 
     /**
-     * Set the 3 colors from Bukkit Color.
+     * Retrieve the color set.
      *
-     * @param color you want to convert to split up in three colors.
+     * @return the color set.
+     */
+    public Color getColor() {
+        return this.color;
+    }
+
+    /**
+     * Set the colors from Bukkit Color.
+     *
+     * @param color you want to wrap.
      */
     public void setRgb(@Nonnull final Color color) {
         this.setColor(color);
@@ -153,6 +172,7 @@ public class ColorMeta {
         final int colorBlue = color.getBlue();
 
         this.rgb = colorRed + "," + colorGreen + "," + colorBlue;
+        this.alpha = color.getAlpha();
         this.color = color;
         this.red = colorRed;
         this.green = colorGreen;
@@ -169,6 +189,5 @@ public class ColorMeta {
     public boolean isColorSet() {
         return getRed() >= 0 && getGreen() >= 0 && getBlue() >= 0;
     }
-
 
 }

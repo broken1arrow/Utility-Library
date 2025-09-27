@@ -36,7 +36,7 @@ public class LeatherMeta {
 
         if (itemMeta instanceof LeatherArmorMeta) {
             final LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
-            leatherArmorMeta.setColor(Color.fromBGR(color.getBlue(), color.getGreen(), color.getRed()));
+            leatherArmorMeta.setColor(color.getColor());
         }
     }
 
