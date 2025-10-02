@@ -10,47 +10,42 @@ import java.util.logging.Level;
 public class ColorMeta {
     private static final Logging logger = new Logging(ColorMeta.class);
     private String rgb;
-    private Color color;
-    private int red = -1;
-    private int green = -1;
-    private int blue = -1;
-    private int alpha = 255;
-
+    private Color color = Color.fromRGB(0,0,0);
 
     /**
      * Get red color.
      *
-     * @return color number.
+     * @return red component, from 0 to 255.
      */
     public int getRed() {
-        return red;
+        return color.getRed();
     }
 
     /**
      * Get green color.
      *
-     * @return color number.
+     * @return green component, from 0 to 255.
      */
     public int getGreen() {
-        return green;
+        return color.getGreen();
     }
 
     /**
      * Get blue color
      *
-     * @return color number.
+     * @return blue component, from 0 to 255.
      */
     public int getBlue() {
-        return blue;
+        return color.getBlue();
     }
 
     /**
      * Get alpha for the color.
      *
-     * @return alpha number from 0 to 255.
+     * @return alpha component, from 0 to 255.
      */
     public int getAlpha() {
-        return alpha;
+        return color.getAlpha();
     }
 
     /**
@@ -154,7 +149,7 @@ public class ColorMeta {
      * @throws Validate.ValidateExceptions if any value is strictly {@literal >255 or <0}
      */
     public void setRgb(final int alpha,final int red, final int green, final int blue) {
-        Validate.checkBoolean(red < 0 || green < 0 || blue < 0, "You can't use negative numbers for the rbg color.");
+        Validate.checkBoolean(alpha < 0 ||red < 0 || green < 0 || blue < 0, "You can't use negative numbers for the arbg color.");
         final Color color = Color.fromARGB(alpha,red, green, blue);
         this.setColor(color);
     }
@@ -172,12 +167,7 @@ public class ColorMeta {
         final int colorBlue = color.getBlue();
 
         this.rgb = colorRed + "," + colorGreen + "," + colorBlue;
-        this.alpha = color.getAlpha();
         this.color = color;
-        this.red = colorRed;
-        this.green = colorGreen;
-        this.blue = colorBlue;
-
     }
 
 
@@ -187,7 +177,7 @@ public class ColorMeta {
      * @return true if the colors is set.
      */
     public boolean isColorSet() {
-        return getRed() >= 0 && getGreen() >= 0 && getBlue() >= 0;
+        return color != null;
     }
 
 }
