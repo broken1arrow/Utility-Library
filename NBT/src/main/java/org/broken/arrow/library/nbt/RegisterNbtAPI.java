@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 import static de.tr7zw.changeme.nbtapi.utils.MinecraftVersion.getVersion;
 /**
  * Utility class for registering and interacting with the NBT API
- * ({@link de.tr7zw.changeme.nbtapi}) in a Bukkit/Spigot/Paper environment.
+ * ({@link de.tr7zw.changeme.nbtapi.NBT}) in a Bukkit/Spigot/Paper environment.
  * <p>
  * This class provides:
  * <ul>

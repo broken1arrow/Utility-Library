@@ -6,7 +6,7 @@ import com.google.gson.stream.JsonWriter;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonReaderHelper;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonWriterHelper;
-import org.broken.arrow.library.itemcreator.meta.potion.PotionData;
+import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
@@ -70,7 +70,7 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
                 case "potion_type":
                     final String bukkitPotionType = reader.nextString();
                     if (bukkitPotionType != null && !bukkitPotionType.isEmpty()) {
-                        meta.setPotionData(PotionData.findPotionByType(PotionData.findPotionByName(bukkitPotionType)));
+                        meta.setPotionData(PotionTypeWrapper.findPotionByName(bukkitPotionType));
                     }
                     break;
                 case "is_water_bottle":

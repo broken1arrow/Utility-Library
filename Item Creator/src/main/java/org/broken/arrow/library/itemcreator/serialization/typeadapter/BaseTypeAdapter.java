@@ -20,6 +20,12 @@ public abstract class BaseTypeAdapter<T> extends TypeAdapter<T> {
     /**
      * Adapter implementations override this method instead of write().
      * The null check is already handled.
+     * <p>
+     * Writes one JSON value (an array, object, string, number, boolean or null)
+     * for {@code value}.
+     *
+     * @param out the data to set to the json string.
+     * @param value the Java object to write. May be null.
      */
     protected abstract void checkedWrite(JsonWriter out,@Nonnull T value) throws IOException;
 }

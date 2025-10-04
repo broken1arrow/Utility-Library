@@ -2,17 +2,29 @@ package org.broken.arrow.library.itemcreator.utility;
 
 import org.bukkit.block.banner.PatternType;
 
+import javax.annotation.Nonnull;
 import java.util.Locale;
 
 public final class PatternTypeUtil {
 
     private PatternTypeUtil() {}
 
-    public static String toId(PatternType type) {
+    /**
+     * Get the string ID for the banner pattern.
+     * @param type the type of pattern.
+     * @return returns the id.
+     */
+    public static String toId(@Nonnull final PatternType type) {
         return type.getIdentifier();
     }
 
-    public static PatternType fromString(String input) {
+    /**
+     * Get the type from the string id.
+     *
+     * @param input the name for the id or the enum name.
+     * @return the pattern type or null if it does not find it.
+     */
+    public static PatternType fromString(final String input) {
         if (input == null) return null;
 
         PatternType byId = PatternType.getByIdentifier(input.toLowerCase(Locale.ROOT));

@@ -274,7 +274,7 @@ public class BuildMapView {
     }
 
     /**
-     * Build the {@link MapView)} with your settings set.
+     * Build the {@link MapView} with your settings set.
      *
      * @return a new MapView instance with your settings.
      */

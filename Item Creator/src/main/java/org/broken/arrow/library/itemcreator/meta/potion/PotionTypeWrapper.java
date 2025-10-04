@@ -5,6 +5,8 @@ import org.bukkit.potion.PotionType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents a mapping of potion data types to Minecraft's {@link PotionType},
@@ -14,7 +16,7 @@ import javax.annotation.Nullable;
  * <p>
  * Designed to follow the modern style used in Spigot and Paper APIs as of Minecraft 1.20 and above.
  */
-public enum PotionData {
+public enum PotionTypeWrapper {
     /**
      * Uncraftable potion (special case).
      */
@@ -186,8 +188,9 @@ public enum PotionData {
     /**
      * Slow Falling potion, long duration.
      */
-    LONG_SLOW_FALLING(PotionType.SLOW_FALLING, PotionModifier.LONG);;
+    LONG_SLOW_FALLING(PotionType.SLOW_FALLING, PotionModifier.LONG);
 
+    private static final Map<String, PotionTypeWrapper> POTION_TYPE_NAME = new HashMap<>();
     private final PotionType potionType;
     private final PotionModifier potionModifier;
     private final float serverVersion = ItemCreator.getServerVersion();
@@ -195,13 +198,19 @@ public enum PotionData {
     /**
      * Constructs a new {@code PotionData} entry.
      *
-     * @param potionType The base {@link PotionType} associated with this potion data,
-     *                   or {@code null} for special cases like MUNDANE or WATER.
-     * @param potionModifier       The {@link PotionModifier} modifier for the potion, e.g., NORMAL, LONG, or STRONG.
+     * @param potionType     The base {@link PotionType} associated with this potion data,
+     *                       or {@code null} for special cases like MUNDANE or WATER.
+     * @param potionModifier The {@link PotionModifier} modifier for the potion, e.g., NORMAL, LONG, or STRONG.
      */
-    PotionData(@Nonnull final PotionType potionType, @Nonnull final PotionModifier potionModifier) {
+    PotionTypeWrapper(@Nonnull final PotionType potionType, @Nonnull final PotionModifier potionModifier) {
         this.potionType = potionType;
         this.potionModifier = potionModifier;
+    }
+
+    static {
+        for (PotionTypeWrapper data : values()) {
+            POTION_TYPE_NAME.put(data.getPotionType().name(), data);
+        }
     }
 
     /**
@@ -220,35 +229,72 @@ public enum PotionData {
     }
 
     /**
-     * Find the portion mapping from the bukkit potion type.
+     * Finds the {@link PotionTypeWrapper} corresponding to a Bukkit {@link PotionType}.
+     * <p>
+     * This method provides a fast lookup for modern potion mappings and is the recommended
+     * way to resolve wrappers when working with Bukkit's potion system on 1.20.2 and newer.
+     * Older Minecraft versions do not offer the same variety of potion types, if you need
+     * compatibility from 1.8.8 and up, use {@link #findPotionByName(String)} instead.
+     * </p>
      *
-     * @param bukkitPortionType the type you want to find.
-     * @return the PotionData instance or null if it could not find the PotionType.
+     * @param bukkitPotionType the Bukkit {@link PotionType} to find.
+     * @return the matching {@link PotionTypeWrapper}, or {@code null} if no mapping exists.
      */
     @Nullable
-    public static PotionData findPotionByType(PotionType bukkitPortionType) {
-        PotionData[] potionTypes = values();
-        for (PotionData potion : potionTypes) {
-            if (potion.getPotionType() == bukkitPortionType)
-                return potion;
-        }
-        return null;
+    public static PotionTypeWrapper findPotionByType(final PotionType bukkitPotionType) {
+        return POTION_TYPE_NAME.get(bukkitPotionType.name());
     }
 
     /**
-     * Find the portion from the bukkit potion type.
+     * Finds the {@link PotionTypeWrapper} associated with the given potion name.
+     * <p>
+     * This method supports both modern and legacy potion naming. If the provided name matches
+     * an entry in {@code POTION_TYPE_NAME}, that entry will be returned first.
+     * Otherwise, it attempts to resolve the name using {@link PotionTypeWrapper#valueOf(String)}.
+     * </p>
      *
-     * @param bukkitPortionType the type you want to find.
-     * @return the PotionData instance or null if it could not find the PotionType.
+     * <p><strong>Note:</strong> Using legacy potion names is discouraged, as it prevents
+     * easy retrieval of potion effect types. Prefer modern {@link PotionType} values
+     * when possible (see {@link PotionTypeWrapper}), and then use {@link #getModifier()}
+     * to obtain the correct potion modifier.</p>
+     *
+     * @param name the potion name to find (case-insensitive).
+     * @return the corresponding {@link PotionTypeWrapper}, or {@code null} if no match is found.
      */
     @Nullable
-    public static PotionType findPotionByName(String bukkitPortionType) {
-        PotionType[] potionTypes = PotionType.values();
-        String bukkitPortion = bukkitPortionType.toUpperCase();
-        for (PotionType potion : potionTypes) {
-            if (potion.name().equals(bukkitPortion))
-                return potion;
+    public static PotionTypeWrapper findPotionByName(final String name) {
+        String bukkitPortion = name.toUpperCase();
+        PotionTypeWrapper potionTypeWrapper = POTION_TYPE_NAME.get(bukkitPortion);
+        if (potionTypeWrapper != null)
+            return potionTypeWrapper;
+        try {
+            return PotionTypeWrapper.valueOf(bukkitPortion);
+        } catch (IllegalArgumentException e) {
+            return null;
         }
+    }
+
+    /**
+     * Resolves the Bukkit {@link PotionType} from its string name.
+     * <p>
+     * This method internally uses {@link #findPotionByName(String)} to obtain the
+     * corresponding {@link PotionTypeWrapper}, and then returns its underlying
+     * {@link PotionType}.
+     * </p>
+     *
+     * <p><strong>Note:</strong> On Minecraft versions below 1.20.2, many potions
+     * do not have distinct {@link PotionType}s. This method may therefore return a
+     * less specific type or {@code null} if the enum name is not valid.</p>
+     *
+     * @param bukkitPotionType the name of the Bukkit potion type (case-insensitive).
+     * @return the corresponding {@link PotionType}, or {@code null} if not found.
+     */
+    @Nullable
+    public static PotionType findPotionTypeByName(String bukkitPotionType) {
+        String bukkitPotion = bukkitPotionType.toUpperCase();
+        PotionTypeWrapper potionByName = findPotionByName(bukkitPotion);
+        if (potionByName != null)
+            return potionByName.getPotionType();
         return null;
     }
 
@@ -324,12 +370,12 @@ public enum PotionData {
      * Attempting to get the uncraftable type, this default back
      * to mundane on newer Minecraft versions like 1.21 and beyond.
      *
-     * @return A {@link PotionType#UNCRAFTABLE} if it exist
+     * @return A {@link PotionType#UNCRAFTABLE} if it exists
      * other cases {@link PotionType#MUNDANE}
      */
     @Nonnull
     private static PotionType getUncraftable() {
-        PotionType potion = findPotionByName("UNCRAFTABLE");
+        PotionType potion = findPotionTypeByName("UNCRAFTABLE");
         return potion != null ? potion : PotionType.MUNDANE;
     }
 

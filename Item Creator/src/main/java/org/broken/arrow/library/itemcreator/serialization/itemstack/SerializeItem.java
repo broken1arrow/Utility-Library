@@ -10,7 +10,7 @@ import org.broken.arrow.library.itemcreator.serialization.AttributeModifierWrapp
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.MapMetaAdapter;
-import org.broken.arrow.library.itemcreator.meta.potion.PotionData;
+import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -19,7 +19,6 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.map.MapView;
-import org.bukkit.profile.PlayerProfile;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -416,7 +415,7 @@ public class SerializeItem {
                 potionMeta.getCustomEffects().forEach(data.potionEffects::addPotionEffects);
             if (potionMeta.hasColor())
                 data.potionEffects.setBottleColor(colorMeta -> colorMeta.setRgb(potionMeta.getColor()));
-            data.potionEffects.setPotionData(PotionData.findPotionByType(potionMeta.getBasePotionType()));
+            data.potionEffects.setPotionData(PotionTypeWrapper.findPotionByType(potionMeta.getBasePotionType()));
         }
     }
 

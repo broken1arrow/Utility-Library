@@ -87,7 +87,7 @@ public class BannerMetaAdapter extends BaseTypeAdapter<BannerMeta> {
     }
 
 
-    public static class PatternWarper {
+    private static class PatternWarper {
         private DyeColor color;
         private PatternType pattern;
 

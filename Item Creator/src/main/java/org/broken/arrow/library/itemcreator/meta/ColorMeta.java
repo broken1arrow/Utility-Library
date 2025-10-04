@@ -5,12 +5,14 @@ import org.broken.arrow.library.logging.Validate;
 import org.bukkit.Color;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.logging.Level;
 
 public class ColorMeta {
     private static final Logging logger = new Logging(ColorMeta.class);
-    private String rgb;
-    private Color color = Color.fromRGB(0,0,0);
+    private String rgb = "";
+    @Nullable
+    private Color color;
 
     /**
      * Get red color.
@@ -18,7 +20,7 @@ public class ColorMeta {
      * @return red component, from 0 to 255.
      */
     public int getRed() {
-        return color.getRed();
+        return this.getColor().getRed();
     }
 
     /**
@@ -27,7 +29,7 @@ public class ColorMeta {
      * @return green component, from 0 to 255.
      */
     public int getGreen() {
-        return color.getGreen();
+        return this.getColor().getGreen();
     }
 
     /**
@@ -36,7 +38,7 @@ public class ColorMeta {
      * @return blue component, from 0 to 255.
      */
     public int getBlue() {
-        return color.getBlue();
+        return this.getColor().getBlue();
     }
 
     /**
@@ -45,7 +47,7 @@ public class ColorMeta {
      * @return alpha component, from 0 to 255.
      */
     public int getAlpha() {
-        return color.getAlpha();
+        return this.getColor().getAlpha();
     }
 
     /**
@@ -63,7 +65,7 @@ public class ColorMeta {
      * @return An integer representation of this color, as 0xRRGGBB
      */
     public int toRgb() {
-        return color.asRGB();
+        return this.getColor().asRGB();
     }
 
     /**
@@ -72,15 +74,17 @@ public class ColorMeta {
      * @return An integer representation of this color, as 0xAARRGGBB
      */
     public int toArgb() {
-        return color.asARGB();
+        return this.getColor().asARGB();
     }
 
     /**
      * Retrieve the color set.
      *
-     * @return the color set.
+     * @return the color set or if not set it will return default black color.
      */
     public Color getColor() {
+        if (this.color == null)
+            return Color.fromRGB(0, 0, 0);
         return this.color;
     }
 
@@ -133,24 +137,37 @@ public class ColorMeta {
             final int colorGreen = Integer.parseInt(colors[2]);
             final int colorBlue = Integer.parseInt(colors[1]);
 
-            this.setRgb(255,colorRed, colorGreen, colorBlue);
+            this.setRgb(255, colorRed, colorGreen, colorBlue);
         } catch (final NumberFormatException exception) {
             logger.log(Level.WARNING, exception, () -> "you don´t use numbers inside this string. Your input: " + rgb);
         }
     }
 
     /**
+     * Creates a new Color object from a red, green, and blue
+     *
+     * @param red   integer from 0-255
+     * @param green integer from 0-255
+     * @param blue  integer from 0-255
+     * @throws Validate.ValidateExceptions if any value is strictly {@literal >255 or <0}
+     */
+    public void setRgb(final int red, final int green, final int blue) {
+        Validate.checkBoolean(red < 0 || green < 0 || blue < 0, "You can't use negative numbers for the rbg color.");
+        this.setRgb(255, red, green, blue);
+    }
+
+    /**
      * Creates a new Color object from an alpha, red, green, and blue
      *
      * @param alpha integer from 0-255
-     * @param red integer from 0-255
+     * @param red   integer from 0-255
      * @param green integer from 0-255
-     * @param blue integer from 0-255
+     * @param blue  integer from 0-255
      * @throws Validate.ValidateExceptions if any value is strictly {@literal >255 or <0}
      */
-    public void setRgb(final int alpha,final int red, final int green, final int blue) {
-        Validate.checkBoolean(alpha < 0 ||red < 0 || green < 0 || blue < 0, "You can't use negative numbers for the arbg color.");
-        final Color color = Color.fromARGB(alpha,red, green, blue);
+    public void setRgb(final int alpha, final int red, final int green, final int blue) {
+        Validate.checkBoolean(alpha < 0 || red < 0 || green < 0 || blue < 0, "You can't use negative numbers for the arbg color.");
+        final Color color = Color.fromARGB(alpha, red, green, blue);
         this.setColor(color);
     }
 
@@ -159,7 +176,7 @@ public class ColorMeta {
      *
      * @param color The color object to set.
      */
-    private void setColor(final Color color) {
+    private void setColor(@Nonnull final Color color) {
         Validate.checkBoolean(color == null, "You can't set color to null.");
 
         final int colorRed = color.getRed();

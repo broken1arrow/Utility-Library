@@ -1,9 +1,8 @@
 package org.broken.arrow.library.itemcreator.meta;
 
-import org.broken.arrow.library.itemcreator.meta.potion.PotionData;
+import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionModifier;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionsUtility;
-import org.bukkit.Color;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
@@ -31,7 +30,7 @@ public class BottleEffectMeta {
     private boolean waterBottle;
     private boolean override = true;
     private ColorMeta colorMeta;
-    private PotionData potionData;
+    private PotionTypeWrapper potionTypeWrapper;
     private boolean extended;
     private boolean upgraded;
 
@@ -136,11 +135,11 @@ public class BottleEffectMeta {
      */
     @Nullable
     public PotionType getPotionType() {
-        return (this.potionData == null ? null : this.potionData.getPotionType());
+        return (this.potionTypeWrapper == null ? null : this.potionTypeWrapper.getPotionType());
     }
 
     /**
-     * Sets the predefined {@link PotionData} to apply to this potion item.
+     * Sets the predefined {@link PotionTypeWrapper} to apply to this potion item.
      * <p>
      * This automatically handles version compatibility. You can specify the desired
      * potion variant (e.g., long, strong, or base version), and it will use the correct
@@ -162,11 +161,11 @@ public class BottleEffectMeta {
      * a potion type (or set it to {@code null}) and use the appropriate setters instead.
      * </p>
      *
-     * @param potionData the potion type to apply; set {@code null} to allow custom effects
+     * @param potionTypeWrapper the potion type to apply; set {@code null} to allow custom effects
      * @return this instance for method chaining.
      */
-    public BottleEffectMeta setPotionData(@Nullable final PotionData potionData) {
-        this.potionData = potionData;
+    public BottleEffectMeta setPotionData(@Nullable final PotionTypeWrapper potionTypeWrapper) {
+        this.potionTypeWrapper = potionTypeWrapper;
         return this;
     }
 
@@ -245,7 +244,7 @@ public class BottleEffectMeta {
                 return;
             }
 
-            if (this.potionData != null && this.setPotionType(potionMeta)) {
+            if (this.potionTypeWrapper != null && this.setPotionType(potionMeta)) {
                 return;
             }
 
@@ -265,7 +264,7 @@ public class BottleEffectMeta {
         final PotionType potionType = this.getPotionType();
         if (potionType != null) {
             PotionsUtility potionsUtility = new PotionsUtility(potionMeta);
-            PotionModifier modifier = this.potionData.getModifier();
+            PotionModifier modifier = this.potionTypeWrapper.getModifier();
             potionsUtility.setPotion(potionType, modifier);
             return true;
         }
