@@ -4,7 +4,7 @@ package org.broken.arrow.library.itemcreator;
 import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
-import org.broken.arrow.library.itemcreator.meta.EnhancementMeta;
+import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementMeta;
 import org.broken.arrow.library.itemcreator.meta.MetaHandler;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.Tuple;

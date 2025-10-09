@@ -1,12 +1,12 @@
 package org.broken.arrow.library.itemcreator.meta;
 
+import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementMeta;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.awt.print.Book;
 import java.util.function.Consumer;
 
 /**

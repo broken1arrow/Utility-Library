@@ -1,11 +1,11 @@
-package org.broken.arrow.library.itemcreator.meta;
+package org.broken.arrow.library.itemcreator.meta.enhancement;
 
 import org.broken.arrow.library.itemcreator.CreateItemStack;
+import org.broken.arrow.library.itemcreator.meta.ColorMeta;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
@@ -29,7 +29,7 @@ public class EnhancementMeta {
 
     /**
      * Sets or updates an enchantment on this item with a consumer to
-     * configure the enchantment wrapper.
+     * configure the enchantment.
      *
      * @param enchantment     the enchantment type to set (non-null)
      * @param wrapperConsumer consumer to configure the {@link EnhancementWrapper}
@@ -51,7 +51,20 @@ public class EnhancementMeta {
      * @return this class.
      */
     public EnhancementWrapper setEnchantment(@Nonnull final Enchantment enchantment) {
-        final EnhancementWrapper enhancementWrapper = new EnhancementWrapper(enchantment, 1);
+        return this.setEnchantment(enchantment, 1, false);
+    }
+
+    /**
+     * Set enchantments on an itemStack. Set {@link #setShowEnchantments(boolean)} to false
+     * if you want to hide all enchants (default so will it not hide enchants).
+     *
+     * @param enchantment            The enchantment type you want to set.
+     * @param level                  the level you want to set for the enchantment.
+     * @param ignoreLevelRestriction whether to bypass the enchantment's level restrictions
+     * @return this class.
+     */
+    public EnhancementWrapper setEnchantment(@Nonnull final Enchantment enchantment, final int level, final boolean ignoreLevelRestriction) {
+        final EnhancementWrapper enhancementWrapper = new EnhancementWrapper(enchantment, level, ignoreLevelRestriction);
         this.enchantments.put(enchantment, enhancementWrapper);
         return enhancementWrapper;
     }
@@ -172,101 +185,4 @@ public class EnhancementMeta {
         this.enchantments.put(enchantment, enhancementWrapper);
     }
 
-    /**
-     * Wrapper class around {@link Enchantment} that holds the enchantment,
-     * its level, and whether to ignore the usual level restrictions.
-     */
-    public static class EnhancementWrapper {
-
-        @Nonnull
-        private final Enchantment enchantment;
-        private int level;
-        private boolean ignoreLevelRestriction;
-
-        /**
-         * Constructs an {@code EnhancementWrapper} with the specified enchantment and level.
-         * Level restrictions are not ignored by default.
-         *
-         * @param enchantment the enchantment instance (must not be null)
-         * @param level       the level of the enchantment
-         */
-        public EnhancementWrapper(@Nonnull final Enchantment enchantment, final int level) {
-            this(enchantment, level, false);
-        }
-
-        /**
-         * Constructs an {@code EnhancementWrapper} with the specified enchantment, level,
-         * and whether to ignore level restrictions.
-         *
-         * @param enchantment            the enchantment instance (must not be null)
-         * @param level                  the level of the enchantment
-         * @param ignoreLevelRestriction whether to bypass the enchantment's level restrictions
-         */
-        public EnhancementWrapper(@Nonnull final Enchantment enchantment, final int level, final boolean ignoreLevelRestriction) {
-            this.enchantment = enchantment;
-            this.level = level;
-            this.ignoreLevelRestriction = ignoreLevelRestriction;
-        }
-
-        /**
-         * Gets the wrapped enchantment.
-         *
-         * @return the enchantment instance (never null)
-         */
-        @Nonnull
-        public Enchantment getEnchantment() {
-            return enchantment;
-        }
-
-        /**
-         * Gets the level of this enchantment.
-         * Will always return at least 1 even if a lower level was set.
-         *
-         * @return the enchantment level, minimum 1
-         */
-        public int getLevel() {
-            return Math.max(this.level, 1);
-        }
-
-        /**
-         * Sets the level of the enchantment.
-         *
-         * @param level the new level to set
-         * @return this instance for chaining
-         */
-        public EnhancementWrapper setLevel(int level) {
-            this.level = level;
-            return this;
-        }
-
-        /**
-         * Checks whether this wrapper is set to ignore level restrictions for the enchantment.
-         *
-         * @return true if level restrictions are ignored, false otherwise
-         */
-        public boolean isIgnoreLevelRestriction() {
-            return ignoreLevelRestriction;
-        }
-
-        /**
-         * Sets whether to ignore level restrictions for this enchantment.
-         *
-         * @param ignoreLevelRestriction true to ignore restrictions, false otherwise
-         * @return this instance for chaining
-         */
-        public EnhancementWrapper setIgnoreLevelRestriction(boolean ignoreLevelRestriction) {
-            this.ignoreLevelRestriction = ignoreLevelRestriction;
-            return this;
-        }
-
-        @Override
-        public String toString() {
-            return "enchantment= " +
-                    enchantment +
-                    " level= " +
-                    level +
-                    " ignoreLevel= " +
-                    ignoreLevelRestriction;
-        }
-    }
 }

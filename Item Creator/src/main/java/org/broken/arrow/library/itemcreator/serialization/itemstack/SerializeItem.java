@@ -6,8 +6,10 @@ import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.SkullCreator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
+import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementWrapper;
 import org.broken.arrow.library.itemcreator.serialization.AttributeModifierWrapper;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
+import org.broken.arrow.library.itemcreator.serialization.typeadapter.ColorMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.MapMetaAdapter;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
@@ -39,7 +41,7 @@ import java.util.stream.Collectors;
 public class SerializeItem {
 
     private final Set<ItemFlag> itemFlags = new HashSet<>();
-    private final Map<String, Integer> enchantments = new HashMap<>();
+    private final Map<String, EnhancementWrapper> enchantments = new HashMap<>();
     private List<AttributeModifierWrapper> attributeModifiers;
     private List<org.broken.arrow.library.itemcreator.meta.BannerMeta> patterns;
     private Material type;
@@ -75,8 +77,11 @@ public class SerializeItem {
             if (meta.hasCustomModelData()) data.customModelData = meta.getCustomModelData();
             data.unbreakable = meta.isUnbreakable();
             data.itemFlags.addAll(meta.getItemFlags());
+            if (meta.hasEnchants()) {
 
-            meta.getEnchants().forEach((e, lvl) -> data.enchantments.put(e.getKey().getKey(), lvl));
+                meta.getEnchants().forEach((e, lvl) -> data.enchantments.put(e.getKey().getKey(), new EnhancementWrapper(e, lvl, lvl > e.getMaxLevel())));
+
+            }
             retrieveAttributeModifiers(meta, data);
             retrievePotionMeta(meta, data);
             retrieveBannerMeta(meta, data);
@@ -176,6 +181,7 @@ public class SerializeItem {
                 .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
+                .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
                 .create()
                 .toJson(this);
     }
@@ -191,6 +197,7 @@ public class SerializeItem {
                 .registerTypeAdapter(FireworkMeta.class, new FireworkMetaAdapter())
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
+                .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
                 .create()
                 .fromJson(json, SerializeItem.class);
     }
@@ -236,7 +243,7 @@ public class SerializeItem {
      *
      * @return the stored enchantments mapped by key
      */
-    public Map<String, Integer> getEnchantments() {
+    public Map<String, EnhancementWrapper> getEnchantments() {
         return enchantments;
     }
 
@@ -355,7 +362,7 @@ public class SerializeItem {
                 Objects.equals(skinPlayerId, that.skinPlayerId) &&
                 Objects.equals(potionEffects, that.potionEffects) &&
                 Objects.equals(attributeModifiers, that.attributeModifiers) &&
-                Objects.equals(armorColor, that.armorColor)  &&
+                Objects.equals(armorColor, that.armorColor) &&
                 Objects.equals(patterns, that.patterns) &&
                 Objects.equals(fireworkMeta, that.fireworkMeta) &&
                 Objects.equals(bookMenta, that.bookMenta);
@@ -363,7 +370,7 @@ public class SerializeItem {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, skinPlayerId,  potionEffects, attributeModifiers, armorColor, patterns, fireworkMeta, bookMenta);
+        return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, skinPlayerId, potionEffects, attributeModifiers, armorColor, patterns, fireworkMeta, bookMenta);
     }
 
     private void setOwnerToMeta(@Nonnull final SkullMeta skull) {
@@ -457,10 +464,19 @@ public class SerializeItem {
 
     private void setEnchantment(final ItemMeta meta) {
         if (!enchantments.isEmpty())
-            for (Map.Entry<String, Integer> e : enchantments.entrySet()) {
-                Enchantment enchant = Enchantment.getByKey(NamespacedKey.minecraft(e.getKey()));
-                if (enchant != null) meta.addEnchant(enchant, e.getValue(), true);
+            for (Map.Entry<String, EnhancementWrapper> e : enchantments.entrySet()) {
+                final Enchantment enchant = getEnchantment(e);
+                if (enchant != null) {
+                    final EnhancementWrapper enhancementData = e.getValue();
+                    meta.addEnchant(enchant, enhancementData.getLevel(), enhancementData.isIgnoreLevelRestriction());
+                }
             }
+    }
+
+    private static Enchantment getEnchantment(final Map.Entry<String, EnhancementWrapper> e) {
+        if (ItemCreator.getServerVersion() > 14.0F)
+            return Enchantment.getByKey(NamespacedKey.minecraft(e.getKey()));
+        return Enchantment.getByName(e.getKey());
     }
 
     private void setAttributeModifier(final ItemMeta meta) {
