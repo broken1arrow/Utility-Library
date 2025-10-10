@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.meta.enhancement;
 
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.bukkit.enchantments.Enchantment;
 
 import javax.annotation.Nonnull;
@@ -11,7 +12,7 @@ import javax.annotation.Nonnull;
 public class EnhancementWrapper {
 
     @Nonnull
-    private final Enchantment enchantment;
+    private final String enhancementName;
     private int level;
     private boolean ignoreLevelRestriction;
 
@@ -35,7 +36,7 @@ public class EnhancementWrapper {
      * @param ignoreLevelRestriction whether to bypass the enchantment's level restrictions
      */
     public EnhancementWrapper(@Nonnull final Enchantment enchantment, final int level, final boolean ignoreLevelRestriction) {
-        this.enchantment = enchantment;
+        this.enhancementName = ItemCreator.getEnchantmentName(enchantment);
         this.level = level;
         this.ignoreLevelRestriction = ignoreLevelRestriction;
     }
@@ -47,7 +48,7 @@ public class EnhancementWrapper {
      */
     @Nonnull
     public Enchantment getEnchantment() {
-        return enchantment;
+        return ItemCreator.getEnhancement(enhancementName);
     }
 
     /**
@@ -93,11 +94,8 @@ public class EnhancementWrapper {
 
     @Override
     public String toString() {
-        return "enchantment= " +
-                enchantment +
-                " level= " +
-                level +
-                " ignoreLevel= " +
-                ignoreLevelRestriction;
+        return "[enchantment= " + enhancementName +
+                ", level= " + level +
+                ", ignoreLevel= " + ignoreLevelRestriction+"]";
     }
 }

@@ -5,12 +5,16 @@ import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.ServerVersion;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
+import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +52,7 @@ public class ItemCreator {
     /**
      * Constructs an ItemCreator instance associated with the given plugin.
      *
-     * @param plugin       the plugin instance
+     * @param plugin        the plugin instance
      * @param turnOffLogger whether to disable logging for NBT manager
      */
     public ItemCreator(final Plugin plugin, boolean turnOffLogger) {
@@ -63,8 +67,6 @@ public class ItemCreator {
         } catch (NoClassDefFoundError ignore) {
             haveTextTranslator = false;
         }
-
-
     }
 
     /**
@@ -246,15 +248,6 @@ public class ItemCreator {
     }
 
     /**
-     * Returns the current server version as a float.
-     *
-     * @return the server version
-     */
-    public static float getServerVersion() {
-        return serverVersion.getServerVersion();
-    }
-
-    /**
      * Gets the NBTManager instance used to manipulate item NBT data.
      *
      * @return the NBTManager instance
@@ -281,6 +274,7 @@ public class ItemCreator {
     public Plugin getPlugin() {
         return plugin;
     }
+
     /**
      * Returns true if the correct module is imported
      * for color translations, it will use bukkits methods
@@ -292,6 +286,88 @@ public class ItemCreator {
         return haveTextTranslator;
     }
 
+
+    /**
+     * Returns the current server version as a float.
+     *
+     * @return the server version
+     */
+    public static float getServerVersion() {
+        return serverVersion.getServerVersion();
+    }
+
+    /**
+     * Return the enchantment's name across Minecraft versions.
+     *
+     * <p>On Minecraft 1.13 and newer this returns the NamespacedKey key
+     * (enchantment.getKey().getKey()). On older versions this returns
+     * {@link Enchantment#getName()}, which on legacy servers may be a numeric id string
+     * or a legacy name. {@link Enchantment#getByName(String)} can resolve either form.
+     *
+     * @param enchantment the enchantment to get the name for
+     * @return the enchantment name ({@link NamespacedKey#getKey()} on 1.13+, otherwise {@link Enchantment#getName()}
+     * @throws NullPointerException if {@code enchantment} is null
+     */
+    @Nonnull
+    public static String getEnchantmentName(@Nonnull final Enchantment enchantment) {
+        Validate.checkNotNull(enchantment, "Enchantment must be set to use this method.");
+
+        final String enhancementName;
+        if (ItemCreator.getServerVersion() > 12.2F)
+            enhancementName = enchantment.getKey().getKey();
+        else
+            enhancementName = enchantment.getName();
+
+        return enhancementName;
+    }
+
+    /**
+     * Resolve an Enchantment by name, using a NamespacedKey on modern servers and legacy names on older servers.
+     *
+     * <p>Resolution order:
+     * <ol>
+     *   <li>On Minecraft 1.13+ this tries {@link Enchantment#getByKey(NamespacedKey)} with
+     *       {@link NamespacedKey#minecraft(String)} constructed from {@code name}.</li>
+     *   <li>If unresolved (or on older servers) this tries {@link Enchantment#getByName(String)} using {@code name}.</li>
+     *   <li>If still unresolved returns {@link Enchantment#VANISHING_CURSE} as a safe default.</li>
+     * </ol>
+     *
+     * <p>Notes:
+     * <ul>
+     *   <li>The {@code enhancementName} parameter should be the NamespacedKey key for modern servers (e.g. "sharpness")
+     *       or the legacy enchantment name/id for older servers. Use {@link #getEnhancement(NamespacedKey)} on modern
+     *       Minecraft versions if you want access to enchantments outside the Minecraft-provided ones.</li>
+     * </ul>
+     *
+     * @param enhancementName the enchantment name or key (non-null)
+     * @return the resolved Enchantment, or {@link Enchantment#VANISHING_CURSE} if none found
+     * @throws NullPointerException if {@code enhancementName} is null
+     */
+    @Nonnull
+    public static Enchantment getEnhancement(@Nonnull final String enhancementName) {
+        return getEnchantment(null, enhancementName);
+    }
+
+    /**
+     * Resolve an Enchantment using a provided {@link NamespacedKey}.
+     *
+     * <p>Resolution order:
+     * <ol>
+     *   <li>Try {@link Enchantment#getByKey(NamespacedKey)} with {@code key}.</li>
+     *   <li>If unresolved, returns {@link Enchantment#VANISHING_CURSE} as a safe default.</li>
+     * </ol>
+     *
+     * @param key the NamespacedKey to try first (non-null)
+     * @return the resolved Enchantment, or {@link Enchantment#VANISHING_CURSE} if none found
+     * @throws NullPointerException if {@code key} is null
+     */
+    @Nonnull
+    public static Enchantment getEnhancement(@Nonnull final NamespacedKey key) {
+        Validate.checkNotNull(key, "key must not be null");
+        return getEnchantment(key, null);
+    }
+
+
     /**
      * Sets the server version based on the plugin's server version.
      *
@@ -299,6 +375,46 @@ public class ItemCreator {
      */
     private static void setServerVersion(Plugin plugin) {
         serverVersion = new ServerVersion(plugin);
+    }
+
+    /**
+     * Resolve an Enchantment with an optional {@link NamespacedKey} and a name fallback.
+     *
+     * <p>Resolution order:
+     * <ol>
+     *   <li>If {@code key} is non-null, try {@link Enchantment#getByKey(NamespacedKey)} with {@code key}.</li>
+     *   <li>If that fails and the server is 1.13+, try {@link Enchantment#getByKey(NamespacedKey)}
+     *       with {@link NamespacedKey#minecraft(String)} constructed from {@code name}.</li>
+     *   <li>If still unresolved (or on older servers) try {@link Enchantment#getByName(String)} with {@code name}.</li>
+     *   <li>If unresolved return {@link Enchantment#VANISHING_CURSE} as a safe default.</li>
+     * </ol>
+     *
+     * <p>Notes:
+     * <ul>
+     *   <li>The {@code name} parameter should be the NamespacedKey key for modern servers (e.g. "sharpness")
+     *       or the legacy enchantment name/id for older servers.</li>
+     * </ul>
+     *
+     * @param key  the NamespacedKey to try first (maybe null)
+     * @param name the enchantment name or key (maybe null)
+     * @return the resolved Enchantment, or {@link Enchantment#VANISHING_CURSE} if none found
+     */
+    @Nonnull
+    private static Enchantment getEnchantment(@Nullable final NamespacedKey key, @Nullable final String name) {
+        if (key != null) {
+            Enchantment enchantment = Enchantment.getByKey(key);
+            if (enchantment != null) return enchantment;
+            else return Enchantment.VANISHING_CURSE;
+        }
+        if (name == null) return Enchantment.VANISHING_CURSE;
+
+        if (ItemCreator.getServerVersion() > 12.2F) {
+            Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(name));
+            if (enchantment != null) return enchantment;
+        }
+
+        Enchantment enchantment = Enchantment.getByName(name);
+        return enchantment == null ? Enchantment.VANISHING_CURSE : enchantment;
     }
 
 }

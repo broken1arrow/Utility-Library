@@ -72,8 +72,11 @@ public class SerializeItem {
         if (meta != null) {
             if (meta.hasDisplayName()) data.name = meta.getDisplayName();
             if (meta.hasLore()) data.lore = meta.getLore();
-            if (meta.hasCustomModelData()) data.customModelData = meta.getCustomModelData();
-            data.unbreakable = meta.isUnbreakable();
+            if (ItemCreator.getServerVersion() > 12.2F && meta.hasCustomModelData()) {
+                data.customModelData = meta.getCustomModelData();
+            }
+            if (ItemCreator.getServerVersion() > 12.2F) data.unbreakable = meta.isUnbreakable();
+
             data.itemFlags.addAll(meta.getItemFlags());
 
             retrieveEnchant(meta, data);
@@ -123,7 +126,7 @@ public class SerializeItem {
             if (name != null) meta.setDisplayName(name);
             if (lore != null) meta.setLore(lore);
             if (customModelData != null) meta.setCustomModelData(customModelData);
-            meta.setUnbreakable(unbreakable);
+            if (ItemCreator.getServerVersion() > 12.2F) meta.setUnbreakable(unbreakable);
             itemFlags.forEach(meta::addItemFlags);
 
             this.setEnchantment(meta);
@@ -177,7 +180,7 @@ public class SerializeItem {
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
-                .registerTypeAdapter(ColorMetaAdapter.class, new EnhancementWrapperAdapter())
+                .registerTypeAdapter(EnhancementWrapperAdapter.class, new EnhancementWrapperAdapter())
                 .create()
                 .toJson(this);
     }
@@ -194,8 +197,7 @@ public class SerializeItem {
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
-                .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
-                .registerTypeAdapter(ColorMetaAdapter.class, new EnhancementWrapperAdapter())
+                .registerTypeAdapter(EnhancementWrapperAdapter.class, new EnhancementWrapperAdapter())
                 .create()
                 .fromJson(json, SerializeItem.class);
     }
@@ -439,7 +441,7 @@ public class SerializeItem {
     }
 
     private static void retrieveAttributeModifiers(final ItemMeta meta, final SerializeItem data) {
-        if (meta.hasAttributeModifiers()) {
+        if (ItemCreator.getServerVersion() > 12.2F && meta.hasAttributeModifiers()) {
             Multimap<Attribute, AttributeModifier> attributeModifierData = meta.getAttributeModifiers();
             if (attributeModifierData != null) {
                 data.attributeModifiers = new ArrayList<>();
@@ -490,7 +492,7 @@ public class SerializeItem {
         final String enhancementKey = enhancementEntry.getKey();
         if (ItemCreator.getServerVersion() > 13.2F) {
             Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(enhancementKey));
-            if(enchantment == null) {
+            if (enchantment == null) {
                 enchantment = Enchantment.getByName(enhancementKey);
             }
             return enchantment;
@@ -507,5 +509,36 @@ public class SerializeItem {
                     }
             );
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("SerializeItem{");
+
+        if (itemFlags != null && !itemFlags.isEmpty()) sb.append("itemFlags=").append(itemFlags).append(", ");
+        if (enchantments != null && !enchantments.isEmpty()) sb.append("enchantments=").append(enchantments).append(", ");
+        if (attributeModifiers != null && !attributeModifiers.isEmpty()) sb.append("attributeModifiers=").append(attributeModifiers).append(", ");
+        if (patterns != null && !patterns.isEmpty()) sb.append("patterns=").append(patterns).append(", ");
+        if (type != null) sb.append("type=").append(type).append(", ");
+        if (armorColor != null) sb.append("armorColor=").append(armorColor).append(", ");
+        if (name != null) sb.append("name='").append(name).append("', ");
+        if (lore != null) sb.append("lore=").append(lore).append(", ");
+        if (customModelData != null) sb.append("customModelData=").append(customModelData).append(", ");
+        if (skullOwner != null) sb.append("skullOwner='").append(skullOwner).append("', ");
+        if (skinPlayerId != null) sb.append("skinPlayerId=").append(skinPlayerId).append(", ");
+        if (potionEffects != null) sb.append("potionEffects=").append(potionEffects).append(", ");
+        if (fireworkMeta != null) sb.append("fireworkMeta=").append(fireworkMeta).append(", ");
+        if (bookMenta != null) sb.append("bookMenta=").append(bookMenta).append(", ");
+        if (mapViewMeta != null) sb.append("mapViewMeta=").append(mapViewMeta).append(", ");
+        if (skullUrl != null) sb.append("skullUrl='").append(skullUrl).append("', ");
+        if (amount > 0) sb.append("amount=").append(amount).append(", ");
+        if (unbreakable) sb.append("unbreakable=").append(unbreakable).append(", ");
+        int len = sb.length();
+        if (len > 14 && sb.substring(len - 2).equals(", ")) {
+            sb.setLength(len - 2);
+        }
+
+        sb.append('}');
+        return sb.toString();
     }
 }

@@ -7,7 +7,6 @@ import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementMeta;
 import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementWrapper;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonReaderHelper;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonWriterHelper;
-import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 
 import javax.annotation.Nonnull;
@@ -21,7 +20,7 @@ public class EnhancementWrapperAdapter extends BaseTypeAdapter<EnhancementWrappe
         final JsonWriterHelper json = new JsonWriterHelper(out);
 
         final Enchantment enchantment = value.getEnchantment();
-        if (ItemCreator.getServerVersion() > 13.2F) {
+        if (ItemCreator.getServerVersion() > 12.2F) {
             json.value("name", enchantment.getKey().getKey());
         } else {
             json.value("name", enchantment.getName());
@@ -35,7 +34,6 @@ public class EnhancementWrapperAdapter extends BaseTypeAdapter<EnhancementWrappe
     @Override
     public EnhancementWrapper read(final JsonReader jsonReader) throws IOException {
         JsonReaderHelper json = new JsonReaderHelper(jsonReader);
-        EnhancementMeta enhancementMeta = new EnhancementMeta();
         final AtomicReference<EnhancementWrapper> enhancementWrapper = new AtomicReference<>();
         json.forEachObjectField((name, reader) -> {
             EnchantmentData enchantmentData = new EnchantmentData();
@@ -102,15 +100,7 @@ public class EnhancementWrapperAdapter extends BaseTypeAdapter<EnhancementWrappe
 
         public Enchantment getEnchantment() {
             if (enhancementName == null) return null;
-
-            if (ItemCreator.getServerVersion() > 13.2F) {
-                Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(enhancementName));
-                if (enchantment == null) {
-                    enchantment = Enchantment.getByName(enhancementName);
-                }
-                return enchantment;
-            }
-            return Enchantment.getByName(enhancementName);
+            return ItemCreator.getEnhancement(enhancementName);
         }
     }
 

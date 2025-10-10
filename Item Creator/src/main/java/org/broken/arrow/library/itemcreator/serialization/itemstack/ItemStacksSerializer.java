@@ -114,7 +114,7 @@ public class ItemStacksSerializer implements Iterable<ItemStack> {
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
-                .registerTypeAdapter(ColorMetaAdapter.class, new EnhancementWrapperAdapter())
+                .registerTypeAdapter(EnhancementWrapperAdapter.class, new EnhancementWrapperAdapter())
                 .create()
                 .toJson(this);
     }
@@ -131,7 +131,7 @@ public class ItemStacksSerializer implements Iterable<ItemStack> {
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
-                .registerTypeAdapter(ColorMetaAdapter.class, new EnhancementWrapperAdapter())
+                .registerTypeAdapter(EnhancementWrapperAdapter.class, new EnhancementWrapperAdapter())
                 .create()
                 .fromJson(json, ItemStacksSerializer.class);
         serializer.itemStacks.addAll(serializer.items.stream()

@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.meta;
 
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
@@ -27,8 +28,9 @@ import java.util.List;
  * </p>
  */
 public class BookMeta {
+    private static final boolean modernVersion = ItemCreator.getServerVersion() > 12.2F;
     private List<String> pages = new ArrayList<>();
-    private org.bukkit.inventory.meta.BookMeta.Generation generation;
+    private String generation;
     private String title;
     private String author;
     static final int MAX_PAGES = Integer.MAX_VALUE;
@@ -46,7 +48,10 @@ public class BookMeta {
         BookMeta bookMeta = new BookMeta();
         bookMeta.setAuthor(bukkitBookMeta.getAuthor());
         bookMeta.setTitle(bukkitBookMeta.getTitle());
-        bookMeta.setGeneration(bukkitBookMeta.getGeneration());
+
+        if (modernVersion && bukkitBookMeta.getGeneration() != null)
+            bookMeta.setGeneration(bukkitBookMeta.getGeneration());
+
         bookMeta.setPages(bukkitBookMeta.getPages());
 
         return bookMeta;
@@ -98,7 +103,7 @@ public class BookMeta {
      * @return the generation of the book
      */
     public org.bukkit.inventory.meta.BookMeta.Generation getGeneration() {
-        return generation;
+        return org.bukkit.inventory.meta.BookMeta.Generation.valueOf(generation);
     }
 
     /**
@@ -106,8 +111,8 @@ public class BookMeta {
      *
      * @param generation the generation to set
      */
-    public void setGeneration(org.bukkit.inventory.meta.BookMeta.Generation generation) {
-        this.generation = generation;
+    public void setGeneration(@Nullable final org.bukkit.inventory.meta.BookMeta.Generation generation) {
+        this.generation =generation == null ? "COPY_OF_COPY": generation.name();
     }
 
     /**
@@ -222,7 +227,8 @@ public class BookMeta {
         final org.bukkit.inventory.meta.BookMeta meta = (org.bukkit.inventory.meta.BookMeta) bookMeta;
         meta.setTitle(this.getTitle());
         meta.setAuthor(this.getAuthor());
-        meta.setGeneration(this.getGeneration());
+        if (modernVersion)
+            meta.setGeneration(this.getGeneration());
         meta.setPages(this.getPages());
     }
 
