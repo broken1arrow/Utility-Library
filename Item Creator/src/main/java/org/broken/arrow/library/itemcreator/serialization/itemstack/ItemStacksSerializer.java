@@ -3,10 +3,7 @@ package org.broken.arrow.library.itemcreator.serialization.itemstack;
 import com.google.gson.GsonBuilder;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
-import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
-import org.broken.arrow.library.itemcreator.serialization.typeadapter.ColorMetaAdapter;
-import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
-import org.broken.arrow.library.itemcreator.serialization.typeadapter.MapMetaAdapter;
+import org.broken.arrow.library.itemcreator.serialization.typeadapter.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 
@@ -117,6 +114,7 @@ public class ItemStacksSerializer implements Iterable<ItemStack> {
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
+                .registerTypeAdapter(ColorMetaAdapter.class, new EnhancementWrapperAdapter())
                 .create()
                 .toJson(this);
     }
@@ -133,6 +131,7 @@ public class ItemStacksSerializer implements Iterable<ItemStack> {
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
+                .registerTypeAdapter(ColorMetaAdapter.class, new EnhancementWrapperAdapter())
                 .create()
                 .fromJson(json, ItemStacksSerializer.class);
         serializer.itemStacks.addAll(serializer.items.stream()

@@ -4,6 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * Represents the server version as a floating-point number parsed from the Bukkit version string.
  */
@@ -36,7 +38,7 @@ public class ServerVersion {
      *
      * @param plugin the plugin instance used to retrieve the server's Bukkit version; may be null
      */
-    private void setServerVersion(final Plugin plugin) {
+    private void setServerVersion(@Nullable final Plugin plugin) {
         final String[] versionPieces;
         if (plugin == null)
             versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");

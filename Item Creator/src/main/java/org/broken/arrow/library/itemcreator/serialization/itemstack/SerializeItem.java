@@ -8,10 +8,7 @@ import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
 import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementWrapper;
 import org.broken.arrow.library.itemcreator.serialization.AttributeModifierWrapper;
-import org.broken.arrow.library.itemcreator.serialization.typeadapter.BottleEffectMetaAdapter;
-import org.broken.arrow.library.itemcreator.serialization.typeadapter.ColorMetaAdapter;
-import org.broken.arrow.library.itemcreator.serialization.typeadapter.FireworkMetaAdapter;
-import org.broken.arrow.library.itemcreator.serialization.typeadapter.MapMetaAdapter;
+import org.broken.arrow.library.itemcreator.serialization.typeadapter.*;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -23,6 +20,7 @@ import org.bukkit.inventory.meta.*;
 import org.bukkit.map.MapView;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,11 +75,8 @@ public class SerializeItem {
             if (meta.hasCustomModelData()) data.customModelData = meta.getCustomModelData();
             data.unbreakable = meta.isUnbreakable();
             data.itemFlags.addAll(meta.getItemFlags());
-            if (meta.hasEnchants()) {
 
-                meta.getEnchants().forEach((e, lvl) -> data.enchantments.put(e.getKey().getKey(), new EnhancementWrapper(e, lvl, lvl > e.getMaxLevel())));
-
-            }
+            retrieveEnchant(meta, data);
             retrieveAttributeModifiers(meta, data);
             retrievePotionMeta(meta, data);
             retrieveBannerMeta(meta, data);
@@ -182,6 +177,7 @@ public class SerializeItem {
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
+                .registerTypeAdapter(ColorMetaAdapter.class, new EnhancementWrapperAdapter())
                 .create()
                 .toJson(this);
     }
@@ -198,6 +194,8 @@ public class SerializeItem {
                 .registerTypeAdapter(BottleEffectMeta.class, new BottleEffectMetaAdapter())
                 .registerTypeAdapter(MapWrapperMeta.class, new MapMetaAdapter())
                 .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
+                .registerTypeAdapter(ColorMetaAdapter.class, new ColorMetaAdapter())
+                .registerTypeAdapter(ColorMetaAdapter.class, new EnhancementWrapperAdapter())
                 .create()
                 .fromJson(json, SerializeItem.class);
     }
@@ -462,21 +460,42 @@ public class SerializeItem {
         }
     }
 
+    private static void retrieveEnchant(@Nonnull final ItemMeta meta, @Nonnull final SerializeItem data) {
+        if (!meta.hasEnchants())
+            return;
+
+        if (ItemCreator.getServerVersion() > 13.2F) {
+            meta.getEnchants().forEach((e, lvl) -> data.enchantments.put(e.getKey().getKey(),
+                    new EnhancementWrapper(e, lvl, lvl > e.getMaxLevel())));
+        } else {
+            meta.getEnchants().forEach((e, lvl) -> data.enchantments.put(e.getName(),
+                    new EnhancementWrapper(e, lvl, lvl > e.getMaxLevel())));
+        }
+
+    }
+
     private void setEnchantment(final ItemMeta meta) {
         if (!enchantments.isEmpty())
-            for (Map.Entry<String, EnhancementWrapper> e : enchantments.entrySet()) {
-                final Enchantment enchant = getEnchantment(e);
+            for (Map.Entry<String, EnhancementWrapper> entry : enchantments.entrySet()) {
+                final Enchantment enchant = getEnchantment(entry);
                 if (enchant != null) {
-                    final EnhancementWrapper enhancementData = e.getValue();
+                    final EnhancementWrapper enhancementData = entry.getValue();
                     meta.addEnchant(enchant, enhancementData.getLevel(), enhancementData.isIgnoreLevelRestriction());
                 }
             }
     }
 
-    private static Enchantment getEnchantment(final Map.Entry<String, EnhancementWrapper> e) {
-        if (ItemCreator.getServerVersion() > 14.0F)
-            return Enchantment.getByKey(NamespacedKey.minecraft(e.getKey()));
-        return Enchantment.getByName(e.getKey());
+    private Enchantment getEnchantment(@Nullable final Map.Entry<String, EnhancementWrapper> enhancementEntry) {
+        if (enhancementEntry == null) return null;
+        final String enhancementKey = enhancementEntry.getKey();
+        if (ItemCreator.getServerVersion() > 13.2F) {
+            Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(enhancementKey));
+            if(enchantment == null) {
+                enchantment = Enchantment.getByName(enhancementKey);
+            }
+            return enchantment;
+        }
+        return Enchantment.getByName(enhancementKey);
     }
 
     private void setAttributeModifier(final ItemMeta meta) {
