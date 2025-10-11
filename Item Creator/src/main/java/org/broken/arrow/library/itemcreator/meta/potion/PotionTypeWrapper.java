@@ -263,6 +263,8 @@ public enum PotionTypeWrapper {
      */
     @Nullable
     public static PotionTypeWrapper findPotionByName(final String name) {
+        if (name == null) return null;
+
         String bukkitPortion = name.toUpperCase();
         PotionTypeWrapper potionTypeWrapper = POTION_TYPE_NAME.get(bukkitPortion);
         if (potionTypeWrapper != null)
@@ -290,7 +292,7 @@ public enum PotionTypeWrapper {
      * @return the corresponding {@link PotionType}, or {@code null} if not found.
      */
     @Nullable
-    public static PotionType findPotionTypeByName(String bukkitPotionType) {
+    public static PotionType findPotionTypeByName(final String bukkitPotionType) {
         String bukkitPotion = bukkitPotionType.toUpperCase();
         PotionTypeWrapper potionByName = findPotionByName(bukkitPotion);
         if (potionByName != null)

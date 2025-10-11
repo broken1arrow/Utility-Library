@@ -50,7 +50,11 @@ public class BuildMapView {
     public BuildMapView(@Nonnull final World world) {
         this.mapView = Bukkit.createMap(world);
         this.virtual = mapView.isVirtual();
-        this.mapId = mapView.getId();
+        try {
+            this.mapId = mapView.getId();
+        } catch (NoSuchMethodError e) {
+            e.printStackTrace();
+        }
         this.world = mapView.getWorld();
     }
 
@@ -168,7 +172,7 @@ public class BuildMapView {
      * Adds a map renderer with the specified renderer and applies configuration
      * via the given data consumer.
      *
-     * @param renderer the {@link MapRenderer} instance to add
+     * @param renderer     the {@link MapRenderer} instance to add
      * @param dataConsumer a consumer to configure the render data for this renderer
      * @return the {@link MapRendererData} instance representing the added renderer
      */
@@ -285,10 +289,21 @@ public class BuildMapView {
         mapView.setCenterX(x);
         mapView.setCenterZ(z);
         mapView.setScale(scale);
-        mapView.setTrackingPosition(trackingPosition);
-        mapView.setUnlimitedTracking(unlimited);
+        try {
+            mapView.setTrackingPosition(trackingPosition);
+        } catch (NoSuchMethodError e) {
+            e.printStackTrace();
+        }
+        try {
+            mapView.setUnlimitedTracking(unlimited);
+        } catch (NoSuchMethodError e) {
+            e.printStackTrace();
+        }
+        try {
         mapView.setLocked(locked);
-
+        } catch (NoSuchMethodError e) {
+            e.printStackTrace();
+        }
         for (MapRenderer renderer : mapView.getRenderers()) {
             mapView.removeRenderer(renderer);
         }
@@ -296,7 +311,7 @@ public class BuildMapView {
         // Add renderers from your data
         if (!renderers.isEmpty()) {
             for (MapRendererData data : renderers) {
-                    mapView.addRenderer(data.getMapRenderer());
+                mapView.addRenderer(data.getMapRenderer());
             }
         }
         return mapView;

@@ -421,9 +421,17 @@ public class SerializeItem {
             data.potionEffects = new BottleEffectMeta();
             if (potionMeta.hasCustomEffects())
                 potionMeta.getCustomEffects().forEach(data.potionEffects::addPotionEffects);
-            if (potionMeta.hasColor())
+
+            if (ItemCreator.getServerVersion() < 9.0F)
+                return;
+
+            if (ItemCreator.getServerVersion() > 10.2F && potionMeta.hasColor())
                 data.potionEffects.setBottleColor(colorMeta -> colorMeta.setRgb(potionMeta.getColor()));
-            data.potionEffects.setPotionData(PotionTypeWrapper.findPotionByType(potionMeta.getBasePotionType()));
+
+            if (ItemCreator.getServerVersion() < 13.0F)
+                data.potionEffects.setPotionData(PotionTypeWrapper.findPotionByType(potionMeta.getBasePotionData().getType()));
+            else
+                data.potionEffects.setPotionData(PotionTypeWrapper.findPotionByType(potionMeta.getBasePotionType()));
         }
     }
 

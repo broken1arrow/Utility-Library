@@ -3,6 +3,7 @@ package org.broken.arrow.library.itemcreator.serialization.typeadapter;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonReaderHelper;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonWriterHelper;
@@ -42,14 +43,15 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
         json.value("is_water_bottle", value.isWaterBottle());
         json.value("is_upgraded", value.isUpgraded());
         json.value("is_extended", value.isExtended());
-        json.value("color", value.getColorMeta().toRgb());
+        json.value("color", value.getColorMeta() == null ? 0 : value.getColorMeta().toRgb());
         json.forEachObject("potion_effects", value.getPotionEffects(), potionEffect -> {
             json.value("type", potionEffect.getType().getName());
             json.value("duration", potionEffect.getDuration());
             json.value("amplifier", potionEffect.getAmplifier());
             json.value("is_ambient", potionEffect.isAmbient());
             json.value("has_particles", potionEffect.hasParticles());
-            json.value("has_icon", potionEffect.hasIcon());
+            if(ItemCreator.getServerVersion() > 12.2F)
+                json.value("has_icon", potionEffect.hasIcon());
         });
         json.finish();
     }
@@ -87,7 +89,8 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
                     break;
                 case "color":
                     final int color = reader.nextInt();
-                    meta.setBottleColor(colorMeta -> colorMeta.setRgb(color));
+                    if (color > 0)
+                        meta.setBottleColor(colorMeta -> colorMeta.setRgb(color));
                     break;
                 case "potion_effects":
                     setPotionEffects(reader, meta);

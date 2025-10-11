@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.meta;
 
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionModifier;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionsUtility;
@@ -224,6 +225,7 @@ public class BottleEffectMeta {
      *
      * @return the color set.
      */
+    @Nullable
     public ColorMeta getColorMeta() {
         return colorMeta;
     }
@@ -252,7 +254,7 @@ public class BottleEffectMeta {
 
             if (effects != null && !effects.isEmpty()) {
                 final ColorMeta colorEffect = this.colorMeta;
-                if (colorEffect != null && colorEffect.isColorSet()) {
+                if (ItemCreator.getServerVersion() > 10.2F && colorEffect != null && colorEffect.isColorSet()) {
                     potionMeta.setColor(colorEffect.getColor());
                 }
                 effects.forEach((portionEffect) -> potionMeta.addCustomEffect(portionEffect, this.override));
@@ -305,7 +307,10 @@ public class BottleEffectMeta {
          * @return Returns this class for chaining.
          */
         public PotionEffectWrapper add(@Nonnull PotionEffectType type, final int duration, final int amplifier, final boolean ambient, final boolean particles, final boolean icon) {
-            portionEffects.add(new PotionEffect(type, duration, amplifier, ambient, particles, icon));
+            if (ItemCreator.getServerVersion() < 13.0F)
+                portionEffects.add(new PotionEffect(type, duration, amplifier, ambient, particles));
+            else
+                portionEffects.add(new PotionEffect(type, duration, amplifier, ambient, particles, icon));
             return this;
         }
 
