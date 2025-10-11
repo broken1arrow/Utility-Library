@@ -28,7 +28,7 @@ import java.util.List;
  * </p>
  */
 public class BookMeta {
-    private static final boolean modernVersion = ItemCreator.getServerVersion() > 12.2F;
+    private static final boolean MODERN_VERSION = ItemCreator.getServerVersion() > 12.2F;
     private List<String> pages = new ArrayList<>();
     private String generation;
     private String title;
@@ -49,7 +49,7 @@ public class BookMeta {
         bookMeta.setAuthor(bukkitBookMeta.getAuthor());
         bookMeta.setTitle(bukkitBookMeta.getTitle());
 
-        if (modernVersion && bukkitBookMeta.getGeneration() != null)
+        if (MODERN_VERSION && bukkitBookMeta.getGeneration() != null)
             bookMeta.setGeneration(bukkitBookMeta.getGeneration());
 
         bookMeta.setPages(bukkitBookMeta.getPages());
@@ -227,7 +227,7 @@ public class BookMeta {
         final org.bukkit.inventory.meta.BookMeta meta = (org.bukkit.inventory.meta.BookMeta) bookMeta;
         meta.setTitle(this.getTitle());
         meta.setAuthor(this.getAuthor());
-        if (modernVersion)
+        if (MODERN_VERSION)
             meta.setGeneration(this.getGeneration());
         meta.setPages(this.getPages());
     }

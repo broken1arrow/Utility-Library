@@ -106,8 +106,8 @@ public class ColorMeta {
      *                                  bits
      */
     public void setRgb(final int rgb) {
-        final Color color = Color.fromRGB(rgb);
-        this.setRgb(color);
+        final Color colorRgb = Color.fromRGB(rgb);
+        this.setRgb(colorRgb);
     }
 
     /**
@@ -117,8 +117,8 @@ public class ColorMeta {
      * @param argb the integer storing the alpha, red, green, and blue values
      */
     public void setArgb(final int argb) {
-        final Color color = Color.fromARGB(argb);
-        this.setRgb(color);
+        final Color colorArgb = Color.fromARGB(argb);
+        this.setRgb(colorArgb);
     }
 
 
@@ -167,8 +167,8 @@ public class ColorMeta {
      */
     public void setRgb(final int alpha, final int red, final int green, final int blue) {
         Validate.checkBoolean(alpha < 0 || red < 0 || green < 0 || blue < 0, "You can't use negative numbers for the arbg color.");
-        final Color color = Color.fromARGB(alpha, red, green, blue);
-        this.setColor(color);
+        final Color colorArg = Color.fromARGB(alpha, red, green, blue);
+        this.setColor(colorArg);
     }
 
     /**

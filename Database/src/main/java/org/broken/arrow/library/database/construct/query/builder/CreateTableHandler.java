@@ -150,10 +150,10 @@ public class CreateTableHandler {
     public String build() {
         final StringBuilder sql = new StringBuilder();
         final Selector<?, ?> selectorData = this.selector != null ? this.selector.getSelector() : null;
-        final TableSelectorWrapper selectorWrapper = this.selectorWrapper;
+        final TableSelectorWrapper wrapper = this.selectorWrapper;
         final SqlExpressionType copyOption = this.getCopyMethod();
 
-        if (copyOption != null && selectorWrapper == null && selectorData != null) {
+        if (copyOption != null && wrapper == null && selectorData != null) {
             sql.append(" ")
                     .append(copyOption.toString())
                     .append(" ")
@@ -171,8 +171,8 @@ public class CreateTableHandler {
         }
 
         Selector<?, ?> selectorDataTable = null;
-        if (selectorWrapper != null)
-            selectorDataTable = this.selectorWrapper.getTableSelector();
+        if (wrapper != null)
+            selectorDataTable = wrapper.getTableSelector();
 
         if (selectorDataTable != null) {
             sql.append(" (");

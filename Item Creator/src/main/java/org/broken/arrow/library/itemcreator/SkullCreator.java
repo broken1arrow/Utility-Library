@@ -50,15 +50,12 @@ public class SkullCreator {
     private static final String NAME = "name";
     public static final String PROFILE = "profile";
     public static final String TEXTURES = "textures";
+    private static final String FAIL_CREATE_SKULL = "Failed to find the skull material.";
 
     // some reflection stuff to be used when setting a skull's profile
     private static Field blockProfileField;
     private static Method metaSetProfileMethod;
     private static Field metaProfileField;
-
-    // Check if its legacy version, means before 1.13.
-    static {
-    }
 
     /**
      * Private constructor to prevent instantiation.
@@ -93,7 +90,7 @@ public class SkullCreator {
     @Deprecated
     public static ItemStack itemFromName(String name) {
         final ItemStack skull = createSkull();
-        checkNull(skull, "[create skull]", "Failed to find the skull material.");
+        checkNull(skull, "[create skull]", FAIL_CREATE_SKULL);
 
         return itemWithName(skull, name);
     }
@@ -106,7 +103,7 @@ public class SkullCreator {
      */
     public static ItemStack itemFromUuid(UUID id) {
         final ItemStack skull = createSkull();
-        checkNull(skull, "[create skull]", "Failed to find the skull material.");
+        checkNull(skull, "[create skull]", FAIL_CREATE_SKULL);
         return itemWithUuid(skull, id);
     }
 
@@ -118,7 +115,7 @@ public class SkullCreator {
      */
     public static ItemStack itemFromUrl(String url) {
         final ItemStack skull = createSkull();
-        checkNull(skull, "[create skull]", "Failed to find the skull material.");
+        checkNull(skull, "[create skull]", FAIL_CREATE_SKULL);
         return itemWithUrl(skull, url);
     }
 
@@ -130,7 +127,7 @@ public class SkullCreator {
      */
     public static ItemStack itemFromBase64(String base64) {
         final ItemStack skull = createSkull();
-        checkNull(skull, "[create skull]", "Failed to find the skull material.");
+        checkNull(skull, "[create skull]", FAIL_CREATE_SKULL);
         return itemWithBase64(skull, base64);
     }
 
@@ -443,7 +440,7 @@ public class SkullCreator {
      */
     private static void notNull(Object o, String name) {
         if (o == null) {
-            throw new NullPointerException(name + " should not be null!");
+            throw new Validate.ValidateExceptions(name + " should not be null!");
         }
     }
 
@@ -457,7 +454,7 @@ public class SkullCreator {
      */
     private static void checkNull(final Object o, final String type, final String message) {
         if (o == null) {
-            throw new RuntimeException(type + ">" + message);
+            throw new Validate.ValidateExceptions(type + ">" + message);
         }
     }
 
