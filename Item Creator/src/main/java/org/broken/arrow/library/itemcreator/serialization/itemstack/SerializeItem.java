@@ -520,7 +520,6 @@ public class SerializeItem {
         string.appendFieldRecursive("enchantments", enchantments, 1);
         string.appendFieldRecursive("attributeModifiers", attributeModifiers, 1);
         string.appendFieldRecursive("patterns", patterns, 1);
-        string.appendFieldRecursive("type", type, 1);
         string.appendFieldRecursive("armorColor", armorColor, 1);
         string.appendFieldRecursive("name", name, 1);
         string.appendFieldRecursive("lore", lore, 1);
@@ -532,10 +531,11 @@ public class SerializeItem {
         string.appendFieldRecursive("bookMenta", bookMenta, 1);
         string.appendFieldRecursive("mapViewMeta", mapViewMeta, 1);
         string.appendFieldRecursive("skullUrl", skullUrl, 1);
+        string.appendFieldRecursive("type", type, 1);
         if (amount > 0) string.appendFieldRecursive("amount", amount, 1);
         if (unbreakable) string.appendFieldRecursive("unbreakable", unbreakable, 1);
 
         return string.finalizeString().toString();
     }
-    
+
 }
