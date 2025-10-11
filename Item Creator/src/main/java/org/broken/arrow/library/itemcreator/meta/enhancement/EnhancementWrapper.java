@@ -48,7 +48,7 @@ public class EnhancementWrapper {
      */
     @Nonnull
     public Enchantment getEnchantment() {
-        return ItemCreator.getEnhancement(enhancementName);
+        return ItemCreator.getEnchantment(enhancementName);
     }
 
     /**

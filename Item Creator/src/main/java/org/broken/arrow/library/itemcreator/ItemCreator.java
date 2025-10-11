@@ -335,7 +335,7 @@ public class ItemCreator {
      * <p>Notes:
      * <ul>
      *   <li>The {@code enhancementName} parameter should be the NamespacedKey key for modern servers (e.g. "sharpness")
-     *       or the legacy enchantment name/id for older servers. Use {@link #getEnhancement(NamespacedKey)} on modern
+     *       or the legacy enchantment name/id for older servers. Use {@link #getEnchantment(NamespacedKey)} on modern
      *       Minecraft versions if you want access to enchantments outside the Minecraft-provided ones.</li>
      * </ul>
      *
@@ -344,7 +344,7 @@ public class ItemCreator {
      * @throws NullPointerException if {@code enhancementName} is null
      */
     @Nonnull
-    public static Enchantment getEnhancement(@Nonnull final String enhancementName) {
+    public static Enchantment getEnchantment(@Nonnull final String enhancementName) {
         return getEnchantment(null, enhancementName);
     }
 
@@ -362,7 +362,7 @@ public class ItemCreator {
      * @throws NullPointerException if {@code key} is null
      */
     @Nonnull
-    public static Enchantment getEnhancement(@Nonnull final NamespacedKey key) {
+    public static Enchantment getEnchantment(@Nonnull final NamespacedKey key) {
         Validate.checkNotNull(key, "key must not be null");
         return getEnchantment(key, null);
     }

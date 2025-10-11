@@ -3,7 +3,6 @@ package org.broken.arrow.library.itemcreator.serialization.typeadapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.broken.arrow.library.itemcreator.ItemCreator;
-import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementMeta;
 import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementWrapper;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonReaderHelper;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonWriterHelper;
@@ -100,7 +99,7 @@ public class EnhancementWrapperAdapter extends BaseTypeAdapter<EnhancementWrappe
 
         public Enchantment getEnchantment() {
             if (enhancementName == null) return null;
-            return ItemCreator.getEnhancement(enhancementName);
+            return ItemCreator.getEnchantment(enhancementName);
         }
     }
 

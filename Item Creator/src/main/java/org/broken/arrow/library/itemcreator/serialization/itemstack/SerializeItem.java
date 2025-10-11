@@ -491,14 +491,7 @@ public class SerializeItem {
     private Enchantment getEnchantment(@Nullable final Map.Entry<String, EnhancementWrapper> enhancementEntry) {
         if (enhancementEntry == null) return null;
         final String enhancementKey = enhancementEntry.getKey();
-        if (ItemCreator.getServerVersion() > 13.2F) {
-            Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(enhancementKey));
-            if (enchantment == null) {
-                enchantment = Enchantment.getByName(enhancementKey);
-            }
-            return enchantment;
-        }
-        return Enchantment.getByName(enhancementKey);
+        return ItemCreator.getEnchantment(enhancementKey);
     }
 
     private void setAttributeModifier(final ItemMeta meta) {
