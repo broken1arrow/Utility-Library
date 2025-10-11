@@ -10,6 +10,7 @@ import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementWrapper;
 import org.broken.arrow.library.itemcreator.serialization.AttributeModifierWrapper;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.*;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
+import org.broken.arrow.library.itemcreator.utility.FormatString;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -513,98 +514,28 @@ public class SerializeItem {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("SerializeItem {\n");
+        FormatString string = new FormatString(new StringBuilder("SerializeItem {\n"));
 
-        appendFieldRecursive(sb, "itemFlags", itemFlags, 1);
-        appendFieldRecursive(sb, "enchantments", enchantments, 1);
-        appendFieldRecursive(sb, "attributeModifiers", attributeModifiers, 1);
-        appendFieldRecursive(sb, "patterns", patterns, 1);
-        appendFieldRecursive(sb, "type", type, 1);
-        appendFieldRecursive(sb, "armorColor", armorColor, 1);
-        appendFieldRecursive(sb, "name", name, 1);
-        appendFieldRecursive(sb, "lore", lore, 1);
-        appendFieldRecursive(sb, "customModelData", customModelData, 1);
-        appendFieldRecursive(sb, "skullOwner", skullOwner, 1);
-        appendFieldRecursive(sb, "skinPlayerId", skinPlayerId, 1);
-        appendFieldRecursive(sb, "potionEffects", potionEffects, 1);
-        appendFieldRecursive(sb, "fireworkMeta", fireworkMeta, 1);
-        appendFieldRecursive(sb, "bookMenta", bookMenta, 1);
-        appendFieldRecursive(sb, "mapViewMeta", mapViewMeta, 1);
-        appendFieldRecursive(sb, "skullUrl", skullUrl, 1);
-        if (amount > 0) appendFieldRecursive(sb, "amount", amount, 1);
-        if (unbreakable) appendFieldRecursive(sb, "unbreakable", unbreakable, 1);
+        string.appendFieldRecursive("itemFlags", itemFlags, 1);
+        string.appendFieldRecursive("enchantments", enchantments, 1);
+        string.appendFieldRecursive("attributeModifiers", attributeModifiers, 1);
+        string.appendFieldRecursive("patterns", patterns, 1);
+        string.appendFieldRecursive("type", type, 1);
+        string.appendFieldRecursive("armorColor", armorColor, 1);
+        string.appendFieldRecursive("name", name, 1);
+        string.appendFieldRecursive("lore", lore, 1);
+        string.appendFieldRecursive("customModelData", customModelData, 1);
+        string.appendFieldRecursive("skullOwner", skullOwner, 1);
+        string.appendFieldRecursive("skinPlayerId", skinPlayerId, 1);
+        string.appendFieldRecursive("potionEffects", potionEffects, 1);
+        string.appendFieldRecursive("fireworkMeta", fireworkMeta, 1);
+        string.appendFieldRecursive("bookMenta", bookMenta, 1);
+        string.appendFieldRecursive("mapViewMeta", mapViewMeta, 1);
+        string.appendFieldRecursive("skullUrl", skullUrl, 1);
+        if (amount > 0) string.appendFieldRecursive("amount", amount, 1);
+        if (unbreakable) string.appendFieldRecursive("unbreakable", unbreakable, 1);
 
-        trimTrailingComma(sb);
-        sb.append("}");
-        return sb.toString();
+        return string.finalizeString().toString();
     }
-
-    private void appendFieldRecursive(StringBuilder sb, String key, Object value, int indent) {
-        if (value == null) return;
-        if (checkIfCollectionEmpty(value)) return;
-
-        String prefix = indent(indent);
-
-        if (key != null) {
-            sb.append(prefix).append("\"").append(key).append("\": ");
-        } else {
-            sb.append(prefix);
-        }
-
-        if (value instanceof Map<?, ?>) {
-            Map<?, ?> map = (Map<?, ?>) value;
-            sb.append("{\n");
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                appendFieldRecursive(sb, String.valueOf(entry.getKey()), entry.getValue(), indent + 1);
-            }
-            trimTrailingComma(sb);
-            sb.append(prefix).append("},\n");
-
-        } else if (value instanceof Collection<?>) {
-            Collection<?> collection = (Collection<?>) value;
-            sb.append("[\n");
-            for (Object obj : collection) {
-                appendFieldRecursive(sb, null, obj, indent + 1);
-            }
-            trimTrailingComma(sb);
-            sb.append(prefix).append("],\n");
-
-        } else if (value instanceof String) {
-            sb.append("\"").append(value).append("\",\n");
-
-        } else {
-            String text = value.toString();
-            if (text.contains("\n")) {
-                sb.append("{\n");
-                String[] lines = text.split("\n");
-                for (String line : lines) {
-                    sb.append(indent(indent + 1)).append(line.trim()).append("\n");
-                }
-                sb.append(prefix).append("},\n");
-            } else {
-                sb.append(value).append(",\n");
-            }
-        }
-    }
-
-    private void trimTrailingComma(StringBuilder sb) {
-        int len = sb.length();
-        if (len > 2 && sb.substring(len - 2).equals(",\n")) {
-            sb.setLength(len - 2);
-            sb.append('\n');
-        }
-    }
-
-    private String indent(int level) {
-        StringBuilder spaces = new StringBuilder();
-        for (int i = 0; i < level * 2; i++) {
-            spaces.append(' ');
-        }
-        return spaces.toString();
-    }
-
-    private static boolean checkIfCollectionEmpty(final Object value) {
-        return (value instanceof Collection && ((Collection<?>) value).isEmpty())
-                || (value instanceof Map && ((Map<?, ?>) value).isEmpty());
-    }
+    
 }
