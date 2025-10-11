@@ -94,8 +94,8 @@ public class EnhancementWrapper {
 
     @Override
     public String toString() {
-        return "[enchantment= " + enhancementName +
-                ", level= " + level +
-                ", ignoreLevel= " + ignoreLevelRestriction+"]";
+        return "name: " + enhancementName +
+                ",\nlevel: " + level +
+                ",\nignoreLevel: " + ignoreLevelRestriction + "";
     }
 }

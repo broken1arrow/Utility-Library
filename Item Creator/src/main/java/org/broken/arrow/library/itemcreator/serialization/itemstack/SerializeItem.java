@@ -513,32 +513,98 @@ public class SerializeItem {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("SerializeItem{");
+        StringBuilder sb = new StringBuilder("SerializeItem {\n");
 
-        if (itemFlags != null && !itemFlags.isEmpty()) sb.append("itemFlags=").append(itemFlags).append(", ");
-        if (enchantments != null && !enchantments.isEmpty()) sb.append("enchantments=").append(enchantments).append(", ");
-        if (attributeModifiers != null && !attributeModifiers.isEmpty()) sb.append("attributeModifiers=").append(attributeModifiers).append(", ");
-        if (patterns != null && !patterns.isEmpty()) sb.append("patterns=").append(patterns).append(", ");
-        if (type != null) sb.append("type=").append(type).append(", ");
-        if (armorColor != null) sb.append("armorColor=").append(armorColor).append(", ");
-        if (name != null) sb.append("name='").append(name).append("', ");
-        if (lore != null) sb.append("lore=").append(lore).append(", ");
-        if (customModelData != null) sb.append("customModelData=").append(customModelData).append(", ");
-        if (skullOwner != null) sb.append("skullOwner='").append(skullOwner).append("', ");
-        if (skinPlayerId != null) sb.append("skinPlayerId=").append(skinPlayerId).append(", ");
-        if (potionEffects != null) sb.append("potionEffects=").append(potionEffects).append(", ");
-        if (fireworkMeta != null) sb.append("fireworkMeta=").append(fireworkMeta).append(", ");
-        if (bookMenta != null) sb.append("bookMenta=").append(bookMenta).append(", ");
-        if (mapViewMeta != null) sb.append("mapViewMeta=").append(mapViewMeta).append(", ");
-        if (skullUrl != null) sb.append("skullUrl='").append(skullUrl).append("', ");
-        if (amount > 0) sb.append("amount=").append(amount).append(", ");
-        if (unbreakable) sb.append("unbreakable=").append(unbreakable).append(", ");
-        int len = sb.length();
-        if (len > 14 && sb.substring(len - 2).equals(", ")) {
-            sb.setLength(len - 2);
+        appendFieldRecursive(sb, "itemFlags", itemFlags, 1);
+        appendFieldRecursive(sb, "enchantments", enchantments, 1);
+        appendFieldRecursive(sb, "attributeModifiers", attributeModifiers, 1);
+        appendFieldRecursive(sb, "patterns", patterns, 1);
+        appendFieldRecursive(sb, "type", type, 1);
+        appendFieldRecursive(sb, "armorColor", armorColor, 1);
+        appendFieldRecursive(sb, "name", name, 1);
+        appendFieldRecursive(sb, "lore", lore, 1);
+        appendFieldRecursive(sb, "customModelData", customModelData, 1);
+        appendFieldRecursive(sb, "skullOwner", skullOwner, 1);
+        appendFieldRecursive(sb, "skinPlayerId", skinPlayerId, 1);
+        appendFieldRecursive(sb, "potionEffects", potionEffects, 1);
+        appendFieldRecursive(sb, "fireworkMeta", fireworkMeta, 1);
+        appendFieldRecursive(sb, "bookMenta", bookMenta, 1);
+        appendFieldRecursive(sb, "mapViewMeta", mapViewMeta, 1);
+        appendFieldRecursive(sb, "skullUrl", skullUrl, 1);
+        if (amount > 0) appendFieldRecursive(sb, "amount", amount, 1);
+        if (unbreakable) appendFieldRecursive(sb, "unbreakable", unbreakable, 1);
+
+        trimTrailingComma(sb);
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private void appendFieldRecursive(StringBuilder sb, String key, Object value, int indent) {
+        if (value == null) return;
+        if (checkIfCollectionEmpty(value)) return;
+
+        String prefix = indent(indent);
+
+        if (key != null) {
+            sb.append(prefix).append("\"").append(key).append("\": ");
+        } else {
+            sb.append(prefix);
         }
 
-        sb.append('}');
-        return sb.toString();
+        if (value instanceof Map<?, ?>) {
+            Map<?, ?> map = (Map<?, ?>) value;
+            sb.append("{\n");
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                appendFieldRecursive(sb, String.valueOf(entry.getKey()), entry.getValue(), indent + 1);
+            }
+            trimTrailingComma(sb);
+            sb.append(prefix).append("},\n");
+
+        } else if (value instanceof Collection<?>) {
+            Collection<?> collection = (Collection<?>) value;
+            sb.append("[\n");
+            for (Object obj : collection) {
+                appendFieldRecursive(sb, null, obj, indent + 1);
+            }
+            trimTrailingComma(sb);
+            sb.append(prefix).append("],\n");
+
+        } else if (value instanceof String) {
+            sb.append("\"").append(value).append("\",\n");
+
+        } else {
+            String text = value.toString();
+            if (text.contains("\n")) {
+                sb.append("{\n");
+                String[] lines = text.split("\n");
+                for (String line : lines) {
+                    sb.append(indent(indent + 1)).append(line.trim()).append("\n");
+                }
+                sb.append(prefix).append("},\n");
+            } else {
+                sb.append(value).append(",\n");
+            }
+        }
+    }
+
+    private void trimTrailingComma(StringBuilder sb) {
+        int len = sb.length();
+        if (len > 2 && sb.substring(len - 2).equals(",\n")) {
+            sb.setLength(len - 2);
+            sb.append('\n');
+        }
+    }
+
+    private String indent(int level) {
+        StringBuilder spaces = new StringBuilder();
+        for (int i = 0; i < level * 2; i++) {
+            spaces.append(' ');
+        }
+        return spaces.toString();
+    }
+
+    private static boolean checkIfCollectionEmpty(final Object value) {
+        return (value instanceof Collection && ((Collection<?>) value).isEmpty())
+                || (value instanceof Map && ((Map<?, ?>) value).isEmpty());
     }
 }
