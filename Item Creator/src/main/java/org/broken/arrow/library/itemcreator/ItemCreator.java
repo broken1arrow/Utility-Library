@@ -8,14 +8,18 @@ import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
 import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.map.MapView;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
@@ -367,6 +371,25 @@ public class ItemCreator {
         return getEnchantment(key, null);
     }
 
+    /**
+     * Retrieves a {@link MapView} by ID in a version-independent way.
+     *
+     * @param id the map ID to retrieve
+     * @return the {@link MapView}, or null if it doesn't exist
+     */
+    @Nullable
+    public static MapView getMapById(int id) {
+        if (getServerVersion() < 13.0F) {
+            try {
+                Method getMap = Bukkit.class.getMethod("getMap", short.class);
+                return (MapView) getMap.invoke(null, (short) id);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return Bukkit.getMap(id);
+        }
+    }
 
     /**
      * Sets the server version based on the plugin's server version.

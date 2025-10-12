@@ -4,6 +4,7 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
+import org.broken.arrow.library.itemcreator.meta.map.BuildMapView;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonReaderHelper;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonWriterHelper;
 import org.broken.arrow.library.logging.Logging;
@@ -39,10 +40,11 @@ public class MapMetaAdapter extends TypeAdapter<MapWrapperMeta> {
         }
         final JsonWriterHelper json = new JsonWriterHelper(out);
 
-        final MapView mapView = value.getMapView();
+        final BuildMapView mapView = value.getMapViewBuilder();
         if (mapView != null) {
+            final String worldUID = mapView.getWorld() == null ? null : mapView.getWorld().getUID().toString();
             json.value("id", mapView.getId());
-            json.value("world", mapView.getWorld().getUID().toString());
+            json.value("world", worldUID);
             json.value("center_x", mapView.getCenterX());
             json.value("center_z", mapView.getCenterZ());
             json.value("is_locked", mapView.isLocked());
@@ -105,17 +107,15 @@ public class MapMetaAdapter extends TypeAdapter<MapWrapperMeta> {
         if(world != null) {
             MapView mapView = Bukkit.getMap(mapViewValues.id);
             if (mapView == null) mapView = Bukkit.createMap(world);
+            BuildMapView buildMapView = new BuildMapView(mapView);
+            buildMapView.setCenterX(mapViewValues.centerX);
+            buildMapView.setCenterZ(mapViewValues.centerZ);
+            buildMapView.setScale(mapViewValues.scale);
+            buildMapView.setLocked(mapViewValues.locked);
+            buildMapView.setTrackingPosition(mapViewValues.trackingPosition);
+            buildMapView.setUnlimitedTracking(mapViewValues.unlimitedTracking);
 
-            mapView.setWorld(world);
-            mapView.setCenterX(mapViewValues.centerX);
-            mapView.setCenterZ(mapViewValues.centerZ);
-            mapView.setScale(mapViewValues.scale);
-
-            mapView.setLocked(mapViewValues.locked);
-            mapView.setTrackingPosition(mapViewValues.trackingPosition);
-            mapView.setUnlimitedTracking(mapViewValues.unlimitedTracking);
-
-            meta.createMapView(mapView);
+            meta.createMapView(buildMapView);
         }
         json.endObject();
         return meta;

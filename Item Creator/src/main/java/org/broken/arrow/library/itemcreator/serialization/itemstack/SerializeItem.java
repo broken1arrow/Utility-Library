@@ -7,6 +7,7 @@ import org.broken.arrow.library.itemcreator.SkullCreator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
 import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementWrapper;
+import org.broken.arrow.library.itemcreator.meta.map.BuildMapView;
 import org.broken.arrow.library.itemcreator.serialization.AttributeModifierWrapper;
 import org.broken.arrow.library.itemcreator.serialization.typeadapter.*;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
@@ -101,15 +102,7 @@ public class SerializeItem {
 
             }
             if (meta instanceof MapMeta) {
-                final MapMeta mapMeta = (MapMeta) meta;
-                if (mapMeta.hasMapView()) {
-                    final MapView mapView = mapMeta.getMapView();
-                    if (mapView != null) {
-                        final MapWrapperMeta mapWrapperMeta = new MapWrapperMeta();
-                        mapWrapperMeta.createMapView(mapView);
-                        data.mapViewMeta = mapWrapperMeta;
-                    }
-                }
+                retrieveMapData(item, (MapMeta) meta, data);
             }
         }
         return data;
@@ -161,7 +154,7 @@ public class SerializeItem {
 
             if (meta instanceof MapMeta && mapViewMeta != null) {
                 MapMeta fwm = (MapMeta) meta;
-                mapViewMeta.applyMapMeta(fwm);
+                mapViewMeta.applyMapMeta(item,fwm);
             }
 
             item.setItemMeta(meta);
@@ -510,6 +503,28 @@ public class SerializeItem {
                         meta.addAttributeModifier(modifier.getAttribute(), modifier.getAttributeModifier());
                     }
             );
+        }
+    }
+
+    private static void retrieveMapData(@Nonnull final ItemStack item, @Nonnull final MapMeta mapMeta, @Nonnull final SerializeItem data) {
+        if (ItemCreator.getServerVersion() < 13.0F) {
+            short durability = item.getDurability();
+            if (durability >= 0) {
+                final MapView mapView = ItemCreator.getMapById(durability);
+                if (mapView == null) return;
+                final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
+                mapMetaWrapper.createMapView(new BuildMapView(mapView));
+                data.mapViewMeta = mapMetaWrapper;
+            }
+        } else {
+            if (mapMeta.hasMapView()) {
+                final MapView mapView = mapMeta.getMapView();
+                if (mapView != null) {
+                    final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
+                    mapMetaWrapper.createMapView(new BuildMapView(mapView));
+                    data.mapViewMeta = mapMetaWrapper;
+                }
+            }
         }
     }
 

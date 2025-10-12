@@ -295,7 +295,7 @@ public class MetaHandler {
                 shieldMeta.applyShieldBanner(itemMeta);
             }
             if (mapMeta != null) {
-                mapMeta.applyMapMeta(itemMeta);
+                mapMeta.applyMapMeta(itemStack, itemMeta);
             }
             if(this.bookMeta != null)
                 this.bookMeta.applyBookMenta(itemMeta);

@@ -1,6 +1,7 @@
 package org.broken.arrow.library.itemcreator.meta.map;
 
 
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.inventory.meta.MapMeta;
@@ -9,6 +10,7 @@ import org.bukkit.map.MapView;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -30,16 +32,13 @@ public class BuildMapView {
     private final World world;
     private final Set<MapRendererData> renderers = new HashSet<>();
 
-    private MapView.Scale scale = MapView.Scale.NORMAL;
-
     private boolean locked;
     private boolean unlimited;
     private boolean trackingPosition;
     private boolean virtual;
 
     private int mapId;
-    private int z;
-    private int x;
+
 
     /**
      * Constructs a new {@code BuildMapView} for the given {@link World},
@@ -50,11 +49,7 @@ public class BuildMapView {
     public BuildMapView(@Nonnull final World world) {
         this.mapView = Bukkit.createMap(world);
         this.virtual = mapView.isVirtual();
-        try {
-            this.mapId = mapView.getId();
-        } catch (NoSuchMethodError e) {
-            e.printStackTrace();
-        }
+        this.mapId = retrieveMapId(mapView);
         this.world = mapView.getWorld();
     }
 
@@ -67,7 +62,7 @@ public class BuildMapView {
     public BuildMapView(@Nonnull final MapView mapView) {
         this.mapView = mapView;
         this.virtual = mapView.isVirtual();
-        this.world = mapView.getWorld(); // nullable, but can be used
+        this.world = mapView.getWorld();
     }
 
     /**
@@ -96,7 +91,10 @@ public class BuildMapView {
      */
     @Nonnull
     public MapView.Scale getScale() {
-        return this.scale;
+        final MapView.Scale mapViewScale = mapView.getScale();
+        if (mapViewScale == null)
+            return MapView.Scale.NORMAL;
+        return mapViewScale;
     }
 
     /**
@@ -105,7 +103,7 @@ public class BuildMapView {
      * @param scale The scale to set.
      */
     public void setScale(@Nonnull MapView.Scale scale) {
-        this.scale = scale;
+        this.mapView.setScale(scale);
     }
 
     /**
@@ -114,7 +112,7 @@ public class BuildMapView {
      * @return The center X position.
      */
     public int getCenterX() {
-        return this.x;
+        return this.mapView.getCenterX();
     }
 
     /**
@@ -123,7 +121,7 @@ public class BuildMapView {
      * @return The center Z position.
      */
     public int getCenterZ() {
-        return this.z;
+        return this.mapView.getCenterZ();
     }
 
     /**
@@ -132,7 +130,7 @@ public class BuildMapView {
      * @param x The center X position.
      */
     public void setCenterX(int x) {
-        this.x = x;
+        this.mapView.setCenterX(x);
     }
 
     /**
@@ -141,7 +139,7 @@ public class BuildMapView {
      * @param z The center Z position.
      */
     public void setCenterZ(int z) {
-        this.z = z;
+        this.mapView.setCenterZ(z);
     }
 
     /**
@@ -153,7 +151,7 @@ public class BuildMapView {
      */
     @Nullable
     public World getWorld() {
-        return this.world;
+        return this.mapView.getWorld();
     }
 
     /**
@@ -286,24 +284,17 @@ public class BuildMapView {
         if (world == null)
             throw new IllegalStateException("World must be set before building MapView.");
 
-        mapView.setCenterX(x);
-        mapView.setCenterZ(z);
-        mapView.setScale(scale);
-        try {
+        if (mapView.getScale() == null)
+            mapView.setScale(this.getScale());
+
+        if (ItemCreator.getServerVersion() > 13.2F) {
             mapView.setTrackingPosition(trackingPosition);
-        } catch (NoSuchMethodError e) {
-            e.printStackTrace();
+            mapView.setLocked(locked);
         }
-        try {
+
+        if (ItemCreator.getServerVersion() > 10.2F)
             mapView.setUnlimitedTracking(unlimited);
-        } catch (NoSuchMethodError e) {
-            e.printStackTrace();
-        }
-        try {
-        mapView.setLocked(locked);
-        } catch (NoSuchMethodError e) {
-            e.printStackTrace();
-        }
+
         for (MapRenderer renderer : mapView.getRenderers()) {
             mapView.removeRenderer(renderer);
         }
@@ -315,6 +306,31 @@ public class BuildMapView {
             }
         }
         return mapView;
+    }
+
+    /**
+     * Retrieves the map ID from a {@link MapView}, handling version differences between
+     * legacy (≤ 1.12.2) and modern (≥ 1.13) Spigot APIs.
+     * <p>
+     * In versions 1.12.2 and below, {@code MapView#getId()} returns a {@code short}.
+     * In versions 1.13 and above, it returns an {@code int}. This method ensures compatibility
+     * across both by using reflection only when necessary.
+     * </p>
+     *
+     * @param mapView the {@link MapView} instance from which to retrieve the map ID
+     * @return the map ID as an {@code int}, or {@code -1} if retrieval failed
+     */
+    public static int retrieveMapId(@Nonnull final MapView mapView) {
+        if (ItemCreator.getServerVersion() > 12.2F)
+            return mapView.getId();
+        try {
+            Method getId = mapView.getClass().getMethod("getId");
+            Object result = getId.invoke(mapView);
+            return ((Number) result).intValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
     }
 }
 
