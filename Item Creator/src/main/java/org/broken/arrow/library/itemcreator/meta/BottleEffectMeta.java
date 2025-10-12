@@ -140,6 +140,18 @@ public class BottleEffectMeta {
     }
 
     /**
+     * Gets the predefined {@link PotionType} to apply to the potion, if any.
+     * <p>
+     * If a type is set, it overrides any custom potion effects and color.
+     *
+     * @return the safe potion type name, or {@code null} if using custom effects instead
+     */
+    @Nullable
+    public String getPotionName() {
+        return (this.potionTypeWrapper == null ? null : this.potionTypeWrapper.name());
+    }
+
+    /**
      * Sets the predefined {@link PotionTypeWrapper} to apply to this potion item.
      * <p>
      * This automatically handles version compatibility. You can specify the desired

@@ -48,8 +48,12 @@ public final class MapCursorWrapper {
     public MapCursorWrapper(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible, @Nullable final String caption) {
         this.cursorId = id++;
         this.rawType = retrieveRawType(type);
-        if (ItemCreator.getServerVersion() < 12.1f)
-            this.cursor = new MapCursor(x, y, direction, rawType, visible, caption);
+        if (ItemCreator.getServerVersion() < 13.0f) {
+            if (ItemCreator.getServerVersion() < 12.0f)
+                this.cursor = new MapCursor(x, y, direction, rawType, visible, caption);
+            else
+                this.cursor = new MapCursor(x, y, direction, rawType, visible);
+        }
         else
             this.cursor = new MapCursor(x, y, direction, type, visible, caption);
         setDirection(direction);

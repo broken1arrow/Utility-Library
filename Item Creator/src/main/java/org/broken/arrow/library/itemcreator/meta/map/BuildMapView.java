@@ -32,13 +32,12 @@ public class BuildMapView {
     private final World world;
     private final Set<MapRendererData> renderers = new HashSet<>();
 
+    private final boolean virtual;
     private boolean locked;
     private boolean unlimited;
     private boolean trackingPosition;
-    private boolean virtual;
 
-    private int mapId;
-
+    private final int mapId;
 
     /**
      * Constructs a new {@code BuildMapView} for the given {@link World},
@@ -47,10 +46,7 @@ public class BuildMapView {
      * @param world the {@link World} where the map view is created (non-null)
      */
     public BuildMapView(@Nonnull final World world) {
-        this.mapView = Bukkit.createMap(world);
-        this.virtual = mapView.isVirtual();
-        this.mapId = retrieveMapId(mapView);
-        this.world = mapView.getWorld();
+        this(Bukkit.createMap(world));
     }
 
     /**
@@ -62,6 +58,7 @@ public class BuildMapView {
     public BuildMapView(@Nonnull final MapView mapView) {
         this.mapView = mapView;
         this.virtual = mapView.isVirtual();
+        this.mapId = retrieveMapId(mapView);
         this.world = mapView.getWorld();
     }
 
@@ -196,6 +193,17 @@ public class BuildMapView {
     }
 
     /**
+     * Adds a map list of renderer instance's.
+     *
+     * @param renderers the render data list to be added.
+     */
+    public void addAllRenderers(@Nonnull final List<MapRenderer> renderers) {
+        renderers.forEach(mapRenderer -> {
+            this.renderers.add(new MapRendererData(mapRenderer));
+        });
+    }
+
+    /**
      * Remove a renderer from this map.
      *
      * @param renderer The MapRenderer to remove.
@@ -280,7 +288,7 @@ public class BuildMapView {
      *
      * @return a new MapView instance with your settings.
      */
-    public MapView build() {
+    public MapView finilazeMapView() {
         if (world == null)
             throw new IllegalStateException("World must be set before building MapView.");
 
@@ -298,8 +306,8 @@ public class BuildMapView {
         for (MapRenderer renderer : mapView.getRenderers()) {
             mapView.removeRenderer(renderer);
         }
-
-        // Add renderers from your data
+        System.out.println("mapId " + mapId);
+        System.out.println("mapView.getRenderers() " + renderers.size());
         if (!renderers.isEmpty()) {
             for (MapRendererData data : renderers) {
                 mapView.addRenderer(data.getMapRenderer());
@@ -332,5 +340,16 @@ public class BuildMapView {
             return -1;
         }
     }
+
+    @Override
+    public String toString() {
+        return "id: " + getId() +
+                ",\n world: " + (world == null ? "" : world.getName()) +
+                ",\n x: " + getCenterX() +
+                ",\n z: " + getCenterZ() +
+                ",\n renderers:" + renderers
+                ;
+    }
+
 }
 

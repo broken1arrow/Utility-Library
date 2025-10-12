@@ -154,7 +154,7 @@ public class SerializeItem {
 
             if (meta instanceof MapMeta && mapViewMeta != null) {
                 MapMeta fwm = (MapMeta) meta;
-                mapViewMeta.applyMapMeta(item,fwm);
+                mapViewMeta.applyMapMeta(item, fwm);
             }
 
             item.setItemMeta(meta);
@@ -513,7 +513,10 @@ public class SerializeItem {
                 final MapView mapView = ItemCreator.getMapById(durability);
                 if (mapView == null) return;
                 final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
-                mapMetaWrapper.createMapView(new BuildMapView(mapView));
+                final BuildMapView buildMapView = new BuildMapView(mapView);
+                buildMapView.addAllRenderers(mapView.getRenderers());
+                //buildMapView.finilazeMapView();
+                mapMetaWrapper.createMapView(buildMapView);
                 data.mapViewMeta = mapMetaWrapper;
             }
         } else {
@@ -521,7 +524,10 @@ public class SerializeItem {
                 final MapView mapView = mapMeta.getMapView();
                 if (mapView != null) {
                     final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
-                    mapMetaWrapper.createMapView(new BuildMapView(mapView));
+                    final BuildMapView buildMapView = new BuildMapView(mapView);
+                    buildMapView.addAllRenderers(mapView.getRenderers());
+                   // buildMapView.finilazeMapView();
+                    mapMetaWrapper.createMapView(buildMapView);
                     data.mapViewMeta = mapMetaWrapper;
                 }
             }

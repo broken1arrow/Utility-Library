@@ -226,13 +226,18 @@ public class MapRendererData {
      * @return The {@link MapRenderer} instance.
      */
     public MapRenderer getMapRenderer() {
-        if (this.mapRenderer != null)
+   /*     if (this.mapRenderer != null) {
+            mapRenderer.render();
             return mapRenderer;
+        }*/
         return new MapRenderer() {
             @Override
             public void render(@Nonnull MapView map, @Nonnull MapCanvas canvas, @Nonnull Player player) {
                 if (dynamicRenderer != null && dynamicRenderer.render(map, canvas, player))
                     return;
+                if (mapRenderer != null) {
+                    mapRenderer.render(map, canvas, player);
+                }
                 canvas.setCursors(mapCursors.getMapCursorCollection());
                 if (!getPixels().isEmpty()) {
                     setPixels(canvas);

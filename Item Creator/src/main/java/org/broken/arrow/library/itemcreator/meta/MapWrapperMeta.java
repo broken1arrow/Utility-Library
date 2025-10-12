@@ -31,7 +31,7 @@ public class MapWrapperMeta {
     public MapView getMapView() {
         if (this.mapView == null)
             return null;
-        return this.mapView.build();
+        return this.mapView.finilazeMapView();
     }
 
     /**
@@ -143,7 +143,7 @@ public class MapWrapperMeta {
         final MapMeta mapMeta = (MapMeta) itemMeta;
 
         if (ItemCreator.getServerVersion() < 13.0F) {
-            final BuildMapView mapViewBuilder = getMapViewBuilder();
+            final BuildMapView mapViewBuilder = this.getMapViewBuilder();
             short durability = mapViewBuilder == null ? -1 : (short) mapViewBuilder.getId();
             if (durability >= 0) {
                 item.setDurability(durability);
@@ -152,10 +152,13 @@ public class MapWrapperMeta {
         }
 
         if (mapView != null) {
-            MapView builtMap = mapView.build();
+            MapView builtMap = mapView.finilazeMapView();
             mapMeta.setMapView(builtMap);
         }
     }
 
-
+    @Override
+    public String toString() {
+        return mapView + "";
+    }
 }

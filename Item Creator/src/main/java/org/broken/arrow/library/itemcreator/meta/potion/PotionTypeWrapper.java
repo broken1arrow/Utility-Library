@@ -172,25 +172,25 @@ public enum PotionTypeWrapper {
     /**
      * Turtle Master potion, normal duration.
      */
-    TURTLE_MASTER(PotionType.TURTLE_MASTER, PotionModifier.NORMAL),
+    TURTLE_MASTER(getPotionType("TURTLE_MASTER"), PotionModifier.NORMAL),
     /**
      * Turtle Master potion, long duration.
      */
-    LONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, PotionModifier.LONG),
+    LONG_TURTLE_MASTER(getPotionType("TURTLE_MASTER"), PotionModifier.LONG),
     /**
      * Turtle Master potion, strong effect.
      */
-    STRONG_TURTLE_MASTER(PotionType.TURTLE_MASTER, PotionModifier.STRONG),
+    STRONG_TURTLE_MASTER(getPotionType("TURTLE_MASTER"), PotionModifier.STRONG),
     /**
      * Slow Falling potion, normal duration.
      */
-    SLOW_FALLING(PotionType.SLOW_FALLING, PotionModifier.NORMAL),
+    SLOW_FALLING(getPotionType("SLOW_FALLING"), PotionModifier.NORMAL),
     /**
      * Slow Falling potion, long duration.
      */
-    LONG_SLOW_FALLING(PotionType.SLOW_FALLING, PotionModifier.LONG);
+    LONG_SLOW_FALLING(getPotionType("SLOW_FALLING"), PotionModifier.LONG);
 
-    private static final Map<String, PotionTypeWrapper> POTION_TYPE_NAME = new HashMap<>();
+    private static final Map<String, PotionTypeWrapper> POTION_TYPE_NAME = loadPotions();
     private final PotionType potionType;
     private final PotionModifier potionModifier;
     private final float serverVersion = ItemCreator.getServerVersion();
@@ -205,12 +205,15 @@ public enum PotionTypeWrapper {
     PotionTypeWrapper(@Nonnull final PotionType potionType, @Nonnull final PotionModifier potionModifier) {
         this.potionType = potionType;
         this.potionModifier = potionModifier;
+
     }
 
-    static {
+    private static Map<String, PotionTypeWrapper> loadPotions() {
+        Map<String, PotionTypeWrapper> typeWrapperHashMap = new HashMap<>();
         for (PotionTypeWrapper data : values()) {
-            POTION_TYPE_NAME.put(data.getPotionType().name(), data);
+            typeWrapperHashMap.put(data.getPotionType().name(), data);
         }
+        return typeWrapperHashMap ;
     }
 
     /**
@@ -242,6 +245,8 @@ public enum PotionTypeWrapper {
      */
     @Nullable
     public static PotionTypeWrapper findPotionByType(final PotionType bukkitPotionType) {
+        if(bukkitPotionType == null)
+            return null;
         return POTION_TYPE_NAME.get(bukkitPotionType.name());
     }
 
@@ -249,7 +254,7 @@ public enum PotionTypeWrapper {
      * Finds the {@link PotionTypeWrapper} associated with the given potion name.
      * <p>
      * This method supports both modern and legacy potion naming. If the provided name matches
-     * an entry in {@code POTION_TYPE_NAME}, that entry will be returned first.
+     * an entry in {@code POTION_TYPE_NAME} cache, that entry will be returned first.
      * Otherwise, it attempts to resolve the name using {@link PotionTypeWrapper#valueOf(String)}.
      * </p>
      *
@@ -264,7 +269,6 @@ public enum PotionTypeWrapper {
     @Nullable
     public static PotionTypeWrapper findPotionByName(final String name) {
         if (name == null) return null;
-
         String bukkitPortion = name.toUpperCase();
         PotionTypeWrapper potionTypeWrapper = POTION_TYPE_NAME.get(bukkitPortion);
         if (potionTypeWrapper != null)
@@ -377,8 +381,19 @@ public enum PotionTypeWrapper {
      */
     @Nonnull
     private static PotionType getUncraftable() {
-        PotionType potion = findPotionTypeByName("UNCRAFTABLE");
-        return potion != null ? potion : PotionType.MUNDANE;
+        try {
+            return PotionType.valueOf("UNCRAFTABLE");
+        } catch (IllegalArgumentException | NoSuchFieldError ex) {
+            return PotionType.MUNDANE;
+        }
+    }
+
+    private static PotionType getPotionType(String name) {
+        try {
+            return PotionType.valueOf(name);
+        } catch (IllegalArgumentException | NoSuchFieldError ignored) {
+            return getUncraftable();
+        }
     }
 
 }

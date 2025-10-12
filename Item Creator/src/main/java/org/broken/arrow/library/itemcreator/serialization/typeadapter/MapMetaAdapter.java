@@ -3,6 +3,7 @@ package org.broken.arrow.library.itemcreator.serialization.typeadapter;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.MapWrapperMeta;
 import org.broken.arrow.library.itemcreator.meta.map.BuildMapView;
 import org.broken.arrow.library.itemcreator.serialization.jsonhelper.JsonReaderHelper;
@@ -105,7 +106,7 @@ public class MapMetaAdapter extends TypeAdapter<MapWrapperMeta> {
         });
         final World world = mapViewValues.world;
         if(world != null) {
-            MapView mapView = Bukkit.getMap(mapViewValues.id);
+            MapView mapView = ItemCreator.getMapById(mapViewValues.id);
             if (mapView == null) mapView = Bukkit.createMap(world);
             BuildMapView buildMapView = new BuildMapView(mapView);
             buildMapView.setCenterX(mapViewValues.centerX);

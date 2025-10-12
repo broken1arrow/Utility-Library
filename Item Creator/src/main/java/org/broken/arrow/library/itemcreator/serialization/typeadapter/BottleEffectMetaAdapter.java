@@ -37,9 +37,9 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
             return;
         }
         final JsonWriterHelper json = new JsonWriterHelper(out);
-        final PotionType potionType = value.getPotionType();
+        final String potionType = value.getPotionName();
 
-        json.value("potion_type", potionType != null ? potionType.name() : "");
+        json.value("potion_type", potionType != null ? potionType : "");
         json.value("is_water_bottle", value.isWaterBottle());
         json.value("is_upgraded", value.isUpgraded());
         json.value("is_extended", value.isExtended());
