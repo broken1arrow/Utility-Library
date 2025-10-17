@@ -361,6 +361,7 @@ public class SerializeItem {
      */
     @Nullable
     public MapWrapperMeta getMapViewMeta() {
+        this.mapViewMeta.createMapView()
         return mapViewMeta;
     }
 
@@ -538,7 +539,7 @@ public class SerializeItem {
                 final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
                 final BuildMapView buildMapView = new BuildMapView(mapView);
                 buildMapView.addAllRenderers(mapView.getRenderers());
-                mapMetaWrapper.createMapView(buildMapView);
+                mapMetaWrapper.assignMapView(buildMapView);
                 data.mapViewMeta = mapMetaWrapper;
             }
         } else {
@@ -548,7 +549,7 @@ public class SerializeItem {
                     final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
                     final BuildMapView buildMapView = new BuildMapView(mapView);
                     buildMapView.addAllRenderers(mapView.getRenderers());
-                    mapMetaWrapper.createMapView(buildMapView);
+                    mapMetaWrapper.assignMapView(buildMapView);
                     data.mapViewMeta = mapMetaWrapper;
                 }
             }

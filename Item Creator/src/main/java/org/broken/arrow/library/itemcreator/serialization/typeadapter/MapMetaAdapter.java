@@ -116,7 +116,7 @@ public class MapMetaAdapter extends TypeAdapter<MapWrapperMeta> {
             buildMapView.setTrackingPosition(mapViewValues.trackingPosition);
             buildMapView.setUnlimitedTracking(mapViewValues.unlimitedTracking);
 
-            meta.createMapView(buildMapView);
+            meta.assignMapView(buildMapView);
         }
         json.endObject();
         return meta;
