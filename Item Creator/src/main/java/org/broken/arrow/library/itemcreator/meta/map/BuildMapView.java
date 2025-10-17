@@ -284,9 +284,11 @@ public class BuildMapView {
     }
 
     /**
-     * Build the {@link MapView} with your settings set.
+     * Applies all configured settings and renderers to the wrapped MapView.
+     * Should be called once all properties are set.
      *
-     * @return a new MapView instance with your settings.
+     * @return the wrapped MapView instance, ready for use
+     * @throws IllegalStateException if the world is not set
      */
     public MapView finalizeMapView() {
         if (world == null)
