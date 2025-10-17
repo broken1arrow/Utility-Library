@@ -199,8 +199,9 @@ public class SerializeItem {
     /**
      * Retrieve the item-stack type.
      *
-     * @return the item material type
+     * @return the item material type, should not return null.
      */
+    @Nullable
     public Material getType() {
         return type;
     }
@@ -219,6 +220,7 @@ public class SerializeItem {
      *
      * @return the display name, or null if not set
      */
+    @Nullable
     public String getName() {
         return name;
     }
@@ -228,6 +230,7 @@ public class SerializeItem {
      *
      * @return the item lore, or null if not set
      */
+    @Nullable
     public List<String> getLore() {
         return lore;
     }
@@ -235,8 +238,9 @@ public class SerializeItem {
     /**
      * Retrieve the item-stack enchantments.
      *
-     * @return the stored enchantments mapped by key
+     * @return the stored enchantments mapped by key or empty map if non is set.
      */
+    @Nonnull
     public Map<String, EnhancementWrapper> getEnchantments() {
         return enchantments;
     }
@@ -246,6 +250,7 @@ public class SerializeItem {
      *
      * @return the custom model data, or null if not set
      */
+    @Nullable
     public Integer getCustomModelData() {
         return customModelData;
     }
@@ -262,8 +267,9 @@ public class SerializeItem {
     /**
      * Retrieve the item-stack flags.
      *
-     * @return the set of item flags
+     * @return the set of item flags or empty set if non set.
      */
+    @Nonnull
     public Set<ItemFlag> getItemFlags() {
         return itemFlags;
     }
@@ -273,6 +279,7 @@ public class SerializeItem {
      *
      * @return the skull owner name, or null if not set
      */
+    @Nullable
     public String getSkullOwner() {
         return skullOwner;
     }
@@ -282,6 +289,7 @@ public class SerializeItem {
      *
      * @return the owning player, or null if not set
      */
+    @Nullable
     public UUID getSkinPlayerId() {
         return skinPlayerId;
     }
@@ -291,6 +299,7 @@ public class SerializeItem {
      *
      * @return the stored potion effects, or null if not set
      */
+    @Nullable
     public BottleEffectMeta getPotionEffects() {
         return potionEffects;
     }
@@ -300,6 +309,7 @@ public class SerializeItem {
      *
      * @return the attribute modifiers, or null if not set
      */
+    @Nullable
     public List<AttributeModifierWrapper> getAttributeModifiers() {
         return attributeModifiers;
     }
@@ -309,16 +319,17 @@ public class SerializeItem {
      *
      * @return the leather armor color, or null if not set
      */
+    @Nullable
     public Color getArmorColor() {
         return armorColor;
     }
-
 
     /**
      * Retrieve the item-stack banner patterns.
      *
      * @return the banner patterns, or null if not set
      */
+    @Nullable
     public List<org.broken.arrow.library.itemcreator.meta.BannerMeta> getPatterns() {
         return patterns;
     }
@@ -328,6 +339,7 @@ public class SerializeItem {
      *
      * @return the firework metadata, or null if not set
      */
+    @Nullable
     public org.broken.arrow.library.itemcreator.meta.FireworkMeta getFireworkMeta() {
         return fireworkMeta;
     }
@@ -337,8 +349,19 @@ public class SerializeItem {
      *
      * @return the book metadata, or null if not set
      */
+    @Nullable
     public org.broken.arrow.library.itemcreator.meta.BookMeta getBookMenta() {
         return bookMenta;
+    }
+
+    /**
+     * Retrieve the item-stack map view metadata.
+     *
+     * @return the map view metadata, or null if not set
+     */
+    @Nullable
+    public MapWrapperMeta getMapViewMeta() {
+        return mapViewMeta;
     }
 
     @Override
