@@ -515,7 +515,6 @@ public class SerializeItem {
                 final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
                 final BuildMapView buildMapView = new BuildMapView(mapView);
                 buildMapView.addAllRenderers(mapView.getRenderers());
-                //buildMapView.finilazeMapView();
                 mapMetaWrapper.createMapView(buildMapView);
                 data.mapViewMeta = mapMetaWrapper;
             }
@@ -526,7 +525,6 @@ public class SerializeItem {
                     final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
                     final BuildMapView buildMapView = new BuildMapView(mapView);
                     buildMapView.addAllRenderers(mapView.getRenderers());
-                   // buildMapView.finilazeMapView();
                     mapMetaWrapper.createMapView(buildMapView);
                     data.mapViewMeta = mapMetaWrapper;
                 }

@@ -288,7 +288,7 @@ public class BuildMapView {
      *
      * @return a new MapView instance with your settings.
      */
-    public MapView finilazeMapView() {
+    public MapView finalizeMapView() {
         if (world == null)
             throw new IllegalStateException("World must be set before building MapView.");
 
@@ -303,12 +303,11 @@ public class BuildMapView {
         if (ItemCreator.getServerVersion() > 10.2F)
             mapView.setUnlimitedTracking(unlimited);
 
-        for (MapRenderer renderer : mapView.getRenderers()) {
-            mapView.removeRenderer(renderer);
-        }
-        System.out.println("mapId " + mapId);
-        System.out.println("mapView.getRenderers() " + renderers.size());
         if (!renderers.isEmpty()) {
+
+            for (MapRenderer renderer : mapView.getRenderers()) {
+                mapView.removeRenderer(renderer);
+            }
             for (MapRendererData data : renderers) {
                 mapView.addRenderer(data.getMapRenderer());
             }

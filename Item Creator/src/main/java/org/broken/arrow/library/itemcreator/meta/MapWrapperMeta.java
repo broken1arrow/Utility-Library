@@ -31,7 +31,7 @@ public class MapWrapperMeta {
     public MapView getMapView() {
         if (this.mapView == null)
             return null;
-        return this.mapView.finilazeMapView();
+        return this.mapView.finalizeMapView();
     }
 
     /**
@@ -112,7 +112,6 @@ public class MapWrapperMeta {
             if (world == null) return null;
             mapView = Bukkit.createMap(world);
         }
-
         this.mapView = new BuildMapView(mapView);
         action.accept(this.mapView);
         return this.mapView;
@@ -135,24 +134,25 @@ public class MapWrapperMeta {
      * <p>If the {@code itemMeta} is not an instance of {@link MapMeta}, this method does nothing.
      * Otherwise, it builds the {@link MapView} from the stored {@link BuildMapView} and sets it on the {@link MapMeta}.</p>
      *
-     * @param item     the itemStack to apply the data.
+     * @param item     the ItemStack to which the data is applied, used only on legacy versions
+     *                 safe to set to null on Minecraft 1.13+.
      * @param itemMeta The {@link ItemMeta} to apply the map view to.
      */
-    public void applyMapMeta(final ItemStack item, @Nonnull final ItemMeta itemMeta) {
+    public void applyMapMeta(@Nullable final ItemStack item, @Nonnull final ItemMeta itemMeta) {
         if (!(itemMeta instanceof MapMeta)) return;
         final MapMeta mapMeta = (MapMeta) itemMeta;
 
         if (ItemCreator.getServerVersion() < 13.0F) {
             final BuildMapView mapViewBuilder = this.getMapViewBuilder();
             short durability = mapViewBuilder == null ? -1 : (short) mapViewBuilder.getId();
-            if (durability >= 0) {
+            if (item != null && durability >= 0) {
                 item.setDurability(durability);
             }
             return;
         }
 
         if (mapView != null) {
-            MapView builtMap = mapView.finilazeMapView();
+            MapView builtMap = mapView.finalizeMapView();
             mapMeta.setMapView(builtMap);
         }
     }
