@@ -361,7 +361,6 @@ public class SerializeItem {
      */
     @Nullable
     public MapWrapperMeta getMapViewMeta() {
-        this.mapViewMeta.createMapView()
         return mapViewMeta;
     }
 
