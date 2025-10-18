@@ -152,7 +152,7 @@ public class BuildMapView {
     }
 
     /**
-     * Get a list of MapRenderers currently in effect.
+     * Get a list of MapRenderers currently set.
      *
      * @return A {@code List<MapRenderer>} containing each map renderer.
      */
