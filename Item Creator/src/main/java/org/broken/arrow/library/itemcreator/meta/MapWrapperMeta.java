@@ -41,7 +41,6 @@ public class MapWrapperMeta {
      */
     @Nullable
     public BuildMapView getMapViewBuilder() {
-        this.getMapView();
         return this.mapView;
     }
 
@@ -68,6 +67,29 @@ public class MapWrapperMeta {
      */
     public BuildMapView createMapView(@Nonnull final World world, @Nonnull final Consumer<BuildMapView> action) {
         return this.createOrRetrieveMapView(world, -1, action);
+    }
+
+    /**
+     * Attempts to retrieve an existing map by already set {@link BuildMapView} instance  and wraps it in a {@link BuildMapView}.
+     * <p>
+     * Unlike {@link #createOrRetrieveMapView(World, int, Consumer)} and {@link #createMapView(World, Consumer)},
+     * the difference is that the first method always creates a new map when one cannot be found, while the second
+     * always creates a new map regardless. This method, however, does not create a new map if the ID is missing,
+     * it simply returns {@code null}.
+     * </p>
+     *
+     * @param action a consumer to configure the resulting {@link BuildMapView}, if found.
+     * @return the retrieved {@link BuildMapView}, or {@code null} if no map exists for the given ID.
+     */
+    @Nullable
+    public BuildMapView getExistingMapView(@Nonnull final Consumer<BuildMapView> action) {
+        final BuildMapView builtMapView = this.getMapViewBuilder();
+        if(builtMapView == null) return null;
+        final MapView mapView = (builtMapView.getId() >= 0) ? ItemCreator.getMapById(builtMapView.getId()) : null;
+        if (mapView == null)  return null;
+
+        action.accept(builtMapView);
+        return builtMapView;
     }
 
     /**
@@ -141,6 +163,9 @@ public class MapWrapperMeta {
 
         if (ItemCreator.getServerVersion() < 13.0F) {
             final BuildMapView mapViewBuilder = this.getMapViewBuilder();
+            if(mapViewBuilder != null)
+                mapViewBuilder.finalizeMapView();
+
             short durability = mapViewBuilder == null ? -1 : (short) mapViewBuilder.getId();
             if (item != null && durability >= 0) {
                 item.setDurability(durability);

@@ -43,6 +43,7 @@ public class MapMetaAdapter extends TypeAdapter<MapWrapperMeta> {
 
         final BuildMapView mapView = value.getMapViewBuilder();
         if (mapView != null) {
+            mapView.finalizeMapView();
             final String worldUID = mapView.getWorld() == null ? null : mapView.getWorld().getUID().toString();
             json.value("id", mapView.getId());
             json.value("world", worldUID);
