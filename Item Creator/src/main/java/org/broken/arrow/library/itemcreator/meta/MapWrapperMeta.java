@@ -70,16 +70,16 @@ public class MapWrapperMeta {
     }
 
     /**
-     * Attempts to retrieve an existing map by already set {@link BuildMapView} instance  and wraps it in a {@link BuildMapView}.
+     * Attempts to retrieve and configure an existing {@link BuildMapView} based on the currently assigned instance.
      * <p>
-     * Unlike {@link #createOrRetrieveMapView(World, int, Consumer)} and {@link #createMapView(World, Consumer)},
-     * the difference is that the first method always creates a new map when one cannot be found, while the second
-     * always creates a new map regardless. This method, however, does not create a new map if the ID is missing,
-     * it simply returns {@code null}.
+     * This method first checks if a {@link BuildMapView} has already been assigned via {@link #getMapViewBuilder()}.
+     * If found, its ID is used to look up the corresponding map view. Unlike
+     * {@link #createOrRetrieveMapView(World, int, Consumer)} and {@link #createMapView(World, Consumer)},
+     * this method does <strong>not</strong> create a new map if none exists—it simply returns {@code null}.
      * </p>
      *
-     * @param action a consumer to configure the resulting {@link BuildMapView}, if found.
-     * @return the retrieved {@link BuildMapView}, or {@code null} if no map exists for the given ID.
+     * @param action a consumer used to configure the {@link BuildMapView}, if it exists.
+     * @return the existing {@link BuildMapView}, or {@code null} if none was found or assigned.
      */
     @Nullable
     public BuildMapView getExistingMapView(@Nonnull final Consumer<BuildMapView> action) {
@@ -92,17 +92,20 @@ public class MapWrapperMeta {
     }
 
     /**
-     * Attempts to retrieve an existing map by its ID and wraps it in a {@link BuildMapView}.
+     * Attempts to retrieve and wrap an existing map view by its ID into a {@link BuildMapView}.
      * <p>
-     * Unlike {@link #createOrRetrieveMapView(World, int, Consumer)} and {@link #createMapView(World, Consumer)},
-     * the difference is that the first method always creates a new map when one cannot be found, while the second
-     * always creates a new map regardless. This method, however, does not create a new map if the ID is missing,
-     * it simply returns {@code null}.
+     * This method differs from {@link #createOrRetrieveMapView(World, int, Consumer)} and
+     * {@link #createMapView(World, Consumer)} in that it never creates a new map.
+     * If no map exists with the provided ID, the method returns {@code null}.
+     * </p>
+     * <p>
+     * If a {@link BuildMapView} is not currently assigned, a new wrapper will be created
+     * and linked via {@link #assignMapView(BuildMapView)} using the retrieved {@link MapView}.
      * </p>
      *
-     * @param id     the map ID to retrieve can't be below zero.
-     * @param action a consumer to configure the resulting {@link BuildMapView}, if found.
-     * @return the retrieved {@link BuildMapView}, or {@code null} if no map exists for the given ID.
+     * @param id     the map ID to retrieve, must be zero or greater.
+     * @param action a consumer used to configure the {@link BuildMapView}, if found.
+     * @return the existing {@link BuildMapView}, or {@code null} if no map exists for the given ID.
      */
     @Nullable
     public BuildMapView getExistingMapView(final int id, @Nonnull final Consumer<BuildMapView> action) {
