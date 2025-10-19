@@ -85,11 +85,10 @@ public class MapWrapperMeta {
     public BuildMapView getExistingMapView(@Nonnull final Consumer<BuildMapView> action) {
         final BuildMapView builtMapView = this.getMapViewBuilder();
         if(builtMapView == null) return null;
-        final MapView mapView = (builtMapView.getId() >= 0) ? ItemCreator.getMapById(builtMapView.getId()) : null;
-        if (mapView == null)  return null;
+        final int id = builtMapView.getId();
 
         action.accept(builtMapView);
-        return builtMapView;
+        return getExistingMapView(id, action);
     }
 
     /**
@@ -107,7 +106,15 @@ public class MapWrapperMeta {
      */
     @Nullable
     public BuildMapView getExistingMapView(final int id, @Nonnull final Consumer<BuildMapView> action) {
-        return this.createOrRetrieveMapView(null, id, action);
+        final MapView mapView = (id >= 0) ? ItemCreator.getMapById(id) : null;
+        if (mapView == null)  return null;
+
+        BuildMapView builtMapView = this.getMapViewBuilder();
+        if(builtMapView == null) {
+            builtMapView = this.assignMapView(new BuildMapView(mapView));
+        }
+        action.accept(builtMapView);
+        return builtMapView;
     }
 
     /**
