@@ -6,6 +6,7 @@ import org.bukkit.map.MapCursor;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -160,7 +161,7 @@ public final class MapCursorWrapper {
      *
      * @param visible True if visible.
      */
-    public void setVisible(boolean visible) {
+    public void setVisible(final boolean visible) {
         this.cursor.setVisible(visible);
     }
 
@@ -179,7 +180,7 @@ public final class MapCursorWrapper {
      *
      * @param caption new caption
      */
-    public void setCaption(@Nullable String caption) {
+    public void setCaption(@Nullable final String caption) {
         this.cursor.setCaption(caption);
     }
 
@@ -238,11 +239,12 @@ public final class MapCursorWrapper {
     public static MapCursor.Type byName(final String name) {
         if (name == null)
             return MapCursor.Type.WHITE_POINTER;
-        String nameFormatted = name.toUpperCase();
-        for (MapCursor.Type t : MapCursor.Type.values()) {
-            if (t.name().equals(nameFormatted)) return t;
+        final String nameFormatted = name.toUpperCase(Locale.ROOT);
+        try {
+            return MapCursor.Type.valueOf(nameFormatted);
+        } catch (IllegalArgumentException ignore) {
+            return MapCursor.Type.WHITE_POINTER;
         }
-        return MapCursor.Type.WHITE_POINTER;
     }
 
     @Override

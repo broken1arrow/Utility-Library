@@ -35,7 +35,7 @@ public class MapWrapperMeta {
     }
 
     /**
-     * Returns the {@link BuildMapView} that also populate the {@link MapView}.
+     * Returns the {@link BuildMapView} that also wraps the {@link MapView} logic.
      *
      * @return The built {@link BuildMapView}, or null if no {@code BuildMapView} is set.
      */
