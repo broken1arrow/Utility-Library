@@ -2,6 +2,7 @@ package org.broken.arrow.library.itemcreator.meta.map;
 
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
+import org.broken.arrow.library.itemcreator.utility.FormatString;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.inventory.meta.MapMeta;
@@ -344,12 +345,15 @@ public class BuildMapView {
 
     @Override
     public String toString() {
-        return "id: " + getId() +
-                ",\n world: " + (world == null ? "" : world.getName()) +
-                ",\n x: " + getCenterX() +
-                ",\n z: " + getCenterZ() +
-                ",\n renderers:" + renderers
-                ;
+        FormatString string = new FormatString(new StringBuilder("{"));
+
+        string.appendFieldRecursive("id", getId(), 1);
+        string.appendFieldRecursive("world", (world == null ? "" : world.getName()), 1);
+        string.appendFieldRecursive("x", getCenterX(), 1);
+        string.appendFieldRecursive("z", getCenterZ(), 1);
+        string.appendFieldRecursive("renderers", renderers, 1);
+
+        return string.finalizeString() + "";
     }
 
 }
