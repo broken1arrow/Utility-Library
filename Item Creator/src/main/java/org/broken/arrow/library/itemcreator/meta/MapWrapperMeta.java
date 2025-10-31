@@ -109,12 +109,12 @@ public class MapWrapperMeta {
      */
     @Nullable
     public BuildMapView getExistingMapView(final int id, @Nonnull final Consumer<BuildMapView> action) {
-        final MapView mapView = (id >= 0) ? ItemCreator.getMapById(id) : null;
-        if (mapView == null)  return null;
+        final MapView view = (id >= 0) ? ItemCreator.getMapById(id) : null;
+        if (view == null)  return null;
 
         BuildMapView builtMapView = this.getMapViewBuilder();
         if(builtMapView == null) {
-            builtMapView = this.assignMapView(new BuildMapView(mapView));
+            builtMapView = this.assignMapView(new BuildMapView(view));
         }
         action.accept(builtMapView);
         return builtMapView;
@@ -135,13 +135,13 @@ public class MapWrapperMeta {
      */
     @Nullable
     public BuildMapView createOrRetrieveMapView(@Nullable final World world, final int id, @Nonnull final Consumer<BuildMapView> action) {
-        MapView mapView = (id >= 0) ? ItemCreator.getMapById(id) : null;
+        MapView view = (id >= 0) ? ItemCreator.getMapById(id) : null;
 
-        if (mapView == null) {
+        if (view == null) {
             if (world == null) return null;
-            mapView = Bukkit.createMap(world);
+            view = Bukkit.createMap(world);
         }
-        final BuildMapView builtMapView = this.assignMapView(new BuildMapView(mapView));
+        final BuildMapView builtMapView = this.assignMapView(new BuildMapView(view));
         action.accept(builtMapView);
         return builtMapView;
     }

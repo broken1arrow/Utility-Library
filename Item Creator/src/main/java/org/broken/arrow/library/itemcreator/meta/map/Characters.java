@@ -1,8 +1,7 @@
 package org.broken.arrow.library.itemcreator.meta.map;
 
 public class Characters {
-
-    private static final String fontChars =
+    private static final String FONT_CHARS =
             " !\"#$%&'()*+,-./0123456789:;<=>?" +
                     "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_" +
                     "'abcdefghijklmnopqrstuvwxyz{|}~\u007F" +
@@ -13,14 +12,17 @@ public class Characters {
                     "\u00E1\u00ED\u00F3\u00FA\u00F1\u00D1\u00AA\u00BA" + // áíóúñÑªº
                     "\u00BF\u00AE\u00AC\u00BD\u00BC\u00A1\u00AB\u00BB";  // ¿®¬½¼¡«»
 
-    private static final char[] fontCharsArray = fontChars.toCharArray();
+    private static final char[] FONT_CHARS_ARRAY = FONT_CHARS.toCharArray();
+
+    private Characters() {
+    }
 
     /**
      *
      * @return get the String of characters set.
      */
     public static String getFontChars() {
-        return fontChars;
+        return FONT_CHARS;
     }
 
     /**
@@ -28,6 +30,6 @@ public class Characters {
      * @return get the array of char  set.
      */
     public static char[] getFontCharsArray() {
-        return fontCharsArray;
+        return FONT_CHARS_ARRAY;
     }
 }

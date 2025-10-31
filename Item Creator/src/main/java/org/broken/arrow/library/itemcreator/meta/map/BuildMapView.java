@@ -338,7 +338,6 @@ public class BuildMapView {
             Object result = getId.invoke(mapView);
             return ((Number) result).intValue();
         } catch (Exception e) {
-            e.printStackTrace();
             return -1;
         }
     }
