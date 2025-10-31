@@ -5,16 +5,13 @@ import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorAdapter;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorWrapper;
 import org.broken.arrow.library.itemcreator.meta.map.font.CharacterSprite;
 import org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper;
+import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.MapTextRenderer;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapColoredPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.TextOverlay;
 import org.bukkit.entity.Player;
-import org.bukkit.map.MapCanvas;
-import org.bukkit.map.MapCursor;
-import org.bukkit.map.MapPalette;
-import org.bukkit.map.MapRenderer;
-import org.bukkit.map.MapView;
+import org.bukkit.map.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -130,7 +126,7 @@ public class MapRendererData {
      * @param fontChars Set the characters you want to replace in your text with the font.
      * @param font      The  font for the character
      */
-    public void addText(final int x, int y,@Nonnull final String text, @Nullable final char[] fontChars, @Nullable final Font font) {
+    public void addText(final int x, int y, @Nonnull final String text, @Nullable final char[] fontChars, @Nullable final Font font) {
         TextOverlay textOverlay = new TextOverlay(x, y, text);
         if (font != null) {
             if (fontChars != null && fontChars.length > 0) {
@@ -343,7 +339,14 @@ public class MapRendererData {
             }
             if (mapPixel instanceof TextOverlay) {
                 TextOverlay textOverlay = (TextOverlay) mapPixel;
-                canvas.drawText(mapPixel.getX(), mapPixel.getY(), textOverlay.getMapFont(), textOverlay.getText());
+                final MapFont mapFont = textOverlay.getMapFont();
+                if (mapFont instanceof MinecraftFont)
+                    canvas.drawText(mapPixel.getX(), mapPixel.getY(), mapFont, textOverlay.getText());
+                else {
+                    MapTextRenderer mapTextRenderer = new MapTextRenderer(canvas, textOverlay.getMapFontWrapper(), textOverlay.getText());
+                    mapTextRenderer.drawCustomFontText(mapPixel.getX(), mapPixel.getY());
+                    // drawCustomFontText(canvas, mapPixel.getX(), mapPixel.getY(), textOverlay.getText(), textOverlay.getMapFontWrapper());
+                }
             }
             if (mapPixel instanceof ImageOverlay) {
                 ImageOverlay textOverlay = (ImageOverlay) mapPixel;

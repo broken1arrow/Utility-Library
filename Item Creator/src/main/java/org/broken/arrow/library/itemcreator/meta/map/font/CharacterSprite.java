@@ -28,19 +28,25 @@ public class CharacterSprite {
     private final int width;
     private final int height;
     private final boolean[] data;
+    private final int spacing;
 
     /**
-     * Constructs a CharacterSprite with specified dimensions and pixel data.
+     * Creates a character sprite with an explicit pixel spacing value.
+     * <p>
+     * Spacing defines how many pixels should appear after this character before drawing
+     * the next one. This allows variable-width fonts or compact characters.
      *
-     * @param width  The width of the character in pixels.
-     * @param height The height of the character in pixels.
-     * @param data   A boolean array representing pixel solidity; length must be width * height.
-     * @throws IllegalArgumentException if data length does not match width * height.
+     * @param width   the width of the character in pixels
+     * @param height  the height of the character in pixels
+     * @param spacing the number of pixels to leave after this character when rendering
+     * @param data    a boolean array representing pixel solidity; must be {@code width * height} in size
+     * @throws IllegalArgumentException if {@code data.length} does not equal {@code width * height}
      */
-    public CharacterSprite(final int width, final int height, @Nonnull final boolean[] data) {
+    public CharacterSprite(final int width, final int height, final int spacing, @Nonnull final boolean[] data) {
         this.width = width;
         this.height = height;
         this.data = data;
+        this.spacing = spacing;
 
         if (data.length != width * height) {
             throw new IllegalArgumentException("size of data does not match dimensions");
@@ -88,6 +94,18 @@ public class CharacterSprite {
     }
 
     /**
+     * Returns the spacing value for this sprite.
+     * <p>
+     * This is the number of pixels to move forward after drawing the character,
+     * before drawing the next one.
+     *
+     * @return the spacing in pixels
+     */
+    public int getSpacing() {
+        return spacing;
+    }
+
+    /**
      * Converts this wrapper into the underlying {@link MapFont.CharacterSprite} instance.
      *
      * @return A new {@link MapFont.CharacterSprite} with the same dimensions and pixel data.
@@ -107,6 +125,7 @@ public class CharacterSprite {
         Map<String, Object> map = new HashMap<>();
         map.put("height", height);
         map.put("width", width);
+        map.put("spacing", spacing);
         List<Boolean> boolList = new ArrayList<>(data.length);
         for (boolean b : data) {
             boolList.add(b);
@@ -125,13 +144,14 @@ public class CharacterSprite {
     public static CharacterSprite deserializeData(Map<String, Object> map) {
         int height = (int) map.get("height");
         int width = (int) map.get("width");
-
+        int spacing = (int) map.get("spacing");
         List<Boolean> boolList = (List<Boolean>) map.get("data");
         boolean[] data = new boolean[boolList.size()];
         for (int i = 0; i < boolList.size(); i++) {
             data[i] = Boolean.TRUE.equals(boolList.get(i));
         }
 
-        return new CharacterSprite(width, height, data);
+        return new CharacterSprite(width, height, spacing, data);
     }
+
 }

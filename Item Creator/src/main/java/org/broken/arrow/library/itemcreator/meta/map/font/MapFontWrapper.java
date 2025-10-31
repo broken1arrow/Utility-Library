@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +29,8 @@ public class MapFontWrapper {
 
     private final Map<Character, CharacterSprite> chars = new HashMap<>();
     private int height = 0;
+    private IntUnaryOperator defaultFontSpacing = (charter) -> 8;
+
     /**
      * just a check if the front is malleable
      */
@@ -37,7 +40,7 @@ public class MapFontWrapper {
     /**
      * Sets the sprite for a specific character in this font.
      *
-     * @param ch The character to associate the sprite with.
+     * @param ch   The character to associate the sprite with.
      * @param font the font to set for the character.
      * @throws IllegalStateException if the font is static and does not allow modification.
      */
@@ -77,6 +80,52 @@ public class MapFontWrapper {
     }
 
     /**
+     * Returns the default spacing function for characters.
+     * <p>
+     * This function is used when a character does not have its own spacing defined.
+     * The input is the character code (cast from char to int), and the output is the
+     * spacing in pixels to use for that character.
+     * <p>
+     * You typically don't need to call this method directly, as spacing is handled
+     * automatically when a sprite is not provided for a symbol.
+     *
+     * @return a function mapping a character code to its default spacing in pixels
+     */
+    @Nonnull
+    public IntUnaryOperator getDefaultFontSpacing() {
+        return defaultFontSpacing;
+    }
+
+    /**
+     * Applies the default spacing function to a specific character.
+     * <p>
+     * You typically don't need to call this method directly, as spacing is handled
+     * automatically when a sprite is not provided for a symbol.
+     *
+     * @param ch the character to determine spacing for
+     * @return the spacing in pixels for the given character
+     */
+    public int applyDefaultFontSpacing(char ch) {
+        return defaultFontSpacing.applyAsInt(ch);
+    }
+
+    /**
+     * Sets the default spacing function for characters.
+     * <p>
+     * Note that using this may produce uneven letter spacing if not used carefully,
+     * as most symbols often have their own width. This function acts as a fallback
+     * for characters without explicit spacing.
+     * <p>
+     * The input to the operator is the character code (cast from char to int), and
+     * the output is the spacing in pixels.
+     *
+     * @param defaultFontSpacing a function mapping a character code to spacing in pixels
+     */
+    public void setDefaultFontSpacing(@Nonnull final IntUnaryOperator defaultFontSpacing) {
+        this.defaultFontSpacing = defaultFontSpacing;
+    }
+
+    /**
      * Calculates the total width in pixels of the provided text when rendered
      * with this font. This accounts for individual character widths and
      * inter-character spacing.
@@ -106,21 +155,6 @@ public class MapFontWrapper {
             if (charResult.getWidth() != FontParser.NO_WIDTH)
                 result += charResult.getWidth();
         }
-/*        for (int i = 0; i < text.length(); ++i) {
-            char ch = text.charAt(i);
-            if (ch == ChatColor.COLOR_CHAR) {
-                int j = text.indexOf(';', i);
-                if (j >= 0) {
-                    i = j;
-                    continue;
-                }
-                throw new IllegalArgumentException("Text contains unterminated color string");
-            }
-            final CharacterSprite characterSprite = chars.get(ch);
-            if (characterSprite == null)
-                continue;
-            result += characterSprite.getWidth();
-        }*/
         result += text.length() - 1; // Account for 1px spacing between characters
         return result;
     }
@@ -257,7 +291,7 @@ public class MapFontWrapper {
         /**
          * Set the sprite.
          *
-         * @param ch the charter
+         * @param ch   the charter
          * @param font the font to set.
          * @return the sprite character set.
          */
@@ -285,14 +319,16 @@ public class MapFontWrapper {
             GRAPHICS.setComposite(AlphaComposite.SrcOver);
 
             GRAPHICS.setColor(Color.WHITE);
-            GRAPHICS.drawString(String.valueOf(ch), 0, baseline);
+            GRAPHICS.drawString(String.valueOf(ch), 1, baseline);
 
             ConvertFontToSprite result = new ConvertFontToSprite(fontWidth, fontHeight);
             return result.extractGlyph();
         }
 
         private CharacterSprite extractGlyph() {
-            int minX = width, maxX = -1;
+            int minX = width;
+            int maxX = -1;
+
             for (int y = 0; y < this.height; y++) {
                 for (int x = 0; x < width; x++) {
                     if ((WORK_IMAGE.getRGB(x, y) & 0xFF000000) != 0) {
@@ -301,16 +337,16 @@ public class MapFontWrapper {
                     }
                 }
             }
-            return toSprite(maxX, minX);
+            return this.toSprite(minX, maxX);
         }
 
-        private CharacterSprite toSprite(final int maxX, final int minX) {
+        private CharacterSprite toSprite(final int minX, final int maxX) {
             final boolean[] pixels;
             final int trimmedWidth;
             if (maxX == -1) {
                 trimmedWidth = 0;
                 pixels = new boolean[0];
-                return new CharacterSprite(trimmedWidth, this.height, pixels);
+                return new CharacterSprite(trimmedWidth, this.height, minX, pixels);
             }
 
             trimmedWidth = maxX - minX + 1;
@@ -322,7 +358,7 @@ public class MapFontWrapper {
                             (WORK_IMAGE.getRGB(x + minX, y) & 0xFF000000) != 0;
                 }
             }
-            return new CharacterSprite(trimmedWidth, this.height, pixels);
+            return new CharacterSprite(trimmedWidth, this.height, minX, pixels);
         }
 
         private static FontMetrics initGraphicsForFont(Font font) {
