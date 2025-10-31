@@ -127,6 +127,11 @@ public class MapTextRenderer {
      * <p>
      * Spigot 1.20+ uses {@link MapCanvas#setPixelColor(int, int, java.awt.Color)},
      * older versions use {@link MapPalette#matchColor(Color)}.
+     *
+     * @param canvas the target map canvas to draw on
+     * @param x location where draw in digonal direction.
+     * @param y location where draw in vertical direction.
+     * @param color the color to set for the pixel
      */
     private void setMapPixel(MapCanvas canvas, int x, int y, Color color) {
         if (ItemCreator.getServerVersion() < 20.0F) {
@@ -140,6 +145,7 @@ public class MapTextRenderer {
      * Creates a slightly darker version of the given color. Used for shadow rendering.
      *
      * @param color the current color you want to be darker.
+     * @return return a darker tone of your color.
      */
     private Color darker(Color color) {
         return new Color(

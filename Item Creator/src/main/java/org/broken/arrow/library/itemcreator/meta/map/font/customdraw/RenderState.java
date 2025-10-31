@@ -20,6 +20,8 @@ public class RenderState {
      *     <li>{@code r} = reset styles + white</li>
      *     <li>Otherwise = color code</li>
      * </ul>
+     *
+     * @param code the color code to check for.
      */
     public void applyFormattingCode(char code) {
         switch (code) {
@@ -50,7 +52,8 @@ public class RenderState {
     }
 
     /**
-     * Returns the color currently used for glyph drawing.
+     *
+     * @return Returns the color currently used for glyph drawing.
      */
     public Color getCurrentColor() {
         return currentColor;
@@ -70,6 +73,7 @@ public class RenderState {
      * Does not handle formatting (bold, shadow), only RGB color.
      *
      * @param code the color code for vanillas minecraft.
+     * @return returns the color or null if not a valid Minecraft color code.
      */
     @Nullable
     public Color translateChatColor(char code) {
