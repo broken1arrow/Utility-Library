@@ -4,6 +4,8 @@ import org.broken.arrow.library.itemcreator.meta.map.font.CharacterSprite;
 import org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper;
 
 import javax.annotation.Nonnull;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,11 +20,11 @@ public class TextOverlay extends MapPixel {
     /**
      * Constructs a TextOverlay at the specified coordinates with the given text.
      *
-     * @param x the x-coordinate of the text overlay.
-     * @param y the y-coordinate of the text overlay.
+     * @param x    the x-coordinate of the text overlay.
+     * @param y    the y-coordinate of the text overlay.
      * @param text the text to display.
      */
-    public TextOverlay(final int x, final int y, final String text) {
+    public TextOverlay(final int x, final int y,@Nonnull final String text) {
         super(x, y);
         this.text = text;
     }
@@ -32,6 +34,7 @@ public class TextOverlay extends MapPixel {
      *
      * @return the text string.
      */
+    @Nonnull
     public String getText() {
         return text;
     }
@@ -39,11 +42,27 @@ public class TextOverlay extends MapPixel {
     /**
      * Sets a custom map font character for rendering the text.
      *
-     * @param ch the character to replace.
+     * @param ch     the character to replace.
      * @param sprite the {@link CharacterSprite} representing the custom character sprite.
      */
     public void setMapFont(final char ch, @Nonnull final CharacterSprite sprite) {
         mapFontWrapper.setChar(ch, sprite);
+    }
+
+    /**
+     * Sets a custom map font character for rendering the text. Some fonts not always translates to the map correctly
+     * try bigger or smaller font size, that could help with the issue.
+     *
+     * @param chars     the characters to replace.
+     * @param font the {@link Font} representing the custom character sprite.
+     */
+    public void setMapFont(final char[] chars, @Nonnull final Font font) {
+        BufferedImage workImg = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = workImg.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        for (char charter : chars) {
+            mapFontWrapper.setChar(charter, font);
+        }
     }
 
 
@@ -55,6 +74,16 @@ public class TextOverlay extends MapPixel {
     public org.bukkit.map.MapFont getMapFont() {
         return mapFontWrapper.getMapFont();
     }
+
+    /**
+     * Gets the {@link MapFontWrapper} wrapper of the front.
+     *
+     * @return the wrapper of the map font.
+     */
+    public MapFontWrapper getMapFontWrapper() {
+        return mapFontWrapper;
+    }
+
 
     /**
      * Serializes this TextOverlay into a map representation for saving context.

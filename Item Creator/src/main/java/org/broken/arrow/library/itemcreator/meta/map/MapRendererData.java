@@ -4,6 +4,7 @@ import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorAdapter;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorWrapper;
 import org.broken.arrow.library.itemcreator.meta.map.font.CharacterSprite;
+import org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapColoredPixel;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +47,7 @@ public class MapRendererData {
     private MapCursorAdapter mapCursors = new MapCursorAdapter();
     private final List<MapPixel> pixels = new ArrayList<>();
     private MapRenderHandler dynamicRenderer;
+    private char[] fontChars = Characters.getFontCharsArray();
 
     /**
      * Constructs a new MapRendererData instance with no associated {@link MapRenderer}.
@@ -97,29 +100,45 @@ public class MapRendererData {
     /**
      * Adds a text overlay to the map without a custom font character sprite.
      *
-     * @param x      The x-coordinate of the text.
-     * @param y      The y-coordinate of the text.
-     * @param text   The text to display.
+     * @param x    The x-coordinate of the text.
+     * @param y    The y-coordinate of the text.
+     * @param text The text to display.
      */
     public void addText(final int x, int y, final String text) {
-        TextOverlay textOverlay = new TextOverlay(x, y, text);
-        pixels.add(textOverlay);
+        this.addText(x, y, text, null, null);
+    }
+
+    /**
+     * Adds a text overlay to the map with a custom font character sprite. Will use the default set
+     * of characters instead.
+     *
+     * @param x    The x-coordinate of the text.
+     * @param y    The y-coordinate of the text.
+     * @param text The text to display.
+     * @param font The  font for the character.
+     */
+    public void addText(final int x, int y, final String text, @Nullable final Font font) {
+        this.addText(x, y, text, null, font);
     }
 
     /**
      * Adds a text overlay to the map with a custom font character sprite.
      *
-     * @param x      The x-coordinate of the text.
-     * @param y      The y-coordinate of the text.
-     * @param text   The text to display.
-     * @param ch     The character associated with the custom font.
-     * @param sprite The {@link CharacterSprite} for the font character.
+     * @param x         The x-coordinate of the text.
+     * @param y         The y-coordinate of the text.
+     * @param text      The text to display.
+     * @param fontChars Set the characters you want to replace in your text with the font.
+     * @param font      The  font for the character
      */
-    public void addText(final int x, int y, final String text, final char ch, @Nullable CharacterSprite sprite) {
+    public void addText(final int x, int y,@Nonnull final String text, @Nullable final char[] fontChars, @Nullable final Font font) {
         TextOverlay textOverlay = new TextOverlay(x, y, text);
-        if (sprite != null)
-            textOverlay.setMapFont(ch, sprite);
-        pixels.add(textOverlay);
+        if (font != null) {
+            if (fontChars != null && fontChars.length > 0) {
+                this.fontChars = fontChars;
+            }
+            textOverlay.setMapFont(this.fontChars, font);
+        }
+        this.addText(textOverlay);
     }
 
     /**
@@ -138,7 +157,7 @@ public class MapRendererData {
      * @param y     The y-coordinate of the image.
      * @param image The image to display.
      */
-    public void addImage(final int x,final int y,@Nonnull final Image image) {
+    public void addImage(final int x, final int y, @Nonnull final Image image) {
         pixels.add(new ImageOverlay(x, y, image));
     }
 
@@ -211,9 +230,9 @@ public class MapRendererData {
     }
 
     /**
-     * Returns the current collection of map cursors.
+     * Returns the current collection of map pixels.
      *
-     * @return The {@link MapCursorAdapter} managing cursors.
+     * @return The {@link MapCursorAdapter} managing  pixels.
      */
     public List<MapPixel> getPixels() {
         return pixels;
@@ -226,18 +245,14 @@ public class MapRendererData {
      * @return The {@link MapRenderer} instance.
      */
     public MapRenderer getMapRenderer() {
-   /*     if (this.mapRenderer != null) {
-            mapRenderer.render();
+        if (this.mapRenderer != null) {
             return mapRenderer;
-        }*/
+        }
         return new MapRenderer() {
             @Override
             public void render(@Nonnull MapView map, @Nonnull MapCanvas canvas, @Nonnull Player player) {
                 if (dynamicRenderer != null && dynamicRenderer.render(map, canvas, player))
                     return;
-                if (mapRenderer != null) {
-                    mapRenderer.render(map, canvas, player);
-                }
                 canvas.setCursors(mapCursors.getMapCursorCollection());
                 if (!getPixels().isEmpty()) {
                     setPixels(canvas);
@@ -246,26 +261,6 @@ public class MapRendererData {
         };
     }
 
-    private void setPixels(final MapCanvas canvas) {
-        getPixels().forEach(mapPixel -> {
-            if (mapPixel instanceof MapColoredPixel) {
-                if (ItemCreator.getServerVersion() < 20.0F)
-                    canvas.setPixel(mapPixel.getX(), mapPixel.getY(), MapPalette.matchColor(((MapColoredPixel) mapPixel).getColor()));
-                else
-                    canvas.setPixelColor(mapPixel.getX(), mapPixel.getY(), ((MapColoredPixel) mapPixel).getColor());
-            }
-            if (mapPixel instanceof TextOverlay) {
-                TextOverlay textOverlay = (TextOverlay) mapPixel;
-                canvas.drawText(mapPixel.getX(), mapPixel.getY(), textOverlay.getMapFont(), textOverlay.getText());
-            }
-            if (mapPixel instanceof ImageOverlay) {
-                ImageOverlay textOverlay = (ImageOverlay) mapPixel;
-                final Image image = textOverlay.getImage();
-                if (image != null)
-                    canvas.drawImage(mapPixel.getX(), mapPixel.getY(), image);
-            }
-        });
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -335,5 +330,27 @@ public class MapRendererData {
                 ", pixels=" + pixels +
                 ", dynamicRenderer=" + dynamicRenderer +
                 '}';
+    }
+
+    private void setPixels(@Nonnull final MapCanvas canvas) {
+        getPixels().forEach(mapPixel -> {
+            if (mapPixel instanceof MapColoredPixel) {
+                final Color color = ((MapColoredPixel) mapPixel).getColor();
+                if (ItemCreator.getServerVersion() < 20.0F)
+                    canvas.setPixel(mapPixel.getX(), mapPixel.getY(), MapPalette.matchColor(color));
+                else
+                    canvas.setPixelColor(mapPixel.getX(), mapPixel.getY(), color);
+            }
+            if (mapPixel instanceof TextOverlay) {
+                TextOverlay textOverlay = (TextOverlay) mapPixel;
+                canvas.drawText(mapPixel.getX(), mapPixel.getY(), textOverlay.getMapFont(), textOverlay.getText());
+            }
+            if (mapPixel instanceof ImageOverlay) {
+                ImageOverlay textOverlay = (ImageOverlay) mapPixel;
+                final Image image = textOverlay.getImage();
+                if (image != null)
+                    canvas.drawImage(mapPixel.getX(), mapPixel.getY(), image);
+            }
+        });
     }
 }

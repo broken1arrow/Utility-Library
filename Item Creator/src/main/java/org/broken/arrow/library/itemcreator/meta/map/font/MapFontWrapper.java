@@ -2,12 +2,16 @@ package org.broken.arrow.library.itemcreator.meta.map.font;
 
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.map.MapFont;
+import org.bukkit.map.MinecraftFont;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 /**
  * Wrapper class for managing a custom font represented by character sprites on a map.
  * <p>
@@ -21,10 +25,27 @@ import java.util.stream.Collectors;
  */
 public class MapFontWrapper {
 
+
     private final Map<Character, CharacterSprite> chars = new HashMap<>();
     private int height = 0;
-    /** just a check if the front is malleable*/
+    /**
+     * just a check if the front is malleable
+     */
     protected boolean malleable = true;
+
+
+    /**
+     * Sets the sprite for a specific character in this font.
+     *
+     * @param ch The character to associate the sprite with.
+     * @param font the font to set for the character.
+     * @throws IllegalStateException if the font is static and does not allow modification.
+     */
+    public void setChar(final char ch, @Nonnull final Font font) {
+        if (!malleable) throw new IllegalStateException("font is not malleable");
+        this.setChar(ch, ConvertFontToSprite.getSprite(ch, font));
+    }
+
 
     /**
      * Sets the sprite for a specific character in this font.
@@ -33,7 +54,7 @@ public class MapFontWrapper {
      * @param sprite The {@link CharacterSprite} to set for the character.
      * @throws IllegalStateException if the font is static and does not allow modification.
      */
-    public void setChar(final char ch, @Nonnull CharacterSprite sprite) {
+    public void setChar(final char ch, @Nonnull final CharacterSprite sprite) {
         if (!malleable) {
             throw new IllegalStateException("this font is not malleable");
         }
@@ -51,7 +72,7 @@ public class MapFontWrapper {
      * there is none.
      */
     @Nullable
-    public CharacterSprite getChar(char ch) {
+    public CharacterSprite getChar(final char ch) {
         return chars.get(ch);
     }
 
@@ -65,7 +86,7 @@ public class MapFontWrapper {
      * @throws IllegalArgumentException if the text contains characters not defined in this font
      *                                  or has malformed color codes.
      */
-    public int getWidth(@Nonnull String text) {
+    public int getWidth(@Nonnull final String text) {
         if (!isValid(text)) {
             throw new IllegalArgumentException("text contains invalid characters");
         }
@@ -73,9 +94,19 @@ public class MapFontWrapper {
         if (text.isEmpty()) {
             return 0;
         }
+        final FontParser parser = new FontParser(this);
 
         int result = 0;
-        for (int i = 0; i < text.length(); ++i) {
+        for (int i = 0; i < text.length(); i++) {
+            CharResult charResult = parser.handleCharacter(text, i);
+            if (charResult.getSkipIndex() != FontParser.NO_SKIP) {
+                i = charResult.getSkipIndex();
+                continue;
+            }
+            if (charResult.getWidth() != FontParser.NO_WIDTH)
+                result += charResult.getWidth();
+        }
+/*        for (int i = 0; i < text.length(); ++i) {
             char ch = text.charAt(i);
             if (ch == ChatColor.COLOR_CHAR) {
                 int j = text.indexOf(';', i);
@@ -85,10 +116,12 @@ public class MapFontWrapper {
                 }
                 throw new IllegalArgumentException("Text contains unterminated color string");
             }
-            result += chars.get(ch).getWidth();
-        }
+            final CharacterSprite characterSprite = chars.get(ch);
+            if (characterSprite == null)
+                continue;
+            result += characterSprite.getWidth();
+        }*/
         result += text.length() - 1; // Account for 1px spacing between characters
-
         return result;
     }
 
@@ -124,6 +157,8 @@ public class MapFontWrapper {
      * @return A new {@link MapFont} populated with character sprites from this wrapper.
      */
     public MapFont getMapFont() {
+        if (chars.isEmpty())
+            return MinecraftFont.Font;
         MapFont mapFont = new MapFont();
         chars.forEach((character, characterSprite) -> mapFont.setChar(character, characterSprite.getCharacterSprite()));
         return mapFont;
@@ -157,5 +192,146 @@ public class MapFontWrapper {
         }
         return fontWrapper;
     }
+
+    private static final class FontParser {
+        private static final int NO_WIDTH = -1;
+        private static final int NO_SKIP = -1;
+        private final Map<Character, CharacterSprite> chars;
+
+        FontParser(@Nonnull final MapFontWrapper mapFontWrapper) {
+            chars = mapFontWrapper.chars;
+        }
+
+        @Nonnull
+        private CharResult handleCharacter(String text, int index) {
+            CharResult charResult = new CharResult();
+            char ch = text.charAt(index);
+            if (ch == ChatColor.COLOR_CHAR) {
+                int end = text.indexOf(';', index);
+                if (end < 0)
+                    throw new IllegalArgumentException("Text contains unterminated color string");
+                charResult.setSkipIndex(end);
+            } else {
+                CharacterSprite sprite = chars.get(ch);
+                if (sprite != null) {
+                    charResult.setWidth(sprite.getWidth());
+                }
+            }
+            return charResult;
+        }
+    }
+
+    private static final class CharResult {
+        private int width = FontParser.NO_WIDTH;
+        private int skipIndex = FontParser.NO_SKIP;
+
+        public int getWidth() {
+            return width;
+        }
+
+        public void setWidth(final int width) {
+            this.width = width;
+        }
+
+        public int getSkipIndex() {
+            return skipIndex;
+        }
+
+        public void setSkipIndex(final int skipIndex) {
+            this.skipIndex = skipIndex;
+        }
+    }
+
+    private static class ConvertFontToSprite {
+        private static BufferedImage WORK_IMAGE = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+        private static Graphics2D GRAPHICS = WORK_IMAGE.createGraphics();
+
+        private final int width;
+        private final int height;
+
+        private ConvertFontToSprite(final int width, final int height) {
+            this.width = width;
+            this.height = height;
+        }
+
+        /**
+         * Set the sprite.
+         *
+         * @param ch the charter
+         * @param font the font to set.
+         * @return the sprite character set.
+         */
+        public static CharacterSprite getSprite(final char ch, final Font font) {
+            FontMetrics metrics = initGraphicsForFont(font);
+
+            int fontWidth = metrics.charWidth(ch);
+            int baseline = metrics.getAscent();
+            int fontHeight = baseline + metrics.getDescent();
+
+            if (fontWidth > WORK_IMAGE.getWidth() || fontHeight > WORK_IMAGE.getHeight()) {
+                WORK_IMAGE = new BufferedImage(
+                        Math.max(fontWidth, WORK_IMAGE.getWidth()),
+                        Math.max(fontHeight, WORK_IMAGE.getHeight()),
+                        BufferedImage.TYPE_INT_ARGB
+                );
+                GRAPHICS = WORK_IMAGE.createGraphics();
+                metrics = initGraphicsForFont(font);
+                fontWidth = metrics.charWidth(ch);
+                baseline = metrics.getAscent();
+                fontHeight = baseline + metrics.getDescent();
+            }
+            GRAPHICS.setComposite(AlphaComposite.Clear);
+            GRAPHICS.fillRect(0, 0, WORK_IMAGE.getWidth(), WORK_IMAGE.getHeight());
+            GRAPHICS.setComposite(AlphaComposite.SrcOver);
+
+            GRAPHICS.setColor(Color.WHITE);
+            GRAPHICS.drawString(String.valueOf(ch), 0, baseline);
+
+            ConvertFontToSprite result = new ConvertFontToSprite(fontWidth, fontHeight);
+            return result.extractGlyph();
+        }
+
+        private CharacterSprite extractGlyph() {
+            int minX = width, maxX = -1;
+            for (int y = 0; y < this.height; y++) {
+                for (int x = 0; x < width; x++) {
+                    if ((WORK_IMAGE.getRGB(x, y) & 0xFF000000) != 0) {
+                        minX = Math.min(minX, x);
+                        maxX = Math.max(maxX, x);
+                    }
+                }
+            }
+            return toSprite(maxX, minX);
+        }
+
+        private CharacterSprite toSprite(final int maxX, final int minX) {
+            final boolean[] pixels;
+            final int trimmedWidth;
+            if (maxX == -1) {
+                trimmedWidth = 0;
+                pixels = new boolean[0];
+                return new CharacterSprite(trimmedWidth, this.height, pixels);
+            }
+
+            trimmedWidth = maxX - minX + 1;
+            pixels = new boolean[trimmedWidth * this.height];
+
+            for (int y = 0; y < this.height; y++) {
+                for (int x = 0; x < trimmedWidth; x++) {
+                    pixels[y * trimmedWidth + x] =
+                            (WORK_IMAGE.getRGB(x + minX, y) & 0xFF000000) != 0;
+                }
+            }
+            return new CharacterSprite(trimmedWidth, this.height, pixels);
+        }
+
+        private static FontMetrics initGraphicsForFont(Font font) {
+            GRAPHICS.setFont(font);
+            GRAPHICS.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+            return GRAPHICS.getFontMetrics();
+        }
+
+    }
+
 }
 

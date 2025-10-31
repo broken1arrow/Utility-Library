@@ -28,6 +28,7 @@ public class CharacterSprite {
     private final int width;
     private final int height;
     private final boolean[] data;
+
     /**
      * Constructs a CharacterSprite with specified dimensions and pixel data.
      *
@@ -36,7 +37,7 @@ public class CharacterSprite {
      * @param data   A boolean array representing pixel solidity; length must be width * height.
      * @throws IllegalArgumentException if data length does not match width * height.
      */
-    public CharacterSprite(int width, int height, @Nonnull boolean[] data) {
+    public CharacterSprite(final int width, final int height, @Nonnull final boolean[] data) {
         this.width = width;
         this.height = height;
         this.data = data;
@@ -53,7 +54,7 @@ public class CharacterSprite {
      * @param col The column, in the range [0,8).
      * @return True if the pixel is solid, false if transparent.
      */
-    public boolean get(int row, int col) {
+    public boolean get(final int row, final int col) {
         if (row < 0 || col < 0 || row >= height || col >= width) return false;
         return data[row * width + col];
     }
@@ -77,10 +78,10 @@ public class CharacterSprite {
     }
 
     /**
-     * Returns the raw pixel data array for this character.
-     * Each element corresponds to a pixel, ordered row-major.
+     * Returns the array if what pixel is solid or transparent data for this character.
+     * Each element corresponds to a pixel is solid or transparent.
      *
-     * @return The pixel data array.
+     * @return The solid or transparent pixel data array.
      */
     public boolean[] getData() {
         return data;
@@ -106,7 +107,6 @@ public class CharacterSprite {
         Map<String, Object> map = new HashMap<>();
         map.put("height", height);
         map.put("width", width);
-        // Boxed Boolean[] instead of primitive boolean[]
         List<Boolean> boolList = new ArrayList<>(data.length);
         for (boolean b : data) {
             boolList.add(b);
