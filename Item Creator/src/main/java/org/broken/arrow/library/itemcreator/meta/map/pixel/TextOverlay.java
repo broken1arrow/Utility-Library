@@ -1,7 +1,10 @@
 package org.broken.arrow.library.itemcreator.meta.map.pixel;
 
+import org.broken.arrow.library.itemcreator.meta.map.color.parser.AmpersandHexColorParser;
+import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.font.CharacterSprite;
 import org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper;
+import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.RenderState;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -63,6 +66,21 @@ public class TextOverlay extends MapPixel {
         for (char charter : chars) {
             mapFontWrapper.setChar(charter, font);
         }
+    }
+
+    /**
+     * Sets the {@link ColorParser} used for interpreting color and style codes
+     * in the text.
+     * <p>
+     * The parser is responsible for detecting formatting sequences and updating
+     * the {@link RenderState} accordingly. By default, the API uses
+     * {@link AmpersandHexColorParser}, but this method allows you to replace it
+     * with a custom implementation, including lambda-based parsers.
+     *
+     * @param colorParser the color parser to use
+     */
+    public void setColorParser(@Nonnull final ColorParser colorParser) {
+        mapFontWrapper.setColorParser(colorParser);
     }
 
 

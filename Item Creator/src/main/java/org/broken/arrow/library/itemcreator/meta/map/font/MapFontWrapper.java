@@ -1,6 +1,9 @@
 package org.broken.arrow.library.itemcreator.meta.map.font;
 
 import net.md_5.bungee.api.ChatColor;
+import org.broken.arrow.library.itemcreator.meta.map.color.parser.AmpersandHexColorParser;
+import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
+import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.RenderState;
 import org.bukkit.map.MapFont;
 import org.bukkit.map.MinecraftFont;
 
@@ -25,11 +28,10 @@ import java.util.stream.Collectors;
  * character sprites can be added.
  */
 public class MapFontWrapper {
-
-
     private final Map<Character, CharacterSprite> chars = new HashMap<>();
     private int height = 0;
     private IntUnaryOperator defaultFontSpacing = (charter) -> 8;
+    private ColorParser colorParser;
 
     /**
      * just a check if the front is malleable
@@ -107,6 +109,61 @@ public class MapFontWrapper {
      */
     public int applyDefaultFontSpacing(char ch) {
         return defaultFontSpacing.applyAsInt(ch);
+    }
+
+    /**
+     * Applies the current {@link ColorParser} to the text at the specified index.
+     * <p>
+     * The parser will attempt to detect a formatting sequence (such as Minecraft-style
+     * codes or custom hex codes—the default implementation) starting at {@code index}
+     * and update the {@link RenderState} with the corresponding color and/or style.
+     * <p>
+     * By default, the following codes are supported:
+     * <ul>
+     *     <li>{@code &0 - &f}: standard color codes</li>
+     *     <li>{@code &#fff}: 3-digit hex color</li>
+     *     <li>{@code &#ffffff}: 6-digit hex color</li>
+     *     <li>{@code &l}: bold text</li>
+     *     <li>{@code &o}: shadow effect</li>
+     *     <li>{@code &r}: reset color and styles</li>
+     * </ul>
+     * <p>
+     * See {@link RenderState#applyFormattingCode(char)} and
+     * {@link RenderState#translateChatColor(char)} for details on the default parser's behavior.
+     * <p>
+     * You can also provide a custom {@link ColorParser} to define alternative parsing logic
+     * or support additional formatting sequences.
+     * <p>
+     * This method returns the number of characters consumed by the formatting sequence,
+     * allowing the caller to advance the cursor appropriately. If no sequence is found,
+     * it returns 0. If no parser is set, it returns -1.
+     * <p>
+     * <strong>Note:</strong> This method is intended for internal use by the API and
+     * usually does not need to be invoked directly.
+     *
+     * @param text        the text to parse
+     * @param index       the starting position in the text
+     * @param renderState the current render state to update with color/style
+     * @return the number of characters consumed by the formatting code, 0 if none found, or -1 if no parser is set
+     */
+    public int applyColorParser(@Nonnull final String text, final int index,@Nonnull final RenderState renderState) {
+        if(colorParser == null)
+            return -1;
+        return colorParser.tryParse( text,  index, renderState);
+    }
+
+    /**
+     * Sets the {@link ColorParser} used to interpret color and style codes
+     * in this text instance.
+     * <p>
+     * By default, the API uses the global parser from {@link MapFontWrapper} (typically
+     * {@link AmpersandHexColorParser}). This method allows overriding it for this
+     * specific text, including using lambda-based or custom parser implementations.
+     *
+     * @param colorParser the color parser to use for this text
+     */
+    public void setColorParser(@Nonnull final ColorParser colorParser) {
+        this.colorParser = colorParser;
     }
 
     /**

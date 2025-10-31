@@ -1,15 +1,15 @@
 package org.broken.arrow.library.itemcreator.meta.map.font.customdraw;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
-import org.broken.arrow.library.itemcreator.meta.map.color.parser.AmpersandHexColorParser;
-import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
+import org.broken.arrow.library.itemcreator.meta.map.MapRendererData;
 import org.broken.arrow.library.itemcreator.meta.map.font.CharacterSprite;
 import org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper;
+import org.broken.arrow.library.itemcreator.meta.map.pixel.TextOverlay;
 import org.bukkit.map.MapCanvas;
 import org.bukkit.map.MapPalette;
 
+import javax.annotation.Nonnull;
 import java.awt.*;
-
 
 /**
  * Responsible for rendering text using a custom pixel-based {@link MapFontWrapper} onto a {@link MapCanvas}.
@@ -27,22 +27,26 @@ import java.awt.*;
  * Each visible pixel is drawn directly into the map canvas at the computed coordinate.
  */
 public class MapTextRenderer {
+    private final MapRendererData mapRendererData;
     private final MapCanvas canvas;
     private final MapFontWrapper font;
     private final String text;
 
+
     /**
      * Creates a new custom font renderer.
      *
-     * @param canvas the target map canvas to draw on
-     * @param font   the custom font wrapper providing character sprites and spacing rules
-     * @param text   the raw input text containing characters and formatting codes
+     * @param canvas          the target map canvas to draw on
+     * @param mapRendererData the rendered data instance with your global settings.
+     * @param textOverlay     the custom text overlay wrapper providing character sprites and spacing rules
      */
-    public MapTextRenderer(final MapCanvas canvas, final MapFontWrapper font, final String text) {
+    public MapTextRenderer(@Nonnull final MapCanvas canvas, @Nonnull final MapRendererData mapRendererData, @Nonnull final TextOverlay textOverlay) {
         this.canvas = canvas;
-        this.font = font;
-        this.text = text;
+        this.mapRendererData = mapRendererData;
+        this.font = textOverlay.getMapFontWrapper();
+        this.text = textOverlay.getText();
     }
+
 
     /**
      * Draws the configured text to the map canvas starting at the given coordinate.
@@ -67,8 +71,11 @@ public class MapTextRenderer {
         for (int i = 0; i < text.length(); i++) {
             char ch = text.charAt(i);
 
-            ColorParser parser = new AmpersandHexColorParser();
-            int consumed = parser.tryParse(text, i, renderState);
+            int consumed;
+            consumed = this.font.applyColorParser(text, i, renderState);
+            if (consumed <= 0)
+                consumed = this.mapRendererData.applyGlobalColorParser(text, i, renderState);
+
             if (consumed > 0) {
                 i += consumed - 1;
                 continue;
@@ -96,7 +103,6 @@ public class MapTextRenderer {
             }
         }
     }
-
 
 
     /**
@@ -129,9 +135,9 @@ public class MapTextRenderer {
      * older versions use {@link MapPalette#matchColor(Color)}.
      *
      * @param canvas the target map canvas to draw on
-     * @param x location where draw in digonal direction.
-     * @param y location where draw in vertical direction.
-     * @param color the color to set for the pixel
+     * @param x      location where draw in digonal direction.
+     * @param y      location where draw in vertical direction.
+     * @param color  the color to set for the pixel
      */
     private void setMapPixel(MapCanvas canvas, int x, int y, Color color) {
         if (ItemCreator.getServerVersion() < 20.0F) {

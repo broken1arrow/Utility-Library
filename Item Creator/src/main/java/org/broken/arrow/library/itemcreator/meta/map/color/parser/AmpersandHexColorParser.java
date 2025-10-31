@@ -1,6 +1,5 @@
 package org.broken.arrow.library.itemcreator.meta.map.color.parser;
 
-import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.MapTextRenderer;
 import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.RenderState;
 
 import javax.annotation.Nonnull;
@@ -18,7 +17,7 @@ public final class AmpersandHexColorParser implements ColorParser {
      * @return how many characters were consumed (0 = not a formatting code)
      */
     @Override
-    public int tryParse(String text, int i, RenderState state) {
+    public int tryParse(@Nonnull String text, int i, @Nonnull RenderState state) {
         if (i + 1 >= text.length())
             return 0;
 

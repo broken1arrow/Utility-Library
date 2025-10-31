@@ -1,11 +1,12 @@
 package org.broken.arrow.library.itemcreator.meta.map;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
+import org.broken.arrow.library.itemcreator.meta.map.color.parser.AmpersandHexColorParser;
+import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorAdapter;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorWrapper;
-import org.broken.arrow.library.itemcreator.meta.map.font.CharacterSprite;
-import org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper;
 import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.MapTextRenderer;
+import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.RenderState;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapColoredPixel;
@@ -44,6 +45,7 @@ public class MapRendererData {
     private final List<MapPixel> pixels = new ArrayList<>();
     private MapRenderHandler dynamicRenderer;
     private char[] fontChars = Characters.getFontCharsArray();
+    private ColorParser colorParser = new AmpersandHexColorParser();
 
     /**
      * Constructs a new MapRendererData instance with no associated {@link MapRenderer}.
@@ -144,6 +146,33 @@ public class MapRendererData {
      */
     public void addText(@Nonnull final TextOverlay textOverlay) {
         pixels.add(textOverlay);
+    }
+
+    /**
+     * Applies the global {@link ColorParser} to the text at the specified index.
+     * <p>
+     * This works like the per-text parser, but uses the global parser set for all text
+     * instances that do not have a per-instance override.
+     *
+     * @see org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper#applyColorParser(String, int, RenderState)
+     * @param text        the text to parse
+     * @param index       the starting position in the text
+     * @param renderState the current render state to update with color/style
+     * @return the number of characters consumed by the formatting code, or 0 if none
+     */
+    public int applyGlobalColorParser(@Nonnull final String text, final int index, @Nonnull final RenderState renderState) {
+        return colorParser.tryParse(text, index, renderState);
+    }
+
+    /**
+     * Sets the global {@link ColorParser} used for all text instances that do not
+     * have a per-text parser set.
+     *
+     * @see org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper#applyColorParser(String, int, RenderState)
+     * @param colorParser the global color parser to use
+     */
+    public void setGlobalColorParser(@Nonnull final ColorParser colorParser) {
+        this.colorParser = colorParser;
     }
 
     /**
@@ -343,9 +372,8 @@ public class MapRendererData {
                 if (mapFont instanceof MinecraftFont)
                     canvas.drawText(mapPixel.getX(), mapPixel.getY(), mapFont, textOverlay.getText());
                 else {
-                    MapTextRenderer mapTextRenderer = new MapTextRenderer(canvas, textOverlay.getMapFontWrapper(), textOverlay.getText());
+                    final MapTextRenderer mapTextRenderer = new MapTextRenderer(canvas, this, textOverlay);
                     mapTextRenderer.drawCustomFontText(mapPixel.getX(), mapPixel.getY());
-                    // drawCustomFontText(canvas, mapPixel.getX(), mapPixel.getY(), textOverlay.getText(), textOverlay.getMapFontWrapper());
                 }
             }
             if (mapPixel instanceof ImageOverlay) {
