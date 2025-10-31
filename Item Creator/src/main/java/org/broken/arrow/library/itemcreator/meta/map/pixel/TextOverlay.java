@@ -69,15 +69,14 @@ public class TextOverlay extends MapPixel {
     }
 
     /**
-     * Sets the {@link ColorParser} used for interpreting color and style codes
-     * in the text.
+     * Sets the {@link ColorParser} used to interpret color and style codes
+     * in this text instance.
      * <p>
-     * The parser is responsible for detecting formatting sequences and updating
-     * the {@link RenderState} accordingly. By default, the API uses
-     * {@link AmpersandHexColorParser}, but this method allows you to replace it
-     * with a custom implementation, including lambda-based parsers.
+     * By default, the API uses the global parser from {@link MapFontWrapper} (typically
+     * {@link AmpersandHexColorParser}). This method allows overriding it for this
+     * specific text, including using lambda-based or custom parser implementations.
      *
-     * @param colorParser the color parser to use
+     * @param colorParser the color parser to use for this text
      */
     public void setColorParser(@Nonnull final ColorParser colorParser) {
         mapFontWrapper.setColorParser(colorParser);

@@ -101,9 +101,10 @@ public class MapRendererData {
      * @param x    The x-coordinate of the text.
      * @param y    The y-coordinate of the text.
      * @param text The text to display.
+     * @return returns the newly created text overlay, so you could set some of the options after.
      */
-    public void addText(final int x, int y, final String text) {
-        this.addText(x, y, text, null, null);
+    public TextOverlay addText(final int x, int y, final String text) {
+        return this.addText(x, y, text, null, null);
     }
 
     /**
@@ -114,9 +115,10 @@ public class MapRendererData {
      * @param y    The y-coordinate of the text.
      * @param text The text to display.
      * @param font The  font for the character.
+     * @return returns the newly created text overlay, so you could set some of the options after.
      */
-    public void addText(final int x, int y, final String text, @Nullable final Font font) {
-        this.addText(x, y, text, null, font);
+    public TextOverlay addText(final int x, int y, final String text, @Nullable final Font font) {
+        return this.addText(x, y, text, null, font);
     }
 
     /**
@@ -127,8 +129,9 @@ public class MapRendererData {
      * @param text      The text to display.
      * @param fontChars Set the characters you want to replace in your text with the font.
      * @param font      The  font for the character
+     * @return returns the newly created text overlay, so you could set some of the options after.
      */
-    public void addText(final int x, int y, @Nonnull final String text, @Nullable final char[] fontChars, @Nullable final Font font) {
+    public TextOverlay addText(final int x, int y, @Nonnull final String text, @Nullable final char[] fontChars, @Nullable final Font font) {
         TextOverlay textOverlay = new TextOverlay(x, y, text);
         if (font != null) {
             if (fontChars != null && fontChars.length > 0) {
@@ -137,6 +140,7 @@ public class MapRendererData {
             textOverlay.setMapFont(this.fontChars, font);
         }
         this.addText(textOverlay);
+        return textOverlay;
     }
 
     /**
