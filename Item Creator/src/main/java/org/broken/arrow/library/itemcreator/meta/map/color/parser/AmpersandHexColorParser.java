@@ -10,10 +10,11 @@ public final class AmpersandHexColorParser implements ColorParser {
     /**
      * Attempts to parse a formatting sequence starting at position `i`.
      * Supports:
-     * &a   §c   → style/color codes
-     * &#fff     → 3-digit hex
-     * &#ffffff  → 6-digit hex
-     *
+     * <ui>
+     *  <li>{@code &a   §c}   → style/color codes </li>
+     *  <li> {@code &#fff}    → 3-digit hex  </li>
+     *  <li> {@code &#ffffff}  → 6-digit hex  </li>
+     * </ui>
      * @return how many characters were consumed (0 = not a formatting code)
      */
     @Override

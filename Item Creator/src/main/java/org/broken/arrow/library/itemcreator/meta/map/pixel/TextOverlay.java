@@ -4,7 +4,6 @@ import org.broken.arrow.library.itemcreator.meta.map.color.parser.AmpersandHexCo
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.font.CharacterSprite;
 import org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper;
-import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.RenderState;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
