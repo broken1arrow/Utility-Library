@@ -248,8 +248,9 @@ public class MapFontWrapper {
      * @return A new {@link MapFont} populated with character sprites from this wrapper.
      */
     public MapFont getMapFont() {
-        if (chars.isEmpty())
-            return MinecraftFont.Font;
+        if (chars.isEmpty()) {
+            return new MinecraftFont();
+        }
         MapFont mapFont = new MapFont();
         chars.forEach((character, characterSprite) -> mapFont.setChar(character, characterSprite.getCharacterSprite()));
         return mapFont;

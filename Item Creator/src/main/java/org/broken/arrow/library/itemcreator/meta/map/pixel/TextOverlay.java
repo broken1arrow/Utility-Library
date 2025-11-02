@@ -59,9 +59,6 @@ public class TextOverlay extends MapPixel {
      * @param font the {@link Font} representing the custom character sprite.
      */
     public void setMapFont(final char[] chars, @Nonnull final Font font) {
-        BufferedImage workImg = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = workImg.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         for (char charter : chars) {
             mapFontWrapper.setChar(charter, font);
         }
