@@ -53,36 +53,14 @@ public class RenderColors {
                 if (Math.abs(diff) > 0.18f) {
                     centerB = centerB * 0.4f + median * 0.6f;
                 }
+                centerB = getBrightness(neighB, idx, centerB);
 
-                float bilateral = 0f, weightSum = 0f;
-                for (int dy = -1; dy <= 1; dy++) {
-                    for (int dx = -1; dx <= 1; dx++) {
-                        if (dx == 0 && dy == 0) continue;
-
-                        float nb = neighB[idx++];
-                        float distW = (dx == 0 || dy == 0) ? 1f : 0.7f;
-                        float diffB = Math.abs(centerB - nb);
-                        float colorW = (diffB < 0.07f) ? 1f : 0.2f;
-                        float w = distW * colorW;
-
-                        bilateral += nb * w;
-                        weightSum += w;
-                    }
-                }
-
-                if (weightSum > 0) {
-                    float smoothB = bilateral / weightSum;
-                    centerB = centerB * 0.85f + smoothB * 0.15f;
-                }
-
-                int rgb = HSBtoRGB(hsb[0], hsb[1], clamp(centerB, 0f, 1f));
+                int rgb = convertHSBtoRGB(hsb[0], hsb[1], clamp(centerB, 0f, 1f));
                 filtered.setRGB(x, y, rgb);
             }
         }
-
         addPixels(mapRendererData, height, width, filtered);
     }
-
 
     /**
      * Converts a color from HSB components into packed RGB format (0xAARRGGBB).
@@ -94,8 +72,10 @@ public class RenderColors {
      * @param brightness value in range 0.0–1.0
      * @return a packed ARGB integer representing the color
      */
-    public static int HSBtoRGB(float hue, float saturation, float brightness) {
-        int r = 0, g = 0, b = 0;
+    public static int convertHSBtoRGB(float hue, float saturation, float brightness) {
+        int r = 0;
+        int g = 0;
+        int b = 0;
         if (saturation == 0) {
             r = g = b = (int) (brightness * 255.0f + 0.5f);
         } else {
@@ -135,6 +115,8 @@ public class RenderColors {
                     g = (int) (p * 255.0f + 0.5f);
                     b = (int) (q * 255.0f + 0.5f);
                     break;
+                default:
+                    break;
             }
         }
         return 0xff000000 | (r << 16) | (g << 8) | (b << 0);
@@ -154,7 +136,7 @@ public class RenderColors {
      * @param hsbvals optional array to store the result; may be {@code null}
      * @return an array of three floats containing hue, saturation, and brightness (in that order)
      */
-    public static float[]  getHSB(final int rgb, final float[] hsbvals) {
+    public static float[] getHSB(final int rgb, final float[] hsbvals) {
         int r = (rgb >> 16) & 0xFF;
         int g = (rgb >> 8) & 0xFF;
         int b = rgb & 0xFF;
@@ -175,13 +157,14 @@ public class RenderColors {
      * @param b       blue component (0–255)
      * @param hsbvals optional array to store the result; may be {@code null}
      * @return an array containing hue, saturation, and brightness (in that order).
-     *
      * @see java.awt.Color#getRGB()
      * @see java.awt.Color#Color(int)
      * @see java.awt.Color#RGBtoHSB(int, int, int, float[])
      */
     public static float[] retrieveRGBToHSB(int r, int g, int b, float[] hsbvals) {
-        float hue, saturation, brightness;
+        float hue;
+        float saturation;
+        float brightness;
         if (hsbvals == null) {
             hsbvals = new float[3];
         }
@@ -190,7 +173,7 @@ public class RenderColors {
         int cmin = (r < g) ? r : g;
         if (b < cmin) cmin = b;
 
-        brightness = ((float) cmax) / 255.0f;
+        brightness = (float) (cmax / 255.0);
         if (cmax != 0)
             saturation = ((float) (cmax - cmin)) / ((float) cmax);
         else
@@ -261,8 +244,40 @@ public class RenderColors {
      * @return a value within the inclusive range {@code [min, max]}
      */
     private static float clamp(float v, float min, float max) {
-        return v < min ? min : (v > max ? max : v);
+        if (v < min) {
+            return min;
+        }
+        if (v > max) return max;
+
+        return v;
     }
+
+    private static float getBrightness(final float[] neighB, int idx, float brightness) {
+        float bilateral = 0f;
+        float weightSum = 0f;
+
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (dx == 0 && dy == 0) continue;
+
+                float nb = neighB[idx++];
+                float distW = (dx == 0 || dy == 0) ? 1f : 0.7f;
+                float diffB = Math.abs(brightness - nb);
+                float colorW = (diffB < 0.07f) ? 1f : 0.2f;
+                float w = distW * colorW;
+
+                bilateral += nb * w;
+                weightSum += w;
+            }
+        }
+
+        if (weightSum > 0) {
+            float smoothB = bilateral / weightSum;
+            brightness = brightness * 0.85f + smoothB * 0.15f;
+        }
+        return brightness;
+    }
+
 
     private static void addPixels(final MapRendererData mapRendererData, final int height, final int width, final BufferedImage filtered) {
         for (int y = 0; y < height; y++) {
