@@ -6,6 +6,7 @@ import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementMeta;
 import org.broken.arrow.library.itemcreator.meta.MetaHandler;
+import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.Tuple;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
@@ -22,6 +23,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 
 import javax.annotation.Nonnull;
@@ -919,7 +921,7 @@ public class CreateItemStack {
             }
             ConvertToItemStack convertToItemStack = this.getConvertItems();
             if (builder.getMaterial() != null) {
-                if (serverVersion > 1.12) {
+                if (serverVersion > 12.2f) {
                     result = new ItemStack(builder.getMaterial());
                 } else {
                     result = convertToItemStack.checkItem(builder.getMaterial(), this.getDamage(), this.color, this.getData());
@@ -937,7 +939,7 @@ public class CreateItemStack {
         return getConvertItems().checkItem(object);
     }
 
-    private void addItemMeta(ItemStack itemStack, final ItemMeta itemMeta) {
+    private void addItemMeta(@Nonnull final ItemStack itemStack,@Nonnull final ItemMeta itemMeta) {
         this.setDamageMeta(itemStack, itemMeta);
         if (this.serverVersion > 10.0F)
             setUnbreakableMeta(itemMeta);
@@ -947,15 +949,30 @@ public class CreateItemStack {
             hideEnchantments(itemMeta);
     }
 
-    private void setDamageMeta(ItemStack itemStack, ItemMeta itemMeta) {
-        short dmg = this.getDamage();
+    private void setDamageMeta(final ItemStack itemStack,final ItemMeta itemMeta) {
+        short dmg = getDmg(itemMeta);
         if (dmg > 0) {
-            if (serverVersion < 1.13) {
-                itemStack.setDurability(dmg);
-            } else {
+            if (serverVersion > 12.2F) {
                 ((Damageable) itemMeta).setDamage(dmg);
+            } else {
+                itemStack.setDurability(dmg);
             }
         }
+    }
+
+    private short getDmg(@Nonnull final ItemMeta itemMeta) {
+        final MetaHandler handler = getMetaHandler();
+        if (itemMeta instanceof PotionMeta && handler != null) {
+            final BottleEffectMeta bottleEffect = handler.getBottleEffect();
+
+            if (bottleEffect != null && bottleEffect.getPotionEffects().isEmpty()) {
+                final PotionTypeWrapper potionTypeWrapper = bottleEffect.getPotionTypeWrapper();
+                if (potionTypeWrapper != null) {
+                    return potionTypeWrapper.toLegacyDamage();
+                }
+            }
+        }
+        return this.getDamage();
     }
 
     private void hideEnchantments(final ItemMeta itemMeta) {

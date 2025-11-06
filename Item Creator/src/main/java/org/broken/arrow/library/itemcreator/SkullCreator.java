@@ -282,7 +282,7 @@ public class SkullCreator {
         final BlockState skullState = block.getState();
         if (!(skullState instanceof Skull)) return;
 
-        if (checks.isDoesHavePlayerProfile()) {
+        if (checks.isDoesHaveOwnerProfile()) {
             PlayerProfile profile = Bukkit.createPlayerProfile(id);
             if (url != null) {
                 try {
@@ -681,7 +681,6 @@ public class SkullCreator {
         private boolean legacy;
         private boolean warningPosted = false;
         private boolean doesHaveOwnerProfile = true;
-        private boolean doesHavePlayerProfile = true;
 
         /**
          * When instance is created it will check what classes exists for your minecraft version.
@@ -693,12 +692,6 @@ public class SkullCreator {
                 skullMeta.getMethod("setOwningPlayer", OfflinePlayer.class);
             } catch (ClassNotFoundException | NoSuchMethodException e) {
                 legacy = true;
-            }
-            try {
-                final UUID id = UUID.randomUUID();
-                PlayerProfile profile = Bukkit.createPlayerProfile(id);
-            } catch (NoClassDefFoundError | NoSuchMethodError e) {
-                doesHavePlayerProfile = false;
             }
             final ItemStack skull = createSkull();
             if (skull != null) {
@@ -728,21 +721,12 @@ public class SkullCreator {
         }
 
         /**
-         * Checks if it has OwnerProfile setter in the metadata class.
+         * Checks if it has OwnerProfile setter in the metadata class and PlayerProfile class.
          *
          * @return Returns true if the profile exists.
          */
         public boolean isDoesHaveOwnerProfile() {
             return doesHaveOwnerProfile;
-        }
-
-        /**
-         * If it modern version where PlayerProfile class exists.
-         *
-         * @return Returns true if PlayerProfile class exists.
-         */
-        public boolean isDoesHavePlayerProfile() {
-            return doesHavePlayerProfile;
         }
 
         /**

@@ -28,15 +28,15 @@ public enum PotionTypeWrapper {
     /**
      * Mundane potion (no special effects).
      */
-    MUNDANE(PotionType.MUNDANE, PotionModifier.NORMAL),
+    MUNDANE(getMundane(), PotionModifier.NORMAL),
     /**
      * Thick potion (usually for brewing).
      */
-    THICK(PotionType.THICK, PotionModifier.NORMAL),
+    THICK(getPotionType("THICK"), PotionModifier.NORMAL),
     /**
      * Awkward potion (base potion for many effects).
      */
-    AWKWARD(PotionType.AWKWARD, PotionModifier.NORMAL),
+    AWKWARD(getPotionType("AWKWARD"), PotionModifier.NORMAL),
     /**
      * Night Vision potion, normal duration.
      */
@@ -168,7 +168,7 @@ public enum PotionTypeWrapper {
     /**
      * Luck potion, normal duration (if applicable).
      */
-    LUCK(PotionType.LUCK, PotionModifier.NORMAL),
+    LUCK(getPotionType("LUCK"), PotionModifier.NORMAL),
     /**
      * Turtle Master potion, normal duration.
      */
@@ -213,7 +213,7 @@ public enum PotionTypeWrapper {
         for (PotionTypeWrapper data : values()) {
             typeWrapperHashMap.put(data.getPotionType().name(), data);
         }
-        return typeWrapperHashMap ;
+        return typeWrapperHashMap;
     }
 
     /**
@@ -245,7 +245,7 @@ public enum PotionTypeWrapper {
      */
     @Nullable
     public static PotionTypeWrapper findPotionByType(final PotionType bukkitPotionType) {
-        if(bukkitPotionType == null)
+        if (bukkitPotionType == null)
             return null;
         return POTION_TYPE_NAME.get(bukkitPotionType.name());
     }
@@ -373,6 +373,109 @@ public enum PotionTypeWrapper {
     }
 
     /**
+     * Converts this {@code PotionTypeWrapper} to the legacy pre-1.12 potion
+     * "damage" (durability) value.
+     *
+     * <p>In Minecraft versions prior to 1.12 (including 1.8.x), potion types are
+     * encoded in the item damage value of a potion ItemStack. This method returns
+     * the corresponding legacy short value that can be written via
+     * {@link org.bukkit.inventory.ItemStack#setDurability} or
+     * {@link org.bukkit.inventory.meta.Damageable#setDamage}.</p>
+     *
+     * <p>If this potion type cannot be represented in legacy (e.g., newer potion
+     * types or special variants), the method returns {@code 0}, which corresponds
+     * to a water bottle, acting as a safe fallback.</p>
+     *
+     * <p><b>Note:</b> If the ItemStack has custom potion effects, you generally
+     * should not overwrite its damage value, unless you specifically need a
+     * legacy-compatible representation.</p>
+     *
+     * @return the legacy potion damage value usable on pre-1.12 servers/clients.
+     */
+    public short toLegacyDamage() {
+        switch (this) {
+            case NIGHT_VISION:
+                return 8230;
+            case LONG_NIGHT_VISION:
+                return 8262;
+
+            case INVISIBILITY:
+                return 8238;
+            case LONG_INVISIBILITY:
+                return 8270;
+
+            case JUMP:
+                return 8203;
+            case LONG_LEAPING:
+                return 8267;
+            case STRONG_LEAPING:
+                return 8235;
+
+            case FIRE_RESISTANCE:
+                return 8227;
+            case LONG_FIRE_RESISTANCE:
+                return 8259;
+
+            case SPEED:
+                return 8194;
+            case LONG_SWIFTNESS:
+                return 8258;
+            case STRONG_SWIFTNESS:
+                return 8226;
+
+            case SLOWNESS:
+                return 8234;
+            case LONG_SLOWNESS:
+                return 8266;
+            case STRONG_SLOWNESS:
+                return 8202;
+
+            case WATER_BREATHING:
+                return 8237;
+            case LONG_WATER_BREATHING:
+                return 8269;
+
+            case INSTANT_HEAL:
+                return 8261;
+            case STRONG_HEALING:
+                return 8229;
+
+            case INSTANT_DAMAGE:
+                return 8268;
+            case STRONG_HARMING:
+                return 8236;
+
+            case POISON:
+                return 8196;
+            case LONG_POISON:
+                return 8260;
+            case STRONG_POISON:
+                return 8228;
+
+            case REGEN:
+                return 8193;
+            case LONG_REGENERATION:
+                return 8257;
+            case STRONG_REGENERATION:
+                return 8225;
+
+            case STRENGTH:
+                return 8201;
+            case LONG_STRENGTH:
+                return 8265;
+            case STRONG_STRENGTH:
+                return 8233;
+
+            case LONG_WEAKNESS:
+                return 8264;
+            case WEAKNESS:
+                return 8232;
+            default:
+                return 0;
+        }
+    }
+
+    /**
      * Attempting to get the uncraftable type, this default back
      * to mundane on newer Minecraft versions like 1.21 and beyond.
      *
@@ -384,7 +487,20 @@ public enum PotionTypeWrapper {
         try {
             return PotionType.valueOf("UNCRAFTABLE");
         } catch (IllegalArgumentException | NoSuchFieldError ex) {
-            return PotionType.MUNDANE;
+            try {
+                return PotionType.MUNDANE;
+            } catch (NoSuchFieldError exception) {
+                return PotionType.WATER;
+            }
+        }
+    }
+
+    @Nonnull
+    private static PotionType getMundane() {
+        try {
+            return PotionType.valueOf("MUNDANE");
+        } catch (IllegalArgumentException | NoSuchFieldError ex) {
+            return PotionType.WATER;
         }
     }
 

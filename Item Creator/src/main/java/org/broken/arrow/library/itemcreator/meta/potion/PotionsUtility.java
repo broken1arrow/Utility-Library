@@ -3,6 +3,7 @@ package org.broken.arrow.library.itemcreator.meta.potion;
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 
@@ -76,6 +77,10 @@ public class PotionsUtility {
     public void setPotion(@Nonnull final PotionType potion, @Nullable final PotionModifier potionModifier) {
         if (serverVersion > 20.1) {
             potionMeta.setBasePotionType(potion);
+            return;
+        }
+
+        if (serverVersion < 9.0F) {
             return;
         }
 

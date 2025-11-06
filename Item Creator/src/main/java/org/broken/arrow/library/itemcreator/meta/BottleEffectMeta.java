@@ -140,6 +140,20 @@ public class BottleEffectMeta {
     }
 
     /**
+     * Returns the predefined {@link PotionTypeWrapper} associated with this potion, if available.
+     *
+     * <p>This wrapper can provide additional metadata or configuration not exposed by
+     * the standard {@link PotionType} from the Bukkit/Spigot API, useful when legacy
+     * values, extended information, or custom behavior is required.</p>
+     *
+     * @return the associated {@code PotionTypeWrapper}, or {@code null} if none is set.
+     */
+    @Nullable
+    public PotionTypeWrapper getPotionTypeWrapper () {
+        return  this.potionTypeWrapper;
+    }
+
+    /**
      * Gets the predefined {@link PotionType} to apply to the potion, if any.
      * <p>
      * If a type is set, it overrides any custom potion effects and color.
