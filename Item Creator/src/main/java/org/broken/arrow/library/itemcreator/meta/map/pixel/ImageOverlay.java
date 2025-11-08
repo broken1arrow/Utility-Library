@@ -1,6 +1,8 @@
 package org.broken.arrow.library.itemcreator.meta.map.pixel;
 
+import org.broken.arrow.library.itemcreator.meta.map.MapRendererData;
 import org.broken.arrow.library.logging.Logging;
+import org.bukkit.map.MapCanvas;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,6 +55,14 @@ public class ImageOverlay extends MapPixel {
     @Nullable
     public Image getImage() {
         return imageId;
+    }
+
+    @Override
+    public void render(final @Nonnull MapRendererData mapRendererData, @Nonnull final MapCanvas canvas) {
+        final Image image = this.getImage();
+        if (image != null) {
+            canvas.drawImage(this.getX(), this.getY(), image);
+        }
     }
 
     /**

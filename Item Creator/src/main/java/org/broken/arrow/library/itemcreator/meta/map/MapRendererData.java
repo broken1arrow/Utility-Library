@@ -363,41 +363,8 @@ public class MapRendererData {
 
     private void setPixels(@Nonnull final MapCanvas canvas) {
         getPixels().forEach(mapPixel -> {
-            this.setPixel(canvas, mapPixel);
-            this.setText(canvas, mapPixel);
-            this.setImage(canvas, mapPixel);
+            mapPixel.render(this,canvas);
         });
     }
 
-    private void setPixel(final MapCanvas canvas, final MapPixel mapPixel) {
-        if (mapPixel instanceof MapColoredPixel) {
-            final Color color = ((MapColoredPixel) mapPixel).getColor();
-            if (ItemCreator.getServerVersion() < 20.0F)
-                canvas.setPixel(mapPixel.getX(), mapPixel.getY(), MapPalette.matchColor(color));
-            else
-                canvas.setPixelColor(mapPixel.getX(), mapPixel.getY(), color);
-        }
-    }
-
-    private void setText(@Nonnull final MapCanvas canvas,@Nonnull final MapPixel mapPixel) {
-        if (mapPixel instanceof TextOverlay) {
-            TextOverlay textOverlay = (TextOverlay) mapPixel;
-            final MapFont mapFont = textOverlay.getMapFont();
-            if (mapFont instanceof MinecraftFont)
-                canvas.drawText(mapPixel.getX(), mapPixel.getY(), mapFont, textOverlay.getText());
-            else {
-                final MapTextRenderer mapTextRenderer = new MapTextRenderer(canvas, this, textOverlay);
-                mapTextRenderer.drawCustomFontText(mapPixel.getX(), mapPixel.getY());
-            }
-        }
-    }
-
-    private void setImage(@Nonnull final MapCanvas canvas,@Nonnull final MapPixel mapPixel) {
-        if (mapPixel instanceof ImageOverlay) {
-            ImageOverlay textOverlay = (ImageOverlay) mapPixel;
-            final Image image = textOverlay.getImage();
-            if (image != null)
-                canvas.drawImage(mapPixel.getX(), mapPixel.getY(), image);
-        }
-    }
 }

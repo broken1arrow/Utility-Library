@@ -1,5 +1,8 @@
 package org.broken.arrow.library.itemcreator.meta.map.pixel;
 
+import org.broken.arrow.library.itemcreator.meta.map.MapRendererData;
+import org.bukkit.map.MapCanvas;
+
 import javax.annotation.Nonnull;
 import java.util.Map;
 
@@ -23,6 +26,15 @@ public abstract class MapPixel {
     }
 
     /**
+     * Renders this pixel to the given canvas.
+     *
+     * @param mapRendererData the global data set for the map
+     * @param canvas          the map canvas where this pixel's color, text, or image will be drawn
+     */
+    abstract public void render(@Nonnull final MapRendererData mapRendererData, @Nonnull final MapCanvas canvas);
+
+
+    /**
      * Gets the x-coordinate of this pixel.
      *
      * @return the x-coordinate.
@@ -39,6 +51,7 @@ public abstract class MapPixel {
     public int getY() {
         return y;
     }
+
 
     /**
      * Serialize the data in your class to a format that

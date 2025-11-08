@@ -1,13 +1,17 @@
 package org.broken.arrow.library.itemcreator.meta.map.pixel;
 
+import org.broken.arrow.library.itemcreator.meta.map.MapRendererData;
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.AmpersandHexColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.font.CharacterSprite;
 import org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper;
+import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.MapTextRenderer;
+import org.bukkit.map.MapCanvas;
+import org.bukkit.map.MapFont;
+import org.bukkit.map.MinecraftFont;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +33,17 @@ public class TextOverlay extends MapPixel {
     public TextOverlay(final int x, final int y,@Nonnull final String text) {
         super(x, y);
         this.text = text;
+    }
+
+    @Override
+    public void render(final @Nonnull MapRendererData mapRendererData, @Nonnull final MapCanvas canvas) {
+        final MapFont mapFont = this.getMapFont();
+        if (mapFont instanceof MinecraftFont)
+            canvas.drawText(this.getX(), this.getY(), mapFont, this.getText());
+        else {
+            final MapTextRenderer mapTextRenderer = new MapTextRenderer(canvas, mapRendererData, this);
+            mapTextRenderer.drawCustomFontText(this.getX(), this.getY());
+        }
     }
 
     /**
@@ -96,7 +111,6 @@ public class TextOverlay extends MapPixel {
     public MapFontWrapper getMapFontWrapper() {
         return mapFontWrapper;
     }
-
 
     /**
      * Serializes this TextOverlay into a map representation for saving context.
