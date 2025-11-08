@@ -362,9 +362,7 @@ public class MapRendererData {
     }
 
     private void setPixels(@Nonnull final MapCanvas canvas) {
-        getPixels().forEach(mapPixel -> {
-            mapPixel.render(this,canvas);
-        });
+        getPixels().forEach(mapPixel -> mapPixel.render(this,canvas));
     }
 
 }
