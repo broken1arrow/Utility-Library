@@ -158,11 +158,11 @@ public class MapRendererData {
      * This works like the per-text parser, but uses the global parser set for all text
      * instances that do not have a per-instance override.
      *
-     * @see org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper#applyColorParser(String, int, RenderState)
      * @param text        the text to parse
      * @param index       the starting position in the text
      * @param renderState the current render state to update with color/style
      * @return the number of characters consumed by the formatting code, or 0 if none
+     * @see org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper#applyColorParser(String, int, RenderState)
      */
     public int applyGlobalColorParser(@Nonnull final String text, final int index, @Nonnull final RenderState renderState) {
         return colorParser.tryParse(text, index, renderState);
@@ -172,8 +172,8 @@ public class MapRendererData {
      * Sets the global {@link ColorParser} used for all text instances that do not
      * have a per-text parser set.
      *
-     * @see org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper#applyColorParser(String, int, RenderState)
      * @param colorParser the global color parser to use
+     * @see org.broken.arrow.library.itemcreator.meta.map.font.MapFontWrapper#applyColorParser(String, int, RenderState)
      */
     public void setGlobalColorParser(@Nonnull final ColorParser colorParser) {
         this.colorParser = colorParser;
@@ -362,7 +362,7 @@ public class MapRendererData {
     }
 
     private void setPixels(@Nonnull final MapCanvas canvas) {
-        getPixels().forEach(mapPixel -> mapPixel.render(this,canvas));
+        getPixels().forEach(mapPixel -> mapPixel.render(this, canvas));
     }
 
 }

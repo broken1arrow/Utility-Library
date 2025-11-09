@@ -22,19 +22,31 @@ public class RenderColors {
 
     private RenderColors() {
     }
-
+    /**
+     * Processes a scaled image, smooths brightness inconsistencies,
+     * and sends final pixel colors to the provided {@link MapRendererData}.
+     * <p>
+     * Note:  this method will make a copy of your image.
+     *
+     * @param scaled          the image already scaled to map resolution (typically 128×128)
+     * @param mapRendererData the map data container that receives processed pixels
+     */
+    public static void renderFromImage(final BufferedImage scaled, final MapRendererData mapRendererData) {
+        renderFromImage(scaled,mapRendererData,true);
+    }
     /**
      * Processes a scaled image, smooths brightness inconsistencies,
      * and sends final pixel colors to the provided {@link MapRendererData}.
      *
      * @param scaled          the image already scaled to map resolution (typically 128×128)
      * @param mapRendererData the map data container that receives processed pixels
+     * @param copy Make a copy of the image before scale it.
      */
-    public static void renderFromImage(final BufferedImage scaled, final MapRendererData mapRendererData) {
+    public static void renderFromImage(final BufferedImage scaled, final MapRendererData mapRendererData,final boolean copy) {
         int width = scaled.getWidth();
         int height = scaled.getHeight();
 
-        BufferedImage filtered = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        BufferedImage filtered =  copy ? new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB): scaled;
 
         float[] neighB = new float[8];
         float[] hsb = new float[3];
