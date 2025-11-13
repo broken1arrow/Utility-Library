@@ -194,6 +194,14 @@ public class BuildMapView {
     }
 
     /**
+     * Add your cached image data.
+     *
+     * @param cache the cache to get the image.
+     */
+    public void addAllCachedRenderers(@Nonnull MapRendererDataCache cache) {
+        this.renderers.addAll(cache.getAllRendererData());
+    }
+    /**
      * Adds a map list of renderer instance's.
      *
      * @param renderers the render data list to be added.

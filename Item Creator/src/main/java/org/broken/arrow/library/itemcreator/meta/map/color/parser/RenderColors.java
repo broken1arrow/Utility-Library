@@ -1,9 +1,13 @@
 package org.broken.arrow.library.itemcreator.meta.map.color.parser;
 
 import org.broken.arrow.library.itemcreator.meta.map.MapRendererData;
+import org.broken.arrow.library.itemcreator.meta.map.pixel.MapColoredPixel;
 
+import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility class for smoothing and balancing colors from a source image before rendering
@@ -28,21 +32,21 @@ public class RenderColors {
      * <p>
      * Note:  this method will make a copy of your image.
      *
-     * @param scaled          the image already scaled to map resolution (typically 128×128)
-     * @param mapRendererData the map data container that receives processed pixels
+     * @param scaled the image already scaled to map resolution (typically 128×128)
+     * @return a list of set pixels to be set in {@link MapRendererData#addAll(List)}.
      */
-    public static void renderFromImage(final BufferedImage scaled, final MapRendererData mapRendererData) {
-        renderFromImage(scaled,mapRendererData,true);
+    public static List<MapColoredPixel> renderFromImage(final BufferedImage scaled) {
+        return renderFromImage(scaled,true);
     }
     /**
      * Processes a scaled image, smooths brightness inconsistencies,
      * and sends final pixel colors to the provided {@link MapRendererData}.
      *
      * @param scaled          the image already scaled to map resolution (typically 128×128)
-     * @param mapRendererData the map data container that receives processed pixels
-     * @param copy Make a copy of the image before scale it.
+     * @param copy            Make a copy of the image before scale it.
+     * @return  a list of set pixels to be set in {@link MapRendererData#addAll(List)}.
      */
-    public static void renderFromImage(final BufferedImage scaled, final MapRendererData mapRendererData,final boolean copy) {
+    public static List<MapColoredPixel> renderFromImage(final BufferedImage scaled,  final boolean copy) {
         int width = scaled.getWidth();
         int height = scaled.getHeight();
 
@@ -71,7 +75,7 @@ public class RenderColors {
                 filtered.setRGB(x, y, rgb);
             }
         }
-        addPixels(mapRendererData, height, width, filtered);
+       return addPixels( height, width, filtered);
     }
 
     /**
@@ -291,13 +295,14 @@ public class RenderColors {
     }
 
 
-    private static void addPixels(final MapRendererData mapRendererData, final int height, final int width, final BufferedImage filtered) {
+    private static List<MapColoredPixel> addPixels( final int height, final int width,@Nonnull final BufferedImage filtered) {
+        List<MapColoredPixel> mapColoredPixels = new ArrayList<>();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                mapRendererData.addPixel(x, y, new Color(filtered.getRGB(x, y)));
+                mapColoredPixels.add(new MapColoredPixel(x,y,new Color(filtered.getRGB(x, y))));
             }
         }
+        return mapColoredPixels;
     }
-
 
 }

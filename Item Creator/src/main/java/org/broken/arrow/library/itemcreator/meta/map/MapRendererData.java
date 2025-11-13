@@ -5,7 +5,6 @@ import org.broken.arrow.library.itemcreator.meta.map.color.parser.AmpersandHexCo
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorAdapter;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorWrapper;
-import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.MapTextRenderer;
 import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.RenderState;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
@@ -22,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -41,11 +41,14 @@ public class MapRendererData {
     private static int id;
     private final int mapRenderId;
     private final MapRenderer mapRenderer;
-    private MapCursorAdapter mapCursors = new MapCursorAdapter();
     private final List<MapPixel> pixels = new ArrayList<>();
+    private MapCursorAdapter mapCursors = new MapCursorAdapter();
+
     private MapRenderHandler dynamicRenderer;
+
     private char[] fontChars = Characters.getFontCharsArray();
     private ColorParser colorParser = new AmpersandHexColorParser();
+    private boolean contextual;
 
     /**
      * Constructs a new MapRendererData instance with no associated {@link MapRenderer}.
@@ -75,6 +78,7 @@ public class MapRendererData {
         this.dynamicRenderer = handler;
     }
 
+
     /**
      * Adds a colored pixel overlay to the map at the specified coordinates.
      *
@@ -103,7 +107,7 @@ public class MapRendererData {
      * @param text The text to display.
      * @return returns the newly created text overlay, so you could set some of the options after.
      */
-    public TextOverlay addText(final int x, int y, final String text) {
+    public TextOverlay addText(final int x, int y,@Nonnull final String text) {
         return this.addText(x, y, text, null, null);
     }
 
@@ -117,7 +121,7 @@ public class MapRendererData {
      * @param font The  font for the character.
      * @return returns the newly created text overlay, so you could set some of the options after.
      */
-    public TextOverlay addText(final int x, int y, final String text, @Nullable final Font font) {
+    public TextOverlay addText(final int x, int y,@Nonnull final String text, @Nullable final Font font) {
         return this.addText(x, y, text, null, font);
     }
 
@@ -241,6 +245,52 @@ public class MapRendererData {
     }
 
     /**
+     * Adds a collection of map overlays (pixels, text, or images) to this renderer.
+     * <p>
+     * This method appends the provided overlays to the existing pixel list
+     * without clearing previous entries. It can be used to add multiple
+     * overlay types at once or to batch-apply preprocessed render data.
+     * </p>
+     *
+     * <p><strong>Note:</strong> For most use cases, prefer the more specific
+     * methods such as {@link #addPixel(int, int, Color)},{@link #addText(int, int, String)}
+     * or {@link #addImage(int, int, Image)} for clarity.</p>
+     *
+     * @param mapPixels the list of {@link MapPixel} instances to add
+     */
+    public void addAll(List<MapPixel> mapPixels) {
+        this.pixels.addAll(mapPixels);
+    }
+
+    /**
+     * Clear the list of set pixels.
+     */
+    public void clear() {
+        this.pixels.clear();
+    }
+
+    /**
+     * Set whether the renderer is contextual, i.e. has different canvases for
+     * different players.
+     *
+     * @param contextual Whether the renderer is contextual. See {@link
+     *                   #isContextual()}.
+     */
+    public void setContextual(boolean contextual) {
+        this.contextual = contextual;
+    }
+
+    /**
+     * Get whether the renderer is contextual, i.e. has different canvases for
+     * different players.
+     *
+     * @return True if contextual, false otherwise.
+     */
+    public final boolean isContextual() {
+        return contextual;
+    }
+
+    /**
      * Returns the unique ID assigned to this map renderer data instance.
      *
      * @return The map render ID.
@@ -277,19 +327,19 @@ public class MapRendererData {
         if (this.mapRenderer != null) {
             return mapRenderer;
         }
-        return new MapRenderer() {
+        return new MapRenderer(this.contextual) {
             @Override
             public void render(@Nonnull MapView map, @Nonnull MapCanvas canvas, @Nonnull Player player) {
                 if (dynamicRenderer != null && dynamicRenderer.render(map, canvas, player))
                     return;
                 canvas.setCursors(mapCursors.getMapCursorCollection());
+
                 if (!getPixels().isEmpty()) {
                     setPixels(canvas);
                 }
             }
         };
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -364,5 +414,6 @@ public class MapRendererData {
     private void setPixels(@Nonnull final MapCanvas canvas) {
         getPixels().forEach(mapPixel -> mapPixel.render(this, canvas));
     }
+
 
 }

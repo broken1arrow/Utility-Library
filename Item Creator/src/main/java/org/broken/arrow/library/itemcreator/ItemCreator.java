@@ -5,6 +5,7 @@ import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.ServerVersion;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
+import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
@@ -28,11 +29,11 @@ import java.util.List;
  * Supports setting display names, lore, NBT data, and color translation.
  */
 public class ItemCreator {
-
+    private static final Logging log = new Logging(ItemCreator.class);
     private static ServerVersion serverVersion;
+    private static Plugin plugin;
     private final NBTManger nbtManger;
     private final ConvertToItemStack convertItems;
-    private final Plugin plugin;
     private boolean haveTextTranslator = true;
     private boolean enableColorTranslation = true;
 
@@ -56,13 +57,13 @@ public class ItemCreator {
     /**
      * Constructs an ItemCreator instance associated with the given plugin.
      *
-     * @param plugin        the plugin instance
-     * @param turnOffLogger whether to disable logging for NBT manager
+     * @param pluginInstance the plugin instance
+     * @param turnOffLogger  whether to disable logging for NBT manager
      */
-    public ItemCreator(final Plugin plugin, boolean turnOffLogger) {
-        this.plugin = plugin;
-        this.nbtManger = new NBTManger(plugin, turnOffLogger);
-        setServerVersion(plugin);
+    public ItemCreator(final Plugin pluginInstance, boolean turnOffLogger) {
+        this.setPlugin(pluginInstance);
+        this.nbtManger = new NBTManger(pluginInstance, turnOffLogger);
+        setServerVersion(pluginInstance);
 
         this.convertItems = new ConvertToItemStack(serverVersion.getServerVersion());
 
@@ -438,6 +439,34 @@ public class ItemCreator {
 
         Enchantment enchantment = Enchantment.getByName(name);
         return enchantment == null ? Enchantment.VANISHING_CURSE : enchantment;
+    }
+
+    /**
+     * Executes the given runnable safely, falling back to direct execution if
+     * Bukkit or the plugin instance is not available.
+     *
+     * @param runnable the task to run
+     */
+    public static void runSync(@Nonnull final Runnable runnable) {
+        try {
+            Plugin plugin = ItemCreator.plugin;
+            if (plugin == null || !plugin.isEnabled()) {
+                runnable.run();
+                return;
+            }
+            Bukkit.getScheduler().runTask(plugin, runnable);
+        } catch (NoClassDefFoundError | ExceptionInInitializerError ex) {
+            runnable.run();
+        } catch (Throwable t) {
+            if (t instanceof NullPointerException || t instanceof IllegalStateException) {
+                throw t;
+            }
+            log.logError(t, () -> "Failed to execute scheduled task safely. The runnable crashed.");
+        }
+    }
+
+    private void setPlugin(final Plugin pluginInstance) {
+        plugin = pluginInstance;
     }
 
 }
