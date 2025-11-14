@@ -2,6 +2,7 @@ package org.broken.arrow.library.itemcreator.meta.map.color.parser;
 
 import org.broken.arrow.library.itemcreator.meta.map.MapRendererData;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapColoredPixel;
+import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -36,7 +37,7 @@ public class RenderColors {
      * @param scaled the image already scaled to map resolution (typically 128×128)
      * @return a list of set pixels to be set in {@link MapRendererData#addAll(List)}.
      */
-    public static List<MapColoredPixel> renderFromImage(final BufferedImage scaled) {
+    public static List<MapPixel> renderFromImage(final BufferedImage scaled) {
         return renderFromImage(scaled, true);
     }
 
@@ -48,7 +49,7 @@ public class RenderColors {
      * @param copy   Make a copy of the image before scale it.
      * @return a list of set pixels to be set in {@link MapRendererData#addAll(List)}.
      */
-    public static List<MapColoredPixel> renderFromImage(final BufferedImage scaled, final boolean copy) {
+    public static List<MapPixel> renderFromImage(final BufferedImage scaled, final boolean copy) {
         int width = scaled.getWidth();
         int height = scaled.getHeight();
 
@@ -297,8 +298,8 @@ public class RenderColors {
     }
 
 
-    private static List<MapColoredPixel> addPixels(final int height, final int width, @Nonnull final BufferedImage filtered) {
-        List<MapColoredPixel> mapColoredPixels = new ArrayList<>();
+    private static List<MapPixel> addPixels(final int height, final int width, @Nonnull final BufferedImage filtered) {
+        List<MapPixel> mapColoredPixels = new ArrayList<>();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 mapColoredPixels.add(new MapColoredPixel(x, y, new Color(filtered.getRGB(x, y))));

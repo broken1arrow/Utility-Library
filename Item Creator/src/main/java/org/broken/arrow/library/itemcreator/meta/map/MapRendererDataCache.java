@@ -2,8 +2,11 @@ package org.broken.arrow.library.itemcreator.meta.map;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.RenderColors;
+import org.broken.arrow.library.itemcreator.meta.map.font.Characters;
+import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapColoredPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
+import org.broken.arrow.library.itemcreator.meta.map.pixel.TextOverlay;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,6 +16,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 
@@ -30,7 +34,7 @@ import java.util.function.Supplier;
  */
 public class MapRendererDataCache {
     private static final int MAX_PIXEL_SIZE = 200;
-    private final Map<Integer, MapRendererData> rendererDataMap = new ConcurrentHashMap<>();
+    private final Map<Integer, PixelCacheEntry> rendererDataMap = new ConcurrentHashMap<>();
     private boolean applyColorBalance = true;
     private boolean preConvertToPixels = true;
     private boolean applyScaling = true;
@@ -39,7 +43,7 @@ public class MapRendererDataCache {
      * Processes an image asynchronously and stores it as a new renderer entry.
      * <p>
      * The image is scaled to 128×128 and converted into a list of {@link MapPixel} entries.
-     * Once processed, the resulting {@link MapRendererData} is cached and the {@code onReady}
+     * Once processed, the resulting {@link PixelCacheEntry} is cached and the {@code onReady}
      * callback is invoked.
      * </p>
      * <p>
@@ -49,22 +53,11 @@ public class MapRendererDataCache {
      *
      * @param image   the image to process
      * @param onReady optional callback executed when finished
-     * @return the id from the {@link MapRendererData} instance.
+     * @return the id from the {@link PixelCacheEntry} instance.
      */
     public int processImageAsync(@Nonnull BufferedImage image, @Nullable final Runnable onReady) {
-        final MapRendererData data = new MapRendererData();
-        return this.processRendererData(data, () -> {
-                    final BufferedImage scaled = getBufferedImage(image);
-                    if (this.applyColorBalance) {
-                        return new ArrayList<>(RenderColors.renderFromImage(scaled));
-                    }
-                    if (!this.preConvertToPixels) {
-                        data.addImage(0, 0, scaled);
-                        return new ArrayList<>(data.getPixels());
-                    }
-                    return this.addPixels(scaled.getHeight(), scaled.getWidth(), scaled);
-
-                }, false,
+        PixelCacheEntry pixelCacheEntry = new PixelCacheEntry();
+        return this.processRendererData(pixelCacheEntry, () -> getMapPixels(image), false,
                 onReady);
     }
 
@@ -81,14 +74,13 @@ public class MapRendererDataCache {
      * </p>
      *
      * @param rendererId the ID of the renderer to update
-     * @param newImage   the new image to process and apply
+     * @param image      the new image to process and apply
      * @param onReady    optional callback executed when finished
      */
-    public void updateCachedImage(final int rendererId, @Nonnull final BufferedImage newImage, @Nullable final Runnable onReady) {
-        MapRendererData data = get(rendererId);
+    public void updateCachedImage(final int rendererId, @Nonnull final BufferedImage image, @Nullable final Runnable onReady) {
+        PixelCacheEntry data = get(rendererId);
         if (data != null) {
-            this.processRendererData(data, () ->
-                            new ArrayList<>(RenderColors.renderFromImage(newImage)),
+            this.processRendererData(data, () -> getMapPixels(image),
                     true,
                     onReady);
         }
@@ -108,10 +100,10 @@ public class MapRendererDataCache {
      *
      * @param pixels  the pixel collection to render
      * @param onReady optional callback executed when finished
-     * @return the id from the {@link MapRendererData} instance.
+     * @return the id from the {@link PixelCacheEntry} instance.
      */
     public int addPixelsAsync(@Nonnull Collection<MapPixel> pixels, @Nullable final Runnable onReady) {
-        final MapRendererData data = new MapRendererData();
+        final PixelCacheEntry data = new PixelCacheEntry();
         return this.processRendererData(data, () -> new ArrayList<>(pixels), false, onReady);
     }
 
@@ -137,12 +129,20 @@ public class MapRendererDataCache {
      * @param text    the text to display
      * @param font    the optional {@link Font} used for rendering, or {@code null} for the default font
      * @param onReady optional callback executed when finished
-     * @return the id from the {@link MapRendererData} instance.
+     * @return the id from the {@link PixelCacheEntry} instance.
      */
     public int addTextAsync(final int x, final int y, @Nonnull final String text, @Nullable final Font font, @Nullable final Runnable onReady) {
-        final MapRendererData data = new MapRendererData();
-        data.addText(x, y, text, font);
-        return this.processRendererData(data, data::getPixels, false, onReady);
+        final PixelCacheEntry data = new PixelCacheEntry();
+        return this.processRendererData(data, () -> {
+                    TextOverlay textOverlay = new TextOverlay(x, y, text);
+                    if (font != null) {
+                        textOverlay.setMapFont(Characters.getFontCharsArray(), font);
+                    }
+                    return Collections.singletonList(textOverlay);
+                },
+                false,
+                onReady
+        );
     }
 
     /**
@@ -217,22 +217,39 @@ public class MapRendererDataCache {
     }
 
     /**
-     * Retrieves all cached {@link MapRendererData} instances currently held by this cache.
+     * Retrieves all cached {@link PixelCacheEntry} instances currently held by this cache.
      *
      * @return a live view of all cached renderer data
      */
-    public Collection<MapRendererData> getAllRendererData() {
+    public Collection<PixelCacheEntry> getAllRendererData() {
         return rendererDataMap.values();
     }
 
     /**
-     * Retrieves a cached {@link MapRendererData} instance by its renderer ID.
+     * Retrieves a cached {@link PixelCacheEntry} instance by its renderer ID.
      *
      * @param mapRenderId the renderer ID
-     * @return the cached {@link MapRendererData}, or {@code null} if not found
+     * @return the cached {@link PixelCacheEntry}, or {@code null} if not found
      */
-    public MapRendererData get(final int mapRenderId) {
+    @Nullable
+    public PixelCacheEntry get(final int mapRenderId) {
         return rendererDataMap.get(mapRenderId);
+    }
+
+    /**
+     * Removes a cached {@link PixelCacheEntry} by its ID.
+     * <p>
+     * This is useful when you want to discard preprocessed image or pixel data
+     * that is no longer needed, such as when unloading a map, replacing an asset,
+     * or cleaning up memory during plugin shutdown.
+     * </p>
+     *
+     * @param id the ID of the cached renderer entry to remove
+     * @return {@code true} if an entry with the given ID existed and was removed,
+     *         {@code false} if no entry with that ID was present in the cache
+     */
+    public boolean remove(int id) {
+        return rendererDataMap.remove(id) != null;
     }
 
     /**
@@ -246,18 +263,20 @@ public class MapRendererDataCache {
      * @param pixelSupplier Provide a list of set pixels.
      * @param update        if it shall update current set pixels, it will then clear the old pixels set.
      * @param onReady       consumer that runs after data is processed.
-     * @return the id from the {@link MapRendererData} instance.
+     * @return the id from the {@link PixelCacheEntry} instance.
      */
-    private int processRendererData(@Nonnull final MapRendererData data, final @Nonnull Supplier<List<MapPixel>> pixelSupplier, final boolean update, @Nullable final Runnable onReady) {
-        final int id = data.getMapRenderId();
+    private int processRendererData(@Nonnull final PixelCacheEntry data, final @Nonnull Supplier<List<MapPixel>> pixelSupplier, final boolean update, @Nullable final Runnable onReady) {
+        final int id = data.getId();
         rendererDataMap.put(id, data);
         CompletableFuture.supplyAsync(pixelSupplier)
                 .thenAccept(pixels -> {
-                    if (update) data.clear();
-                    data.addAll(pixels);
+                    if (update)
+                        data.setPixels(pixels);
+                    else
+                        data.appendPixels(pixels);
+
                     if (onReady != null) runSync(onReady);
                 });
-
         return id;
     }
 
@@ -274,9 +293,29 @@ public class MapRendererDataCache {
         ItemCreator.runSync(runnable);
     }
 
-    private BufferedImage getBufferedImage(final BufferedImage image) {
-        return applyScaling ? ItemCreator.scale(image, 128, 128) :
-                new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    private BufferedImage getBufferedImage(BufferedImage img) {
+        if (!applyScaling)
+            return deepCopy(img);
+        return ItemCreator.scale(img, 128, 128);
+    }
+
+    private static BufferedImage deepCopy(BufferedImage source) {
+        BufferedImage copy = new BufferedImage(
+                source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB
+        );
+        Graphics2D g = copy.createGraphics();
+        g.drawImage(source, 0, 0, null);
+        g.dispose();
+        return copy;
+    }
+
+    private List<MapPixel> getMapPixels(final BufferedImage image) {
+        BufferedImage scaled = getBufferedImage(image);
+        if (applyColorBalance)
+            return RenderColors.renderFromImage(scaled);
+        if (!preConvertToPixels)
+            return Collections.singletonList(new ImageOverlay(0, 0, scaled));
+        return addPixels(scaled.getHeight(), scaled.getWidth(), scaled);
     }
 
     private List<MapPixel> addPixels(final int height, final int width, @Nonnull final BufferedImage filtered) {
@@ -292,5 +331,56 @@ public class MapRendererDataCache {
         return mapColoredPixels;
     }
 
+    /**
+     * Represents a cache entry for storing a list of {@link MapPixel} objects.
+     * Each entry has a unique ID and supports thread-safe updates to its pixel list.
+     */
+    public static final class PixelCacheEntry {
+        private static final AtomicInteger COUNTER = new AtomicInteger();
+        private final int id = COUNTER.getAndIncrement();
+        private List<MapPixel> pixels = Collections.emptyList();
+
+        /**
+         * Returns the unique ID of this cache entry.
+         *
+         * @return the unique ID
+         */
+        public int getId() {
+            return id;
+        }
+
+        /**
+         * Replaces the current list of pixels with a new list.
+         * The new list is stored as an unmodifiable copy to prevent external modification.
+         *
+         * @param newPixels the new list of pixels; must not be null
+         */
+        public synchronized void setPixels(@Nonnull final List<MapPixel> newPixels) {
+            this.pixels = Collections.unmodifiableList(new ArrayList<>(newPixels));
+        }
+
+        /**
+         * Appends additional pixels to the current list.
+         * The combined list is stored as an unmodifiable copy to prevent external modification.
+         *
+         * @param extraPixels the pixels to append; must not be null
+         */
+        public synchronized void appendPixels(@Nonnull final List<MapPixel> extraPixels) {
+            List<MapPixel> combined = new ArrayList<>(this.pixels.size() + extraPixels.size());
+            combined.addAll(this.pixels);
+            combined.addAll(extraPixels);
+            this.pixels = Collections.unmodifiableList(combined);
+        }
+
+        /**
+         * Returns the current list of pixels.
+         * The returned list is unmodifiable.
+         *
+         * @return the list of pixels
+         */
+        public List<MapPixel> getPixels() {
+            return pixels;
+        }
+    }
 }
 

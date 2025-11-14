@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class BuildMapView {
     private final MapView mapView;
     private final World world;
-    private final Set<MapRendererData> renderers = new HashSet<>();
+    private final MapRendererData renderer;
 
     private final boolean virtual;
     private boolean locked;
@@ -57,11 +57,24 @@ public class BuildMapView {
      * @param mapView the existing {@link MapView} to wrap (non-null)
      */
     public BuildMapView(@Nonnull final MapView mapView) {
+        this(null, mapView);
+    }
+
+    /**
+     * Wraps an existing {@link MapView} into a {@code BuildMapView},
+     * preserving its current properties and renderers.
+     *
+     * @param renderer A new {@link MapRenderer} instance you want to add.
+     * @param mapView  the existing {@link MapView} to wrap (non-null)
+     */
+    public BuildMapView(@Nullable final MapRenderer renderer, @Nonnull final MapView mapView) {
         this.mapView = mapView;
         this.virtual = mapView.isVirtual();
         this.mapId = retrieveMapId(mapView);
         this.world = mapView.getWorld();
+        this.renderer = renderer != null ? new MapRendererData(renderer) : new MapRendererData();
     }
+
 
     /**
      * Get the ID of this map item for use with {@link MapMeta}.
@@ -153,81 +166,56 @@ public class BuildMapView {
     }
 
     /**
-     * Get a list of MapRenderers currently set.
+     * Get the set MapRenderer.
      *
-     * @return A {@code List<MapRenderer>} containing each map renderer.
+     * @return A {@link MapRendererData} containing each pixel set for the renderer.
      */
     @Nonnull
-    public List<MapRenderer> getRenderers() {
-        if (renderers.isEmpty())
-            return new ArrayList<>();
-        return renderers.stream().map(MapRendererData::getMapRenderer).collect(Collectors.toList());
+    public MapRendererData getRenderer() {
+        return this.renderer;
     }
 
     /**
-     * Adds a map renderer with the specified renderer and applies configuration
-     * via the given data consumer.
+     * Get the set MapRenderer.
      *
-     * @param renderer     the {@link MapRenderer} instance to add
-     * @param dataConsumer a consumer to configure the render data for this renderer
-     * @return the {@link MapRendererData} instance representing the added renderer
+     * @return A {@code MapRenderer} containing each pixel set for the renderer.
      */
-    public MapRendererData addRenderer(@Nonnull final MapRenderer renderer, @Nonnull final Consumer<MapRendererData> dataConsumer) {
-        MapRendererData mapRenderer = new MapRendererData(renderer);
-        dataConsumer.accept(mapRenderer);
-        renderers.add(mapRenderer);
-        return mapRenderer;
+    @Nonnull
+    public MapRenderer getMapRenderer() {
+        return this.renderer.getMapRenderer();
     }
 
     /**
-     * Adds a map renderer without specifying a renderer instance, and applies
+     * Give the specifying a renderer instance, and applies
      * configuration via the given data consumer.
      *
      * @param dataConsumer a consumer to configure the render data for the new renderer
-     * @return the {@link MapRendererData} instance representing the added renderer
+     * @return the {@link MapRendererData} instance representing the renderer
      */
-    public MapRendererData addRenderer(@Nonnull final Consumer<MapRendererData> dataConsumer) {
-        final MapRendererData mapRenderer = new MapRendererData();
-        dataConsumer.accept(mapRenderer);
-        renderers.add(mapRenderer);
-        return mapRenderer;
+    public MapRendererData addRenderData(@Nonnull final Consumer<MapRendererData> dataConsumer) {
+        dataConsumer.accept(this.renderer);
+        return this.renderer;
     }
 
     /**
      * Add your cached image data.
      *
-     * @param cache the cache to get the image.
+     * @param cacheId the id set for the image preprocessed you want to add to this map.
+     * @param cache   the cache to get the image.
      */
-    public void addAllCachedRenderers(@Nonnull MapRendererDataCache cache) {
-        this.renderers.addAll(cache.getAllRendererData());
-    }
-    /**
-     * Adds a map list of renderer instance's.
-     *
-     * @param renderers the render data list to be added.
-     */
-    public void addAllRenderers(@Nonnull final List<MapRenderer> renderers) {
-        renderers.forEach(mapRenderer -> {
-            this.renderers.add(new MapRendererData(mapRenderer));
-        });
+    public void addCachedPixels(final int cacheId, @Nonnull MapRendererDataCache cache) {
+        final MapRendererDataCache.PixelCacheEntry mapRendererData = cache.get(cacheId);
+        if (mapRendererData == null)
+            return;
+        this.renderer.getPixels().addAll(mapRendererData.getPixels());
     }
 
     /**
-     * Remove a renderer from this map.
+     * Remove the pixels set from this MapRendererData instance.
      *
-     * @param renderer The MapRenderer to remove.
      */
-    public void removeRenderer(@Nonnull final MapRendererData renderer) {
-        renderers.removeIf(mapRenderer -> mapRenderer.getMapRenderId() == renderer.getMapRenderId());
-    }
-
-    /**
-     * Remove a renderer from this map.
-     *
-     * @param mapRenderId The id of the MapRendererData to remove.
-     */
-    public void removeRenderer(final int mapRenderId) {
-        renderers.removeIf(mapRenderer -> mapRenderer.getMapRenderId() == mapRenderId);
+    public void clearPixels() {
+        this.renderer.clear();
     }
 
     /**
@@ -314,14 +302,11 @@ public class BuildMapView {
         if (ItemCreator.getServerVersion() > 10.2F)
             mapView.setUnlimitedTracking(unlimited);
 
-        if (!renderers.isEmpty()) {
-
+        if (!renderer.isPixelsEmpty()) {
             for (MapRenderer renderer : mapView.getRenderers()) {
                 mapView.removeRenderer(renderer);
             }
-            for (MapRendererData data : renderers) {
-                mapView.addRenderer(data.getMapRenderer());
-            }
+            mapView.addRenderer(this.getMapRenderer());
         }
         return mapView;
     }
@@ -358,7 +343,7 @@ public class BuildMapView {
         string.appendFieldRecursive("world", (world == null ? "" : world.getName()), 1);
         string.appendFieldRecursive("x", getCenterX(), 1);
         string.appendFieldRecursive("z", getCenterZ(), 1);
-        string.appendFieldRecursive("renderers", renderers, 1);
+        string.appendFieldRecursive("renderer", renderer, 1);
 
         return string.finalizeString() + "";
     }

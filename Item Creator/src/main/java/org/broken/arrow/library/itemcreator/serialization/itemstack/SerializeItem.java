@@ -537,7 +537,7 @@ public class SerializeItem {
                 if (mapView == null) return;
                 final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
                 final BuildMapView buildMapView = new BuildMapView(mapView);
-                buildMapView.addAllRenderers(mapView.getRenderers());
+
                 mapMetaWrapper.assignMapView(buildMapView);
                 data.mapViewMeta = mapMetaWrapper;
             }
@@ -547,7 +547,6 @@ public class SerializeItem {
                 if (mapView != null) {
                     final MapWrapperMeta mapMetaWrapper = new MapWrapperMeta();
                     final BuildMapView buildMapView = new BuildMapView(mapView);
-                    buildMapView.addAllRenderers(mapView.getRenderers());
                     mapMetaWrapper.assignMapView(buildMapView);
                     data.mapViewMeta = mapMetaWrapper;
                 }

@@ -49,14 +49,6 @@ import java.util.stream.Collectors;
  * the image as a background and the text above it.
  * </p>
  *
- * <p>
- * When using {@link MapRendererDataCache}, all overlays are preprocessed and
- * returned in the deterministic order produced by the cache. In this mode,
- * layering is controlled by the cache pipeline. Accessing the underlying
- * {@link MapRendererData} from the cache via {@link MapRendererDataCache#get(int)} is possible,
- * but adding new data directly is not recommended, as it could alter the
- * intended overlay order.
- * </p>
  */
 public class MapRendererData {
     private static int id;
@@ -196,7 +188,7 @@ public class MapRendererData {
      * and inserts it into the pixel list. Only basic scaling is performed at this
      * stage. Advanced preprocessing—such as color balancing, palette matching,
      * or pixel extraction—is applied only when using {@link MapRendererDataCache}
-     * together with {@link BuildMapView#addAllCachedRenderers(MapRendererDataCache)}.
+     * together with {@link BuildMapView#addCachedPixels(int, MapRendererDataCache)}.
      * </p>
      *
      * <p>When using the cache, all images are preprocessed asynchronously and then
@@ -314,6 +306,15 @@ public class MapRendererData {
      */
     public void clear() {
         this.pixels.clear();
+    }
+
+    /**
+     * Returns {@code true} if this list contains no elements.
+     *
+     * @return {@code true} if this list of pixels contains no elements
+     */
+    public boolean isPixelsEmpty() {
+        return this.pixels.isEmpty();
     }
 
     /**
