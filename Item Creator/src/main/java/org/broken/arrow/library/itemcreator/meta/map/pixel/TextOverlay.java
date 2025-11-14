@@ -30,7 +30,7 @@ public class TextOverlay extends MapPixel {
      * @param y    the y-coordinate of the text overlay.
      * @param text the text to display.
      */
-    public TextOverlay(final int x, final int y,@Nonnull final String text) {
+    public TextOverlay(final int x, final int y, @Nonnull final String text) {
         super(x, y);
         this.text = text;
     }
@@ -70,8 +70,8 @@ public class TextOverlay extends MapPixel {
      * Sets a custom map font character for rendering the text. Some fonts not always translates to the map correctly
      * try bigger or smaller font size, that could help with the issue.
      *
-     * @param chars     the characters to replace.
-     * @param font the {@link Font} representing the custom character sprite.
+     * @param chars the characters to replace.
+     * @param font  the {@link Font} representing the custom character sprite.
      */
     public void setMapFont(final char[] chars, @Nonnull final Font font) {
         for (char charter : chars) {

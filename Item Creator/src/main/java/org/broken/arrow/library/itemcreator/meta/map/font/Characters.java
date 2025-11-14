@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.meta.map;
+package org.broken.arrow.library.itemcreator.meta.map.font;
 
 public class Characters {
     private static final String FONT_CHARS =

@@ -1,10 +1,10 @@
 package org.broken.arrow.library.itemcreator.meta.map;
 
-import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.AmpersandHexColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorAdapter;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorWrapper;
+import org.broken.arrow.library.itemcreator.meta.map.font.Characters;
 import org.broken.arrow.library.itemcreator.meta.map.font.customdraw.RenderState;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
@@ -21,20 +21,41 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * Holds rendering data and state for a Minecraft map renderer.
- * <p>
- * This class manages a unique map render ID, a custom {@link MapRenderer},
+ *
+ * <p>This class manages a unique map render ID, a custom {@link MapRenderer},
  * a collection of {@link MapCursorWrapper} instances via {@link MapCursorAdapter},
  * and a list of {@link MapPixel} overlays including pixels, text, and images.
  * It also supports a dynamic renderer handler for custom render logic.
  * </p>
+ *
+ * <p>The class provides methods to add pixels, text overlays, images, and cursors,
+ * and can serialize/deserialize its state to/from a map for persistence or
+ * network transfer.
+ * </p>
+ *
+ * <strong>Overlay Render Order</strong>
  * <p>
- * The class provides methods to add pixels, text overlays, images, and cursors,
- * and can serialize/deserialize its state to/from a map for persistence or network transfer.
+ * Overlays are rendered <strong>in the exact order they are added</strong>.
+ * The first overlay added becomes the bottom layer, and subsequent overlays
+ * are drawn on top of it. This applies to all overlay types:
+ * {@link MapColoredPixel}, {@link TextOverlay}, {@link ImageOverlay}, and others.
+ * </p>
+ *
+ * <p>Example: calling {@code addImage()} followed by {@code addText()} will render
+ * the image as a background and the text above it.
+ * </p>
+ *
+ * <p>
+ * When using {@link MapRendererDataCache}, all overlays are preprocessed and
+ * returned in the deterministic order produced by the cache. In this mode,
+ * layering is controlled by the cache pipeline. Accessing the underlying
+ * {@link MapRendererData} from the cache via {@link MapRendererDataCache#get(int)} is possible,
+ * but adding new data directly is not recommended, as it could alter the
+ * intended overlay order.
  * </p>
  */
 public class MapRendererData {
@@ -82,6 +103,8 @@ public class MapRendererData {
     /**
      * Adds a colored pixel overlay to the map at the specified coordinates.
      *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
      * @param x     The x-coordinate of the pixel.
      * @param y     The y-coordinate of the pixel.
      * @param color The color of the pixel.
@@ -93,6 +116,7 @@ public class MapRendererData {
     /**
      * Adds a colored pixel overlay to the map.
      *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
      * @param mapColoredPixel The {@link MapColoredPixel} to add.
      */
     public void addPixel(@Nonnull final MapColoredPixel mapColoredPixel) {
@@ -102,12 +126,14 @@ public class MapRendererData {
     /**
      * Adds a text overlay to the map without a custom font character sprite.
      *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
      * @param x    The x-coordinate of the text.
      * @param y    The y-coordinate of the text.
      * @param text The text to display.
      * @return returns the newly created text overlay, so you could set some of the options after.
      */
-    public TextOverlay addText(final int x, int y,@Nonnull final String text) {
+    public TextOverlay addText(final int x, int y, @Nonnull final String text) {
         return this.addText(x, y, text, null, null);
     }
 
@@ -115,18 +141,22 @@ public class MapRendererData {
      * Adds a text overlay to the map with a custom font character sprite. Will use the default set
      * of characters instead.
      *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
      * @param x    The x-coordinate of the text.
      * @param y    The y-coordinate of the text.
      * @param text The text to display.
      * @param font The  font for the character.
      * @return returns the newly created text overlay, so you could set some of the options after.
      */
-    public TextOverlay addText(final int x, int y,@Nonnull final String text, @Nullable final Font font) {
+    public TextOverlay addText(final int x, int y, @Nonnull final String text, @Nullable final Font font) {
         return this.addText(x, y, text, null, font);
     }
 
     /**
      * Adds a text overlay to the map with a custom font character sprite.
+     *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
      *
      * @param x         The x-coordinate of the text.
      * @param y         The y-coordinate of the text.
@@ -150,10 +180,140 @@ public class MapRendererData {
     /**
      * Adds a text overlay to the map.
      *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
      * @param textOverlay The {@link TextOverlay} instance to add.
      */
     public void addText(@Nonnull final TextOverlay textOverlay) {
         pixels.add(textOverlay);
+    }
+
+
+    /**
+     * Adds an image overlay to the renderer at the specified map coordinates.
+     *
+     * <p>This method creates a new {@link ImageOverlay} using the supplied image
+     * and inserts it into the pixel list. Only basic scaling is performed at this
+     * stage. Advanced preprocessing—such as color balancing, palette matching,
+     * or pixel extraction—is applied only when using {@link MapRendererDataCache}
+     * together with {@link BuildMapView#addAllCachedRenderers(MapRendererDataCache)}.
+     * </p>
+     *
+     * <p>When using the cache, all images are preprocessed asynchronously and then
+     * registered automatically.
+     * </p>
+     *
+     * <p><strong>Note:</strong> Adding raw images directly may introduce a performance
+     * penalty during rendering, because preprocessing must be performed on the main
+     * thread during the live map render.
+     * </p>
+     *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
+     * @param x     the top-left X position on the map (0–127)
+     * @param y     the top-left Y position on the map (0–127)
+     * @param image the image to draw at the given position
+     */
+    public void addImage(final int x, final int y, @Nonnull final Image image) {
+        pixels.add(new ImageOverlay(x, y, image));
+    }
+
+    /**
+     * Adds an existing {@link ImageOverlay} instance to the renderer.
+     *
+     * <p>The overlay is inserted exactly as provided. Only basic scaling
+     * occurs inside {@link ImageOverlay}. More advanced preprocessing—such
+     * as color rebalancing or pixel conversion—is performed only when using
+     * {@link MapRendererDataCache} instead of adding images directly.
+     * See {@link #addText(TextOverlay)} for additional details about the
+     * caching workflow.
+     * </p>
+     *
+     * <p><strong>Note:</strong> Adding raw images directly may introduce a performance
+     * penalty during rendering, because preprocessing is performed on the main thread
+     * instead of being handled asynchronously by the cache.
+     * </p>
+     *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
+     * @param imageOverlay the preconfigured {@link ImageOverlay} to add
+     */
+    public void addImage(@Nonnull final ImageOverlay imageOverlay) {
+        pixels.add(imageOverlay);
+    }
+
+    /**
+     * Adds a cursor overlay to the map.
+     *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
+     * @param x         The x-coordinate of the cursor.
+     * @param y         The y-coordinate of the cursor.
+     * @param direction The direction the cursor points to.
+     * @param type      The cursor type.
+     * @param visible   Whether the cursor is visible.
+     * @return The added {@link MapCursorWrapper}.
+     */
+    public MapCursorWrapper addCursor(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible) {
+        return this.addCursor(x, y, direction, type, visible, null);
+    }
+
+    /**
+     * Adds a cursor overlay to the map with an optional caption.
+     *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
+     * @param x         The x-coordinate of the cursor.
+     * @param y         The y-coordinate of the cursor.
+     * @param direction The direction the cursor points to.
+     * @param type      The cursor type.
+     * @param visible   Whether the cursor is visible.
+     * @param caption   Optional caption for the cursor, or null if none.
+     * @return The added {@link MapCursorWrapper}.
+     */
+    public MapCursorWrapper addCursor(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible, @Nullable final String caption) {
+        final MapCursorWrapper cursorWrapper = new MapCursorWrapper(x, y, direction, type, visible, caption);
+        return this.addCursor(cursorWrapper);
+    }
+
+    /**
+     * Adds a cursor overlay to the map.
+     *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
+     * @param cursorWrapper The {@link MapCursorWrapper} to add.
+     * @return The same cursor wrapper instance.
+     */
+    public MapCursorWrapper addCursor(@Nonnull final MapCursorWrapper cursorWrapper) {
+        mapCursors.addCursor(cursorWrapper);
+        return cursorWrapper;
+    }
+
+    /**
+     * Adds a collection of map overlays (pixels, text, or images) to this renderer.
+     * <p>
+     * This method appends the provided overlays to the existing pixel list
+     * without clearing previous entries. It can be used to add multiple
+     * overlay types at once or to batch-apply preprocessed render data.
+     * </p>
+     *
+     * <p><strong>Note:</strong> For most use cases, prefer the more specific
+     * methods such as {@link #addPixel(int, int, Color)},{@link #addText(int, int, String)}
+     * or {@link #addImage(int, int, Image)} for clarity.</p>
+     *
+     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     *
+     * @param mapPixels the list of {@link MapPixel} instances to add
+     */
+    public void addAll(List<MapPixel> mapPixels) {
+        this.pixels.addAll(mapPixels);
+    }
+
+    /**
+     * Clear the list of set pixels.
+     */
+    public void clear() {
+        this.pixels.clear();
     }
 
     /**
@@ -181,92 +341,6 @@ public class MapRendererData {
      */
     public void setGlobalColorParser(@Nonnull final ColorParser colorParser) {
         this.colorParser = colorParser;
-    }
-
-    /**
-     * Adds an image overlay to the map at the specified coordinates.
-     *
-     * @param x     The x-coordinate of the image.
-     * @param y     The y-coordinate of the image.
-     * @param image The image to display.
-     */
-    public void addImage(final int x, final int y, @Nonnull final Image image) {
-        pixels.add(new ImageOverlay(x, y, image));
-    }
-
-    /**
-     * Adds an image overlay to the map.
-     *
-     * @param imageOverlay The {@link ImageOverlay} instance to add.
-     */
-    public void addImage(@Nonnull final ImageOverlay imageOverlay) {
-        pixels.add(imageOverlay);
-    }
-
-    /**
-     * Adds a cursor overlay to the map.
-     *
-     * @param x         The x-coordinate of the cursor.
-     * @param y         The y-coordinate of the cursor.
-     * @param direction The direction the cursor points to.
-     * @param type      The cursor type.
-     * @param visible   Whether the cursor is visible.
-     * @return The added {@link MapCursorWrapper}.
-     */
-    public MapCursorWrapper addCursor(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible) {
-        return this.addCursor(x, y, direction, type, visible, null);
-    }
-
-    /**
-     * Adds a cursor overlay to the map with an optional caption.
-     *
-     * @param x         The x-coordinate of the cursor.
-     * @param y         The y-coordinate of the cursor.
-     * @param direction The direction the cursor points to.
-     * @param type      The cursor type.
-     * @param visible   Whether the cursor is visible.
-     * @param caption   Optional caption for the cursor, or null if none.
-     * @return The added {@link MapCursorWrapper}.
-     */
-    public MapCursorWrapper addCursor(final byte x, final byte y, final byte direction, @Nonnull final MapCursor.Type type, final boolean visible, @Nullable final String caption) {
-        final MapCursorWrapper cursorWrapper = new MapCursorWrapper(x, y, direction, type, visible, caption);
-        return this.addCursor(cursorWrapper);
-    }
-
-    /**
-     * Adds a cursor overlay to the map.
-     *
-     * @param cursorWrapper The {@link MapCursorWrapper} to add.
-     * @return The same cursor wrapper instance.
-     */
-    public MapCursorWrapper addCursor(@Nonnull final MapCursorWrapper cursorWrapper) {
-        mapCursors.addCursor(cursorWrapper);
-        return cursorWrapper;
-    }
-
-    /**
-     * Adds a collection of map overlays (pixels, text, or images) to this renderer.
-     * <p>
-     * This method appends the provided overlays to the existing pixel list
-     * without clearing previous entries. It can be used to add multiple
-     * overlay types at once or to batch-apply preprocessed render data.
-     * </p>
-     *
-     * <p><strong>Note:</strong> For most use cases, prefer the more specific
-     * methods such as {@link #addPixel(int, int, Color)},{@link #addText(int, int, String)}
-     * or {@link #addImage(int, int, Image)} for clarity.</p>
-     *
-     * @param mapPixels the list of {@link MapPixel} instances to add
-     */
-    public void addAll(List<MapPixel> mapPixels) {
-        this.pixels.addAll(mapPixels);
-    }
-
-    /**
-     * Clear the list of set pixels.
-     */
-    public void clear() {
-        this.pixels.clear();
     }
 
     /**

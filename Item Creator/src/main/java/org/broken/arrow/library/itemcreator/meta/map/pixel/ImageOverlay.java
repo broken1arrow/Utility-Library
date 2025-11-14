@@ -1,11 +1,11 @@
 package org.broken.arrow.library.itemcreator.meta.map.pixel;
 
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.map.MapRendererData;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.map.MapCanvas;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import java.awt.*;
@@ -33,18 +33,41 @@ import java.util.Map;
  */
 public class ImageOverlay extends MapPixel {
     private static final Logging logger = new Logging(ImageOverlay.class);
-    private final Image imageId;
+    private final Image image;
 
     /**
-     * Constructs an ImageOverlay at the specified coordinates with the given image.
+     * Creates an {@code ImageOverlay} at the specified pixel coordinates using the
+     * provided image. The image will be automatically scaled down (max 128×128) to
+     * ensure it fits on the map instead of being cropped.
      *
-     * @param x The x-coordinate of the pixel.
-     * @param y The y-coordinate of the pixel.
-     * @param imageId The image to overlay at the specified location. Can be null.
+     * <p>This is the recommended constructor when you want automatic resizing
+     * without manually preparing the image dimensions.</p>
+     *
+     * @param x     the x-coordinate on the map in pixels
+     * @param y     the y-coordinate on the map in pixels
+     * @param image the image to draw
      */
-    public ImageOverlay(final int x, final int y, @Nullable final Image imageId) {
+    public ImageOverlay(final int x, final int y, @Nonnull final Image image) {
+        this(x, y, image, true);
+    }
+
+    /**
+     * Creates an {@code ImageOverlay} at the specified pixel coordinates using the
+     * provided image, with optional automatic scaling.
+     *
+     * <p>If {@code scale} is {@code true}, the image will be resized to a maximum
+     * of 128×128 pixels to avoid being clipped. If {@code false}, the image is used
+     * as-is, and any portion exceeding the map size will be cut off. Use this
+     * constructor if you want full control over pre-scaling your image.</p>
+     *
+     * @param x     the x-coordinate on the map in pixels
+     * @param y     the y-coordinate on the map in pixels
+     * @param image the image to draw
+     * @param scale whether the image should be automatically resized to fit the map
+     */
+    public ImageOverlay(final int x, final int y, @Nonnull final Image image, boolean scale) {
         super(x, y);
-        this.imageId = imageId;
+        this.image = scale ? ItemCreator.scale((BufferedImage) image, 128, 128) : image;
     }
 
     /**
@@ -52,17 +75,15 @@ public class ImageOverlay extends MapPixel {
      *
      * @return The {@link Image} instance, or null if no image is set.
      */
-    @Nullable
+    @Nonnull
     public Image getImage() {
-        return imageId;
+        return image;
     }
 
     @Override
     public void render(final @Nonnull MapRendererData mapRendererData, @Nonnull final MapCanvas canvas) {
         final Image image = this.getImage();
-        if (image != null) {
-            canvas.drawImage(this.getX(), this.getY(), image);
-        }
+        canvas.drawImage(this.getX(), this.getY(), image);
     }
 
     /**
@@ -78,7 +99,7 @@ public class ImageOverlay extends MapPixel {
         map.put("type", type());
         map.put("x", getX());
         map.put("y", getY());
-        if (imageId != null) {
+        if (image != null) {
             try {
                 map.put("image", imageToBytes());
             } catch (IOException e) {
@@ -117,10 +138,10 @@ public class ImageOverlay extends MapPixel {
      * @throws IOException If an error occurs during writing the image data.
      */
     public byte[] imageToBytes() throws IOException {
-        if (this.imageId == null)
+        if (this.image == null)
             return new byte[0];
 
-        final BufferedImage image = toBufferedImage(this.imageId);
+        final BufferedImage image = toBufferedImage(this.image);
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             ImageIO.write(image, "png", output);
             return output.toByteArray();

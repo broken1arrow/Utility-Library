@@ -19,6 +19,8 @@ import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -442,12 +444,47 @@ public class ItemCreator {
     }
 
     /**
+     * Helper for scaling images to map dimensions (e.g. 128×128).
+     *
+     * @param src    the image to scale.
+     * @param width  the width of the image.
+     * @param height the height of the image.
+     * @return a copy of your image with new dimensions.
+     */
+    public static BufferedImage scale(@Nonnull final BufferedImage src, final int width, final int height) {
+        BufferedImage scaled = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = scaled.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.drawImage(src, 0, 0, width, height, null);
+        g.dispose();
+        return scaled;
+    }
+
+    /**
      * Executes the given runnable safely, falling back to direct execution if
      * Bukkit or the plugin instance is not available.
      *
      * @param runnable the task to run
      */
     public static void runSync(@Nonnull final Runnable runnable) {
+        try {
+            runWithSchedulerFallback(runnable);
+        } catch (Throwable t) {
+            if (t instanceof NullPointerException || t instanceof IllegalStateException) {
+                throw t;
+            }
+            log.logError(t, () -> "Failed to execute scheduled task safely. The runnable crashed.");
+        }
+    }
+
+    /**
+     * Attempts to schedule the task on the Bukkit main thread, or runs directly
+     * if the plugin or scheduler is unavailable. Handles specific errors like
+     * missing classes or initializer issues.
+     *
+     * @param runnable the task to execute
+     */
+    private static void runWithSchedulerFallback(@Nonnull Runnable runnable) {
         try {
             Plugin plugin = ItemCreator.plugin;
             if (plugin == null || !plugin.isEnabled()) {
@@ -457,11 +494,6 @@ public class ItemCreator {
             Bukkit.getScheduler().runTask(plugin, runnable);
         } catch (NoClassDefFoundError | ExceptionInInitializerError ex) {
             runnable.run();
-        } catch (Throwable t) {
-            if (t instanceof NullPointerException || t instanceof IllegalStateException) {
-                throw t;
-            }
-            log.logError(t, () -> "Failed to execute scheduled task safely. The runnable crashed.");
         }
     }
 
