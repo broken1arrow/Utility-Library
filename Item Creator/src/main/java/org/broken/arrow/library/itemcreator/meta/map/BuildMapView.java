@@ -4,6 +4,7 @@ package org.broken.arrow.library.itemcreator.meta.map;
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.meta.map.utility.MapRendererBuilder;
 import org.broken.arrow.library.itemcreator.utility.FormatString;
+import org.broken.arrow.library.logging.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.inventory.meta.MapMeta;
@@ -72,7 +73,7 @@ public class BuildMapView {
         this.mapId = retrieveMapId(mapView);
         this.world = mapView.getWorld();
         this.renderer = renderer != null ? new MapRendererData(renderer) : new MapRendererData();
-        this. mapRendererBuilder = new MapRendererBuilder(this.renderer);
+        this.mapRendererBuilder = new MapRendererBuilder(this.renderer);
     }
 
 
@@ -211,7 +212,7 @@ public class BuildMapView {
      * @return the configured {@link MapRendererBuilder} instance
      */
     public MapRendererBuilder configureBuilder(@Nonnull final Consumer<MapRendererBuilder> dataConsumer) {
-        usingBuilder = true;
+        this.usingBuilder = true;
         dataConsumer.accept(this.mapRendererBuilder);
         return this.mapRendererBuilder;
     }
@@ -231,6 +232,8 @@ public class BuildMapView {
         final MapRendererDataCache.PixelCacheEntry pixelCacheEntry = cache.get(cacheId);
         if (pixelCacheEntry == null)
             return;
+        Validate.checkBoolean(this.usingBuilder && this.renderer.getLayerPixels(cacheId) != null,  "You have already set layer " + cacheId +
+                " with the automatic build pattern. Call this method before using configureBuilder.");
 
         this.renderer.replaceLayer(cacheId, pixelCacheEntry.getPixels());
         cache.onUpdate(() -> this.renderer.replaceLayer(cacheId, pixelCacheEntry.getPixels()));

@@ -1,11 +1,18 @@
 package org.broken.arrow.library.logging;
 
 /**
- * Utility class providing static methods for common validation checks.
+ * Utility class for performing universal validation checks throughout the API.
  * <p>
- * This class is not instantiable and provides methods to validate conditions such as
- * null checks, empty checks, and boolean assertions. If a validation fails,
- * a {@link ValidateExceptions} runtime exception is thrown with an appropriate message.
+ * This class provides static methods to validate conditions such as:
+ * <ul>
+ *     <li>Non-null references</li>
+ *     <li>Non-empty strings or objects</li>
+ *     <li>Boolean assertions (must be false)</li>
+ * </ul>
+ * <p>
+ * When a validation fails, a {@link Validate.ValidateExceptions} runtime exception
+ * is thrown immediately with a descriptive message. This ensures that programming
+ * errors, misuse of the API, or invalid input are detected instead of failing silently.
  * </p>
  */
 public class Validate {
@@ -53,13 +60,17 @@ public class Validate {
 			throw new ValidateExceptions(message);
 	}
 
-	/**
-	 * Checks that the specified boolean condition is false.
-	 *
-	 * @param condition the boolean condition to check
-	 * @param message the exception message to use if the check fails (i.e., condition is true)
-	 * @throws ValidateExceptions if {@code condition} is {@code true}
-	 */
+    /**
+     * Checks that the specified boolean condition is <b>false</b>.
+     * <p>
+     * If the condition is {@code true}, a {@link ValidateExceptions} is thrown
+     * with the specified message.
+     * </p>
+     *
+     * @param condition the boolean condition to check
+     * @param message the exception message to use if the check fails (i.e., condition is true)
+     * @throws ValidateExceptions if {@code condition} is {@code true}
+     */
 	public static void checkBoolean(final boolean condition, final String message ) {
 		if (condition)
 			throw new ValidateExceptions(message );
