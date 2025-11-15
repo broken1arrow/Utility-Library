@@ -38,6 +38,10 @@ public class MapRendererBuilder {
     private final AtomicInteger layerCounter = new AtomicInteger();
     private final MapRendererData renderer;
 
+    /**
+     * The builder instance.
+     * @param renderer the render instance to add the set pixels too.
+     */
     public MapRendererBuilder(@Nonnull final MapRendererData renderer) {
         this.renderer = renderer;
     }
@@ -247,7 +251,7 @@ public class MapRendererBuilder {
     /**
      * Returns {@code true} if this map contains no key-value mappings.
      * <p>
-     * Returns {@code true} if no pixel layers are present.
+     * @return Returns {@code true} if no pixel layers are present.
      */
     public boolean isPixelsEmpty() {
         return this.renderer.isPixelsEmpty();
@@ -265,6 +269,7 @@ public class MapRendererBuilder {
     /**
      * Returns a map of all layers and their associated pixel lists.
      *
+     * @param layer the index of the layer.
      * @return returns the list of map pixels set for every layer.
      */
     public List<MapPixel> getLayer(int layer) {
