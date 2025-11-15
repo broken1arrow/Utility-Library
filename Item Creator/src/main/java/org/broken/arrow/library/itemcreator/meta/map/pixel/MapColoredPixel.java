@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents a pixel on a map with a specific color at a given (x, y) position.
@@ -25,8 +26,21 @@ public class MapColoredPixel extends MapPixel {
      * @param y the y-coordinate of the pixel.
      */
     public MapColoredPixel(final int x, final int y) {
-        this(x, y, null);
+        this(x, y,  null);
     }
+
+    /**
+     * Constructs a colored pixel at the given coordinates with the specified color.
+     *
+     * @param x     the x-coordinate of the pixel.
+     * @param y     the y-coordinate of the pixel.
+     * @param color the color of the pixel, or null if unspecified.
+     */
+    public MapColoredPixel(final int x, final int y,  @Nullable final Color color) {
+        super(x, y);
+        this.color = color;
+    }
+
 
     @Override
     public void render(final @Nonnull MapRendererData mapRendererData, @Nonnull final MapCanvas canvas) {
@@ -38,17 +52,6 @@ public class MapColoredPixel extends MapPixel {
         }
     }
 
-    /**
-     * Constructs a colored pixel at the given coordinates with the specified color.
-     *
-     * @param x     the x-coordinate of the pixel.
-     * @param y     the y-coordinate of the pixel.
-     * @param color the color of the pixel, or null if unspecified.
-     */
-    public MapColoredPixel(final int x, final int y, @Nullable final Color color) {
-        super(x, y);
-        this.color = color;
-    }
 
     /**
      * Gets the color of this pixel.
@@ -89,5 +92,23 @@ public class MapColoredPixel extends MapPixel {
         Object colorObject = map.get("color");
         Color color = colorObject != null ? new Color((int) colorObject) : null;
         return new MapColoredPixel(x, y, color);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        final MapColoredPixel that = (MapColoredPixel) o;
+        return Objects.equals(color, that.color);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), color);
     }
 }

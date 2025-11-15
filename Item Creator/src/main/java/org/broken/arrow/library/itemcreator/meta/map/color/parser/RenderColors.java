@@ -34,22 +34,26 @@ public class RenderColors {
      * <p>
      * Note:  this method will make a copy of your image.
      *
+     * @param id     optional identifier used for grouping or metadata
+     *               (use -1 if not applicable)
      * @param scaled the image already scaled to map resolution (typically 128×128)
-     * @return a list of set pixels to be set in {@link MapRendererData#addAll(List)}.
+     * @return a list of set pixels for the image.
      */
-    public static List<MapPixel> renderFromImage(final BufferedImage scaled) {
-        return renderFromImage(scaled, true);
+    public static List<MapPixel> renderFromImage(final int id, final BufferedImage scaled) {
+        return renderFromImage(id, scaled, true);
     }
 
     /**
      * Processes a scaled image, smooths brightness inconsistencies,
      * and sends final pixel colors to the provided {@link MapRendererData}.
      *
+     * @param id     optional identifier used for grouping or metadata
+     *               (use -1 if not applicable)
      * @param scaled the image already scaled to map resolution (typically 128×128)
      * @param copy   Make a copy of the image before scale it.
-     * @return a list of set pixels to be set in {@link MapRendererData#addAll(List)}.
+     * @return a list of set pixels for the image.
      */
-    public static List<MapPixel> renderFromImage(final BufferedImage scaled, final boolean copy) {
+    public static List<MapPixel> renderFromImage(final int id, final BufferedImage scaled, final boolean copy) {
         int width = scaled.getWidth();
         int height = scaled.getHeight();
 
@@ -78,7 +82,7 @@ public class RenderColors {
                 filtered.setRGB(x, y, rgb);
             }
         }
-        return addPixels(height, width, filtered);
+        return addPixels(id, height, width, filtered);
     }
 
     /**
@@ -298,11 +302,11 @@ public class RenderColors {
     }
 
 
-    private static List<MapPixel> addPixels(final int height, final int width, @Nonnull final BufferedImage filtered) {
+    private static List<MapPixel> addPixels(final int id, final int height, final int width, @Nonnull final BufferedImage filtered) {
         List<MapPixel> mapColoredPixels = new ArrayList<>();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                mapColoredPixels.add(new MapColoredPixel(x, y, new Color(filtered.getRGB(x, y))));
+                mapColoredPixels.add(new MapColoredPixel(x, y,  new Color(filtered.getRGB(x, y))));
             }
         }
         return mapColoredPixels;

@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents an image overlay pixel on a map, extending the base {@link MapPixel} class.
@@ -48,7 +49,7 @@ public class ImageOverlay extends MapPixel {
      * @param image the image to draw
      */
     public ImageOverlay(final int x, final int y, @Nonnull final Image image) {
-        this(x, y, image, true);
+        this(x, y,  image, true);
     }
 
     /**
@@ -195,4 +196,16 @@ public class ImageOverlay extends MapPixel {
         return bimage;
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        final ImageOverlay that = (ImageOverlay) o;
+        return Objects.equals(image, that.image);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), image);
+    }
 }

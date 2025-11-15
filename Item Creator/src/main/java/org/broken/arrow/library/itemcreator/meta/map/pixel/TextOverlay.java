@@ -14,12 +14,12 @@ import javax.annotation.Nonnull;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * A map pixel that displays text at a given position with customizable font characters.
  */
 public class TextOverlay extends MapPixel {
-
     private final String text;
     private final MapFontWrapper mapFontWrapper = new MapFontWrapper();
 
@@ -30,7 +30,7 @@ public class TextOverlay extends MapPixel {
      * @param y    the y-coordinate of the text overlay.
      * @param text the text to display.
      */
-    public TextOverlay(final int x, final int y, @Nonnull final String text) {
+    public TextOverlay(final int x, final int y,  @Nonnull final String text) {
         super(x, y);
         this.text = text;
     }
@@ -141,5 +141,18 @@ public class TextOverlay extends MapPixel {
         int y = (int) map.get("y");
         Object textToSave = map.get("text");
         return new TextOverlay(x, y, textToSave + "");
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        final TextOverlay that = (TextOverlay) o;
+        return Objects.equals(text, that.text) && Objects.equals(mapFontWrapper, that.mapFontWrapper);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), text, mapFontWrapper);
     }
 }

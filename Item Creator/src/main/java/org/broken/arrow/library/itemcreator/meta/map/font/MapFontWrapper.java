@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
@@ -427,5 +428,16 @@ public class MapFontWrapper {
 
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        final MapFontWrapper that = (MapFontWrapper) o;
+        return height == that.height && malleable == that.malleable && Objects.equals(chars, that.chars) && Objects.equals(defaultFontSpacing, that.defaultFontSpacing) && Objects.equals(colorParser, that.colorParser);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(chars, height, defaultFontSpacing, colorParser, malleable);
+    }
 }
 

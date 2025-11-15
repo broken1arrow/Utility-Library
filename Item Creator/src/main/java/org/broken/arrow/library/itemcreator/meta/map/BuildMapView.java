@@ -2,6 +2,7 @@ package org.broken.arrow.library.itemcreator.meta.map;
 
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
+import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
 import org.broken.arrow.library.itemcreator.utility.FormatString;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -13,11 +14,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * A builder and wrapper for {@link MapView} instances, providing enhanced
@@ -204,10 +204,11 @@ public class BuildMapView {
      * @param cache   the cache to get the image.
      */
     public void addCachedPixels(final int cacheId, @Nonnull MapRendererDataCache cache) {
-        final MapRendererDataCache.PixelCacheEntry mapRendererData = cache.get(cacheId);
-        if (mapRendererData == null)
+        final MapRendererDataCache.PixelCacheEntry pixelCacheEntry = cache.get(cacheId);
+        if (pixelCacheEntry == null)
             return;
-        this.renderer.getPixels().addAll(mapRendererData.getPixels());
+        this.renderer.replaceLayer(cacheId, pixelCacheEntry.getPixels());
+        cache.onUpdate(() ->  this.renderer.replaceLayer(cacheId, pixelCacheEntry.getPixels()));
     }
 
     /**

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * Represents all the map cursors on a {@link org.bukkit.map.MapCanvas}. Like MapCanvas, a
  * MapCursorCollection is linked to a specific {@link org.bukkit.map.MapRenderer}.
  */
-public final class MapCursorAdapter {
+public final class MapCursorAdapter  {
     private final List<MapCursorWrapper> cursors = new ArrayList<>();
     private final MapCursorCollection mapCursorCollection = new MapCursorCollection();
 

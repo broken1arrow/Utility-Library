@@ -5,6 +5,7 @@ import org.bukkit.map.MapCanvas;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents a pixel element on a map with a fixed x and y coordinate.
@@ -15,10 +16,10 @@ public abstract class MapPixel {
     private final int y;
 
     /**
-     * Constructs a map pixel at the specified (x, y) coordinate.
+     * Constructs a map pixel at the specified coordinates.
      *
-     * @param x the x-coordinate of the pixel.
-     * @param y the y-coordinate of the pixel.
+     * @param x  the x-coordinate of the pixel
+     * @param y  the y-coordinate of the pixel
      */
     protected MapPixel(int x, int y) {
         this.x = x;
@@ -69,5 +70,25 @@ public abstract class MapPixel {
      */
     public String type() {
         return this.getClass().getSimpleName();
+    }
+
+    @Override
+    public String toString() {
+        return "MapPixel{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        final MapPixel mapPixel = (MapPixel) o;
+        return x == mapPixel.x && y == mapPixel.y;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
     }
 }

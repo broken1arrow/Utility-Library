@@ -38,6 +38,7 @@ public class MapRendererDataCache {
     private boolean applyColorBalance = true;
     private boolean preConvertToPixels = true;
     private boolean applyScaling = true;
+    private Runnable runnable;
 
     /**
      * Processes an image asynchronously and stores it as a new renderer entry.
@@ -57,7 +58,7 @@ public class MapRendererDataCache {
      */
     public int processImageAsync(@Nonnull BufferedImage image, @Nullable final Runnable onReady) {
         PixelCacheEntry pixelCacheEntry = new PixelCacheEntry();
-        return this.processRendererData(pixelCacheEntry, () -> getMapPixels(image), false,
+        return this.processRendererData(pixelCacheEntry, () -> getMapPixels(pixelCacheEntry.getId(), image), false,
                 onReady);
     }
 
@@ -80,7 +81,7 @@ public class MapRendererDataCache {
     public void updateCachedImage(final int rendererId, @Nonnull final BufferedImage image, @Nullable final Runnable onReady) {
         PixelCacheEntry data = get(rendererId);
         if (data != null) {
-            this.processRendererData(data, () -> getMapPixels(image),
+            this.processRendererData(data, () -> getMapPixels(rendererId, image),
                     true,
                     onReady);
         }
@@ -246,7 +247,7 @@ public class MapRendererDataCache {
      *
      * @param id the ID of the cached renderer entry to remove
      * @return {@code true} if an entry with the given ID existed and was removed,
-     *         {@code false} if no entry with that ID was present in the cache
+     * {@code false} if no entry with that ID was present in the cache
      */
     public boolean remove(int id) {
         return rendererDataMap.remove(id) != null;
@@ -259,7 +260,7 @@ public class MapRendererDataCache {
      * applied on the main thread to maintain Bukkit thread safety.
      * </p>
      *
-     * @param data          the {@link MapRendererData} instance it will apply the data.
+     * @param data          the {@link PixelCacheEntry} instance it will apply the data.
      * @param pixelSupplier Provide a list of set pixels.
      * @param update        if it shall update current set pixels, it will then clear the old pixels set.
      * @param onReady       consumer that runs after data is processed.
@@ -274,6 +275,7 @@ public class MapRendererDataCache {
                         data.setPixels(pixels);
                     else
                         data.appendPixels(pixels);
+                    if (runnable != null && update) runnable.run();
 
                     if (onReady != null) runSync(onReady);
                 });
@@ -309,26 +311,35 @@ public class MapRendererDataCache {
         return copy;
     }
 
-    private List<MapPixel> getMapPixels(final BufferedImage image) {
+    private List<MapPixel> getMapPixels(final int id, final BufferedImage image) {
         BufferedImage scaled = getBufferedImage(image);
         if (applyColorBalance)
-            return RenderColors.renderFromImage(scaled);
+            return RenderColors.renderFromImage(id,scaled);
         if (!preConvertToPixels)
-            return Collections.singletonList(new ImageOverlay(0, 0, scaled));
-        return addPixels(scaled.getHeight(), scaled.getWidth(), scaled);
+            return Collections.singletonList(new ImageOverlay(0, 0,scaled));
+        return addPixels(scaled.getHeight(), scaled.getWidth(), id, scaled);
     }
 
-    private List<MapPixel> addPixels(final int height, final int width, @Nonnull final BufferedImage filtered) {
+    private List<MapPixel> addPixels(final int height, final int width, final int id, @Nonnull final BufferedImage filtered) {
         List<MapPixel> mapColoredPixels = new ArrayList<>();
         int adjustedWidth = Math.min(width, MAX_PIXEL_SIZE);
         int adjustedHeight = Math.min(height, MAX_PIXEL_SIZE);
 
         for (int y = 0; y < adjustedHeight; y++) {
             for (int x = 0; x < adjustedWidth; x++) {
-                mapColoredPixels.add(new MapColoredPixel(x, y, new Color(filtered.getRGB(x, y))));
+                mapColoredPixels.add(new MapColoredPixel(x, y,  new Color(filtered.getRGB(x, y))));
             }
         }
         return mapColoredPixels;
+    }
+
+    /**
+     * When it updates with new data.
+     *
+     * @param runnable the lambda that will run to signal you need update the pixels.
+     */
+    public void onUpdate(@Nonnull final Runnable runnable) {
+        this.runnable = runnable;
     }
 
     /**
