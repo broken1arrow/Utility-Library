@@ -218,7 +218,6 @@ public class BuildMapView {
      */
     public void configureRenderer(@Nonnull final Consumer<RenderConfigurator> dataConsumer) {
         dataConsumer.accept(new RenderConfigurator(this.renderer, this.mapRendererBuilder));
-        final MapRendererDataCache cache = new MapRendererDataCache();
     }
 
 
