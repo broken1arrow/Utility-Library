@@ -10,6 +10,8 @@ import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapColoredPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.TextOverlay;
+import org.broken.arrow.library.itemcreator.meta.map.render.MapRenderHandler;
+import org.broken.arrow.library.itemcreator.meta.map.cache.MapRendererDataCache;
 import org.bukkit.entity.Player;
 import org.bukkit.map.*;
 

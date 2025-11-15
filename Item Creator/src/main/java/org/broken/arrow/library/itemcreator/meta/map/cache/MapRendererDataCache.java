@@ -1,6 +1,7 @@
-package org.broken.arrow.library.itemcreator.meta.map;
+package org.broken.arrow.library.itemcreator.meta.map.cache;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
+import org.broken.arrow.library.itemcreator.meta.map.MapRendererData;
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.RenderColors;
 import org.broken.arrow.library.itemcreator.meta.map.font.Characters;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
@@ -340,6 +341,25 @@ public class MapRendererDataCache {
      */
     public void onUpdate(@Nonnull final Runnable runnable) {
         this.runnable = runnable;
+    }
+
+    /**
+     * Sets the specified layer in the given renderer using cached pixel data.
+     *
+     * <p>If no cache entry exists for {@code cacheId}, this method does nothing.
+     * Otherwise, it replaces the layer and registers a callback to automatically
+     * update the layer whenever the cache changes.</p>
+     *
+     * @param layer the layer index to set
+     * @param cacheId the identifier of the cached pixel data
+     * @param renderer the renderer instance to update
+     */
+    public void setLayerToRender(final int layer, final int cacheId, @Nonnull final MapRendererData renderer) {
+        final MapRendererDataCache.PixelCacheEntry pixelCacheEntry = this.get(cacheId);
+        if (pixelCacheEntry == null) return;
+
+        renderer.replaceLayer(layer, pixelCacheEntry.getPixels());
+        this.onUpdate(() -> renderer.replaceLayer(layer, pixelCacheEntry.getPixels()));
     }
 
     /**

@@ -1,8 +1,7 @@
 package org.broken.arrow.library.itemcreator.meta.map.utility;
 
-import org.broken.arrow.library.itemcreator.meta.map.MapRenderHandler;
 import org.broken.arrow.library.itemcreator.meta.map.MapRendererData;
-import org.broken.arrow.library.itemcreator.meta.map.MapRendererDataCache;
+import org.broken.arrow.library.itemcreator.meta.map.cache.MapRendererDataCache;
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorAdapter;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorWrapper;
@@ -11,6 +10,7 @@ import org.broken.arrow.library.itemcreator.meta.map.pixel.ImageOverlay;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapColoredPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
 import org.broken.arrow.library.itemcreator.meta.map.pixel.TextOverlay;
+import org.broken.arrow.library.itemcreator.meta.map.render.MapRenderHandler;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapRenderer;
 

@@ -2,7 +2,9 @@ package org.broken.arrow.library.itemcreator.meta.map;
 
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
+import org.broken.arrow.library.itemcreator.meta.map.builder.RenderConfigurator;
 import org.broken.arrow.library.itemcreator.meta.map.utility.MapRendererBuilder;
+import org.broken.arrow.library.itemcreator.meta.map.cache.MapRendererDataCache;
 import org.broken.arrow.library.itemcreator.utility.FormatString;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.Bukkit;
@@ -13,6 +15,7 @@ import org.bukkit.map.MapView;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
@@ -187,57 +190,37 @@ public class BuildMapView {
     }
 
     /**
-     * Applies configuration to the underlying {@link MapRendererData} instance
-     * using the provided consumer.
+     * Provides full access to configure the renderer for your Minecraft map,
+     * including setting pixels, adding text or images, loading cached layers,
+     * and using the builder for automatic layer assignment.
      *
-     * <p>This method exposes the internal renderer directly, allowing the caller
-     * to configure it through the supplied {@code Consumer}.</p>
+     * <p>All configuration steps are optional and can be chained. Multiple calls
+     * on the same layer index may overwrite previously set data.</p>
      *
-     * @param dataConsumer a consumer that configures the renderer's data
-     * @return the configured {@link MapRendererData} instance
+     * <p>Example usage - all steps are optional, you only need to use the methods
+     * relevant for your case:</p>
+     * <pre>{@code
+     * final MapRendererDataCache cache = new MapRendererDataCache();
+     * configureRenderer(data ->
+     *     data.withCachedLayer(0, 0, cache)
+     *         .withRenderer(mapRendererData -> {
+     *             // configure renderer here, e.g., add pixels, text, or images
+     *         })
+     *         .withBuilder(mapRendererBuilder -> {
+     *             // configure builder here, options are the same as mapRendererData.
+     *             // The only difference is that layers are assigned automatically.
+     *         });
+     * );
+     * }</pre>
+     *
+     * @param dataConsumer a consumer that receives a {@link RenderConfigurator}
+     *                     for performing renderer, cached layer, or builder configuration
      */
-    public MapRendererData configureRenderer(@Nonnull final Consumer<MapRendererData> dataConsumer) {
-        dataConsumer.accept(this.renderer);
-        return this.renderer;
+    public void configureRenderer(@Nonnull final Consumer<RenderConfigurator> dataConsumer) {
+        dataConsumer.accept(new RenderConfigurator(this.renderer, this.mapRendererBuilder));
+        final MapRendererDataCache cache = new MapRendererDataCache();
     }
 
-    /**
-     * Applies configuration to this builder instance using the provided consumer.
-     *
-     * <p>This method switches the builder into automatic mode, enabling
-     * configuration through the {@link MapRendererBuilder} rather than the
-     * underlying renderer.</p>
-     *
-     * @param dataConsumer a consumer that configures this builder
-     * @return the configured {@link MapRendererBuilder} instance
-     */
-    public MapRendererBuilder configureBuilder(@Nonnull final Consumer<MapRendererBuilder> dataConsumer) {
-        this.usingBuilder = true;
-        dataConsumer.accept(this.mapRendererBuilder);
-        return this.mapRendererBuilder;
-    }
-
-    /**
-     * Loads preprocessed pixel data from a cache entry and applies it to
-     * the corresponding layer in the renderer.
-     *
-     * <p>If the cache entry exists, the layer at {@code cacheId} is replaced
-     * with the cached pixel list. A cache update callback is also registered
-     * to ensure the layer stays in sync if the cached data changes.</p>
-     *
-     * @param cacheId the identifier of the cached pixel data to load
-     * @param cache   the cache supplying the pixel data
-     */
-    public void loadCachedLayer(final int cacheId, @Nonnull MapRendererDataCache cache) {
-        final MapRendererDataCache.PixelCacheEntry pixelCacheEntry = cache.get(cacheId);
-        if (pixelCacheEntry == null)
-            return;
-        Validate.checkBoolean(this.usingBuilder && this.renderer.getLayerPixels(cacheId) != null,  "You have already set layer " + cacheId +
-                " with the automatic build pattern. Call this method before using configureBuilder.");
-
-        this.renderer.replaceLayer(cacheId, pixelCacheEntry.getPixels());
-        cache.onUpdate(() -> this.renderer.replaceLayer(cacheId, pixelCacheEntry.getPixels()));
-    }
 
     /**
      * Remove the pixels set from this MapRendererData instance.

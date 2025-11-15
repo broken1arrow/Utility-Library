@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.meta.map;
+package org.broken.arrow.library.itemcreator.meta.map.render;
 
 import org.bukkit.entity.Player;
 import org.bukkit.map.MapCanvas;
@@ -21,5 +21,5 @@ public interface MapRenderHandler {
      *         after this method, {@code true} if normal rendering should be skipped,
      *         allowing this method to fully control the map appearance.
      */
-    boolean render(MapView map, MapCanvas canvas, Player player);
+    boolean render(final MapView map,final MapCanvas canvas,final Player player);
 }
