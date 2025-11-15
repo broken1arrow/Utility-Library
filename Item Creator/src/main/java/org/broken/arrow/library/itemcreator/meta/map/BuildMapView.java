@@ -2,7 +2,7 @@ package org.broken.arrow.library.itemcreator.meta.map;
 
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
-import org.broken.arrow.library.itemcreator.meta.map.pixel.MapPixel;
+import org.broken.arrow.library.itemcreator.meta.map.utility.MapRendererBuilder;
 import org.broken.arrow.library.itemcreator.utility.FormatString;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -13,10 +13,6 @@ import org.bukkit.map.MapView;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -32,8 +28,11 @@ public class BuildMapView {
     private final MapView mapView;
     private final World world;
     private final MapRendererData renderer;
+    private final MapRendererBuilder mapRendererBuilder;
 
     private final boolean virtual;
+
+    private boolean usingBuilder;
     private boolean locked;
     private boolean unlimited;
     private boolean trackingPosition;
@@ -73,6 +72,7 @@ public class BuildMapView {
         this.mapId = retrieveMapId(mapView);
         this.world = mapView.getWorld();
         this.renderer = renderer != null ? new MapRendererData(renderer) : new MapRendererData();
+        this. mapRendererBuilder = new MapRendererBuilder(this.renderer);
     }
 
 
@@ -186,29 +186,54 @@ public class BuildMapView {
     }
 
     /**
-     * Give the specifying a renderer instance, and applies
-     * configuration via the given data consumer.
+     * Applies configuration to the underlying {@link MapRendererData} instance
+     * using the provided consumer.
      *
-     * @param dataConsumer a consumer to configure the render data for the new renderer
-     * @return the {@link MapRendererData} instance representing the renderer
+     * <p>This method exposes the internal renderer directly, allowing the caller
+     * to configure it through the supplied {@code Consumer}.</p>
+     *
+     * @param dataConsumer a consumer that configures the renderer's data
+     * @return the configured {@link MapRendererData} instance
      */
-    public MapRendererData addRenderData(@Nonnull final Consumer<MapRendererData> dataConsumer) {
+    public MapRendererData configureRenderer(@Nonnull final Consumer<MapRendererData> dataConsumer) {
         dataConsumer.accept(this.renderer);
         return this.renderer;
     }
 
     /**
-     * Add your cached image data.
+     * Applies configuration to this builder instance using the provided consumer.
      *
-     * @param cacheId the id set for the image preprocessed you want to add to this map.
-     * @param cache   the cache to get the image.
+     * <p>This method switches the builder into automatic mode, enabling
+     * configuration through the {@link MapRendererBuilder} rather than the
+     * underlying renderer.</p>
+     *
+     * @param dataConsumer a consumer that configures this builder
+     * @return the configured {@link MapRendererBuilder} instance
      */
-    public void addCachedPixels(final int cacheId, @Nonnull MapRendererDataCache cache) {
+    public MapRendererBuilder configureBuilder(@Nonnull final Consumer<MapRendererBuilder> dataConsumer) {
+        usingBuilder = true;
+        dataConsumer.accept(this.mapRendererBuilder);
+        return this.mapRendererBuilder;
+    }
+
+    /**
+     * Loads preprocessed pixel data from a cache entry and applies it to
+     * the corresponding layer in the renderer.
+     *
+     * <p>If the cache entry exists, the layer at {@code cacheId} is replaced
+     * with the cached pixel list. A cache update callback is also registered
+     * to ensure the layer stays in sync if the cached data changes.</p>
+     *
+     * @param cacheId the identifier of the cached pixel data to load
+     * @param cache   the cache supplying the pixel data
+     */
+    public void loadCachedLayer(final int cacheId, @Nonnull MapRendererDataCache cache) {
         final MapRendererDataCache.PixelCacheEntry pixelCacheEntry = cache.get(cacheId);
         if (pixelCacheEntry == null)
             return;
+
         this.renderer.replaceLayer(cacheId, pixelCacheEntry.getPixels());
-        cache.onUpdate(() ->  this.renderer.replaceLayer(cacheId, pixelCacheEntry.getPixels()));
+        cache.onUpdate(() -> this.renderer.replaceLayer(cacheId, pixelCacheEntry.getPixels()));
     }
 
     /**
@@ -348,6 +373,7 @@ public class BuildMapView {
 
         return string.finalizeString() + "";
     }
+
 
 }
 

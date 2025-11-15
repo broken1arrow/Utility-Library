@@ -28,24 +28,27 @@ import java.util.stream.Collectors;
  *
  * <p>This class manages a unique map render ID, a custom {@link MapRenderer},
  * a collection of {@link MapCursorWrapper} instances via {@link MapCursorAdapter},
- * and a list of {@link MapPixel} overlays including pixels, text, and images.
- * It also supports a dynamic renderer handler for custom render logic.
+ * and a set of overlay elements such as {@link MapPixel}, text, and images.
+ * It also supports a dynamic renderer handler for injecting custom render logic.
  * </p>
  *
  * <p>The class provides methods to add pixels, text overlays, images, and cursors,
- * and can serialize/deserialize its state to/from a map for persistence or
- * network transfer.
+ * and can serialize or deserialize its state to and from a map for persistence
+ * or network transport.
  * </p>
  *
- * <strong>Overlay Render Order</strong>
+ * <strong>Overlay Layering and Render Order</strong>
  * <p>
- * Overlays are rendered <strong>after what layer they are added</strong>.
- * The lowest number becomes the bottom layer, and subsequent overlays
- * are drawn on top of it. This applies to all overlay types:
- * {@link MapColoredPixel}, {@link TextOverlay}, {@link ImageOverlay}, and others.
+ * All overlays are placed into numbered rendering layers. Layers determine draw
+ * priority, overlays in lower-numbered layers are rendered first, and overlays in
+ * higher-numbered layers are rendered on top of them.
  * </p>
  *
- *
+ * <p>
+ * This layering system applies uniformly to all overlay types, including
+ * {@link MapColoredPixel}, text overlays, image overlays, and custom pixel types.
+ * If a layer does not yet exist when adding an element, it is created automatically.
+ * </p>
  */
 public class MapRendererData {
     private static int id;
@@ -91,15 +94,18 @@ public class MapRendererData {
 
 
     /**
-     * Adds a colored pixel overlay to the map at the specified coordinates.
+     * Adds a colored pixel to the specified rendering layer at the given coordinates.
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>Layers determine rendering order: pixels in higher-numbered layers are drawn
+     * after (and therefore on top of) pixels in lower-numbered layers. Layers that
+     * have not been used before will be created automatically.</p>
      *
-     * @param layer the layer you want to set the pixel, higher number means it will be
-     *              rendered higher up.
-     * @param x     The x-coordinate of the pixel.
-     * @param y     The y-coordinate of the pixel.
-     * @param color The color of the pixel.
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
+     *
+     * @param layer the rendering layer index; higher values render above lower values
+     * @param x     the x-coordinate of the pixel (0–127)
+     * @param y     the y-coordinate of the pixel (0–127)
+     * @param color the color of the pixel to add
      */
     public void addPixel(int layer, int x, int y, Color color) {
         this.addPixel(layer, new MapColoredPixel(x, y, color));
@@ -110,8 +116,7 @@ public class MapRendererData {
      *
      * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
      *
-     * @param layer           the layer you want to set the pixel, higher number means it will be
-     *                        rendered higher up.
+     * @param layer           the rendering layer index, higher values render above lower values.
      * @param mapColoredPixel The {@link MapColoredPixel} to add.
      */
     public void addPixel(int layer, @Nonnull final MapColoredPixel mapColoredPixel) {
@@ -121,10 +126,9 @@ public class MapRendererData {
     /**
      * Adds a text overlay to the map without a custom font character sprite.
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
-     * @param layer the layer you want to set the text, higher number means it will be
-     *              rendered higher up.
+     * @param layer the rendering layer index, higher values render above lower values.
      * @param x     The x-coordinate of the text.
      * @param y     The y-coordinate of the text.
      * @param text  The text to display.
@@ -138,10 +142,9 @@ public class MapRendererData {
      * Adds a text overlay to the map with a custom font character sprite. Will use the default set
      * of characters instead.
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
-     * @param layer the layer you want to set the text, higher number means it will be
-     *              rendered higher up.
+     * @param layer the rendering layer index, higher values render above lower values.
      * @param x     The x-coordinate of the text.
      * @param y     The y-coordinate of the text.
      * @param text  The text to display.
@@ -155,10 +158,9 @@ public class MapRendererData {
     /**
      * Adds a text overlay to the map with a custom font character sprite.
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
-     * @param layer     the layer you want to set the text, higher number means it will be
-     *                  rendered higher up.
+     * @param layer     the rendering layer index, higher values render above lower values.
      * @param x         The x-coordinate of the text.
      * @param y         The y-coordinate of the text.
      * @param text      The text to display.
@@ -181,10 +183,9 @@ public class MapRendererData {
     /**
      * Adds a text overlay to the map.
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
-     * @param layer       the layer you want to set the text, higher number means it will be
-     *                    rendered higher up.
+     * @param layer       the rendering layer index, higher values render above lower values.
      * @param textOverlay The {@link TextOverlay} instance to add.
      */
     public void addText(final int layer, @Nonnull final TextOverlay textOverlay) {
@@ -199,7 +200,7 @@ public class MapRendererData {
      * and inserts it into the pixel list. Only basic scaling is performed at this
      * stage. Advanced preprocessing—such as color balancing, palette matching,
      * or pixel extraction—is applied only when using {@link MapRendererDataCache}
-     * together with {@link BuildMapView#addCachedPixels(int, MapRendererDataCache)}.
+     * together with {@link BuildMapView#loadCachedLayer(int, MapRendererDataCache)}.
      * </p>
      *
      * <p>When using the cache, all images are preprocessed asynchronously and then
@@ -211,10 +212,9 @@ public class MapRendererData {
      * thread during the live map render.
      * </p>
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
-     * @param layer the layer you want to set the text, higher number means it will be
-     *              rendered higher up.
+     * @param layer the rendering layer index, higher values render above lower values.
      * @param x     the top-left X position on the map (0–127)
      * @param y     the top-left Y position on the map (0–127)
      * @param image the image to draw at the given position
@@ -237,10 +237,9 @@ public class MapRendererData {
      * instead of being handled asynchronously by the cache.
      * </p>
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
-     * @param layer        the layer you want to set the text, higher number means it will be
-     *                     rendered higher up.
+     * @param layer        the rendering layer index, higher values render above lower values.
      * @param imageOverlay the preconfigured {@link ImageOverlay} to add
      */
     public void addImage(final int layer, @Nonnull final ImageOverlay imageOverlay) {
@@ -250,7 +249,7 @@ public class MapRendererData {
     /**
      * Adds a cursor overlay to the map.
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
      * @param x         The x-coordinate of the cursor.
      * @param y         The y-coordinate of the cursor.
@@ -266,7 +265,7 @@ public class MapRendererData {
     /**
      * Adds a cursor overlay to the map with an optional caption.
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
      * @param x         The x-coordinate of the cursor.
      * @param y         The y-coordinate of the cursor.
@@ -284,7 +283,7 @@ public class MapRendererData {
     /**
      * Adds a cursor overlay to the map.
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
      * @param cursorWrapper The {@link MapCursorWrapper} to add.
      * @return The same cursor wrapper instance.
@@ -303,16 +302,15 @@ public class MapRendererData {
      * </p>
      *
      * <p><strong>Note:</strong> For most use cases, prefer the more specific
-     * methods such as {@link #addPixel(int, int, int, Color)} ,{@link #addText(int, int, int, String)} }
+     * methods such as {@link #addPixel(int, int, int, Color)} ,{@link #addText(int, int, int, String)}
      * or {@link #addImage(int, int, int, Image)}} for clarity.</p>
      *
-     * <p>See {@link MapRendererData} documentation for details on overlay layering.</p>
+     * <p>See {@link MapRendererData} for a detailed description of the layering system.</p>
      *
-     * @param layer        the layer you want to set the text, higher number means it will be
-     *                     rendered higher up.
-     * @param pixels the list of {@link MapPixel} instances to replace the layer wioth
+     * @param layer the rendering layer index, higher values render above lower values.
+     * @param pixels the list of {@link MapPixel} instances to replace the layer with.
      */
-    public void replaceLayer(int layer, List<MapPixel> pixels) {
+    public void replaceLayer(final int layer, @Nonnull final List<MapPixel> pixels) {
         layers.put(layer, new ArrayList<>(pixels));
     }
 
@@ -330,6 +328,42 @@ public class MapRendererData {
      */
     public boolean isPixelsEmpty() {
         return this.layers.isEmpty();
+    }
+
+    /**
+     * Returns the collection of pixels assigned to the specified layer.
+     *
+     * @param layer the index of the layer
+     * @return the pixel list for this layer, or {@code null} if the layer has
+     * not been initialized
+     */
+    @Nullable
+    public List<MapPixel> getLayerPixels(final int layer) {
+        return this.getLayers().get(layer);
+    }
+
+    /**
+     * Returns the current collection of map pixels.
+     *
+     * @return The {@link Map} that contains a list of map pixels set for every layer.
+     */
+    public Map<Integer, List<MapPixel>> getLayers() {
+        return layers;
+    }
+
+    /**
+     * Returns the current collection of map pixels.
+     *
+     * @return The {@link Map} that contains a list of map pixels set for every layer.
+     */
+    public List<MapPixel> getPixels() {
+        List<MapPixel> all = new ArrayList<>();
+
+        layers.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(e -> all.addAll(e.getValue()));
+
+        return all;
     }
 
     /**
@@ -396,31 +430,6 @@ public class MapRendererData {
      */
     public MapCursorAdapter getMapCursors() {
         return mapCursors;
-    }
-
-
-    /**
-     * Returns the current collection of map pixels.
-     *
-     * @return The {@link Map} that contains a list of map pixels set for every layer.
-     */
-    public Map<Integer, List<MapPixel>> getLayers() {
-        return layers;
-    }
-
-    /**
-     * Returns the current collection of map pixels.
-     *
-     * @return The {@link Map} that contains a list of map pixels set for every layer.
-     */
-    public List<MapPixel> getPixels() {
-        List<MapPixel> all = new ArrayList<>();
-
-        layers.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(e -> all.addAll(e.getValue()));
-
-        return all;
     }
 
     /**
