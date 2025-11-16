@@ -11,7 +11,7 @@ import java.util.function.Consumer;
  *
  * <p>Allows optional renderer configuration or builder configuration.</p>
  */
-public class RendererStepAfterCache extends FinalRenderStep {
+public class RenderStepAfterCache extends FinalRenderStep {
     private final MapRendererData renderer;
 
     /**
@@ -20,7 +20,7 @@ public class RendererStepAfterCache extends FinalRenderStep {
      * @param renderer the renderer instance receiving cached layers
      * @param mapRendererBuilder the builder instance used for automatic layer assignment
      */
-    public RendererStepAfterCache(@Nonnull final MapRendererData renderer, @Nonnull final MapRendererBuilder mapRendererBuilder) {
+    public RenderStepAfterCache(@Nonnull final MapRendererData renderer, @Nonnull final MapRendererBuilder mapRendererBuilder) {
         super(mapRendererBuilder);
         this.renderer = renderer;
     }

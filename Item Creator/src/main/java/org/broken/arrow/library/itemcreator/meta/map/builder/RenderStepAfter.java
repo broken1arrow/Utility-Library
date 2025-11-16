@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  *
  * <p>Allows optional loading of cached layers or builder configuration.</p>
  */
-public class RendererStepAfter extends FinalRenderStep {
+public class RenderStepAfter extends FinalRenderStep {
 
     private final MapRendererData renderer;
 
@@ -22,7 +22,7 @@ public class RendererStepAfter extends FinalRenderStep {
      * @param renderer the renderer instance configured in the previous step
      * @param mapRendererBuilder the builder instance used for automatic layer assignment
      */
-    public RendererStepAfter(@Nonnull final MapRendererData renderer, @Nonnull final MapRendererBuilder mapRendererBuilder) {
+    public RenderStepAfter(@Nonnull final MapRendererData renderer, @Nonnull final MapRendererBuilder mapRendererBuilder) {
         super(mapRendererBuilder);
         this.renderer = renderer;
     }

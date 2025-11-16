@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.meta.map;
 
+import org.broken.arrow.library.itemcreator.meta.map.builder.RenderConfigurator;
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.AmpersandHexColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.color.parser.ColorParser;
 import org.broken.arrow.library.itemcreator.meta.map.cursor.MapCursorAdapter;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -202,7 +204,7 @@ public class MapRendererData {
      * and inserts it into the pixel list. Only basic scaling is performed at this
      * stage. Advanced preprocessing—such as color balancing, palette matching,
      * or pixel extraction—is applied only when using {@link MapRendererDataCache}
-     * together with {@link BuildMapView#loadCachedLayer(int, MapRendererDataCache)}.
+     * together with {@link RenderConfigurator#withCachedLayer(int, int, MapRendererDataCache)} .
      * </p>
      *
      * <p>When using the cache, all images are preprocessed asynchronously and then

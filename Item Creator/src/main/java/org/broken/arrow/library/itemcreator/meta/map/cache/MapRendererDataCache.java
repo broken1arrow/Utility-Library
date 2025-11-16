@@ -409,7 +409,7 @@ public class MapRendererDataCache {
          *
          * @return the list of pixels
          */
-        public List<MapPixel> getPixels() {
+        public synchronized List<MapPixel> getPixels() {
             return pixels;
         }
     }

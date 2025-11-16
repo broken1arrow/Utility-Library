@@ -41,9 +41,9 @@ public class RenderConfigurator extends FinalRenderStep {
      * @param config a consumer that modifies the {@link MapRendererData} instance
      * @return a step object allowing cached layer loading or builder configuration
      */
-    public RendererStepAfter withRenderer(@Nonnull final Consumer<MapRendererData> config) {
+    public RenderStepAfter withRenderer(@Nonnull final Consumer<MapRendererData> config) {
         config.accept(this.renderer);
-        return new RendererStepAfter(this.renderer, this.mapRendererBuilder);
+        return new RenderStepAfter(this.renderer, this.mapRendererBuilder);
     }
 
     /**
@@ -57,8 +57,8 @@ public class RenderConfigurator extends FinalRenderStep {
      * @param cache the cache providing pixel data
      * @return a step object allowing renderer or builder configuration
      */
-    public RendererStepAfterCache withCachedLayer(final int layer, final int cacheId, @Nonnull final MapRendererDataCache cache) {
+    public RenderStepAfterCache withCachedLayer(final int layer, final int cacheId, @Nonnull final MapRendererDataCache cache) {
         cache.setLayerToRender(layer,cacheId ,this.renderer);
-        return new RendererStepAfterCache(renderer, mapRendererBuilder);
+        return new RenderStepAfterCache(renderer, mapRendererBuilder);
     }
 }
