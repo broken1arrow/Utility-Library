@@ -83,8 +83,8 @@ public class ImageOverlay extends MapPixel {
 
     @Override
     public void render(final @Nonnull MapRendererData mapRendererData, @Nonnull final MapCanvas canvas) {
-        final Image image = this.getImage();
-        canvas.drawImage(this.getX(), this.getY(), image);
+        final Image imageToRender = this.getImage();
+        canvas.drawImage(this.getX(), this.getY(), imageToRender);
     }
 
     /**
@@ -142,9 +142,9 @@ public class ImageOverlay extends MapPixel {
         if (this.image == null)
             return new byte[0];
 
-        final BufferedImage image = toBufferedImage(this.image);
+        final BufferedImage bufferedImage = toBufferedImage(this.image);
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-            ImageIO.write(image, "png", output);
+            ImageIO.write(bufferedImage, "png", output);
             return output.toByteArray();
         }
     }

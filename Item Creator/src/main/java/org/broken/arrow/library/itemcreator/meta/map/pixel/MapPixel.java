@@ -32,7 +32,7 @@ public abstract class MapPixel {
      * @param mapRendererData the global data set for the map
      * @param canvas          the map canvas where this pixel's color, text, or image will be drawn
      */
-    abstract public void render(@Nonnull final MapRendererData mapRendererData, @Nonnull final MapCanvas canvas);
+    public abstract void render(@Nonnull final MapRendererData mapRendererData, @Nonnull final MapCanvas canvas);
 
 
     /**
