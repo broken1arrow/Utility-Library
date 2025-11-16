@@ -12,11 +12,9 @@ import java.util.function.Consumer;
  *
  * <p>Allows optional loading of cached layers or builder configuration.</p>
  */
-public class RendererStepAfter {
+public class RendererStepAfter extends FinalRenderStep {
 
     private final MapRendererData renderer;
-    private final MapRendererBuilder mapRendererBuilder;
-    private final FinalRenderStep finalRenderStep;
 
     /**
      * Creates a step after configuring the renderer.
@@ -25,9 +23,8 @@ public class RendererStepAfter {
      * @param mapRendererBuilder the builder instance used for automatic layer assignment
      */
     public RendererStepAfter(@Nonnull final MapRendererData renderer, @Nonnull final MapRendererBuilder mapRendererBuilder) {
+        super(mapRendererBuilder);
         this.renderer = renderer;
-        this.mapRendererBuilder = mapRendererBuilder;
-        this.finalRenderStep = new FinalRenderStep(mapRendererBuilder);
     }
 
     /**
@@ -43,19 +40,7 @@ public class RendererStepAfter {
      */
     public FinalRenderStep withCachedLayer(final int layer, final int cacheId, @Nonnull final MapRendererDataCache cache) {
         cache.setLayerToRender(layer,cacheId ,this.renderer);
-        return this.finalRenderStep;
+        return this;
     }
 
-    /**
-     * Configures the builder for automatic layer assignment.
-     *
-     * <p>The builder assigns layers sequentially and is aware of existing layers,
-     * avoiding collisions with previously configured layers. However, manual or cached
-     * layers with custom indices may still overlap layers already set on the pixel map.</p>
-     *
-     * @param config a consumer configuring the {@link MapRendererBuilder} instance
-     */
-    public void withBuilder(@Nonnull final Consumer<MapRendererBuilder> config) {
-        config.accept(this.mapRendererBuilder);
-    }
 }

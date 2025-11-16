@@ -14,7 +14,7 @@ import java.util.function.Consumer;
  * be called in any order, but calling multiple layer-setting methods on the same
  * indices may overwrite existing layers.</p>
  */
-public class RenderConfigurator {
+public class RenderConfigurator extends FinalRenderStep {
 
     private final MapRendererData renderer;
     private final MapRendererBuilder mapRendererBuilder;
@@ -26,6 +26,7 @@ public class RenderConfigurator {
      * @param mapRendererBuilder the builder instance used for automatic layer assignment
      */
     public RenderConfigurator(@Nonnull final MapRendererData renderer, @Nonnull final MapRendererBuilder mapRendererBuilder) {
+        super(mapRendererBuilder);
         this.renderer = renderer;
         this.mapRendererBuilder = mapRendererBuilder;
     }
@@ -59,18 +60,5 @@ public class RenderConfigurator {
     public RendererStepAfterCache withCachedLayer(final int layer, final int cacheId, @Nonnull final MapRendererDataCache cache) {
         cache.setLayerToRender(layer,cacheId ,this.renderer);
         return new RendererStepAfterCache(renderer, mapRendererBuilder);
-    }
-
-    /**
-     * Configures the builder for automatic layer assignment.
-     *
-     * <p>The builder assigns layers sequentially and is aware of existing layers,
-     * avoiding collisions with previously configured layers. However, manual or cached
-     * layers with custom indices may still overlap layers already set on the pixel map.</p>
-     *
-     * @param config a consumer configuring the {@link MapRendererBuilder} instance
-     */
-    public void withBuilder(@Nonnull final Consumer<MapRendererBuilder> config) {
-        config.accept(this.mapRendererBuilder);
     }
 }
