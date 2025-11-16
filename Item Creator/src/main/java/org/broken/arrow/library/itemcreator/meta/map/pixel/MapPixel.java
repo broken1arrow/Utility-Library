@@ -21,7 +21,7 @@ public abstract class MapPixel {
      * @param x  the x-coordinate of the pixel
      * @param y  the y-coordinate of the pixel
      */
-    protected MapPixel(int x, int y) {
+    protected MapPixel(final int x,final int y) {
         this.x = x;
         this.y = y;
     }

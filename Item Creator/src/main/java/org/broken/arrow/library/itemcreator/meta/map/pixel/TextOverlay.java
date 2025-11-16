@@ -30,7 +30,7 @@ public class TextOverlay extends MapPixel {
      * @param y    the y-coordinate of the text overlay.
      * @param text the text to display.
      */
-    public TextOverlay(final int x, final int y,  @Nonnull final String text) {
+    public TextOverlay(final int x, final int y, @Nonnull final String text) {
         super(x, y);
         this.text = text;
     }
