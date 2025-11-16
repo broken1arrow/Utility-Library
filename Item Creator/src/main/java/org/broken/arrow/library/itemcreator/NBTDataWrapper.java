@@ -2,6 +2,7 @@ package org.broken.arrow.library.itemcreator;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import org.broken.arrow.library.itemcreator.utility.nbt.NBTDataWriter;
 import org.broken.arrow.library.itemcreator.utility.nbt.NBTValue;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
@@ -40,7 +41,6 @@ public final class NBTDataWrapper {
     private final float serverVersion;
     private final Plugin plugin;
     private final PersistentDataUtility persistentData;
-
     private Consumer<NBTDataWriter> consumer;
 
     /**
@@ -63,6 +63,18 @@ public final class NBTDataWrapper {
      */
     public static NBTDataWrapper of(@Nonnull final ItemCreator itemCreator) {
         return new NBTDataWrapper(itemCreator);
+    }
+
+    /**
+     * Sets a custom NBT application function to be used when applying NBT data.
+     * Compared to {@link #add(String, Object, boolean)} and
+     * {@link #add(String, Object)}, this gives you greater control over
+     * which metadata is applied and also allows removing keys.
+     *
+     * @param function a consumer that modifies the provided {@link NBTDataWriter}
+     */
+    public void applyNBT(Consumer<NBTDataWriter> function) {
+        this.consumer = function;
     }
 
     /**
@@ -101,15 +113,6 @@ public final class NBTDataWrapper {
     }
 
     /**
-     * Sets a custom NBT application function to be used when applying NBT data.
-     *
-     * @param function a consumer that modifies the provided {@link NBTDataWriter}
-     */
-    public void applyNBT(Consumer<NBTDataWriter> function) {
-        this.consumer = function;
-    }
-
-    /**
      * Returns the current NBT application consumer.
      *
      * @return the NBT consumer, or {@code null} if none set
@@ -130,11 +133,9 @@ public final class NBTDataWrapper {
         final NBTDataWriter nbtData = new NBTDataWriter();
         apply(nbtData);
         final RegisterNbtAPI nbtApi = this.itemCreator.getNbtApi();
-        final Map<String, NBTValue> nbtCache = nbtData.getNbtCache();
-        final Map<String, Object> metaDataMap = this.getMetaDataMap();
 
         if (nbtApi != null) {
-            return applyNbtToItem(nbtApi,itemStack, nbtData);
+            return applyNbtToItem(nbtApi, itemStack, nbtData);
         } else {
             this.setPersistentData(itemStack, nbtData);
         }
@@ -256,13 +257,18 @@ public final class NBTDataWrapper {
                     if (nbtData.isClearNBT())
                         nbtDataWrite.clearNBT();
                     else {
+                        final ReadWriteNBT compound = nbtDataWrite.getCompound();
                         if (!metaDataMap.isEmpty())
                             metaDataMap.forEach((s, nbtValue) ->
-                                    ConvertObjectType.setNBTValue(nbtDataWrite.getCompound(), s, nbtValue)
+                                    ConvertObjectType.setNBTValue(compound, s, nbtValue)
                             );
                         else
                             nbtCache.forEach((key, nbtValue) -> {
-                                ConvertObjectType.setNBTValue(nbtDataWrite.getCompound(), key, nbtValue);
+                                if (nbtValue.isRemoveKey()) {
+                                    compound.removeKey(key);
+                                } else {
+                                    ConvertObjectType.setNBTValue(compound, key, nbtValue.getValue());
+                                }
                             });
                     }
                 });

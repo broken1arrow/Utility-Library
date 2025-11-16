@@ -10,6 +10,7 @@ import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.Tuple;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
+import org.broken.arrow.library.itemcreator.utility.nbt.NBTDataWriter;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
@@ -461,26 +462,73 @@ public class CreateItemStack {
     }
 
     /**
-     * Set custom nbt data on item.
+     * Sets a custom NBT application function to be used when applying NBT data.
+     * Compared to {@link #setItemMetaData(String, Object, boolean)} and
+     * {@link #setItemMetaData(String, Object)}, this gives you greater control over
+     * which metadata is applied and also allows removing keys.
      *
-     * @param itemMetaKey   key for get value.
-     * @param itemMetaValue value you want to set.
-     * @return this class.
+     * @param function a consumer that modifies the provided {@link NBTDataWriter}
+     * @return this instance
+     */
+    public CreateItemStack setItemNBT(Consumer<NBTDataWriter> function) {
+        createNBTWrapperIfMissing();
+        nbtDataWrapper.applyNBT(function);
+        return this;
+    }
+    
+    /**
+     * Sets custom NBT data on the item.
+     *
+     * <p><b>Note:</b> This method is less flexible and the naming is misleading, and it may be
+     * removed in the future. Prefer {@link #setItemNBT(java.util.function.Consumer)} when
+     * working with multiple values, custom logic, or when you need to remove keys.</p>
+     *
+     * @param itemMetaKey   the key used to retrieve the value
+     * @param itemMetaValue the value to set
+     * @return this instance
      */
     public CreateItemStack setItemMetaData(final String itemMetaKey, final Object itemMetaValue) {
         return setItemMetaData(itemMetaKey, itemMetaValue, false);
     }
 
     /**
-     * Set custom nbt data on item.
+     * Sets custom NBT data on the item.
      *
-     * @param itemMetaKey   key for get value.
-     * @param itemMetaValue value you want to set.
-     * @param keepClazz     true if it shall keep all data on the item or false to convert value to string.
-     * @return this class.
+     * <p><b>Note:</b> This method is less flexible and the naming is misleading, and it may be
+     * removed in the future. Prefer {@link #setItemNBT(java.util.function.Consumer)} when
+     * working with multiple values, custom logic, or when you need to remove keys.</p>
+     *
+     * @param itemMetaKey   the key used to retrieve the value
+     * @param itemMetaValue the value to set
+     * @param keepClazz     {@code true} to keep the original value type, or {@code false} to convert
+     *                      the value to a string
+     * @return this instance
      */
     public CreateItemStack setItemMetaData(final String itemMetaKey, final Object itemMetaValue, final boolean keepClazz) {
-        nbtDataWrapper = NBTDataWrapper.of(this.itemCreator).add(itemMetaKey, itemMetaValue, keepClazz);
+        createNBTWrapperIfMissing();
+        nbtDataWrapper.add(itemMetaKey, itemMetaValue, keepClazz);
+        return this;
+    }
+
+    /**
+     * Map list of metadata you want to set on a item.
+     * It uses map key and value form the map.
+     *
+     * <p><b>Note:</b> This method is less flexible and the naming is misleading, and it may be
+     * removed in the future. Prefer {@link #setItemNBT(java.util.function.Consumer)} when
+     * working with multiple values, custom logic, or when you need to remove keys.</p>
+     *
+     * @param itemMetaMap map of values.
+     * @return this class.
+     */
+    public CreateItemStack setItemMetaDataList(final Map<String, Object> itemMetaMap) {
+        if (itemMetaMap != null && !itemMetaMap.isEmpty()) {
+            createNBTWrapperIfMissing();
+            final NBTDataWrapper wrapper = this.nbtDataWrapper;
+            for (final Map.Entry<String, Object> itemData : itemMetaMap.entrySet()) {
+                wrapper.add(itemData.getKey(), itemData.getValue());
+            }
+        }
         return this;
     }
 
@@ -496,23 +544,6 @@ public class CreateItemStack {
         return this;
     }
 
-    /**
-     * Map list of metadata you want to set on a item.
-     * It use map key and value form the map.
-     *
-     * @param itemMetaMap map of values.
-     * @return this class.
-     */
-    public CreateItemStack setItemMetaDataList(final Map<String, Object> itemMetaMap) {
-        if (itemMetaMap != null && !itemMetaMap.isEmpty()) {
-            final NBTDataWrapper wrapper = NBTDataWrapper.of(this.itemCreator);
-            for (final Map.Entry<String, Object> itemData : itemMetaMap.entrySet()) {
-                wrapper.add(itemData.getKey(), itemData.getValue());
-            }
-            nbtDataWrapper = wrapper;
-        }
-        return this;
-    }
 
     /**
      * if this item is unbreakable or not
@@ -939,7 +970,7 @@ public class CreateItemStack {
         return getConvertItems().checkItem(object);
     }
 
-    private void addItemMeta(@Nonnull final ItemStack itemStack,@Nonnull final ItemMeta itemMeta) {
+    private void addItemMeta(@Nonnull final ItemStack itemStack, @Nonnull final ItemMeta itemMeta) {
         this.setDamageMeta(itemStack, itemMeta);
         if (this.serverVersion > 10.0F)
             setUnbreakableMeta(itemMeta);
@@ -949,7 +980,7 @@ public class CreateItemStack {
             hideEnchantments(itemMeta);
     }
 
-    private void setDamageMeta(final ItemStack itemStack,final ItemMeta itemMeta) {
+    private void setDamageMeta(final ItemStack itemStack, final ItemMeta itemMeta) {
         short dmg = getDmg(itemMeta);
         if (dmg > 0) {
             if (serverVersion > 12.2F) {
@@ -1034,6 +1065,11 @@ public class CreateItemStack {
         if (meta != null)
             return meta.getMetaDataMap();
         return new HashMap<>();
+    }
+
+    private void createNBTWrapperIfMissing() {
+        if(nbtDataWrapper == null)
+            nbtDataWrapper = NBTDataWrapper.of(this.itemCreator);
     }
 
 
