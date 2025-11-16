@@ -10,7 +10,7 @@ dependencyResolutionManagement {
             library("mysql.connector.j", "com.mysql:mysql-connector-j:8.4.0")
             library("apache.logging.log4j.core", "org.apache.logging.log4j:log4j-core:2.17.1")
             library("org.spigotmc.spigotapi", "org.spigotmc:spigot-api:1.20.2-R0.1-SNAPSHOT")
-            library("tr7zw.item.nbt.api", "de.tr7zw:item-nbt-api:2.15.2-SNAPSHOT")
+            library("tr7zw.item.nbt.api", "de.tr7zw:item-nbt-api:2.15.3")
             library("google.findbugs.jsr305", "com.google.code.findbugs:jsr305:3.0.2")
             library("mojang.authlib","com.mojang:authlib:1.6.25");
             plugin("shadow", "com.gradleup.shadow").version("8.3.5")
