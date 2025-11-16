@@ -314,8 +314,8 @@ public class BuildMapView {
             mapView.setUnlimitedTracking(unlimited);
 
         if (!renderer.isPixelsEmpty()) {
-            for (MapRenderer renderer : mapView.getRenderers()) {
-                mapView.removeRenderer(renderer);
+            for (MapRenderer mapRenderer : mapView.getRenderers()) {
+                mapView.removeRenderer(mapRenderer);
             }
             mapView.addRenderer(this.getMapRenderer());
         }
