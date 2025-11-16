@@ -387,7 +387,7 @@ public class ItemCreator {
                 Method getMap = Bukkit.class.getMethod("getMap", short.class);
                 return (MapView) getMap.invoke(null, (short) id);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
+                throw new  Validate.ValidateExceptions(e,"Could not find the method getMap");
             }
         } else {
             return Bukkit.getMap(id);
@@ -469,7 +469,7 @@ public class ItemCreator {
     public static void runSync(@Nonnull final Runnable runnable) {
         try {
             runWithSchedulerFallback(runnable);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             if (t instanceof NullPointerException || t instanceof IllegalStateException) {
                 throw t;
             }
