@@ -63,7 +63,7 @@ public class ItemCreator {
      * @param turnOffLogger  whether to disable logging for NBT manager
      */
     public ItemCreator(final Plugin pluginInstance, boolean turnOffLogger) {
-        this.setPlugin(pluginInstance);
+        setPlugin(pluginInstance);
         this.nbtManger = new NBTManger(pluginInstance, turnOffLogger);
         setServerVersion(pluginInstance);
 
@@ -497,7 +497,7 @@ public class ItemCreator {
         }
     }
 
-    private void setPlugin(final Plugin pluginInstance) {
+    private static void setPlugin(final Plugin pluginInstance) {
         plugin = pluginInstance;
     }
 
