@@ -59,7 +59,7 @@ public class MapRendererDataCache {
      */
     public int processImageAsync(@Nonnull BufferedImage image, @Nullable final Runnable onReady) {
         PixelCacheEntry pixelCacheEntry = new PixelCacheEntry();
-        return this.processRendererData(pixelCacheEntry, () -> getMapPixels(pixelCacheEntry.getId(), image), false,
+        return this.processRendererData(pixelCacheEntry, () -> getMapPixels(image), false,
                 onReady);
     }
 
@@ -82,7 +82,7 @@ public class MapRendererDataCache {
     public void updateCachedImage(final int rendererId, @Nonnull final BufferedImage image, @Nullable final Runnable onReady) {
         PixelCacheEntry data = get(rendererId);
         if (data != null) {
-            this.processRendererData(data, () -> getMapPixels(rendererId, image),
+            this.processRendererData(data, () -> getMapPixels(image),
                     true,
                     onReady);
         }
@@ -312,23 +312,23 @@ public class MapRendererDataCache {
         return copy;
     }
 
-    private List<MapPixel> getMapPixels(final int id, final BufferedImage image) {
+    private List<MapPixel> getMapPixels(final BufferedImage image) {
         BufferedImage scaled = getBufferedImage(image);
         if (applyColorBalance)
-            return RenderColors.renderFromImage(id,scaled);
+            return RenderColors.renderFromImage(scaled);
         if (!preConvertToPixels)
-            return Collections.singletonList(new ImageOverlay(0, 0,scaled));
-        return addPixels(scaled.getHeight(), scaled.getWidth(), id, scaled);
+            return Collections.singletonList(new ImageOverlay(0, 0, scaled));
+        return addPixels(scaled.getHeight(), scaled.getWidth(), scaled);
     }
 
-    private List<MapPixel> addPixels(final int height, final int width, final int id, @Nonnull final BufferedImage filtered) {
+    private List<MapPixel> addPixels(final int height, final int width, @Nonnull final BufferedImage filtered) {
         List<MapPixel> mapColoredPixels = new ArrayList<>();
         int adjustedWidth = Math.min(width, MAX_PIXEL_SIZE);
         int adjustedHeight = Math.min(height, MAX_PIXEL_SIZE);
 
         for (int y = 0; y < adjustedHeight; y++) {
             for (int x = 0; x < adjustedWidth; x++) {
-                mapColoredPixels.add(new MapColoredPixel(x, y,  new Color(filtered.getRGB(x, y))));
+                mapColoredPixels.add(new MapColoredPixel(x, y, new Color(filtered.getRGB(x, y))));
             }
         }
         return mapColoredPixels;
@@ -350,8 +350,8 @@ public class MapRendererDataCache {
      * Otherwise, it replaces the layer and registers a callback to automatically
      * update the layer whenever the cache changes.</p>
      *
-     * @param layer the layer index to set
-     * @param cacheId the identifier of the cached pixel data
+     * @param layer    the layer index to set
+     * @param cacheId  the identifier of the cached pixel data
      * @param renderer the renderer instance to update
      */
     public void setLayerToRender(final int layer, final int cacheId, @Nonnull final MapRendererData renderer) {
