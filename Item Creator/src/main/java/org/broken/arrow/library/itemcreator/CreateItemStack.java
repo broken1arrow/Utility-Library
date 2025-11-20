@@ -6,6 +6,7 @@ import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.meta.BottleEffectMeta;
 import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementMeta;
 import org.broken.arrow.library.itemcreator.meta.MetaHandler;
+import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementWrapper;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.Tuple;
@@ -52,7 +53,6 @@ public class CreateItemStack {
     private final Iterable<?> itemArray;
     private final String displayName;
     private final List<String> loreList;
-    private final RegisterNbtAPI nbtApi;
     private final float serverVersion;
     private final boolean haveTextTranslator;
     private final boolean enableColorTranslation;
@@ -87,7 +87,6 @@ public class CreateItemStack {
         this.itemArray = itemBuilder.getItemArray();
         this.displayName = itemBuilder.getDisplayName();
         this.loreList = itemBuilder.getLore();
-        this.nbtApi = itemCreator.getNbtApi();
         this.haveTextTranslator = itemCreator.isHaveTextTranslator();
         this.enableColorTranslation = itemCreator.isEnableColorTranslation();
     }
@@ -147,136 +146,25 @@ public class CreateItemStack {
     }
 
     /**
-     * Set glow on item and will not show the enchantments.
-     * Use {@link #addEnchantments(Object, boolean, int)} or {@link #addEnchantments(String...)}, for set custom
-     * enchants.
+     * Adds or removes the visual "glow" effect on this item while keeping the
+     * enchantments hidden. This method is strictly for the visual effect and
+     * does not manage custom enchantments.
      *
-     * @param glow set it true and the item will glow.
-     * @return this class.
+     * <p>To add actual enchantments, use
+     * {@link #setItemMeta(Consumer)} or {@link #setItemMeta(Function)} together with
+     * {@link MetaHandler#setEnhancements(Consumer)}, for example:
+     *
+     * <ul>
+     *   <li>{@link EnhancementMeta#addEnchantments(String...)}</li>
+     *   <li>{@link EnhancementMeta#setEnchantment(Enchantment, Consumer)}</li>
+     *   <li>{@link EnhancementMeta#addEnchantments(EnhancementWrapper...)}</li>
+     * </ul>
+     *
+     * @param glow {@code true} to apply the glowing effect, {@code false} to remove it
+     * @return this instance for chaining
      */
     public CreateItemStack setGlow(final boolean glow) {
         this.glow = glow;
-        return this;
-    }
-
-    /**
-     * Get pattern for the banner.
-     *
-     * @return list of patterns.
-     */
-    public List<Pattern> getPattern() {
-        return new ArrayList<>();
-    }
-
-    /**
-     * Add one or several patterns.
-     *
-     * @param patterns to add to the list.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack addPattern(final Pattern... patterns) {
-        if (patterns == null || patterns.length < 1) return this;
-
-        final MetaHandler metadata = this.getOrCreateMetaHandler();
-        final org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = metadata.getBanner();
-
-        metadata.setBanner(bannerMeta -> {
-            bannerMeta.addPatterns(patterns);
-            bannerMeta.setBannerBaseColor(bannerData != null ? bannerData.getBannerBaseColor() : null);
-        });
-        return this;
-    }
-
-    /**
-     * Add list of patterns (if it exist old patterns in the list, will the new ones be added on top).
-     *
-     * @param patterns list some contains patterns.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack addPattern(final List<Pattern> patterns) {
-        final MetaHandler metadata = this.getOrCreateMetaHandler();
-        org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = metadata.getBanner();
-
-        metadata.setBanner(bannerMeta -> {
-            bannerMeta.addPatterns(patterns);
-            bannerMeta.setBannerBaseColor(bannerData != null ? bannerData.getBannerBaseColor() : null);
-        });
-        return this;
-    }
-
-    /**
-     * Get the base color for the banner (the color before add patterns).
-     *
-     * @return the color.
-     */
-
-    public DyeColor getBannerBaseColor() {
-        return null;
-    }
-
-    /**
-     * Set the base color for the banner.
-     *
-     * @param bannerBaseColor the color.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack setBannerBaseColor(DyeColor bannerBaseColor) {
-        final MetaHandler metadata = this.getOrCreateMetaHandler();
-        final org.broken.arrow.library.itemcreator.meta.BannerMeta bannerData = metadata.getBanner();
-
-        metadata.setBanner(bannerMeta -> {
-            bannerMeta.addPatterns(bannerData != null ? bannerData.getPatterns() : null);
-            bannerMeta.setBannerBaseColor(bannerBaseColor);
-        });
-
-        return this;
-    }
-
-    /**
-     * Get enchantments for this item.
-     *
-     * @return map with enchantment level and if it shall ignore level restriction.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public Map<Enchantment, Tuple<Integer, Boolean>> getEnchantments() {
-        return new HashMap<>();
-    }
-
-    /**
-     * Check if it water Bottle. Because
-     * only exist material portion, so need this method.
-     *
-     * @return true if it is a water Bottle item.
-     */
-    public boolean isWaterBottle() {
-        MetaHandler meta = getMetaHandler();
-        if (meta == null)
-            return false;
-        final BottleEffectMeta bottleEffect = meta.getBottleEffect();
-        if (bottleEffect == null)
-            return false;
-        return bottleEffect.isWaterBottle();
-    }
-
-    /**
-     * Set if the portion is a water bottle, as it is
-     * not same thing as a potion.
-     *
-     * @param waterBottle {@code true} if it should be a water bottle otherwise it will be a potion.
-     * @return this class
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack setWaterBottle(final boolean waterBottle) {
-        final MetaHandler metadata = this.getOrCreateMetaHandler();
-        metadata.createBottleEffectMeta().setWaterBottle(waterBottle);
         return this;
     }
 
@@ -322,29 +210,6 @@ public class CreateItemStack {
         return this;
     }
 
-    /**
-     * Get list of firework effects
-     *
-     * @return list of effects set on this item.
-     */
-    public FireworkEffect getFireworkEffect() {
-        return null;
-    }
-
-    /**
-     * Add firework effect on this item.
-     *
-     * @param fireworkEffect effect you want to add to your firework.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public void setFireworkEffect(final FireworkEffect fireworkEffect) {
-        MetaHandler metadata = this.getOrCreateMetaHandler();
-
-        metadata.setFirework(fireworkMeta -> {
-            fireworkMeta.addFireworkEffect(fireworkEffect);
-        });
-    }
 
     /**
      * Retrieve the item damage.
@@ -366,102 +231,6 @@ public class CreateItemStack {
 
 
     /**
-     * Add own enchantments.
-     * <p>
-     * This method uses varargs and add it to list, like this enchantment;level;levelRestriction or
-     * enchantment;level and it will sett last one to false.
-     * <p>
-     * Example usage here:
-     * "PROTECTION_FIRE;1;false","PROTECTION_EXPLOSIONS;15;true","WATER_WORKER;1;false".
-     *
-     * @param enchantments list of enchantments you want to add.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack addEnchantments(final String... enchantments) {
-        for (final String enchant : enchantments) {
-            final int middle = enchant.indexOf(";");
-            final int last = enchant.lastIndexOf(";");
-            addEnchantments(enchant.substring(0, middle), last > 0 && Boolean.getBoolean(enchant.substring(last + 1)), Integer.parseInt(enchant.substring(middle + 1, Math.max(last, enchant.length()))));
-        }
-        return this;
-    }
-
-    /**
-     * Add enchantments. Will set levelRestriction to true and level to 1.
-     *
-     * @param enchantments list of enchantments you want to add.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack addEnchantments(final Enchantment... enchantments) {
-        for (final Enchantment enchant : enchantments) {
-            addEnchantments(enchant, true, 1);
-        }
-        return this;
-    }
-
-    /**
-     * Add own enchantments.
-     *
-     * @param enchantmentMap add directly a map with enchants and level and levelRestrictions.
-     * @param override       the old value in the map if you set it to true.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack addEnchantments(final Map<Enchantment, Tuple<Integer, Boolean>> enchantmentMap, final boolean override) {
-        Validate.checkNotNull(enchantmentMap, "this map is null");
-        if (enchantmentMap.isEmpty())
-            logger.log(() -> "This map is empty so no enchantments will be added");
-        final MetaHandler metadata = this.getOrCreateMetaHandler();
-
-        enchantmentMap.forEach((key, value) -> {
-            metadata.setEnhancements(enhancementMeta ->
-                    enhancementMeta
-                            .setEnchantment(key)
-                            .setLevel(value.getFirst())
-                            .setIgnoreLevelRestriction(value.getSecond())
-            );
-        });
-        return this;
-    }
-
-    /**
-     * Add own enchantments.
-     *
-     * @param enchant          enchantments you want to add, support string and Enchantment class.
-     * @param levelRestriction bypass the level limit.
-     * @param enchantmentLevel set level for this enchantment.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack addEnchantments(final Object enchant, final boolean levelRestriction, final int enchantmentLevel) {
-        Enchantment enchantment = null;
-        if (enchant instanceof String)
-            enchantment = Enchantment.getByKey(NamespacedKey.minecraft((String) enchant));
-        else if (enchant instanceof Enchantment)
-            enchantment = (Enchantment) enchant;
-
-        if (enchantment == null) {
-            logger.log(() -> "your enchantment: " + enchant + " ,are not valid.");
-            return this;
-        }
-        final MetaHandler meta = getOrCreateMetaHandler();
-        final Enchantment finalEnchantment = enchantment;
-
-        meta.setEnhancements(enhancementMeta ->
-                enhancementMeta.setEnchantment(finalEnchantment)
-                        .setLevel(enchantmentLevel)
-                        .setIgnoreLevelRestriction(levelRestriction)
-        );
-        return this;
-    }
-
-    /**
      * Sets a custom NBT application function to be used when applying NBT data.
      * Compared to {@link #setItemMetaData(String, Object, boolean)} and
      * {@link #setItemMetaData(String, Object)}, this gives you greater control over
@@ -475,7 +244,7 @@ public class CreateItemStack {
         nbtDataWrapper.applyNBT(function);
         return this;
     }
-    
+
     /**
      * Sets custom NBT data on the item.
      *
@@ -606,137 +375,6 @@ public class CreateItemStack {
         return this;
     }
 
-    /**
-     * Get all portions effects for this item.
-     *
-     * @return list of portions effects.
-     */
-    public List<PotionEffect> getPortionEffects() {
-        return new ArrayList<>();
-    }
-
-    /**
-     * Set a list of effects to the list. If it exist old effects in the list, this will be removed.
-     *
-     * @param potionEffects list of effects you want to set.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack setPortionEffects(final List<PotionEffect> potionEffects) {
-        if (potionEffects.isEmpty()) {
-            logger.log(() -> "This list of portion effects is empty so no values will be added");
-            return this;
-        }
-        final MetaHandler metadata = this.getOrCreateMetaHandler();
-
-        metadata.setBottleEffect(enhancementMeta ->
-                enhancementMeta.setPotionEffects((potionEffects)
-                ));
-        return this;
-    }
-
-    /**
-     * Add one or several portions effects to list.
-     *
-     * @param potionEffects you want to set on the item.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack addPortionEffects(final PotionEffect... potionEffects) {
-        if (potionEffects.length == 0) return this;
-
-        final MetaHandler metadata = this.getOrCreateMetaHandler();
-        final BottleEffectMeta bottleEffectMeta = metadata.getBottleEffect();
-
-        metadata.setBottleEffect(effectMeta -> {
-            effectMeta.setPotionEffects(bottleEffectMeta != null ? bottleEffectMeta.getPotionEffects() : null);
-            effectMeta.addPotionEffects(potionEffects);
-        });
-        return this;
-    }
-
-    /**
-     * Add a list of effects to the list. If it exist old effects this will add the effects on top of the old ones.
-     *
-     * @param potionEffects list of effects you want to add.
-     * @return this class.
-     */
-    public CreateItemStack addPortionEffects(final List<PotionEffect> potionEffects) {
-        if (potionEffects.isEmpty()) {
-            logger.log(() -> "This list of portion effects is empty so no values will be added");
-            return this;
-        }
-        final MetaHandler metadata = this.getOrCreateMetaHandler();
-        final BottleEffectMeta bottleEffectMeta = metadata.getBottleEffect();
-
-        metadata.setBottleEffect(effectMeta -> {
-            List<PotionEffect> potionEffectsList = new ArrayList<>();
-            if (bottleEffectMeta != null)
-                potionEffectsList = bottleEffectMeta.getPotionEffects();
-            potionEffectsList.addAll(potionEffects);
-            effectMeta.setPotionEffects(potionEffectsList);
-        });
-        return this;
-    }
-
-    /**
-     * Get the rbg colors, used to dye leather armor,potions and fireworks.
-     *
-     * @return string with the colors, like this #,#,#.
-     */
-    public String getRgb() {
-        return "";
-    }
-
-    /**
-     * Set the 3 colors auto.
-     *
-     * @param rgb string need to be formatted like this #,#,#.
-     * @return this class.
-     * @deprecated use {@link #setItemMeta(Consumer)}
-     */
-    @Deprecated
-    public CreateItemStack setRgb(final String rgb) {
-        return this;
-    }
-
-    /**
-     * Retrieve if all colors is set.
-     *
-     * @return true if the colors is set.
-     */
-    public boolean isColorSet() {
-        return getRed() >= 0 && getGreen() >= 0 && getBlue() >= 0;
-    }
-
-    /**
-     * Get red color.
-     *
-     * @return color number.
-     */
-    public int getRed() {
-        return 0;
-    }
-
-    /**
-     * Get green color.
-     *
-     * @return color number.
-     */
-    public int getGreen() {
-        return 0;
-    }
-
-    /**
-     * Get blue color
-     *
-     * @return color number.
-     */
-    public int getBlue() {
-        return 0;
-    }
 
     /**
      * Get the list of flags set on this item.
@@ -793,7 +431,8 @@ public class CreateItemStack {
     }
 
     /**
-     * Set color propitiates for the item.
+     * Set color propitiates for the item. Mostly used for legacy
+     * to tell color of for example glass and concrete.
      *
      * @param colorName the color name to set.
      * @return this class.
