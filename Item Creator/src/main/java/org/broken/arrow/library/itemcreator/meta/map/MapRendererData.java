@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -507,25 +506,29 @@ public class MapRendererData {
         if (pixels instanceof List<?>) {
             for (Object pixel : (List<?>) pixels) {
                 Map<String, Object> pixelMap = (Map<String, Object>) pixel;
-                for (Map.Entry<String, Object> mapPixels : pixelMap.entrySet()) {
-                    Map<String, Object> mapPixelsValue = (Map<String, Object>) mapPixels.getValue();
-                    String type = (String) mapPixelsValue.get("type");
-                    int layer;
-                    try {
-                        layer = Integer.parseInt(mapPixels.getKey());
-                    } catch (NumberFormatException ignore) {
-                        layer = 0;
-                    }
-                    if (type.equals("MapColoredPixel"))
-                        mapRendererData.addPixel(layer, MapColoredPixel.deserialize(mapPixelsValue));
-                    if (type.equals("TextOverlay"))
-                        mapRendererData.addText(layer, TextOverlay.deserialize(mapPixelsValue));
-                    if (type.equals("ImageOverlay"))
-                        mapRendererData.addImage(layer, ImageOverlay.deserialize(mapPixelsValue));
-                }
+                retrievePixels(pixelMap, mapRendererData);
             }
         }
         return mapRendererData;
+    }
+
+    private static void retrievePixels(final Map<String, Object> pixelMap, final MapRendererData mapRendererData) {
+        for (Map.Entry<String, Object> mapPixels : pixelMap.entrySet()) {
+            Map<String, Object> mapPixelsValue = (Map<String, Object>) mapPixels.getValue();
+            String type = (String) mapPixelsValue.get("type");
+            int layer;
+            try {
+                layer = Integer.parseInt(mapPixels.getKey());
+            } catch (NumberFormatException ignore) {
+                layer = 0;
+            }
+            if (type.equals("MapColoredPixel"))
+                mapRendererData.addPixel(layer, MapColoredPixel.deserialize(mapPixelsValue));
+            if (type.equals("TextOverlay"))
+                mapRendererData.addText(layer, TextOverlay.deserialize(mapPixelsValue));
+            if (type.equals("ImageOverlay"))
+                mapRendererData.addImage(layer, ImageOverlay.deserialize(mapPixelsValue));
+        }
     }
 
     @Override

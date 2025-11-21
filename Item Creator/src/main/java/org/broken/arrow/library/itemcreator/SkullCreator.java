@@ -579,23 +579,6 @@ public class SkullCreator {
 
     }
 
-
-    /**
-     * Retrieves a Material by name, logging a warning if not found.
-     *
-     * @param name The name of the Material.
-     * @return The Material if found; null otherwise.
-     */
-    @Nullable
-    private static Material getMaterial(final String name) {
-        try {
-            return Material.getMaterial(name);
-        } catch (Exception e) {
-            LOG.log(() -> "Could not find this material: " + name);
-        }
-        return null;
-    }
-
     /**
      * Sets the owning player of the SkullMeta using the appropriate method depending on Bukkit API version.
      *
@@ -835,6 +818,23 @@ public class SkullCreator {
             }
             return skull;
         }
+
+        /**
+         * Retrieves a Material by name, logging a warning if not found.
+         *
+         * @param name The name of the Material.
+         * @return The Material if found; null otherwise.
+         */
+        @Nullable
+        private static Material getMaterial(final String name) {
+            try {
+                return Material.getMaterial(name);
+            } catch (Exception e) {
+                LOG.log(() -> "Could not find this material: " + name);
+            }
+            return null;
+        }
+
 
     }
 }
