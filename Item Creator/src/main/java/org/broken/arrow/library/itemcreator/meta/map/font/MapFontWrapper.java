@@ -336,8 +336,8 @@ public class MapFontWrapper {
     }
 
     private static class ConvertFontToSprite {
-        private static BufferedImage WORK_IMAGE = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
-        private static Graphics2D GRAPHICS = WORK_IMAGE.createGraphics();
+        private static BufferedImage workImage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+        private static Graphics2D graphics = workImage.createGraphics();
 
         private final int width;
         private final int height;
@@ -361,24 +361,24 @@ public class MapFontWrapper {
             int baseline = metrics.getAscent();
             int fontHeight = baseline + metrics.getDescent();
 
-            if (fontWidth > WORK_IMAGE.getWidth() || fontHeight > WORK_IMAGE.getHeight()) {
-                WORK_IMAGE = new BufferedImage(
-                        Math.max(fontWidth, WORK_IMAGE.getWidth()),
-                        Math.max(fontHeight, WORK_IMAGE.getHeight()),
+            if (fontWidth > workImage.getWidth() || fontHeight > workImage.getHeight()) {
+                workImage = new BufferedImage(
+                        Math.max(fontWidth, workImage.getWidth()),
+                        Math.max(fontHeight, workImage.getHeight()),
                         BufferedImage.TYPE_INT_ARGB
                 );
-                GRAPHICS = WORK_IMAGE.createGraphics();
+                graphics = workImage.createGraphics();
                 metrics = initGraphicsForFont(font);
                 fontWidth = metrics.charWidth(ch);
                 baseline = metrics.getAscent();
                 fontHeight = baseline + metrics.getDescent();
             }
-            GRAPHICS.setComposite(AlphaComposite.Clear);
-            GRAPHICS.fillRect(0, 0, WORK_IMAGE.getWidth(), WORK_IMAGE.getHeight());
-            GRAPHICS.setComposite(AlphaComposite.SrcOver);
+            graphics.setComposite(AlphaComposite.Clear);
+            graphics.fillRect(0, 0, workImage.getWidth(), workImage.getHeight());
+            graphics.setComposite(AlphaComposite.SrcOver);
 
-            GRAPHICS.setColor(Color.WHITE);
-            GRAPHICS.drawString(String.valueOf(ch), 1, baseline);
+            graphics.setColor(Color.WHITE);
+            graphics.drawString(String.valueOf(ch), 1, baseline);
 
             ConvertFontToSprite result = new ConvertFontToSprite(fontWidth, fontHeight);
             return result.extractGlyph();
@@ -390,7 +390,7 @@ public class MapFontWrapper {
 
             for (int y = 0; y < this.height; y++) {
                 for (int x = 0; x < width; x++) {
-                    if ((WORK_IMAGE.getRGB(x, y) & 0xFF000000) != 0) {
+                    if ((workImage.getRGB(x, y) & 0xFF000000) != 0) {
                         minX = Math.min(minX, x);
                         maxX = Math.max(maxX, x);
                     }
@@ -414,16 +414,16 @@ public class MapFontWrapper {
             for (int y = 0; y < this.height; y++) {
                 for (int x = 0; x < trimmedWidth; x++) {
                     pixels[y * trimmedWidth + x] =
-                            (WORK_IMAGE.getRGB(x + minX, y) & 0xFF000000) != 0;
+                            (workImage.getRGB(x + minX, y) & 0xFF000000) != 0;
                 }
             }
             return new CharacterSprite(trimmedWidth, this.height, minX, pixels);
         }
 
         private static FontMetrics initGraphicsForFont(Font font) {
-            GRAPHICS.setFont(font);
-            GRAPHICS.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-            return GRAPHICS.getFontMetrics();
+            graphics.setFont(font);
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+            return graphics.getFontMetrics();
         }
 
     }
