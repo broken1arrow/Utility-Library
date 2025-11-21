@@ -39,18 +39,19 @@ import java.util.UUID;
  * <p>
  * Does not use any NMS code, and should work across all versions.
  *
- * @author Dean B on 12/28/2016.
+ * @author Dean B on 12/28/2016. Modified by Broken arrow.
  */
 public class SkullCreator {
     private static final Logging LOG = new Logging(SkullCreator.class);
-    private static final CheckClassesExist checks = new CheckClassesExist();
+    private static final ServerSupport checks = new ServerSupport();
 
     private static final String PLAYER_HEAD = "PLAYER_HEAD";
     private static final String BLOCK = "block";
     private static final String NAME = "name";
-    public static final String PROFILE = "profile";
-    public static final String TEXTURES = "textures";
+    private static final String PROFILE = "profile";
+    private static final String TEXTURES = "textures";
     private static final String FAIL_CREATE_SKULL = "Failed to find the skull material.";
+    private static final String FAIL_TYPE_CREATE_SKULL = "[create skull]";
 
     // some reflection stuff to be used when setting a skull's profile
     private static Field blockProfileField;
@@ -70,14 +71,13 @@ public class SkullCreator {
      */
     @Nullable
     public static ItemStack createSkull() {
-        try {
-            return new ItemStack(Material.valueOf(PLAYER_HEAD));
-        } catch (IllegalArgumentException e) {
-            final Material skullItem = getMaterial("SKULL_ITEM");
-            if (skullItem == null)
-                return null;
-            return new ItemStack(skullItem, 1, (byte) 3);
+        org.bukkit.Material material = checks.getSkullMaterial();
+        if (material != null) {
+            if (!checks.isLegacySkull())
+                return new ItemStack(material);
+            return new ItemStack(material, 1, (byte) 3);
         }
+        return null;
     }
 
     /**
@@ -90,7 +90,7 @@ public class SkullCreator {
     @Deprecated
     public static ItemStack itemFromName(String name) {
         final ItemStack skull = createSkull();
-        checkNull(skull, "[create skull]", FAIL_CREATE_SKULL);
+        checkNull(skull, FAIL_TYPE_CREATE_SKULL, FAIL_CREATE_SKULL);
 
         return itemWithName(skull, name);
     }
@@ -103,7 +103,7 @@ public class SkullCreator {
      */
     public static ItemStack itemFromUuid(UUID id) {
         final ItemStack skull = createSkull();
-        checkNull(skull, "[create skull]", FAIL_CREATE_SKULL);
+        checkNull(skull, FAIL_TYPE_CREATE_SKULL, FAIL_CREATE_SKULL);
         return itemWithUuid(skull, id);
     }
 
@@ -115,7 +115,7 @@ public class SkullCreator {
      */
     public static ItemStack itemFromUrl(String url) {
         final ItemStack skull = createSkull();
-        checkNull(skull, "[create skull]", FAIL_CREATE_SKULL);
+        checkNull(skull, FAIL_TYPE_CREATE_SKULL, FAIL_CREATE_SKULL);
         return itemWithUrl(skull, url);
     }
 
@@ -127,7 +127,7 @@ public class SkullCreator {
      */
     public static ItemStack itemFromBase64(String base64) {
         final ItemStack skull = createSkull();
-        checkNull(skull, "[create skull]", FAIL_CREATE_SKULL);
+        checkNull(skull, FAIL_TYPE_CREATE_SKULL, FAIL_CREATE_SKULL);
         return itemWithBase64(skull, base64);
     }
 
@@ -137,7 +137,7 @@ public class SkullCreator {
      * @param item The item to apply the name to. Must be a player skull.
      * @param name The Player's name.
      * @return The head of the Player.
-     * @deprecated names don't make for good identifiers.
+     * @deprecated names don't make for good identifiers, also costly to look up.
      */
     @Deprecated
     public static ItemStack itemWithName(@Nonnull final ItemStack item, @Nonnull final String name) {
@@ -145,9 +145,11 @@ public class SkullCreator {
         notNull(name, NAME);
 
         SkullMeta meta = (SkullMeta) item.getItemMeta();
-        meta.setOwner(name);
+        if (meta != null && checks.isUsingLegacyApi())
+            meta.setOwner(name);
+        else
+            setOwningPlayer(meta, Bukkit.getOfflinePlayer(name));
         item.setItemMeta(meta);
-
         return item;
     }
 
@@ -282,7 +284,7 @@ public class SkullCreator {
         final BlockState skullState = block.getState();
         if (!(skullState instanceof Skull)) return;
 
-        if (checks.isDoesHaveOwnerProfile()) {
+        if (checks.isHasOwnerProfileSupport()) {
             PlayerProfile profile = Bukkit.createPlayerProfile(id);
             if (url != null) {
                 try {
@@ -344,7 +346,7 @@ public class SkullCreator {
      * @param url  the skin URL to apply, or {@code null} to leave only the default player skin
      */
     public static void setSkullUrl(@Nonnull final SkullMeta meta, @Nonnull final UUID uuid, @Nullable final String url) {
-        if (checks.isDoesHaveOwnerProfile()) {
+        if (checks.isHasOwnerProfileSupport()) {
             PlayerProfile profile = Bukkit.createPlayerProfile(uuid);
             if (url != null) {
                 try {
@@ -386,7 +388,7 @@ public class SkullCreator {
      */
     @Nullable
     public static String getSkullUrl(SkullMeta meta) {
-        if (checks.isDoesHaveOwnerProfile()) {
+        if (checks.isHasOwnerProfileSupport()) {
             try {
                 final PlayerProfile ownerProfile = meta.getOwnerProfile();
                 if (ownerProfile != null) {
@@ -413,6 +415,16 @@ public class SkullCreator {
             LOG.log(ex2, () -> "Failed to access legacy SkullMeta profile field.");
         }
         return null;
+    }
+
+    /**
+     * Returns the shared {@link ServerSupport} instance containing the
+     * resolved support information for the current server.
+     *
+     * @return the {@link ServerSupport} instance with detected skull-related support.
+     */
+    public static ServerSupport getServerSupport() {
+        return checks;
     }
 
     /**
@@ -501,7 +513,7 @@ public class SkullCreator {
      * @param b64  The base64 texture string.
      */
     private static void mutateItemMeta(SkullMeta meta, String b64) {
-        if (checks.isDoesHaveOwnerProfile()) {
+        if (checks.isHasOwnerProfileSupport()) {
             try {
                 meta.setOwnerProfile(makePlayerProfile(b64));
             } catch (MalformedURLException ex2) {
@@ -590,9 +602,11 @@ public class SkullCreator {
      * @param meta   The SkullMeta to modify.
      * @param player The OfflinePlayer to set as owner.
      */
-    private static void setOwningPlayer(SkullMeta meta, OfflinePlayer player) {
+    private static void setOwningPlayer(@Nullable final SkullMeta meta,final OfflinePlayer player) {
+        if(meta == null)
+            return;
         try {
-            if (checks.isLegacy()) {
+            if (checks.isUsingLegacyApi()) {
                 meta.setOwner(player.getName());
             } else {
                 meta.setOwningPlayer(player);
@@ -667,35 +681,60 @@ public class SkullCreator {
             LOG.log(e, () -> "Failed to parse base64 texture to URL. With Base64 input: " + base64);
         }
         return null;
-      /*
-        try {
-            String decoded = new String(Base64.getDecoder().decode(base64));
-            return new URL(decoded.substring("{\"textures\":{\"SKIN\":{\"url\":\"".length(), decoded.length() - "\"}}}".length()));
-        } catch (IllegalArgumentException exception) {
-            LOG.log(() -> "Failed to parse the Base64 string, does you provide a valid base64 string? The input string: " + base64);
-        }
-        return null;*/
     }
 
-    public static class CheckClassesExist {
+    /**
+     * Resoles and exposes compatibility information for player skull handling
+     * on the current Bukkit / Minecraft server.
+     * <p>
+     * This class performs a one-time detection of:
+     * <ul>
+     *   <li>Whether the server is using a legacy (pre-1.13) Bukkit API</li>
+     *   <li>Which skull {@link Material} is available ({@code PLAYER_HEAD} or legacy)</li>
+     *   <li>Whether {@link SkullMeta} supports {@code setOwnerProfile(PlayerProfile)}</li>
+     *   <li>Whether legacy owner methods such as {@code setOwner(String)} should be used instead</li>
+     * </ul>
+     *
+     * The resolved values can safely be reused to apply the correct metadata
+     * and material without performing further version checks.
+     *
+     * <p><b>Typical usage:</b>
+     * <pre>{@code
+     * final ServerSupport support = SkullCreator.getServerSupport();
+     * final Material material = support.getSkullMaterial();
+     *
+     * if (material == null) return;
+     *
+     * if (support.hasOwnerProfileSupport()) {
+     *     // use setOwnerProfile(PlayerProfile)
+     * } else {
+     *     // fallback to legacy setOwner(String) or GameProfile
+     * }
+     * }</pre>
+     */
+    public static class ServerSupport {
+        private final Material skullMaterial;
         private boolean legacy;
-        private boolean warningPosted = false;
-        private boolean doesHaveOwnerProfile = true;
+        private boolean legacySkull = false;
+        private boolean legacyWarningLogged = false;
+        private boolean hasOwnerProfileSupport = true;
 
         /**
          * When instance is created it will check what classes exists for your minecraft version.
          */
-        public CheckClassesExist() {
-            checkLegacy();
+        public ServerSupport() {
+            detectLegacyApiMismatch();
             try {
                 Class<?> skullMeta = Class.forName("org.bukkit.inventory.meta.SkullMeta");
                 skullMeta.getMethod("setOwningPlayer", OfflinePlayer.class);
             } catch (ClassNotFoundException | NoSuchMethodException e) {
                 legacy = true;
             }
-            final ItemStack skull = createSkull();
+            this.skullMaterial = createMaterial();
+
+            final Material skull = this.skullMaterial;
             if (skull != null) {
-                final ItemMeta skullMeta = Bukkit.getItemFactory().getItemMeta(skull.getType());
+                final ItemMeta skullMeta = Bukkit.getItemFactory().getItemMeta(skull);
                 if (skullMeta != null) {
                     checkIfHasOwnerMethod((SkullMeta) skullMeta);
                 }
@@ -703,63 +742,99 @@ public class SkullCreator {
         }
 
         /**
-         * Check if the Minecraft version is below 1.13.
+         * Returns the resolved skull {@link Material} for the current Minecraft version.
+         * This will be either {@code PLAYER_HEAD} or a legacy equivalent.
          *
-         * @return true if its legacy.
+         * @return the resolved skull material, or {@code null} if none could be found
          */
-        public boolean isLegacy() {
+        @Nullable
+        public Material getSkullMaterial() {
+            return skullMaterial;
+        }
+
+        /**
+         * Indicates whether the server is using a legacy (pre-1.13) Bukkit API.
+         *
+         * @return {@code true} if the legacy API is in use
+         */
+        public boolean isUsingLegacyApi() {
             return legacy;
         }
 
         /**
-         * Check if you running legacy on modern minecraft version.
+         * Indicates whether a legacy skull material name is being used
+         * (e.g. {@code SKULL_ITEM} instead of {@code PLAYER_HEAD}).
          *
-         * @return Returns true if you did not set up correct API version.
+         * @return {@code true} if the legacy skull material is in use
          */
-        public boolean isWarningPosted() {
-            return warningPosted;
+        public boolean isLegacySkull() {
+            return legacySkull;
         }
 
         /**
-         * Checks if it has OwnerProfile setter in the metadata class and PlayerProfile class.
+         * Indicates whether a legacy warning message has been logged.
          *
-         * @return Returns true if the profile exists.
+         * @return {@code true} if a warning has already been logged
          */
-        public boolean isDoesHaveOwnerProfile() {
-            return doesHaveOwnerProfile;
+        public boolean isLegacyWarningLogged() {
+            return legacyWarningLogged;
         }
 
         /**
-         * Checks if running on legacy Bukkit API and logs a warning if using legacy API on modern server.
+         * Indicates whether the {@code setOwnerProfile(PlayerProfile)} method is
+         * supported by {@link SkullMeta} on the current server version.
+         *
+         * @return {@code true} if owner profile support is available
          */
-        private void checkLegacy() {
+        public boolean isHasOwnerProfileSupport() {
+            return hasOwnerProfileSupport;
+        }
+
+        /**
+         * Checks whether the plugin is running a legacy Bukkit API against
+         * a modern server version and logs a warning if so.
+         */
+        private void detectLegacyApiMismatch() {
             try {
                 // if both of these succeed, then we are running
                 // in a legacy api, but on a modern (1.13+) server.
                 Material.class.getDeclaredField(PLAYER_HEAD);
                 Material.valueOf("SKULL");
 
-                if (!warningPosted) {
+                if (!legacyWarningLogged) {
                     LOG.log(() -> "SKULLCREATOR API - Using the legacy bukkit API with 1.13+ bukkit versions is not supported!");
-                    warningPosted = true;
+                    legacyWarningLogged = true;
                 }
             } catch (NoSuchFieldException | IllegalArgumentException ignored) {
-                //We don't need to know a error is thrown. This only checks so you don't use wrong API version.
+                //We don't need to know an error is thrown. This only checks so you don't use wrong API version.
             }
         }
 
         /**
-         * Checks whether the SkullMeta class has the setOwnerProfile method
-         * and updates the flag accordingly.
+         * Detects whether {@link SkullMeta} supports the
+         * {@code setOwnerProfile(PlayerProfile)} method and updates the
+         * internal support flag accordingly.
          *
-         * @param meta The SkullMeta instance to check.
+         * @param meta the {@link SkullMeta} instance to inspect
          */
         private void checkIfHasOwnerMethod(final SkullMeta meta) {
             try {
                 meta.getClass().getDeclaredMethod("setOwnerProfile", PlayerProfile.class);
             } catch (NoSuchMethodException | NoClassDefFoundError exception) {
-                doesHaveOwnerProfile = false;
+                hasOwnerProfileSupport = false;
             }
         }
+
+        private Material createMaterial() {
+            Material skull;
+            try {
+                skull = Material.valueOf(PLAYER_HEAD);
+            } catch (IllegalArgumentException e) {
+                skull = getMaterial("SKULL_ITEM");
+                legacySkull = true;
+            }
+            return skull;
+        }
+
     }
 }
