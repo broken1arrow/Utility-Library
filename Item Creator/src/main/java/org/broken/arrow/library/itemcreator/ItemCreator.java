@@ -4,6 +4,7 @@ package org.broken.arrow.library.itemcreator;
 import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.ServerVersion;
+import org.broken.arrow.library.itemcreator.utility.UnbreakableUtil;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
@@ -14,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.Plugin;
 
@@ -33,6 +35,7 @@ import java.util.List;
 public class ItemCreator {
     private static final Logging log = new Logging(ItemCreator.class);
     private static ServerVersion serverVersion;
+    private static UnbreakableUtil unbreakableUtil;
     private static Plugin plugin;
     private final NBTManger nbtManger;
     private final ConvertToItemStack convertItems;
@@ -444,6 +447,48 @@ public class ItemCreator {
     }
 
     /**
+     * Applies the "Unbreakable" property to the given ItemMeta.
+     *
+     * <p>On legacy versions (1.8–1.12), this will return a new copy of the metadata.
+     * On modern versions (1.13+), the original metadata instance is modified and returned.</p>
+     *
+     * @param meta the ItemMeta to modify
+     * @param unbreakable true to make the item unbreakable, false otherwise
+     * @return the modified ItemMeta, it will be a new instance on legacy versions.
+     */
+    public static ItemMeta applyUnbreakable(final ItemMeta meta, final boolean unbreakable) {
+        return UnbreakableUtil.applyToMeta(meta,unbreakable);
+    }
+
+    /**
+     * Applies the "Unbreakable" property directly to the given ItemStack.
+     *
+     * <p>On legacy versions, this may create a new ItemStack copy.
+     * On modern versions, the original ItemStack is modified.</p>
+     *
+     * @param item the ItemStack to modify
+     * @param unbreakable true to make the item unbreakable, false otherwise
+     * @return the modified ItemStack, may be a new instance on legacy versions
+     */
+    public static ItemStack applyUnbreakableToItem(final ItemStack item, final boolean unbreakable) {
+        return  UnbreakableUtil.applyToItem(item,unbreakable);
+    }
+
+    /**
+     * Checks whether the given ItemStack is marked as unbreakable.
+     *
+     * <p>On modern versions, this reads the metadata.
+     * On legacy versions, it falls back to NBT reflection.</p>
+     *
+     * @param item the ItemStack to check
+     * @return {@code true} if the item is unbreakable, {@code false} otherwise (or if the check failed on legacy versions)
+     */
+    public static boolean isUnbreakable(ItemStack item) {
+        return  UnbreakableUtil. isUnbreakable(item);
+    }
+
+
+    /**
      * Helper for scaling images to map dimensions (e.g. 128×128).
      *
      * @param src    the image to scale.
@@ -500,5 +545,4 @@ public class ItemCreator {
     private static void setPlugin(final Plugin pluginInstance) {
         plugin = pluginInstance;
     }
-
 }
