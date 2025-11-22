@@ -4,9 +4,12 @@ import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -19,7 +22,6 @@ public final class UnbreakableUtil {
     private static Method setTagMethod = null;
     private static Method setBooleanMethod = null;
     private static Method getBooleanMethod = null;
-    private static Method metaGetMaterialMethod = null;
     private static Constructor<?> nbtTagConstructor = null;
 
     private static boolean reflectionReady = false;
@@ -42,11 +44,6 @@ public final class UnbreakableUtil {
                 final Class<?> craftItemStackClass = Class.forName(craftPath + ".inventory.CraftItemStack");
                 asNMSCopyMethod = craftItemStackClass.getMethod("asNMSCopy", ItemStack.class);
                 asBukkitCopyMethod = craftItemStackClass.getMethod("asBukkitCopy", Class.forName(getMinecraftPath() + ".ItemStack"));
-
-                Class<?> craftMetaItem = Class.forName(craftPath + ".inventory.CraftMetaItem"
-                );
-                metaGetMaterialMethod = craftMetaItem.getDeclaredMethod("getMaterial");
-                metaGetMaterialMethod.setAccessible(true);
 
                 final Class<?> nbtTagCompoundClass = Class.forName(getMinecraftPath() + ".NBTTagCompound");
 
@@ -87,19 +84,13 @@ public final class UnbreakableUtil {
         }
         if (!reflectionReady) return meta;
 
-        try {
-            Material original = (Material) metaGetMaterialMethod.invoke(meta);
-            if (original == null || original == Material.AIR) original = Material.STONE;
+        Material original = getMetaType(meta);
+        if (original == null || original == Material.AIR) original = Material.STONE;
+        ItemStack stack = new ItemStack(original);
+        stack.setItemMeta(meta);
 
-            ItemStack stack = new ItemStack(original);
-            stack.setItemMeta(meta);
-
-            stack = applyToItem(stack, unbreakable);
-            return stack.getItemMeta();
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            logger.logError(e, () -> "Failed to invoke the material for this meta via legacy fallback");
-            return meta;
-        }
+        stack = applyToItem(stack, unbreakable);
+        return stack.getItemMeta();
     }
 
     /**
@@ -192,5 +183,21 @@ public final class UnbreakableUtil {
 
     private static Object getNmsStack(final ItemStack item) throws IllegalAccessException, InvocationTargetException {
         return asNMSCopyMethod.invoke(null, item);
+    }
+
+    @Nullable
+    private static Material getMetaType(@Nonnull final ItemMeta meta){
+        Material material;
+        if (meta instanceof SkullMeta) material = Material.getMaterial("SKULL_ITEM");
+        else if (meta instanceof LeatherArmorMeta) material = Material.LEATHER_HELMET;
+        else if (meta instanceof BannerMeta) material = Material.getMaterial("BANNER");
+        else if (meta instanceof FireworkEffectMeta) material = Material.FIREWORK_STAR;
+        else if (meta instanceof FireworkMeta) material = Material.FIREWORK_ROCKET;
+        else if (meta instanceof MapMeta) material = Material.MAP;
+        else if (meta instanceof BookMeta) material = Material.WRITTEN_BOOK;
+        else if (meta instanceof PotionMeta) material = Material.POTION;
+        else material = Material.STONE;
+
+        return material;
     }
 }
