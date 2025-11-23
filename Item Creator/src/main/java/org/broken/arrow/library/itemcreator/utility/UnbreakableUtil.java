@@ -69,13 +69,7 @@ public final class UnbreakableUtil {
             item.setItemMeta(meta);
             return item;
         }
-
-        try {
-            return NMS_NBT_BRIDGE.applyUnbreakableTag(item, "Unbreakable", unbreakable);
-        } catch (InvocationTargetException | IllegalAccessException | InstantiationException t) {
-            logger.logError(t, () -> "Failed to apply legacy unbreakable");
-            return item;
-        }
+        return NMS_NBT_BRIDGE.applyUnbreakableTag(item, "Unbreakable", unbreakable);
     }
 
     /**
@@ -94,12 +88,7 @@ public final class UnbreakableUtil {
             final ItemMeta itemMeta = item.getItemMeta();
             return itemMeta != null && itemMeta.isUnbreakable();
         } else {
-            try {
-                return NMS_NBT_BRIDGE.hasBooleanTag(item, "Unbreakable");
-            } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
-                logger.logError(e, () -> "Failed to invoke the item to check if it is unbreakable.");
-                return false;
-            }
+            return NMS_NBT_BRIDGE.hasBooleanTag(item, "Unbreakable");
         }
     }
 
@@ -173,10 +162,10 @@ public final class UnbreakableUtil {
          */
         public ItemStack applyUnbreakableTag(@Nonnull final ItemStack item, @Nonnull final String key, final boolean unbreakable) {
             NbtData nms = new NbtData(item);
-            if(!nms.isReflectionReady()) return item;
+            if (!nms.isReflectionReady()) return item;
 
             CompoundTag compound = nms.getOrCreateCompound();
-            compound.setBoolean(key,unbreakable);
+            compound.setBoolean(key, unbreakable);
             return nms.apply(compound);
         }
 
@@ -190,9 +179,9 @@ public final class UnbreakableUtil {
          */
         public boolean hasBooleanTag(@Nonnull final ItemStack item, @Nonnull String key) {
             NbtData nms = new NbtData(item);
-            if(!nms.isReflectionReady()) return false;
+            if (!nms.isReflectionReady()) return false;
 
-            final CompoundTag compound =  nms.getCompound();
+            final CompoundTag compound = nms.getCompound();
             if (compound == null) {
                 return false;
             }
