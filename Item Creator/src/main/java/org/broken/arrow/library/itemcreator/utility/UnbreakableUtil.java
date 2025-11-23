@@ -3,7 +3,6 @@ package org.broken.arrow.library.itemcreator.utility;
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
 import org.broken.arrow.library.itemcreator.utility.compound.NbtData;
 import org.broken.arrow.library.logging.Logging;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
@@ -197,7 +196,7 @@ public final class UnbreakableUtil {
             if (compound == null) {
                 return false;
             }
-            return compound.hasKey(key);
+            return compound.hasKey(key) && compound.getBoolean(key);
         }
 
     }

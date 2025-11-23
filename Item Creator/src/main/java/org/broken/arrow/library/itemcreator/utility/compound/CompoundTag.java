@@ -1,11 +1,10 @@
 package org.broken.arrow.library.itemcreator.utility.compound;
 
-import org.broken.arrow.library.logging.Logging;
+
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+
 
 /**
  * Wraps an underlying NBTTagCompound belonging to an NMS ItemStack.
@@ -24,33 +23,12 @@ import java.lang.reflect.Method;
  *
  */
 public final class CompoundTag {
-    private static final Logging logger = new Logging(CompoundTag.class);
-    private static final Method hasKey;
-    private static final Method setBoolean;
-    private static final Method getBoolean;
-    private final Object handle;
-
-    static {
-        Method hasTagKey = null;
-        Method setBooleanM = null;
-        Method getBooleanM = null;
-        try {
-            final Class<?> nbtTag = Class.forName(NbtData.getNbtTagPath());
-            hasTagKey = nbtTag.getMethod("hasKey", String.class);
-            setBooleanM = nbtTag.getMethod("setBoolean", String.class, boolean.class);
-            getBooleanM = nbtTag.getMethod("getBoolean", String.class);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            logger.logError(e, () -> "Failed to bind NBT methods");
-        }
-        hasKey = hasTagKey;
-        setBoolean = setBooleanM;
-        getBoolean = getBooleanM;
-
-    }
+    private final LegacyNBT.CompoundSession compoundSession;
 
     CompoundTag(@Nonnull final Object handle) {
         Validate.checkNotNull(handle, "CompoundTag handle cannot be null");
-        this.handle = handle;
+        compoundSession = LegacyNBT.compoundSession(handle);
+        Validate.checkNotNull(compoundSession, "The compound session could not be loaded.");
     }
 
     /**
@@ -60,7 +38,7 @@ public final class CompoundTag {
      */
     @Nonnull
     Object getHandle() {
-        return handle;
+        return compoundSession.getHandle();
     }
 
     /**
@@ -70,14 +48,7 @@ public final class CompoundTag {
      * @return {@code true} if the key exists, otherwise {@code false}
      */
     public boolean hasKey(@Nonnull String key) {
-        if (hasKey == null) return false;
-
-        try {
-            return (boolean) hasKey.invoke(handle, key);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            logger.logError(e, () -> "Failed to check if the compound have the key.");
-        }
-        return false;
+        return this.compoundSession.hasKey(key);
     }
 
     /**
@@ -87,13 +58,7 @@ public final class CompoundTag {
      * @param value the boolean value to assign
      */
     public void setBoolean(@Nonnull String key, boolean value) {
-        if (setBoolean == null) return;
-
-        try {
-            setBoolean.invoke(handle, key, value);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            logger.logError(e, () -> "Failed to set boolean value from reflection");
-        }
+        this.compoundSession.setBoolean(key,value);
     }
 
     /**
@@ -103,13 +68,6 @@ public final class CompoundTag {
      * @return the stored boolean value, or {@code false} if unavailable
      */
     public boolean getBoolean(@Nonnull String key) {
-        if (getBoolean == null) return false;
-
-        try {
-            return (boolean) getBoolean.invoke(handle, key);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            logger.logError(e, () -> "Failed to retrieve boolean value from reflection");
-        }
-        return false;
+        return this.compoundSession.getBoolean(key);
     }
 }
