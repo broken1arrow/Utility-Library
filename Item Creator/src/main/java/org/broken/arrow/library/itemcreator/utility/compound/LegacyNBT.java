@@ -345,10 +345,11 @@ public class LegacyNBT {
             }
             return false;
         }
-    }
 
-    static String getNbtTagPath() {
-        return getNmsPath() + ".NBTTagCompound";
+        private static String getNbtTagPath() {
+            return getNmsPath() + ".NBTTagCompound";
+        }
+
     }
 
     private static String getNmsPath() {
