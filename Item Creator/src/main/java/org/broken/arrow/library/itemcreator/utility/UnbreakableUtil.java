@@ -171,7 +171,7 @@ public final class UnbreakableUtil {
          * @param unbreakable whether the item should be unbreakable
          * @return a new Bukkit ItemStack instance with updated NBT
          */
-        public ItemStack applyUnbreakableTag(@Nonnull final ItemStack item, @Nonnull final String key, final boolean unbreakable) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+        public ItemStack applyUnbreakableTag(@Nonnull final ItemStack item, @Nonnull final String key, final boolean unbreakable) {
             NbtData nms = new NbtData(item);
             if(!nms.isReflectionReady()) return item;
 
@@ -188,7 +188,7 @@ public final class UnbreakableUtil {
          * @param key  NBT key
          * @return {@code true} if the key exists and is set to {@code true}
          */
-        public boolean hasBooleanTag(@Nonnull final ItemStack item, @Nonnull String key) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+        public boolean hasBooleanTag(@Nonnull final ItemStack item, @Nonnull String key) {
             NbtData nms = new NbtData(item);
             if(!nms.isReflectionReady()) return false;
 

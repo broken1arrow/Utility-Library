@@ -23,6 +23,8 @@ import java.util.logging.Level;
 public class LegacyNBT {
     private static final Logging logger = new Logging(NbtData.class);
 
+    private LegacyNBT() {}
+
     /**
      * Creates a new {@link NmsItemSession} for the given Bukkit {@link ItemStack}.
      *
@@ -43,7 +45,7 @@ public class LegacyNBT {
      * @throws IllegalStateException if the NMS bridge is not available
      */
     public static NmsItemSession session(@Nonnull final ItemStack stack) {
-        if (!NmsItemSession.reflectionReady) {
+        if (!NmsItemSession.REFLECTION_READY) {
             logger.log(Level.WARNING, () -> "NMS bridge not loaded");
             return null;
         }
@@ -86,7 +88,7 @@ public class LegacyNBT {
         private static final Method getTag;
         private static final Method setTag;
         private static final Constructor<?> nbtTagConstructor;
-        private static final boolean reflectionReady;
+        private static final boolean REFLECTION_READY;
 
         private final Object nmsItemCopy;
 
@@ -124,7 +126,7 @@ public class LegacyNBT {
             hasTag = hasNBTTag;
             asBukkitCopy = bukkitCopy;
             asNMSCopy = asNMSCopyItem;
-            reflectionReady = reflectionDone;
+            REFLECTION_READY = reflectionDone;
         }
 
         private NmsItemSession(@Nonnull ItemStack item) {
@@ -137,7 +139,7 @@ public class LegacyNBT {
          * @return true if everything is loaded correctly.
          */
         public boolean isReady() {
-            if (!reflectionReady)
+            if (!REFLECTION_READY)
                 return false;
 
             return nmsItemCopy != null;
@@ -149,7 +151,7 @@ public class LegacyNBT {
          * @return {@code true} if it has an NBTTagCompound.
          */
         public boolean hasTag() {
-            if (!reflectionReady || nmsItemCopy == null) return false;
+            if (!REFLECTION_READY || nmsItemCopy == null) return false;
             try {
                 return (boolean) hasTag.invoke(this.nmsItemCopy);
             } catch (IllegalAccessException | InvocationTargetException e) {
@@ -209,7 +211,7 @@ public class LegacyNBT {
          */
         @Nullable
         public ItemStack apply(@Nonnull final CompoundTag tag) {
-            if (!reflectionReady || nmsItemCopy == null) return null;
+            if (!REFLECTION_READY || nmsItemCopy == null) return null;
             try {
                 setTag.invoke(nmsItemCopy, tag.getHandle());
                 return (ItemStack) asBukkitCopy.invoke(null, nmsItemCopy);
@@ -232,6 +234,10 @@ public class LegacyNBT {
                 logger.logError(e, () -> "Failed to copy the bukkit stack to nms stack");
             }
             return null;
+        }
+
+        private static String getCraftBukkitPath() {
+            return "org.bukkit.craftbukkit." + getPackageVersion();
         }
     }
 
@@ -339,10 +345,6 @@ public class LegacyNBT {
             }
             return false;
         }
-    }
-
-    private static String getCraftBukkitPath() {
-        return "org.bukkit.craftbukkit." + getPackageVersion();
     }
 
     static String getNbtTagPath() {
