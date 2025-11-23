@@ -76,7 +76,7 @@ public final class UnbreakableUtil {
 
         try {
             return NMS_NBT_BRIDGE.applyUnbreakableTag(item, "Unbreakable", unbreakable);
-        } catch (Throwable t) {
+        } catch (InvocationTargetException | IllegalAccessException | InstantiationException t) {
             logger.logError(t, () -> "Failed to apply legacy unbreakable");
             return item;
         }
@@ -101,7 +101,7 @@ public final class UnbreakableUtil {
             if (!NMS_NBT_BRIDGE.isReflectionReady()) return false;
             try {
                 return NMS_NBT_BRIDGE.hasBooleanTag(item, "Unbreakable");
-            } catch (Throwable e) {
+            } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
                 logger.logError(e, () -> "Failed to invoke the item to check if it is unbreakable.");
                 return false;
             }
@@ -276,7 +276,7 @@ public final class UnbreakableUtil {
          * @return the NBTTagCompound if exist or create new one.
          */
         public Object getOrCreateNbtTag(@Nonnull final Object nmsItem) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            boolean hasTag = (Boolean) hasTagMethod.invoke(nmsItem);
+            boolean hasTag = (boolean) hasTagMethod.invoke(nmsItem);
             return hasTag
                     ? getTagMethod.invoke(nmsItem)
                     : nbtTagConstructor.newInstance();
