@@ -1,5 +1,7 @@
 package org.broken.arrow.library.itemcreator.utility;
 
+import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.utility.compound.NbtData;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -8,9 +10,7 @@ import org.bukkit.inventory.meta.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public final class UnbreakableUtil {
     private static final Logging logger = new Logging(UnbreakableUtil.class);
@@ -40,7 +40,6 @@ public final class UnbreakableUtil {
             meta.setUnbreakable(unbreakable);
             return meta;
         }
-        if (!NMS_NBT_BRIDGE.isReflectionReady()) return meta;
 
         Material original = getMetaType(meta);
         if (original == null || original == Material.AIR) original = Material.STONE;
@@ -72,8 +71,6 @@ public final class UnbreakableUtil {
             return item;
         }
 
-        if (!NMS_NBT_BRIDGE.isReflectionReady()) return item;
-
         try {
             return NMS_NBT_BRIDGE.applyUnbreakableTag(item, "Unbreakable", unbreakable);
         } catch (InvocationTargetException | IllegalAccessException | InstantiationException t) {
@@ -98,7 +95,6 @@ public final class UnbreakableUtil {
             final ItemMeta itemMeta = item.getItemMeta();
             return itemMeta != null && itemMeta.isUnbreakable();
         } else {
-            if (!NMS_NBT_BRIDGE.isReflectionReady()) return false;
             try {
                 return NMS_NBT_BRIDGE.hasBooleanTag(item, "Unbreakable");
             } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
@@ -136,17 +132,7 @@ public final class UnbreakableUtil {
      * <p>Otherwise it dynamically resolves required CraftBukkit and NMS classes
      * and methods.</p>
      */
-    private static class NmsNbtBridge {
-        private Method asNMSCopyMethod;
-        private Method asBukkitCopyMethod;
-        private Method hasTagMethod;
-        private Method getTagMethod;
-        private Method setTagMethod;
-        private Method setBooleanMethod;
-        private Method getBooleanMethod;
-        private Constructor<?> nbtTagConstructor;
-
-        private boolean reflectionReady;
+    public static class NmsNbtBridge {
         private boolean modernSupported;
 
         /**
@@ -162,42 +148,17 @@ public final class UnbreakableUtil {
             } catch (ClassNotFoundException | NoSuchMethodException ignored) {
                 this.modernSupported = false;
             }
-            if (this.modernSupported) return;
-            loadLegacyReflection();
         }
 
-        public Method getAsBukkitCopyMethod() {
-            return asBukkitCopyMethod;
-        }
-
-        public Method getHasTagMethod() {
-            return hasTagMethod;
-        }
-
-        public Method getTagMethod() {
-            return getTagMethod;
-        }
-
-        public Method getSetTagMethod() {
-            return setTagMethod;
-        }
-
-        public Method getSetBooleanMethod() {
-            return setBooleanMethod;
-        }
-
-        public Method getBooleanMethod() {
-            return getBooleanMethod;
-        }
-
-        public Constructor<?> getNbtTagConstructor() {
-            return nbtTagConstructor;
-        }
-
-        public boolean isReflectionReady() {
-            return reflectionReady;
-        }
-
+        /**
+         * Indicates whether the current server version supports the modern
+         * Bukkit API method {@code ItemMeta#setUnbreakable(boolean)}.
+         *
+         * <p>If this returns {@code true}, no reflection or NMS handling is required
+         * and this bridge will remain inactive.</p>
+         *
+         * @return {@code true} if the modern API is available, otherwise {@code false}
+         */
         public boolean isModernSupported() {
             return modernSupported;
         }
@@ -212,137 +173,31 @@ public final class UnbreakableUtil {
          * @return a new Bukkit ItemStack instance with updated NBT
          */
         public ItemStack applyUnbreakableTag(@Nonnull final ItemStack item, @Nonnull final String key, final boolean unbreakable) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            Object nmsItem = this.toNmsItemStack(item);
-            this.applyBooleanTag(nmsItem, key, unbreakable);
-            return (ItemStack) this.getAsBukkitCopyMethod().invoke(null, nmsItem);
+            NbtData nms = new NbtData(item);
+            if(!nms.isReflectionReady()) return item;
+
+            CompoundTag compound = nms.getOrCreateCompound();
+            compound.setBoolean(key,unbreakable);
+            return nms.apply(compound);
         }
 
         /**
          * Checks whether the given Bukkit item contains the specified
-         * boolean NBT key.
+         * NBT key.
          *
          * @param item Bukkit ItemStack
          * @param key  NBT key
          * @return {@code true} if the key exists and is set to {@code true}
          */
         public boolean hasBooleanTag(@Nonnull final ItemStack item, @Nonnull String key) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            Object nmsItem = this.toNmsItemStack(item);
-            if (!(Boolean) this.getHasTagMethod().invoke(nmsItem)) {
+            NbtData nms = new NbtData(item);
+            if(!nms.isReflectionReady()) return false;
+
+            final CompoundTag compound =  nms.getCompound();
+            if (compound == null) {
                 return false;
             }
-            Object tag = this.getOrCreateNbtTag(nmsItem);
-            return (Boolean) this.getBooleanMethod().invoke(tag, key);
-        }
-
-        /**
-         * Applies a boolean tag to an NMS ItemStack.
-         *
-         * @param nmsItem     the nms stack.
-         * @param key         the key to set
-         * @param unbreakable if it set to {@code true} it will be unbreakable, otherwise the tool can break.
-         */
-        public void applyBooleanTag(@Nonnull final Object nmsItem, @Nonnull final String key, final boolean unbreakable) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            final Object tag = this.getOrCreateNbtTag(nmsItem);
-            this.setBooleanTag(tag, key, unbreakable);
-            this.applyTagCompound(nmsItem, tag);
-        }
-
-        /**
-         * Applies an NBT compound to an NMS ItemStack.
-         *
-         * @param nmsItem the nms stack.
-         * @param tag     the NBTTagCompound to be set.
-         */
-        public void applyTagCompound(@Nonnull final Object nmsItem, @Nonnull final Object tag) throws InvocationTargetException, IllegalAccessException {
-            getSetTagMethod().invoke(nmsItem, tag);
-        }
-
-        /**
-         * Sets a boolean inside an NBTTagCompound.
-         *
-         * @param tag         the NBTTagCompound to be set.
-         * @param key         the key to set
-         * @param unbreakable if it shall be true or false.
-         */
-        public void setBooleanTag(@Nonnull final Object tag, @Nonnull final String key, final boolean unbreakable) throws InvocationTargetException, IllegalAccessException {
-            getSetBooleanMethod().invoke(tag, key, unbreakable);
-        }
-
-        /**
-         * Returns the existing NBTTagCompound if one is present,
-         * otherwise creates a new one.
-         *
-         * @param nmsItem the nms stack.
-         * @return the NBTTagCompound if exist or create new one.
-         */
-        public Object getOrCreateNbtTag(@Nonnull final Object nmsItem) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            boolean hasTag = (boolean) hasTagMethod.invoke(nmsItem);
-            return hasTag
-                    ? getTagMethod.invoke(nmsItem)
-                    : nbtTagConstructor.newInstance();
-        }
-
-        /**
-         * Resolves all CraftBukkit and NMS classes and methods using reflection.
-         * This is only required for legacy versions.
-         */
-        private void loadLegacyReflection() {
-            try {
-
-                String craftPath = getCraftBukkitPath();
-
-                final Class<?> craftItemStackClass = Class.forName(craftPath + ".inventory.CraftItemStack");
-                asNMSCopyMethod = craftItemStackClass.getMethod("asNMSCopy", ItemStack.class);
-                asBukkitCopyMethod = craftItemStackClass.getMethod("asBukkitCopy", Class.forName(getMinecraftPath() + ".ItemStack"));
-
-                final Class<?> nbtTagCompoundClass = Class.forName(getMinecraftPath() + ".NBTTagCompound");
-
-                nbtTagConstructor = nbtTagCompoundClass.getConstructor();
-
-                Class<?> nmsStackClass = Class.forName(getMinecraftPath() + ".ItemStack");
-
-                hasTagMethod = nmsStackClass.getMethod("hasTag");
-                getTagMethod = nmsStackClass.getMethod("getTag");
-                setTagMethod = nmsStackClass.getMethod("setTag", nbtTagCompoundClass);
-                setBooleanMethod = nbtTagCompoundClass.getMethod("setBoolean", String.class, boolean.class);
-                getBooleanMethod = nbtTagCompoundClass.getMethod("getBoolean", String.class);
-
-                reflectionReady = true;
-            } catch (ClassNotFoundException | NoSuchMethodException t) {
-                logger.logError(t, () -> "Could not resolve the unbreakable tag for this minecraft version");
-                reflectionReady = false;
-            }
-        }
-
-        private String getMinecraftPath() {
-            return "net.minecraft.server."
-                    + getPackageVersion();
-        }
-
-        private String getCraftBukkitPath() {
-            return "org.bukkit.craftbukkit." + getPackageVersion();
-        }
-
-        /**
-         * Extracts the version identifier from the Bukkit server package.
-         * This version will only work on legacy, as the path changed in newer
-         * minecraft versions.
-         * Example: v1_8_R3
-         *
-         * @return it returns for example v1_8_R3
-         */
-        private String getPackageVersion() {
-            return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-        }
-
-        /**
-         * Converts a Bukkit ItemStack into its NMS counterpart.
-         *
-         * @param item Bukkit ItemStack to convert.
-         * @return the underlying Nms itemStack.
-         */
-        private Object toNmsItemStack(@Nonnull final ItemStack item) throws IllegalAccessException, InvocationTargetException {
-            return this.asNMSCopyMethod.invoke(null, item);
+            return compound.hasKey(key);
         }
 
     }
