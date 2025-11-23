@@ -72,6 +72,7 @@ public class ItemCreator {
 
         this.convertItems = new ConvertToItemStack(serverVersion.getServerVersion());
 
+        Bukkit.getScheduler().runTaskLater(pluginInstance, () -> UnbreakableUtil.isUnbreakable(null), 1L);
         try {
             TextTranslator.getInstance();
         } catch (NoClassDefFoundError ignore) {
@@ -390,7 +391,7 @@ public class ItemCreator {
                 Method getMap = Bukkit.class.getMethod("getMap", short.class);
                 return (MapView) getMap.invoke(null, (short) id);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                throw new  Validate.ValidateExceptions(e,"Could not find the method getMap");
+                throw new Validate.ValidateExceptions(e, "Could not find the method getMap");
             }
         } else {
             return Bukkit.getMap(id);
@@ -452,12 +453,12 @@ public class ItemCreator {
      * <p>On legacy versions (1.8–1.12), this will return a new copy of the metadata.
      * On modern versions (1.13+), the original metadata instance is modified and returned.</p>
      *
-     * @param meta the ItemMeta to modify
+     * @param meta        the ItemMeta to modify
      * @param unbreakable true to make the item unbreakable, false otherwise
      * @return the modified ItemMeta, it will be a new instance on legacy versions.
      */
     public static ItemMeta applyUnbreakable(final ItemMeta meta, final boolean unbreakable) {
-        return UnbreakableUtil.applyToMeta(meta,unbreakable);
+        return UnbreakableUtil.applyToMeta(meta, unbreakable);
     }
 
     /**
@@ -466,12 +467,12 @@ public class ItemCreator {
      * <p>On legacy versions, this may create a new ItemStack copy.
      * On modern versions, the original ItemStack is modified.</p>
      *
-     * @param item the ItemStack to modify
+     * @param item        the ItemStack to modify
      * @param unbreakable true to make the item unbreakable, false otherwise
      * @return the modified ItemStack, may be a new instance on legacy versions
      */
     public static ItemStack applyUnbreakableToItem(final ItemStack item, final boolean unbreakable) {
-        return  UnbreakableUtil.applyToItem(item,unbreakable);
+        return UnbreakableUtil.applyToItem(item, unbreakable);
     }
 
     /**
@@ -484,7 +485,7 @@ public class ItemCreator {
      * @return {@code true} if the item is unbreakable, {@code false} otherwise (or if the check failed on legacy versions)
      */
     public static boolean isUnbreakable(ItemStack item) {
-        return  UnbreakableUtil. isUnbreakable(item);
+        return UnbreakableUtil.isUnbreakable(item);
     }
 
 
