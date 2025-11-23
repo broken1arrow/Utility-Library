@@ -9,24 +9,17 @@ import org.broken.arrow.library.itemcreator.meta.MetaHandler;
 import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementWrapper;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
-import org.broken.arrow.library.itemcreator.utility.Tuple;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
 import org.broken.arrow.library.itemcreator.utility.nbt.NBTDataWriter;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
-import org.broken.arrow.library.nbt.RegisterNbtAPI;
-import org.bukkit.DyeColor;
-import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.block.banner.Pattern;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.PotionEffect;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -550,8 +543,9 @@ public class CreateItemStack {
         if (!isAir(itemStack.getType())) {
             itemStack = setNbt(itemStack);
 
-            final ItemMeta itemMeta = itemStack.getItemMeta();
-            setMetadata(itemStack, itemMeta);
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            itemMeta = setMetadata(itemStack, itemMeta);
+
             if (this.metaHandler != null)
                 this.metaHandler.applyMeta(itemStack, itemMeta);
             itemStack.setItemMeta(itemMeta);
@@ -569,7 +563,7 @@ public class CreateItemStack {
         return itemStack;
     }
 
-    private void setMetadata(ItemStack itemStack, final ItemMeta itemMeta) {
+    private ItemMeta setMetadata(ItemStack itemStack, final ItemMeta itemMeta) {
         if (itemMeta != null) {
             if (this.displayName != null) {
                 itemMeta.setDisplayName(translateColors(this.displayName));
@@ -579,6 +573,7 @@ public class CreateItemStack {
             }
             addItemMeta(itemStack, itemMeta);
         }
+        return setUnbreakableMeta(itemMeta);
     }
 
 
@@ -611,10 +606,8 @@ public class CreateItemStack {
 
     private void addItemMeta(@Nonnull final ItemStack itemStack, @Nonnull final ItemMeta itemMeta) {
         this.setDamageMeta(itemStack, itemMeta);
-        if (this.serverVersion > 10.0F)
-            setUnbreakableMeta(itemMeta);
-        this.addCustomModelData(itemMeta);
 
+        this.addCustomModelData(itemMeta);
         if (isShowEnchantments() || !this.getItemFlags().isEmpty() || this.isGlow())
             hideEnchantments(itemMeta);
     }
@@ -651,9 +644,8 @@ public class CreateItemStack {
         }
     }
 
-
-    private void setUnbreakableMeta(final ItemMeta itemMeta) {
-        itemMeta.setUnbreakable(isUnbreakable());
+    private ItemMeta setUnbreakableMeta(final ItemMeta itemMeta) {
+        return ItemCreator.applyUnbreakable(itemMeta,isUnbreakable());
     }
 
     private void addCustomModelData(final ItemMeta itemMeta) {

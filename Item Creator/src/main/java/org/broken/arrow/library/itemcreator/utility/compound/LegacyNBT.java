@@ -23,7 +23,8 @@ import java.util.logging.Level;
 public class LegacyNBT {
     private static final Logging logger = new Logging(NbtData.class);
 
-    private LegacyNBT() {}
+    private LegacyNBT() {
+    }
 
     /**
      * Creates a new {@link NmsItemSession} for the given Bukkit {@link ItemStack}.
@@ -106,7 +107,7 @@ public class LegacyNBT {
 
                 Class<?> craftItemStack = Class.forName(craftPath + ".inventory.CraftItemStack");
                 Class<?> nmsItemStack = Class.forName(nmsPath + ".ItemStack");
-                Class<?> nbtTagCompound = Class.forName(nmsPath + ".NBTTagCompound");
+                Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
 
                 asNMSCopyItem = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
                 bukkitCopy = craftItemStack.getMethod("asBukkitCopy", nmsItemStack);
@@ -346,10 +347,10 @@ public class LegacyNBT {
             return false;
         }
 
-        private static String getNbtTagPath() {
-            return getNmsPath() + ".NBTTagCompound";
-        }
+    }
 
+    private static String getNbtTagPath() {
+        return getNmsPath() + ".NBTTagCompound";
     }
 
     private static String getNmsPath() {

@@ -72,7 +72,6 @@ public class ItemCreator {
 
         this.convertItems = new ConvertToItemStack(serverVersion.getServerVersion());
 
-        Bukkit.getScheduler().runTaskLater(pluginInstance, () -> UnbreakableUtil.isUnbreakable(null), 1L);
         try {
             TextTranslator.getInstance();
         } catch (NoClassDefFoundError ignore) {
