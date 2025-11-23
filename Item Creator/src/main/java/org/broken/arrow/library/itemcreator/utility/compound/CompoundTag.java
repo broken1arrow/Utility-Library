@@ -25,6 +25,16 @@ import javax.annotation.Nonnull;
 public final class CompoundTag {
     private final LegacyNBT.CompoundSession compoundSession;
 
+    /**
+     * Creates a new {@link CompoundTag} for the given NBTTagCompound handle.
+     *
+     * <p>This method is responsible for binding reflective access to the
+     * underlying {@code NBTTagCompound} instance. It enables operations such
+     * as {@code hasKey}, {@code setBoolean}, and {@code getBoolean}
+     * </p>
+     *
+     * @param handle the raw NBTTagCompound instance from NMS
+     */
     CompoundTag(@Nonnull final Object handle) {
         Validate.checkNotNull(handle, "CompoundTag handle cannot be null");
         compoundSession = LegacyNBT.compoundSession(handle);

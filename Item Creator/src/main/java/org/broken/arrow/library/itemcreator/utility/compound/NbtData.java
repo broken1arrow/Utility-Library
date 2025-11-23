@@ -23,12 +23,9 @@ public class NbtData {
     LegacyNBT.NmsItemSession session;
 
     /**
-     * Creates a new NMS bridge.
+     * Creates a new NbtData wrapper.
      *
-     * <p>Checks for availability of {@link org.bukkit.inventory.meta.ItemMeta#setUnbreakable(boolean)}.
-     * If present, reflection loading is skipped.</p>
-     *
-     * @param itemStack the itemStack to alter the metadata on.
+     * @param itemStack the itemStack to alter the NBT tags on.
      */
     public NbtData(final ItemStack itemStack) {
         this.session = LegacyNBT.session(itemStack);
