@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.logging.Level;
 
 /**
@@ -250,6 +251,8 @@ public class LegacyNBT {
      */
     public static class CompoundSession {
         private static final Method hasKey;
+
+        private static final Method remove ;
         private static final Method setBoolean;
         private static final Method getBoolean;
 
@@ -257,16 +260,21 @@ public class LegacyNBT {
 
         static {
             Method hasTagKey = null;
-            Method setBooleanM = null;
+            Method removeM =null;
+                    Method setBooleanM = null;
             Method getBooleanM = null;
             try {
                 final Class<?> nbtTag = Class.forName(getNbtTagPath());
+                
                 hasTagKey = nbtTag.getMethod("hasKey", String.class);
+                removeM = nbtTag.getMethod("remove", String.class);
+
                 setBooleanM = nbtTag.getMethod("setBoolean", String.class, boolean.class);
                 getBooleanM = nbtTag.getMethod("getBoolean", String.class);
             } catch (ClassNotFoundException | NoSuchMethodException e) {
                 logger.logError(e, () -> "Failed to bind NBT methods");
             }
+            remove =  removeM ;
             hasKey = hasTagKey;
             setBoolean = setBooleanM;
             getBoolean = getBooleanM;
@@ -312,6 +320,22 @@ public class LegacyNBT {
                 logger.logError(e, () -> "Failed to check if the compound have the key.");
             }
             return false;
+        }
+
+
+        /**
+         * Remove this {@link CompoundTag} value and the given key.
+         *
+         * @param key the NBT key to remove.
+         */
+        public void remove(@Nonnull String key) {
+            if (remove == null) return;
+
+            try {
+                remove.invoke(handle, key);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                logger.logError(e, () -> "Failed to check if the compound have the key.");
+            }
         }
 
         /**
