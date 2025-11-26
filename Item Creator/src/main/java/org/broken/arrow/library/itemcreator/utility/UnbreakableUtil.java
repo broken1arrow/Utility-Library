@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 
 public final class UnbreakableUtil {
-    private static final Logging logger = new Logging(UnbreakableUtil.class);
     private static final NmsNbtBridge NMS_NBT_BRIDGE;
 
     private UnbreakableUtil() {

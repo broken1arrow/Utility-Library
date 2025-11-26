@@ -21,7 +21,7 @@ import java.util.logging.Level;
  * directly by plugin developers.</p>
  */
 public class LegacyNBT {
-    private static final Logging logger = new Logging(NbtData.class);
+    private static final Logging logger = new Logging(LegacyNBT.class);
 
     private LegacyNBT() {
     }

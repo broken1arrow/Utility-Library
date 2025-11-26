@@ -19,7 +19,6 @@ import javax.annotation.Nullable;
  * values used only by plugins.</p>
  */
 public class NbtData {
-    private static final Logging logger = new Logging(NbtData.class);
     LegacyNBT.NmsItemSession session;
 
     /**
