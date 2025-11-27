@@ -7,6 +7,9 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -250,32 +253,52 @@ public class LegacyNBT {
      * <p>Should generally be used via {@link CompoundTag} rather than directly.</p>
      */
     public static class CompoundSession {
-        private static final Method hasKey;
-
-        private static final Method remove ;
-        private static final Method setBoolean;
-        private static final Method getBoolean;
+        private static final MethodHandle hasKey;
+        private static final MethodHandle remove;
+        private static final MethodHandle setString;
+        private static final MethodHandle getString;
+        private static final MethodHandle setBoolean;
+        private static final MethodHandle getBoolean;
 
         private final Object handle;
 
         static {
-            Method hasTagKey = null;
-            Method removeM =null;
-                    Method setBooleanM = null;
-            Method getBooleanM = null;
+            MethodHandle hasTagKey = null;
+            MethodHandle removeM = null;
+            MethodHandle setStringM = null;
+            MethodHandle getStringM = null;
+            MethodHandle setBooleanM = null;
+            MethodHandle getBooleanM = null;
             try {
                 final Class<?> nbtTag = Class.forName(getNbtTagPath());
-                
-                hasTagKey = nbtTag.getMethod("hasKey", String.class);
+/*                hasTagKey = nbtTag.getMethod("hasKey", String.class);
                 removeM = nbtTag.getMethod("remove", String.class);
 
+                setStringM = nbtTag.getMethod("setString", String.class, String.class);
+                getStringM = nbtTag.getMethod("getString", String.class);
                 setBooleanM = nbtTag.getMethod("setBoolean", String.class, boolean.class);
-                getBooleanM = nbtTag.getMethod("getBoolean", String.class);
-            } catch (ClassNotFoundException | NoSuchMethodException e) {
+                getBooleanM = nbtTag.getMethod("getBoolean", String.class);*/
+                MethodHandles.Lookup lookup = MethodHandles.lookup();
+                hasTagKey = lookup.findVirtual(nbtTag, "hasKey",
+                        MethodType.methodType(boolean.class, String.class));
+                removeM = lookup.findVirtual(nbtTag, "remove",
+                        MethodType.methodType(void.class, String.class));
+                setStringM = lookup.findVirtual(nbtTag, "setString",
+                        MethodType.methodType(void.class, String.class, String.class));
+                getStringM = lookup.findVirtual(nbtTag, "getString",
+                        MethodType.methodType(String.class, String.class));
+                setBooleanM = lookup.findVirtual(nbtTag, "setBoolean",
+                        MethodType.methodType(void.class, String.class, boolean.class));
+                getBooleanM = lookup.findVirtual(nbtTag, "getBoolean",
+                        MethodType.methodType(boolean.class, String.class));
+
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
                 logger.logError(e, () -> "Failed to bind NBT methods");
             }
-            remove =  removeM ;
+            remove = removeM;
             hasKey = hasTagKey;
+            setString = setStringM;
+            getString = getStringM;
             setBoolean = setBooleanM;
             getBoolean = getBooleanM;
 
@@ -311,12 +334,12 @@ public class LegacyNBT {
          * @param key the NBT key to check
          * @return {@code true} if the key exists, otherwise {@code false}
          */
-        public boolean hasKey(@Nonnull String key) {
+        public boolean hasKey(@Nonnull final String key) {
             if (hasKey == null) return false;
 
             try {
                 return (boolean) hasKey.invoke(handle, key);
-            } catch (IllegalAccessException | InvocationTargetException e) {
+            } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to check if the compound have the key.");
             }
             return false;
@@ -328,13 +351,15 @@ public class LegacyNBT {
          *
          * @param key the NBT key to remove.
          */
-        public void remove(@Nonnull String key) {
+        public void remove(@Nonnull final String key) {
             if (remove == null) return;
 
             try {
                 remove.invoke(handle, key);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 logger.logError(e, () -> "Failed to check if the compound have the key.");
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
         }
 
@@ -344,12 +369,12 @@ public class LegacyNBT {
          * @param key   the key to set
          * @param value the boolean value to assign
          */
-        public void setBoolean(@Nonnull String key, boolean value) {
+        public void setBoolean(@Nonnull final String key, final boolean value) {
             if (setBoolean == null) return;
 
             try {
                 setBoolean.invoke(handle, key, value);
-            } catch (IllegalAccessException | InvocationTargetException e) {
+            } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to set boolean value from reflection");
             }
         }
@@ -360,12 +385,12 @@ public class LegacyNBT {
          * @param key the key of the boolean value
          * @return the stored boolean value, or {@code false} if unavailable
          */
-        public boolean getBoolean(@Nonnull String key) {
+        public boolean getBoolean(@Nonnull final String key) {
             if (getBoolean == null) return false;
 
             try {
                 return (boolean) getBoolean.invoke(handle, key);
-            } catch (IllegalAccessException | InvocationTargetException e) {
+            } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to retrieve boolean value from reflection");
             }
             return false;
