@@ -356,11 +356,9 @@ public class LegacyNBT {
 
             try {
                 remove.invoke(handle, key);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                logger.logError(e, () -> "Failed to check if the compound have the key.");
             } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
+                logger.logError(e, () -> "Failed to check if the compound have the key.");
+            } 
         }
 
         /**
