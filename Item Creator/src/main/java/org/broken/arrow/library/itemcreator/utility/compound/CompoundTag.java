@@ -42,16 +42,6 @@ public final class CompoundTag {
     }
 
     /**
-     * This handle is the NBTTagCompound object.
-     *
-     * @return returns the NBTTagCompound object.
-     */
-    @Nonnull
-    Object getHandle() {
-        return compoundSession.getHandle();
-    }
-
-    /**
      * Checks whether this {@link CompoundTag} contains the given key.
      *
      * @param key the NBT key to check

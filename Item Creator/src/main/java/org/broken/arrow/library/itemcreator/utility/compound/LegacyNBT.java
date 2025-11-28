@@ -197,7 +197,7 @@ public class LegacyNBT {
          * Both root and nested compounds are considered valid targets.
          *
          * @param name the custom key of the nested compound. To target the root compound,
-         *            use an empty string or {@link #hasTag()}.
+         *             use an empty string or {@link #hasTag()}.
          * @return {@code true} if the specified (or root) compound exists
          */
         public boolean hasTag(@Nonnull final String name) {
@@ -387,7 +387,10 @@ public class LegacyNBT {
                 logger.log(Level.FINE, () -> "Empty string passed to getCompound(name). Use getCompound() for root instead.");
 
             try {
-                if (!hasTag()) return null;
+                if (!hasTag()) {
+                    this.compoundState = CompoundState.NULL;
+                    return null;
+                }
                 Object root = GET_TAG.invoke(nmsItemCopy);
                 Object nested = null;
                 if (!name.isEmpty()) {
@@ -421,9 +424,14 @@ public class LegacyNBT {
         private static final MethodHandle remove;
         private static final MethodHandle setString;
         private static final MethodHandle getString;
+        private static final MethodHandle setInt;
+        private static final MethodHandle getInt;
+        private static final MethodHandle getShort;
+        private static final MethodHandle setShort;
+        private static final MethodHandle setByte;
+        private static final MethodHandle getByte;
         private static final MethodHandle setBoolean;
         private static final MethodHandle getBoolean;
-
         private final Object handle;
 
         static {
@@ -431,6 +439,12 @@ public class LegacyNBT {
             MethodHandle removeM = null;
             MethodHandle setStringM = null;
             MethodHandle getStringM = null;
+            MethodHandle setIntM = null;
+            MethodHandle getIntM = null;
+            MethodHandle getShortM = null;
+            MethodHandle setShortM = null;
+            MethodHandle setByteM = null;
+            MethodHandle getByteM = null;
             MethodHandle setBooleanM = null;
             MethodHandle getBooleanM = null;
             try {
@@ -444,14 +458,33 @@ public class LegacyNBT {
                     System.out.println("ReturnType " + method.getReturnType());
                 });
 
-
                 hasTagKey = lookup.findVirtual(nbtTag, "hasKey",
                         MethodType.methodType(boolean.class, String.class));
                 removeM = lookup.findVirtual(nbtTag, "remove",
                         MethodType.methodType(void.class, String.class));
+
+                setIntM = lookup.findVirtual(nbtTag, "setInt",
+                        MethodType.methodType(void.class, String.class, int.class));
+
+                getIntM = lookup.findVirtual(nbtTag, "getInt",
+                        MethodType.methodType(int.class, String.class));
+
+                setShortM = lookup.findVirtual(nbtTag, "setShort",
+                        MethodType.methodType(void.class, String.class, short.class));
+
+                getShortM = lookup.findVirtual(nbtTag, "getShort",
+                        MethodType.methodType(short.class, String.class));
+
+                setByteM = lookup.findVirtual(nbtTag, "setByte",
+                        MethodType.methodType(void.class, String.class, byte.class));
+
+                getByteM = lookup.findVirtual(nbtTag, "getByte",
+                        MethodType.methodType(byte.class, String.class));
+
                 setStringM = lookup.findVirtual(nbtTag, "setString",
                         MethodType.methodType(void.class, String.class, String.class));
                 getStringM = lookup.findVirtual(nbtTag, "getString",
+
                         MethodType.methodType(String.class, String.class));
                 setBooleanM = lookup.findVirtual(nbtTag, "setBoolean",
                         MethodType.methodType(void.class, String.class, boolean.class));
@@ -465,6 +498,13 @@ public class LegacyNBT {
             hasKey = hasTagKey;
             setString = setStringM;
             getString = getStringM;
+            setInt = setIntM;
+            getInt = getIntM;
+            getShort = getShortM;
+            setShort = setShortM;
+            setByte = setByteM;
+            getByte = getByteM;
+
             setBoolean = setBooleanM;
             getBoolean = getBooleanM;
 
@@ -528,6 +568,72 @@ public class LegacyNBT {
         }
 
         /**
+         * Sets a String value in the underlying NBTTagCompound.
+         *
+         * @param key   the key to set
+         * @param value the String value to assign
+         */
+        public void setString(@Nonnull final String key, final String value) {
+            if (setString == null) return;
+
+            try {
+                setString.invoke(handle, key, value);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to set string value from reflection");
+            }
+        }
+
+        /**
+         * Gets a string value from the underlying NBTTagCompound.
+         *
+         * @param key the key of the string value
+         * @return the stored string value, or empty string if unavailable
+         */
+        public String getString(@Nonnull final String key) {
+            if (getString == null) return "";
+
+            try {
+                return (String) getString.invoke(handle, key);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to retrieve string value from reflection");
+            }
+            return "";
+        }
+
+        /**
+         * Sets a byte value in the underlying NBTTagCompound.
+         *
+         * @param key   the key to set
+         * @param value the byte value to assign
+         */
+        public void setByte(@Nonnull final String key, final byte value) {
+            if (setByte == null) return;
+
+            try {
+                setByte.invoke(handle, key, value);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to set byte value from reflection");
+            }
+        }
+
+        /**
+         * Gets a byte value from the underlying NBTTagCompound.
+         *
+         * @param key the key of the byte value
+         * @return the stored byte value, or {@code -1} if unavailable
+         */
+        public byte getByte(@Nonnull final String key) {
+            if (getByte == null) return -1;
+
+            try {
+                return (byte) getByte.invoke(handle, key);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to retrieve byte value from reflection");
+            }
+            return -1;
+        }
+
+        /**
          * Sets a boolean value in the underlying NBTTagCompound.
          *
          * @param key   the key to set
@@ -586,21 +692,34 @@ public class LegacyNBT {
         return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
     }
 
+    /**
+     * Represents the current state of a compound during retrieval or creation.
+     *
+     * <p>There are four possible states:</p>
+     * <ul>
+     *     <li><strong>NOT_CREATED</strong> – The compound has not been created yet.</li>
+     *     <li><strong>CREATED</strong> – The compound was successfully retrieved or created.
+     *         This may refer to either the root compound or a nested compound.</li>
+     *     <li><strong>NULL</strong> – The root or nested compound does not exist.</li>
+     *     <li><strong>ERROR</strong> – An error occurred while attempting to retrieve or create the compound.</li>
+     * </ul>
+     */
     public enum CompoundState {
-        ERROR("Failed to initialize compound"),
+        NOT_CREATED("Compound has not been created yet and may be null"),
         CREATED("Compound created successfully"),
-        NULL("Compound is null"),
-        NOT_CREATED("Compound is not set yet, can be null");
+        ERROR("Failed to initialize compound"),
+        NULL("Compound does not exist");
+
         private final String message;
 
-        CompoundState(String message) {
+        CompoundState(@Nonnull final String message) {
             this.message = message;
         }
 
         /**
-         * The message that you could send to a logger.
+         * Returns a descriptive message suitable for logging.
          *
-         * @return the message for the specific state.
+         * @return the descriptive message for this state.
          */
         public String getMessage() {
             return message;
