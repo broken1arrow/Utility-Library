@@ -465,27 +465,24 @@ public class LegacyNBT {
 
                 setIntM = lookup.findVirtual(nbtTag, "setInt",
                         MethodType.methodType(void.class, String.class, int.class));
-
                 getIntM = lookup.findVirtual(nbtTag, "getInt",
                         MethodType.methodType(int.class, String.class));
 
                 setShortM = lookup.findVirtual(nbtTag, "setShort",
                         MethodType.methodType(void.class, String.class, short.class));
-
                 getShortM = lookup.findVirtual(nbtTag, "getShort",
                         MethodType.methodType(short.class, String.class));
 
                 setByteM = lookup.findVirtual(nbtTag, "setByte",
                         MethodType.methodType(void.class, String.class, byte.class));
-
                 getByteM = lookup.findVirtual(nbtTag, "getByte",
                         MethodType.methodType(byte.class, String.class));
 
                 setStringM = lookup.findVirtual(nbtTag, "setString",
                         MethodType.methodType(void.class, String.class, String.class));
                 getStringM = lookup.findVirtual(nbtTag, "getString",
-
                         MethodType.methodType(String.class, String.class));
+
                 setBooleanM = lookup.findVirtual(nbtTag, "setBoolean",
                         MethodType.methodType(void.class, String.class, boolean.class));
                 getBooleanM = lookup.findVirtual(nbtTag, "getBoolean",
@@ -565,6 +562,39 @@ public class LegacyNBT {
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to check if the compound have the key.");
             }
+        }
+
+        /**
+         * Sets a int value in the underlying NBTTagCompound.
+         *
+         * @param key   the key to set
+         * @param value the int value to assign
+         */
+        public void setInt(@Nonnull final String key, final int value) {
+            if (setInt == null) return;
+
+            try {
+                setInt.invoke(handle, key, value);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to set int value from reflection");
+            }
+        }
+
+        /**
+         * Gets a int value from the underlying NBTTagCompound.
+         *
+         * @param key the key of the int value
+         * @return the stored int value, or {@code -1} if unavailable
+         */
+        public int getInt(@Nonnull final String key) {
+            if (getInt == null) return -1;
+
+            try {
+                return (int) getInt.invoke(handle, key);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to retrieve int value from reflection");
+            }
+            return -1;
         }
 
         /**
@@ -664,6 +694,39 @@ public class LegacyNBT {
                 logger.logError(e, () -> "Failed to retrieve boolean value from reflection");
             }
             return false;
+        }
+
+        /**
+         * Sets a short value in the underlying NBTTagCompound.
+         *
+         * @param key   the key to set
+         * @param value the short value to assign
+         */
+        public void setShort(@Nonnull final String key, final short value) {
+            if (setShort == null) return;
+
+            try {
+                setShort.invoke(handle, key, value);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to set short value from reflection");
+            }
+        }
+
+        /**
+         * Gets a short value from the underlying NBTTagCompound.
+         *
+         * @param key the key of the short value
+         * @return the stored short value, or {@code -1} if unavailable
+         */
+        public short getShort(@Nonnull final String key) {
+            if (getShort == null) return -1;
+
+            try {
+                return (short) getShort.invoke(handle, key);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to retrieve short value from reflection");
+            }
+            return -1;
         }
 
     }
