@@ -1,7 +1,6 @@
 package org.broken.arrow.library.itemcreator.utility.compound;
 
 
-import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.inventory.ItemStack;
 
@@ -82,7 +81,7 @@ public class NbtData {
      */
     @Nullable
     public ItemStack apply(@Nonnull final CompoundTag tag) {
-        return this.session.apply(tag);
+        return this.session.finalizeChanges();
     }
 
 }

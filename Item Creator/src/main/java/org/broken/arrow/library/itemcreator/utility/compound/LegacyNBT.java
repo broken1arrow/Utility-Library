@@ -11,6 +11,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import java.util.logging.Level;
 
 /**
@@ -90,9 +91,15 @@ public class LegacyNBT {
         private static final MethodHandle GET_TAG;
         private static final MethodHandle SET_TAG;
         private static final Constructor<?> nbtTagConstructor;
-        private static final boolean REFLECTION_READY;
+        private static final MethodHandle GET_COMPOUND;
+        private static final MethodHandle GET_NESTED_COMPOUND;
+        private static final MethodHandle SET_NESTED_COMPOUND;
 
+        private static final boolean REFLECTION_READY;
         private final Object nmsItemCopy;
+        private final ItemStack bukkitItem;
+        private boolean finalize = false;
+        private CompoundState compoundState = CompoundState.NOT_CREATED;
 
         static {
             Constructor<?> tagConstructor = null;
@@ -101,6 +108,9 @@ public class LegacyNBT {
             MethodHandle hasNBTTag = null;
             MethodHandle bukkitCopy = null;
             MethodHandle nMSCopyItem = null;
+            MethodHandle getCompoundM = null;
+            MethodHandle getNestedCompound = null;
+            MethodHandle setNestedCompound = null;
             boolean reflectionDone = false;
 
             try {
@@ -110,6 +120,8 @@ public class LegacyNBT {
                 final Class<?> craftItemStack = Class.forName(craftPath + ".inventory.CraftItemStack");
                 final Class<?> nmsItemStack = Class.forName(nmsPath + ".ItemStack");
                 final Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
+                final Class<?> nbtTagBase = Class.forName(getNbtTagBasePath());
+
                 final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
                 nMSCopyItem = lookup.findStatic(craftItemStack, "asNMSCopy",
@@ -124,12 +136,14 @@ public class LegacyNBT {
                 setNBTTag = lookup.findVirtual(nmsItemStack, "setTag",
                         MethodType.methodType(void.class, nbtTagCompound));
 
+                setNestedCompound = lookup.findVirtual(nbtTagCompound, "set", MethodType.methodType(void.class, String.class, nbtTagBase));
+                getNestedCompound = lookup.findVirtual(nbtTagCompound, "get", MethodType.methodType(nbtTagBase, String.class));
+                getCompoundM = lookup.findVirtual(nbtTagCompound, "getCompound", MethodType.methodType(nbtTagCompound, String.class));
+
                 tagConstructor = nbtTagCompound.getConstructor();
                 reflectionDone = true;
-            } catch (ClassNotFoundException | NoSuchMethodException e) {
-                logger.logError(e, () -> "Failed to initialize all NMS methods needed.");
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+            } catch (IllegalAccessException | ClassNotFoundException | NoSuchMethodException e) {
+                logger.logError(e, () -> "Failed to initialize all NMS methods needed for legacy minecraft.");
             }
             nbtTagConstructor = tagConstructor;
             SET_TAG = setNBTTag;
@@ -137,11 +151,16 @@ public class LegacyNBT {
             HAS_TAG = hasNBTTag;
             AS_BUKKIT_ITEM_COPY = bukkitCopy;
             NMS_ITEM_COPY = nMSCopyItem;
+            GET_COMPOUND = getCompoundM;
+            GET_NESTED_COMPOUND = getNestedCompound;
+            SET_NESTED_COMPOUND = setNestedCompound;
             REFLECTION_READY = reflectionDone;
+
         }
 
         private NmsItemSession(@Nonnull ItemStack item) {
             this.nmsItemCopy = toNmsItemStack(item);
+            this.bukkitItem = item.clone();
         }
 
         /**
@@ -172,64 +191,130 @@ public class LegacyNBT {
         }
 
         /**
-         * Returns the existing {@link CompoundTag} if one is present,
-         * otherwise creates a new one.
+         * Checks whether this item contains an {@code NBTTagCompound} with the given name.
+         * <p>
+         * If the name is empty, the <strong>root compound</strong> is evaluated instead.
+         * Both root and nested compounds are considered valid targets.
          *
-         * @return the existing {@link CompoundTag} or a new instance if none exists.
-         * Returns {@code null} only if reflection failed or the underlying
-         * NBTTagCompound could not be created.
+         * @param name the custom key of the nested compound. To target the root compound,
+         *            use an empty string or {@link #hasTag()}.
+         * @return {@code true} if the specified (or root) compound exists
+         */
+        public boolean hasTag(@Nonnull final String name) {
+            try {
+                if (!hasTag()) return false;
+                Object root = GET_TAG.invoke(nmsItemCopy);
+                if (name.isEmpty()) return root != null;
+                Object nested = GET_NESTED_COMPOUND.invoke(root, name);
+                return nested != null;
+            } catch (Throwable ignored) {
+                return false;
+            }
+        }
+
+        /**
+         * Returns the root {@link CompoundTag} of this item, creating one if it does not exist.
+         * <p>
+         * This method always operates on the root compound. If you want a nested compound,
+         * use {@link #getOrCreateCompound(String)} with a specific name.
+         *
+         * @return the root {@link CompoundTag}, never {@code null} unless reflection failed.
          */
         @Nullable
         public CompoundTag getOrCreateCompound() {
-            try {
-                Object tag;
-                if (hasTag()) {
-                    tag = GET_TAG.invoke(nmsItemCopy);
-                } else {
-                    tag = nbtTagConstructor.newInstance();
-                    SET_TAG.invoke(nmsItemCopy, tag);
-                }
-                return new CompoundTag(tag);
-
-            } catch (Throwable e) {
-                logger.logError(e, () -> "Failed to initialize CompoundTag");
-            }
-            return null;
+            return getCompoundTag("", false);
         }
 
         /**
-         * Returns the existing {@link CompoundTag} if one is present.
+         * Returns a {@link CompoundTag} with the given name, creating it if it does not exist.
+         * <p>
+         * If {@code name} is empty (""), this will return the root compound, which is equivalent
+         * to {@link #getOrCreateCompound()}.
+         * <p>
+         * Use a non-empty name if you want a nested compound separate from the root.
          *
-         * @return the existing {@link CompoundTag}  or {@code null} if none exists.
+         * @param name the name of the nested compound, or empty string for root.
+         * @return the existing or newly created {@link CompoundTag}, or {@code null} if reflection failed.
+         */
+        @Nullable
+        public CompoundTag getOrCreateCompound(@Nonnull final String name) {
+            return getCompoundTag(name, true);
+        }
+
+
+        /**
+         * Returns the root {@link CompoundTag} if present.
+         * <p>
+         * This method does not create a new compound. Use {@link #getOrCreateCompound()} to
+         * create a root compound if it does not exist.
+         *
+         * @return the root {@link CompoundTag} if present, otherwise {@code null}.
          */
         @Nullable
         public CompoundTag getCompound() {
-            try {
-                if (!hasTag()) return null;
-                return new CompoundTag(GET_TAG.invoke(this.nmsItemCopy));
-            } catch (Throwable e) {
-                logger.logError(e, () -> "Failed to initialize CompoundTag");
-            }
-            return null;
+            return getCompound("", false);
         }
 
         /**
-         * Applies the current CompoundTag to the ItemStack and returns
-         * a new Bukkit ItemStack instance.
+         * Returns the {@link CompoundTag} with the given name if present.
+         * <p>
+         * If {@code name} is empty (""), this returns the root compound.
+         * For a nested compound, pass a non-empty name.
+         * <p>
+         * This method does not create a compound; use {@link #getOrCreateCompound(String)}
+         * to create one if it does not exist.
          *
-         * @param tag the {@link CompoundTag} instance that wraps NBTTagCompound.
-         * @return Returns the copy of your itemStack with the nbt set.
+         * @param name the name of the nested compound, or empty string for root.
+         * @return the existing {@link CompoundTag} if present, otherwise {@code null}.
          */
         @Nullable
-        public ItemStack apply(@Nonnull final CompoundTag tag) {
-            if (!REFLECTION_READY || nmsItemCopy == null) return null;
+        public CompoundTag getCompound(@Nonnull final String name) {
+            return getCompound(name, true);
+        }
+
+        /**
+         * Applies the current NBT data of this item to the underlying {@link ItemStack} and
+         * returns a new Bukkit {@link ItemStack} instance.
+         * <p>
+         * This method always applies the root {@link CompoundTag}, including any nested compounds
+         * created via {@link #getOrCreateCompound(String)}. The returned item will contain the
+         * full NBT structure currently set in this session.
+         * <p>
+         * The method checks the {@link CompoundState} before applying changes:
+         * <ul>
+         *     <li>{@link CompoundState#CREATED}: Compound exists and will be applied.</li>
+         *     <li>{@link CompoundState#NULL}: No compound exists, nothing is applied.</li>
+         *     <li>{@link CompoundState#ERROR}: Reflection failed or compound initialization failed,
+         *     nothing is applied.</li>
+         *     <li>{@link CompoundState#NOT_CREATED}: No compound has been created yet.</li>
+         * </ul>
+         * <p>
+         * Use {@link #getOrCreateCompound()} or {@link #getOrCreateCompound(String)} to ensure a
+         * compound exists before calling this method.
+         *
+         * @return a new {@link ItemStack} containing the applied NBT, or the original {@link ItemStack}
+         * if the compound was not created or an error occurred.
+         */
+        @Nonnull
+        public ItemStack finalizeChanges() {
+            if (!REFLECTION_READY || nmsItemCopy == null) return this.bukkitItem;
+            if (compoundState != CompoundState.CREATED) {
+                logger.log(() -> "FinalizeChanges: " + compoundState.getMessage());
+                return this.bukkitItem;
+            }
             try {
-                SET_TAG.invoke(nmsItemCopy, tag.getHandle());
+                Object compound = GET_TAG.invoke(nmsItemCopy);
+                if (compound == null) {
+                    logger.log(() -> "Failed to initialize the item creation, because the compound is not created yet.");
+                    return this.bukkitItem;
+                }
+                SET_TAG.invoke(nmsItemCopy, compound);
+                finalize = true;
                 return (ItemStack) AS_BUKKIT_ITEM_COPY.invoke(nmsItemCopy);
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to apply back to itemStack");
             }
-            return null;
+            return this.bukkitItem;
         }
 
         /**
@@ -243,6 +328,79 @@ public class LegacyNBT {
                 return NMS_ITEM_COPY.invoke(item);
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to copy the bukkit stack to nms stack");
+            }
+            return null;
+        }
+
+        /**
+         * Internal helper to get or create a {@link CompoundTag}.
+         * <p>
+         * If {@code usingName} is true and the {@code name} parameter is empty,
+         * a debug log is written suggesting to use {@link #getOrCreateCompound()} instead
+         * for the root compound.
+         *
+         * @param name      the name of the nested compound; empty string returns the root.
+         * @param usingName whether this call is intended for a named compound.
+         * @return the requested {@link CompoundTag}, or null if reflection fails.
+         */
+        private CompoundTag getCompoundTag(final String name, final boolean usingName) {
+            if (usingName && name.isEmpty())
+                logger.log(Level.FINE, () -> "Empty string passed to getOrCreateCompound(name). Use getOrCreateCompound() for root instead.");
+            try {
+                Object root;
+                Object nested = null;
+                if (hasTag()) {
+                    root = GET_TAG.invoke(nmsItemCopy);
+                } else {
+                    root = nbtTagConstructor.newInstance();
+                    SET_TAG.invoke(nmsItemCopy, root);
+                }
+                if (!name.isEmpty()) {
+                    nested = GET_NESTED_COMPOUND.invoke(root, name);
+                    if (nested == null) {
+                        nested = nbtTagConstructor.newInstance();
+                        SET_NESTED_COMPOUND.invoke(root, name, nested);
+                    }
+                }
+                this.compoundState = CompoundState.CREATED;
+                return new CompoundTag(nested != null ? nested : root);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to initialize CompoundTag");
+                this.compoundState = CompoundState.ERROR;
+            }
+            return null;
+        }
+
+        /**
+         * Internal helper to get a {@link CompoundTag} if present.
+         * <p>
+         * If {@code usingName} is true and the {@code name} parameter is empty,
+         * a debug log is written suggesting to use {@link #getCompound()} instead
+         * for the root compound.
+         *
+         * @param name      the name of the nested compound; empty string returns the root.
+         * @param usingName whether this call is intended for a named compound.
+         * @return the requested {@link CompoundTag}, or null if not present or reflection fails.
+         */
+        private CompoundTag getCompound(final String name, final boolean usingName) {
+            if (usingName && name.isEmpty())
+                logger.log(Level.FINE, () -> "Empty string passed to getCompound(name). Use getCompound() for root instead.");
+
+            try {
+                if (!hasTag()) return null;
+                Object root = GET_TAG.invoke(nmsItemCopy);
+                Object nested = null;
+                if (!name.isEmpty()) {
+                    nested = GET_NESTED_COMPOUND.invoke(root, name);
+                    if (nested == null) {
+                        logger.log(Level.CONFIG, () -> "Requested nested compound '" + name + "' not found. Returning root instead.");
+                    }
+                }
+                this.compoundState = CompoundState.CREATED;
+                return new CompoundTag(nested != null ? nested : root);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to initialize CompoundTag");
+                this.compoundState = CompoundState.ERROR;
             }
             return null;
         }
@@ -278,6 +436,14 @@ public class LegacyNBT {
             try {
                 final Class<?> nbtTag = Class.forName(getNbtTagPath());
                 final MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+                Arrays.stream(nbtTag.getMethods()).forEach(method -> {
+                    System.out.println("######################################");
+                    System.out.println("m " + method.getName());
+                    System.out.println("ParameterTypes " + Arrays.toString(method.getParameterTypes()));
+                    System.out.println("ReturnType " + method.getReturnType());
+                });
+
 
                 hasTagKey = lookup.findVirtual(nbtTag, "hasKey",
                         MethodType.methodType(boolean.class, String.class));
@@ -400,6 +566,10 @@ public class LegacyNBT {
         return getNmsPath() + ".NBTTagCompound";
     }
 
+    private static String getNbtTagBasePath() {
+        return getNmsPath() + ".NBTBase";
+    }
+
     private static String getNmsPath() {
         return "net.minecraft.server." + getPackageVersion();
     }
@@ -416,4 +586,19 @@ public class LegacyNBT {
         return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
     }
 
+    public enum CompoundState {
+        ERROR("Failed to initialize compound"),
+        CREATED("Compound created successfully"),
+        NULL("Compound is null"),
+        NOT_CREATED("Compound is not set yet, can be null");
+        private final String message;
+
+        CompoundState(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
 }
