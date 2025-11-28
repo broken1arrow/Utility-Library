@@ -597,6 +597,11 @@ public class LegacyNBT {
             this.message = message;
         }
 
+        /**
+         * The message that you could send to a logger.
+         *
+         * @return the message for the specific state.
+         */
         public String getMessage() {
             return message;
         }
