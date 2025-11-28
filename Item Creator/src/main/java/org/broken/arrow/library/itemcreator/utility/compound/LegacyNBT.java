@@ -11,9 +11,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.logging.Level;
 
 /**
@@ -87,11 +84,11 @@ public class LegacyNBT {
      * methods will fail silently or throw exceptions as appropriate.</p>
      */
     public static class NmsItemSession {
-        private static final Method asNMSCopy;
-        private static final Method asBukkitCopy;
-        private static final Method hasTag;
-        private static final Method getTag;
-        private static final Method setTag;
+        private static final MethodHandle NMS_ITEM_COPY;
+        private static final MethodHandle AS_BUKKIT_ITEM_COPY;
+        private static final MethodHandle HAS_TAG;
+        private static final MethodHandle GET_TAG;
+        private static final MethodHandle SET_TAG;
         private static final Constructor<?> nbtTagConstructor;
         private static final boolean REFLECTION_READY;
 
@@ -99,38 +96,47 @@ public class LegacyNBT {
 
         static {
             Constructor<?> tagConstructor = null;
-            Method setNBTTag = null;
-            Method getNBTTag = null;
-            Method hasNBTTag = null;
-            Method bukkitCopy = null;
-            Method asNMSCopyItem = null;
+            MethodHandle setNBTTag = null;
+            MethodHandle getNBTTag = null;
+            MethodHandle hasNBTTag = null;
+            MethodHandle bukkitCopy = null;
+            MethodHandle nMSCopyItem = null;
             boolean reflectionDone = false;
+
             try {
-                String craftPath = getCraftBukkitPath();
-                String nmsPath = getNmsPath();
+                final String craftPath = getCraftBukkitPath();
+                final String nmsPath = getNmsPath();
 
-                Class<?> craftItemStack = Class.forName(craftPath + ".inventory.CraftItemStack");
-                Class<?> nmsItemStack = Class.forName(nmsPath + ".ItemStack");
-                Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
+                final Class<?> craftItemStack = Class.forName(craftPath + ".inventory.CraftItemStack");
+                final Class<?> nmsItemStack = Class.forName(nmsPath + ".ItemStack");
+                final Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
+                final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-                asNMSCopyItem = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
-                bukkitCopy = craftItemStack.getMethod("asBukkitCopy", nmsItemStack);
+                nMSCopyItem = lookup.findStatic(craftItemStack, "asNMSCopy",
+                        MethodType.methodType(nmsItemStack, ItemStack.class));
+                bukkitCopy = lookup.findStatic(craftItemStack, "asBukkitCopy",
+                        MethodType.methodType(ItemStack.class, nmsItemStack));
 
-                hasNBTTag = nmsItemStack.getMethod("hasTag");
-                getNBTTag = nmsItemStack.getMethod("getTag");
-                setNBTTag = nmsItemStack.getMethod("setTag", nbtTagCompound);
+                hasNBTTag = lookup.findVirtual(nmsItemStack, "hasTag",
+                        MethodType.methodType(boolean.class));
+                getNBTTag = lookup.findVirtual(nmsItemStack, "getTag",
+                        MethodType.methodType(nbtTagCompound));
+                setNBTTag = lookup.findVirtual(nmsItemStack, "setTag",
+                        MethodType.methodType(void.class, nbtTagCompound));
 
                 tagConstructor = nbtTagCompound.getConstructor();
                 reflectionDone = true;
             } catch (ClassNotFoundException | NoSuchMethodException e) {
                 logger.logError(e, () -> "Failed to initialize all NMS methods needed.");
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
             nbtTagConstructor = tagConstructor;
-            setTag = setNBTTag;
-            getTag = getNBTTag;
-            hasTag = hasNBTTag;
-            asBukkitCopy = bukkitCopy;
-            asNMSCopy = asNMSCopyItem;
+            SET_TAG = setNBTTag;
+            GET_TAG = getNBTTag;
+            HAS_TAG = hasNBTTag;
+            AS_BUKKIT_ITEM_COPY = bukkitCopy;
+            NMS_ITEM_COPY = nMSCopyItem;
             REFLECTION_READY = reflectionDone;
         }
 
@@ -158,8 +164,8 @@ public class LegacyNBT {
         public boolean hasTag() {
             if (!REFLECTION_READY || nmsItemCopy == null) return false;
             try {
-                return (boolean) hasTag.invoke(this.nmsItemCopy);
-            } catch (IllegalAccessException | InvocationTargetException e) {
+                return (boolean) HAS_TAG.invoke(this.nmsItemCopy);
+            } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to initialize hasTag");
             }
             return false;
@@ -178,14 +184,14 @@ public class LegacyNBT {
             try {
                 Object tag;
                 if (hasTag()) {
-                    tag = getTag.invoke(nmsItemCopy);
+                    tag = GET_TAG.invoke(nmsItemCopy);
                 } else {
                     tag = nbtTagConstructor.newInstance();
-                    setTag.invoke(nmsItemCopy, tag);
+                    SET_TAG.invoke(nmsItemCopy, tag);
                 }
                 return new CompoundTag(tag);
 
-            } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to initialize CompoundTag");
             }
             return null;
@@ -200,8 +206,8 @@ public class LegacyNBT {
         public CompoundTag getCompound() {
             try {
                 if (!hasTag()) return null;
-                return new CompoundTag(getTag.invoke(this.nmsItemCopy));
-            } catch (IllegalAccessException | InvocationTargetException e) {
+                return new CompoundTag(GET_TAG.invoke(this.nmsItemCopy));
+            } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to initialize CompoundTag");
             }
             return null;
@@ -218,9 +224,9 @@ public class LegacyNBT {
         public ItemStack apply(@Nonnull final CompoundTag tag) {
             if (!REFLECTION_READY || nmsItemCopy == null) return null;
             try {
-                setTag.invoke(nmsItemCopy, tag.getHandle());
-                return (ItemStack) asBukkitCopy.invoke(null, nmsItemCopy);
-            } catch (Exception e) {
+                SET_TAG.invoke(nmsItemCopy, tag.getHandle());
+                return (ItemStack) AS_BUKKIT_ITEM_COPY.invoke(nmsItemCopy);
+            } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to apply back to itemStack");
             }
             return null;
@@ -234,8 +240,8 @@ public class LegacyNBT {
          */
         private Object toNmsItemStack(@Nonnull final ItemStack item) {
             try {
-                return asNMSCopy.invoke(null, item);
-            } catch (IllegalAccessException | InvocationTargetException e) {
+                return NMS_ITEM_COPY.invoke(item);
+            } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to copy the bukkit stack to nms stack");
             }
             return null;
@@ -271,14 +277,8 @@ public class LegacyNBT {
             MethodHandle getBooleanM = null;
             try {
                 final Class<?> nbtTag = Class.forName(getNbtTagPath());
-/*                hasTagKey = nbtTag.getMethod("hasKey", String.class);
-                removeM = nbtTag.getMethod("remove", String.class);
+                final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-                setStringM = nbtTag.getMethod("setString", String.class, String.class);
-                getStringM = nbtTag.getMethod("getString", String.class);
-                setBooleanM = nbtTag.getMethod("setBoolean", String.class, boolean.class);
-                getBooleanM = nbtTag.getMethod("getBoolean", String.class);*/
-                MethodHandles.Lookup lookup = MethodHandles.lookup();
                 hasTagKey = lookup.findVirtual(nbtTag, "hasKey",
                         MethodType.methodType(boolean.class, String.class));
                 removeM = lookup.findVirtual(nbtTag, "remove",
@@ -358,7 +358,7 @@ public class LegacyNBT {
                 remove.invoke(handle, key);
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to check if the compound have the key.");
-            } 
+            }
         }
 
         /**

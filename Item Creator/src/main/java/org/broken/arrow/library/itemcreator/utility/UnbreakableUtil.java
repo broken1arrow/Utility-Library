@@ -43,7 +43,6 @@ public final class UnbreakableUtil {
         if (original == null || original == Material.AIR) original = Material.STONE;
         ItemStack stack = new ItemStack(original);
         stack.setItemMeta(meta);
-
         stack = applyToItem(stack, unbreakable);
         return stack.getItemMeta();
     }
