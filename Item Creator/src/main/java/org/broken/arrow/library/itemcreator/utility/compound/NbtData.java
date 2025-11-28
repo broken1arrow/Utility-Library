@@ -50,12 +50,26 @@ public class NbtData {
     }
 
     /**
-     * Returns the existing {@link CompoundTag} if one is present,
-     * otherwise creates a new one.
+     * Checks whether this item contains an {@code NBTTagCompound} with the given name.
+     * <p>
+     * If the name is empty, the <strong>root compound</strong> is evaluated instead.
+     * Both root and nested compounds are considered valid targets.
      *
-     * @return the existing {@link CompoundTag} or a new instance if none exists.
-     * Returns {@code null} only if reflection failed or the underlying
-     * NBTTagCompound could not be created.
+     * @param name the custom key of the nested compound. To target the root compound,
+     *             use an empty string or {@link #hasTag()}.
+     * @return {@code true} if the specified (or root) compound exists
+     */
+    public boolean hasTag(@Nonnull final String name) {
+            return this.session.hasTag(name);
+    }
+
+    /**
+     * Returns the root {@link CompoundTag} of this item, creating one if it does not exist.
+     * <p>
+     * This method always operates on the root compound. If you want a nested compound,
+     * use {@link #getOrCreateCompound(String)} with a specific name.
+     *
+     * @return the root {@link CompoundTag}, never {@code null} unless reflection failed.
      */
     @Nullable
     public CompoundTag getOrCreateCompound() {
@@ -63,12 +77,49 @@ public class NbtData {
     }
 
     /**
-     * Returns the existing {@link CompoundTag} if one is present.
+     * Returns a {@link CompoundTag} with the given name, creating it if it does not exist.
+     * <p>
+     * If {@code name} is empty (""), this will return the root compound, which is equivalent
+     * to {@link #getOrCreateCompound()}.
+     * <p>
+     * Use a non-empty name if you want a nested compound separate from the root.
      *
-     * @return the existing {@link CompoundTag} or {@code null} if none exists
+     * @param name the name of the nested compound, or empty string for root.
+     * @return the existing or newly created {@link CompoundTag}, or {@code null} if reflection failed.
+     */
+    @Nullable
+    public CompoundTag getOrCreateCompound(@Nonnull final String name) {
+        return this.session.getOrCreateCompound(name);
+    }
+
+
+    /**
+     * Returns the root {@link CompoundTag} if present.
+     * <p>
+     * This method does not create a new compound. Use {@link #getOrCreateCompound()} to
+     * create a root compound if it does not exist.
+     *
+     * @return the root {@link CompoundTag} if present, otherwise {@code null}.
      */
     @Nullable
     public CompoundTag getCompound() {
+        return this.session.getOrCreateCompound();
+    }
+
+    /**
+     * Returns the {@link CompoundTag} with the given name if present.
+     * <p>
+     * If {@code name} is empty (""), this returns the root compound.
+     * For a nested compound, pass a non-empty name.
+     * <p>
+     * This method does not create a compound; use {@link #getOrCreateCompound(String)}
+     * to create one if it does not exist.
+     *
+     * @param name the name of the nested compound, or empty string for root.
+     * @return the existing {@link CompoundTag} if present, otherwise {@code null}.
+     */
+    @Nullable
+    public CompoundTag getCompound(@Nonnull final String name) {
         return this.session.getCompound();
     }
 
@@ -76,11 +127,10 @@ public class NbtData {
      * Applies the current CompoundTag to the ItemStack and returns
      * a new Bukkit ItemStack instance.
      *
-     * @param tag the {@link CompoundTag} instance that wraps NBTTagCompound.
      * @return Returns the copy of your itemStack with the nbt set.
      */
     @Nullable
-    public ItemStack apply(@Nonnull final CompoundTag tag) {
+    public ItemStack apply() {
         return this.session.finalizeChanges();
     }
 

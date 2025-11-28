@@ -164,7 +164,7 @@ public final class UnbreakableUtil {
 
             CompoundTag compound = nms.getOrCreateCompound();
             compound.setBoolean(key, unbreakable);
-            return nms.apply(compound);
+            return nms.apply();
         }
 
         /**

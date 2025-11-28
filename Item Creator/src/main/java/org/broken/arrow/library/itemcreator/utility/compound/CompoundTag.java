@@ -51,14 +51,84 @@ public final class CompoundTag {
         return this.compoundSession.hasKey(key);
     }
 
+
+    /**
+     * Remove this {@link CompoundTag} value and the given key.
+     *
+     * @param key the NBT key to remove.
+     */
+    public void remove(@Nonnull final String key) {
+        this.compoundSession.remove(key);
+    }
+
+    /**
+     * Sets a int value in the underlying NBTTagCompound.
+     *
+     * @param key   the key to set
+     * @param value the int value to assign
+     */
+    public void setInt(@Nonnull final String key, final int value) {
+        this.compoundSession.setInt(key, value);
+    }
+
+    /**
+     * Gets a int value from the underlying NBTTagCompound.
+     *
+     * @param key the key of the int value
+     * @return the stored int value, or {@code -1} if unavailable
+     */
+    public int getInt(@Nonnull final String key) {
+        return this.compoundSession.getInt(key);
+    }
+
+    /**
+     * Sets a String value in the underlying NBTTagCompound.
+     *
+     * @param key   the key to set
+     * @param value the String value to assign
+     */
+    public void setString(@Nonnull final String key, final String value) {
+        this.compoundSession.setString(key, value);
+    }
+
+    /**
+     * Gets a string value from the underlying NBTTagCompound.
+     *
+     * @param key the key of the string value
+     * @return the stored string value, or empty string if unavailable
+     */
+    public String getString(@Nonnull final String key) {
+        return this.compoundSession.getString(key);
+    }
+
+    /**
+     * Sets a byte value in the underlying NBTTagCompound.
+     *
+     * @param key   the key to set
+     * @param value the byte value to assign
+     */
+    public void setByte(@Nonnull final String key, final byte value) {
+        this.compoundSession.setByte(key, value);
+    }
+
+    /**
+     * Gets a byte value from the underlying NBTTagCompound.
+     *
+     * @param key the key of the byte value
+     * @return the stored byte value, or {@code -1} if unavailable
+     */
+    public byte getByte(@Nonnull final String key) {
+        return this.compoundSession.getByte(key);
+    }
+
     /**
      * Sets a boolean value in the underlying NBTTagCompound.
      *
      * @param key   the key to set
      * @param value the boolean value to assign
      */
-    public void setBoolean(@Nonnull String key, boolean value) {
-        this.compoundSession.setBoolean(key,value);
+    public void setBoolean(@Nonnull final String key, final boolean value) {
+        this.compoundSession.setBoolean(key, value);
     }
 
     /**
@@ -67,7 +137,28 @@ public final class CompoundTag {
      * @param key the key of the boolean value
      * @return the stored boolean value, or {@code false} if unavailable
      */
-    public boolean getBoolean(@Nonnull String key) {
+    public boolean getBoolean(@Nonnull final String key) {
         return this.compoundSession.getBoolean(key);
     }
+
+    /**
+     * Sets a short value in the underlying NBTTagCompound.
+     *
+     * @param key   the key to set
+     * @param value the short value to assign
+     */
+    public void setShort(@Nonnull final String key, final short value) {
+        this.compoundSession.setShort(key, value);
+    }
+
+    /**
+     * Gets a short value from the underlying NBTTagCompound.
+     *
+     * @param key the key of the short value
+     * @return the stored short value, or {@code -1} if unavailable
+     */
+    public short getShort(@Nonnull final String key) {
+        return this.compoundSession.getShort(key);
+    }
+
 }
