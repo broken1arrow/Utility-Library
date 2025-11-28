@@ -451,13 +451,6 @@ public class LegacyNBT {
                 final Class<?> nbtTag = Class.forName(getNbtTagPath());
                 final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-                Arrays.stream(nbtTag.getMethods()).forEach(method -> {
-                    System.out.println("######################################");
-                    System.out.println("m " + method.getName());
-                    System.out.println("ParameterTypes " + Arrays.toString(method.getParameterTypes()));
-                    System.out.println("ReturnType " + method.getReturnType());
-                });
-
                 hasTagKey = lookup.findVirtual(nbtTag, "hasKey",
                         MethodType.methodType(boolean.class, String.class));
                 removeM = lookup.findVirtual(nbtTag, "remove",
