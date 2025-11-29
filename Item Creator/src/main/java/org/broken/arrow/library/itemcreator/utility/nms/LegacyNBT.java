@@ -1,5 +1,7 @@
-package org.broken.arrow.library.itemcreator.utility.compound;
+package org.broken.arrow.library.itemcreator.utility.nms;
 
+import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.utility.compound.NbtData;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.Bukkit;
@@ -11,7 +13,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
 import java.util.logging.Level;
 
 /**
@@ -363,7 +364,7 @@ public class LegacyNBT {
                     }
                 }
                 this.compoundState = CompoundState.CREATED;
-                return new CompoundTag(nested != null ? nested : root);
+                return new CompoundTag((nested != null ? nested : root));
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to initialize CompoundTag");
                 this.compoundState = CompoundState.ERROR;
@@ -400,12 +401,16 @@ public class LegacyNBT {
                     }
                 }
                 this.compoundState = CompoundState.CREATED;
-                return new CompoundTag(nested != null ? nested : root);
+                return new CompoundTag((nested != null ? nested : root));
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to initialize CompoundTag");
                 this.compoundState = CompoundState.ERROR;
             }
             return null;
+        }
+
+        private static String getNbtTagBasePath() {
+            return getNmsPath() + ".NBTBase";
         }
 
         private static String getCraftBukkitPath() {
@@ -430,6 +435,8 @@ public class LegacyNBT {
         private static final MethodHandle setShort;
         private static final MethodHandle setByte;
         private static final MethodHandle getByte;
+        private static final MethodHandle setByteArray;
+        private static final MethodHandle getByteArray;
         private static final MethodHandle setBoolean;
         private static final MethodHandle getBoolean;
         private final Object handle;
@@ -445,6 +452,8 @@ public class LegacyNBT {
             MethodHandle setShortM = null;
             MethodHandle setByteM = null;
             MethodHandle getByteM = null;
+            MethodHandle setByteArrayM = null;
+            MethodHandle getByteArrayM = null;
             MethodHandle setBooleanM = null;
             MethodHandle getBooleanM = null;
             try {
@@ -471,6 +480,11 @@ public class LegacyNBT {
                 getByteM = lookup.findVirtual(nbtTag, "getByte",
                         MethodType.methodType(byte.class, String.class));
 
+                setByteArrayM = lookup.findVirtual(nbtTag, "setByteArray",
+                        MethodType.methodType(void.class, String.class, byte[].class));
+                getByteArrayM = lookup.findVirtual(nbtTag, "getByteArray",
+                        MethodType.methodType(byte[].class, String.class));
+
                 setStringM = lookup.findVirtual(nbtTag, "setString",
                         MethodType.methodType(void.class, String.class, String.class));
                 getStringM = lookup.findVirtual(nbtTag, "getString",
@@ -494,7 +508,8 @@ public class LegacyNBT {
             setShort = setShortM;
             setByte = setByteM;
             getByte = getByteM;
-
+            setByteArray = setByteArrayM;
+            getByteArray = getByteArrayM;
             setBoolean = setBooleanM;
             getBoolean = getBooleanM;
 
@@ -520,7 +535,7 @@ public class LegacyNBT {
          * @return returns the NBTTagCompound object.
          */
         @Nonnull
-        Object getHandle() {
+        public Object getHandle() {
             return handle;
         }
 
@@ -577,13 +592,17 @@ public class LegacyNBT {
          * Gets a int value from the underlying NBTTagCompound.
          *
          * @param key the key of the int value
-         * @return the stored int value, or {@code -1} if unavailable
+         * @return the stored int value, or {@code -1} if reflection fail
+         * or if the key does not exist in the NBT data.
          */
         public int getInt(@Nonnull final String key) {
             if (getInt == null) return -1;
 
             try {
-                return (int) getInt.invoke(handle, key);
+                Object intObject = getInt.invoke(handle, key);
+                if (intObject == null)
+                    return -1;
+                return (int) intObject;
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to retrieve int value from reflection");
             }
@@ -612,11 +631,14 @@ public class LegacyNBT {
          * @param key the key of the string value
          * @return the stored string value, or empty string if unavailable
          */
+        @Nonnull
         public String getString(@Nonnull final String key) {
             if (getString == null) return "";
 
             try {
-                return (String) getString.invoke(handle, key);
+                Object stringObject = getString.invoke(handle, key);
+                if (stringObject == null) return "";
+                return (String) stringObject;
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to retrieve string value from reflection");
             }
@@ -643,17 +665,63 @@ public class LegacyNBT {
          * Gets a byte value from the underlying NBTTagCompound.
          *
          * @param key the key of the byte value
-         * @return the stored byte value, or {@code -1} if unavailable
+         * @return the stored byte value, or {@code -1} if reflection fail
+         * or if the key does not exist in the NBT data.
          */
         public byte getByte(@Nonnull final String key) {
             if (getByte == null) return -1;
 
             try {
-                return (byte) getByte.invoke(handle, key);
+                Object byteObject = getByte.invoke(handle, key);
+                if (byteObject == null) return -1;
+                return (byte) byteObject;
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to retrieve byte value from reflection");
             }
             return -1;
+        }
+
+
+        /**
+         * Sets a byte array in the underlying NBTTagCompound.
+         *
+         * @param key   the key to set
+         * @param value the byte array to assign
+         */
+        public void setByteArray(@Nonnull final String key, final byte[] value) {
+            if (setByteArray == null) return;
+
+            try {
+                setByteArray.invoke(handle, key, value);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to set byte value from reflection");
+            }
+        }
+
+        /**
+         * Retrieves a byte array from the underlying NBTTagCompound.
+         *
+         * <p>If the reflective access fails (e.g., missing method reference or an
+         * exception during invocation), this method returns an empty byte array.
+         * A {@code null} value is only returned if the underlying NBT structure
+         * itself represents the tag as non-existent.</p>
+         *
+         * @param key the key of the stored byte array
+         * @return the byte array associated with the key, an empty array if reflection
+         * access fails, or {@code null} if the key does not exist in the NBT data.
+         */
+        @Nullable
+        public byte[] getByteArray(@Nonnull final String key) {
+            if (getByteArray == null) return new byte[0];
+
+            try {
+                Object byteArray = getByteArray.invoke(handle, key);
+                if (byteArray == null) return null;
+                return (byte[]) byteArray;
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to retrieve byte value from reflection");
+            }
+            return new byte[0];
         }
 
         /**
@@ -682,7 +750,9 @@ public class LegacyNBT {
             if (getBoolean == null) return false;
 
             try {
-                return (boolean) getBoolean.invoke(handle, key);
+                Object booleanObject = getBoolean.invoke(handle, key);
+                if (booleanObject == null) return false;
+                return (boolean) booleanObject;
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to retrieve boolean value from reflection");
             }
@@ -709,13 +779,16 @@ public class LegacyNBT {
          * Gets a short value from the underlying NBTTagCompound.
          *
          * @param key the key of the short value
-         * @return the stored short value, or {@code -1} if unavailable
+         * @return the stored short value, or {@code -1} if reflection fail
+         * or if the key does not exist in the NBT data.
          */
         public short getShort(@Nonnull final String key) {
             if (getShort == null) return -1;
 
             try {
-                return (short) getShort.invoke(handle, key);
+                Object shortObject = getShort.invoke(handle, key);
+                if (shortObject == null) return -1;
+                return (short) shortObject;
             } catch (Throwable e) {
                 logger.logError(e, () -> "Failed to retrieve short value from reflection");
             }
@@ -728,9 +801,6 @@ public class LegacyNBT {
         return getNmsPath() + ".NBTTagCompound";
     }
 
-    private static String getNbtTagBasePath() {
-        return getNmsPath() + ".NBTBase";
-    }
 
     private static String getNmsPath() {
         return "net.minecraft.server." + getPackageVersion();

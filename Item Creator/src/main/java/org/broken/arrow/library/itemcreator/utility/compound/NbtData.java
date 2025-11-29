@@ -1,6 +1,7 @@
 package org.broken.arrow.library.itemcreator.utility.compound;
 
 
+import org.broken.arrow.library.itemcreator.utility.nms.LegacyNBT;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.inventory.ItemStack;
 
@@ -103,7 +104,7 @@ public class NbtData {
      */
     @Nullable
     public CompoundTag getCompound() {
-        return this.session.getOrCreateCompound();
+        return this.session.getCompound();
     }
 
     /**
@@ -120,7 +121,7 @@ public class NbtData {
      */
     @Nullable
     public CompoundTag getCompound(@Nonnull final String name) {
-        return this.session.getCompound();
+        return this.session.getCompound(name);
     }
 
     /**

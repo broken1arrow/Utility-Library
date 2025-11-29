@@ -1,9 +1,11 @@
 package org.broken.arrow.library.itemcreator.utility.compound;
 
 
+import org.broken.arrow.library.itemcreator.utility.nms.LegacyNBT;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 
 /**
@@ -35,7 +37,7 @@ public final class CompoundTag {
      *
      * @param handle the raw NBTTagCompound instance from NMS
      */
-    CompoundTag(@Nonnull final Object handle) {
+    public CompoundTag(@Nonnull final Object  handle) {
         Validate.checkNotNull(handle, "CompoundTag handle cannot be null");
         compoundSession = LegacyNBT.compoundSession(handle);
         Validate.checkNotNull(compoundSession, "The compound session could not be loaded.");
@@ -53,9 +55,9 @@ public final class CompoundTag {
 
 
     /**
-     * Remove this {@link CompoundTag} value and the given key.
+     * Removes the specified key from this compound.
      *
-     * @param key the NBT key to remove.
+     * @param key the key to remove
      */
     public void remove(@Nonnull final String key) {
         this.compoundSession.remove(key);
@@ -75,7 +77,8 @@ public final class CompoundTag {
      * Gets a int value from the underlying NBTTagCompound.
      *
      * @param key the key of the int value
-     * @return the stored int value, or {@code -1} if unavailable
+     * @return the stored int value, or {@code -1} if reflection fail
+     *         or if the key does not exist in the NBT data.
      */
     public int getInt(@Nonnull final String key) {
         return this.compoundSession.getInt(key);
@@ -95,7 +98,8 @@ public final class CompoundTag {
      * Gets a string value from the underlying NBTTagCompound.
      *
      * @param key the key of the string value
-     * @return the stored string value, or empty string if unavailable
+     * @return the stored string value, or empty string if reflection fail
+     *         or {@code null} if the key does not exist in the NBT data.
      */
     public String getString(@Nonnull final String key) {
         return this.compoundSession.getString(key);
@@ -119,6 +123,35 @@ public final class CompoundTag {
      */
     public byte getByte(@Nonnull final String key) {
         return this.compoundSession.getByte(key);
+    }
+
+    /**
+     * Stores a byte array under the specified key in the underlying NBTTagCompound.
+     * <p>
+     * This method provides flexibility for attaching arbitrary binary data to an NBT
+     * structure, allowing more complex or custom payloads to be stored efficiently.
+     *
+     * @param key   the name of the tag to write
+     * @param value the byte array to store, may be {@code null} depending on implementation
+     */
+    public void setByteArray(@Nonnull final String key, final byte[] value) {
+        this.compoundSession.setByteArray(key, value);
+    }
+
+    /**
+     * Retrieves a stored byte array associated with the given key from the underlying
+     * NBTTagCompound.
+     * <p>
+     * This is useful for reading custom binary data previously written with
+     * {@link #setByteArray(String, byte[])}.
+     *
+     * @param key the name of the tag to read
+     * @return the byte array associated with the key, an empty array if reflection
+     *         access fails, or {@code null} if the key does not exist in the NBT data.
+     */
+    @Nullable
+    public byte[] getByteArray(@Nonnull final String key) {
+        return this.compoundSession.getByteArray(key);
     }
 
     /**
