@@ -701,14 +701,12 @@ public class LegacyNBT {
         /**
          * Retrieves a byte array from the underlying NBTTagCompound.
          *
-         * <p>If the reflective access fails (e.g., missing method reference or an
-         * exception during invocation), this method returns an empty byte array.
-         * A {@code null} value is only returned if the underlying NBT structure
-         * itself represents the tag as non-existent.</p>
+         * <p>Returns {@code null} if the NBT tag does not exist, or an empty array if
+         * the reflective call is unavailable or fails.</p>
          *
          * @param key the key of the stored byte array
-         * @return the byte array associated with the key, an empty array if reflection
-         * access fails, or {@code null} if the key does not exist in the NBT data.
+         * @return the byte array, {@code null} if the tag is missing, or
+         *         an empty array on reflection failure.
          */
         @Nullable
         public byte[] getByteArray(@Nonnull final String key) {

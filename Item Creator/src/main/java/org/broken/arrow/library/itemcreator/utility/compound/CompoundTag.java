@@ -146,8 +146,8 @@ public final class CompoundTag {
      * {@link #setByteArray(String, byte[])}.
      *
      * @param key the name of the tag to read
-     * @return the byte array associated with the key, an empty array if reflection
-     *         access fails, or {@code null} if the key does not exist in the NBT data.
+     * @return the byte array, {@code null} if the tag is missing, or
+     *         an empty array on reflection failure.
      */
     @Nullable
     public byte[] getByteArray(@Nonnull final String key) {
