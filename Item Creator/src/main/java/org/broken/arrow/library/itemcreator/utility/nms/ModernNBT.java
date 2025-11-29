@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.utility.nms;
 
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
 import org.broken.arrow.library.itemcreator.utility.compound.NbtData;
 import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
@@ -26,10 +27,10 @@ import java.util.logging.Level;
  * It should generally be accessed through {@link NbtData} or {@link CompoundTag} rather than
  * directly by plugin developers.</p>
  */
-public class LegacyNBT {
-    private static final Logging logger = new Logging(LegacyNBT.class);
+public class ModernNBT {
+    private static final Logging logger = new Logging(ModernNBT.class);
 
-    private LegacyNBT() {
+    private ModernNBT() {
     }
 
     /**
@@ -119,18 +120,24 @@ public class LegacyNBT {
 
             try {
                 final String craftPath = getCraftBukkitPath();
-                final String nmsPath = getNmsPath();
+                final String nmsPath = getItemStackPath();
 
                 final Class<?> craftItemStack = Class.forName(craftPath + ".inventory.CraftItemStack");
-                final Class<?> nmsItemStack = Class.forName(nmsPath + ".ItemStack");
-                final Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
-                final Class<?> nbtTagBase = Class.forName(getNbtTagBasePath());
-                Arrays.stream(nbtTagCompound.getMethods()).forEach(method -> {
-                    System.out.println("#########################################");
+                final Class<?> nmsItemStack = Class.forName(nmsPath);
+                Arrays.stream(nmsItemStack.getMethods()).forEach(method -> {
+                    System.out.println("############# nmsItemStack  ####################");
                     System.out.println("method nanme: " + method.getName());
                     System.out.println("method: " + method.toString());
                     System.out.println("method returns : " + method.getReturnType());
                 });
+                final Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
+                final Class<?> nbtTagBase = Class.forName(getNbtTagBasePath());
+/*                Arrays.stream(nbtTagCompound.getMethods()).forEach(method -> {
+                    System.out.println("#########################################");
+                    System.out.println("method nanme: " + method.getName());
+                    System.out.println("method: " + method.toString());
+                    System.out.println("method returns : " + method.getReturnType());
+                });*/
 
                 final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
@@ -139,21 +146,27 @@ public class LegacyNBT {
                 bukkitCopy = lookup.findStatic(craftItemStack, "asBukkitCopy",
                         MethodType.methodType(ItemStack.class, nmsItemStack));
 
+                //1.18.2 hasTag = s
                 hasNBTTag = lookup.findVirtual(nmsItemStack, "hasTag",
                         MethodType.methodType(boolean.class));
+                //1.18.2 getTag = t
                 getNBTTag = lookup.findVirtual(nmsItemStack, "getTag",
                         MethodType.methodType(nbtTagCompound));
+                //1.18.2 setTag = c
                 setNBTTag = lookup.findVirtual(nmsItemStack, "setTag",
                         MethodType.methodType(void.class, nbtTagCompound));
 
-                setNestedCompound = lookup.findVirtual(nbtTagCompound, "set", MethodType.methodType(void.class, String.class, nbtTagBase));
+                //1.18.2 set = a
+                setNestedCompound = lookup.findVirtual(nbtTagCompound, "set", MethodType.methodType(nbtTagBase, String.class, nbtTagBase));
+                //1.18.2 get = c
                 getNestedCompound = lookup.findVirtual(nbtTagCompound, "get", MethodType.methodType(nbtTagBase, String.class));
+                //1.18.2 getCompound = p
                 getCompoundM = lookup.findVirtual(nbtTagCompound, "getCompound", MethodType.methodType(nbtTagCompound, String.class));
 
                 tagConstructor = nbtTagCompound.getConstructor();
                 reflectionDone = true;
             } catch (IllegalAccessException | ClassNotFoundException | NoSuchMethodException e) {
-                logger.logError(e, () -> "Failed to initialize all NMS methods needed for legacy minecraft.");
+                logger.logError(e, () -> "Failed to initialize all NMS methods needed for modern minecraft.");
             }
             nbtTagConstructor = tagConstructor;
             SET_TAG = setNBTTag;
@@ -344,11 +357,25 @@ public class LegacyNBT {
         }
 
         private static String getNbtTagBasePath() {
-            return getNmsPath() + ".NBTBase";
+            final String nmsPath = getNmsPath();
+            if (ItemCreator.getServerVersion() > 16.5)
+                return nmsPath + ".nbt.NBTBase";
+
+            return nmsPath + ".NBTBase";
         }
 
         private static String getCraftBukkitPath() {
-            return "org.bukkit.craftbukkit." + getPackageVersion();
+            final String packageVersion = getPackageVersion();
+            if (packageVersion.isEmpty())
+                return "org.bukkit.craftbukkit";
+            return "org.bukkit.craftbukkit." + packageVersion;
+        }
+
+        private static String getItemStackPath() {
+            final String nmsPath = getNmsPath();
+            if (ItemCreator.getServerVersion() > 16.5)
+                return nmsPath + ".world.item.ItemStack";
+            return nmsPath + ".ItemStack";
         }
     }
 
@@ -393,40 +420,42 @@ public class LegacyNBT {
             try {
                 final Class<?> nbtTag = Class.forName(getNbtTagPath());
                 final MethodHandles.Lookup lookup = MethodHandles.lookup();
+                final MethodCompoundName compoundName = new MethodCompoundName();
 
-                hasTagKey = lookup.findVirtual(nbtTag, "hasKey",
+                hasTagKey = lookup.findVirtual(nbtTag, compoundName.hasKeyName(),
                         MethodType.methodType(boolean.class, String.class));
-                removeM = lookup.findVirtual(nbtTag, "remove",
+                removeM = lookup.findVirtual(nbtTag, compoundName.removeName(),
                         MethodType.methodType(void.class, String.class));
 
-                setIntM = lookup.findVirtual(nbtTag, "setInt",
+
+                setIntM = lookup.findVirtual(nbtTag, compoundName.setIntName(),
                         MethodType.methodType(void.class, String.class, int.class));
-                getIntM = lookup.findVirtual(nbtTag, "getInt",
+                getIntM = lookup.findVirtual(nbtTag, compoundName.getIntName(),
                         MethodType.methodType(int.class, String.class));
 
-                setShortM = lookup.findVirtual(nbtTag, "setShort",
+                setShortM = lookup.findVirtual(nbtTag, compoundName.setShortName(),
                         MethodType.methodType(void.class, String.class, short.class));
-                getShortM = lookup.findVirtual(nbtTag, "getShort",
+                getShortM = lookup.findVirtual(nbtTag, compoundName.getShortName(),
                         MethodType.methodType(short.class, String.class));
 
-                setByteM = lookup.findVirtual(nbtTag, "setByte",
+                setByteM = lookup.findVirtual(nbtTag, compoundName.setByteName(),
                         MethodType.methodType(void.class, String.class, byte.class));
-                getByteM = lookup.findVirtual(nbtTag, "getByte",
+                getByteM = lookup.findVirtual(nbtTag, compoundName.getByteName(),
                         MethodType.methodType(byte.class, String.class));
 
-                setByteArrayM = lookup.findVirtual(nbtTag, "setByteArray",
+                setByteArrayM = lookup.findVirtual(nbtTag, compoundName.setByteArrayName(),
                         MethodType.methodType(void.class, String.class, byte[].class));
-                getByteArrayM = lookup.findVirtual(nbtTag, "getByteArray",
+                getByteArrayM = lookup.findVirtual(nbtTag, compoundName.getByteArrayName(),
                         MethodType.methodType(byte[].class, String.class));
 
-                setStringM = lookup.findVirtual(nbtTag, "setString",
+                setStringM = lookup.findVirtual(nbtTag, compoundName.setStringName(),
                         MethodType.methodType(void.class, String.class, String.class));
-                getStringM = lookup.findVirtual(nbtTag, "getString",
+                getStringM = lookup.findVirtual(nbtTag, compoundName.getStringName(),
                         MethodType.methodType(String.class, String.class));
 
-                setBooleanM = lookup.findVirtual(nbtTag, "setBoolean",
+                setBooleanM = lookup.findVirtual(nbtTag, compoundName.setBooleanName(),
                         MethodType.methodType(void.class, String.class, boolean.class));
-                getBooleanM = lookup.findVirtual(nbtTag, "getBoolean",
+                getBooleanM = lookup.findVirtual(nbtTag, compoundName.getBooleanName(),
                         MethodType.methodType(boolean.class, String.class));
 
             } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
@@ -645,14 +674,22 @@ public class LegacyNBT {
             return -1;
         }
 
+
     }
+
+
 
     private static String getNbtTagPath() {
-        return getNmsPath() + ".NBTTagCompound";
+        final String nmsPath = getNmsPath();
+        if (ItemCreator.getServerVersion() > 16.5)
+            return nmsPath + ".nbt.NBTTagCompound";
+
+        return nmsPath + ".NBTTagCompound";
     }
 
-
     private static String getNmsPath() {
+        if (ItemCreator.getServerVersion() > 16.5)
+            return "net.minecraft";
         return "net.minecraft.server." + getPackageVersion();
     }
 
@@ -665,6 +702,8 @@ public class LegacyNBT {
      * @return it returns for example v1_8_R3
      */
     private static String getPackageVersion() {
+        if (ItemCreator.getServerVersion() > 19.4)
+            return "";
         return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
     }
 
@@ -700,5 +739,95 @@ public class LegacyNBT {
         public String getMessage() {
             return message;
         }
+    }
+
+    private static class MethodCompoundName {
+
+        private final float serverVersion = ItemCreator.getServerVersion();
+
+        private String hasKeyName() {
+            if (serverVersion < 18.0)
+                return "hasKey";
+            return "e";
+        }
+
+        private String removeName() {
+            if (serverVersion < 18.0)
+                return "remove";
+            return "r";
+        }
+
+        private String setIntName() {
+            if (serverVersion < 18.0)
+                return "setInt";
+            return "a";
+        }
+
+        private String getIntName() {
+            if (serverVersion < 18.0)
+                return "getInt";
+            return "h";
+        }
+
+        private String setShortName() {
+            if (serverVersion < 18.0)
+                return "setShort";
+            return "a";
+        }
+
+        private String getShortName() {
+            if (serverVersion < 18.0)
+                return "getShort";
+            return "g";
+        }
+
+        private String setByteName() {
+            if (serverVersion < 18.0)
+                return "setByte";
+            return "a";
+        }
+
+        private String getByteName() {
+            if (serverVersion < 18.0)
+                return "getByte";
+            return "f";
+        }
+
+        private String setByteArrayName() {
+            if (serverVersion < 18.0)
+                return "setByteArray";
+            return "a";
+        }
+
+        private String getByteArrayName() {
+            if (serverVersion < 18.0)
+                return "getByteArray";
+            return "m";
+        }
+
+        private String setStringName() {
+            if (serverVersion < 18.0)
+                return "setString";
+            return "a";
+        }
+
+        private String getStringName() {
+            if (serverVersion < 18.0)
+                return "getString";
+            return "l";
+        }
+
+        private String setBooleanName() {
+            if (serverVersion < 18.0)
+                return "setBoolean";
+            return "a";
+        }
+
+        private String getBooleanName() {
+            if (serverVersion < 18.0)
+                return "getBoolean";
+            return "q";
+        }
+
     }
 }

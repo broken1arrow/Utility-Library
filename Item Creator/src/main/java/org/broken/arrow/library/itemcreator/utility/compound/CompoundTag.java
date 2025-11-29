@@ -2,6 +2,8 @@ package org.broken.arrow.library.itemcreator.utility.compound;
 
 
 import org.broken.arrow.library.itemcreator.utility.nms.LegacyNBT;
+import org.broken.arrow.library.itemcreator.utility.nms.NBTAdapter;
+import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
@@ -25,7 +27,7 @@ import javax.annotation.Nullable;
  *
  */
 public final class CompoundTag {
-    private final LegacyNBT.CompoundSession compoundSession;
+    private final CompoundEditor compoundSession;
 
     /**
      * Creates a new {@link CompoundTag} for the given NBTTagCompound handle.
@@ -39,7 +41,7 @@ public final class CompoundTag {
      */
     public CompoundTag(@Nonnull final Object  handle) {
         Validate.checkNotNull(handle, "CompoundTag handle cannot be null");
-        compoundSession = LegacyNBT.compoundSession(handle);
+        compoundSession = NBTAdapter.compoundSession(handle);
         Validate.checkNotNull(compoundSession, "The compound session could not be loaded.");
     }
 

@@ -1,56 +1,30 @@
-package org.broken.arrow.library.itemcreator.utility.compound;
+package org.broken.arrow.library.itemcreator.utility.nms.api;
 
-
+import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
 import org.broken.arrow.library.itemcreator.utility.nms.LegacyNBT;
-import org.broken.arrow.library.itemcreator.utility.nms.NBTAdapter;
-import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
-import org.broken.arrow.library.logging.Validate;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Wraps an NMS ItemStack and provides access to its NBTTagCompound through
- * the {@link CompoundTag} abstraction.
- *
- * <p>This class is only fully functional in legacy Minecraft versions where
- * certain vanilla item properties are not exposed by the Bukkit API.
- * These values (for example {@code Unbreakable}) are written at a low NMS
- * level and affect the actual behaviour of the item, unlike custom NBT
- * values used only by plugins.</p>
+ * A transient interface for modifying an Item's NBT data.
  */
-public class NbtData {
-    private final NbtEditor session;
+public interface NbtEditor {
 
     /**
-     * Creates a new NbtData wrapper.
+     * Checks if it has loaded all reflections.
      *
-     * @param itemStack the itemStack to alter the NBT tags on.
+     * @return true if everything is loaded correctly.
      */
-    public NbtData(final ItemStack itemStack) {
-        this.session = NBTAdapter.session(itemStack);
-        Validate.checkNotNull(this.session,"The underlying NBT session could not be loaded.");
-    }
-
-    /**
-     * Indicates whether required NMS and NBT classes were successfully
-     * resolved through reflection.
-     *
-     * @return {@code true} if legacy NBT operations are supported
-     */
-    public boolean isReflectionReady() {
-        return this.session.isReady();
-    }
+    boolean isReady();
 
     /**
      * Checks if the item has a NBTTagCompound.
      *
      * @return {@code true} if it has an NBTTagCompound.
      */
-    public boolean hasTag() {
-        return this.session.hasTag();
-    }
+    boolean hasTag();
 
     /**
      * Checks whether this item contains an {@code NBTTagCompound} with the given name.
@@ -62,9 +36,7 @@ public class NbtData {
      *             use an empty string or {@link #hasTag()}.
      * @return {@code true} if the specified (or root) compound exists
      */
-    public boolean hasTag(@Nonnull final String name) {
-            return this.session.hasTag(name);
-    }
+    boolean hasTag(@Nonnull final String name);
 
     /**
      * Returns the root {@link CompoundTag} of this item, creating one if it does not exist.
@@ -75,9 +47,7 @@ public class NbtData {
      * @return the root {@link CompoundTag}, never {@code null} unless reflection failed.
      */
     @Nullable
-    public CompoundTag getOrCreateCompound() {
-        return this.session.getOrCreateCompound();
-    }
+    CompoundTag getOrCreateCompound();
 
     /**
      * Returns a {@link CompoundTag} with the given name, creating it if it does not exist.
@@ -91,9 +61,7 @@ public class NbtData {
      * @return the existing or newly created {@link CompoundTag}, or {@code null} if reflection failed.
      */
     @Nullable
-    public CompoundTag getOrCreateCompound(@Nonnull final String name) {
-        return this.session.getOrCreateCompound(name);
-    }
+    CompoundTag getOrCreateCompound(@Nonnull final String name);
 
 
     /**
@@ -105,9 +73,7 @@ public class NbtData {
      * @return the root {@link CompoundTag} if present, otherwise {@code null}.
      */
     @Nullable
-    public CompoundTag getCompound() {
-        return this.session.getCompound();
-    }
+    CompoundTag getCompound();
 
     /**
      * Returns the {@link CompoundTag} with the given name if present.
@@ -122,19 +88,32 @@ public class NbtData {
      * @return the existing {@link CompoundTag} if present, otherwise {@code null}.
      */
     @Nullable
-    public CompoundTag getCompound(@Nonnull final String name) {
-        return this.session.getCompound(name);
-    }
+    CompoundTag getCompound(@Nonnull final String name);
 
     /**
-     * Applies the current CompoundTag to the ItemStack and returns
-     * a new Bukkit ItemStack instance.
+     * Applies the current NBT data of this item to the underlying {@link ItemStack} and
+     * returns a new Bukkit {@link ItemStack} instance.
+     * <p>
+     * This method always applies the root {@link CompoundTag}, including any nested compounds
+     * created via {@link #getOrCreateCompound(String)}. The returned item will contain the
+     * full NBT structure currently set in this session.
+     * <p>
+     * The method checks the {@link LegacyNBT.CompoundState} before applying changes:
+     * <ul>
+     *     <li>{@link LegacyNBT.CompoundState#CREATED}: Compound exists and will be applied.</li>
+     *     <li>{@link LegacyNBT.CompoundState#NULL}: No compound exists, nothing is applied.</li>
+     *     <li>{@link LegacyNBT.CompoundState#ERROR}: Reflection failed or compound initialization failed,
+     *     nothing is applied.</li>
+     *     <li>{@link LegacyNBT.CompoundState#NOT_CREATED}: No compound has been created yet.</li>
+     * </ul>
+     * <p>
+     * Use {@link #getOrCreateCompound()} or {@link #getOrCreateCompound(String)} to ensure a
+     * compound exists before calling this method.
      *
-     * @return Returns the copy of your itemStack with the nbt set.
+     * @return a new {@link ItemStack} containing the applied NBT, or the original {@link ItemStack}
+     * if the compound was not created or an error occurred.
      */
-    @Nullable
-    public ItemStack apply() {
-        return this.session.finalizeChanges();
-    }
+    @Nonnull
+    ItemStack finalizeChanges();
 
 }
