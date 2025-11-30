@@ -1,7 +1,6 @@
 package org.broken.arrow.library.itemcreator.utility.compound;
 
 
-import org.broken.arrow.library.itemcreator.utility.nms.LegacyNBT;
 import org.broken.arrow.library.itemcreator.utility.nms.NBTAdapter;
 import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
 import org.broken.arrow.library.logging.Validate;
