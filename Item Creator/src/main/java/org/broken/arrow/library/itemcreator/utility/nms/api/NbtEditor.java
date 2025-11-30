@@ -1,7 +1,7 @@
 package org.broken.arrow.library.itemcreator.utility.nms.api;
 
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.nms.LegacyNBT;
+import org.broken.arrow.library.itemcreator.utility.nms.NBTAdapter;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -98,13 +98,13 @@ public interface NbtEditor {
      * created via {@link #getOrCreateCompound(String)}. The returned item will contain the
      * full NBT structure currently set in this session.
      * <p>
-     * The method checks the {@link LegacyNBT.CompoundState} before applying changes:
+     * The method checks the {@link NBTAdapter.CompoundState} before applying changes:
      * <ul>
-     *     <li>{@link LegacyNBT.CompoundState#CREATED}: Compound exists and will be applied.</li>
-     *     <li>{@link LegacyNBT.CompoundState#NULL}: No compound exists, nothing is applied.</li>
-     *     <li>{@link LegacyNBT.CompoundState#ERROR}: Reflection failed or compound initialization failed,
+     *     <li>{@link NBTAdapter.CompoundState#CREATED}: Compound exists and will be applied.</li>
+     *     <li>{@link NBTAdapter.CompoundState#NULL}: No compound exists, nothing is applied.</li>
+     *     <li>{@link NBTAdapter.CompoundState#ERROR}: Reflection failed or compound initialization failed,
      *     nothing is applied.</li>
-     *     <li>{@link LegacyNBT.CompoundState#NOT_CREATED}: No compound has been created yet.</li>
+     *     <li>{@link NBTAdapter.CompoundState#NOT_CREATED}: No compound has been created yet.</li>
      * </ul>
      * <p>
      * Use {@link #getOrCreateCompound()} or {@link #getOrCreateCompound(String)} to ensure a

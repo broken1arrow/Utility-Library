@@ -22,11 +22,17 @@ import java.util.logging.Level;
 
 /**
  * Provides reflective access to NMS ItemStacks and NBTTagCompounds in legacy
- * Minecraft versions see {@link NbtData} for more info.
+ * Minecraft versions. See {@link NbtData} for more information.
  *
  * <p>This class is intended as an internal utility for low-level item modifications.
  * It should generally be accessed through {@link NbtData} or {@link CompoundTag} rather than
  * directly by plugin developers.</p>
+ *
+ * <p><strong>Note:</strong> Because this class relies on reflection into obfuscated NMS code,
+ * it may not work correctly on the latest Minecraft versions, or it may lag behind
+ * Mojang's latest changes. Always verify availability through
+ * {@link NbtEditor#isReady()} before using.
+ * </p>
  */
 public class NBTAdapter {
     private static final Logging logger = new Logging(NBTAdapter.class);

@@ -30,8 +30,13 @@ public class NBTItemTagMappings {
 
             getCompound = "getCompound";
         } else {
-            hasTag = "s";
-            getTag = "t";
+            if (version > 18.9f) {
+                hasTag = "t";
+                getTag = "u";
+            } else {
+                hasTag = "s";
+                getTag = "t";
+            }
             setTag = "c";
 
             setNestedCompound = "a";
