@@ -30,13 +30,8 @@ public class NBTItemTagMappings {
 
             getCompound = "getCompound";
         } else {
-            if (version > 18.9f) {
-                hasTag = "t";
-                getTag = "u";
-            } else {
-                hasTag = "s";
-                getTag = "t";
-            }
+            hasTag = hasTagMethodName(version);
+            getTag = getTagMethodName(version);
             setTag = "c";
 
             setNestedCompound = "a";
@@ -87,4 +82,26 @@ public class NBTItemTagMappings {
     public String getCompoundName() {
         return this.getCompound;
     }
+
+
+    private String hasTagMethodName(final float version) {
+        if (version > 18.9f) {
+            if (version > 20.0f) {
+                return "u";
+            }
+            return "t";
+        }
+        return "s";
+    }
+
+    private String getTagMethodName(final float version) {
+        if (version > 18.9f) {
+            if (version > 20.0f) {
+                return "v";
+            }
+            return "u";
+        }
+        return "t";
+    }
+
 }

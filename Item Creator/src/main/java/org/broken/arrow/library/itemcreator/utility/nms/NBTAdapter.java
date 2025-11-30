@@ -668,9 +668,11 @@ public class NBTAdapter {
 
     private static String getNbtTagPath() {
         final String nmsPath = getNmsPath();
-        if (ItemCreator.getServerVersion() > 16.5)
+        if (ItemCreator.getServerVersion() > 16.5f) {
+            if (ItemCreator.getServerVersion() > 20.4f)
+                return nmsPath + ".nbt.CompoundTag";
             return nmsPath + ".nbt.NBTTagCompound";
-
+        }
         return nmsPath + ".NBTTagCompound";
     }
 
@@ -689,9 +691,9 @@ public class NBTAdapter {
      * @return it returns for example v1_8_R3
      */
     private static String getPackageVersion() {
-        if (ItemCreator.getServerVersion() > 19.4)
-            return "";
-        return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+        if (ItemCreator.getServerVersion() > 20.4f)
+          return "";
+        return Bukkit.getServer().getClass().toGenericString().split("\\.")[3];
     }
 
     /**
