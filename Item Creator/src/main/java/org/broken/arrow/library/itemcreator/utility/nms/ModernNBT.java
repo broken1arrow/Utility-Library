@@ -16,7 +16,6 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
 import java.util.logging.Level;
 
 /**
@@ -96,7 +95,6 @@ public class ModernNBT {
         private static final MethodHandle GET_TAG;
         private static final MethodHandle SET_TAG;
         private static final Constructor<?> nbtTagConstructor;
-        private static final MethodHandle GET_COMPOUND;
         private static final MethodHandle GET_NESTED_COMPOUND;
         private static final MethodHandle SET_NESTED_COMPOUND;
 
@@ -113,7 +111,6 @@ public class ModernNBT {
             MethodHandle hasNBTTag = null;
             MethodHandle bukkitCopy = null;
             MethodHandle nMSCopyItem = null;
-            MethodHandle getCompoundM = null;
             MethodHandle getNestedCompound = null;
             MethodHandle setNestedCompound = null;
             boolean reflectionDone = false;
@@ -121,25 +118,13 @@ public class ModernNBT {
             try {
                 final String craftPath = getCraftBukkitPath();
                 final String nmsPath = getItemStackPath();
-
                 final Class<?> craftItemStack = Class.forName(craftPath + ".inventory.CraftItemStack");
                 final Class<?> nmsItemStack = Class.forName(nmsPath);
-                Arrays.stream(nmsItemStack.getMethods()).forEach(method -> {
-                    System.out.println("############# nmsItemStack  ####################");
-                    System.out.println("method nanme: " + method.getName());
-                    System.out.println("method: " + method.toString());
-                    System.out.println("method returns : " + method.getReturnType());
-                });
                 final Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
                 final Class<?> nbtTagBase = Class.forName(getNbtTagBasePath());
-/*                Arrays.stream(nbtTagCompound.getMethods()).forEach(method -> {
-                    System.out.println("#########################################");
-                    System.out.println("method nanme: " + method.getName());
-                    System.out.println("method: " + method.toString());
-                    System.out.println("method returns : " + method.getReturnType());
-                });*/
 
                 final MethodHandles.Lookup lookup = MethodHandles.lookup();
+                final MethodItemTagName itemTagName = new MethodItemTagName();
 
                 nMSCopyItem = lookup.findStatic(craftItemStack, "asNMSCopy",
                         MethodType.methodType(nmsItemStack, ItemStack.class));
@@ -147,21 +132,19 @@ public class ModernNBT {
                         MethodType.methodType(ItemStack.class, nmsItemStack));
 
                 //1.18.2 hasTag = s
-                hasNBTTag = lookup.findVirtual(nmsItemStack, "hasTag",
+                hasNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.hasTagName(),
                         MethodType.methodType(boolean.class));
                 //1.18.2 getTag = t
-                getNBTTag = lookup.findVirtual(nmsItemStack, "getTag",
+                getNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.getTagName(),
                         MethodType.methodType(nbtTagCompound));
                 //1.18.2 setTag = c
-                setNBTTag = lookup.findVirtual(nmsItemStack, "setTag",
+                setNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.setTagName(),
                         MethodType.methodType(void.class, nbtTagCompound));
 
                 //1.18.2 set = a
-                setNestedCompound = lookup.findVirtual(nbtTagCompound, "set", MethodType.methodType(nbtTagBase, String.class, nbtTagBase));
+                setNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.setNestedCompoundName(), MethodType.methodType(nbtTagBase, String.class, nbtTagBase));
                 //1.18.2 get = c
-                getNestedCompound = lookup.findVirtual(nbtTagCompound, "get", MethodType.methodType(nbtTagBase, String.class));
-                //1.18.2 getCompound = p
-                getCompoundM = lookup.findVirtual(nbtTagCompound, "getCompound", MethodType.methodType(nbtTagCompound, String.class));
+                getNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.getNestedCompoundName(), MethodType.methodType(nbtTagBase, String.class));
 
                 tagConstructor = nbtTagCompound.getConstructor();
                 reflectionDone = true;
@@ -174,7 +157,6 @@ public class ModernNBT {
             HAS_TAG = hasNBTTag;
             AS_BUKKIT_ITEM_COPY = bukkitCopy;
             NMS_ITEM_COPY = nMSCopyItem;
-            GET_COMPOUND = getCompoundM;
             GET_NESTED_COMPOUND = getNestedCompound;
             SET_NESTED_COMPOUND = setNestedCompound;
             REFLECTION_READY = reflectionDone;
@@ -377,6 +359,8 @@ public class ModernNBT {
                 return nmsPath + ".world.item.ItemStack";
             return nmsPath + ".ItemStack";
         }
+
+
     }
 
     /**
@@ -678,7 +662,6 @@ public class ModernNBT {
     }
 
 
-
     private static String getNbtTagPath() {
         final String nmsPath = getNmsPath();
         if (ItemCreator.getServerVersion() > 16.5)
@@ -742,7 +725,6 @@ public class ModernNBT {
     }
 
     private static class MethodCompoundName {
-
         private final float serverVersion = ItemCreator.getServerVersion();
 
         private String hasKeyName() {
@@ -829,5 +811,45 @@ public class ModernNBT {
             return "q";
         }
 
+    }
+
+    private static class MethodItemTagName {
+        private final float serverVersion = ItemCreator.getServerVersion();
+
+        private String hasTagName() {
+            if (serverVersion < 18.0)
+                return "hasTag";
+            return "s";
+        }
+
+        private String getTagName() {
+            if (serverVersion < 18.0)
+                return "getTag";
+            return "t";
+        }
+
+        private String setTagName() {
+            if (serverVersion < 18.0)
+                return "setTag";
+            return "c";
+        }
+
+        private String setNestedCompoundName() {
+            if (serverVersion < 18.0)
+                return "set";
+            return "a";
+        }
+
+        private String getNestedCompoundName() {
+            if (serverVersion < 18.0)
+                return "get";
+            return "c";
+        }
+
+        private String getCompoundName() {
+            if (serverVersion < 18.0)
+                return "getCompound";
+            return "p";
+        }
     }
 }
