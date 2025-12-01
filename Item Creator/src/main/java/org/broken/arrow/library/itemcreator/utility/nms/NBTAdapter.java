@@ -60,6 +60,14 @@ public class NBTAdapter {
      * @throws IllegalStateException if the NMS bridge is not available
      */
     public static NbtEditor session(@Nonnull final ItemStack stack) {
+        if (ItemCreator.getServerVersion() > 20.4f) {
+            ComponentItemDataSession componentItem = new ComponentItemDataSession(stack);
+            if (!componentItem.isReady()) {
+                logger.log(Level.WARNING, () -> "NMS bridge not loaded");
+                return null;
+            }
+            return new ComponentItemDataSession(stack);
+        }
         if (!NmsItemSession.REFLECTION_READY) {
             logger.log(Level.WARNING, () -> "NMS bridge not loaded");
             return null;
@@ -692,7 +700,7 @@ public class NBTAdapter {
      */
     private static String getPackageVersion() {
         if (ItemCreator.getServerVersion() > 20.4f)
-          return "";
+            return "";
         return Bukkit.getServer().getClass().toGenericString().split("\\.")[3];
     }
 
