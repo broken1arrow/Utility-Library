@@ -13,7 +13,7 @@ import java.util.*;
  * ComponentInjector - writes component values directly into the ItemStack "components" NBT.
  * - Reflection-only (no net.minecraft.core.* or com.mojang.* direct usage).
  * - Supports primitives, strings, byte[]/int[], Map -> CompoundTag and List -> ListTag.
- *
+ * <p>
  * Usage:
  *   ItemStack updated = ComponentInjector.setComponentRaw(item, "minecraft:max_stack_size", 4);
  *   ItemStack updated = ComponentInjector.setComponentRaw(item, "minecraft:custom_data", Map.of("plugin", Map.of("k", 1)));
@@ -168,6 +168,11 @@ public final class ComponentInjector {
      * - Map<String,Object> -> converted to CompoundTag recursively
      * - List<Object> -> converted to ListTag of corresponding element tags
      * - an existing NMS Tag instance (net.minecraft.nbt.Tag)
+     *
+     * @param bukkitItem the item to modify
+     * @param componentId the id like  minecraft:damage
+     * @param value the value to set
+     * @return return itemStack.
      */
     public static ItemStack setComponentRaw(ItemStack bukkitItem, String componentId, Object value) {
         try {

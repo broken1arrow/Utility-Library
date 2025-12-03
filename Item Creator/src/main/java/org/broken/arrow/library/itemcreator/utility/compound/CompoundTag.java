@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * and no changes will be applied to the compound.</p>
  *
  */
-public final class CompoundTag {
+public class CompoundTag {
     private final CompoundEditor compoundSession;
 
     /**
