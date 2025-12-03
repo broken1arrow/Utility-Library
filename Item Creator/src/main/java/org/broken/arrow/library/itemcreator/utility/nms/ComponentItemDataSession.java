@@ -276,9 +276,7 @@ public class ComponentItemDataSession implements NbtEditor {
             }
             READY_VANILLA = ok;
         }
-
-        private final Map<String, Object> buffer = new HashMap<>();
-
+        
         private final Object nmsStack;                     // The real NMS ItemStack
         private final Map<String, Object> bufferedValues;// key → primitive or String
 
@@ -373,12 +371,12 @@ public class ComponentItemDataSession implements NbtEditor {
          * only primitives and Strings.
          */
         public void applyBuffered() {
-            if (buffer.isEmpty()) return;
+            if (bufferedValues.isEmpty()) return;
             try {
-                for (Map.Entry<String, Object> e : buffer.entrySet()) {
+                for (Map.Entry<String, Object> e : bufferedValues.entrySet()) {
                     ComponentInjector.setComponentRaw(this.nmsStack, e.getKey(), e.getValue());
                 }
-                buffer.clear();
+                bufferedValues.clear();
             } catch (Throwable t) {
                 t.printStackTrace();
             }
