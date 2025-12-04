@@ -5,7 +5,7 @@ import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface CompoundEditor {
+public interface CompoundEditor{
 
     /**
      * Checks if it has loaded all reflections.

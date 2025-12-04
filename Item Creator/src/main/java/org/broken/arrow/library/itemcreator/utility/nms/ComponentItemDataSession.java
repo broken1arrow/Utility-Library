@@ -26,6 +26,7 @@ import java.util.*;
  * <p>
  */
 public class ComponentItemDataSession implements NbtEditor {
+    private static final Logging logger = new Logging(ComponentAccess.class);
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
     // Core handles (CUSTOM_DATA path)
     private static final MethodHandle AS_NMS_COPY;
@@ -94,7 +95,7 @@ public class ComponentItemDataSession implements NbtEditor {
             }
 
         } catch (Throwable t) {
-            t.printStackTrace();
+            logger.logError(t,()->"Could not load ComponentItemDataSession reflections");
             ok = false;
         }
 
