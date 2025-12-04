@@ -33,6 +33,14 @@ public class NbtData {
     }
 
     /**
+     * something
+     * @return Session
+     */
+    public NbtEditor getSession() {
+        return session;
+    }
+
+    /**
      * Indicates whether required NMS and NBT classes were successfully
      * resolved through reflection.
      *

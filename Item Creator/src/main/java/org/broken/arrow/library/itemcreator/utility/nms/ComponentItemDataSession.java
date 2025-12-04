@@ -2,7 +2,9 @@ package org.broken.arrow.library.itemcreator.utility.nms;
 
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
 import org.broken.arrow.library.itemcreator.utility.compound.VanillaCompoundTag;
+import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
 import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
+import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -10,13 +12,10 @@ import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Unified legacy-friendly session for item custom data (CUSTOM_DATA) + optional nested vanilla component helper.
@@ -35,7 +34,7 @@ public class ComponentItemDataSession implements NbtEditor {
     private static final MethodHandle ITEMSTACK_SET;
     private static final MethodHandle CUSTOMDATA_OF;
     private static final MethodHandle CUSTOMDATA_COPYTAG;
-    private static final MethodHandle NMS_COMPOUND_PUT; // CompoundTag.put(String, Tag)
+    private static final MethodHandle NMS_COMPOUND_PUT;// CompoundTag.put(String, Tag)
 
     private static final Class<?> NMS_COMPOUND_CLASS;
     private static final Object CUSTOM_DATA_TYPE_KEY;
@@ -194,7 +193,7 @@ public class ComponentItemDataSession implements NbtEditor {
             // apply custom_data back
             applyCustomDataCache();
             if (vanillaSession != null)
-                vanillaSession.applyBuffered();
+                vanillaSession.apply();
             return (ItemStack) AS_BUKKIT_COPY.invoke(nmsStack);
         } catch (Throwable t) {
             t.printStackTrace();
@@ -256,78 +255,152 @@ public class ComponentItemDataSession implements NbtEditor {
         }
     }
 
-    // ----------------- VanillaComponentSession nested (lazy) -----------------
-
     /**
-     * Lazy-loaded helper for vanilla components.
-     * Manages NMS ItemStack components and a buffered set of staged changes.
+     * Handle the new way where minecraft using Codec and MinecraftKey, however in paper and newer spigot
+     * it is using ResourceLocation and ResourceKey.
+     *
      */
-    public static final class VanillaComponentSession {
-        private static final boolean READY_VANILLA;
+    public static final class VanillaComponentSession implements CompoundEditor {
 
-        // minimal handles used by injector
-        static {
-            boolean ok = true;
-            try {
-                // No static work here except verification; ComponentInjector will perform heavy binding lazily.
-                Class.forName("net.minecraft.world.item.ItemStack");
-            } catch (Throwable t) {
-                ok = false;
-            }
-            READY_VANILLA = ok;
-        }
-        
-        private final Object nmsStack;                     // The real NMS ItemStack
-        private final Map<String, Object> bufferedValues;// key → primitive or String
+        private final Object nmsStack;
+        private final Map<String, Object> buffer = new HashMap<>();
 
         /**
-         * Creates a new session for the given NMS ItemStack.
+         * Checks if it has loaded all reflections.
          *
-         * @param nmsStack the NMS ItemStack to operate on
+         * @return true if everything is loaded correctly.
+         */
+        public static boolean isReady(){
+            return ComponentAccess.isReady();
+        }
+
+        /**
+         * Create vanilla
+         *
+         * @param nmsStack the nms itemStack
          */
         public VanillaComponentSession(@Nonnull final Object nmsStack) {
             this.nmsStack = nmsStack;
-            this.bufferedValues = new HashMap<>();
         }
 
         /**
-         * Checks if this helper is ready (NMS classes found).
+         * Set the int value to the raw compound.
          *
-         * @return true if ready
+         * @param key   component key.
+         * @param value a number
          */
-        public boolean isReady() {
-            return READY_VANILLA;
+        @Override
+        public void setInt(@Nonnull final String key, final int value) {
+            buffer.put(key, Integer.valueOf(value));
         }
 
         /**
-         * Stages an integer value to be applied to the NMS ItemStack.
+         * Retrieve the int value from  the raw compound.
          *
-         * @param key   component key
-         * @param value integer value
+         * @param key component key.
          */
-        public void setInt(String key, int value) {
-            bufferedValues.put(key, Integer.valueOf(value));
+        @Override
+        public int getInt(@Nonnull final String key) {
+            Object v = get(key);
+            if (v instanceof Number)
+                return ((Number) v).intValue();
+            return -1;
         }
 
         /**
-         * Stages a string value to be applied to the NMS ItemStack.
+         * Set the String value to the raw compound.
          *
-         * @param key   component key
-         * @param value your value, like string,int,short and more or
-         *              {@code null} to remove the key if it exists.
+         * @param key   component key.
+         * @param value a string
          */
-        public void setValue(@Nonnull final String key, @Nullable final Object value) {
-            bufferedValues.put(key, value);
+        @Override
+        public void setString(@Nonnull final String key, final String value) {
+            buffer.put(key, value);
         }
 
         /**
-         * Removes a component from both the NMS ItemStack and the buffer.
+         * Retrieve the String value from the raw compound.
          *
-         * @param key component key
+         * @param key component key.
          */
-        public void remove(String key) {
-            bufferedValues.remove(key);
-            ComponentInjector.removeComponent(nmsStack, key);
+        @Override
+        @Nonnull
+        public String getString(@Nonnull final String key) {
+            Object v = get(key);
+            return (v != null) ? v.toString() : "";
+        }
+
+        @Override
+        public void setByte(@Nonnull final String key, final byte value) {
+            buffer.put(key, value);
+        }
+
+        @Override
+        public byte getByte(@Nonnull final String key) {
+            Object v = get(key);
+            if (v instanceof Byte)
+                return (byte) v;
+            return -1;
+        }
+
+        @Override
+        public void setByteArray(@Nonnull final String key, final byte[] value) {
+            buffer.put(key, value);
+        }
+
+        @Nonnull
+        @Override
+        public byte[] getByteArray(@Nonnull final String key) {
+            Object v = get(key);
+            if (v instanceof byte[])
+                return (byte[]) v;
+            return new byte[0];
+        }
+
+        /**
+         * Set the String value to the raw compound.
+         *
+         * @param key   component key.
+         * @param value true or false
+         */
+        @Override
+        public void setBoolean(@Nonnull final String key, boolean value) {
+            buffer.put(key, value);
+        }
+
+        /**
+         * Retrieve the boolean value from the raw compound.
+         *
+         * @param key component key.
+         * @return Returns {@code true} if value exists and set to true. Check
+         * with {@link #hasKey(String)} to make sure the key is set.
+         */
+        @Override
+        public boolean getBoolean(@Nonnull final String key) {
+            Object v = get(key);
+            if (v instanceof Boolean)
+                return (boolean) v;
+            return false;
+        }
+
+        @Override
+        public void setShort(@Nonnull final String key, final short value) {
+            buffer.put(key, value);
+        }
+
+        @Override
+        public short getShort(@Nonnull final String key) {
+            Object v = get(key);
+            if (v instanceof Short)
+                return (short) v;
+            return -1;
+        }
+
+
+        @Nonnull
+        @Override
+        public Object getHandle() {
+            return "";
         }
 
         /**
@@ -336,243 +409,239 @@ public class ComponentItemDataSession implements NbtEditor {
          * @param key component key
          * @return true if the key exists
          */
-        public boolean hasKey(String key) {
-            return ComponentInjector.hasComponent(nmsStack, key);
+        @Override
+        public boolean hasKey(@Nonnull String key) {
+            Object type = ComponentAccess.resolve(key);
+            return ComponentAccess.getComponent(nmsStack, type) != null;
         }
 
         /**
-         * Retrieve the component as stored in the NMS ItemStack.
+         * Get the raw set value
          *
-         * @param key the component key
-         * @return the raw component, which may be a primitive, String,
-         * or a nested structure (like a CompoundTag or ListTag),
-         * or {@code null} if the component does not exist.
+         * @param key component key
+         * @return the object.
          */
-        @Nullable
-        public Object getRaw(String key) {
-            return ComponentInjector.getComponent(nmsStack, key);
+        private Object getRaw(String key) {
+            Object type = ComponentAccess.resolve(key);
+            return ComponentAccess.getComponent(nmsStack, type);
         }
 
         /**
-         * Retrieve a buffered value that was set via {@link #setInt} or {@link #setValue}.
-         * This only includes values staged in this session, not the underlying NMS component.
+         * Remove a component from the "components" compound
          *
-         * @param key the component key
-         * @return the buffered value, or {@code null} if none is buffered.
+         * @param key component key.
          */
-        @Nullable
-        public Object get(String key) {
-            return bufferedValues.get(key);
+        public void remove(@Nonnull String key) {
+            Object type = ComponentAccess.resolve(key);
+            ComponentAccess.removeComponent(nmsStack, type);
+            buffer.remove(key);
         }
 
         /**
-         * Applies all buffered values to the underlying NMS ItemStack
-         * and clears the buffer. Nested structures are not supported here;
-         * only primitives and Strings.
+         * Apply the set data.
          */
-        public void applyBuffered() {
-            if (bufferedValues.isEmpty()) return;
+        public void apply() {
+            if (buffer.isEmpty()) return;
+
             try {
-                for (Map.Entry<String, Object> e : bufferedValues.entrySet()) {
-                    ComponentInjector.setComponentRaw(this.nmsStack, e.getKey(), e.getValue());
+                for (Map.Entry<String, Object> e : buffer.entrySet()) {
+
+                    String key = e.getKey();
+                    Object value = e.getValue();
+
+                    // Resolve NMS component type
+                    Object type = ComponentAccess.resolve(key);
+                    // Write into NMS ItemStack
+                    ComponentAccess.setComponent(nmsStack, type, value);
                 }
-                bufferedValues.clear();
             } catch (Throwable t) {
                 t.printStackTrace();
             }
+
+            buffer.clear();
         }
 
+        public Object get(String key) {
+            Object type = ComponentAccess.resolve(key);
+            return ComponentAccess.getComponent(nmsStack, type);
+        }
+    }
 
-        // ----------------- ComponentInjector (reflection-only) -----------------
-        private static final class ComponentInjector {
-            private static final MethodHandles.Lookup L = MethodHandles.lookup();
 
-            private static MethodHandle CREATE_COMPOUND;
-            private static MethodHandle COMPOUND_PUT;
-            private static MethodHandle COMPOUND_GET_COMPOUND;
-            private static MethodHandle GET_TAG_ON_ITEM;
-            private static MethodHandle SET_TAG_ON_ITEM;
-            private static Class<?> NBT_TAG_CLASS;
-            private static Class<?> NBT_COMPOUND_CLASS;
-            private static Class<?> LIST_TAG_CLASS;
+    public static final class ComponentAccess {
+        private static final Logging logger = new Logging(ComponentAccess.class);
+        private static final MethodHandle SET;
+        private static final MethodHandle GET;
+        private static final MethodHandle REMOVE;
 
-            static {
-                try {
-                    Class<?> itemStack = Class.forName("net.minecraft.world.item.ItemStack");
-                    NBT_COMPOUND_CLASS = Class.forName("net.minecraft.nbt.CompoundTag");
-                    NBT_TAG_CLASS = Class.forName("net.minecraft.nbt.Tag");
-                    LIST_TAG_CLASS = findClassOrNull("net.minecraft.nbt.ListTag");
+        static final ComponentResolver COMPONENT_RESOLVER;
+        private static boolean READY = true;
 
-                    Constructor<?> ctor = NBT_COMPOUND_CLASS.getDeclaredConstructor();
-                    ctor.setAccessible(true);
-                    CREATE_COMPOUND = L.unreflectConstructor(ctor);
+        static {
+            MethodHandle set = null;
+            MethodHandle get = null;
+            MethodHandle remove = null;
+            try {
+                final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-                    Method put = findMethodByName(NBT_COMPOUND_CLASS, "put", String.class, NBT_TAG_CLASS);
-                    COMPOUND_PUT = L.unreflect(put);
+                final Class<?> itemstackClass = Class.forName("net.minecraft.world.item.ItemStack");
+                final Class<?> dataComponentTypeClass = Class.forName("net.minecraft.core.component.DataComponentType");
 
-                    Method getCompound = findMethodByName(NBT_COMPOUND_CLASS, "getCompound", String.class);
-                    COMPOUND_GET_COMPOUND = L.unreflect(getCompound);
+                final Method mSet = itemstackClass.getMethod("set", dataComponentTypeClass, Object.class);
+                final Method mGet = itemstackClass.getMethod("get", dataComponentTypeClass);
+                final Method mRemove = itemstackClass.getMethod("remove", dataComponentTypeClass);
 
-                    Method getTag = findMethodByName(itemStack, "getTag");
-                    GET_TAG_ON_ITEM = (getTag != null) ? L.unreflect(getTag) : null;
-                    Method setTag = findMethodByName(itemStack, "setTag", NBT_COMPOUND_CLASS);
-                    SET_TAG_ON_ITEM = (setTag != null) ? L.unreflect(setTag) : null;
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
+                set = lookup.unreflect(mSet);
+                get = lookup.unreflect(mGet);
+                remove = lookup.unreflect(mRemove);
+
+            } catch (Throwable t) {
+                READY = false;
+                logger.logError(t, () -> "Failed to initialize ComponentAccess");
             }
+            SET = set;
+            GET = get;
+            REMOVE = remove;
 
-            private ComponentInjector() {
+            if (READY)
+                COMPONENT_RESOLVER = new ComponentResolver();
+            else
+                COMPONENT_RESOLVER = null;
+        }
+
+        /**
+         * Checks if it has loaded all reflections.
+         *
+         * @return true if everything is loaded correctly.
+         */
+        public static boolean isReady() {
+            return READY && COMPONENT_RESOLVER != null && COMPONENT_RESOLVER.isReady();
+        }
+
+        /**
+         * Resolve a component type using its resource location ("minecraft:damage", "minecraft:unbreaking").
+         *
+         * @param key the component key string
+         * @return the DataComponentType instance.
+         */
+        public static Object resolve(String key) {
+            if (COMPONENT_RESOLVER == null) return "";
+
+            return COMPONENT_RESOLVER.resolve(key);
+        }
+
+        /**
+         * Set the component
+         *
+         * @param nmsStack the nms itemStack
+         * @param type     the type of data.
+         * @param value    the value.
+         */
+        public static void setComponent(Object nmsStack, Object type, Object value) {
+            try {
+                SET.invoke(nmsStack, type, value);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
+        }
 
-            /**
-             * Set or update a component in the "components" compound
-             * @param nmsStack   the nms itemStack.
-             * @param componentId  the id of the component to remove for example minecraft:damage.
-             * @param value the value to set or {@code null} to remove the value if it set.
-             */
-            static void setComponentRaw(@Nonnull final Object nmsStack,@Nonnull final String componentId,final Object value) {
-                try {
-                    Object root = (GET_TAG_ON_ITEM != null) ? GET_TAG_ON_ITEM.invoke(nmsStack) : null;
-                    if (root == null) {
-                        root = CREATE_COMPOUND.invoke();
-                        if (SET_TAG_ON_ITEM != null) SET_TAG_ON_ITEM.invoke(nmsStack, root);
-                    }
-
-                    Object comps = COMPOUND_GET_COMPOUND.invoke(root, "components");
-                    if (comps == null) {
-                        comps = CREATE_COMPOUND.invoke();
-                        COMPOUND_PUT.invoke(root, "components", comps);
-                    }
-
-                    if (value == null) {
-                        removeFromCompound(comps, componentId);
-                    } else {
-                        Object tag = buildTag(value);
-                        if (tag != null) {
-                            COMPOUND_PUT.invoke(comps, componentId, tag);
-                        }
-                    }
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
+        /**
+         * Retrieve the component
+         *
+         * @param nmsStack the nms itemStack
+         * @param type     the type of data.
+         * @return the raw set object component tag.
+         */
+        public static Object getComponent(Object nmsStack, Object type) {
+            try {
+                return GET.invoke(nmsStack, type);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
+        }
 
-            public static boolean hasComponent(Object nmsStack, String key) {
-                try {
-                    Object comp = getComponent(nmsStack, key);
-                    return comp != null;
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    return false;
-                }
+        /**
+         * Remove the component
+         *
+         * @param nmsStack the nms itemStack
+         * @param type     the type of data.
+         */
+        public static void removeComponent(Object nmsStack, Object type) {
+            try {
+                REMOVE.invoke(nmsStack, type);
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
             }
+        }
 
-            @Nullable
-            public static Object getComponent(Object nmsStack, String key) {
-                try {
-                    Object root = (GET_TAG_ON_ITEM != null) ? GET_TAG_ON_ITEM.invoke(nmsStack) : null;
-                    if (root != null) {
-                        Object comps = COMPOUND_GET_COMPOUND.invoke(root, "components");
-                        if (comps != null) {
-                            Method get = NBT_COMPOUND_CLASS.getMethod("get", String.class);
-                            return get.invoke(comps, key);
-                        }
-                    }
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-                return null;
+    }
+
+    static class ComponentResolver {
+        private static final Logging logger = new Logging(ComponentResolver.class);
+        private static final Class<?> RESOURCE_LOCATION_CLASS;
+        private static final Object DATA_COMPONENT_REGISTRY;
+        private static final Method CREATE_REGISTRY_KEY_METHOD;
+        private static final Method CREATE_METHOD;
+        private static final Method REGISTRY_GET_METHOD;
+        private static boolean READY = true;
+
+        static {
+            Object dataComponentRegistry = null;
+            Class<?> resourceLocationClass = null;
+            Method createRegistryKeyMethod = null;
+            Method createMethod = null;
+            Method registryGetMethod = null;
+            try {
+                resourceLocationClass = Class.forName("net.minecraft.resources.ResourceLocation");
+                Class<?> resourceKeyClass = Class.forName("net.minecraft.resources.ResourceKey");
+
+                Class<?> BUILT_IN_REGISTRIES = Class.forName("net.minecraft.core.registries.BuiltInRegistries");
+                Field f = BUILT_IN_REGISTRIES.getField("DATA_COMPONENT_TYPE");
+                dataComponentRegistry = f.get(null);
+
+                createRegistryKeyMethod = resourceKeyClass.getMethod("createRegistryKey", resourceLocationClass);
+                createMethod = resourceKeyClass.getMethod("create", resourceKeyClass, resourceLocationClass);
+
+                registryGetMethod = dataComponentRegistry.getClass().getMethod("get", resourceKeyClass);
+            } catch (Exception ex) {
+                READY = false;
+                logger.logError(ex, () -> "Failed to load DataComponent registry");
             }
+            DATA_COMPONENT_REGISTRY = dataComponentRegistry;
+            RESOURCE_LOCATION_CLASS = resourceLocationClass;
+            CREATE_REGISTRY_KEY_METHOD = createRegistryKeyMethod;
+            CREATE_METHOD = createMethod;
+            REGISTRY_GET_METHOD = registryGetMethod;
+        }
 
-            /**
-             * Remove a component from the "components" compound
-             *
-             * @param nmsStack the itemStack to remove the key.
-             * @param componentId the id of the component to remove for example minecraft:damage.
-             */
-            static void removeComponent(Object nmsStack, String componentId) {
-                try {
-                    Object root = (GET_TAG_ON_ITEM != null) ? GET_TAG_ON_ITEM.invoke(nmsStack) : null;
-                    if (root == null) return;
+        /**
+         * Checks if it has loaded all reflections.
+         *
+         * @return true if everything is loaded correctly.
+         */
+        public boolean isReady() {
+            return READY;
+        }
 
-                    Object comps = COMPOUND_GET_COMPOUND.invoke(root, "components");
-                    if (comps != null) {
-                        removeFromCompound(comps, componentId);
-                    }
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
+        /**
+         * Resolve a component type using its resource location ("minecraft:damage", "minecraft:unbreaking").
+         * Uses only invoke / newInstance consistently.
+         *
+         * @param key the component key string
+         * @return the DataComponentType instance
+         */
+        public Object resolve(String key) {
+            try {
+                // Create ResourceLocation instance
+                final Object rl = RESOURCE_LOCATION_CLASS.getConstructor(String.class).newInstance(key);
+                // Create ResourceKey for the DATA_COMPONENT_TYPE registry
+                final Object registryKeyName = RESOURCE_LOCATION_CLASS.getConstructor(String.class).newInstance("minecraft:data_component_type");
+                final Object registryKey = CREATE_REGISTRY_KEY_METHOD.invoke(null, registryKeyName);
+                final Object resourceKey = CREATE_METHOD.invoke(null, registryKey, rl);
 
-            /**
-             * Utility: remove a key from a CompoundTag
-             *
-             * @param compound the compound to remove the key.
-             * @param key the key toi remove.
-             */
-            private static void removeFromCompound(Object compound, String key) {
-                try {
-                    Method remove = NBT_COMPOUND_CLASS.getMethod("remove", String.class);
-                    remove.invoke(compound, key);
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
-
-            /**
-             * Convert Java object to NBT tag
-             *
-             * @param value The value to check what class it is from.
-             * @return it will try to wrap your value correct either inside a compound or directly to the component
-             */
-            private static Object buildTag(Object value) throws Throwable {
-                if (value == null) return null;
-                if (NBT_TAG_CLASS.isInstance(value)) return value;
-
-                if (value instanceof Map) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> m = (Map<String, Object>) value;
-                    Object comp = CREATE_COMPOUND.invoke();
-                    for (Map.Entry<String, Object> e : m.entrySet()) {
-                        Object child = buildTag(e.getValue());
-                        if (child != null) COMPOUND_PUT.invoke(comp, e.getKey(), child);
-                    }
-                    return comp;
-                }
-
-                if (value instanceof List) {
-                    if (LIST_TAG_CLASS == null) return null;
-                    Object list = LIST_TAG_CLASS.getDeclaredConstructor().newInstance();
-                    Method add = findMethodByName(LIST_TAG_CLASS, "add", NBT_TAG_CLASS);
-                    for (Object el : (List<?>) value) {
-                        Object child = buildTag(el);
-                        if (child != null) add.invoke(list, child);
-                    }
-                    return list;
-                }
-
-                Object tmp = CREATE_COMPOUND.invoke();
-                if (value instanceof Integer) {
-                    Method putInt = findMethodByName(NBT_COMPOUND_CLASS, "putInt", String.class, int.class);
-                    L.unreflect(putInt).invoke(tmp, "__tmp", (int) value);
-                    return L.unreflect(findMethodByName(NBT_COMPOUND_CLASS, "getInt", String.class)).invoke(tmp, "__tmp");
-                }
-                if (value instanceof Boolean) {
-                    Method putByte = findMethodByName(NBT_COMPOUND_CLASS, "putByte", String.class, byte.class);
-                    L.unreflect(putByte).invoke(tmp, "__tmp", (byte) (((Boolean) value) ? 1 : 0));
-                    return L.unreflect(findMethodByName(NBT_COMPOUND_CLASS, "getByte", String.class)).invoke(tmp, "__tmp");
-                }
-                if (value instanceof String) {
-                    Method putString = findMethodByName(NBT_COMPOUND_CLASS, "putString", String.class, String.class);
-                    L.unreflect(putString).invoke(tmp, "__tmp", (String) value);
-                    return L.unreflect(findMethodByName(NBT_COMPOUND_CLASS, "getString", String.class)).invoke(tmp, "__tmp");
-                }
-
-                // fallback
-                Method putString = findMethodByName(NBT_COMPOUND_CLASS, "putString", String.class, String.class);
-                L.unreflect(putString).invoke(tmp, "__tmp", value.toString());
-                return L.unreflect(findMethodByName(NBT_COMPOUND_CLASS, "getString", String.class)).invoke(tmp, "__tmp");
+                return REGISTRY_GET_METHOD.invoke(DATA_COMPONENT_REGISTRY, resourceKey);
+            } catch (Exception ex) {
+                throw new RuntimeException("Failed to resolve component: " + key, ex);
             }
         }
     }
@@ -599,7 +668,9 @@ public class ComponentItemDataSession implements NbtEditor {
             return clazz.getMethod(name, params);
         } catch (NoSuchMethodException e) {
             for (Method m : clazz.getMethods()) {
-                if (m.getName().equals(name) && parameterTypesMatch(m.getParameterTypes(), params)) return m;
+                if (m.getName().equals(name) && parameterTypesMatch(m.getParameterTypes(), params)) {
+                    return m;
+                }
             }
             return null;
         }
