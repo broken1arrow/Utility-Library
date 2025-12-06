@@ -98,7 +98,7 @@ public class ComponentAdapter implements NbtEditor {
 
             // CompoundTag.put
             put = getCompoundTagPut(compoundClass);
-            
+
         } catch (Throwable t) {
             logger.logError(t, () -> "Could not load ComponentItemDataSession reflections");
             ok = false;
