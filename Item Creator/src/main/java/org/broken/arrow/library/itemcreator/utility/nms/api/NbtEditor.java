@@ -42,15 +42,17 @@ public interface NbtEditor {
      * Provides access to the item's vanilla data container.
      *
      * <ul>
-     *   <li><strong>1.20.5+</strong>: returns a Component-backed compound tag.</li>
+     *   <li><strong>1.20.5+</strong>: returns a Component-backed {@link CompoundTag}.</li>
      *   <li><strong>Older versions</strong>: returns the existing NBT tag if present.
      *       A new root compound is only created if you explicitly call
      *       {@link #getOrCreateCompound()}, and custom sub-tags can be created via
      *       {@link #getOrCreateCompound(String)}.</li>
      * </ul>
-     * <p><strong>Note:</strong> On older versions, the returned compound may be empty until
-     * you explicitly create a root or sub-tag.</p>
-     * @return the CompoundTag instance.
+     *
+     * <p><strong>Note:</strong> On older versions, the returned {@link CompoundTag} may not be correctly loaded
+     * until you explicitly create a root tag with the above method.</p>
+     *
+     * @return the {@link CompoundTag} instance.
      */
     @Nonnull
     CompoundTag enableVanillaTagEditor();

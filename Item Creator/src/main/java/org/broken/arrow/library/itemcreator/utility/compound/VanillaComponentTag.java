@@ -10,30 +10,29 @@ import javax.annotation.Nullable;
  * in modern Minecraft versions.
  *
  * <p>This class behaves similarly to {@link CompoundTag}, but instead of
- * editing legacy NBT structures (e.g., NBTTagCompound), it operates on the
- * modern <b>vanilla component system</b> which controls raw item properties
- * such as {@code minecraft:damage}, {@code minecraft:unbreakable}, and other
- * core item behaviours exposed through Minecraft’s data-driven component API.</p>
+ * editing legacy NBT structures, it operates on the modern <b>vanilla component system</b>.
+ * This system controls core item properties such as:</p>
+ * <ul>
+ *   <li>{@code minecraft:damage}</li>
+ *   <li>{@code minecraft:unbreakable}</li>
+ *   <li>{@code minecraft:custom_model_data}</li>
+ * </ul>
  *
- * <p>All operations on this tag are forwarded to a
- * {@link ComponentAdapter.VanillaComponentSession}, which provides the
- * reflection-based access necessary to manipulate these vanilla components.</p>
+ * <p>All operations are forwarded to a {@link ComponentAdapter.VanillaComponentSession},
+ * which handles reflection-based access to these components.</p>
  *
- * <p><strong>Reflection loading:</strong><br>
- * Vanilla component support is loaded lazily. Reflection for vanilla
- * components is only initialized when
- * {@link ComponentAdapter#enableVanillaTagEditor()} is explicitly invoked.</p>
+ * <p><strong>Reflection loading:</strong></p>
+ * <ul>
+ *   <li>Vanilla component support is loaded lazily.</li>
+ *   <li>Reflection is initialized only when {@link ComponentAdapter#enableVanillaTagEditor()} is called.</li>
+ *   <li>Method calls are safe — null checks and logging prevent server crashes if reflection is not ready.</li>
+ * </ul>
  *
- * <p>This wrapper is intended <b>only</b> for editing vanilla-defined item
- * properties. Plugin-specific or user-defined custom data should instead be
- * written to the CUSTOM_DATA component via {@link ComponentAdapter}.
- * </p>
+ * <p>This wrapper is <b>only</b> for vanilla-defined item properties. Custom plugin data
+ * should be written to the {@code CUSTOM_DATA} component via {@link ComponentAdapter}.</p>
  *
- * <p><strong>Valid keys:</strong>
- * The keys passed to this tag must correspond to actual vanilla item component
- * identifiers, such as {@code minecraft:damage}, {@code minecraft:unbreakable},
- * {@code minecraft:custom_model_data}, etc. The accepted set of keys varies
- * between Minecraft versions.</p>
+ * <p><strong>Valid keys:</strong> The keys must correspond to actual vanilla item component
+ * identifiers. Accepted keys vary between Minecraft versions.</p>
  */
 public final class VanillaComponentTag extends CompoundTag {
 

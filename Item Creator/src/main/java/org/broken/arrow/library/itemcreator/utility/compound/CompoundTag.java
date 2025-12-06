@@ -3,26 +3,32 @@ package org.broken.arrow.library.itemcreator.utility.compound;
 import org.broken.arrow.library.itemcreator.utility.nms.ComponentFactory;
 import org.broken.arrow.library.itemcreator.utility.nms.NBTAdapter;
 import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
+import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * Wraps an underlying NBTTagCompound belonging to an NMS ItemStack.
+ * Wraps a compound data object (either a legacy {@code NBTTagCompound} or a modern
+ * {@code CUSTOM_DATA} component) and provides a unified reflective interface for
+ * reading and writing primitive values.
  *
- * <p>This is <b>not</b> intended for normal plugin-specific NBT storage.
- * It is used to modify low-level, vanilla-controlled item properties
- * which are otherwise inaccessible through the Bukkit API in legacy
- * Minecraft versions.</p>
+ * <p><strong>Usage:</strong></p>
+ * <ul>
+ *   <li>Allows low-level reading and writing of primitive values (int, boolean, byte, etc.)</li>
+ *   <li>Handles both legacy NBT and modern CUSTOM_DATA if the underlying object contains them</li>
+ *   <li>All reflective access and safety checks are handled by {@link CompoundEditor}</li>
+ * </ul>
  *
- * <p>Examples include keys such as {@code "Unbreakable"} that affect the
- * behaviour of the actual item, not just custom plugin data.</p>
+ * <p><strong>Safety:</strong> The provided handle must not be null; a {@link NullPointerException}
+ * will be thrown otherwise. Reflection readiness and null checks are managed internally by
+ * the {@link CompoundEditor} returned from {@link ComponentFactory#compoundSession(Object)}.</p>
  *
- * <p>This class is backed by reflection. If the required NMS classes or
- * methods cannot be resolved, operations will fail silently (with logging)
- * and no changes will be applied to the compound.</p>
- *
+ * <p>This class is intended for low-level operations. For high-level, version-independent
+ * item data access, consider using {@link NbtData}, which handles the creation of the compound
+ * smoothly. Use {@link NbtData#getSession()} to access {@link NbtEditor#enableVanillaTagEditor()},
+ * and refer to its documentation, as behavior differs between 1.20.5+ and earlier versions.</p>
  */
 public class CompoundTag {
     private final CompoundEditor compoundSession;

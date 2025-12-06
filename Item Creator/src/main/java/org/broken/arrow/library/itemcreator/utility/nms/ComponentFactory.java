@@ -12,38 +12,36 @@ import javax.annotation.Nonnull;
 import java.util.logging.Level;
 
 /**
- * Factory for creating NBT/Component editors for ItemStacks.
+ * Factory for creating NBT/Component editors for Bukkit {@link org.bukkit.inventory.ItemStack} instances.
  *
- * <p>On modern versions (1.20.5+), it returns a {@link ComponentAdapter} for
- * manipulating item components. On older versions, it returns a
- * {@link NBTAdapter} for legacy NBT compounds.</p>
+ * <p>This factory decides which session implementation to return depending on the
+ * server version:</p>
+ * <ul>
+ *   <li>On modern versions (1.20.5+), it returns a {@link ComponentAdapter} for
+ *       manipulating item components (CUSTOM_DATA + optional vanilla components).</li>
+ *   <li>On older versions, it returns an {@link NBTAdapter} for direct manipulation
+ *       of legacy NBT compounds.</li>
+ * </ul>
  *
- * <p>This class handles reflective setup and abstracts version differences.
- * Plugin code should generally use {@link NbtData} instead of calling this
- * factory directly.</p>
+ * <p>The factory handles all reflection readiness checks. If the necessary bridge
+ * classes failed to initialize, methods will return {@code null} and log a warning.
+ * Higher-level APIs, like {@link NbtData}, are expected to handle this safely.</p>
+ *
+ * <p>Plugin developers should generally <b>not</b> call this class directly. Use
+ * {@link NbtData} for version-independent item data operations.</p>
  */
 public class ComponentFactory {
     private static final Logging logger = new Logging(ComponentFactory.class);
-    private ComponentFactory() {}
+
+    private ComponentFactory() {
+    }
 
     /**
      * Creates a new {@link NbtEditor} for the given Bukkit {@link ItemStack}.
      *
-     * <p>This method converts the provided {@link ItemStack} into its internal
-     * NMS representation and prepares all required reflective access for
-     * reading and writing its underlying {@code NBTTagCompound}.</p>
-     *
-     * <p>If the required NMS classes or methods could not be resolved during
-     * startup, this method will throw an {@link IllegalStateException}. Always
-     * verify availability first via {@link NbtEditor#isReady()}, it will have
-     * checks so nothing breaks if you miss it.</p>
-     *
-     * <p>This method is intended to be used internally by {@link NbtData} and
-     * other bridge classes. End-user plugin code should prefer {@link NbtData}.</p>
-     *
      * @param stack the Bukkit ItemStack to wrap
-     * @return a new {@link  NbtEditor} for the given ItemStack
-     * @throws IllegalStateException if the NMS bridge is not available
+     * @return the appropriate {@link NbtEditor} implementation for the server version,
+     * or {@code null} if reflection initialization failed
      */
     public static NbtEditor session(@Nonnull final ItemStack stack) {
         if (ItemCreator.getServerVersion() > 20.4f) {
@@ -61,19 +59,22 @@ public class ComponentFactory {
         return new NBTAdapter(stack);
     }
 
+
     /**
-     * Creates a new {@link CompoundEditor} for the given NBTTagCompound handle.
+     * Creates a new {@link CompoundEditor} for the given NMS {@code NBTTagCompound} handle
+     * or a {@code CustomData} object in Minecraft 1.20.5+.
      *
-     * <p>This method is responsible for binding reflective access to the
-     * underlying {@code NBTTagCompound} instance. It enables operations such
-     * as {@code hasKey}, {@code setBoolean}, and {@code getBoolean}</p>
+     * <p>This method binds reflective access to the underlying object, enabling
+     * operations such as {@code hasKey}, {@code setBoolean}, and {@code getBoolean}.</p>
      *
-     * <p>This is a low-level internal factory and is used by {@link CompoundTag}.
-     * End-user code should never call this method directly.</p>
+     * <p>If the reflection layer is not fully initialized, this method will return
+     * {@code null} and log a warning. Callers should always verify readiness when
+     * performing operations on the returned {@link CompoundEditor}.</p>
      *
-     * @param handle the raw NBTTagCompound instance from NMS
-     * @return a new {@link CompoundEditor} bound to the provided handle
-     * @throws IllegalStateException if the CompoundSession layer is not available
+     * @param handle the raw {@code NBTTagCompound} instance from NMS or the
+     *               {@code CustomData} object in 1.20.5+
+     * @return a new {@link CompoundEditor} bound to the provided handle,
+     *         or {@code null} if the reflection layer is not ready
      */
     public static CompoundEditor compoundSession(@Nonnull final Object handle) {
         if (!NBTAdapter.CompoundSession.isReady()) {

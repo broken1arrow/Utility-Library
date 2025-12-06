@@ -22,11 +22,23 @@ import java.util.logging.Level;
 
 
 /**
- * A per-item reflective session that provides access to the underlying NMS ItemStack
- * and its NBTTagCompound.
+ * A per-item reflective session providing access to the underlying NMS {@code ItemStack}
+ * and its {@code NBTTagCompound}.
  *
- * <p>All operations assume that reflection has been successfully initialized. If not,
- * methods will fail silently or throw exceptions as appropriate.</p>
+ * <p>This class acts as a bridge between Bukkit {@link org.bukkit.inventory.ItemStack}
+ * instances and the internal Minecraft representation. It exposes methods to read
+ * and write primitive NBT values and manipulate item metadata directly.</p>
+ *
+ * <p>All operations are safe to call even if reflection is not fully initialized:
+ * <ul>
+ *   <li>It logs a warning message if the reflection layer could not be loaded.</li>
+ *   <li>You can check {@link #isReady()} to verify that reflection is fully initialized.</li>
+ *   <li>Null pointer checks are performed internally, so method calls will not break the server.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Use this class when you need low-level access to NMS item data. For higher-level,
+ * version-independent operations, prefer using {@link NbtData} or {@link ComponentFactory}.</p>
  */
 public class NBTAdapter implements NbtEditor {
     private static final Logging logger = new Logging(NBTAdapter.class);

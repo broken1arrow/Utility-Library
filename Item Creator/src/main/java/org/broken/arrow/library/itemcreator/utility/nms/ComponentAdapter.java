@@ -21,26 +21,38 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Unified component layer for modern item data handling in Minecraft.
- * <p>
- * This adapter provides a consistent interface for working with both:
+ *
+ * <p>This adapter provides a consistent interface for working with both:
  * <ul>
- *   <li><strong>CUSTOM_DATA</strong> — modern custom item data stored in the item’s CompoundTag/Component system.</li>
+ *   <li><strong>CUSTOM_DATA</strong> — modern custom item data stored in the item’s
+ *       CompoundTag/Component system.</li>
  *   <li><strong>Vanilla item components</strong> — optional editing of raw vanilla item properties.</li>
  * </ul>
- * <p>
- * Modern Minecraft versions split item data between custom components and vanilla components.
- * This class provides an abstraction for both without forcing the cost of heavy reflection initialization.
- * Only the minimal reflection required for handling custom data is loaded by default; all additional
- * reflection needed for vanilla component editing is deferred.
+ *
+ * <p>Modern Minecraft versions split item data between custom components and vanilla components.
+ * This class abstracts both systems without forcing the cost of heavy reflection initialization:
+ * only the minimal reflection required for handling custom data is loaded eagerly.
+ * Reflection required for vanilla component editing is deferred until explicitly needed.</p>
  *
  * <p><strong>Implementation details:</strong></p>
  * <ul>
  *   <li><code>ComponentItemDataSession</code> handles <strong>CUSTOM_DATA</strong> only.
  *       Its reflection usage is lightweight and initialized eagerly in the static initializer.</li>
  *   <li><code>VanillaComponentSession</code> is a <em>lazy-loaded</em> static nested class.
- *       Its static initializer runs only when {@link #enableVanillaTagEditor()} is invoked,
- *       meaning the heavier reflection cost of vanilla component support is incurred only if needed.</li>
+ *       Its static initializer runs only when {@link #enableVanillaTagEditor()} is called,
+ *       meaning the heavier reflection cost of vanilla component support is incurred only if used.</li>
  * </ul>
+ *
+ * <p>All operations are safe to call even if reflection is not fully initialized:
+ * <ul>
+ *   <li>Warnings are logged if the reflection layer could not be loaded.</li>
+ *   <li>Use {@link #isReady()} to verify that reflection is fully initialized.</li>
+ *   <li>Null pointer checks are performed internally, so method calls will not break the server.</li>
+ * </ul>
+ *
+ * <p>Use this class when you need low-level, version-independent access to both
+ * custom and vanilla item data. For simpler, high-level operations, consider using
+ * {@link ComponentFactory} or {@link NbtData}.</p>
  */
 public class ComponentAdapter implements NbtEditor {
     private static final Logging logger = new Logging(ComponentAccess.class);
