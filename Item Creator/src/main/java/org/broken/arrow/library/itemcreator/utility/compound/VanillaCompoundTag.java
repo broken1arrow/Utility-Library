@@ -1,13 +1,13 @@
 package org.broken.arrow.library.itemcreator.utility.compound;
 
-import org.broken.arrow.library.itemcreator.utility.nms.ComponentItemDataSession;
+import org.broken.arrow.library.itemcreator.utility.nms.ComponentAdapter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public final class VanillaCompoundTag extends CompoundTag {
 
-    private final ComponentItemDataSession.VanillaComponentSession vanillaSession;
+    private final ComponentAdapter.VanillaComponentSession vanillaSession;
 
     /**
      * Create the base Component to set Minecraft data like minecraft:damage.
@@ -15,7 +15,7 @@ public final class VanillaCompoundTag extends CompoundTag {
      * @param base           the component object (not used).
      * @param vanillaSession the section of the vanilla wrapper for the data set.
      */
-    public VanillaCompoundTag(@Nonnull final Object base, @Nonnull final ComponentItemDataSession.VanillaComponentSession vanillaSession) {
+    public VanillaCompoundTag(@Nonnull final Object base, @Nonnull final ComponentAdapter.VanillaComponentSession vanillaSession) {
         super(base);
         this.vanillaSession = vanillaSession;
     }

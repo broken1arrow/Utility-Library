@@ -2,7 +2,7 @@ package org.broken.arrow.library.itemcreator.utility.nms;
 
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
 import org.broken.arrow.library.itemcreator.utility.compound.VanillaCompoundTag;
-import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
+import org.broken.arrow.library.itemcreator.utility.nms.api.ComponentEditor;
 import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.ItemStack;
@@ -16,16 +16,32 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Unified legacy-friendly session for item custom data (CUSTOM_DATA) + optional nested vanilla component helper.
+ * Unified component layer for modern item data handling in Minecraft.
  * <p>
- * - ComponentItemDataSession handles just CUSTOM_DATA (cheap reflection in static init).
- * - VanillaComponentSession is a lazy-loaded static nested class: its static initializer only runs when
- * you reference VanillaComponentSession, so you pay the extra reflection cost only if you need vanilla components.
- * <p>
+ * This adapter provides a consistent interface for working with both:
+ * <ul>
+ *   <li><strong>CUSTOM_DATA</strong> — modern custom item data stored in the item’s CompoundTag/Component system.</li>
+ *   <li><strong>Vanilla item components</strong> — optional editing of raw vanilla item properties.</li>
+ * </ul>
+ *
+ * Modern Minecraft versions split item data between custom components and vanilla components.
+ * This class provides an abstraction for both without forcing the cost of heavy reflection initialization.
+ * Only the minimal reflection required for handling custom data is loaded by default; all additional
+ * reflection needed for vanilla component editing is deferred.
+ *
+ * <p><strong>Implementation details:</strong></p>
+ * <ul>
+ *   <li><code>ComponentItemDataSession</code> handles <strong>CUSTOM_DATA</strong> only.
+ *       Its reflection usage is lightweight and initialized eagerly in the static initializer.</li>
+ *   <li><code>VanillaComponentSession</code> is a <em>lazy-loaded</em> static nested class.
+ *       Its static initializer runs only when {@link #enableVanillaTagEditor()} is invoked,
+ *       meaning the heavier reflection cost of vanilla component support is incurred only if needed.</li>
+ * </ul>
  */
-public class ComponentItemDataSession implements NbtEditor {
+public class ComponentAdapter implements NbtEditor {
     private static final Logging logger = new Logging(ComponentAccess.class);
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
     // Core handles (CUSTOM_DATA path)
@@ -64,12 +80,7 @@ public class ComponentItemDataSession implements NbtEditor {
             asBukkit = LOOKUP.findStatic(craftItem, "asBukkitCopy", MethodType.methodType(ItemStack.class, itemStack));
 
             // find CUSTOM_DATA key (robust to obf)
-            Field f;
-            try {
-                f = dataComponentsClass.getField("CUSTOM_DATA");
-            } catch (NoSuchFieldException e) {
-                f = dataComponentsClass.getField("b");
-            }
+            Field f = getCustomDataField(dataComponentsClass);
             customKey = f.get(null);
 
             // ItemStack#get(DataComponentType)  and #set(type, value)
@@ -86,16 +97,10 @@ public class ComponentItemDataSession implements NbtEditor {
             copyTag = LOOKUP.unreflect(copyMethod);
 
             // CompoundTag.put
-            try {
-                put = LOOKUP.findVirtual(compoundClass, "put", MethodType.methodType(Class.forName("net.minecraft.nbt.Tag"), String.class, Class.forName("net.minecraft.nbt.Tag")));
-            } catch (Throwable t) {
-                // fallback - find a method named put with (String, Tag)
-                Method m = findMethodByName(compoundClass, "put", String.class, Class.forName("net.minecraft.nbt.Tag"));
-                put = LOOKUP.unreflect(m);
-            }
-
+            put = getCompoundTagPut(compoundClass);
+            
         } catch (Throwable t) {
-            logger.logError(t,()->"Could not load ComponentItemDataSession reflections");
+            logger.logError(t, () -> "Could not load ComponentItemDataSession reflections");
             ok = false;
         }
 
@@ -121,7 +126,7 @@ public class ComponentItemDataSession implements NbtEditor {
      *
      * @param stack the bukkit itemStack to modify.
      */
-    public ComponentItemDataSession(@Nonnull ItemStack stack) {
+    public ComponentAdapter(@Nonnull ItemStack stack) {
         this.originalBukkit = stack;
         this.nmsStack = toNms(stack);
         this.rootCustomDataCache = loadRootFromItem();
@@ -151,15 +156,11 @@ public class ComponentItemDataSession implements NbtEditor {
         }
     }
 
-    /**
-     * Enables vanilla tag editing and returns a tag wrapper for the user.
-     *
-     * @return the vanilla option to set the values direct to the item.
-     */
+    @Nonnull
+    @Override
     public VanillaCompoundTag enableVanillaTagEditor() {
         if (vanillaSession == null)
             vanillaSession = new VanillaComponentSession(nmsStack);
-
         return new VanillaCompoundTag(this.rootCustomDataCache, vanillaSession);
     }
 
@@ -197,7 +198,7 @@ public class ComponentItemDataSession implements NbtEditor {
                 vanillaSession.apply();
             return (ItemStack) AS_BUKKIT_COPY.invoke(nmsStack);
         } catch (Throwable t) {
-            t.printStackTrace();
+            logger.logError(t, () -> "Could not finalize your item and set the components, will return your original stack back.");
             return originalBukkit;
         }
     }
@@ -218,7 +219,7 @@ public class ComponentItemDataSession implements NbtEditor {
             if (customData == null) return null;
             return CUSTOMDATA_COPYTAG.invoke(customData);
         } catch (Throwable t) {
-            t.printStackTrace();
+            logger.logError(t, () -> "Could not load the custom tag from the item.");
             return null;
         }
     }
@@ -251,7 +252,7 @@ public class ComponentItemDataSession implements NbtEditor {
             }
             return new CompoundTag(nested);
         } catch (Throwable t) {
-            t.printStackTrace();
+            logger.logError(t, () -> "Could not set the custom component.");
             return null;
         }
     }
@@ -261,17 +262,18 @@ public class ComponentItemDataSession implements NbtEditor {
      * it is using ResourceLocation and ResourceKey.
      *
      */
-    public static final class VanillaComponentSession implements CompoundEditor {
+    public static final class VanillaComponentSession implements ComponentEditor {
 
         private final Object nmsStack;
         private final Map<String, Object> buffer = new HashMap<>();
+        private final Map<String, Object> cachedRoot;
 
         /**
          * Checks if it has loaded all reflections.
          *
          * @return true if everything is loaded correctly.
          */
-        public static boolean isReady(){
+        public static boolean isReady() {
             return ComponentAccess.isReady();
         }
 
@@ -282,6 +284,7 @@ public class ComponentItemDataSession implements NbtEditor {
          */
         public VanillaComponentSession(@Nonnull final Object nmsStack) {
             this.nmsStack = nmsStack;
+            this.cachedRoot = loadRootComponentMap(nmsStack);
         }
 
         /**
@@ -302,7 +305,7 @@ public class ComponentItemDataSession implements NbtEditor {
          */
         @Override
         public int getInt(@Nonnull final String key) {
-            Object v = get(key);
+            Object v = getRaw(key);
             if (v instanceof Number)
                 return ((Number) v).intValue();
             return -1;
@@ -327,7 +330,7 @@ public class ComponentItemDataSession implements NbtEditor {
         @Override
         @Nonnull
         public String getString(@Nonnull final String key) {
-            Object v = get(key);
+            Object v = getRaw(key);
             return (v != null) ? v.toString() : "";
         }
 
@@ -338,7 +341,7 @@ public class ComponentItemDataSession implements NbtEditor {
 
         @Override
         public byte getByte(@Nonnull final String key) {
-            Object v = get(key);
+            Object v = getRaw(key);
             if (v instanceof Byte)
                 return (byte) v;
             return -1;
@@ -352,7 +355,7 @@ public class ComponentItemDataSession implements NbtEditor {
         @Nonnull
         @Override
         public byte[] getByteArray(@Nonnull final String key) {
-            Object v = get(key);
+            Object v = getRaw(key);
             if (v instanceof byte[])
                 return (byte[]) v;
             return new byte[0];
@@ -378,7 +381,7 @@ public class ComponentItemDataSession implements NbtEditor {
          */
         @Override
         public boolean getBoolean(@Nonnull final String key) {
-            Object v = get(key);
+            Object v = getRaw(key);
             if (v instanceof Boolean)
                 return (boolean) v;
             return false;
@@ -391,7 +394,7 @@ public class ComponentItemDataSession implements NbtEditor {
 
         @Override
         public short getShort(@Nonnull final String key) {
-            Object v = get(key);
+            Object v = getRaw(key);
             if (v instanceof Short)
                 return (short) v;
             return -1;
@@ -417,17 +420,6 @@ public class ComponentItemDataSession implements NbtEditor {
         }
 
         /**
-         * Get the raw set value
-         *
-         * @param key component key
-         * @return the object.
-         */
-        private Object getRaw(String key) {
-            Object type = ComponentAccess.resolve(key);
-            return ComponentAccess.getComponent(nmsStack, type);
-        }
-
-        /**
          * Remove a component from the "components" compound
          *
          * @param key component key.
@@ -436,6 +428,31 @@ public class ComponentItemDataSession implements NbtEditor {
             Object type = ComponentAccess.resolve(key);
             ComponentAccess.removeComponent(nmsStack, type);
             buffer.remove(key);
+        }
+
+        /**
+         * Get the raw set value
+         *
+         * @param key component key
+         * @return the component object.
+         */
+        private Object getRaw(String key) {
+            // Pending writes override everything
+            if (buffer.containsKey(key))
+                return buffer.get(key);
+
+            // Cached root snapshot
+            Object v = cachedRoot.get(key);
+            if (v != null)
+                return v;
+
+            // Slow path: read from NMS once
+            Object type = ComponentAccess.resolve(key);
+            v = ComponentAccess.getComponent(nmsStack, type);
+            if (v != null) {
+                cachedRoot.put(key, v);
+            }
+            return v;
         }
 
         /**
@@ -456,18 +473,45 @@ public class ComponentItemDataSession implements NbtEditor {
                     ComponentAccess.setComponent(nmsStack, type, value);
                 }
             } catch (Throwable t) {
-                t.printStackTrace();
+                logger.logError(t, () -> "Could not set the vanilla tags.");
             }
 
             buffer.clear();
         }
 
-        public Object get(String key) {
-            Object type = ComponentAccess.resolve(key);
-            return ComponentAccess.getComponent(nmsStack, type);
+        @SuppressWarnings("unchecked")
+        private Map<Object, Object> loadRootComponentMapOld(Object nmsStack) {
+            try {
+                Field f = nmsStack.getClass().getDeclaredField("components");
+                f.setAccessible(true);
+
+                Object container = f.get(nmsStack); // vanilla ComponentMap
+                return new HashMap<>((Map<Object, Object>) container);
+            } catch (Throwable ex) {
+                logger.logError(ex, () -> "Could not read vanilla component root map");
+                return new HashMap<>();
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private Map<String, Object> loadRootComponentMap(Object nmsStack) {
+            Map<String, Object> out = new HashMap<>();
+
+            try {
+                Field f = nmsStack.getClass().getDeclaredField("components");
+                f.setAccessible(true);
+                Map<Object, Object> container = (Map<Object, Object>) f.get(nmsStack);
+
+                for (Map.Entry<Object, Object> entry : container.entrySet()) {
+                    String id = ComponentAccess.getId(entry.getKey()); // e.g. "minecraft:damage"
+                    out.put(id, entry.getValue());
+                }
+            } catch (Throwable ex) {
+                logger.logError(ex, () -> "Could not read vanilla component root map");
+            }
+            return out;
         }
     }
-
 
     public static final class ComponentAccess {
         private static final Logging logger = new Logging(ComponentAccess.class);
@@ -575,15 +619,59 @@ public class ComponentItemDataSession implements NbtEditor {
             }
         }
 
+        /**
+         * Get the id for the component.
+         *
+         * @param componentKey Get the component key.
+         * @return returns the name.
+         */
+        public static String getId(Object componentKey) {
+            try {
+                Object keyObj = null;
+                // Find field whose type ends with "ComponentTypeKey"
+                for (Field f : componentKey.getClass().getDeclaredFields()) {
+                    if (f.getType().getSimpleName().contains("ComponentTypeKey")) {
+                        f.setAccessible(true);
+                        keyObj = f.get(componentKey);
+                        break;
+                    }
+                }
+
+                if (keyObj == null) return null;
+
+                Object locObj = getResourceKey(keyObj);
+                if (locObj == null) return null;
+                // toString gives namespace:path
+                return locObj.toString();
+            } catch (Throwable t) {
+                return null;
+            }
+        }
+
+        private static Object getResourceKey(final Object keyObj) throws IllegalAccessException {
+            Object locObj = null;
+            // Find field whose type ends with "MinecraftKey" or "ResourceLocation"
+            for (Field f : keyObj.getClass().getDeclaredFields()) {
+                String n = f.getType().getSimpleName();
+                if (n.contains("MinecraftKey") || n.contains("ResourceLocation")) {
+                    f.setAccessible(true);
+                    locObj = f.get(keyObj);
+                    break;
+                }
+            }
+            return locObj;
+        }
     }
 
     static class ComponentResolver {
         private static final Logging logger = new Logging(ComponentResolver.class);
+        private static final Map<String, Object> CACHE = new ConcurrentHashMap<>();
         private static final Class<?> RESOURCE_LOCATION_CLASS;
         private static final Object DATA_COMPONENT_REGISTRY;
         private static final Method CREATE_REGISTRY_KEY_METHOD;
         private static final Method CREATE_METHOD;
         private static final Method REGISTRY_GET_METHOD;
+        private static final Object DATA_COMPONENT_REGISTRY_KEY;
         private static boolean READY = true;
 
         static {
@@ -592,6 +680,7 @@ public class ComponentItemDataSession implements NbtEditor {
             Method createRegistryKeyMethod = null;
             Method createMethod = null;
             Method registryGetMethod = null;
+            Object registryKey = null;
             try {
                 resourceLocationClass = Class.forName("net.minecraft.resources.ResourceLocation");
                 Class<?> resourceKeyClass = Class.forName("net.minecraft.resources.ResourceKey");
@@ -602,8 +691,12 @@ public class ComponentItemDataSession implements NbtEditor {
 
                 createRegistryKeyMethod = resourceKeyClass.getMethod("createRegistryKey", resourceLocationClass);
                 createMethod = resourceKeyClass.getMethod("create", resourceKeyClass, resourceLocationClass);
-
                 registryGetMethod = dataComponentRegistry.getClass().getMethod("get", resourceKeyClass);
+
+                Field keyField = dataComponentRegistry.getClass().getDeclaredField("key");
+                keyField.setAccessible(true);
+                registryKey = keyField.get(dataComponentRegistry);
+                System.out.println("registryKey " + registryKey);
             } catch (Exception ex) {
                 READY = false;
                 logger.logError(ex, () -> "Failed to load DataComponent registry");
@@ -613,6 +706,7 @@ public class ComponentItemDataSession implements NbtEditor {
             CREATE_REGISTRY_KEY_METHOD = createRegistryKeyMethod;
             CREATE_METHOD = createMethod;
             REGISTRY_GET_METHOD = registryGetMethod;
+            DATA_COMPONENT_REGISTRY_KEY = registryKey;
         }
 
         /**
@@ -620,7 +714,7 @@ public class ComponentItemDataSession implements NbtEditor {
          *
          * @return true if everything is loaded correctly.
          */
-        public boolean isReady() {
+        private boolean isReady() {
             return READY;
         }
 
@@ -631,18 +725,39 @@ public class ComponentItemDataSession implements NbtEditor {
          * @param key the component key string
          * @return the DataComponentType instance
          */
-        public Object resolve(String key) {
-            try {
-                // Create ResourceLocation instance
-                final Object rl = RESOURCE_LOCATION_CLASS.getConstructor(String.class).newInstance(key);
-                // Create ResourceKey for the DATA_COMPONENT_TYPE registry
-                final Object registryKeyName = RESOURCE_LOCATION_CLASS.getConstructor(String.class).newInstance("minecraft:data_component_type");
-                final Object registryKey = CREATE_REGISTRY_KEY_METHOD.invoke(null, registryKeyName);
-                final Object resourceKey = CREATE_METHOD.invoke(null, registryKey, rl);
+        private Object resolve(String key) {
+            return CACHE.computeIfAbsent(key, ComponentResolver::resolveInternal);
+        }
 
+        private static Object resolveInternal(String key) {
+            try {
+                final String keyChecked = rl(key);
+
+                // Create ResourceLocation for the component
+                final Object componentRL = RESOURCE_LOCATION_CLASS
+                        .getConstructor(String.class).newInstance(keyChecked);
+                // Create ResourceKey<DataComponentType> for this component
+                final Object resourceKey = CREATE_METHOD.invoke(
+                        null,
+                        DATA_COMPONENT_REGISTRY_KEY,  // <--- THIS IS THE IMPORTANT FIX
+                        componentRL
+                );
+                // Fetch component type from registry
                 return REGISTRY_GET_METHOD.invoke(DATA_COMPONENT_REGISTRY, resourceKey);
             } catch (Exception ex) {
                 throw new RuntimeException("Failed to resolve component: " + key, ex);
+            }
+        }
+
+        // Construct a ResourceLocation namespace:path
+        private static String rl(String key) {
+            try {
+                int i = key.indexOf(':');
+                if (i == -1)
+                    return "minecraft:" + key;
+                return key;
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
             }
         }
     }
@@ -692,11 +807,24 @@ public class ComponentItemDataSession implements NbtEditor {
         return true;
     }
 
-    private static Class<?> findClassOrNull(String name) {
+    private static MethodHandle getCompoundTagPut(@Nonnull final Class<?> compoundClass) throws IllegalAccessException, ClassNotFoundException {
+        // CompoundTag.put
         try {
-            return Class.forName(name);
+            return LOOKUP.findVirtual(compoundClass, "put", MethodType.methodType(Class.forName("net.minecraft.nbt.Tag"), String.class, Class.forName("net.minecraft.nbt.Tag")));
         } catch (Throwable t) {
-            return null;
+            // fallback - find a method named put with (String, Tag)
+            Method m = findMethodByName(compoundClass, "put", String.class, Class.forName("net.minecraft.nbt.Tag"));
+            return LOOKUP.unreflect(m);
         }
+    }
+
+    private static Field getCustomDataField(@Nonnull final Class<?> dataComponentsClass) throws NoSuchFieldException {
+        Field f;
+        try {
+            f = dataComponentsClass.getField("CUSTOM_DATA");
+        } catch (NoSuchFieldException e) {
+            f = dataComponentsClass.getField("b");
+        }
+        return f;
     }
 }

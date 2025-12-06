@@ -1,6 +1,7 @@
 package org.broken.arrow.library.itemcreator.utility.nms.api;
 
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.utility.compound.VanillaCompoundTag;
 import org.broken.arrow.library.itemcreator.utility.nms.NBTAdapter;
 import org.bukkit.inventory.ItemStack;
 
@@ -37,6 +38,23 @@ public interface NbtEditor {
      * @return {@code true} if the specified (or root) compound exists
      */
     boolean hasTag(@Nonnull final String name);
+
+    /**
+     * Provides access to the item's vanilla data container.
+     *
+     * <ul>
+     *   <li><strong>1.20.5+</strong>: returns a Component-backed compound tag.</li>
+     *   <li><strong>Older versions</strong>: returns the existing NBT tag if present.
+     *       A new root compound is only created if you explicitly call
+     *       {@link #getOrCreateCompound()}, and custom sub-tags can be created via
+     *       {@link #getOrCreateCompound(String)}.</li>
+     * </ul>
+     * <p><strong>Note:</strong> On older versions, the returned compound may be empty until
+     * you explicitly create a root or sub-tag.</p>
+     * @return the CompoundTag instance.
+     */
+    @Nonnull
+    CompoundTag enableVanillaTagEditor();
 
     /**
      * Returns the root {@link CompoundTag} of this item, creating one if it does not exist.

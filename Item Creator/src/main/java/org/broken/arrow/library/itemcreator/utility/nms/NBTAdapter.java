@@ -3,6 +3,7 @@ package org.broken.arrow.library.itemcreator.utility.nms;
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
 import org.broken.arrow.library.itemcreator.utility.compound.NbtData;
+import org.broken.arrow.library.itemcreator.utility.compound.VanillaCompoundTag;
 import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
 import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
 import org.broken.arrow.library.itemcreator.utility.nms.mappings.NBTCompoundMappings;
@@ -61,12 +62,12 @@ public class NBTAdapter {
      */
     public static NbtEditor session(@Nonnull final ItemStack stack) {
         if (ItemCreator.getServerVersion() > 20.4f) {
-            ComponentItemDataSession componentItem = new ComponentItemDataSession(stack);
+            ComponentAdapter componentItem = new ComponentAdapter(stack);
             if (!componentItem.isReady()) {
                 logger.log(Level.WARNING, () -> "NMS bridge not loaded");
                 return null;
             }
-            return new ComponentItemDataSession(stack);
+            return new ComponentAdapter(stack);
         }
         if (!NmsItemSession.REFLECTION_READY) {
             logger.log(Level.WARNING, () -> "NMS bridge not loaded");
@@ -213,6 +214,12 @@ public class NBTAdapter {
             } catch (Throwable ignored) {
                 return false;
             }
+        }
+
+        @Nonnull
+        @Override
+        public CompoundTag enableVanillaTagEditor() {
+            return new CompoundTag(this.getCompound());
         }
 
         @Override
