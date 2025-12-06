@@ -5,6 +5,7 @@ import org.broken.arrow.library.itemcreator.utility.compound.VanillaCompoundTag;
 import org.broken.arrow.library.itemcreator.utility.nms.api.ComponentEditor;
 import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
 import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -702,8 +703,8 @@ public class ComponentAdapter implements NbtEditor {
                 resourceLocationClass = Class.forName("net.minecraft.resources.ResourceLocation");
                 Class<?> resourceKeyClass = Class.forName("net.minecraft.resources.ResourceKey");
 
-                Class<?> BUILT_IN_REGISTRIES = Class.forName("net.minecraft.core.registries.BuiltInRegistries");
-                Field f = BUILT_IN_REGISTRIES.getField("DATA_COMPONENT_TYPE");
+                Class<?> builtInRegistries = Class.forName("net.minecraft.core.registries.BuiltInRegistries");
+                Field f = builtInRegistries.getField("DATA_COMPONENT_TYPE");
                 dataComponentRegistry = f.get(null);
 
                 createRegistryKeyMethod = resourceKeyClass.getMethod("createRegistryKey", resourceLocationClass);
@@ -713,7 +714,6 @@ public class ComponentAdapter implements NbtEditor {
                 Field keyField = dataComponentRegistry.getClass().getDeclaredField("key");
                 keyField.setAccessible(true);
                 registryKey = keyField.get(dataComponentRegistry);
-                System.out.println("registryKey " + registryKey);
             } catch (Exception ex) {
                 ready = false;
                 logger.logError(ex, () -> "Failed to load DataComponent registry");
@@ -783,7 +783,7 @@ public class ComponentAdapter implements NbtEditor {
             if (m.getReturnType().isAssignableFrom(returnType) && parameterMatch(m.getParameterTypes(), params))
                 return m;
         }
-        throw new RuntimeException("Could not find method in " + holder.getName() + " returning " + returnType.getName());
+        throw new Validate.ValidateExceptions("Could not find method in " + holder.getName() + " returning " + returnType.getName());
     }
 
     private static Method findStaticMethod(Class<?> holder, Class<?> returnType, Class<?>... params) {
@@ -791,7 +791,7 @@ public class ComponentAdapter implements NbtEditor {
             if (Modifier.isStatic(m.getModifiers()) && m.getReturnType().isAssignableFrom(returnType) && parameterMatch(m.getParameterTypes(), params))
                 return m;
         }
-        throw new RuntimeException("Could not find static method in " + holder.getName());
+        throw new Validate.ValidateExceptions("Could not find static method in " + holder.getName());
     }
 
     private static Method findMethodByName(Class<?> clazz, String name, Class<?>... params) {
@@ -824,11 +824,12 @@ public class ComponentAdapter implements NbtEditor {
 
     private static MethodHandle getCompoundTagPut(@Nonnull final Class<?> compoundClass) throws IllegalAccessException, ClassNotFoundException {
         // CompoundTag.put
+        final Class<?> tagInterface = Class.forName("net.minecraft.nbt.Tag");
         try {
-            return LOOKUP.findVirtual(compoundClass, "put", MethodType.methodType(Class.forName("net.minecraft.nbt.Tag"), String.class, Class.forName("net.minecraft.nbt.Tag")));
+            return LOOKUP.findVirtual(compoundClass, "put", MethodType.methodType(tagInterface, String.class, tagInterface));
         } catch (NoSuchMethodException | IllegalAccessException t) {
             // fallback - find a method named put with (String, Tag)
-            Method m = findMethodByName(compoundClass, "put", String.class, Class.forName("net.minecraft.nbt.Tag"));
+            Method m = findMethodByName(compoundClass, "put", String.class, tagInterface);
             return LOOKUP.unreflect(m);
         }
     }
