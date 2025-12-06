@@ -55,7 +55,7 @@ public class H2DB extends SQLDatabaseQuery {
      * @param hikariClazzPath the fully qualified class name of the HikariCP configuration class to check.
      * @param dbPath          a {@link DBPath} object containing the database file location.
      */
-    public H2DB(String hikariClazzPath, DBPath dbPath) {
+    public H2DB(@Nonnull final String hikariClazzPath,@Nonnull final DBPath dbPath) {
         super(new ConnectionSettings(dbPath.getDbFile().getPath()));
         this.dbFile = dbPath.getDbFile();
 
@@ -123,7 +123,7 @@ public class H2DB extends SQLDatabaseQuery {
     /**
      * Helper class to resolve and store the database file path for the H2 database.
      */
-    private static class DBPath {
+    public static class DBPath {
         private final File dbFile;
 
         /**

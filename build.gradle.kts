@@ -25,11 +25,19 @@ checkstyle {
     toolVersion = "11.0.0"
     configFile = file("config/checkstyle/checkstyle.xml")
 }
+
 subprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "java")
     apply(plugin = "signing")
     apply(plugin = "checkstyle")
+
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(8))
+        }
+    }
+
 
     tasks {
         register("checkstyleAll") {
