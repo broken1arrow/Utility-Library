@@ -4,7 +4,7 @@ plugins {
     `java-library`
     //java
     `maven-publish`
-   //`kotlin-dsl`
+    //`kotlin-dsl`
     signing
     checkstyle
     alias(libs.plugins.shadow)
@@ -22,23 +22,28 @@ repositories {
     gradlePluginPortal()
 }
 checkstyle {
-    toolVersion = "11.0.0"
+    toolVersion = "10.12.1"
     configFile = file("config/checkstyle/checkstyle.xml")
 }
 
 subprojects {
-    plugins.apply( "maven-publish")
+    plugins.apply("maven-publish")
     plugins.apply("java-library")
-    plugins.apply( "signing")
+    plugins.apply("signing")
     plugins.apply("checkstyle")
 
-    java {
+ /*   java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(8))
         }
     }
-
-
+*/
+    tasks.withType<JavaCompile> {
+      //  sourceCompatibility = "1.8"
+       // targetCompatibility = "1.8"
+        options.encoding = Charsets.UTF_8.name()
+        options.release.set(8)
+    }
     tasks {
         register("checkstyleAll") {
             dependsOn(subprojects.map { it.tasks.matching { t -> t.name.startsWith("checkstyle") } })
@@ -50,15 +55,7 @@ subprojects {
                 (this as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
             }
         }
-        compileJava {
-            options.encoding = Charsets.UTF_8.name()
 
-            // Set the release flag. This configures what version bytecode the compiler will emit, as well as what JDK APIs are usable.
-            // See https://openjdk.java.net/jeps/247 for more information.
-            //options.release.set(8)
-            //sourceCompatibility = JavaVersion.VERSION_1_8.toString()
-            targetCompatibility = JavaVersion.VERSION_1_8.toString()
-        }
 
         val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
         register<Jar>("sources") {
@@ -156,8 +153,8 @@ tasks {
         // See https://openjdk.java.net/jeps/247 for more information.
         options.release.set(8)
 
-      //  sourceCompatibility = JavaVersion.VERSION_1_8.toString()
-       // targetCompatibility = JavaVersion.VERSION_1_8.toString()
+     //   sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+      //  targetCompatibility = JavaVersion.VERSION_1_8.toString()
     }
 }
 

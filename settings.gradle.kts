@@ -13,7 +13,7 @@ dependencyResolutionManagement {
             library("tr7zw.item.nbt.api", "de.tr7zw:item-nbt-api:2.15.3")
             library("google.findbugs.jsr305", "com.google.code.findbugs:jsr305:3.0.2")
             library("mojang.authlib","com.mojang:authlib:1.6.25");
-            plugin("shadow", "com.gradleup.shadow").version("8.3.5")
+            plugin("shadow", "com.gradleup.shadow").version("9.3.0")
         }
     }
 }

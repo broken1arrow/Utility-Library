@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     `kotlin-dsl`
@@ -6,7 +7,7 @@ plugins {
     id("java-library")
    // id("java")
     id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+   // id("com.gradleup.shadow") version "8.3.5"
 }
 
 group = "org.broken.arrow"
@@ -20,7 +21,6 @@ gradlePlugin {
 }
 
 
-apply(plugin = "com.github.johnrengelman.shadow")
 apply(plugin = "maven-publish")
 
 buildscript {
@@ -57,7 +57,10 @@ dependencies {
 }
 
 tasks.compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    compilerOptions {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_1_8)
+    }
+   // kotlinOptions.jvmTarget = "1.8"
 }
 
 kotlin {
