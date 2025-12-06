@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li><strong>CUSTOM_DATA</strong> — modern custom item data stored in the item’s CompoundTag/Component system.</li>
  *   <li><strong>Vanilla item components</strong> — optional editing of raw vanilla item properties.</li>
  * </ul>
- *
+ * <p>
  * Modern Minecraft versions split item data between custom components and vanilla components.
  * This class provides an abstraction for both without forcing the cost of heavy reflection initialization.
  * Only the minimal reflection required for handling custom data is loaded by default; all additional
@@ -99,11 +99,10 @@ public class ComponentAdapter implements NbtEditor {
             // CompoundTag.put
             put = getCompoundTagPut(compoundClass);
 
-        } catch (Throwable t) {
+        } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException | NoSuchMethodException t) {
             logger.logError(t, () -> "Could not load ComponentItemDataSession reflections");
             ok = false;
         }
-
         AS_NMS_COPY = asNms;
         AS_BUKKIT_COPY = asBukkit;
         ITEMSTACK_GET = get;
@@ -119,6 +118,7 @@ public class ComponentAdapter implements NbtEditor {
     private final ItemStack originalBukkit;
     private final Object nmsStack;
     private Object rootCustomDataCache; // mutable NMS CompoundTag (copy)
+    private MethodHandle rootCustomDataContains;
     private VanillaComponentSession vanillaSession;
 
     /**
@@ -126,10 +126,22 @@ public class ComponentAdapter implements NbtEditor {
      *
      * @param stack the bukkit itemStack to modify.
      */
-    public ComponentAdapter(@Nonnull ItemStack stack) {
+    public ComponentAdapter(@Nonnull final ItemStack stack) {
         this.originalBukkit = stack;
         this.nmsStack = toNms(stack);
-        this.rootCustomDataCache = loadRootFromItem();
+        this.rootCustomDataCache = loadRootFromItem(this.nmsStack);
+
+        if (this.rootCustomDataCache == null) {
+            rootCustomDataContains = null;
+            return;
+        }
+
+        try {
+            Method contains = rootCustomDataCache.getClass().getMethod("contains", String.class);
+            rootCustomDataContains = LOOKUP.unreflect(contains);
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            logger.logError(e, () -> "Could not find the contains method ComponentItemDataSession reflections");
+        }
     }
 
     // ---------------- NbtEditor API (custom-data only) ----------------
@@ -145,11 +157,10 @@ public class ComponentAdapter implements NbtEditor {
 
     @Override
     public boolean hasTag(@Nonnull String name) {
-        if (rootCustomDataCache == null) return false;
+        if (rootCustomDataCache == null || rootCustomDataContains == null) return false;
         if (name.isEmpty()) return true;
         try {
-            Method m = rootCustomDataCache.getClass().getMethod("contains", String.class);
-            Object r = m.invoke(rootCustomDataCache, name);
+            Object r = rootCustomDataContains.invoke(rootCustomDataCache, name);
             return r != null && (boolean) r;
         } catch (Throwable t) {
             return false;
@@ -212,8 +223,8 @@ public class ComponentAdapter implements NbtEditor {
         }
     }
 
-    private Object loadRootFromItem() {
-        if (!READY) return null;
+    private Object loadRootFromItem(@Nullable final Object nmsStack) {
+        if (!READY || nmsStack == null) return null;
         try {
             Object customData = ITEMSTACK_GET.invoke(nmsStack, CUSTOM_DATA_TYPE_KEY);
             if (customData == null) return null;
@@ -415,8 +426,8 @@ public class ComponentAdapter implements NbtEditor {
          */
         @Override
         public boolean hasKey(@Nonnull String key) {
-            Object type = ComponentAccess.resolve(key);
-            return ComponentAccess.getComponent(nmsStack, type) != null;
+            Object type = getRaw(key);
+            return type != null;
         }
 
         /**
@@ -436,6 +447,7 @@ public class ComponentAdapter implements NbtEditor {
          * @param key component key
          * @return the component object.
          */
+        @Nullable
         private Object getRaw(String key) {
             // Pending writes override everything
             if (buffer.containsKey(key))
@@ -472,7 +484,7 @@ public class ComponentAdapter implements NbtEditor {
                     // Write into NMS ItemStack
                     ComponentAccess.setComponent(nmsStack, type, value);
                 }
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 logger.logError(t, () -> "Could not set the vanilla tags.");
             }
 
@@ -487,7 +499,7 @@ public class ComponentAdapter implements NbtEditor {
 
                 Object container = f.get(nmsStack); // vanilla ComponentMap
                 return new HashMap<>((Map<Object, Object>) container);
-            } catch (Throwable ex) {
+            } catch (Exception ex) {
                 logger.logError(ex, () -> "Could not read vanilla component root map");
                 return new HashMap<>();
             }
@@ -506,7 +518,7 @@ public class ComponentAdapter implements NbtEditor {
                     String id = ComponentAccess.getId(entry.getKey()); // e.g. "minecraft:damage"
                     out.put(id, entry.getValue());
                 }
-            } catch (Throwable ex) {
+            } catch (Exception ex) {
                 logger.logError(ex, () -> "Could not read vanilla component root map");
             }
             return out;
@@ -520,7 +532,7 @@ public class ComponentAdapter implements NbtEditor {
         private static final MethodHandle REMOVE;
 
         static final ComponentResolver COMPONENT_RESOLVER;
-        private static boolean READY = true;
+        private static boolean ready = true;
 
         static {
             MethodHandle set = null;
@@ -540,18 +552,21 @@ public class ComponentAdapter implements NbtEditor {
                 get = lookup.unreflect(mGet);
                 remove = lookup.unreflect(mRemove);
 
-            } catch (Throwable t) {
-                READY = false;
+            } catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException t) {
+                ready = false;
                 logger.logError(t, () -> "Failed to initialize ComponentAccess");
             }
             SET = set;
             GET = get;
             REMOVE = remove;
 
-            if (READY)
+            if (ready)
                 COMPONENT_RESOLVER = new ComponentResolver();
             else
                 COMPONENT_RESOLVER = null;
+        }
+
+        private ComponentAccess() {
         }
 
         /**
@@ -560,7 +575,7 @@ public class ComponentAdapter implements NbtEditor {
          * @return true if everything is loaded correctly.
          */
         public static boolean isReady() {
-            return READY && COMPONENT_RESOLVER != null && COMPONENT_RESOLVER.isReady();
+            return ready && COMPONENT_RESOLVER != null && COMPONENT_RESOLVER.isReady();
         }
 
         /**
@@ -586,7 +601,7 @@ public class ComponentAdapter implements NbtEditor {
             try {
                 SET.invoke(nmsStack, type, value);
             } catch (Throwable e) {
-                throw new RuntimeException(e);
+                logger.logError(e, () -> "Failed to set the component.");
             }
         }
 
@@ -597,12 +612,14 @@ public class ComponentAdapter implements NbtEditor {
          * @param type     the type of data.
          * @return the raw set object component tag.
          */
+        @Nullable
         public static Object getComponent(Object nmsStack, Object type) {
             try {
                 return GET.invoke(nmsStack, type);
             } catch (Throwable e) {
-                throw new RuntimeException(e);
+                logger.logError(e, () -> "Failed to get the component.");
             }
+            return null;
         }
 
         /**
@@ -615,7 +632,7 @@ public class ComponentAdapter implements NbtEditor {
             try {
                 REMOVE.invoke(nmsStack, type);
             } catch (Throwable e) {
-                throw new RuntimeException(e);
+                logger.logError(e, () -> "Failed to remove the component.");
             }
         }
 
@@ -672,7 +689,7 @@ public class ComponentAdapter implements NbtEditor {
         private static final Method CREATE_METHOD;
         private static final Method REGISTRY_GET_METHOD;
         private static final Object DATA_COMPONENT_REGISTRY_KEY;
-        private static boolean READY = true;
+        private static boolean ready = true;
 
         static {
             Object dataComponentRegistry = null;
@@ -698,7 +715,7 @@ public class ComponentAdapter implements NbtEditor {
                 registryKey = keyField.get(dataComponentRegistry);
                 System.out.println("registryKey " + registryKey);
             } catch (Exception ex) {
-                READY = false;
+                ready = false;
                 logger.logError(ex, () -> "Failed to load DataComponent registry");
             }
             DATA_COMPONENT_REGISTRY = dataComponentRegistry;
@@ -715,7 +732,7 @@ public class ComponentAdapter implements NbtEditor {
          * @return true if everything is loaded correctly.
          */
         private boolean isReady() {
-            return READY;
+            return ready;
         }
 
         /**
@@ -729,6 +746,7 @@ public class ComponentAdapter implements NbtEditor {
             return CACHE.computeIfAbsent(key, ComponentResolver::resolveInternal);
         }
 
+        @Nullable
         private static Object resolveInternal(String key) {
             try {
                 final String keyChecked = rl(key);
@@ -745,20 +763,17 @@ public class ComponentAdapter implements NbtEditor {
                 // Fetch component type from registry
                 return REGISTRY_GET_METHOD.invoke(DATA_COMPONENT_REGISTRY, resourceKey);
             } catch (Exception ex) {
-                throw new RuntimeException("Failed to resolve component: " + key, ex);
+                logger.logError(ex, () -> "Failed to resolve component: " + key);
             }
+            return null;
         }
 
         // Construct a ResourceLocation namespace:path
         private static String rl(String key) {
-            try {
-                int i = key.indexOf(':');
-                if (i == -1)
-                    return "minecraft:" + key;
-                return key;
-            } catch (Throwable t) {
-                throw new RuntimeException(t);
-            }
+            int i = key.indexOf(':');
+            if (i == -1)
+                return "minecraft:" + key;
+            return key;
         }
     }
 
@@ -811,7 +826,7 @@ public class ComponentAdapter implements NbtEditor {
         // CompoundTag.put
         try {
             return LOOKUP.findVirtual(compoundClass, "put", MethodType.methodType(Class.forName("net.minecraft.nbt.Tag"), String.class, Class.forName("net.minecraft.nbt.Tag")));
-        } catch (Throwable t) {
+        } catch (NoSuchMethodException | IllegalAccessException t) {
             // fallback - find a method named put with (String, Tag)
             Method m = findMethodByName(compoundClass, "put", String.class, Class.forName("net.minecraft.nbt.Tag"));
             return LOOKUP.unreflect(m);
