@@ -4,7 +4,7 @@ plugins {
 
     id("java-gradle-plugin")
     id("java-library")
-    id("java")
+   // id("java")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -38,8 +38,9 @@ buildscript {
 
 tasks {
     compileJava {
-        java.sourceCompatibility = JavaVersion.VERSION_1_8
-        java.targetCompatibility = JavaVersion.VERSION_1_8
+        options.release.set(8)
+        //sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+        //targetCompatibility = JavaVersion.VERSION_1_8.toString()
     }
 }
 
@@ -55,7 +56,10 @@ dependencies {
      //implementation("com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar:8.1.1")
 }
 
+tasks.compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
 
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(21)
 }

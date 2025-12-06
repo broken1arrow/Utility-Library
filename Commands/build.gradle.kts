@@ -2,9 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.broken.arrow.library.PublicationManager
 
 plugins {
-    java
-    alias(libs.plugins.shadow)
 
+    alias(libs.plugins.shadow)
     id("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }

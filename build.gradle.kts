@@ -2,9 +2,9 @@ import org.apache.tools.ant.taskdefs.Java
 
 plugins {
     `java-library`
-    java
+    //java
     `maven-publish`
-    `kotlin-dsl`
+   //`kotlin-dsl`
     signing
     checkstyle
     alias(libs.plugins.shadow)
@@ -27,10 +27,10 @@ checkstyle {
 }
 
 subprojects {
-    apply(plugin = "maven-publish")
-    apply(plugin = "java")
-    apply(plugin = "signing")
-    apply(plugin = "checkstyle")
+    plugins.apply( "maven-publish")
+    plugins.apply("java-library")
+    plugins.apply( "signing")
+    plugins.apply("checkstyle")
 
     java {
         toolchain {
@@ -56,8 +56,8 @@ subprojects {
             // Set the release flag. This configures what version bytecode the compiler will emit, as well as what JDK APIs are usable.
             // See https://openjdk.java.net/jeps/247 for more information.
             //options.release.set(8)
-            java.sourceCompatibility = JavaVersion.VERSION_1_8
-            java.targetCompatibility = JavaVersion.VERSION_1_8
+            //sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+            targetCompatibility = JavaVersion.VERSION_1_8.toString()
         }
 
         val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
@@ -156,8 +156,8 @@ tasks {
         // See https://openjdk.java.net/jeps/247 for more information.
         options.release.set(8)
 
-        java.sourceCompatibility = JavaVersion.VERSION_1_8
-        java.targetCompatibility = JavaVersion.VERSION_1_8
+      //  sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+       // targetCompatibility = JavaVersion.VERSION_1_8.toString()
     }
 }
 
