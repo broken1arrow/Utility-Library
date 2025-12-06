@@ -1,13 +1,12 @@
 package org.broken.arrow.library.itemcreator.utility.compound;
 
-
+import org.broken.arrow.library.itemcreator.utility.nms.ComponentFactory;
 import org.broken.arrow.library.itemcreator.utility.nms.NBTAdapter;
 import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 
 /**
  * Wraps an underlying NBTTagCompound belonging to an NMS ItemStack.
@@ -40,7 +39,7 @@ public class CompoundTag {
      */
     public CompoundTag(@Nonnull final Object  handle) {
         Validate.checkNotNull(handle, "CompoundTag handle cannot be null");
-        compoundSession = NBTAdapter.compoundSession(handle);
+        compoundSession = ComponentFactory.compoundSession(handle);
         Validate.checkNotNull(compoundSession, "The compound session could not be loaded.");
     }
 

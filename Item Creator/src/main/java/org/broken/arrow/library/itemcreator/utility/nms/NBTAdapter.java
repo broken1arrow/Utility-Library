@@ -3,7 +3,6 @@ package org.broken.arrow.library.itemcreator.utility.nms;
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
 import org.broken.arrow.library.itemcreator.utility.compound.NbtData;
-import org.broken.arrow.library.itemcreator.utility.compound.VanillaCompoundTag;
 import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
 import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
 import org.broken.arrow.library.itemcreator.utility.nms.mappings.NBTCompoundMappings;
@@ -21,347 +20,271 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.util.logging.Level;
 
+
 /**
- * Provides reflective access to NMS ItemStacks and NBTTagCompounds in legacy
- * Minecraft versions. See {@link NbtData} for more information.
+ * A per-item reflective session that provides access to the underlying NMS ItemStack
+ * and its NBTTagCompound.
  *
- * <p>This class is intended as an internal utility for low-level item modifications.
- * It should generally be accessed through {@link NbtData} or {@link CompoundTag} rather than
- * directly by plugin developers.</p>
- *
- * <p><strong>Note:</strong> Because this class relies on reflection into obfuscated NMS code,
- * it may not work correctly on the latest Minecraft versions, or it may lag behind
- * Mojang's latest changes. Always verify availability through
- * {@link NbtEditor#isReady()} before using.
- * </p>
+ * <p>All operations assume that reflection has been successfully initialized. If not,
+ * methods will fail silently or throw exceptions as appropriate.</p>
  */
-public class NBTAdapter {
+public class NBTAdapter implements NbtEditor {
     private static final Logging logger = new Logging(NBTAdapter.class);
+    private static final MethodHandle NMS_ITEM_COPY;
+    private static final MethodHandle AS_BUKKIT_ITEM_COPY;
+    private static final MethodHandle HAS_TAG;
+    private static final MethodHandle GET_TAG;
+    private static final MethodHandle SET_TAG;
+    private static final Constructor<?> nbtTagConstructor;
+    private static final MethodHandle GET_NESTED_COMPOUND;
+    private static final MethodHandle SET_NESTED_COMPOUND;
 
-    private NBTAdapter() {
+    protected static final boolean REFLECTION_READY;
+    private final Object nmsItemCopy;
+    private final ItemStack bukkitItem;
+    private boolean finalize = false;
+    private CompoundState compoundState = CompoundState.NOT_CREATED;
+
+    static {
+        Constructor<?> tagConstructor = null;
+        MethodHandle setNBTTag = null;
+        MethodHandle getNBTTag = null;
+        MethodHandle hasNBTTag = null;
+        MethodHandle bukkitCopy = null;
+        MethodHandle nMSCopyItem = null;
+        MethodHandle getNestedCompound = null;
+        MethodHandle setNestedCompound = null;
+        boolean reflectionDone = false;
+
+        try {
+            final String craftPath = getCraftBukkitPath();
+            final String nmsPath = getItemStackPath();
+            final Class<?> craftItemStack = Class.forName(craftPath + ".inventory.CraftItemStack");
+            final Class<?> nmsItemStack = Class.forName(nmsPath);
+            final Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
+            final Class<?> nbtTagBase = Class.forName(getNbtTagBasePath());
+
+            final MethodHandles.Lookup lookup = MethodHandles.lookup();
+            final NBTItemTagMappings itemTagName = new NBTItemTagMappings();
+
+            nMSCopyItem = lookup.findStatic(craftItemStack, "asNMSCopy",
+                    MethodType.methodType(nmsItemStack, ItemStack.class));
+            bukkitCopy = lookup.findStatic(craftItemStack, "asBukkitCopy",
+                    MethodType.methodType(ItemStack.class, nmsItemStack));
+
+
+            hasNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.hasTagName(),
+                    MethodType.methodType(boolean.class));
+            getNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.getTagName(),
+                    MethodType.methodType(nbtTagCompound));
+            setNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.setTagName(),
+                    MethodType.methodType(void.class, nbtTagCompound));
+
+            if (ItemCreator.getServerVersion() < 13.0)
+                setNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.setNestedCompoundName(), MethodType.methodType(void.class, String.class, nbtTagBase));
+            else
+                setNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.setNestedCompoundName(), MethodType.methodType(nbtTagBase, String.class, nbtTagBase));
+            getNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.getNestedCompoundName(), MethodType.methodType(nbtTagBase, String.class));
+
+            tagConstructor = nbtTagCompound.getConstructor();
+            reflectionDone = true;
+        } catch (IllegalAccessException | ClassNotFoundException | NoSuchMethodException e) {
+            logger.logError(e, () -> "Failed to initialize all NMS methods needed for modern minecraft.");
+        }
+        nbtTagConstructor = tagConstructor;
+        SET_TAG = setNBTTag;
+        GET_TAG = getNBTTag;
+        HAS_TAG = hasNBTTag;
+        AS_BUKKIT_ITEM_COPY = bukkitCopy;
+        NMS_ITEM_COPY = nMSCopyItem;
+        GET_NESTED_COMPOUND = getNestedCompound;
+        SET_NESTED_COMPOUND = setNestedCompound;
+        REFLECTION_READY = reflectionDone;
+
     }
 
-    /**
-     * Creates a new {@link NbtEditor} for the given Bukkit {@link ItemStack}.
-     *
-     * <p>This method converts the provided {@link ItemStack} into its internal
-     * NMS representation and prepares all required reflective access for
-     * reading and writing its underlying {@code NBTTagCompound}.</p>
-     *
-     * <p>If the required NMS classes or methods could not be resolved during
-     * startup, this method will throw an {@link IllegalStateException}. Always
-     * verify availability first via {@link NbtEditor#isReady()}, it will have
-     * checks so nothing breaks if you miss it.</p>
-     *
-     * <p>This method is intended to be used internally by {@link NbtData} and
-     * other bridge classes. End-user plugin code should prefer {@link NbtData}.</p>
-     *
-     * @param stack the Bukkit ItemStack to wrap
-     * @return a new {@link  NbtEditor} for the given ItemStack
-     * @throws IllegalStateException if the NMS bridge is not available
-     */
-    public static NbtEditor session(@Nonnull final ItemStack stack) {
-        if (ItemCreator.getServerVersion() > 20.4f) {
-            ComponentAdapter componentItem = new ComponentAdapter(stack);
-            if (!componentItem.isReady()) {
-                logger.log(Level.WARNING, () -> "NMS bridge not loaded");
-                return null;
-            }
-            return new ComponentAdapter(stack);
-        }
-        if (!NmsItemSession.REFLECTION_READY) {
-            logger.log(Level.WARNING, () -> "NMS bridge not loaded");
-            return null;
-        }
-        return new NmsItemSession(stack);
+    NBTAdapter(@Nonnull final ItemStack item) {
+        this.nmsItemCopy = toNmsItemStack(item);
+        this.bukkitItem = item.clone();
     }
 
-    /**
-     * Creates a new {@link CompoundEditor} for the given NBTTagCompound handle.
-     *
-     * <p>This method is responsible for binding reflective access to the
-     * underlying {@code NBTTagCompound} instance. It enables operations such
-     * as {@code hasKey}, {@code setBoolean}, and {@code getBoolean}</p>
-     *
-     * <p>This is a low-level internal factory and is used by {@link CompoundTag}.
-     * End-user code should never call this method directly.</p>
-     *
-     * @param handle the raw NBTTagCompound instance from NMS
-     * @return a new {@link CompoundEditor} bound to the provided handle
-     * @throws IllegalStateException if the CompoundSession layer is not available
-     */
-    public static CompoundEditor compoundSession(@Nonnull final Object handle) {
-        if (!CompoundSession.isReady()) {
-            logger.log(Level.WARNING, () -> "CompoundSession not loaded");
-            return null;
-        }
-        return new CompoundSession(handle);
+
+    @Override
+    public boolean isReady() {
+        if (!REFLECTION_READY)
+            return false;
+
+        return nmsItemCopy != null;
     }
 
-    /**
-     * A per-item reflective session that provides access to the underlying NMS ItemStack
-     * and its NBTTagCompound.
-     *
-     * <p>All operations assume that reflection has been successfully initialized. If not,
-     * methods will fail silently or throw exceptions as appropriate.</p>
-     */
-    public static class NmsItemSession implements NbtEditor {
-        private static final MethodHandle NMS_ITEM_COPY;
-        private static final MethodHandle AS_BUKKIT_ITEM_COPY;
-        private static final MethodHandle HAS_TAG;
-        private static final MethodHandle GET_TAG;
-        private static final MethodHandle SET_TAG;
-        private static final Constructor<?> nbtTagConstructor;
-        private static final MethodHandle GET_NESTED_COMPOUND;
-        private static final MethodHandle SET_NESTED_COMPOUND;
-
-        protected static final boolean REFLECTION_READY;
-        private final Object nmsItemCopy;
-        private final ItemStack bukkitItem;
-        private boolean finalize = false;
-        private CompoundState compoundState = CompoundState.NOT_CREATED;
-
-        static {
-            Constructor<?> tagConstructor = null;
-            MethodHandle setNBTTag = null;
-            MethodHandle getNBTTag = null;
-            MethodHandle hasNBTTag = null;
-            MethodHandle bukkitCopy = null;
-            MethodHandle nMSCopyItem = null;
-            MethodHandle getNestedCompound = null;
-            MethodHandle setNestedCompound = null;
-            boolean reflectionDone = false;
-
-            try {
-                final String craftPath = getCraftBukkitPath();
-                final String nmsPath = getItemStackPath();
-                final Class<?> craftItemStack = Class.forName(craftPath + ".inventory.CraftItemStack");
-                final Class<?> nmsItemStack = Class.forName(nmsPath);
-                final Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
-                final Class<?> nbtTagBase = Class.forName(getNbtTagBasePath());
-
-                final MethodHandles.Lookup lookup = MethodHandles.lookup();
-                final NBTItemTagMappings itemTagName = new NBTItemTagMappings();
-
-                nMSCopyItem = lookup.findStatic(craftItemStack, "asNMSCopy",
-                        MethodType.methodType(nmsItemStack, ItemStack.class));
-                bukkitCopy = lookup.findStatic(craftItemStack, "asBukkitCopy",
-                        MethodType.methodType(ItemStack.class, nmsItemStack));
-
-
-                hasNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.hasTagName(),
-                        MethodType.methodType(boolean.class));
-                getNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.getTagName(),
-                        MethodType.methodType(nbtTagCompound));
-                setNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.setTagName(),
-                        MethodType.methodType(void.class, nbtTagCompound));
-
-                if (ItemCreator.getServerVersion() < 13.0)
-                    setNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.setNestedCompoundName(), MethodType.methodType(void.class, String.class, nbtTagBase));
-                else
-                    setNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.setNestedCompoundName(), MethodType.methodType(nbtTagBase, String.class, nbtTagBase));
-                getNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.getNestedCompoundName(), MethodType.methodType(nbtTagBase, String.class));
-
-                tagConstructor = nbtTagCompound.getConstructor();
-                reflectionDone = true;
-            } catch (IllegalAccessException | ClassNotFoundException | NoSuchMethodException e) {
-                logger.logError(e, () -> "Failed to initialize all NMS methods needed for modern minecraft.");
-            }
-            nbtTagConstructor = tagConstructor;
-            SET_TAG = setNBTTag;
-            GET_TAG = getNBTTag;
-            HAS_TAG = hasNBTTag;
-            AS_BUKKIT_ITEM_COPY = bukkitCopy;
-            NMS_ITEM_COPY = nMSCopyItem;
-            GET_NESTED_COMPOUND = getNestedCompound;
-            SET_NESTED_COMPOUND = setNestedCompound;
-            REFLECTION_READY = reflectionDone;
-
+    @Override
+    public boolean hasTag() {
+        if (!REFLECTION_READY || nmsItemCopy == null) return false;
+        try {
+            return (boolean) HAS_TAG.invoke(this.nmsItemCopy);
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to initialize hasTag");
         }
+        return false;
+    }
 
-        NmsItemSession(@Nonnull ItemStack item) {
-            this.nmsItemCopy = toNmsItemStack(item);
-            this.bukkitItem = item.clone();
-        }
-
-        @Override
-        public boolean isReady() {
-            if (!REFLECTION_READY)
-                return false;
-
-            return nmsItemCopy != null;
-        }
-
-        @Override
-        public boolean hasTag() {
-            if (!REFLECTION_READY || nmsItemCopy == null) return false;
-            try {
-                return (boolean) HAS_TAG.invoke(this.nmsItemCopy);
-            } catch (Throwable e) {
-                logger.logError(e, () -> "Failed to initialize hasTag");
-            }
+    @Override
+    public boolean hasTag(@Nonnull final String name) {
+        try {
+            if (!hasTag()) return false;
+            Object root = GET_TAG.invoke(nmsItemCopy);
+            if (name.isEmpty()) return root != null;
+            Object nested = GET_NESTED_COMPOUND.invoke(root, name);
+            return nested != null;
+        } catch (Throwable ignored) {
             return false;
         }
+    }
 
-        @Override
-        public boolean hasTag(@Nonnull final String name) {
-            try {
-                if (!hasTag()) return false;
-                Object root = GET_TAG.invoke(nmsItemCopy);
-                if (name.isEmpty()) return root != null;
-                Object nested = GET_NESTED_COMPOUND.invoke(root, name);
-                return nested != null;
-            } catch (Throwable ignored) {
-                return false;
-            }
-        }
+    @Nonnull
+    @Override
+    public CompoundTag enableVanillaTagEditor() {
+        return new CompoundTag(this.getCompound());
+    }
 
-        @Nonnull
-        @Override
-        public CompoundTag enableVanillaTagEditor() {
-            return new CompoundTag(this.getCompound());
-        }
+    @Override
+    @Nullable
+    public CompoundTag getOrCreateCompound() {
+        return getOrCreateCompoundTag("", false);
+    }
 
-        @Override
-        @Nullable
-        public CompoundTag getOrCreateCompound() {
-            return getOrCreateCompoundTag("", false);
-        }
+    @Override
+    @Nullable
+    public CompoundTag getOrCreateCompound(@Nonnull final String name) {
+        return getOrCreateCompoundTag(name, true);
+    }
 
-        @Override
-        @Nullable
-        public CompoundTag getOrCreateCompound(@Nonnull final String name) {
-            return getOrCreateCompoundTag(name, true);
-        }
+    @Override
+    @Nullable
+    public CompoundTag getCompound() {
+        return getCompound("", false);
+    }
 
-        @Override
-        @Nullable
-        public CompoundTag getCompound() {
-            return getCompound("", false);
-        }
+    @Override
+    @Nullable
+    public CompoundTag getCompound(@Nonnull final String name) {
+        return getCompound(name, true);
+    }
 
-        @Override
-        @Nullable
-        public CompoundTag getCompound(@Nonnull final String name) {
-            return getCompound(name, true);
-        }
-
-        @Override
-        @Nonnull
-        public ItemStack finalizeChanges() {
-            if (!REFLECTION_READY || nmsItemCopy == null) return this.bukkitItem;
-            if (compoundState != CompoundState.CREATED) {
-                logger.log(() -> "FinalizeChanges: " + compoundState.getMessage());
-                return this.bukkitItem;
-            }
-            try {
-                Object compound = GET_TAG.invoke(nmsItemCopy);
-                if (compound == null) {
-                    logger.log(() -> "Failed to initialize the item creation, because the compound is not created yet.");
-                    return this.bukkitItem;
-                }
-                SET_TAG.invoke(nmsItemCopy, compound);
-                finalize = true;
-                return (ItemStack) AS_BUKKIT_ITEM_COPY.invoke(nmsItemCopy);
-            } catch (Throwable e) {
-                logger.logError(e, () -> "Failed to apply back to itemStack");
-            }
+    @Override
+    @Nonnull
+    public ItemStack finalizeChanges() {
+        if (!REFLECTION_READY || nmsItemCopy == null) return this.bukkitItem;
+        if (compoundState != CompoundState.CREATED) {
+            logger.log(() -> "FinalizeChanges: " + compoundState.getMessage());
             return this.bukkitItem;
         }
-
-        /**
-         * Converts a Bukkit ItemStack into its NMS counterpart.
-         *
-         * @param item Bukkit ItemStack to convert.
-         * @return the underlying Nms itemStack.
-         */
-        private Object toNmsItemStack(@Nonnull final ItemStack item) {
-            try {
-                return NMS_ITEM_COPY.invoke(item);
-            } catch (Throwable e) {
-                logger.logError(e, () -> "Failed to copy the bukkit stack to nms stack");
+        try {
+            Object compound = GET_TAG.invoke(nmsItemCopy);
+            if (compound == null) {
+                logger.log(() -> "Failed to initialize the item creation, because the compound is not created yet.");
+                return this.bukkitItem;
             }
-            return null;
+            SET_TAG.invoke(nmsItemCopy, compound);
+            finalize = true;
+            return (ItemStack) AS_BUKKIT_ITEM_COPY.invoke(nmsItemCopy);
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to apply back to itemStack");
         }
-
-        /**
-         * Internal helper to get or create a {@link CompoundTag}.
-         * <p>
-         * If {@code usingName} is true and the {@code name} parameter is empty,
-         * a debug log is written suggesting to use {@link #getOrCreateCompound()} instead
-         * for the root compound.
-         *
-         * @param name      the name of the nested compound; empty string returns the root.
-         * @param usingName whether this call is intended for a named compound.
-         * @return the requested {@link CompoundTag}, or null if reflection fails.
-         */
-        private CompoundTag getOrCreateCompoundTag(final String name, final boolean usingName) {
-            if (usingName && name.isEmpty())
-                logger.log(Level.FINE, () -> "Empty string passed to getOrCreateCompound(name). Use getOrCreateCompound() for root instead.");
-            try {
-                Object root;
-                Object nested = null;
-                if (hasTag()) {
-                    root = GET_TAG.invoke(nmsItemCopy);
-                } else {
-                    root = nbtTagConstructor.newInstance();
-                    SET_TAG.invoke(nmsItemCopy, root);
-                }
-                if (!name.isEmpty()) {
-                    nested = GET_NESTED_COMPOUND.invoke(root, name);
-                    if (nested == null) {
-                        nested = nbtTagConstructor.newInstance();
-                        SET_NESTED_COMPOUND.invoke(root, name, nested);
-                    }
-                }
-                this.compoundState = CompoundState.CREATED;
-                return new CompoundTag((nested != null ? nested : root));
-            } catch (Throwable e) {
-                logger.logError(e, () -> "Failed to initialize CompoundTag");
-                this.compoundState = CompoundState.ERROR;
-            }
-            return null;
-        }
-
-        /**
-         * Internal helper to get a {@link CompoundTag} if present.
-         * <p>
-         * If {@code usingName} is true and the {@code name} parameter is empty,
-         * a debug log is written suggesting to use {@link #getCompound()} instead
-         * for the root compound.
-         *
-         * @param name      the name of the nested compound; empty string returns the root.
-         * @param usingName whether this call is intended for a named compound.
-         * @return the requested {@link CompoundTag}, or null if not present or reflection fails.
-         */
-        private CompoundTag getCompound(final String name, final boolean usingName) {
-            if (usingName && name.isEmpty())
-                logger.log(Level.FINE, () -> "Empty string passed to getCompound(name). Use getCompound() for root instead.");
-
-            try {
-                if (!hasTag()) {
-                    this.compoundState = CompoundState.NULL;
-                    return null;
-                }
-                Object root = GET_TAG.invoke(nmsItemCopy);
-                Object nested = null;
-                if (!name.isEmpty()) {
-                    nested = GET_NESTED_COMPOUND.invoke(root, name);
-                    if (nested == null) {
-                        logger.log(Level.CONFIG, () -> "Requested nested compound '" + name + "' not found. Returning root instead.");
-                    }
-                }
-                this.compoundState = CompoundState.CREATED;
-                return new CompoundTag((nested != null ? nested : root));
-            } catch (Throwable e) {
-                logger.logError(e, () -> "Failed to initialize CompoundTag");
-                this.compoundState = CompoundState.ERROR;
-            }
-            return null;
-        }
-
-
+        return this.bukkitItem;
     }
+
+    /**
+     * Converts a Bukkit ItemStack into its NMS counterpart.
+     *
+     * @param item Bukkit ItemStack to convert.
+     * @return the underlying Nms itemStack.
+     */
+    private Object toNmsItemStack(@Nonnull final ItemStack item) {
+        try {
+            return NMS_ITEM_COPY.invoke(item);
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to copy the bukkit stack to nms stack");
+        }
+        return null;
+    }
+
+    /**
+     * Internal helper to get or create a {@link CompoundTag}.
+     * <p>
+     * If {@code usingName} is true and the {@code name} parameter is empty,
+     * a debug log is written suggesting to use {@link #getOrCreateCompound()} instead
+     * for the root compound.
+     *
+     * @param name      the name of the nested compound; empty string returns the root.
+     * @param usingName whether this call is intended for a named compound.
+     * @return the requested {@link CompoundTag}, or null if reflection fails.
+     */
+    private CompoundTag getOrCreateCompoundTag(final String name, final boolean usingName) {
+        if (usingName && name.isEmpty())
+            logger.log(Level.FINE, () -> "Empty string passed to getOrCreateCompound(name). Use getOrCreateCompound() for root instead.");
+        try {
+            Object root;
+            Object nested = null;
+            if (hasTag()) {
+                root = GET_TAG.invoke(nmsItemCopy);
+            } else {
+                root = nbtTagConstructor.newInstance();
+                SET_TAG.invoke(nmsItemCopy, root);
+            }
+            if (!name.isEmpty()) {
+                nested = GET_NESTED_COMPOUND.invoke(root, name);
+                if (nested == null) {
+                    nested = nbtTagConstructor.newInstance();
+                    SET_NESTED_COMPOUND.invoke(root, name, nested);
+                }
+            }
+            this.compoundState = CompoundState.CREATED;
+            return new CompoundTag((nested != null ? nested : root));
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to initialize CompoundTag");
+            this.compoundState = CompoundState.ERROR;
+        }
+        return null;
+    }
+
+    /**
+     * Internal helper to get a {@link CompoundTag} if present.
+     * <p>
+     * If {@code usingName} is true and the {@code name} parameter is empty,
+     * a debug log is written suggesting to use {@link #getCompound()} instead
+     * for the root compound.
+     *
+     * @param name      the name of the nested compound; empty string returns the root.
+     * @param usingName whether this call is intended for a named compound.
+     * @return the requested {@link CompoundTag}, or null if not present or reflection fails.
+     */
+    private CompoundTag getCompound(final String name, final boolean usingName) {
+        if (usingName && name.isEmpty())
+            logger.log(Level.FINE, () -> "Empty string passed to getCompound(name). Use getCompound() for root instead.");
+
+        try {
+            if (!hasTag()) {
+                this.compoundState = CompoundState.NULL;
+                return null;
+            }
+            Object root = GET_TAG.invoke(nmsItemCopy);
+            Object nested = null;
+            if (!name.isEmpty()) {
+                nested = GET_NESTED_COMPOUND.invoke(root, name);
+                if (nested == null) {
+                    logger.log(Level.CONFIG, () -> "Requested nested compound '" + name + "' not found. Returning root instead.");
+                }
+            }
+            this.compoundState = CompoundState.CREATED;
+            return new CompoundTag((nested != null ? nested : root));
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to initialize CompoundTag");
+            this.compoundState = CompoundState.ERROR;
+        }
+        return null;
+    }
+
 
     /**
      * A per-NBTTagCompound reflective session. Provides low-level access to manipulate

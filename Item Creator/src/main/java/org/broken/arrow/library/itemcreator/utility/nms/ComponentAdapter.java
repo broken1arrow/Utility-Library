@@ -1,7 +1,7 @@
 package org.broken.arrow.library.itemcreator.utility.nms;
 
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.compound.VanillaCompoundTag;
+import org.broken.arrow.library.itemcreator.utility.compound.VanillaComponentTag;
 import org.broken.arrow.library.itemcreator.utility.nms.api.ComponentEditor;
 import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
 import org.broken.arrow.library.logging.Logging;
@@ -145,6 +145,14 @@ public class ComponentAdapter implements NbtEditor {
         }
     }
 
+    @Nonnull
+    @Override
+    public VanillaComponentTag enableVanillaTagEditor() {
+        if (vanillaSession == null)
+            vanillaSession = new VanillaComponentSession(nmsStack);
+        return new VanillaComponentTag(this.rootCustomDataCache, vanillaSession);
+    }
+
     // ---------------- NbtEditor API (custom-data only) ----------------
     @Override
     public boolean isReady() {
@@ -166,14 +174,6 @@ public class ComponentAdapter implements NbtEditor {
         } catch (Throwable t) {
             return false;
         }
-    }
-
-    @Nonnull
-    @Override
-    public VanillaCompoundTag enableVanillaTagEditor() {
-        if (vanillaSession == null)
-            vanillaSession = new VanillaComponentSession(nmsStack);
-        return new VanillaCompoundTag(this.rootCustomDataCache, vanillaSession);
     }
 
     @Nullable

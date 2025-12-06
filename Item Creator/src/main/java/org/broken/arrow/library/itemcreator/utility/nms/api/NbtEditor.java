@@ -1,7 +1,6 @@
 package org.broken.arrow.library.itemcreator.utility.nms.api;
 
 import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.compound.VanillaCompoundTag;
 import org.broken.arrow.library.itemcreator.utility.nms.NBTAdapter;
 import org.bukkit.inventory.ItemStack;
 
