@@ -66,6 +66,7 @@ tasks {
         mustRunAfter(":block-visualization:shadowJar")
         mustRunAfter(":nbt:shadowJar")
         mustRunAfter(":color-conversion:shadowJar")
+        mustRunAfter(":item-creator:shadowJar")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         ShadeLogic(project, this) {
             archiveClassifier.set("")

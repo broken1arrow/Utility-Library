@@ -42,4 +42,8 @@ tasks {
             classifier = "all"
         }
     }*/
+    shadowJar {
+        dependsOn(":item-creator:shadowJar")
+
+    }
 }

@@ -1,8 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
-import org.broken.arrow.library.PublicationManager
-import org.broken.arrow.library.ShadeLogic
-
 plugins {
     alias(libs.plugins.shadow)
 
@@ -31,7 +26,7 @@ java {
 
 tasks {
 
-    shadowJar {
+ /*   shadowJar {
         duplicatesStrategy = DuplicatesStrategy.INHERIT
         ShadeLogic(project, this) {
             setArchiveFileName()
@@ -40,7 +35,7 @@ tasks {
             }
             relocate("de.tr7zw.changeme.nbtapi", formatDependency("nbt"))
         }
-    }
+    }*/
 
     /*    PublicationManager(project) {
             val shadowJar by getting(ShadowJar::class) {

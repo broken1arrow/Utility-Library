@@ -1,6 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.broken.arrow.library.PublicationManager
-
 plugins {
     alias(libs.plugins.shadow)
 
@@ -37,5 +34,14 @@ tasks {
             classifier = "all"
         }
     }*/
-
+/*    shadowJar {
+        duplicatesStrategy = DuplicatesStrategy.INHERIT
+        ShadeLogic(project, this) {
+            setArchiveFileName()
+            dependencies {
+                exclusions.forEach { exclude(it) }
+            }
+            relocate("de.tr7zw.changeme", "org.broken.arrow.library.nbt.dependents.nbt")
+        }
+    }*/
 }
