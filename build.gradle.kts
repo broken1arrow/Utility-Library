@@ -26,6 +26,12 @@ checkstyle {
     configFile = file("config/checkstyle/checkstyle.xml")
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 subprojects {
     plugins.apply("maven-publish")
     plugins.apply("java-library")
