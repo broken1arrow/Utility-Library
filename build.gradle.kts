@@ -1,6 +1,8 @@
 import org.apache.tools.ant.taskdefs.Java
-
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
+    kotlin("jvm") version "2.2.0"
     `java-library`
     //java
     `maven-publish`
@@ -33,6 +35,15 @@ java {
 }
 
 subprojects {
+
+    plugins.withId("org.jetbrains.kotlin.jvm") {
+        tasks.withType<KotlinCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_17)
+            }
+        }
+    }
+
     plugins.apply("maven-publish")
     plugins.apply("java-library")
     plugins.apply("signing")
