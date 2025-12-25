@@ -26,10 +26,10 @@ public class ContainerUtility {
 	private Class<?> containersClass;
 	private Class<?> containerClass;
 	private Constructor<?> packetConstructor;
-	private final float serverVersion;
+	private final double serverVersion;
 	private final InventoryNMS inventoryNMS;
 
-	protected ContainerUtility(final InventoryNMS inventoryNMS, final float serverVersion) {
+	protected ContainerUtility(final InventoryNMS inventoryNMS, final double serverVersion) {
 		this.serverVersion = serverVersion;
 		this.inventoryNMS = inventoryNMS;
 		loadClasses(serverVersion);
@@ -85,7 +85,7 @@ public class ContainerUtility {
 
 	}
 
-	private void loadClasses(final float serverVersion) {
+	private void loadClasses(final double serverVersion) {
 		try {
 			InventoryNMS nms = this.inventoryNMS;
 			this.packetClass = nms.getPacket();

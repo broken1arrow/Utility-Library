@@ -101,11 +101,11 @@ public class TitleUtility {
      * @param serverVersion The version of the server.
      * @return The formatted title text, or {@code null} if no title is set.
      */
-    public Object getTitle(float serverVersion) {
-        if (serverVersion > 20.2F) {
+    public Object getTitle(final double serverVersion) {
+        if (serverVersion > 20.2) {
             return getTitleNewVersions();
         }
-        if (this.jsonObjectTitle != null && serverVersion > 13.0F)
+        if (this.jsonObjectTitle != null && serverVersion > 13.0)
             return this.jsonObjectTitle;
         if (this.title != null) {
             return getTitleLegacy(serverVersion);
@@ -123,14 +123,14 @@ public class TitleUtility {
         return TextTranslator.toSpigotFormat(title);
     }
 
-    private Object getTitleLegacy(float serverVersion) {
-        if (this.defaultConvertColor && serverVersion > 13.0F)
+    private Object getTitleLegacy(final double serverVersion) {
+        if (this.defaultConvertColor && serverVersion > 13.0)
             return TextTranslator.toComponent(title);
         else {
             if (this.defaultConvertColor)
                 return "'" + TextTranslator.toSpigotFormat(title) + "'";
             else {
-                if (serverVersion >= 16.0F)
+                if (serverVersion >= 16.0)
                     return TextTranslator.fromLegacyText(title, ChatColors.WHITE);
                 else
                     return "'" + ChatColor.translateAlternateColorCodes('&', title) + "'";

@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
  */
 public class SetNmsData {
 	private final ContainerUtility containerUtility;
-	private final float serverVersion;
+	private final double serverVersion;
 
 	/**
 	 * Creates a new instance of {@code SetNmsData}, determining the server version and
@@ -85,7 +85,7 @@ public class SetNmsData {
 	}
 
 	@Nonnull
-	private ContainerUtility setNmsData(float serverVersion) {
+	private ContainerUtility setNmsData(double serverVersion) {
 		InventoryNMS inventoryNMS;
 		switch ((int) Math.floor(serverVersion)) {
 			case 20:
@@ -118,7 +118,7 @@ public class SetNmsData {
 	}
 
 	@Nonnull
-	private InventoryNMS getInventoryNMS(final float serverVersion) {
+	private InventoryNMS getInventoryNMS(final double serverVersion) {
 		InventoryNMS inventoryNMS;
 		if (serverVersion < 14.0F) {
 			inventoryNMS = new InventoryPacketTwelve();
