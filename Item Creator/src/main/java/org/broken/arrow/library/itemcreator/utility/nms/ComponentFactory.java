@@ -44,7 +44,7 @@ public class ComponentFactory {
      * or {@code null} if reflection initialization failed
      */
     public static NbtEditor session(@Nonnull final ItemStack stack) {
-        if (ItemCreator.getServerVersion() > 20.4f) {
+        if (ItemCreator.getVersion().versionNewer(20.4)) {
             ComponentAdapter componentItem = new ComponentAdapter(stack);
             if (!componentItem.isReady()) {
                 logger.log(Level.WARNING, () -> "NMS bridge not loaded");

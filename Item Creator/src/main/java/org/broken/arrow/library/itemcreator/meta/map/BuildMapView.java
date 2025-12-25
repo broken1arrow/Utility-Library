@@ -305,12 +305,12 @@ public class BuildMapView {
         if (mapView.getScale() == null)
             mapView.setScale(this.getScale());
 
-        if (ItemCreator.getServerVersion() > 13.2F) {
+        if (ItemCreator.getVersion().versionNewer(13.2)) {
             mapView.setTrackingPosition(trackingPosition);
             mapView.setLocked(locked);
         }
 
-        if (ItemCreator.getServerVersion() > 10.2F)
+        if (ItemCreator.getVersion().versionNewer(10.2))
             mapView.setUnlimitedTracking(unlimited);
 
         if (!renderer.isPixelsEmpty()) {
@@ -335,7 +335,7 @@ public class BuildMapView {
      * @return the map ID as an {@code int}, or {@code -1} if retrieval failed
      */
     public static int retrieveMapId(@Nonnull final MapView mapView) {
-        if (ItemCreator.getServerVersion() > 12.2F)
+        if (ItemCreator.getVersion().versionNewer( 12.2))
             return mapView.getId();
         try {
             Method getId = mapView.getClass().getMethod("getId");

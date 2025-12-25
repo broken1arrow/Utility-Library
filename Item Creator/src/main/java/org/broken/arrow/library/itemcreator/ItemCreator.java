@@ -3,13 +3,13 @@ package org.broken.arrow.library.itemcreator;
 
 import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
-import org.broken.arrow.library.itemcreator.utility.ServerVersion;
 import org.broken.arrow.library.itemcreator.utility.UnbreakableUtil;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
+import org.broken.arrow.library.version.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class ItemCreator {
     private static final Logging log = new Logging(ItemCreator.class);
-    private static ServerVersion serverVersion;
+    private static VersionUtil serverVersion;
     private static UnbreakableUtil unbreakableUtil;
     private static Plugin plugin;
     private final NBTManger nbtManger;
@@ -298,12 +298,21 @@ public class ItemCreator {
 
 
     /**
-     * Returns the current server version as a float.
+     * Returns the current server version as a double.
      *
      * @return the server version
      */
-    public static float getServerVersion() {
+    public static double getServerVersion() {
         return serverVersion.getServerVersion();
+    }
+
+    /**
+     * Returns the version util.
+     *
+     * @return the server version util.
+     */
+    public static VersionUtil getVersion() {
+        return serverVersion;
     }
 
     /**
@@ -323,7 +332,7 @@ public class ItemCreator {
         Validate.checkNotNull(enchantment, "Enchantment must be set to use this method.");
 
         final String enhancementName;
-        if (ItemCreator.getServerVersion() > 12.2F)
+        if (getVersion().versionNewer(12.2))
             enhancementName = enchantment.getKey().getKey();
         else
             enhancementName = enchantment.getName();
@@ -385,7 +394,7 @@ public class ItemCreator {
      */
     @Nullable
     public static MapView getMapById(int id) {
-        if (getServerVersion() < 13.0F) {
+        if (getVersion().versionOlder(13.0)) {
             try {
                 Method getMap = Bukkit.class.getMethod("getMap", short.class);
                 return (MapView) getMap.invoke(null, (short) id);
@@ -403,7 +412,7 @@ public class ItemCreator {
      * @param plugin the plugin instance
      */
     private static void setServerVersion(Plugin plugin) {
-        serverVersion = new ServerVersion(plugin);
+        serverVersion = new VersionUtil(plugin);
     }
 
     /**
@@ -437,7 +446,7 @@ public class ItemCreator {
         }
         if (name == null) return Enchantment.VANISHING_CURSE;
 
-        if (ItemCreator.getServerVersion() > 12.2F) {
+        if (ItemCreator.getVersion().versionNewer(12.2)) {
             Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(name));
             if (enchantment != null) return enchantment;
         }

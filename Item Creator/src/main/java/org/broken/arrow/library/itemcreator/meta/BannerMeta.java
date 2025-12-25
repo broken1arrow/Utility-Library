@@ -32,7 +32,7 @@ public class BannerMeta {
 
     private final List<Pattern> pattern = new ArrayList<>();
     private DyeColor bannerBaseColor;
-    private final float serverVersion = ItemCreator.getServerVersion();
+    private final double serverVersion = ItemCreator.getServerVersion();
 
     /**
      * Gets the base color of the banner, which is the background color

@@ -14,6 +14,7 @@ dependencies {
     api(project(":color-conversion"))
     api(project(":nbt"))
     api(project(":log-and-validate"))
+    api(project(":version"))
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)
     compileOnly(libs.mojang.authlib)

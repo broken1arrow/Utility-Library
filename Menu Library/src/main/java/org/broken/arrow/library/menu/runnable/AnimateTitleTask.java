@@ -121,7 +121,7 @@ public class AnimateTitleTask<T> extends BukkitRunnable {
         if (player != null && (!player.isOnline() || hasNotInventoryWithTitle()))
             return true;
 
-        return text == null || (ServerVersion.atLeast(ServerVersion.V1_9) && this.isCancelled());
+        return text == null || (ServerVersion.atLeast(1.9) && this.isCancelled());
     }
 
     /**

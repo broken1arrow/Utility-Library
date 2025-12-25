@@ -3,7 +3,7 @@ package org.broken.arrow.library.itemcreator.utility.nms.mappings;
 import org.broken.arrow.library.itemcreator.ItemCreator;
 
 public class NBTCompoundMappings {
-    private final float serverVersion = ItemCreator.getServerVersion();
+    private final double serverVersion = ItemCreator.getServerVersion();
 
     private final String hasKey;
     private final String remove;

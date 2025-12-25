@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 public final class NBTDataWrapper {
     private final Map<String, Object> itemMetaMap = new LinkedHashMap<>();
     private final ItemCreator itemCreator;
-    private final float serverVersion;
+    private final double serverVersion;
     private final Plugin plugin;
     private final PersistentDataUtility persistentData;
     private Consumer<NBTDataWriter> consumer;
@@ -232,11 +232,11 @@ public final class NBTDataWrapper {
         final Map<String, NBTValue> nbtCache = nbtData.getNbtCache();
         final Map<String, Object> metaDataMap = this.getMetaDataMap();
         final ItemMeta meta = itemStack.getItemMeta();
-        if (meta != null && this.serverVersion > 13.1F && this.serverVersion < 14.0F) {
+        if (meta != null && ItemCreator.getVersion().versionBetween(13.1, 14.0)) {
             nbtCache.forEach((key, nbtValue) -> {
                 setCustomTagContainer(key, nbtValue, meta);
             });
-        } else if (this.serverVersion > 13.2F && meta != null) {
+        } else if (this.serverVersion > 13.2 && meta != null) {
             if (!metaDataMap.isEmpty())
                 metaDataMap.forEach((s, nbtValue) ->
                         this.persistentData.setPersistentDataContainer(s, new NBTValue(nbtValue), meta.getPersistentDataContainer())

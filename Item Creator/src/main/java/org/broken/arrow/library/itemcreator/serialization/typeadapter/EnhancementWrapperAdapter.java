@@ -19,7 +19,7 @@ public class EnhancementWrapperAdapter extends BaseTypeAdapter<EnhancementWrappe
         final JsonWriterHelper json = new JsonWriterHelper(out);
 
         final Enchantment enchantment = value.getEnchantment();
-        if (ItemCreator.getServerVersion() > 12.2F) {
+        if (ItemCreator.getVersion().versionNewer(12.2)) {
             json.value("name", enchantment.getKey().getKey());
         } else {
             json.value("name", enchantment.getName());

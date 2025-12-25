@@ -50,7 +50,7 @@ public class BottleEffectMetaAdapter extends TypeAdapter<BottleEffectMeta> {
             json.value("amplifier", potionEffect.getAmplifier());
             json.value("is_ambient", potionEffect.isAmbient());
             json.value("has_particles", potionEffect.hasParticles());
-            if(ItemCreator.getServerVersion() > 12.2F)
+            if(ItemCreator.getVersion().versionNewer(12.2))
                 json.value("has_icon", potionEffect.hasIcon());
         });
         json.finish();

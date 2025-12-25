@@ -156,7 +156,7 @@ public class ItemCreator {
 	 * @return the durability value as a short
 	 */
 	public static short getDurability(final ItemStack itemstack, final ItemMeta itemMeta) {
-		if (ServerVersion.atLeast(ServerVersion.V1_13))
+		if (ServerVersion.atLeast(1.13))
 			return (itemMeta == null) ? 0 : (short) ((Damageable) itemMeta).getDamage();
 		return itemstack.getDurability();
 	}

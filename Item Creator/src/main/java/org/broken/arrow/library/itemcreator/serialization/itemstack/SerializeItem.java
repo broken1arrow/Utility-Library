@@ -74,10 +74,10 @@ public class SerializeItem {
         if (meta != null) {
             if (meta.hasDisplayName()) data.name = meta.getDisplayName();
             if (meta.hasLore()) data.lore = meta.getLore();
-            if (ItemCreator.getServerVersion() > 12.2F && meta.hasCustomModelData()) {
+            if (ItemCreator.getVersion().versionNewer(12.2) && meta.hasCustomModelData()) {
                 data.customModelData = meta.getCustomModelData();
             }
-            if (ItemCreator.getServerVersion() > 12.2F) data.unbreakable = meta.isUnbreakable();
+            if (ItemCreator.getVersion().versionNewer(12.2)) data.unbreakable = meta.isUnbreakable();
 
             data.itemFlags.addAll(meta.getItemFlags());
 
@@ -120,7 +120,7 @@ public class SerializeItem {
             if (name != null) meta.setDisplayName(name);
             if (lore != null) meta.setLore(lore);
             if (customModelData != null) meta.setCustomModelData(customModelData);
-            if (ItemCreator.getServerVersion() > 12.2F) meta.setUnbreakable(unbreakable);
+            if (ItemCreator.getVersion().versionNewer(12.2)) meta.setUnbreakable(unbreakable);
             itemFlags.forEach(meta::addItemFlags);
 
             this.setEnchantment(meta);
@@ -404,9 +404,9 @@ public class SerializeItem {
 
 
     private static void setOwner(final SerializeItem data, final SkullMeta skull) {
-        final float serverVersion = ItemCreator.getServerVersion();
+        final double serverVersion = ItemCreator.getServerVersion();
         data.skullUrl = SkullCreator.getSkullUrl(skull);
-        if (serverVersion < 12.0f) {
+        if (serverVersion < 12.0) {
             try {
                 data.skullOwner = skull.getOwner();
             } catch (NoSuchMethodError ignore) {
@@ -438,13 +438,13 @@ public class SerializeItem {
             if (potionMeta.hasCustomEffects())
                 potionMeta.getCustomEffects().forEach(data.potionEffects::addPotionEffects);
 
-            if (ItemCreator.getServerVersion() < 9.0F)
+            if (ItemCreator.getVersion().versionOlder(9.0))
                 return;
 
-            if (ItemCreator.getServerVersion() > 10.2F && potionMeta.hasColor())
+            if (ItemCreator.getVersion().versionNewer(10.2) && potionMeta.hasColor())
                 data.potionEffects.setBottleColor(colorMeta -> colorMeta.setRgb(potionMeta.getColor()));
 
-            if (ItemCreator.getServerVersion() < 13.0F)
+            if (ItemCreator.getVersion().versionOlder(13.0))
                 data.potionEffects.setPotionData(PotionTypeWrapper.findPotionByType(potionMeta.getBasePotionData().getType()));
             else
                 data.potionEffects.setPotionData(PotionTypeWrapper.findPotionByType(potionMeta.getBasePotionType()));
@@ -466,7 +466,7 @@ public class SerializeItem {
     }
 
     private static void retrieveAttributeModifiers(final ItemMeta meta, final SerializeItem data) {
-        if (ItemCreator.getServerVersion() > 12.2F && meta.hasAttributeModifiers()) {
+        if (ItemCreator.getVersion().versionNewer(12.2) && meta.hasAttributeModifiers()) {
             Multimap<Attribute, AttributeModifier> attributeModifierData = meta.getAttributeModifiers();
             if (attributeModifierData != null) {
                 data.attributeModifiers = new ArrayList<>();
@@ -491,7 +491,7 @@ public class SerializeItem {
         if (!meta.hasEnchants())
             return;
 
-        if (ItemCreator.getServerVersion() > 13.2F) {
+        if (ItemCreator.getVersion().versionNewer(13.2)) {
             meta.getEnchants().forEach((e, lvl) -> data.enchantments.put(e.getKey().getKey(),
                     new EnhancementWrapper(e, lvl, lvl > e.getMaxLevel())));
         } else {
@@ -530,7 +530,7 @@ public class SerializeItem {
     }
 
     private static void retrieveMapData(@Nonnull final ItemStack item, @Nonnull final MapMeta mapMeta, @Nonnull final SerializeItem data) {
-        if (ItemCreator.getServerVersion() < 13.0F) {
+        if (ItemCreator.getVersion().versionOlder(13.0)) {
             short durability = item.getDurability();
             if (durability >= 0) {
                 final MapView mapView = ItemCreator.getMapById(durability);

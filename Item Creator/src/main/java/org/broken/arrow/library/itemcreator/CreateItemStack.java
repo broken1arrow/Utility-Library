@@ -46,7 +46,7 @@ public class CreateItemStack {
     private final Iterable<?> itemArray;
     private final String displayName;
     private final List<String> loreList;
-    private final float serverVersion;
+    private final double serverVersion;
     private final boolean haveTextTranslator;
     private final boolean enableColorTranslation;
 
@@ -586,7 +586,7 @@ public class CreateItemStack {
             }
             ConvertToItemStack convertToItemStack = this.getConvertItems();
             if (builder.getMaterial() != null) {
-                if (serverVersion > 12.2f) {
+                if (serverVersion > 12.2) {
                     result = new ItemStack(builder.getMaterial());
                 } else {
                     result = convertToItemStack.checkItem(builder.getMaterial(), this.getDamage(), this.color, this.getData());
@@ -615,7 +615,7 @@ public class CreateItemStack {
     private void setDamageMeta(final ItemStack itemStack, final ItemMeta itemMeta) {
         short dmg = getDmg(itemMeta);
         if (dmg > 0) {
-            if (serverVersion > 12.2F) {
+            if (serverVersion > 12.2) {
                 ((Damageable) itemMeta).setDamage(dmg);
             } else {
                 itemStack.setDurability(dmg);

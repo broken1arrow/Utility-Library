@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
  */
 public class PotionsUtility {
     private final Logging logger = new Logging(PotionsUtility.class);
-    private final float serverVersion = ItemCreator.getServerVersion();
+    private final double serverVersion = ItemCreator.getServerVersion();
     private final PotionMeta potionMeta;
 
     /**
@@ -80,7 +80,7 @@ public class PotionsUtility {
             return;
         }
 
-        if (serverVersion < 9.0F) {
+        if (serverVersion < 9.0) {
             return;
         }
 

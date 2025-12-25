@@ -28,7 +28,7 @@ import java.util.List;
  * </p>
  */
 public class BookMeta {
-    private static final boolean MODERN_VERSION = ItemCreator.getServerVersion() > 12.2F;
+    private static final boolean MODERN_VERSION = ItemCreator.getVersion().versionNewer(12.2);
     private List<String> pages = new ArrayList<>();
     private String generation;
     private String title;

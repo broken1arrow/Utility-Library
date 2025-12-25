@@ -151,7 +151,7 @@ public class RegisterMenuAPI {
     private void versionCheck(boolean turnOffLogger) {
         if (!turnOffLogger)
             logger.log(() -> "Now starting MenuApi.. Will check server version and what modules is included.");
-        ServerVersion.getCurrentServerVersion();
+        ServerVersion.atLeast(1);
     }
 
     /**
@@ -285,7 +285,7 @@ public class RegisterMenuAPI {
             if (!menuUtility.checkValidMenu(event.getView().getTopInventory(), Action.OPEN)) {
                 return;
             }
-            if (ServerVersion.olderThan(ServerVersion.V1_15)) return;
+            if (ServerVersion.olderThan(15.0)) return;
 
             this.cacheData.put(player.getUniqueId(), new SwapData(false, player.getInventory().getItemInOffHand()));
         }
@@ -353,7 +353,7 @@ public class RegisterMenuAPI {
         }
 
         private void onOffHandClick(final InventoryClickEvent event, final Player player) {
-            if (ServerVersion.newerThan(ServerVersion.V1_15) && event.getClick() == ClickType.SWAP_OFFHAND) {
+            if (ServerVersion.newerThan(15.0) && event.getClick() == ClickType.SWAP_OFFHAND) {
                 final SwapData data = cacheData.get(player.getUniqueId());
                 ItemStack item = null;
                 if (data != null) {

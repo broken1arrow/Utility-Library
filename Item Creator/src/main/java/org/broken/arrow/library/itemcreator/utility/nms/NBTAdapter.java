@@ -92,7 +92,7 @@ public class NBTAdapter implements NbtEditor {
             setNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.setTagName(),
                     MethodType.methodType(void.class, nbtTagCompound));
 
-            if (ItemCreator.getServerVersion() < 13.0)
+            if (ItemCreator.getVersion().versionOlder(13.0))
                 setNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.setNestedCompoundName(), MethodType.methodType(void.class, String.class, nbtTagBase));
             else
                 setNestedCompound = lookup.findVirtual(nbtTagCompound, itemTagName.setNestedCompoundName(), MethodType.methodType(nbtTagBase, String.class, nbtTagBase));
@@ -596,7 +596,7 @@ public class NBTAdapter implements NbtEditor {
 
     private static String getNbtTagBasePath() {
         final String nmsPath = getNmsPath();
-        if (ItemCreator.getServerVersion() > 16.5)
+        if (ItemCreator.getVersion().versionNewer(16.5))
             return nmsPath + ".nbt.NBTBase";
 
         return nmsPath + ".NBTBase";
@@ -611,15 +611,15 @@ public class NBTAdapter implements NbtEditor {
 
     private static String getItemStackPath() {
         final String nmsPath = getNmsPath();
-        if (ItemCreator.getServerVersion() > 16.5)
+        if (ItemCreator.getVersion().versionNewer(16.5))
             return nmsPath + ".world.item.ItemStack";
         return nmsPath + ".ItemStack";
     }
 
     private static String getNbtTagPath() {
         final String nmsPath = getNmsPath();
-        if (ItemCreator.getServerVersion() > 16.5f) {
-            if (ItemCreator.getServerVersion() > 20.4f)
+        if (ItemCreator.getVersion().versionNewer(16.5)) {
+            if (ItemCreator.getVersion().versionNewer(20.4))
                 return nmsPath + ".nbt.CompoundTag";
             return nmsPath + ".nbt.NBTTagCompound";
         }
@@ -627,7 +627,7 @@ public class NBTAdapter implements NbtEditor {
     }
 
     private static String getNmsPath() {
-        if (ItemCreator.getServerVersion() > 16.5)
+        if (ItemCreator.getVersion().versionNewer(16.5))
             return "net.minecraft";
         return "net.minecraft.server." + getPackageVersion();
     }
@@ -641,7 +641,7 @@ public class NBTAdapter implements NbtEditor {
      * @return it returns for example v1_8_R3
      */
     private static String getPackageVersion() {
-        if (ItemCreator.getServerVersion() > 20.4f)
+        if (ItemCreator.getVersion().versionNewer(20.4))
             return "";
         return Bukkit.getServer().getClass().toGenericString().split("\\.")[3];
     }

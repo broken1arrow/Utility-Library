@@ -45,7 +45,7 @@ public class MapColoredPixel extends MapPixel {
     @Override
     public void render(final @Nonnull MapRendererData mapRendererData, @Nonnull final MapCanvas canvas) {
         final Color pixelColor = this.getColor();
-        if (ItemCreator.getServerVersion() < 20.0F) {
+        if (ItemCreator.getVersion().versionOlder(20.0)) {
             canvas.setPixel(this.getX(), this.getY(), MapPalette.matchColor(pixelColor));
         } else {
             canvas.setPixelColor(this.getX(), this.getY(), pixelColor);

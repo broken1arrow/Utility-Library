@@ -40,6 +40,7 @@ include(":localization")
 include(":item-creator")
 include(":serialize-utility")
 include(":nbt")
+include(":version")
 project(":title-update").projectDir = file("Title Update")
 project(":menu-library").projectDir = file("Menu Library")
 project(":block-visualization").projectDir = file("Block Visualization")
@@ -55,5 +56,3 @@ project(":localization").projectDir = file("Localization")
 project(":item-creator").projectDir = file("Item Creator")
 project(":serialize-utility").projectDir = file("Serialize Utility")
 project(":nbt").projectDir = file("NBT")
-
-

@@ -134,12 +134,12 @@ public class MapTextRenderer {
      * Spigot 1.20+ uses {@link MapCanvas#setPixelColor(int, int, java.awt.Color)},
      * older versions use {@link MapPalette#matchColor(Color)}.
      *
-     * @param x      location where draw in digonal direction.
-     * @param y      location where draw in vertical direction.
-     * @param color  the color to set for the pixel
+     * @param x     location where draw in digonal direction.
+     * @param y     location where draw in vertical direction.
+     * @param color the color to set for the pixel
      */
-    private void setMapPixel( int x, int y, Color color) {
-        if (ItemCreator.getServerVersion() < 20.0F) {
+    private void setMapPixel(int x, int y, Color color) {
+        if (ItemCreator.getVersion().versionOlder(20.0)) {
             this.canvas.setPixel(x, y, MapPalette.matchColor(color));
         } else {
             this.canvas.setPixelColor(x, y, color);

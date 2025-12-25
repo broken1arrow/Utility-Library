@@ -193,7 +193,7 @@ public enum PotionTypeWrapper {
     private static final Map<String, PotionTypeWrapper> POTION_TYPE_NAME = loadPotions();
     private final PotionType potionType;
     private final PotionModifier potionModifier;
-    private final float serverVersion = ItemCreator.getServerVersion();
+    private final double serverVersion = ItemCreator.getServerVersion();
 
     /**
      * Constructs a new {@code PotionData} entry.

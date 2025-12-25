@@ -171,7 +171,7 @@ public class MapWrapperMeta {
         if (!(itemMeta instanceof MapMeta)) return;
         final MapMeta mapMeta = (MapMeta) itemMeta;
 
-        if (ItemCreator.getServerVersion() < 13.0F) {
+        if (ItemCreator.getVersion().versionOlder(13.0)) {
             final BuildMapView mapViewBuilder = this.getMapViewBuilder();
             if(mapViewBuilder != null)
                 mapViewBuilder.finalizeMapView();

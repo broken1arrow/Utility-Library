@@ -280,7 +280,7 @@ public class BottleEffectMeta {
 
             if (effects != null && !effects.isEmpty()) {
                 final ColorMeta colorEffect = this.colorMeta;
-                if (ItemCreator.getServerVersion() > 10.2F && colorEffect != null && colorEffect.isColorSet()) {
+                if (ItemCreator.getVersion().versionNewer(10.2) && colorEffect != null && colorEffect.isColorSet()) {
                     potionMeta.setColor(colorEffect.getColor());
                 }
                 effects.forEach((portionEffect) -> potionMeta.addCustomEffect(portionEffect, this.override));
@@ -333,7 +333,7 @@ public class BottleEffectMeta {
          * @return Returns this class for chaining.
          */
         public PotionEffectWrapper add(@Nonnull PotionEffectType type, final int duration, final int amplifier, final boolean ambient, final boolean particles, final boolean icon) {
-            if (ItemCreator.getServerVersion() < 13.0F)
+            if (ItemCreator.getVersion().versionOlder(13.0))
                 portionEffects.add(new PotionEffect(type, duration, amplifier, ambient, particles));
             else
                 portionEffects.add(new PotionEffect(type, duration, amplifier, ambient, particles, icon));

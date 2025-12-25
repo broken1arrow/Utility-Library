@@ -18,7 +18,7 @@ public class NBTItemTagMappings {
      * based on the current server version.
      */
     public NBTItemTagMappings() {
-        float version = ItemCreator.getServerVersion();
+        double version = ItemCreator.getServerVersion();
 
         if (version < 18.0f) {
             hasTag = "hasTag";
@@ -84,9 +84,9 @@ public class NBTItemTagMappings {
     }
 
 
-    private String hasTagMethodName(final float version) {
-        if (version > 18.9f) {
-            if (version > 20.0f) {
+    private String hasTagMethodName(final double version) {
+        if (version > 18.9) {
+            if (version > 20.0) {
                 return "u";
             }
             return "t";
@@ -94,9 +94,9 @@ public class NBTItemTagMappings {
         return "s";
     }
 
-    private String getTagMethodName(final float version) {
-        if (version > 18.9f) {
-            if (version > 20.0f) {
+    private String getTagMethodName(final double version) {
+        if (version > 18.9) {
+            if (version > 20.0) {
                 return "v";
             }
             return "u";

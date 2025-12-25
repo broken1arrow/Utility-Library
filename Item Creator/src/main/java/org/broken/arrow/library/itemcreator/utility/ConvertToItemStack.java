@@ -20,14 +20,14 @@ import static org.broken.arrow.library.itemcreator.utility.matrials.Materials.ch
 @SuppressWarnings("deprecation")
 public class ConvertToItemStack {
 
-    private final float serverVersion;
+    private final double serverVersion;
 
     /**
      * Create new instance of the conversion class.
      *
      * @param serverVersion the version is formatted 16.0,17.0,18.0,19.2 and so on.
      */
-    public ConvertToItemStack(float serverVersion) {
+    public ConvertToItemStack(final double serverVersion) {
         this.serverVersion = serverVersion;
     }
 
@@ -129,7 +129,7 @@ public class ConvertToItemStack {
      * if the original item-stack is null.
      */
     public ItemStack checkItemStack(final ItemStack itemStack, final short damage) {
-        if (serverVersion < 13.0F && itemStack != null) {
+        if (serverVersion < 13.0 && itemStack != null) {
             final ItemStack stack = new ItemStack(itemStack.getType(), itemStack.getAmount(), damage);
             final ItemMeta itemMeta = itemStack.getItemMeta();
             if (itemMeta != null)
@@ -148,7 +148,7 @@ public class ConvertToItemStack {
      * with {@code Material.AIR} if the original item-stack is null or could not be found.
      */
     public ItemStack checkString(final String stringName, Byte data) {
-        if (serverVersion < 13.0F) {
+        if (serverVersion < 13.0) {
             final ItemStack stack = createStack(stringName, 1, data);
             if (stack != null)
                 return stack;

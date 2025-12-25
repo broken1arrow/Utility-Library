@@ -37,7 +37,7 @@ public class SoundUtility {
      */
     public SoundUtility() {
         try {
-            if (ServerVersion.atLeast(ServerVersion.V1_20_1)) {
+            if (ServerVersion.atLeast(21.1)) {
                 this.menuOpenSound = Registry.SOUNDS.get(NamespacedKey.fromString("block.note_block.basedrum"));
             } else {
                 this.menuOpenSound = Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull() == null ? Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BASEDRUM").orNull() : Enums.getIfPresent(Sound.class, "BLOCK_NOTE_BLOCK_BASEDRUM").orNull();
