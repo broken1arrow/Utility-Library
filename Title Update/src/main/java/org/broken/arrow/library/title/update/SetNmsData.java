@@ -66,7 +66,7 @@ public class SetNmsData {
 	 *
 	 * @return the server version, e.g., 20.4 or 19.3
 	 */
-	public float getServerVersion() {
+	public double getServerVersion() {
 		return serverVersion;
 	}
 

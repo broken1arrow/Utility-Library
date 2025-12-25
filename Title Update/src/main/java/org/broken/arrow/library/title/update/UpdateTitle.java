@@ -15,7 +15,7 @@ import java.util.logging.Level;
 public class UpdateTitle {
 	private static final Logging logger = new Logging(UpdateTitle.class);
 	private static boolean hasCastEx;
-	private static final float SERVER_VERSION;
+	private static final double SERVER_VERSION;
 
 	private UpdateTitle() {
 	}
@@ -184,7 +184,7 @@ public class UpdateTitle {
 	 *
 	 * @return the server version, e.g., 20.4 or 19.3
 	 */
-	public static float getServerVersion() {
+	public static double getServerVersion() {
 		return SERVER_VERSION;
 	}
 
