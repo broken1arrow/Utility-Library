@@ -1,6 +1,7 @@
 package org.broken.arrow.library.visualization;
 
 import org.broken.arrow.library.logging.Validate;
+import org.broken.arrow.library.version.VersionUtil;
 import org.broken.arrow.library.visualization.builders.VisualizeData;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
 public class BlockVisualize {
 	private BlockVisualizerUtility blockVisualizerCache;
 	private final Plugin plugin;
-	private final float serverVersion;
+	private final VersionUtil serverVersion;
 
 	/**
 	 * Constructs a BlockVisualize instance.
@@ -28,23 +29,7 @@ public class BlockVisualize {
 	 */
 	public BlockVisualize(@Nonnull final Plugin plugin) {
 		this.plugin = plugin;
-		final String[] versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
-		final String firstNumber;
-		String secondNumber;
-		final String firstString = versionPieces[1];
-		if (firstString.contains("-")) {
-			firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
-
-			secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
-			final int index = secondNumber.toUpperCase().indexOf("R");
-			if (index >= 0)
-				secondNumber = secondNumber.substring(index + 1);
-		} else {
-			final String secondString = versionPieces[2];
-			firstNumber = firstString;
-			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
-		}
-		this.serverVersion = Float.parseFloat(firstNumber + "." + secondNumber);
+        this.serverVersion = new VersionUtil();
 	}
 
 
@@ -106,12 +91,12 @@ public class BlockVisualize {
 	}
 
 	/**
-	 * Gets the server version associated with this BlockVisualize instance.
-	 *
-	 * @return The server version.
-	 */
-	public float getServerVersion() {
-		return serverVersion;
+     * Gets the server version associated with this BlockVisualize instance.
+     *
+     * @return The server version.
+     */
+	public double getServerVersion() {
+		return serverVersion.getServerVersion();
 	}
 
 	/**

@@ -19,7 +19,7 @@ import java.util.logging.Level;
  */
 public class EntityModifications {
 
-	private final float serverVersion;
+	private final double serverVersion;
 	private final Logging log = new Logging(EntityModifications.class);
 
 	/**
@@ -27,7 +27,7 @@ public class EntityModifications {
 	 *
 	 * @param serverVersion the current server version, used to determine which methods are available.
 	 */
-	public EntityModifications(float serverVersion) {
+	public EntityModifications(double serverVersion) {
 		this.serverVersion = serverVersion;
 	}
 

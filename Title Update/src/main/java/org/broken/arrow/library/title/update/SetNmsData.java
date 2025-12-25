@@ -10,6 +10,7 @@ import org.broken.arrow.library.title.update.nms.modules.v_1_19.InventoryPacketN
 import org.broken.arrow.library.title.update.nms.modules.v_1_19.InventoryPacketNineteen;
 import org.broken.arrow.library.title.update.nms.modules.v_1_20.InventoryPacketTwentyTwo;
 import org.broken.arrow.library.title.update.nms.modules.v_1_20.InventoryPacketTwenty;
+import org.broken.arrow.library.version.VersionUtil;
 import org.bukkit.Bukkit;
 
 import javax.annotation.Nonnull;
@@ -79,23 +80,8 @@ public class SetNmsData {
 	 *
 	 * @return the parsed server version as a float (major.minor)
 	 */
-	private float setServerVersion() {
-		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
-		final String firstNumber;
-		String secondNumber;
-		final String firstString = versionPieces[1];
-		if (firstString.contains("-")) {
-			firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
-
-			secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
-			final int index = secondNumber.toUpperCase().indexOf("R");
-			if (index >= 0) secondNumber = secondNumber.substring(index + 1);
-		} else {
-			final String secondString = versionPieces[2];
-			firstNumber = firstString;
-			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
-		}
-		return Float.parseFloat(firstNumber + "." + secondNumber);
+	private double setServerVersion() {
+		return new VersionUtil().getServerVersion();
 	}
 
 	@Nonnull
