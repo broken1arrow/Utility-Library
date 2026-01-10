@@ -196,7 +196,7 @@ public class ParticleCreator {
             spawn(location, radius);
         } else {
             if (this.effect.getData() != null) {
-                logger.warning("You have to set the data for this effect. The type of data you must implement this class " + this.effect.getData());
+                logger.warning("You have to set the data for this effect '" + this.effectAccessor.getEffect() + "' . The type of data you must implement this class " + this.effect.getData());
                 return false;
             }
             if (player != null)
@@ -219,7 +219,7 @@ public class ParticleCreator {
             Material material = this.effectAccessor.getMaterial();
             BlockData blockData = this.effectAccessor.getMaterialBlockData();
             if (blockData == null || material == null) {
-                logger.warning("You have to set the data for this particle. The type of data you must implement this class '" + this.particle.getDataType() + "'");
+                logger.warning("You have to set the data for this particle '" + this.effectAccessor.getParticle() + "' . The type of data you must implement this class '" + this.particle.getDataType() + "'");
                 return false;
             }
             spawn(material, blockData);
@@ -256,7 +256,7 @@ public class ParticleCreator {
             if (this.dataType == BlockFace.class)
                 this.player.playEffect(location, this.effect, this.effectAccessor.getBlockFace());
             PotionsData potionsData = this.effectAccessor.getPotion();
-            if(potionsData != null) {
+            if (potionsData != null) {
                 if (PotionsData.isOldPotionAvailable()) {
                     Potion potion = potionsData.getPotion();
                     if (potion != null) {
@@ -297,7 +297,7 @@ public class ParticleCreator {
             this.world.playEffect(location, this.effect, this.effectAccessor.getBlockFace(), radius);
 
         PotionsData potionsData = this.effectAccessor.getPotion();
-        if(potionsData != null) {
+        if (potionsData != null) {
             if (PotionsData.isOldPotionAvailable()) {
                 Potion potion = potionsData.getPotion();
                 if (potion != null) {
