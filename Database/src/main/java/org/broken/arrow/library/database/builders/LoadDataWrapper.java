@@ -1,6 +1,7 @@
 package org.broken.arrow.library.database.builders;
 
 import org.broken.arrow.library.database.builders.wrappers.DatabaseSettings;
+import org.broken.arrow.library.database.builders.wrappers.LoadSetup;
 import org.broken.arrow.library.database.core.Database;
 
 import javax.annotation.Nonnull;
@@ -8,6 +9,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -17,7 +19,6 @@ import java.util.function.Predicate;
  */
 public class LoadDataWrapper<T> {
     private final T deSerializedData;
-
     private final Map<String, Object> filteredMap;
 
     /**
@@ -60,19 +61,34 @@ public class LoadDataWrapper<T> {
 
 
     /**
-     * Returns a map of filtered column data for this row.
-     * <p>
-     * The keys are the column names that matched the filter defined in {@link DatabaseSettings#setFilter(Predicate)}.
-     * The values are the corresponding raw database values (not deserialized).
+     * Returns the pre-filtered map of raw column data for this row.
      *
-     * @return a map of column names to their raw values, filtered according to the provided filter.
+     * <p>
+     * The contents of this map are determined during the load operation
+     * and are already filtered before this wrapper is constructed.
+     * The filter is defined through the {@link LoadSetup} provided to
+     * {@link Database#load(String, Class, Consumer)}.
+     * </p>
+     *
+     * <p>
+     * Depending on the load context, the map may also include primary key
+     * columns. When using {@link Database#loadAll(String, Class)}, the map
+     * will contain only the configured primary key columns.
+     * </p>
+     *
+     * <p>
+     * The values in this map are raw database values and are not
+     * deserialized.
+     * </p>
+     *
+     * @return an unmodifiable map of column names to raw database values
      */
     public Map<String, Object> getFilteredMap() {
         return Collections.unmodifiableMap(filteredMap);
     }
 
     /**
-     * Map of primary key and value value set, will return just one key/value par
+     * Map of primary key and value set, will return just one key/value par
      * if you did not set up your own where clause.
      *
      * @return a map of key and value par set for the primary key.

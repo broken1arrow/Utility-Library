@@ -100,7 +100,7 @@ public class SqlHandler {
     /**
      * Select specific table.
      *
-     * @param callback          the columns to select or set to '*' get all columns, but that have performance penalty compere to type all columns.
+     * @param callback          the columns to select or set to '*' get all columns, but that have performance penalty compare to type all columns.
      * @param queryPlaceholders set this to {@code false} if you not want a prepared statement.
      * @param whereClause       The conditions used to filter which row(s) should be selected.
      * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.

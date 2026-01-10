@@ -80,12 +80,11 @@ public class BatchExecutor<T> {
     /**
      * Saves all items from the batch to the specified table, optionally updating existing rows.
      *
-     * @param tableName       the database table name.
-     * @param shallUpdate     true to update existing rows if they exist; false to insert only.
-     * @param whereClauseFunc function to apply WHERE clauses for filtering rows.
-     * @param columns         optional list of columns to save or update.
+     * @param tableName   the database table name.
+     * @param shallUpdate true to update existing rows if they exist; false to insert only.
+     * @param columns     optional list of columns to save or update.
      */
-    public void saveAll(@Nonnull final String tableName, final boolean shallUpdate, final WhereClauseApplier whereClauseFunc, String... columns) {
+    public void saveAll(@Nonnull final String tableName, final boolean shallUpdate, String... columns) {
         final List<SqlQueryPair> queryList = new ArrayList<>();
 
         final SqlQueryTable table = this.database.getTableFromName(tableName);
@@ -93,12 +92,8 @@ public class BatchExecutor<T> {
             this.printFailFindTable(tableName);
             return;
         }
-        if (whereClauseFunc == null) {
-            this.log.log(Level.WARNING, () -> "Where clause is not set for this table: " + tableName + ". You must register the table before attempting to save all data.");
-            return;
-        }
 
-        for (T dataToSave : dataToProcess) {
+        for (T dataToSave : this.dataToProcess) {
             if (!(dataToSave instanceof DataWrapper)) continue;
 
             final DataWrapper dataWrapper = (DataWrapper) dataToSave;
@@ -106,17 +101,34 @@ public class BatchExecutor<T> {
             final SqlHandler sqlHandler = new SqlHandler(tableName, database);
             final boolean columnsIsEmpty = columns == null || columns.length == 0;
             boolean canUpdateRow = false;
+            final Object primaryValue = dataWrapper.getPrimaryValue();
+            final DataWrapper.PrimaryWrapper primaryWrapper = dataWrapper.getPrimaryWrapper();
+            final WhereClauseFunction whereClause = primaryWrapper.getWhereClause();
+
             if ((!columnsIsEmpty || shallUpdate)) {
-                final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereBuilder -> table.createWhereClauseFromPrimaryColumns(whereBuilder, dataWrapper.getPrimaryValue()));
+                final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true,
+                        whereBuilder -> {
+                            if (whereClause != null)
+                                return whereClause.apply(whereBuilder);
+                            return table.createWhereClauseFromPrimaryColumns(whereBuilder, primaryValue);
+                        });
                 canUpdateRow = this.checkIfRowExist(query, false);
             }
             sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
+            final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns : null));
 
-            final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns: null));
             for (Column primary : table.getPrimaryColumns()) {
-                columnValueMap.put(primary, dataWrapper.getPrimaryValue());
+                Object value = primaryValue;
+                if (value == null)
+                    value = primaryWrapper.getPrimaryValue(primary.getColumnName());
+                columnValueMap.put(primary, value);
             }
-            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, wereClause -> whereClauseFunc.apply(wereClause, dataWrapper.getPrimaryValue()), canUpdateRow));
+            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, wereClause -> {
+                if (whereClause != null)
+                    return whereClause.apply(wereClause);
+                return table.createWhereClauseFromPrimaryColumns(wereClause, primaryValue);
+                //return whereClauseFunc.apply(wereClause, primaryValue);
+            }, canUpdateRow));
         }
         this.executeDatabaseTasks(queryList);
     }
@@ -124,10 +136,10 @@ public class BatchExecutor<T> {
     /**
      * Saves data items with a custom query handler, optionally updating existing rows.
      *
-     * @param <K>                 the key type in the save record.
-     * @param <V>                 the value type extending ConfigurationSerializable.
-     * @param tableName           the database table name.
-     * @param shallUpdate         true to update existing rows if they exist; false to insert only.
+     * @param <K>                  the key type in the save record.
+     * @param <V>                  the value type extending ConfigurationSerializable.
+     * @param tableName            the database table name.
+     * @param shallUpdate          true to update existing rows if they exist; false to insert only.
      * @param databaseQueryHandler handler to provide queries and filters for saving.
      */
     public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, final boolean shallUpdate, final DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler) {
@@ -140,7 +152,7 @@ public class BatchExecutor<T> {
 
         for (T dataToSave : this.dataToProcess) {
             final SaveRecord<K, V> saveRecord = getSaveRecord(dataToSave);
-            final QueryBuilder queryBuilder = saveRecord != null ? saveRecord.getQueryBuilder(): null;
+            final QueryBuilder queryBuilder = saveRecord != null ? saveRecord.getQueryBuilder() : null;
             if (saveRecord == null || queryBuilder == null || checkIfQuerySet(saveRecord, queryBuilder)) continue;
 
             final SqlHandler sqlHandler = new SqlHandler(tableName, database);
@@ -184,7 +196,7 @@ public class BatchExecutor<T> {
             canUpdateRow = this.checkIfRowExist(query, false);
         }
         sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
-        final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper,canUpdateRow ? columns: null));
+        final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns : null));
         for (Column primary : table.getPrimaryColumns()) {
             columnValueMap.put(primary, dataWrapper.getPrimaryValue());
         }
@@ -261,12 +273,11 @@ public class BatchExecutor<T> {
      * command will be used based on whether the value already exists.
      * </p>
      *
-     * @param tableName       the name of the table to search.
-     * @param primaryKeyValue the primary key value to look for.
-     * @param whereClause     the where clause function to filter rows.
+     * @param tableName   the name of the table to search.
+     * @param whereClause the where clause function to filter rows.
      * @return {@code true} if the row exists; {@code false} otherwise or if connection issues occur.
      */
-    public boolean checkIfRowExist(@Nonnull String tableName, @Nonnull Object primaryKeyValue, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public boolean checkIfRowExist(@Nonnull String tableName, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         final SqlQueryTable table = this.database.getTableFromName(tableName);
         if (table == null) {
             this.printFailFindTable(tableName);
@@ -475,11 +486,12 @@ public class BatchExecutor<T> {
 
     /**
      * Print the amount of items to process.
+     *
      * @param processedCount the amount in the list.
      */
     protected void printPressesCount(int processedCount) {
         if (processedCount > 10_000)
-            log.log(() ->("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed."));
+            log.log(() -> ("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed."));
     }
 
     private boolean checkIfNotNull(Object object) {

@@ -37,6 +37,7 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
+
 /**
  * MongoDB database handler extending the generic {@link Database} class.
  * <p>
@@ -87,7 +88,7 @@ public class MongoDB extends Database {
 
     @Override
     public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, final String... columns) {
-        final  SqlQueryTable sqlQueryTable = this.getTableFromName(tableName);
+        final SqlQueryTable sqlQueryTable = this.getTableFromName(tableName);
         if (sqlQueryTable == null) {
             this.printFailFindTable(tableName);
             return;
@@ -162,8 +163,8 @@ public class MongoDB extends Database {
                     resultMap.put(key, value);
 
                 }
-                T deserialize = this.deSerialize(clazz,  resultMap);
-                Map<String,Object> map = new HashMap<>();
+                T deserialize = this.deSerialize(clazz, resultMap);
+                Map<String, Object> map = new HashMap<>();
                 map.put("id", id);
                 loadDataWrappers.add(new LoadDataWrapper<>(map, deserialize));
             }
@@ -205,10 +206,10 @@ public class MongoDB extends Database {
                     Object value = entry.getValue();
                     resultMap.put(key, value);
                 }
-                T deserialize = this.deSerialize(clazz,  resultMap);
-                Map<String,Object> map = new HashMap<>();
+                T deserialize = this.deSerialize(clazz, resultMap);
+                Map<String, Object> map = new HashMap<>();
                 map.put("id", id);
-                loadDataWrapper = new LoadDataWrapper<>(map , deserialize);
+                loadDataWrapper = new LoadDataWrapper<>(map, deserialize);
             }
         } else {
             log.log(() -> "Could not find any row with this value " + columnValue);
@@ -243,7 +244,7 @@ public class MongoDB extends Database {
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
         MongoCollection<Document> collection = database.getCollection(queryBuilder.getQuery());
         try {
-            return function.apply( new StatementContext<>(collection));
+            return function.apply(new StatementContext<>(collection));
         } finally {
             closeConnection();
         }
@@ -379,16 +380,26 @@ public class MongoDB extends Database {
      * Saves the given {@link DataWrapper} to the specified MongoDB collection.
      * Updates the document if it exists, otherwise inserts a new document.
      *
-     * @param dataWrapper the data wrapper containing data to save
+     * @param dataWrapper  the data wrapper containing data to save
      * @param tableWrapper the SQL query table metadata
-     * @param collection the MongoDB collection to save into
+     * @param collection   the MongoDB collection to save into
      */
     private void saveData(final DataWrapper dataWrapper, final SqlQueryTable tableWrapper, final MongoCollection<Document> collection) {
-        Document document = new Document("_id", dataWrapper.getPrimaryValue());
-        Bson filter = Filters.eq("_id", dataWrapper.getPrimaryValue());
+        Object primaryValue = dataWrapper.getPrimaryValue();
+        Document document;
+        Bson filter;
+        if (primaryValue != null) {
+            document = new Document("_id", primaryValue);
+            filter = Filters.eq("_id", primaryValue);
+        } else {
+            final Map<String, Object> primaries = dataWrapper.getPrimaryWrapper().getPrimaryKeys();
+            document = new Document(primaries);
+            filter = Filters.eq("_id", document);
+        }
+
 
         for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
-            Column column = getColumn(tableWrapper,entry.getKey());
+            Column column = getColumn(tableWrapper, entry.getKey());
 
             if (column == null) continue;
             Bson updatedRow = Updates.set(entry.getKey(), entry.getValue());
@@ -407,9 +418,9 @@ public class MongoDB extends Database {
      * @param columnName   the column name to look for
      * @return the matching column or null if not found
      */
-    private Column getColumn(final SqlQueryTable tableWrapper,final String columnName) {
-        for(Column colum :tableWrapper.getTable().getColumns()){
-            if(colum.getColumnName().equals(columnName))
+    private Column getColumn(final SqlQueryTable tableWrapper, final String columnName) {
+        for (Column colum : tableWrapper.getTable().getColumns()) {
+            if (colum.getColumnName().equals(columnName))
                 return colum;
         }
         return null;

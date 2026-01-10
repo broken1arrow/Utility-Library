@@ -15,9 +15,7 @@ import org.broken.arrow.library.database.construct.query.builder.comparison.Comp
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.utlity.QueryDefinition;
-import org.broken.arrow.library.database.utility.BatchExecutor;
-import org.broken.arrow.library.database.utility.BatchExecutorUnsafe;
-import org.broken.arrow.library.database.utility.StatementContext;
+import org.broken.arrow.library.database.utility.*;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
@@ -95,7 +93,7 @@ public abstract class SQLDatabaseQuery extends Database {
             return;
         }
 
-        batchExecutor.saveAll(tableName, shallUpdate, table::createWhereClauseFromPrimaryColumns, columns);
+        batchExecutor.saveAll(tableName, shallUpdate, columns);
     }
 
     /**
@@ -113,20 +111,20 @@ public abstract class SQLDatabaseQuery extends Database {
      */
     @Override
     public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
-        final Connection connection = getDatabase().attemptToConnect();
+        final Connection connection = this.attemptToConnect();
         final BatchExecutor<DataWrapper> batchExecutor;
 
         if (connection == null) {
-            getDatabase().printFailToOpen();
+            printFailToOpen();
             return;
         }
 
-        if (getDatabase().isSecureQuery())
-            batchExecutor = new BatchExecutor<>(getDatabase(), connection, new ArrayList<>());
+        if (this.isSecureQuery())
+            batchExecutor = new BatchExecutor<>(this, connection, new ArrayList<>());
         else {
-            batchExecutor = new BatchExecutorUnsafe<>(getDatabase(), connection, new ArrayList<>());
+            batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
-        SqlQueryTable table = getDatabase().getTableFromName(tableName);
+        SqlQueryTable table = this.getTableFromName(tableName);
         if (table == null) {
             this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' . Did you register your table?");
             return;
@@ -135,8 +133,19 @@ public abstract class SQLDatabaseQuery extends Database {
             this.log.log(Level.WARNING, () -> "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
             return;
         }
+        java.util.Map<String,Object> primaryData = new HashMap<>();
+        primaryData.put("primary_key",1);
+        DataWrapper.PrimaryWrapper wrapper = new DataWrapper.PrimaryWrapper(primaryData ,(builder) -> {
+            return builder.where("test").equal("testimgs");
+        });
+        save("table_name",new DataWrapper(wrapper, null),false);
 
-        batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> table.createWhereClauseFromPrimaryColumns(where, dataWrapper.getPrimaryValue()), columns);
+        batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> {
+            final WhereClauseFunction whereClause = dataWrapper.getPrimaryWrapper().getWhereClause();
+            if (whereClause != null)
+                return whereClause.apply(where);
+            return table.createWhereClauseFromPrimaryColumns(where, dataWrapper.getPrimaryValue());
+        }, columns);
     }
 
     /**
@@ -365,7 +374,7 @@ public abstract class SQLDatabaseQuery extends Database {
             getDatabase().closeConnection(connection);
         }
     }
-    
+
     /**
      * Returns the current instance cast as {@link Database}.
      *
