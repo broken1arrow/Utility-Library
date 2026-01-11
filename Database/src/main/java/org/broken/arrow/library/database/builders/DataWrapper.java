@@ -182,6 +182,7 @@ public class DataWrapper {
         /**
          * Returns the primary key column-value mappings.
          *
+         * @param key   primary key column name
          * @return the value to your primary key or {@code null} if not exist.
          */
         @Nullable
