@@ -7,6 +7,8 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
+
 /**
  * Represents an SQL {@code ALTER TABLE} operation for modifying table structure.
  * <p>
@@ -17,7 +19,8 @@ import java.util.StringJoiner;
 public class AlterTable {
 
     private final List<String> columns = new ArrayList<>();
-    
+    private ModifyConstraints modifyConstraints;
+
     /**
      * Adds a new column to the ALTER TABLE statement using a name and data type.
      *
@@ -25,7 +28,7 @@ public class AlterTable {
      * @param dataType   the SQL data type of the column
      * @return this instance for chaining
      */
-    public AlterTable add(@Nonnull final String columnName,@Nonnull final DataType dataType) {
+    public AlterTable add(@Nonnull final String columnName, @Nonnull final DataType dataType) {
         TableColumn tableColumn = new TableColumn(null, columnName, dataType);
         this.add(tableColumn);
         return this;
@@ -39,7 +42,7 @@ public class AlterTable {
      * @return this instance for chaining
      */
     public AlterTable add(Column column) {
-        if (!(column instanceof TableColumn))  return this;
+        if (!(column instanceof TableColumn)) return this;
 
         final TableColumn tableColumn = (TableColumn) column;
         columns.add("ADD COLUMN " + tableColumn.build().trim());
@@ -54,11 +57,16 @@ public class AlterTable {
      * @return this instance for chaining
      */
     public AlterTable drop(Column column) {
-        if (!(column instanceof TableColumn))  return this;
+        if (!(column instanceof TableColumn)) return this;
 
         final TableColumn tableColumn = (TableColumn) column;
         columns.add("DROP COLUMN " + tableColumn.getColumnName());
         return this;
+    }
+
+    public void setConstraints(Consumer<ModifyConstraints> constraints) {
+        this.modifyConstraints = new ModifyConstraints();
+        constraints.accept(this.modifyConstraints);
     }
 
     /**
@@ -67,7 +75,22 @@ public class AlterTable {
      * @return the SQL string containing all modifications
      */
     public String build() {
-        StringJoiner build = new StringJoiner(", ");
+        if (this.modifyConstraints != null) {
+            final StringJoiner build = new StringJoiner(", ");
+            final String dropPrimaryKey = this.modifyConstraints.getDropPrimaryKey();
+            if (dropPrimaryKey != null)
+                build.add(dropPrimaryKey);
+            final String addPrimaryKey = this.modifyConstraints.getAddPrimaryKey();
+            if (addPrimaryKey != null)
+                build.add(addPrimaryKey);
+            if (addPrimaryKey == null) {
+                final String addUnique = this.modifyConstraints.getAddUnique();
+                if (addUnique != null)
+                    build.add(addUnique);
+            }
+            return build + "";
+        }
+        final StringJoiner build = new StringJoiner(", ");
         for (String column : this.columns) {
             build.add(column);
         }

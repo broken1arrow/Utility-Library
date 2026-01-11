@@ -11,6 +11,7 @@ import org.broken.arrow.library.database.builders.wrappers.SaveSetup;
 import org.broken.arrow.library.database.connection.HikariCP;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
+import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.core.databases.H2DB;
@@ -18,10 +19,7 @@ import org.broken.arrow.library.database.core.databases.MongoDB;
 import org.broken.arrow.library.database.core.databases.MySQL;
 import org.broken.arrow.library.database.core.databases.PostgreSQL;
 import org.broken.arrow.library.database.core.databases.SQLite;
-import org.broken.arrow.library.database.utility.BatchExecutor;
-import org.broken.arrow.library.database.utility.BatchExecutorUnsafe;
-import org.broken.arrow.library.database.utility.DatabaseCommandConfig;
-import org.broken.arrow.library.database.utility.DatabaseType;
+import org.broken.arrow.library.database.utility.*;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.serialize.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.library.logging.Logging;
@@ -64,6 +62,7 @@ public abstract class Database {
     private long idleTimeout;
     private long maxLifeTime;
     private int minimumIdle;
+    private Consumer<PrimaryConstraintWrapper> handleConstraints;
 
     /**
      * The  database instance.
@@ -115,15 +114,14 @@ public abstract class Database {
     public abstract boolean hasConnectionFailed();
 
     /**
+     * @return {@code true} if a connection exception was detected; {@code false} otherwise.
      * @deprecated This method is outdated and only checks for connection exceptions.
      * Use {@link #hasConnectionFailed()} instead for clearer semantics.
      * <p>
      * Checks whether a connection exception has occurred.
-     *
-     * @return {@code true} if a connection exception was detected; {@code false} otherwise.
      */
     @Deprecated
-    public  boolean isHasCastException(){
+    public boolean isHasCastException() {
         return false;
     }
 
@@ -461,7 +459,7 @@ public abstract class Database {
             log.log(() -> "Could not find this table: '" + tableName + "'");
             return false;
         }
-        return batchExecutor.checkIfRowExist(tableName,  whereClause -> table.createWhereClauseFromPrimaryColumns(whereClause, "'" + primaryKeyValue + "'"));
+        return batchExecutor.checkIfRowExist(tableName, whereClause -> table.createWhereClauseFromPrimaryColumns(whereClause, "'" + primaryKeyValue + "'"));
     }
 
     /**
@@ -534,7 +532,7 @@ public abstract class Database {
      * Try to close the connection.
      *
      * @param preparedStatement the database statement to close.
-     * @param resultSet the database result set to close.
+     * @param resultSet         the database result set to close.
      */
     public void close(final PreparedStatement preparedStatement, final ResultSet resultSet) {
         try {
@@ -622,13 +620,23 @@ public abstract class Database {
             log.log(Level.WARNING, () -> "You must set the connection instance.");
             return;
         }
-
+        boolean updatePrimary = false;
+        Set<String> newPrimaryKeys = new HashSet<>();
 
         for (final Column column : queryTable.getTable().getColumns()) {
             String columnName = column.getColumnName();
             if (removeColumns.contains(columnName) || existingColumns.contains(columnName.toLowerCase())) continue;
+            Column tableColumn = column;
+            if (column instanceof TableColumn) {
+                boolean isPrimaryKey = ((TableColumn) column).isPrimaryKey();
+                if (isPrimaryKey) {
+                    updatePrimary = true;
+                    newPrimaryKeys.add(columnName);
+                    tableColumn = new TableColumn(null, column.getColumnName(), ((TableColumn) column).getDataType());
+                }
+            }
             final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.alterTable(queryTable.getTableName()).add(column);
+            queryBuilder.alterTable(queryTable.getTableName()).add(tableColumn);
             final String query = queryBuilder.build();
             try (final PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.execute();
@@ -637,6 +645,75 @@ public abstract class Database {
             }
         }
 
+        preparePrimaryKeyMigration(connection, queryTable, updatePrimary, newPrimaryKeys);
+    }
+
+    private void preparePrimaryKeyMigration(final Connection connection, final SqlQueryTable queryTable, final boolean updatePrimary, final Set<String> newPrimaryKeys) {
+        if (updatePrimary) {
+            final PrimaryConstraintWrapper primaryWrapper = new PrimaryConstraintWrapper(this, queryTable);
+            this.handleConstraints.accept(primaryWrapper);
+
+            final QueryBuilder builder = new QueryBuilder();
+            builder.select(new ColumnManager().column("*").finish()).from(queryTable.getTableName());
+            final String builtQuery = builder.build();
+            try (final ResultSet resultSet = connection.prepareStatement(builtQuery).executeQuery()) {
+                while (resultSet.next()) {
+                    final CreateTableHandler tableHandler = queryTable.getTable();
+                    final Map<String, Object> dataFromDB = getDataFromDB(resultSet, tableHandler.getColumns());
+                    primaryWrapper.loadMap(dataFromDB);
+                }
+            } catch (final SQLException throwable) {
+                log.log(throwable, () -> "Could not load this table with query'" + builtQuery + "'. From this table '" + queryTable.getTableName() + "'");
+            }
+
+            Validate.checkBoolean(!primaryWrapper.isSet() && !primaryWrapper.isUnique(), "Your new primary columns is set as primary key and you lack the values that must be set before set constraint to primary, it could set it to unique if set this to true setUnique.");
+
+
+            List<Column> primaryColumns = queryTable.getPrimaryColumns();
+            boolean primaryValuesComplete = true;
+            for (final String column : newPrimaryKeys) {
+                if (primaryWrapper.getPrimaryValue(column) == null) {
+                    primaryValuesComplete = false;
+                    break;
+                }
+            }
+            Validate.checkBoolean(!primaryValuesComplete && !primaryWrapper.isUnique(), "Your new primary columns is set as primary key, one or several you want to set primary key is not set in the consumer cache.");
+
+            List<Column> nextPrimaryColumns = new ArrayList<>();
+            List<Column> fallbackUniqueColumns = new ArrayList<>();
+            for (final Column column : primaryColumns) {
+                if (primaryWrapper.isSet() && primaryValuesComplete) {
+                    nextPrimaryColumns.add(column);
+                    continue;
+                }
+                if (!newPrimaryKeys.contains(column.getColumnName())) continue;
+                fallbackUniqueColumns.add(column);
+            }
+            if (!fallbackUniqueColumns.isEmpty()) {
+                final QueryBuilder queryBuilder = new QueryBuilder();
+                queryBuilder.alterTable(queryTable.getTableName()).setConstraints(modifyConstraints -> modifyConstraints.addUnique(fallbackUniqueColumns.stream().map(Column::getColumnName).toArray(String[]::new)));
+                final String query = queryBuilder.build();
+                try (final PreparedStatement statement = connection.prepareStatement(query)) {
+                    statement.execute();
+                } catch (final SQLException throwable) {
+                    log.log(throwable, () -> "Could not change unique the constrains for this columns '" + fallbackUniqueColumns + "' missing column. To this table '" + queryTable.getTableName() + "'");
+                }
+            }
+            if (!nextPrimaryColumns.isEmpty()) {
+                final QueryBuilder queryBuilder = new QueryBuilder();
+                queryBuilder.alterTable(queryTable.getTableName()).setConstraints(modifyConstraints -> {
+                    modifyConstraints.dropPrimaryKey();
+                    modifyConstraints.addPrimaryKey(nextPrimaryColumns.stream().map(Column::getColumnName).toArray(String[]::new));
+                });
+                final String query = queryBuilder.build();
+                try (final PreparedStatement statement = connection.prepareStatement(query)) {
+                    statement.execute();
+                } catch (final SQLException throwable) {
+                    log.log(throwable, () -> "Could not change primary key the constrains for this columns '" + nextPrimaryColumns + "'. To this table '" + queryTable.getTableName() + "'");
+                }
+
+            }
+        }
     }
 
 
@@ -956,7 +1033,7 @@ public abstract class Database {
      * @param path the fully qualified class name of the driver to load.
      */
     public void loadDriver(final String path) {
-        if(!isDriverFound( path))
+        if (!isDriverFound(path))
             log.log(() -> "Could not load this driver: " + path);
     }
 
@@ -1112,6 +1189,7 @@ public abstract class Database {
 
     /**
      * Print a message when can't find the table.
+     *
      * @param tableName The name for the table it could not find.
      */
     public void printFailFindTable(String tableName) {
