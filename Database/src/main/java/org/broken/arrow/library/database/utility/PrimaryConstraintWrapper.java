@@ -1,5 +1,6 @@
 package org.broken.arrow.library.database.utility;
 
+import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
 import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
@@ -9,9 +10,7 @@ import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSeriali
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 
@@ -25,11 +24,11 @@ import java.util.function.Consumer;
  * </p>
  */
 public class PrimaryConstraintWrapper {
-    final Map<String, Object> primaryKeys = new HashMap<>();
+    private final List<DataWrapper.PrimaryWrapper> primaryWrappers = new ArrayList<>();
     private final Database database;
     private final SqlQueryTable queryTable;
     private Consumer<Map<String, Object>> loadMapFromDB;
-    private WhereClauseFunction whereClause;
+
     private boolean unique;
 
 
@@ -39,54 +38,40 @@ public class PrimaryConstraintWrapper {
     }
 
     /**
-     * Adds a primary key column and its associated value.
+     * Adds a primary key column and its associated WhereClause.
      *
-     * @param key   primary key column name
-     * @param value primary key value
+     * @param primaryColumnsData the {@link DataWrapper.PrimaryWrapper} instance with the where clause and the map with the values that need to be updated.
      */
-    public void putPrimary(@Nonnull final String key, @Nonnull final Object value) {
-        primaryKeys.put(key, value);
-    }
-
-    /**
-     * Set where it shall update data or get data from database.
-     *
-     * @param whereClause where constructor to create your clause.
-     */
-    public void setWhereClause(final WhereClauseFunction whereClause) {
-        this.whereClause = whereClause;
+    public void addQueryData(@Nonnull final DataWrapper.PrimaryWrapper primaryColumnsData) {
+        primaryWrappers.add(primaryColumnsData);
     }
 
     /**
      * Returns the primary key column-value mappings.
      *
-     * @return map of primary keys
+     * @return List of primary data wrapper.
      */
     @Nonnull
-    public Map<String, Object> getPrimaryKeys() {
-        return primaryKeys;
+    public List<DataWrapper.PrimaryWrapper> getPrimaryWrappers() {
+        return primaryWrappers;
     }
 
     /**
      * Returns the primary key column-value mappings.
      *
-     * @param key primary key column name
-     * @return the value to your primary key or {@code null} if not exist.
+     * @return Returns {@code true} if the column is set.
      */
-    @Nullable
-    public Object getPrimaryValue(@Nonnull final String key) {
-        return primaryKeys.get(key);
+    public boolean allPrimaryValuesPresent(@Nonnull final Set<String> keys) {
+        for (DataWrapper.PrimaryWrapper wrapper : primaryWrappers) {
+            for (String key : keys) {
+                if (wrapper.getPrimaryValue(key) == null) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
-    /**
-     * Returns the custom WHERE clause applier, if present.
-     *
-     * @return WHERE clause applier or {@code null}
-     */
-    @Nullable
-    public WhereClauseFunction getWhereClause() {
-        return whereClause;
-    }
 
     /**
      * If it shall replace the primary key with unique if you not provide
@@ -113,15 +98,17 @@ public class PrimaryConstraintWrapper {
      * @return Returns {true} if at least one value added and the whereClause is not null
      */
     public boolean isSet() {
-        return !(primaryKeys.isEmpty() && whereClause == null);
+        return !(primaryWrappers.isEmpty());
     }
 
-    public void loadMap(Map<String, Object> dataFromDB) {
-        if (this.loadMapFromDB == null) return;
-
-        this.loadMapFromDB.accept(dataFromDB);
-    }
-
+    /**
+     * Retrieve the loaded data from the database. It will go through every row, and you can use {@link #addQueryData(DataWrapper.PrimaryWrapper)}
+     * to set the new primary key value or if you have several, this columns name and value will be updated to the database.
+     *
+     * @param loadedData the callback when loading the data set in the database.
+     * @param clazz      the class to resolve.
+     * @param <T>        the generic type for that class that implements ConfigurationSerializable.
+     */
     public <T extends ConfigurationSerializable> void forEachLoadedData(Consumer<LoadDataWrapper<T>> loadedData, Class<T> clazz) {
         final CreateTableHandler tableHandler = this.queryTable.getTable();
         this.loadMapFromDB = (dataFromDB) -> {
@@ -138,8 +125,40 @@ public class PrimaryConstraintWrapper {
         };
     }
 
+
+    /**
+     * Retrieve the loaded data from the database. It will go through every row, and you can use {@link #addQueryData(DataWrapper.PrimaryWrapper)}
+     * to set the new primary key value or if you have several, this columns name and value will be updated to the database.
+     * <p>
+     * You will get it as raw data from the database insted of {@link #forEachLoadedData(Consumer, Class)} that gives you a consumer
+     * with the raw map with all columns and values set in the database.
+     *
+     * @param loadedData the callback when loading the data set in the database.
+     */
     public void forEachLoadedData(Consumer<Map<String, Object>> loadedData) {
         this.loadMapFromDB = loadedData;
     }
 
+    /**
+     * Used internally only this method.
+     *
+     * @param dataFromDB the map of raw values from the database.
+     */
+    public void loadMap(Map<String, Object> dataFromDB) {
+        if (this.loadMapFromDB == null) return;
+
+        this.loadMapFromDB.accept(dataFromDB);
+    }
+
+    /**
+     * Used internally only this method.
+     *
+     * @param primaryKeys the list of primary column and the key to convert to
+     * @return the map converted to a column and the object/value.
+     */
+    public Map<Column, Object> convert(final Map<String, Object> primaryKeys) {
+        final Map<Column, Object> map = new HashMap<>();
+        primaryKeys.forEach((key, value) -> map.put(new Column(key, ""), value));
+        return map;
+    }
 }

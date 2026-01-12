@@ -668,19 +668,35 @@ public abstract class Database {
 
             Validate.checkBoolean(!primaryWrapper.isSet() && !primaryWrapper.isUnique(), "Your new primary columns is set as primary key and you lack the values that must be set before set constraint to primary, it could set it to unique if set this to true setUnique.");
 
+            final List<QueryBuilder> saveQueryList = new ArrayList<>();
+            final List<Column> primaryColumns = queryTable.getPrimaryColumns();
+            for (DataWrapper.PrimaryWrapper primary : primaryWrapper.getPrimaryWrappers()) {
+                final QueryBuilder saveBuilder = new QueryBuilder();
+                saveBuilder.update(queryTable.getTableName()).putAll(primaryWrapper.convert(primary.getPrimaryKeys())).getSelector().where(whereBuilder -> {
+                    if (primary.getWhereClause() == null)
+                        return null;
+                    return primary.getWhereClause().apply(whereBuilder);
+                });
+                saveQueryList.add(saveBuilder);
+            }
 
-            List<Column> primaryColumns = queryTable.getPrimaryColumns();
-            boolean primaryValuesComplete = true;
-            for (final String column : newPrimaryKeys) {
-                if (primaryWrapper.getPrimaryValue(column) == null) {
-                    primaryValuesComplete = false;
-                    break;
+            for (QueryBuilder saveQuery : saveQueryList) {
+                try (final PreparedStatement preparedStatement = connection.prepareStatement(saveQuery.build())) {
+                    for (Entry<Integer, Object> entry : saveQuery.getValues().entrySet()) {
+                        preparedStatement.setObject(entry.getKey(), entry.getValue());
+                    }
+                    preparedStatement.addBatch();
+                    preparedStatement.executeBatch();
+                } catch (final SQLException throwable) {
+                    log.log(throwable, () -> "Could not save the columns with query '" + saveQuery + "'. From this table '" + queryTable.getTableName() + "'");
                 }
             }
+
+            boolean primaryValuesComplete = primaryWrapper.allPrimaryValuesPresent(newPrimaryKeys);
             Validate.checkBoolean(!primaryValuesComplete && !primaryWrapper.isUnique(), "Your new primary columns is set as primary key, one or several you want to set primary key is not set in the consumer cache.");
 
-            List<Column> nextPrimaryColumns = new ArrayList<>();
-            List<Column> fallbackUniqueColumns = new ArrayList<>();
+            final List<Column> nextPrimaryColumns = new ArrayList<>();
+            final List<Column> fallbackUniqueColumns = new ArrayList<>();
             for (final Column column : primaryColumns) {
                 if (primaryWrapper.isSet() && primaryValuesComplete) {
                     nextPrimaryColumns.add(column);

@@ -22,7 +22,7 @@ public class UpdateBuilder {
     private final Map<Integer, Object> values = new LinkedHashMap<>();
     private final Selector<ColumnBuilder<Column, Void>,Column> selector;
     private int columnIndex = 1;
-
+    private boolean built;
     /**
      * Constructs an UpdateBuilder for the given QueryBuilder context.
      *
@@ -51,6 +51,7 @@ public class UpdateBuilder {
      * @return this UpdateBuilder instance for chaining
      */
     public UpdateBuilder put(final Column column, final Object value) {
+        if (built) return this;
         updateData.put(column.getColumnName(), value);
         values.put(columnIndex++, value);
         return this;
@@ -63,6 +64,7 @@ public class UpdateBuilder {
      * @return this UpdateBuilder instance for chaining
      */
     public UpdateBuilder putAll(Map<Column, Object> map) {
+        if (built) return this;
         map.forEach(this::put);
         return this;
     }
@@ -73,6 +75,7 @@ public class UpdateBuilder {
      * @return selector instance
      */
     public Selector<ColumnBuilder<Column, Void>,Column> getSelector() {
+        if (built) return null;
         return selector;
     }
 
@@ -82,7 +85,9 @@ public class UpdateBuilder {
      * @return map of column names to values
      */
     public Map<String, Object> build() {
-        processWhereValues();
+        if (!built)
+            processWhereValues();
+        built = true;
         return updateData;
     }
 
