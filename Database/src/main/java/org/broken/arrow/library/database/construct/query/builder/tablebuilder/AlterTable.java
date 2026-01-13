@@ -64,7 +64,12 @@ public class AlterTable {
         return this;
     }
 
-    public void setConstraints(Consumer<ModifyConstraints> constraints) {
+    /**
+     * Add or remove constraints for the table.
+     *
+     * @param constraints callback to set your constraints for the table.
+     */
+    public void setConstraints(@Nonnull final Consumer<ModifyConstraints> constraints) {
         this.modifyConstraints = new ModifyConstraints();
         constraints.accept(this.modifyConstraints);
     }
