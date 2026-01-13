@@ -98,7 +98,7 @@ public class PrimaryConstraintWrapper {
      * @return Returns {true} if at least one value added and the whereClause is not null
      */
     public boolean isSet() {
-        return !(primaryWrappers.isEmpty());
+        return !primaryWrappers.isEmpty();
     }
 
     /**

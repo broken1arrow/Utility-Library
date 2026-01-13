@@ -10,9 +10,11 @@ import org.broken.arrow.library.database.builders.wrappers.QuerySaver;
 import org.broken.arrow.library.database.builders.wrappers.SaveSetup;
 import org.broken.arrow.library.database.connection.HikariCP;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.core.databases.H2DB;
 import org.broken.arrow.library.database.core.databases.MongoDB;
@@ -160,11 +162,17 @@ public abstract class Database {
         return tablesCache.get(tableName);
     }
 
-
     /**
      * Create all needed tables if it not exist.
      */
     public void createTables() {
+        this.createTables(null);
+    }
+    /**
+     * Create all needed tables if it not exist.
+     */
+    public void createTables(Consumer<PrimaryConstraintWrapper> handleConstraints) {
+        this.handleConstraints = handleConstraints;
         if (tablesCache.isEmpty()) {
             log.log(() -> "You don't have added any tables, so it can't check or create your tables.");
             return;
@@ -650,6 +658,7 @@ public abstract class Database {
 
     private void preparePrimaryKeyMigration(final Connection connection, final SqlQueryTable queryTable, final boolean updatePrimary, final Set<String> newPrimaryKeys) {
         if (updatePrimary) {
+            Validate.checkNotNull(this.handleConstraints,"You must set the callback how it shall handle the constraints for the new created columns.");
             final PrimaryConstraintWrapper primaryWrapper = new PrimaryConstraintWrapper(this, queryTable);
             this.handleConstraints.accept(primaryWrapper);
 
@@ -665,18 +674,32 @@ public abstract class Database {
             } catch (final SQLException throwable) {
                 log.log(throwable, () -> "Could not load this table with query'" + builtQuery + "'. From this table '" + queryTable.getTableName() + "'");
             }
+           boolean primaryMapValuesSet = true;
 
             Validate.checkBoolean(!primaryWrapper.isSet() && !primaryWrapper.isUnique(), "Your new primary columns is set as primary key and you lack the values that must be set before set constraint to primary, it could set it to unique if set this to true setUnique.");
 
             final List<QueryBuilder> saveQueryList = new ArrayList<>();
-            final List<Column> primaryColumns = queryTable.getPrimaryColumns();
             for (DataWrapper.PrimaryWrapper primary : primaryWrapper.getPrimaryWrappers()) {
                 final QueryBuilder saveBuilder = new QueryBuilder();
-                saveBuilder.update(queryTable.getTableName()).putAll(primaryWrapper.convert(primary.getPrimaryKeys())).getSelector().where(whereBuilder -> {
-                    if (primary.getWhereClause() == null)
-                        return null;
-                    return primary.getWhereClause().apply(whereBuilder);
-                });
+                final Map<String, Object> primaryKeys = primary.getPrimaryKeys();
+                if (primaryKeys.entrySet().stream().anyMatch(entry -> entry.getKey() == null || entry.getValue() == null)) {
+                    if (primaryWrapper.isUnique()) {
+                        log.log(Level.WARNING, () -> "To set primary key all keys and values must be set in the map: '" + primaryKeys + "' . From this table '" + queryTable.getTableName() + "'" + ", it will use unique instead as you set it to true.");
+                    } else {
+                        log.log(Level.WARNING, () -> "To set primary key all keys and values must be set in the map: '" + primaryKeys + "' . From this table '" + queryTable.getTableName() + "'"+ ", it will not set the new primary keys and as you did not set unique to true it will abort the creation.");
+                    }
+                    primaryMapValuesSet = false;
+                }
+                Selector<ColumnBuilder<Column, Void>, Column> update = saveBuilder.update(queryTable.getTableName()).putAll(primaryWrapper.convert(primaryKeys)).getSelector()
+                        .where(whereBuilder -> {
+                            if (primary.getWhereClause() == null)
+                                return null;
+                            return primary.getWhereClause().apply(whereBuilder);
+                        });
+                if (update.getWhereBuilder() == null) {
+                    log.log(Level.WARNING, () -> "You did not set the where clause. From this table '" + queryTable.getTableName() + "'"+ ", it will skip build this query.");
+                    continue;
+                }
                 saveQueryList.add(saveBuilder);
             }
 
@@ -691,44 +714,51 @@ public abstract class Database {
                     log.log(throwable, () -> "Could not save the columns with query '" + saveQuery + "'. From this table '" + queryTable.getTableName() + "'");
                 }
             }
-
             boolean primaryValuesComplete = primaryWrapper.allPrimaryValuesPresent(newPrimaryKeys);
             Validate.checkBoolean(!primaryValuesComplete && !primaryWrapper.isUnique(), "Your new primary columns is set as primary key, one or several you want to set primary key is not set in the consumer cache.");
 
-            final List<Column> nextPrimaryColumns = new ArrayList<>();
-            final List<Column> fallbackUniqueColumns = new ArrayList<>();
-            for (final Column column : primaryColumns) {
-                if (primaryWrapper.isSet() && primaryValuesComplete) {
-                    nextPrimaryColumns.add(column);
-                    continue;
-                }
-                if (!newPrimaryKeys.contains(column.getColumnName())) continue;
-                fallbackUniqueColumns.add(column);
-            }
-            if (!fallbackUniqueColumns.isEmpty()) {
-                final QueryBuilder queryBuilder = new QueryBuilder();
-                queryBuilder.alterTable(queryTable.getTableName()).setConstraints(modifyConstraints -> modifyConstraints.addUnique(fallbackUniqueColumns.stream().map(Column::getColumnName).toArray(String[]::new)));
-                final String query = queryBuilder.build();
-                try (final PreparedStatement statement = connection.prepareStatement(query)) {
-                    statement.execute();
-                } catch (final SQLException throwable) {
-                    log.log(throwable, () -> "Could not change unique the constrains for this columns '" + fallbackUniqueColumns + "' missing column. To this table '" + queryTable.getTableName() + "'");
-                }
-            }
-            if (!nextPrimaryColumns.isEmpty()) {
-                final QueryBuilder queryBuilder = new QueryBuilder();
-                queryBuilder.alterTable(queryTable.getTableName()).setConstraints(modifyConstraints -> {
-                    modifyConstraints.dropPrimaryKey();
-                    modifyConstraints.addPrimaryKey(nextPrimaryColumns.stream().map(Column::getColumnName).toArray(String[]::new));
-                });
-                final String query = queryBuilder.build();
-                try (final PreparedStatement statement = connection.prepareStatement(query)) {
-                    statement.execute();
-                } catch (final SQLException throwable) {
-                    log.log(throwable, () -> "Could not change primary key the constrains for this columns '" + nextPrimaryColumns + "'. To this table '" + queryTable.getTableName() + "'");
-                }
+            this.setConstraints(connection, queryTable, newPrimaryKeys, primaryMapValuesSet && primaryValuesComplete);
+        }
+    }
 
+    private void setConstraints(final Connection connection, final SqlQueryTable queryTable, final Set<String> newPrimaryKeys, final boolean primaryValuesComplete) {
+
+
+        final List<Column> nextPrimaryColumns = new ArrayList<>();
+        final List<Column> fallbackUniqueColumns = new ArrayList<>();
+        final List<Column> primaryColumns = queryTable.getPrimaryColumns();
+        for (final Column column : primaryColumns) {
+            if (primaryValuesComplete) {
+                nextPrimaryColumns.add(column);
+                continue;
             }
+            if (!newPrimaryKeys.contains(column.getColumnName())) {continue;}
+            fallbackUniqueColumns.add(column);
+        }
+        if (!fallbackUniqueColumns.isEmpty()) {
+            final QueryBuilder queryBuilder = new QueryBuilder();
+            queryBuilder.alterTable(queryTable.getTableName()).setConstraints(modifyConstraints ->
+                    modifyConstraints.addUnique(fallbackUniqueColumns.stream().map(Column::getColumnName).toArray(String[]::new)));
+            final String query = queryBuilder.build();
+            try (final PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.execute();
+            } catch (final SQLException throwable) {
+                log.log(throwable, () -> "Could not change unique the constrains for this columns '" + fallbackUniqueColumns + "' missing column. To this table '" + queryTable.getTableName() + "'");
+            }
+        }
+        if (!nextPrimaryColumns.isEmpty()) {
+            final QueryBuilder queryBuilder = new QueryBuilder();
+            queryBuilder.alterTable(queryTable.getTableName()).setConstraints(modifyConstraints -> {
+                modifyConstraints.dropPrimaryKey();
+                modifyConstraints.addPrimaryKey(nextPrimaryColumns.stream().map(Column::getColumnName).toArray(String[]::new));
+            });
+            final String query = queryBuilder.build();
+            try (final PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.execute();
+            } catch (final SQLException throwable) {
+                log.log(throwable, () -> "Could not change primary key the constrains for this columns '" + nextPrimaryColumns + "'. To this table '" + queryTable.getTableName() + "'");
+            }
+
         }
     }
 
