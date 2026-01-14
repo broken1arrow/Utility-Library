@@ -22,6 +22,7 @@ import org.broken.arrow.library.database.core.databases.MySQL;
 import org.broken.arrow.library.database.core.databases.PostgreSQL;
 import org.broken.arrow.library.database.core.databases.SQLite;
 import org.broken.arrow.library.database.utility.*;
+import org.broken.arrow.library.serialize.SerializeUtility;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.serialize.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.library.logging.Logging;
@@ -171,6 +172,8 @@ public abstract class Database {
 
     /**
      * Create all needed tables if it not exist.
+     *
+     * @param handleConstraints Use this if you set now columns with constraints.
      */
     public void createTables(Consumer<PrimaryConstraintWrapper> handleConstraints) {
         this.handleConstraints = handleConstraints;
@@ -661,8 +664,6 @@ public abstract class Database {
             log.log(Level.FINE, () -> "No new primary key columns detected. Skipping primary key migration for table '" + queryTable.getTableName() + "'");
             return;
         }
-
-
         Validate.checkNotNull(this.handleConstraints, "Constraint handler not configured. You must provide a callback to define how constraints should be applied to newly created columns.");
         final PrimaryConstraintWrapper primaryWrapper = new PrimaryConstraintWrapper(this, queryTable);
         this.handleConstraints.accept(primaryWrapper);

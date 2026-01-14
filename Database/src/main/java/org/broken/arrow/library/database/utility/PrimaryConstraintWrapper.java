@@ -12,35 +12,86 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Consumer;
-
+import java.util.function.Function;
 
 /**
- * Container for primary key values used when constructing
- * SQL WHERE clauses.
+ * Wrapper for managing primary key constraints and associated data for a specific database table.
  *
  * <p>
- * The keys in this wrapper are <strong>intended</strong> to represent
- * primary key columns for a database table.
+ * This class is used to track primary key values when constructing SQL {@code WHERE} clauses,
+ * performing updates, and its data is used to generate ALTER TABLE constraints after the table is created.
+ * Existing rows can be loaded from the database and transformed into {@link DataWrapper.PrimaryWrapper}
+ * objects representing primary key mappings and their corresponding {@code WHERE} clauses.
  * </p>
+ *
+ * <p>
+ * The recommended usage is through the {@link #forEachLoadedData(Function, Class)}
+ * or {@link #forEachLoadedData(Function)} methods, which automatically store
+ * the resulting {@code PrimaryWrapper} objects internally. The {@link #addQueryData(DataWrapper.PrimaryWrapper)}
+ * method exists for advanced or manual scenarios but is generally not required.
+ * </p>
+ *
+ * <strong>Example usage</strong>
+ * <pre>{@code
+ * PrimaryConstraintWrapper primaryWrapper = new PrimaryConstraintWrapper(database, queryTable);
+ *
+ * primaryWrapper.forEachLoadedData(loadDataWrapper -> {
+ *     Object world = loadDataWrapper.getPrimaryValue("world");
+ *     Object x = loadDataWrapper.getPrimaryValue("x");
+ *     Object y = loadDataWrapper.getPrimaryValue("y");
+ *     Object z = loadDataWrapper.getPrimaryValue("z");
+ *
+ *     Map<String, Object> map = Map.of(
+ *         "world", world,
+ *         "x", x,
+ *         "y", y,
+ *         "z", z
+ *     );
+ *
+ *     return new DataWrapper.PrimaryWrapper(map, whereClause -> whereClause
+ *         .where("world").equal(world).and()
+ *         .where("x").equal(x).and()
+ *         .where("y").equal(y).and()
+ *         .where("z").equal(z)
+ *     );
+ * }, YourConfigurationSerializableClass.class);
+ * }</pre>
  */
+
 public class PrimaryConstraintWrapper {
     private final List<DataWrapper.PrimaryWrapper> primaryWrappers = new ArrayList<>();
     private final Database database;
     private final SqlQueryTable queryTable;
     private Consumer<Map<String, Object>> loadMapFromDB;
-
     private boolean unique;
 
-
-    public PrimaryConstraintWrapper(final Database database, final SqlQueryTable queryTable) {
+    /**
+     * Constructs a {@code PrimaryConstraintWrapper} for managing primary key constraints
+     * on a specific database table.
+     *
+     * @param database   the database instance to interact with. Used for
+     *                   deserialization and accessing table metadata.
+     * @param queryTable the table whose primary key constraints are being
+     *                   managed or modified.
+     */
+    public PrimaryConstraintWrapper(@Nonnull final Database database, @Nonnull final SqlQueryTable queryTable) {
         this.database = database;
         this.queryTable = queryTable;
     }
 
     /**
-     * Adds a primary key column and its associated WhereClause.
+     * Adds a primary key mapping manually.
      *
-     * @param primaryColumnsData the {@link DataWrapper.PrimaryWrapper} instance with the where clause and the map with the values that need to be updated.
+     * <p>
+     * Normally, this is handled automatically by {@link #forEachLoadedData(Function, Class)}
+     * or {@link #forEachLoadedData(Function)} when the callback returns a
+     * {@link DataWrapper.PrimaryWrapper}. This method exists for advanced scenarios
+     * where you want to populate primary key data manually. Safeguards prevent
+     * incomplete or inconsistent primary key mappings from affecting the database.
+     * </p>
+     *
+     * @param primaryColumnsData the {@link DataWrapper.PrimaryWrapper} containing
+     *                           column-value mappings and the corresponding {@code WHERE} clause
      */
     public void addQueryData(@Nonnull final DataWrapper.PrimaryWrapper primaryColumnsData) {
         primaryWrappers.add(primaryColumnsData);
@@ -57,9 +108,17 @@ public class PrimaryConstraintWrapper {
     }
 
     /**
-     * Returns the primary key column-value mappings.
+     * Checks whether all specified primary key columns have non-null values
+     * in the internal cache.
      *
-     * @return Returns {@code true} if the column is set.
+     * <p>
+     * This can be used to verify that the necessary primary key values are present
+     * before performing updates or generating queries.
+     * </p>
+     *
+     * @param keys the set of primary key column names to check
+     * @return {@code true} if all specified keys have non-null values in every
+     *         {@link DataWrapper.PrimaryWrapper} stored internally, {@code false} otherwise
      */
     public boolean allPrimaryValuesPresent(@Nonnull final Set<String> keys) {
         for (DataWrapper.PrimaryWrapper wrapper : primaryWrappers) {
@@ -102,14 +161,15 @@ public class PrimaryConstraintWrapper {
     }
 
     /**
-     * Retrieve the loaded data from the database. It will go through every row, and you can use {@link #addQueryData(DataWrapper.PrimaryWrapper)}
-     * to set the new primary key value or if you have several, this columns name and value will be updated to the database.
+     * Loads each row of data from the database and transforms it into a
+     * {@link DataWrapper.PrimaryWrapper} using the provided callback function.
+     * The resulting wrapper is stored internally.
      *
-     * @param loadedData the callback when loading the data set in the database.
-     * @param clazz      the class to resolve.
-     * @param <T>        the generic type for that class that implements ConfigurationSerializable.
+     * @param loadedData the function transforming loaded data into a {@code PrimaryWrapper}
+     * @param clazz      the class type to deserialize each row into
+     * @param <T>        the type implementing {@link ConfigurationSerializable}
      */
-    public <T extends ConfigurationSerializable> void forEachLoadedData(Consumer<LoadDataWrapper<T>> loadedData, Class<T> clazz) {
+    public <T extends ConfigurationSerializable> void forEachLoadedData(Function<LoadDataWrapper<T>, DataWrapper.PrimaryWrapper> loadedData, Class<T> clazz) {
         final CreateTableHandler tableHandler = this.queryTable.getTable();
         this.loadMapFromDB = (dataFromDB) -> {
             final T deserialize = this.database.deSerialize(clazz, dataFromDB);
@@ -121,28 +181,46 @@ public class PrimaryConstraintWrapper {
                     objectList.put(column.getColumnName(), primaryValue);
                 }
             }
-            loadedData.accept(new LoadDataWrapper<>(objectList, deserialize));
+            final DataWrapper.PrimaryWrapper data = loadedData.apply(new LoadDataWrapper<>(objectList, deserialize));
+            if (data != null) {
+                this.addQueryData(data);
+            }
+        };
+    }
+
+    /**
+     * Loads each row of raw data from the database and transforms it into a
+     * {@link DataWrapper.PrimaryWrapper} using the provided callback function.
+     * The resulting wrapper is stored internally.
+     *
+     * @param loadedData the function transforming raw database rows into a {@code PrimaryWrapper}
+     */
+    public void forEachLoadedData(Function<Map<String, Object>, DataWrapper.PrimaryWrapper> loadedData) {
+        this.loadMapFromDB = (dataFromDB) -> {
+            final DataWrapper.PrimaryWrapper data = loadedData.apply(dataFromDB);
+            if (data != null) {
+                this.addQueryData(data);
+            }
         };
     }
 
 
     /**
-     * Retrieve the loaded data from the database. It will go through every row, and you can use {@link #addQueryData(DataWrapper.PrimaryWrapper)}
-     * to set the new primary key value or if you have several, this columns name and value will be updated to the database.
-     * <p>
-     * You will get it as raw data from the database insted of {@link #forEachLoadedData(Consumer, Class)} that gives you a consumer
-     * with the raw map with all columns and values set in the database.
+     * Converts a map of primary key column-value pairs to a map keyed by {@link Column} objects.
      *
-     * @param loadedData the callback when loading the data set in the database.
+     * @param primaryKeys a map of column names to values
+     * @return a map of {@link Column} objects to their corresponding values
      */
-    public void forEachLoadedData(Consumer<Map<String, Object>> loadedData) {
-        this.loadMapFromDB = loadedData;
+    public Map<Column, Object> convert(final Map<String, Object> primaryKeys) {
+        final Map<Column, Object> map = new HashMap<>();
+        primaryKeys.forEach((key, value) -> map.put(new Column(key, ""), value));
+        return map;
     }
 
     /**
-     * Used internally only this method.
+     * Internally loads a row of data from the database and invokes the configured callback.
      *
-     * @param dataFromDB the map of raw values from the database.
+     * @param dataFromDB a map of column-value pairs from the database row
      */
     public void loadMap(Map<String, Object> dataFromDB) {
         if (this.loadMapFromDB == null) return;
@@ -150,15 +228,4 @@ public class PrimaryConstraintWrapper {
         this.loadMapFromDB.accept(dataFromDB);
     }
 
-    /**
-     * Used internally only this method.
-     *
-     * @param primaryKeys the list of primary column and the key to convert to
-     * @return the map converted to a column and the object/value.
-     */
-    public Map<Column, Object> convert(final Map<String, Object> primaryKeys) {
-        final Map<Column, Object> map = new HashMap<>();
-        primaryKeys.forEach((key, value) -> map.put(new Column(key, ""), value));
-        return map;
-    }
 }
