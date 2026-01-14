@@ -22,7 +22,6 @@ import org.broken.arrow.library.database.core.databases.MySQL;
 import org.broken.arrow.library.database.core.databases.PostgreSQL;
 import org.broken.arrow.library.database.core.databases.SQLite;
 import org.broken.arrow.library.database.utility.*;
-import org.broken.arrow.library.serialize.SerializeUtility;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.serialize.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.library.logging.Logging;
@@ -43,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -65,7 +65,7 @@ public abstract class Database {
     private long idleTimeout;
     private long maxLifeTime;
     private int minimumIdle;
-    private Consumer<PrimaryConstraintWrapper> handleConstraints;
+    private BiConsumer<String, PrimaryConstraintWrapper> handleConstraints;
 
     /**
      * The  database instance.
@@ -175,7 +175,7 @@ public abstract class Database {
      *
      * @param handleConstraints Use this if you set now columns with constraints.
      */
-    public void createTables(Consumer<PrimaryConstraintWrapper> handleConstraints) {
+    public void createTables(final BiConsumer<String, PrimaryConstraintWrapper> handleConstraints) {
         this.handleConstraints = handleConstraints;
         if (tablesCache.isEmpty()) {
             log.log(() -> "You don't have added any tables, so it can't check or create your tables.");
@@ -666,7 +666,7 @@ public abstract class Database {
         }
         Validate.checkNotNull(this.handleConstraints, "Constraint handler not configured. You must provide a callback to define how constraints should be applied to newly created columns.");
         final PrimaryConstraintWrapper primaryWrapper = new PrimaryConstraintWrapper(this, queryTable);
-        this.handleConstraints.accept(primaryWrapper);
+        this.handleConstraints.accept(queryTable.getTableName(), primaryWrapper);
 
         final QueryBuilder builder = new QueryBuilder();
         builder.select(new ColumnManager().column("*").finish()).from(queryTable.getTableName());
