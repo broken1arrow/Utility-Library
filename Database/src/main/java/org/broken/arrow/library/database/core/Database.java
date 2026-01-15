@@ -12,6 +12,7 @@ import org.broken.arrow.library.database.connection.HikariCP;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
+import org.broken.arrow.library.database.construct.query.builder.tablebuilder.AlterTable;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
@@ -21,7 +22,12 @@ import org.broken.arrow.library.database.core.databases.MongoDB;
 import org.broken.arrow.library.database.core.databases.MySQL;
 import org.broken.arrow.library.database.core.databases.PostgreSQL;
 import org.broken.arrow.library.database.core.databases.SQLite;
-import org.broken.arrow.library.database.utility.*;
+
+import org.broken.arrow.library.database.utility.BatchExecutor;
+import org.broken.arrow.library.database.utility.BatchExecutorUnsafe;
+import org.broken.arrow.library.database.utility.DatabaseCommandConfig;
+import org.broken.arrow.library.database.utility.DatabaseType;
+import org.broken.arrow.library.database.utility.PrimaryConstraintWrapper;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.serialize.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.library.logging.Logging;
@@ -38,10 +44,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -632,28 +639,45 @@ public abstract class Database {
             log.log(Level.WARNING, () -> "You must set the connection instance.");
             return;
         }
-
         final Set<String> newPrimaryKeys = new HashSet<>();
+        final List<Column> columnsToAdd = new ArrayList<>();
+        boolean failCreateColumns = false;
 
         for (final Column column : queryTable.getTable().getColumns()) {
             String columnName = column.getColumnName();
             if (removeColumns.contains(columnName) || existingColumns.contains(columnName.toLowerCase())) continue;
             Column tableColumn = column;
+
             if (column instanceof TableColumn) {
-                boolean isPrimaryKey = ((TableColumn) column).isPrimaryKey();
+                final boolean isPrimaryKey = ((TableColumn) column).isPrimaryKey();
                 if (isPrimaryKey) {
                     newPrimaryKeys.add(columnName);
                     tableColumn = new TableColumn(null, column.getColumnName(), ((TableColumn) column).getDataType());
                 }
             }
+            columnsToAdd.add(tableColumn);
+        }
+
+        if (!columnsToAdd.isEmpty()) {
             final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.alterTable(queryTable.getTableName()).add(tableColumn);
+
+            AlterTable alterBuilder = queryBuilder.alterTable(queryTable.getTableName());
+            for (Column col : columnsToAdd) {
+                alterBuilder.add(col);
+            }
             final String query = queryBuilder.build();
             try (final PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.execute();
+                log.log(Level.FINE, () -> "Successfully added " + columnsToAdd.size() + " columns to " + queryTable.getTableName());
             } catch (final SQLException throwable) {
-                log.log(throwable, () -> "Could not add this '" + columnName + "' missing column. To this table '" + queryTable.getTableName() + "'");
+                log.log(throwable, () -> "Failed to add missing columns in batch. Query: '" + query + "'");
+                failCreateColumns = true;
             }
+        }
+        if (failCreateColumns) {
+            log.log(Level.SEVERE, () -> "Schema migration aborted for " + queryTable.getTableName() +
+                    " due to previous errors. The constraints will not be set.");
+            return;
         }
 
         this.preparePrimaryKeyMigration(connection, queryTable, newPrimaryKeys);
@@ -694,7 +718,7 @@ public abstract class Database {
 
     private boolean saveDataToColumns(final Connection connection, final SqlQueryTable queryTable, final PrimaryConstraintWrapper primaryWrapper) {
         boolean primaryMapValuesSet = true;
-        final List<QueryBuilder> saveQueryList = new ArrayList<>();
+        final Map<String, List<Map<Integer, Object>>> batchGroups = new LinkedHashMap<>();
 
         if (!primaryWrapper.getPrimaryWrappers().isEmpty()) {
             for (DataWrapper.PrimaryWrapper primary : primaryWrapper.getPrimaryWrappers()) {
@@ -708,7 +732,10 @@ public abstract class Database {
                     }
                     primaryMapValuesSet = false;
                 }
-                Selector<ColumnBuilder<Column, Void>, Column> update = saveBuilder.update(queryTable.getTableName()).putAll(primaryWrapper.convert(primaryKeys)).getSelector()
+                Selector<ColumnBuilder<Column, Void>, Column> update = saveBuilder
+                        .update(queryTable.getTableName())
+                        .putAll(primaryWrapper.convert(primaryKeys))
+                        .getSelector()
                         .where(whereBuilder -> {
                             if (primary.getWhereClause() == null)
                                 return null;
@@ -718,22 +745,30 @@ public abstract class Database {
                     log.log(Level.WARNING, () -> "Update skipped, no WHERE clause was provided. For this table '" + queryTable.getTableName() + "'" + ". Updates without a WHERE clause are not allowed for safety reasons.");
                     continue;
                 }
-                saveQueryList.add(saveBuilder);
+                String sql = saveBuilder.build();
+                batchGroups.computeIfAbsent(sql, k -> new ArrayList<>()).add(saveBuilder.getValues());
             }
         }
-        if (!saveQueryList.isEmpty()) {
-            for (QueryBuilder saveQuery : saveQueryList) {
-                try (final PreparedStatement preparedStatement = connection.prepareStatement(saveQuery.build())) {
-                    for (Entry<Integer, Object> entry : saveQuery.getValues().entrySet()) {
-                        preparedStatement.setObject(entry.getKey(), entry.getValue());
+
+        if (!batchGroups.isEmpty()) {
+            for (Map.Entry<String, List<Map<Integer, Object>>> entry : batchGroups.entrySet()) {
+                String sql = entry.getKey();
+                List<Map<Integer, Object>> allRowsParams = entry.getValue();
+
+                try (final PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                    for (Map<Integer, Object> rowParams : allRowsParams) {
+                        for (Map.Entry<Integer, Object> param : rowParams.entrySet()) {
+                            preparedStatement.setObject(param.getKey(), param.getValue());
+                        }
+                        preparedStatement.addBatch();
                     }
-                    preparedStatement.addBatch();
                     preparedStatement.executeBatch();
                 } catch (final SQLException throwable) {
-                    log.log(throwable, () -> "Failed to populate primary key values during migration. SQL: '" + saveQuery + "'. For this table '" + queryTable.getTableName() + "'");
+                    log.log(throwable, () -> "Failed to populate primary key values. SQL: '" + sql + "'. Table: '" + queryTable.getTableName() + "'");
                 }
             }
         }
+
         return primaryMapValuesSet;
     }
 
