@@ -722,8 +722,14 @@ public abstract class Database {
 
         if (!primaryWrapper.getPrimaryWrappers().isEmpty()) {
             for (DataWrapper.PrimaryWrapper primary : primaryWrapper.getPrimaryWrappers()) {
+                if (primary == null) {
+                    log.log(Level.WARNING, () -> "A row for this table '" + queryTable.getTableName() + "' is not set.");
+                    continue;
+                }
+
                 final QueryBuilder saveBuilder = new QueryBuilder();
                 final Map<String, Object> primaryKeys = primary.getPrimaryKeys();
+
                 if (primaryKeys.entrySet().stream().anyMatch(entry -> entry.getKey() == null || entry.getValue() == null)) {
                     if (primaryWrapper.isUnique()) {
                         log.log(Level.WARNING, () -> "Primary key values are incomplete (null key or value detected). Provided values: '" + primaryKeys + "'. Primary key will not be created for this row. Unique constraint will be used instead, as configured.");
