@@ -1,11 +1,20 @@
 package org.broken.arrow.library.database.construct.query.builder;
 
+import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.insertbuilder.InsertBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
 /**
  * A utility class for managing column-value pairs for an SQL {@code INSERT} operation.
  * <p>
@@ -20,27 +29,38 @@ import java.util.stream.Collectors;
  */
 public class InsertHandler {
 
-    private final Map<Integer, InsertBuilder> insertValues = new HashMap<>();
+    private final Map<Integer, InsertBuilder> insertValues = new LinkedHashMap<>();
+    private final QueryModifier queryModifier;
+    private final QueryBuilder queryBuilder;
     private int columnIndex = 1;
+
+    public InsertHandler(final QueryBuilder queryBuilder) {
+        this.queryBuilder = queryBuilder;
+        this.queryModifier = new QueryModifier(queryBuilder);
+    }
 
     /**
      * Adds a single column-value pair to the handler.
      *
      * @param value the {@link InsertBuilder} containing the column name and value
+     * @return this instance for chaining
      */
-    public void add(InsertBuilder value) {
+    public InsertHandler add(InsertBuilder value) {
         insertValues.put(columnIndex++, value);
+        return this;
     }
 
     /**
      * Adds multiple column-value pairs to the handler.
      *
      * @param values one or more {@link InsertBuilder} instances to add
+     * @return this instance for chaining
      */
-    public void addAll(InsertBuilder... values) {
+    public InsertHandler addAll(InsertBuilder... values) {
         for (InsertBuilder insert : values) {
             this.add(insert);
         }
+        return this;
     }
 
     /**
@@ -50,11 +70,39 @@ public class InsertHandler {
      * </p>
      *
      * @param columnData a map where the key is a {@link Column} and the value is the data to insert
+     * @return this instance for chaining
      */
-    public void addAll(Map<Column, Object> columnData) {
+    public InsertHandler addAll(Map<Column, Object> columnData) {
         for (Map.Entry<Column, Object> insert : columnData.entrySet()) {
             this.add(new InsertBuilder(insert.getKey().getColumnName(), insert.getValue()));
         }
+        return this;
+    }
+
+
+    /**
+     * Adds column from a list of {@link Column} and the values is set to null.
+     * <p>
+     * Each {@link Column} is converted into an {@link InsertBuilder} using its column name.
+     * </p>
+     *
+     * @param columns a map where the key is a {@link Column} and column set to null.
+     * @return this instance for chaining
+     */
+    public InsertHandler addAll(List<Column> columns) {
+        for (Column column : columns) {
+            this.add(new InsertBuilder(column.getColumnName(), null));
+        }
+        return this;
+    }
+
+    /**
+     * Get the modifier like select and similar for modify a table.
+     *
+     * @return the modifies instance for the insert operation.
+     */
+    public QueryModifier getQueryModifier() {
+        return this.queryModifier;
     }
 
     /**
@@ -76,10 +124,36 @@ public class InsertHandler {
      */
     public Map<Integer, Object> getIndexedValues() {
         return insertValues.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> entry.getValue().getColumnValue()
-                ));
+                .sorted(Comparator.comparingInt(Map.Entry::getKey))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> y, LinkedHashMap::new));
+    }
+
+
+    public String build() {
+        final StringBuilder sql = new StringBuilder();
+        Set<Map.Entry<Integer, InsertBuilder>> insertValues = this.getInsertValues().entrySet();
+        List<InsertBuilder> insertBuilders = insertValues.stream()
+                .sorted(Comparator.comparingInt(Map.Entry::getKey))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+
+
+        List<String> columnNames = insertBuilders.stream()
+                .map(InsertBuilder::getColumnName)
+                .collect(Collectors.toList());
+
+        sql.append(StringUtil.stringJoin(columnNames))
+                .append(") VALUES (");
+
+        if (this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
+            sql.append(StringUtil.repeat("?,", insertBuilders.size()).replaceAll(",$", ""));
+        } else {
+            List<Object> columnValues = insertBuilders.stream()
+                    .map(InsertBuilder::getColumnValue)
+                    .collect(Collectors.toList());
+            sql.append(StringUtil.stringJoin(columnValues));
+        }
+        return sql + "";
     }
 
 }

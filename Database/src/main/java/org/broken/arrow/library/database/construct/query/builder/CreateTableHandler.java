@@ -104,6 +104,18 @@ public class CreateTableHandler {
     }
 
     /**
+     * Adds column definitions to the {@code CREATE TABLE} statement.
+     *
+     * @param column the list of {@link ColumnManager} containing the column definitions
+     * @return this handler instance for method chaining
+     */
+    public CreateTableHandler addAllColumns(List<Column> column) {
+        selectorWrapper = new TableSelectorWrapper(this, new TableSelector(this.queryBuilder, new TableColumnCache()));
+        selectorWrapper.select(column);
+        return this;
+    }
+
+    /**
      * Returns all columns currently defined for the new table.
      *
      * @return a list of {@link Column} objects, or an empty list if none are defined

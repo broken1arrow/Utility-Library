@@ -75,7 +75,6 @@ public class UpdateBuilder {
      * @return selector instance
      */
     public Selector<ColumnBuilder<Column, Void>,Column> getSelector() {
-        if (built) return null;
         return selector;
     }
 

@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
  */
 public class QueryBuilder {
     private final UpdateBuilder updateBuilder = new UpdateBuilder(this);
-    private final InsertHandler insertHandler = new InsertHandler();
+    private final InsertHandler insertHandler = new InsertHandler(this);
     private final QueryModifier queryModifier = new QueryModifier(this);
     private final CreateTableHandler createTableHandler = new CreateTableHandler(this);
     private final AlterTable alterTable = new AlterTable();
@@ -490,7 +490,7 @@ public class QueryBuilder {
 
     private void createInsertQuery(final StringBuilder sql) {
         String sqlKeyword = getInsertStart();
-        Set<Map.Entry<Integer, InsertBuilder>> insertValues = insertHandler.getInsertValues().entrySet();
+        Set<Map.Entry<Integer, InsertBuilder>> insertValues = this.insertHandler.getInsertValues().entrySet();
 
         List<InsertBuilder> insertBuilders = insertValues.stream()
                 .sorted(Comparator.comparingInt(Map.Entry::getKey))
@@ -500,6 +500,8 @@ public class QueryBuilder {
         List<String> columnNames = insertBuilders.stream()
                 .map(InsertBuilder::getColumnName)
                 .collect(Collectors.toList());
+        this.insertHandler.getQueryModifier().getSelectBuilder().build()
+
 
         sql.append(sqlKeyword).append(table).append(" (")
                 .append(StringUtil.stringJoin(columnNames))

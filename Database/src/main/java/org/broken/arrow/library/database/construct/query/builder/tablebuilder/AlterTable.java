@@ -20,6 +20,7 @@ public class AlterTable {
 
     private final List<String> columns = new ArrayList<>();
     private ModifyConstraints modifyConstraints;
+    private String newTableName;
 
     /**
      * Adds a new column to the ALTER TABLE statement using a name and data type.
@@ -100,5 +101,9 @@ public class AlterTable {
             build.add(column);
         }
         return build + "";
+    }
+
+    public void rename(final String newTableName) {
+        this.newTableName = newTableName;
     }
 }

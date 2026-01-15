@@ -85,6 +85,16 @@ public class SqlQueryTable {
     }
 
     /**
+     * Returns the list of all set columns for this table.
+     *
+     * @return a list of set columns {@link Column} objects
+     */
+    public List<Column> getColumns() {
+        return this.getTable().getColumns();
+    }
+
+
+    /**
      * Returns the list of primary key columns for this table.
      *
      * @return a list of primary key {@link Column} objects

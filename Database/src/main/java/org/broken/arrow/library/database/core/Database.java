@@ -793,6 +793,11 @@ public abstract class Database {
             columnsToBeModified.add(column);
         }
 
+        if (!columnsToBeModified.isEmpty() && databaseType == DatabaseType.SQLITE) {
+            copyTable(connection, queryTable, columnsToBeModified);
+            return;
+        }
+
         if (!columnsToBeModified.isEmpty() && !primaryValuesComplete) {
             final QueryBuilder queryBuilder = new QueryBuilder();
             queryBuilder.alterTable(queryTable.getTableName()).setConstraints(modifyConstraints ->
@@ -817,6 +822,49 @@ public abstract class Database {
                 log.log(throwable, () -> "Failed to apply PRIMARY KEY constraint during migration. Columns '" + columnsToBeModified + "'. To this table '" + queryTable.getTableName() + "'");
             }
 
+        }
+    }
+
+    private void copyTable(@Nonnull final Connection connection,@Nonnull final SqlQueryTable queryTable,@Nonnull final List<Column> columnsToBeModified) {
+        final QueryBuilder queryBuilder = new QueryBuilder();
+        queryBuilder.createTable(queryTable.getTableName() + "_new ").addAllColumns(queryTable.getColumns());
+        final String query = queryBuilder.build();
+        try (final PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.execute();
+        } catch (final SQLException throwable) {
+            log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + queryTable.getTableName() + "'");
+        }
+
+        final QueryBuilder queryInsertBuilder = new QueryBuilder();
+        queryInsertBuilder.insertInto(queryTable.getTableName() + "_new ", insertHandler -> {
+            insertHandler.addAll(queryTable.getColumns()).getQueryModifier()
+                    .select(columnVoidColumnBuilder ->
+                    columnVoidColumnBuilder.addAll(queryTable.getColumns()))
+                    .from(queryTable.getTableName());
+        });
+        final String insertQuery = queryInsertBuilder.build();
+        try (final PreparedStatement statement = connection.prepareStatement(insertQuery)) {
+            statement.execute();
+        } catch (final SQLException throwable) {
+            log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + queryTable.getTableName() + "'");
+        }
+
+        final QueryBuilder queryDropBuilder = new QueryBuilder();
+        queryDropBuilder.dropTable(queryTable.getTableName());
+        final String dropQuery = queryDropBuilder.build();
+        try (final PreparedStatement statement = connection.prepareStatement(dropQuery)) {
+            statement.execute();
+        } catch (final SQLException throwable) {
+            log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + queryTable.getTableName() + "'");
+        }
+
+        final QueryBuilder queryAlterBuilder = new QueryBuilder();
+        queryAlterBuilder.alterTable(queryTable.getTableName() + "_new ").rename(queryTable.getTableName());
+        final String alterQuery = queryAlterBuilder.build();
+        try (final PreparedStatement statement = connection.prepareStatement(alterQuery)) {
+            statement.execute();
+        } catch (final SQLException throwable) {
+            log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + queryTable.getTableName() + "'");
         }
     }
 

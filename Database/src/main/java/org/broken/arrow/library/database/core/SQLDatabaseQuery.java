@@ -133,12 +133,6 @@ public abstract class SQLDatabaseQuery extends Database {
             this.log.log(Level.WARNING, () -> "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
             return;
         }
-        java.util.Map<String,Object> primaryData = new HashMap<>();
-        primaryData.put("primary_key",1);
-        DataWrapper.PrimaryWrapper wrapper = new DataWrapper.PrimaryWrapper(primaryData ,(builder) -> {
-            return builder.where("test").equal("testimgs");
-        });
-        save("table_name",new DataWrapper(wrapper, null),false);
 
         batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> {
             final WhereClauseFunction whereClause = dataWrapper.getPrimaryWrapper().getWhereClause();
