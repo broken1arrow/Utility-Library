@@ -85,11 +85,15 @@ public class TableColumn extends Column {
     }
 
     /**
-     * Builds a comma-separated string representation of all added columns
-     * by invoking their {@code toString()} methods.
-     * Returns an empty string if no columns have been added.
+     * Builds the SQL fragment representing this column's definition,
+     * excluding any {@link SQLConstraints#primaryKey() primary key} constraints.
+     * <p>
+     * This method is intended for generating column definitions in contexts
+     * where primary keys are defined separately (e.g. composite keys or
+     * table-level constraints).
      *
-     * @return a comma-separated string of columns.
+     * @return the SQL string fragment for the column definition without
+     *         primary key constraints
      */
     public String buildCampsiteKey() {
         StringJoiner joiner = new StringJoiner(" ");
