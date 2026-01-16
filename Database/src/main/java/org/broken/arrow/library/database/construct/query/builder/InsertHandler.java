@@ -4,8 +4,11 @@ import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.insertbuilder.InsertBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -34,6 +37,11 @@ public class InsertHandler {
     private final QueryBuilder queryBuilder;
     private int columnIndex = 1;
 
+    /**
+     * This handle the inner parts of your insert command.
+     *
+     * @param queryBuilder the top class for build the command.
+     */
     public InsertHandler(final QueryBuilder queryBuilder) {
         this.queryBuilder = queryBuilder;
         this.queryModifier = new QueryModifier(queryBuilder);
@@ -128,32 +136,61 @@ public class InsertHandler {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> y, LinkedHashMap::new));
     }
 
-
+    /**
+     * Build the inner parts of the query command.
+     *
+     * @return the inner parts of the query.
+     */
     public String build() {
         final StringBuilder sql = new StringBuilder();
-        Set<Map.Entry<Integer, InsertBuilder>> insertValues = this.getInsertValues().entrySet();
-        List<InsertBuilder> insertBuilders = insertValues.stream()
-                .sorted(Comparator.comparingInt(Map.Entry::getKey))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+        Collection<InsertBuilder> insertBuilders = this.getInsertValues().values();
+        if (insertBuilders.isEmpty()) return "";
 
+        List<String> columnNames = new ArrayList<>();
+        List<Object> columnValues = new ArrayList<>();
 
-        List<String> columnNames = insertBuilders.stream()
-                .map(InsertBuilder::getColumnName)
-                .collect(Collectors.toList());
+        for (InsertBuilder builder : insertBuilders) {
+            columnNames.add(builder.getColumnName());
+            if (!this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
+                columnValues.add(builder.getColumnValue());
+            }
+        }
 
-        sql.append(StringUtil.stringJoin(columnNames))
+        String select = setSelect(sql, columnNames);
+        if (select != null) return select;
+
+        sql.append(" (")
+                .append(StringUtil.stringJoin(columnNames))
                 .append(") VALUES (");
 
         if (this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
             sql.append(StringUtil.repeat("?,", insertBuilders.size()).replaceAll(",$", ""));
         } else {
-            List<Object> columnValues = insertBuilders.stream()
-                    .map(InsertBuilder::getColumnValue)
-                    .collect(Collectors.toList());
             sql.append(StringUtil.stringJoin(columnValues));
         }
-        return sql + "";
+        sql.append(" )");
+        return sql.toString();
+    }
+
+    private String setSelect(final StringBuilder sql, final List<String> columnNames) {
+        final QueryModifier queryModifier = getQueryModifier();
+        final ColumnBuilder<Column, Void> selectBuilder = queryModifier.getSelectBuilder();
+        final String from = queryModifier.getTable();
+        final String selectSql = selectBuilder.build();
+
+        if (!selectSql.isEmpty() && from != null) {
+
+
+            sql.append("(")
+                    .append(StringUtil.stringJoin(columnNames))
+                    .append(") SELECT ")
+                    .append(selectSql)
+                    .append(" FROM ")
+                    .append(from);
+
+            return sql.toString();
+        }
+        return null;
     }
 
 }

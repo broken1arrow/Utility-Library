@@ -490,32 +490,8 @@ public class QueryBuilder {
 
     private void createInsertQuery(final StringBuilder sql) {
         String sqlKeyword = getInsertStart();
-        Set<Map.Entry<Integer, InsertBuilder>> insertValues = this.insertHandler.getInsertValues().entrySet();
-
-        List<InsertBuilder> insertBuilders = insertValues.stream()
-                .sorted(Comparator.comparingInt(Map.Entry::getKey))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
-
-        List<String> columnNames = insertBuilders.stream()
-                .map(InsertBuilder::getColumnName)
-                .collect(Collectors.toList());
-        this.insertHandler.getQueryModifier().getSelectBuilder().build()
-
-
-        sql.append(sqlKeyword).append(table).append(" (")
-                .append(StringUtil.stringJoin(columnNames))
-                .append(") VALUES (");
-
-        if (this.globalEnableQueryPlaceholders) {
-            sql.append(StringUtil.repeat("?,", insertBuilders.size()).replaceAll(",$", ""));
-        } else {
-            List<Object> columnValues = insertBuilders.stream()
-                    .map(InsertBuilder::getColumnValue)
-                    .collect(Collectors.toList());
-            sql.append(StringUtil.stringJoin(columnValues));
-        }
-        sql.append(")");
+        sql.append(sqlKeyword).append(table)
+                .append(this.insertHandler.build());
     }
 
     @Nonnull

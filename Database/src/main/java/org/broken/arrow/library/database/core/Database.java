@@ -838,8 +838,8 @@ public abstract class Database {
         final QueryBuilder queryInsertBuilder = new QueryBuilder();
         queryInsertBuilder.insertInto(queryTable.getTableName() + "_new ", insertHandler -> {
             insertHandler.addAll(queryTable.getColumns()).getQueryModifier()
-                    .select(columnVoidColumnBuilder ->
-                    columnVoidColumnBuilder.addAll(queryTable.getColumns()))
+                    .select(columnBuilder ->
+                    columnBuilder.addAll(queryTable.getColumns()))
                     .from(queryTable.getTableName());
         });
         final String insertQuery = queryInsertBuilder.build();

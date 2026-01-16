@@ -76,6 +76,24 @@ public class AlterTable {
     }
 
     /**
+     * Rename your table.
+     *
+     * @param newTableName the new name to set.
+     */
+    public void rename(final String newTableName) {
+        this.newTableName = newTableName;
+    }
+
+    /**
+     * Retrieve the new name set.
+     *
+     * @return the name or {@code null} if not set a new name.
+     */
+    public String getNewTableName() {
+        return newTableName;
+    }
+
+    /**
      * Builds the SQL part for the ALTER TABLE modifications.
      *
      * @return the SQL string containing all modifications
@@ -103,7 +121,4 @@ public class AlterTable {
         return build + "";
     }
 
-    public void rename(final String newTableName) {
-        this.newTableName = newTableName;
-    }
 }
