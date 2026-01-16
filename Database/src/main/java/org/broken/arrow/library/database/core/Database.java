@@ -835,16 +835,18 @@ public abstract class Database {
             connection.setAutoCommit(false);
             final QueryBuilder queryBuilder = new QueryBuilder();
             final String tableName = queryTable.getTableName();
-            queryBuilder.createTable(tableName + "_new ").addAllColumns(queryTable.getColumns());
+            final String temporaryTable = tableName + "_new";
+
+            queryBuilder.createTable(temporaryTable).addAllColumns(queryTable.getColumns());
             final String query = queryBuilder.build();
             try (final PreparedStatement statement = connection.prepareStatement(query)) {
                 statement.execute();
             } catch (final SQLException throwable) {
                 log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + tableName + "'");
             }
-            connection.setAutoCommit(false);
+
             final QueryBuilder queryInsertBuilder = new QueryBuilder();
-            queryInsertBuilder.insertInto(tableName + "_new ", insertHandler -> {
+            queryInsertBuilder.insertInto(temporaryTable, insertHandler -> {
                 insertHandler.addAll(queryTable.getColumns()).getQueryModifier()
                         .select(columnBuilder ->
                                 columnBuilder.addAll(queryTable.getColumns()))
@@ -869,7 +871,7 @@ public abstract class Database {
             }
 
             final QueryBuilder queryAlterBuilder = new QueryBuilder();
-            queryAlterBuilder.alterTable(tableName + "_new ").rename(tableName);
+            queryAlterBuilder.alterTable(temporaryTable).rename(tableName);
             final String alterQuery = queryAlterBuilder.build();
             try (final PreparedStatement statement = connection.prepareStatement(alterQuery)) {
                 statement.execute();
