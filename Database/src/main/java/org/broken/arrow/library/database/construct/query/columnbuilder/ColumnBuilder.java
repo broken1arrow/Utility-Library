@@ -1,5 +1,7 @@
 package org.broken.arrow.library.database.construct.query.columnbuilder;
 
+import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -109,6 +111,25 @@ public class ColumnBuilder<T extends Column, V> {
             joiner.add(column.toString());
         }
         return joiner + "";
+    }
+
+    /**
+     * Builds a comma-separated string representation of all added columns
+     * by invoking their {@code toString()} methods.
+     * Returns an empty string if no columns have been added.
+     *
+     * @return a comma-separated string of columns.
+     */
+    public  String buildCampsiteKey(){
+        return "";
+    }
+
+    @Override
+    public String toString() {
+        return "ColumnBuilder{" +
+                "columns=" + columns +
+                ", clazzType=" + clazzType +
+                '}';
     }
 
 }

@@ -101,7 +101,7 @@ public class AlterTable {
     public String build() {
         final String tableName = this.newTableName;
         if (tableName != null && !tableName.isEmpty()) {
-            return "TO " + tableName;
+            return "RENAME TO " + tableName;
         }
 
         if (this.modifyConstraints != null) {

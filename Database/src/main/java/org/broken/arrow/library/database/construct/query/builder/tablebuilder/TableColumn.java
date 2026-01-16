@@ -7,6 +7,7 @@ import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.StringJoiner;
 
 /**
@@ -84,6 +85,24 @@ public class TableColumn extends Column {
     }
 
     /**
+     * Builds a comma-separated string representation of all added columns
+     * by invoking their {@code toString()} methods.
+     * Returns an empty string if no columns have been added.
+     *
+     * @return a comma-separated string of columns.
+     */
+    public String buildCampsiteKey() {
+        StringJoiner joiner = new StringJoiner(" ");
+        if (this.constraints != null) {
+            for (SQLConstraints constraint : this.constraints) {
+                if (!SQLConstraints.isPrimary(constraint))
+                    joiner.add(constraint.toString());
+            }
+        }
+        return this.getColumnName() + " " + dataType.getValue() + " " + joiner + " ";
+    }
+
+    /**
      * A builder-style helper class to chain the creation of {@link TableColumn} instances
      * and add them to a {@link ColumnManager}.
      */
@@ -112,7 +131,7 @@ public class TableColumn extends Column {
          * @param constraints zero or more SQL constraints for the new column
          * @return a new {@code Separator} wrapping the newly created column
          */
-        public Separator column(@Nonnull final String communeName,@Nonnull final DataType datatype,@Nullable final SQLConstraints... constraints) {
+        public Separator column(@Nonnull final String communeName, @Nonnull final DataType datatype, @Nullable final SQLConstraints... constraints) {
             return new Separator(new TableColumn(this.column.columnManger, communeName, datatype, constraints));
         }
 
@@ -142,4 +161,5 @@ public class TableColumn extends Column {
         }
         return false;
     }
+
 }

@@ -133,7 +133,7 @@ public class InsertHandler {
     public Map<Integer, Object> getIndexedValues() {
         return insertValues.entrySet().stream()
                 .sorted(Comparator.comparingInt(Map.Entry::getKey))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (x, y) -> y, LinkedHashMap::new));
+                .collect(Collectors.toMap(Map.Entry::getKey, builderEntry -> builderEntry.getValue().getColumnValue(), (x, y) -> y, LinkedHashMap::new));
     }
 
     /**

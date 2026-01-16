@@ -473,7 +473,6 @@ public class QueryBuilder {
         sql.append("SELECT ");
 
         sql.append(queryModifier.getSelectBuilder().getColumns().isEmpty() ? "*" : queryModifier.getSelectBuilder().build());
-
         sql.append(" FROM ").append(queryModifier.getTableWithAlias())
                 .append(queryModifier.getJoinBuilder().build())
                 .append(queryModifier.getWhereBuilder().build())

@@ -829,10 +829,10 @@ public abstract class Database {
     }
 
     private void copyTable(@Nonnull final Connection connection, @Nonnull final SqlQueryTable queryTable, @Nonnull final List<Column> columnsToBeModified) {
+        boolean autoCommit = false;
         try {
-            boolean autoCommit = connection.getAutoCommit();
+            autoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
-
             final QueryBuilder queryBuilder = new QueryBuilder();
             final String tableName = queryTable.getTableName();
             queryBuilder.createTable(tableName + "_new ").addAllColumns(queryTable.getColumns());
@@ -842,7 +842,7 @@ public abstract class Database {
             } catch (final SQLException throwable) {
                 log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + tableName + "'");
             }
-
+            connection.setAutoCommit(false);
             final QueryBuilder queryInsertBuilder = new QueryBuilder();
             queryInsertBuilder.insertInto(tableName + "_new ", insertHandler -> {
                 insertHandler.addAll(queryTable.getColumns()).getQueryModifier()
@@ -854,10 +854,10 @@ public abstract class Database {
             try (final PreparedStatement statement = connection.prepareStatement(insertQuery)) {
                 statement.execute();
             } catch (final SQLException throwable) {
-                log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + tableName + "'");
+                log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + insertQuery + "'. To this table '" + tableName + "'");
             }
 
-            updateIndex(connection, columnsToBeModified, tableName);
+            //updateIndex(connection, columnsToBeModified, tableName);
 
             final QueryBuilder queryDropBuilder = new QueryBuilder();
             queryDropBuilder.dropTable(tableName);
@@ -865,7 +865,7 @@ public abstract class Database {
             try (final PreparedStatement statement = connection.prepareStatement(dropQuery)) {
                 statement.execute();
             } catch (final SQLException throwable) {
-                log.log(throwable, () -> "Failed to drop table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + tableName + "'");
+                log.log(throwable, () -> "Failed to drop table during primary key migration. Columns '" + dropQuery + "'. To this table '" + tableName + "'");
             }
 
             final QueryBuilder queryAlterBuilder = new QueryBuilder();
@@ -874,10 +874,9 @@ public abstract class Database {
             try (final PreparedStatement statement = connection.prepareStatement(alterQuery)) {
                 statement.execute();
             } catch (final SQLException throwable) {
-                log.log(throwable, () -> "Failed to alter table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + tableName + "'");
+                log.log(throwable, () -> "Failed to alter table during primary key migration. Columns '" + alterQuery  + "'. To this table '" + tableName + "'");
             }
             connection.commit();
-            connection.setAutoCommit(autoCommit);
         } catch (SQLException e) {
             try {
                 connection.rollback();
@@ -885,6 +884,12 @@ public abstract class Database {
                 log.log(ex, () -> "could not rollback the changes");
             }
             log.log(e, () -> "Failed to change the contains on the SSQLite database.");
+        } finally {
+            try {
+                connection.setAutoCommit(autoCommit);
+            } catch (SQLException e) {
+                log.log(e, () -> "Failed to set auto commit back on the SSQLite database.");
+            }
         }
     }
 
@@ -898,9 +903,6 @@ public abstract class Database {
         incrementIndexBuilder.insertOrReplaceInto("sqlite_sequence", insertHandler -> insertHandler.addAll(columns)
                 .getQueryModifier()
                 .select(columnBuilder -> {
-                 /*       columnBuilder.add(new Aggregation(new ColumnManager(), "id", "")
-                                .withAggregation(CalcFunc.MAX).getColumn())*/
-
                     columnBuilder.add(new Column("'" + tableName + "'", ""));
                     columnBuilder.add(new Column("id", "").setAggregation()
                             .withAggregation(CalcFunc.MAX).getColumn());
