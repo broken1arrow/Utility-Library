@@ -855,7 +855,7 @@ public abstract class YamlFileManager {
 		}
 	}
 
-	private void deSerializeConfig(String path, ConfigurationSection configurationSection, FileConfiguration config, Map<String, Object> fileData) {
+	private void deSerializeConfigg(String path, ConfigurationSection configurationSection, FileConfiguration config, Map<String, Object> fileData) {
 		String nestedKey = "";
 		for (final String yamlKey : configurationSection.getKeys(true)) {
 			String fullPath = path + "." + yamlKey;
@@ -875,5 +875,52 @@ public abstract class YamlFileManager {
 			}
 		}
 	}
+
+    private void deSerializeConfig(final String path, final ConfigurationSection configurationSection, final FileConfiguration config, final Map<String, Object> fileData) {
+        Set<String> mapRoots = new HashSet<>();
+
+        for (String yamlKey : configurationSection.getKeys(true)) {
+            String fullPath = path + "." + yamlKey;
+
+            if (yamlKey.endsWith("._type")
+                    && "map".equals(config.getString(fullPath))) {
+                String mapRoot = fullPath.substring(0, fullPath.length() - 6);
+                mapRoots.add(mapRoot);
+            }
+        }
+        for (String mapRoot : mapRoots) {
+            ConfigurationSection section = config.getConfigurationSection(mapRoot);
+            if (section == null) {
+                continue;
+            }
+            final Map<String, Object> decodedMap = MapYamlConverter.decodeConfig(mapRoot, config);
+            final String key = mapRoot.substring(mapRoot.lastIndexOf('.') + 1);
+            fileData.put(key, decodedMap);
+        }
+
+        for (String yamlKey : configurationSection.getKeys(true)) {
+            String fullPath = path + "." + yamlKey;
+            if (yamlKey.endsWith("._type") || isInsideMappedSection(mapRoots, fullPath)) {
+                continue;
+            }
+
+            Object value = config.get(fullPath);
+            if (!(value instanceof MemorySection)) {
+                fileData.put(yamlKey, value);
+            }
+        }
+    }
+
+    private boolean isInsideMappedSection(final Set<String> mapRoots, final String fullPath) {
+        boolean insideMappedSection = false;
+        for (String mapRoot : mapRoots) {
+            if (fullPath.startsWith(mapRoot + ".")) {
+                insideMappedSection = true;
+                break;
+            }
+        }
+        return insideMappedSection;
+    }
+
 
 }
