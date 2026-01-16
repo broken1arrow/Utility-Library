@@ -99,6 +99,11 @@ public class AlterTable {
      * @return the SQL string containing all modifications
      */
     public String build() {
+        final String tableName = this.newTableName;
+        if (tableName != null && !tableName.isEmpty()) {
+            return "TO " + tableName;
+        }
+
         if (this.modifyConstraints != null) {
             final StringJoiner build = new StringJoiner(", ");
             final String dropPrimaryKey = this.modifyConstraints.getDropPrimaryKey();

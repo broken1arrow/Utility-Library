@@ -47,20 +47,12 @@ public class Column {
     }
 
     /**
-     * Internal method that applies aggregation and rounding functions to the base column expression.
+     * Returns the aggregation object associated with this column, if any.
      *
-     * @param applyPerFunction whether to apply rounding inside aggregation functions
-     * @param base             the base SQL expression for the column
-     * @return the SQL expression with aggregation and rounding applied as necessary
+     * @return the aggregation applied to this column, or null if none
      */
-    private String getValue(boolean applyPerFunction, String base) {
-        if (aggregation == null) return base;
-
-        if (aggregation.getRoundNumber() != null && !applyPerFunction) {
-            final String roundMode = aggregation.getRoundMode();
-            return "ROUND(" + base + ", " + aggregation.getRoundNumber() + (roundMode != null ? ", " + roundMode : "") + ")";
-        }
-        return base;
+    public Aggregation getAggregation() {
+        return aggregation;
     }
 
     /**
@@ -68,7 +60,8 @@ public class Column {
      *
      * @return the aggregation applied to this column, or null if none
      */
-    public Aggregation getAggregation() {
+    public Aggregation setAggregation() {
+        Aggregation aggregation = new Aggregation(new ColumnManager(), this);
         return aggregation;
     }
 
@@ -170,4 +163,22 @@ public class Column {
         }
         return sql.toString();
     }
+
+    /**
+     * Internal method that applies aggregation and rounding functions to the base column expression.
+     *
+     * @param applyPerFunction whether to apply rounding inside aggregation functions
+     * @param base             the base SQL expression for the column
+     * @return the SQL expression with aggregation and rounding applied as necessary
+     */
+    private String getValue(boolean applyPerFunction, String base) {
+        if (aggregation == null) return base;
+
+        if (aggregation.getRoundNumber() != null && !applyPerFunction) {
+            final String roundMode = aggregation.getRoundMode();
+            return "ROUND(" + base + ", " + aggregation.getRoundNumber() + (roundMode != null ? ", " + roundMode : "") + ")";
+        }
+        return base;
+    }
+
 }

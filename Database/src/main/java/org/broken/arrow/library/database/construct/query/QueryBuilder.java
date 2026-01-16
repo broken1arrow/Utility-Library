@@ -202,6 +202,18 @@ public class QueryBuilder {
     }
 
     /**
+     * Starts building an INSERT INTO query for the specified table with a configuration callback.
+     *
+     * @param table the name of the table to insert into
+     * @param callback callback to configure the insert handler (e.g., setting columns and values)
+     */
+    public void insertOrReplaceInto(String table, Consumer<InsertHandler> callback) {
+        callback.accept(insertHandler);
+        this.queryType = QueryType.INSERT_REPLACE;
+        this.table = table;
+    }
+
+    /**
      * Starts building a MERGE INTO query for the specified table with a configuration callback.
      *
      * @param table the name of the table to merge into
@@ -337,7 +349,7 @@ public class QueryBuilder {
 
         if (queryType == QueryType.UPDATE) {
             return updateBuilder.getIndexedValues();
-        } else if (queryType == QueryType.INSERT || queryType == QueryType.MERGE_INTO || queryType == QueryType.REPLACE_INTO) {
+        } else if (queryType == QueryType.INSERT || queryType == QueryType.MERGE_INTO || queryType == QueryType.REPLACE_INTO || queryType == QueryType.INSERT_REPLACE) {
             return insertHandler.getIndexedValues();
         } else if (queryType == QueryType.SELECT) {
             if (!queryModifier.getWhereBuilder().getValues().isEmpty()) {
@@ -371,7 +383,7 @@ public class QueryBuilder {
 
         if (queryType == QueryType.UPDATE) {
             return updateBuilder.getSelector().getSelectBuilder().getColumns().size();
-        } else if (queryType == QueryType.INSERT) {
+        } else if (queryType == QueryType.INSERT || queryType == QueryType.INSERT_REPLACE) {
             return insertHandler.getInsertValues().size();
         } else if (queryType == QueryType.SELECT) {
             return queryModifier.getSelectBuilder().getColumns().size();
@@ -428,6 +440,7 @@ public class QueryBuilder {
             case UPDATE:
                 createUpdateQuery(sql);
                 break;
+            case INSERT_REPLACE:
             case INSERT:
             case MERGE_INTO:
             case REPLACE_INTO:
@@ -506,6 +519,9 @@ public class QueryBuilder {
                 break;
             case REPLACE_INTO:
                 sqlKeyword = "REPLACE INTO ";
+                break;
+            case INSERT_REPLACE:
+                sqlKeyword = "INSERT OR REPLACE INTO  ";
                 break;
             default:
                 sqlKeyword = "";

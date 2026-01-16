@@ -12,11 +12,14 @@ import org.broken.arrow.library.database.connection.HikariCP;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
+import org.broken.arrow.library.database.construct.query.builder.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.AlterTable;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
+import org.broken.arrow.library.database.construct.query.columnbuilder.Aggregation;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
+import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 import org.broken.arrow.library.database.core.databases.H2DB;
 import org.broken.arrow.library.database.core.databases.MongoDB;
 import org.broken.arrow.library.database.core.databases.MySQL;
@@ -825,46 +828,90 @@ public abstract class Database {
         }
     }
 
-    private void copyTable(@Nonnull final Connection connection,@Nonnull final SqlQueryTable queryTable,@Nonnull final List<Column> columnsToBeModified) {
-        final QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.createTable(queryTable.getTableName() + "_new ").addAllColumns(queryTable.getColumns());
-        final String query = queryBuilder.build();
-        try (final PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.execute();
-        } catch (final SQLException throwable) {
-            log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + queryTable.getTableName() + "'");
-        }
+    private void copyTable(@Nonnull final Connection connection, @Nonnull final SqlQueryTable queryTable, @Nonnull final List<Column> columnsToBeModified) {
+        try {
+            boolean autoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
 
-        final QueryBuilder queryInsertBuilder = new QueryBuilder();
-        queryInsertBuilder.insertInto(queryTable.getTableName() + "_new ", insertHandler -> {
-            insertHandler.addAll(queryTable.getColumns()).getQueryModifier()
-                    .select(columnBuilder ->
-                    columnBuilder.addAll(queryTable.getColumns()))
-                    .from(queryTable.getTableName());
-        });
-        final String insertQuery = queryInsertBuilder.build();
-        try (final PreparedStatement statement = connection.prepareStatement(insertQuery)) {
-            statement.execute();
-        } catch (final SQLException throwable) {
-            log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + queryTable.getTableName() + "'");
-        }
+            final QueryBuilder queryBuilder = new QueryBuilder();
+            final String tableName = queryTable.getTableName();
+            queryBuilder.createTable(tableName + "_new ").addAllColumns(queryTable.getColumns());
+            final String query = queryBuilder.build();
+            try (final PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.execute();
+            } catch (final SQLException throwable) {
+                log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + tableName + "'");
+            }
 
-        final QueryBuilder queryDropBuilder = new QueryBuilder();
-        queryDropBuilder.dropTable(queryTable.getTableName());
-        final String dropQuery = queryDropBuilder.build();
-        try (final PreparedStatement statement = connection.prepareStatement(dropQuery)) {
-            statement.execute();
-        } catch (final SQLException throwable) {
-            log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + queryTable.getTableName() + "'");
-        }
+            final QueryBuilder queryInsertBuilder = new QueryBuilder();
+            queryInsertBuilder.insertInto(tableName + "_new ", insertHandler -> {
+                insertHandler.addAll(queryTable.getColumns()).getQueryModifier()
+                        .select(columnBuilder ->
+                                columnBuilder.addAll(queryTable.getColumns()))
+                        .from(tableName);
+            });
+            final String insertQuery = queryInsertBuilder.build();
+            try (final PreparedStatement statement = connection.prepareStatement(insertQuery)) {
+                statement.execute();
+            } catch (final SQLException throwable) {
+                log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + tableName + "'");
+            }
 
-        final QueryBuilder queryAlterBuilder = new QueryBuilder();
-        queryAlterBuilder.alterTable(queryTable.getTableName() + "_new ").rename(queryTable.getTableName());
-        final String alterQuery = queryAlterBuilder.build();
-        try (final PreparedStatement statement = connection.prepareStatement(alterQuery)) {
+            updateIndex(connection, columnsToBeModified, tableName);
+
+            final QueryBuilder queryDropBuilder = new QueryBuilder();
+            queryDropBuilder.dropTable(tableName);
+            final String dropQuery = queryDropBuilder.build();
+            try (final PreparedStatement statement = connection.prepareStatement(dropQuery)) {
+                statement.execute();
+            } catch (final SQLException throwable) {
+                log.log(throwable, () -> "Failed to drop table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + tableName + "'");
+            }
+
+            final QueryBuilder queryAlterBuilder = new QueryBuilder();
+            queryAlterBuilder.alterTable(tableName + "_new ").rename(tableName);
+            final String alterQuery = queryAlterBuilder.build();
+            try (final PreparedStatement statement = connection.prepareStatement(alterQuery)) {
+                statement.execute();
+            } catch (final SQLException throwable) {
+                log.log(throwable, () -> "Failed to alter table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + tableName + "'");
+            }
+            connection.commit();
+            connection.setAutoCommit(autoCommit);
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                log.log(ex, () -> "could not rollback the changes");
+            }
+            log.log(e, () -> "Failed to change the contains on the SSQLite database.");
+        }
+    }
+
+    private void updateIndex(final Connection connection, final List<Column> columnsToBeModified, final String tableName) {
+
+        final QueryBuilder incrementIndexBuilder = new QueryBuilder();
+        List<Column> columns = new ArrayList<>();
+        columns.add(new Column("name", ""));
+        columns.add(new Column("seq", ""));
+
+        incrementIndexBuilder.insertOrReplaceInto("sqlite_sequence", insertHandler -> insertHandler.addAll(columns)
+                .getQueryModifier()
+                .select(columnBuilder -> {
+                 /*       columnBuilder.add(new Aggregation(new ColumnManager(), "id", "")
+                                .withAggregation(CalcFunc.MAX).getColumn())*/
+
+                    columnBuilder.add(new Column("'" + tableName + "'", ""));
+                    columnBuilder.add(new Column("id", "").setAggregation()
+                            .withAggregation(CalcFunc.MAX).getColumn());
+                })
+                .from(tableName)
+        );
+
+        try (final PreparedStatement statement = connection.prepareStatement(incrementIndexBuilder.build())) {
             statement.execute();
         } catch (final SQLException throwable) {
-            log.log(throwable, () -> "Failed to create table during primary key migration. Columns '" + columnsToBeModified + "'. To this table '" + queryTable.getTableName() + "'");
+            log.log(throwable, () -> "Failed to update index during primary key migration. Columns '" + incrementIndexBuilder + "'. To this table '" + tableName + "'");
         }
     }
 

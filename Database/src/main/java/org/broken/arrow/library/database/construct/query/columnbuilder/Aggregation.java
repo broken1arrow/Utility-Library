@@ -23,15 +23,16 @@ public class Aggregation {
     private String roundMode;
     private MathOperation operation = MathOperation.PER_ROUND;
 
+
     /**
      * Constructs an Aggregation instance with the given column manager and separator.
      *
      * @param columnManger manages columns for aggregation context
-     * @param separator    separator to associate aggregation with a specific column or clause
+     * @param colum   the column to associate aggregation with a specific column or clause
      */
-    public Aggregation(final ColumnManager columnManger, final Column.Separator separator) {
+    public Aggregation(final ColumnManager columnManger, final Column colum) {
         this.columnManger = columnManger;
-        this.separator = separator;
+        this.separator = new Column.Separator(this, colum);
     }
 
     /**
@@ -64,7 +65,7 @@ public class Aggregation {
      * @return a new Aggregation instance for the column and alias
      */
     public Aggregation column(String name, String alias) {
-        return new Aggregation( this.columnManger, new Column.Separator(this, new Column(name, alias)));
+        return new Aggregation( this.columnManger,  new Column(name, alias));
     }
 
     /**
@@ -222,4 +223,5 @@ public class Aggregation {
     public ColumnManager finish() {
         return this.columnManger;
     }
+
 }

@@ -40,11 +40,15 @@ public enum QueryType {
     /** A {@code MERGE INTO} query, used to combine insert/update logic into one statement. */
     MERGE_INTO,
 
+    /** {@code INSERT OR REPLACE INTO} Will replace current value if exist or insert if it not exist. */
+    INSERT_REPLACE,
+
     /** An {@code ALTER TABLE} query, used to modify the structure of an existing table. */
     ALTER_TABLE,
 
     /** Indicates that no valid query type was detected. */
-    NON;
+    NON,
+  ;
 
     /**
      * Attempts to match a string to an exact {@link QueryType}.

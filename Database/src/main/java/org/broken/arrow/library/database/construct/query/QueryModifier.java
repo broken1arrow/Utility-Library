@@ -74,6 +74,16 @@ public class QueryModifier extends Selector<ColumnBuilder<Column, Void>, Column>
         return this;
     }
 
+
+
+    //@Override
+    public QueryModifier selects(Consumer<String> callback) {
+        //super.select(callback);
+        return this;
+    }
+
+
+
     @Override
     public QueryModifier join(Consumer<JoinBuilder> callback) {
         super.join(callback);
