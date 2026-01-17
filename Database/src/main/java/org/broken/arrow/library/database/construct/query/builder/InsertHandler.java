@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class InsertHandler {
 
     private final Map<Integer, InsertBuilder> insertValues = new LinkedHashMap<>();
+    private final Map<Integer, Object> values = new LinkedHashMap<>();
     private final QueryModifier queryModifier;
     private final QueryBuilder queryBuilder;
     private int columnIndex = 1;
@@ -131,9 +132,7 @@ public class InsertHandler {
      * @return a map of index to column value objects
      */
     public Map<Integer, Object> getIndexedValues() {
-        return insertValues.entrySet().stream()
-                .sorted(Comparator.comparingInt(Map.Entry::getKey))
-                .collect(Collectors.toMap(Map.Entry::getKey, builderEntry -> builderEntry.getValue().getColumnValue(), (x, y) -> y, LinkedHashMap::new));
+        return values;
     }
 
     /**
@@ -142,17 +141,20 @@ public class InsertHandler {
      * @return the inner parts of the query.
      */
     public String build() {
+        this.values.clear();
         final StringBuilder sql = new StringBuilder();
-        Collection<InsertBuilder> insertBuilders = this.getInsertValues().values();
+        Map<Integer, InsertBuilder> insertBuilders = this.getInsertValues();
         if (insertBuilders.isEmpty()) return "";
-
         List<String> columnNames = new ArrayList<>();
         List<Object> columnValues = new ArrayList<>();
 
-        for (InsertBuilder builder : insertBuilders) {
-            columnNames.add(builder.getColumnName());
+        int index = 1;
+        for (Map.Entry<Integer, InsertBuilder> builder : insertBuilders.entrySet()) {
+            columnNames.add(builder.getValue().getColumnName());
             if (!this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
-                columnValues.add(builder.getColumnValue());
+                columnValues.add(builder.getValue().getColumnValue());
+            } else {
+                this.values.put(index++,builder.getValue().getColumnValue());
             }
         }
 
