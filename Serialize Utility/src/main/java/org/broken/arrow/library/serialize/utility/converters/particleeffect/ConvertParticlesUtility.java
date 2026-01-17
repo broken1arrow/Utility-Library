@@ -199,7 +199,33 @@ public class ConvertParticlesUtility {
 		return getParticleOrEffect(wrapper);
 	}
 
-	/**
+    /**
+     * Retrieves the particle effect with configured properties.
+     *
+     * <p>
+     * Note: As of 1.17, the BARRIER particle is called BLOCK_MARKER. For BARRIER, this method
+     * automatically handles setting the material to BARRIER. However, this automation is limited
+     * to BARRIER; other materials for BLOCK_MARKER or other effects requiring data must be set manually
+     * due to the variety of configuration options available.
+     * </p>
+     *
+     * @param particle          the particle you want to convert.
+     * @param firstColor        the first color if you use effect you can change color.
+     * @param secondColor       the second color for the effect.
+     * @param particleData      if the particle demands Material, MaterialData, MaterialBlockData, BlockFace, or Potion data to be set.
+     * @param amountOfParticles the amount of particles.
+     * @param extra             this have different usage depending on particle.
+     * @return particle effect particle.
+     */
+    public static  ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, @Nullable Object particleData, final int amountOfParticles, final float extra) {
+        ParticleEffectWrapper wrapper = new ParticleEffectWrapper(particle, particleData, amountOfParticles, extra);
+        wrapper.setFromColor(firstColor);
+        wrapper.setToColor(secondColor);
+        return getParticleOrEffect(wrapper);
+    }
+
+
+    /**
 	 * Retrieves the particle effect with configured properties.
 	 *
 	 * <p>
@@ -320,6 +346,14 @@ public class ConvertParticlesUtility {
 				builder.setMaterialBlockData((BlockData) particleData);
 			if (particleData instanceof BlockFace)
 				builder.setBlockFace((BlockFace) particleData);
+
+            if (particleData instanceof Number) {
+                final Number data = (Number) particleData;
+                if (data instanceof Integer)
+                    builder.setInteger((Integer) data);
+                if (data instanceof Float)
+                    builder.setFloat((Float) data);
+            }
 
 			PotionsData potionsData = new PotionsData(particleData);
 			if (potionsData.isPotion())

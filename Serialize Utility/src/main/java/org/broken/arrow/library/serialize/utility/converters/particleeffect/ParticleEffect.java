@@ -34,6 +34,8 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 	private final BlockData materialBlockData;
 	private final BlockFace blockFace;
 	private final PotionsData potion;
+    private final Integer integerData;
+    private final Float floatData;
 	private final int count;
 	private final double offsetX;
 	private final double offsetY;
@@ -44,7 +46,8 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 	private final ParticleDustOptions particleDustOptions;
 	private final Builder builder;
 
-	private ParticleEffect(final Builder builder) {
+
+    private ParticleEffect(final Builder builder) {
 		this.particle = builder.particle;
 		this.effect = builder.effect;
 		this.material = builder.material;
@@ -52,6 +55,8 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		this.materialBlockData = builder.materialBlockData;
 		this.blockFace = builder.blockFace;
 		this.potion = builder.potion;
+        this.integerData = builder.integerData;
+        this.floatData = builder.floatData;
 		this.count = builder.count;
 		this.offsetX = builder.offsetX;
 		this.offsetY = builder.offsetY;
@@ -139,7 +144,17 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		return potion;
 	}
 
-	/**
+    @Override
+    public Integer getIntegerData() {
+        return integerData;
+    }
+
+    @Override
+    public Float getFloatData() {
+        return floatData;
+    }
+
+    /**
 	 * Retrieves the amount of particles associated with this ParticleEffect.
 	 *
 	 * @return amount of particles that should spawn at the same time.
@@ -225,6 +240,8 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		private BlockData materialBlockData;
 		private BlockFace blockFace;
 		private PotionsData potion;
+        private Integer  integerData;
+        private Float floatData;
 		private int count;
 		private double offsetX;
 		private double offsetY;
@@ -235,7 +252,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		private ParticleDustOptions dustOptions;
 
 
-		/**
+        /**
 		 * Constructs a new Builder instance for creating a particle effect with the specified effect and data type.
 		 * Use this constructor when the particle is not set explicitly.
 		 *
@@ -411,6 +428,14 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 			return this;
 		}
 
+        public void setFloat(final Float particleData) {
+            this.floatData = particleData;
+        }
+
+        public void setInteger(final Integer integerData) {
+            this.integerData = integerData;
+        }
+
 		/**
 		 * Constructs a new {@link ParticleEffect} instance using the
 		 * configuration specified in this builder.
@@ -420,7 +445,8 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 		public ParticleEffect build() {
 			return new ParticleEffect(this);
 		}
-	}
+
+    }
 
 	@Override
 	public String toString() {

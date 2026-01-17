@@ -255,6 +255,11 @@ public class ParticleCreator {
                 this.player.playEffect(location, this.effect, this.effectAccessor.getMaterialData());
             if (this.dataType == BlockFace.class)
                 this.player.playEffect(location, this.effect, this.effectAccessor.getBlockFace());
+            if (this.dataType == Float.class)
+                this.player.playEffect(location, this.effect, this.effectAccessor.getFloatData());
+            if (this.dataType == Integer.class)
+                this.player.playEffect(location, this.effect, this.effectAccessor.getIntegerData());
+
             PotionsData potionsData = this.effectAccessor.getPotion();
             if (potionsData != null) {
                 if (PotionsData.isOldPotionAvailable()) {
@@ -286,6 +291,12 @@ public class ParticleCreator {
         if (this.dataType == ItemStack.class) {
             this.world.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, new ItemStack(material));
         }
+        if (this.dataType == Float.class) {
+            this.world.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, this.effectAccessor.getFloatData());
+        }
+        if (this.dataType == Integer.class) {
+            this.world.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, this.effectAccessor.getIntegerData());
+        }
     }
 
     private void spawnInWorld(final Location location, final int radius) {
@@ -295,6 +306,10 @@ public class ParticleCreator {
             this.world.playEffect(location, this.effect, this.effectAccessor.getMaterialData(), radius);
         if (this.dataType == BlockFace.class)
             this.world.playEffect(location, this.effect, this.effectAccessor.getBlockFace(), radius);
+        if (this.dataType == Float.class)
+            this.world.playEffect(location, this.effect, this.effectAccessor.getFloatData());
+        if (this.dataType == Integer.class)
+            this.world.playEffect(location, this.effect, this.effectAccessor.getIntegerData());
 
         PotionsData potionsData = this.effectAccessor.getPotion();
         if (potionsData != null) {

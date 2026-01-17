@@ -69,7 +69,21 @@ public interface ParticleEffectAccessor {
 	@Nullable
     PotionsData getPotion();
 
-	/**
+    /**
+     * Retrieves the integer associated with this ParticleEffect.
+     *
+     * @return the int value object, or null if not set.
+     */
+    Integer getIntegerData();
+
+    /**
+     * Retrieves the float associated with this ParticleEffect.
+     *
+     * @return the float object, or null if not set.
+     */
+    Float getFloatData();
+
+    /**
 	 * Retrieves the amount of particles associated with this ParticleEffect.
 	 *
 	 * @return amount of particles that should spawn at the same time.
