@@ -181,15 +181,12 @@ public class InsertHandler {
         final String selectSql = selectBuilder.build();
 
         if (!selectSql.isEmpty() && from != null) {
-
-
             sql.append("(")
                     .append(StringUtil.stringJoin(columnNames))
                     .append(") SELECT ")
                     .append(selectSql)
                     .append(" FROM ")
                     .append(from);
-
             return sql.toString();
         }
         return null;

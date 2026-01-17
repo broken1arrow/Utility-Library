@@ -119,7 +119,7 @@ public class BatchExecutor<T> {
 
             for (Column primary : table.getPrimaryColumns()) {
                 Object value = primaryValue;
-                if (value == null)
+                if (value == null || value.toString().isEmpty())
                     value = primaryWrapper.getPrimaryValue(primary.getColumnName());
                 columnValueMap.put(primary, value);
             }
