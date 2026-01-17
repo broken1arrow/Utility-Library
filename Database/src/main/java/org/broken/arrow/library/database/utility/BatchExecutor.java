@@ -191,14 +191,22 @@ public class BatchExecutor<T> {
         final SqlHandler sqlHandler = new SqlHandler(tableName, database);
         final boolean columnsIsEmpty = columns == null || columns.length == 0;
         boolean canUpdateRow = false;
+        final Object primaryValue = dataWrapper.getPrimaryValue();
+        final DataWrapper.PrimaryWrapper primaryWrapper = dataWrapper.getPrimaryWrapper();
+
         if ((!columnsIsEmpty || shallUpdate)) {
             final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
             canUpdateRow = this.checkIfRowExist(query, false);
         }
         sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
         final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns : null));
+
         for (Column primary : table.getPrimaryColumns()) {
-            columnValueMap.put(primary, dataWrapper.getPrimaryValue());
+            Object value = primaryValue;
+            if (value == null || value.toString().isEmpty()) {
+                value = primaryWrapper.getPrimaryValue(primary.getColumnName());
+            }
+            columnValueMap.put(primary, value);
         }
 
         queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, whereClause, canUpdateRow));

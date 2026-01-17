@@ -129,7 +129,8 @@ public abstract class SQLDatabaseQuery extends Database {
             this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' . Did you register your table?");
             return;
         }
-        if (table.getPrimaryColumns().isEmpty()) {
+        final Object primaryValue = dataWrapper.getPrimaryValue();
+        if (table.getPrimaryColumns().isEmpty() || primaryValue.toString().isEmpty()) {
             this.log.log(Level.WARNING, () -> "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
             return;
         }
@@ -138,7 +139,7 @@ public abstract class SQLDatabaseQuery extends Database {
             final WhereClauseFunction whereClause = dataWrapper.getPrimaryWrapper().getWhereClause();
             if (whereClause != null)
                 return whereClause.apply(where);
-            return table.createWhereClauseFromPrimaryColumns(where, dataWrapper.getPrimaryValue());
+            return table.createWhereClauseFromPrimaryColumns(where, primaryValue);
         }, columns);
     }
 
