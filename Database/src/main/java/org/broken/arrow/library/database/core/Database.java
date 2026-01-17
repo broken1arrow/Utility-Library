@@ -661,20 +661,36 @@ public abstract class Database {
             columnsToAdd.add(tableColumn);
         }
 
-        if (!columnsToAdd.isEmpty()) {
-            final QueryBuilder queryBuilder = new QueryBuilder();
 
-            AlterTable alterBuilder = queryBuilder.alterTable(queryTable.getTableName());
-            for (Column col : columnsToAdd) {
-                alterBuilder.add(col);
-            }
-            final String query = queryBuilder.build();
-            try (final PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.execute();
-                log.log(Level.FINE, () -> "Successfully added " + columnsToAdd.size() + " columns to " + queryTable.getTableName());
-            } catch (final SQLException throwable) {
-                log.log(throwable, () -> "Failed to add missing columns in batch. Query: '" + query + "'");
-                failCreateColumns = true;
+        if (!columnsToAdd.isEmpty()) {
+            if (this.databaseType == DatabaseType.SQLITE) {
+                for (Column col : columnsToAdd) {
+                    final QueryBuilder queryBuilder = new QueryBuilder();
+                    final AlterTable alterBuilder = queryBuilder.alterTable(queryTable.getTableName());
+                    alterBuilder.add(col);
+                    final String query = queryBuilder.build();
+                    try (final PreparedStatement statement = connection.prepareStatement(query)) {
+                        statement.execute();
+                        log.log(Level.FINE, () -> "Successfully added column " + col.getColumnName() + " to " + queryTable.getTableName());
+                    } catch (final SQLException throwable) {
+                        log.log(throwable, () -> "Failed to add missing column " + col.getColumnName() + " . Query: '" + query + "'");
+                        failCreateColumns = true;
+                    }
+                }
+            } else {
+                final QueryBuilder queryBuilder = new QueryBuilder();
+                final AlterTable alterBuilder = queryBuilder.alterTable(queryTable.getTableName());
+                for (Column col : columnsToAdd) {
+                    alterBuilder.add(col);
+                }
+                final String query = queryBuilder.build();
+                try (final PreparedStatement statement = connection.prepareStatement(query)) {
+                    statement.execute();
+                    log.log(Level.FINE, () -> "Successfully added " + columnsToAdd.size() + " columns to " + queryTable.getTableName());
+                } catch (final SQLException throwable) {
+                    log.log(throwable, () -> "Failed to add missing columns in batch. Query: '" + query + "'");
+                    failCreateColumns = true;
+                }
             }
         }
         if (failCreateColumns) {
@@ -876,7 +892,7 @@ public abstract class Database {
             try (final PreparedStatement statement = connection.prepareStatement(alterQuery)) {
                 statement.execute();
             } catch (final SQLException throwable) {
-                log.log(throwable, () -> "Failed to alter table during primary key migration. Columns '" + alterQuery  + "'. To this table '" + tableName + "'");
+                log.log(throwable, () -> "Failed to alter table during primary key migration. Columns '" + alterQuery + "'. To this table '" + tableName + "'");
             }
             connection.commit();
         } catch (SQLException e) {
