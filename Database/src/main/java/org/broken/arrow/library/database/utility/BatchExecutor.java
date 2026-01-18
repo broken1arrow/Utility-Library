@@ -127,7 +127,6 @@ public class BatchExecutor<T> {
                 if (whereClause != null)
                     return whereClause.apply(wereClause);
                 return table.createWhereClauseFromPrimaryColumns(wereClause, primaryValue);
-                //return whereClauseFunc.apply(wereClause, primaryValue);
             }, canUpdateRow));
         }
         this.executeDatabaseTasks(queryList);

@@ -899,7 +899,7 @@ public abstract class Database {
             log.log(throwable, () -> getMessage("Failed to create table during primary key migration. Query ", tableName, insertQuery));
         }
         //todo handle when the the the primary column is an index.
-        // updateIndex(connection, columnsToBeModified, tableName);
+        // updateIndex(connection, tableName);
 
         final QueryBuilder queryDropBuilder = new QueryBuilder();
         queryDropBuilder.dropTable(tableName);
@@ -920,7 +920,7 @@ public abstract class Database {
         }
     }
 
-    private void updateIndex(final Connection connection, final List<Column> columnsToBeModified, final String tableName) {
+    private void updateIndex(final Connection connection, final String tableName) {
 
         final QueryBuilder incrementIndexBuilder = new QueryBuilder();
         List<Column> columns = new ArrayList<>();
