@@ -793,10 +793,10 @@ public abstract class Database {
                     });
             if (update.getWhereBuilder() == null) {
                 log.log(Level.WARNING, () -> "Update skipped, no WHERE clause was provided. For this table '" + queryTable.getTableName() + "'" + ". Updates without a WHERE clause are not allowed for safety reasons.");
-                continue;
+            } else {
+                String sql = saveBuilder.build();
+                batchGroups.computeIfAbsent(sql, k -> new ArrayList<>()).add(saveBuilder.getValues());
             }
-            String sql = saveBuilder.build();
-            batchGroups.computeIfAbsent(sql, k -> new ArrayList<>()).add(saveBuilder.getValues());
         }
         return primaryMapValuesSet;
     }
@@ -807,11 +807,12 @@ public abstract class Database {
         final List<Column> primaryColumns = queryTable.getPrimaryColumns();
 
         for (final Column column : primaryColumns) {
+            boolean addingPrimary = false;
             if (primaryValuesComplete) {
                 columnsToBeModified.add(column);
-                continue;
+                addingPrimary = true;
             }
-            if (!newPrimaryKeys.contains(column.getColumnName())) {
+            if (addingPrimary || !newPrimaryKeys.contains(column.getColumnName())) {
                 continue;
             }
             columnsToBeModified.add(column);
