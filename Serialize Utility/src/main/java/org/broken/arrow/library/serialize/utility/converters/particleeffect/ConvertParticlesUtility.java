@@ -194,10 +194,7 @@ public class ConvertParticlesUtility {
      * @return particle effect particle.
      */
     public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, final int amountOfParticles, final float extra) {
-        ParticleEffectWrapper wrapper = new ParticleEffectWrapper(particle, amountOfParticles, extra);
-        wrapper.setFromColor(firstColor);
-        wrapper.setToColor(secondColor);
-        return getParticleOrEffect(wrapper);
+        return getParticleOrEffect(particle, firstColor, secondColor, null, amountOfParticles, extra);
     }
 
     /**
@@ -218,7 +215,7 @@ public class ConvertParticlesUtility {
      * @param extra             this have different usage depending on particle.
      * @return particle effect particle.
      */
-    public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, @Nullable Object particleData, final int amountOfParticles, final float extra) {
+    public static ParticleEffectAccessor getParticleOrEffect(final Object particle, @Nullable final String firstColor, @Nullable final String secondColor, @Nullable ParticleDataResolver particleData, final int amountOfParticles, final float extra) {
         ParticleEffectWrapper wrapper = new ParticleEffectWrapper(particle, particleData, amountOfParticles, extra);
         wrapper.setFromColor(firstColor);
         wrapper.setToColor(secondColor);
@@ -258,10 +255,11 @@ public class ConvertParticlesUtility {
         float extra = particleEffectWrapper.getExtra();
 
         ParticleEffect.Builder builder;
-        if (SERVER_VERSION >= 9 && !(object instanceof Effect))
+        if (SERVER_VERSION >= 9 && !(object instanceof Effect)) {
             builder = buildParticle(object, particleData, firstColor, secondColor, amountOfParticles, extra);
-        else
+        } else {
             builder = buildEffect(object, particleData, firstColor, secondColor, amountOfParticles, extra);
+        }
 
         if (object == null || builder == null)
             return null;
@@ -321,15 +319,10 @@ public class ConvertParticlesUtility {
     /**
      * Configures extra data on a {@link ParticleEffect.Builder} based on the given particle data object and particle type.
      * <p>
-     * This method attempts to match the {@code particleData} with the expected data type of the {@code part}.
-     * If the data type matches, it sets the appropriate extra data on the builder:
-     * <ul>
-     *   <li>If the data is a {@link Material}, sets it via {@link ParticleEffect.Builder#setMaterial(Material)}.</li>
-     *   <li>If the data is a {@link MaterialData}, sets it via {@link ParticleEffect.Builder#setMaterialData(Class)}.</li>
-     *   <li>If the data is a {@link BlockData}, sets it via {@link ParticleEffect.Builder#setMaterialBlockData(BlockData)}.</li>
-     *   <li>If the data is a {@link BlockFace}, sets it via {@link ParticleEffect.Builder#setBlockFace(BlockFace)}.</li>
-     *   <li>If the data represents a potion effect (wrapped in {@link PotionsData}), sets it via {@link ParticleEffect.Builder#setPotion(PotionsData)}.</li>
-     * </ul>
+     * This method checks if the provided {@code particleData} matches the expected data type of the {@code effect}.
+     * If so, it sets the extra data accordingly with help of the {@link ParticleDataResolver} class.
+     * <p>
+     * If the data is non-null but incompatible with the effect's expected data type, a warning is logged suggesting the correct type.
      * <p>
      * If the data type does not match the expected type for the particle, a warning is logged advising the correct data type to use.
      *
@@ -340,19 +333,6 @@ public class ConvertParticlesUtility {
     public static void setBuilderExtraDataParticle(ParticleEffect.Builder builder, Object particleData, Particle part) {
         if (part.getDataType().isInstance(particleData)) {
             ParticleDataResolver resolveParticle = new ParticleDataResolver(particleData);
-            if (particleData instanceof Material)
-                builder.setMaterial((Material) particleData);
-            if (particleData instanceof MaterialData)
-                builder.setMaterialData((Class<? extends MaterialData>) particleData);
-            if (particleData instanceof BlockData)
-                builder.setMaterialBlockData((BlockData) particleData);
-            if (particleData instanceof BlockFace)
-                builder.setBlockFace((BlockFace) particleData);
-
-            PotionsData potionsData = new PotionsData(particleData);
-            if (potionsData.isPotion())
-                builder.setPotion(potionsData);
-
             builder.setParticleData(resolveParticle);
 
         } else {
@@ -369,13 +349,7 @@ public class ConvertParticlesUtility {
      * Configures extra data on a {@link ParticleEffect.Builder} based on the given particle data object and effect type.
      * <p>
      * This method checks if the provided {@code particleData} matches the expected data type of the {@code effect}.
-     * If so, it sets the extra data accordingly on the builder:
-     * <ul>
-     *   <li>If the data is a {@link Material}, sets it via {@link ParticleEffect.Builder#setMaterial(Material)}.</li>
-     *   <li>If the data is a {@link MaterialData}, sets it via {@link ParticleEffect.Builder#setMaterialData(Class)}.</li>
-     *   <li>If the data is a {@link BlockFace}, sets it via {@link ParticleEffect.Builder#setBlockFace(BlockFace)}.</li>
-     *   <li>If the data represents a potion effect (wrapped in {@link PotionsData}), sets it via {@link ParticleEffect.Builder#setPotion(PotionsData)}.</li>
-     * </ul>
+     * If so, it sets the extra data accordingly with help of the {@link ParticleDataResolver} class.
      * <p>
      * If the data is non-null but incompatible with the effect's expected data type, a warning is logged suggesting the correct type.
      *
@@ -387,16 +361,6 @@ public class ConvertParticlesUtility {
         Class<?> effectData = effect.getData();
         if (effectData != null && effectData.isInstance(particleData)) {
             ParticleDataResolver resolveParticle = new ParticleDataResolver(particleData);
-            if (particleData instanceof Material)
-                builder.setMaterial((Material) particleData);
-            if (particleData instanceof MaterialData)
-                builder.setMaterialData((Class<? extends MaterialData>) particleData);
-            if (particleData instanceof BlockFace)
-                builder.setBlockFace((BlockFace) particleData);
-            PotionsData potionsData = new PotionsData(particleData);
-            if (potionsData.isPotion())
-                builder.setPotion(potionsData);
-
             builder.setParticleData(resolveParticle);
         } else {
             if (particleData != null && effectData != null)
@@ -416,8 +380,18 @@ public class ConvertParticlesUtility {
             builder = new ParticleEffect.Builder(part, part.getDataType());
 
             if (part.name().equals("BLOCK_MARKER")) {
-                builder.setMaterial(Material.BARRIER);
+                builder.setParticleData(new ParticleDataResolver(Material.BARRIER));
+            } else {
+                if (particleData == null) {
+                    if (part.getDataType() == Integer.class)
+                        builder.setParticleData(ParticleDataResolver.ofInteger());
+                    if (part.getDataType() == Float.class)
+                        builder.setParticleData(ParticleDataResolver.ofFloat());
+                    if (part.getDataType() == Double.class)
+                        builder.setParticleData(new ParticleDataResolver(Double.valueOf(0)));
+                }
             }
+
             setBuilderExtraDataParticle(builder, particleData, part);
             if (firstColor != null && part.name().equals("REDSTONE")) {
                 if (secondColor != null)

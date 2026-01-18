@@ -1,5 +1,7 @@
 package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
+import org.broken.arrow.library.serialize.utility.converters.particleeffect.resolver.ParticleDataResolver;
+
 import javax.annotation.Nullable;
 import java.util.Objects;
 
@@ -10,7 +12,7 @@ import java.util.Objects;
 public class ParticleEffectWrapper {
 
     private final Object particle;
-    private final Object particleData;
+    private final ParticleDataResolver particleData;
     @Nullable
     private String fromColor;
     @Nullable
@@ -37,7 +39,7 @@ public class ParticleEffectWrapper {
      * @param amountOfParticles the amount of particles to spawn.
      * @param extra             this has different usage depending on the particle; for redstone, it sets the size, for others, it's the speed.
      */
-    public ParticleEffectWrapper(final Object particle, @Nullable Object particleData, final int amountOfParticles, final float extra) {
+    public ParticleEffectWrapper(final Object particle, @Nullable ParticleDataResolver particleData, final int amountOfParticles, final float extra) {
         this.particle = particle;
         this.particleData = particleData;
         this.amountOfParticles = amountOfParticles;
@@ -82,26 +84,11 @@ public class ParticleEffectWrapper {
     }
 
     /**
-     * Returns the additional particle data associated with this effect, if any.
-     * <p>
-     * Certain particle types require extra data to be rendered correctly. Depending
-     * on the particle, this may be:
-     * <ul>
-     *   <li>{@code org.bukkit.Material} or {@code org.bukkit.block.data.BlockData} for block/item particles</li>
-     *   <li>{@code org.bukkit.block.BlockFace} for directional particles</li>
-     *   <li>{@code org.bukkit.potion.PotionData} for potion effect particles</li>
-     *    <li>{@code org.bukkit.material.MaterialData} legacy option for specific metadata for certain items or blocks.</li>
-     *   <li>Other API-specific objects </li>
-     * </ul>
-     * If no extra data is required, this value will be {@code null}.
-     * <p>
-     * Note: Validation of the particle data type is performed later stage.
-     * Passing an incompatible type may result in the data being ignored.
-     * </p>
+     * Retrieves the resolver associated with this ParticleEffect.
      *
-     * @return the particle-specific data object, or {@code null} if not applicable
+     * @return the resolver, or {@code null} if not set or if this effect don't use this class.
      */
-    public Object getParticleData() {
+    public ParticleDataResolver getParticleData() {
         return particleData;
     }
 

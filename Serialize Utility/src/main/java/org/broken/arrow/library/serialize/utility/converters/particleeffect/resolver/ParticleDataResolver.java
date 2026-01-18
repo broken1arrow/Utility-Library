@@ -1,7 +1,6 @@
 package org.broken.arrow.library.serialize.utility.converters.particleeffect.resolver;
 
 import org.broken.arrow.library.logging.Logging;
-import org.broken.arrow.library.serialize.utility.converters.SpigotBlockFace;
 import org.broken.arrow.library.serialize.utility.converters.particleeffect.PotionsData;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.bukkit.Bukkit;
@@ -13,7 +12,6 @@ import org.bukkit.material.MaterialData;
 import javax.annotation.Nonnull;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
 
 /**
  * Resolves and stores particle-related data based on a single input object.
@@ -46,6 +44,9 @@ public class ParticleDataResolver implements ConfigurationSerializable {
 
     /**
      * Creates a new resolver for the given particle data object.
+     * <p>
+     * It is recommended you using the overloaded methods such as {@link #of(Material)}
+     * or for example {@link #ofInteger()} when it needs a boxed value of an number.
      *
      * <p>
      * The constructor attempts to resolve the supplied object into one or more
@@ -82,10 +83,103 @@ public class ParticleDataResolver implements ConfigurationSerializable {
                 this.floatData = (Float) data;
         }
 
-        PotionsData potionsData = new PotionsData(particleData);
-        if (potionsData.isPotion())
-            this.potionsData = potionsData;
+        if (particleData instanceof PotionsData) {
+            final PotionsData potionsData = (PotionsData) particleData;
+            if ((potionsData).isPotion())
+                this.potionsData = potionsData;
+        } else {
+            PotionsData potionsData = new PotionsData(particleData);
+            if (potionsData.isPotion())
+                this.potionsData = potionsData;
+        }
     }
+
+    /**
+     * Creates a resolver for a {@link Material}-based particle.
+     *
+     * @param material the material used as particle data
+     * @return a new {@link ParticleDataResolver} for the given material
+     */
+    public static ParticleDataResolver of(final Material material) {
+        return new ParticleDataResolver(material);
+    }
+
+    /**
+     * Creates a resolver for {@link BlockData}-based particle data.
+     *
+     * @param blockData the block data used as particle data
+     * @return a new {@link ParticleDataResolver} for the given block data
+     */
+    public static ParticleDataResolver of(final BlockData blockData) {
+        return new ParticleDataResolver(blockData);
+    }
+
+    /**
+     * Creates a resolver for {@link MaterialData}-based particle data.
+     * <p>
+     * {@link MaterialData} exists for backward compatibility with older
+     * versions of the Bukkit/Spigot API.
+     * </p>
+     *
+     * @param materialData the material data used as particle data
+     * @return a new {@link ParticleDataResolver} for the given material data
+     */
+    public static ParticleDataResolver of(final MaterialData materialData) {
+        return new ParticleDataResolver(materialData);
+    }
+
+    /**
+     * Creates a resolver for {@link BlockFace}-based particle data.
+     *
+     * @param blockFace the block face used as particle data
+     * @return a new {@link ParticleDataResolver} for the given block face
+     */
+    public static ParticleDataResolver of(final BlockFace blockFace) {
+        return new ParticleDataResolver(blockFace);
+    }
+
+    /**
+     * Creates a resolver for {@link PotionsData}-based particle data.
+     * <p>
+     * {@link PotionsData} exists for backward compatibility with older
+     * versions of the Bukkit/Spigot API.
+     * </p>
+     *
+     * @param potionsData the material data used as particle data
+     * @return a new {@link ParticleDataResolver} for the given potion
+     */
+    public static ParticleDataResolver of(final PotionsData potionsData) {
+        return new ParticleDataResolver(potionsData);
+    }
+
+    /**
+     * Creates a resolver for particle types that require {@link Integer}
+     * as their particle data class.
+     * <p>
+     * The numeric value itself is not significant, the presence of the
+     * {@link Integer} type indicates the expected particle data format.
+     * </p>
+     *
+     * @return a new {@link ParticleDataResolver} using integer particle data
+     */
+    public static ParticleDataResolver ofInteger() {
+        return new ParticleDataResolver(Integer.valueOf(0));
+    }
+
+    /**
+     * Creates a resolver for particle types that require {@link Float}
+     * as their particle data class.
+     * <p>
+     * The numeric value itself is not significant, the presence of the
+     * {@link Float} type indicates the expected particle data format.
+     * </p>
+     *
+     * @return a new {@link ParticleDataResolver} using float particle data
+     */
+    public static ParticleDataResolver ofFloat() {
+        return new ParticleDataResolver(Float.valueOf(0));
+    }
+
 
     /**
      * Returns the resolved {@link Material}, if present.
@@ -214,7 +308,7 @@ public class ParticleDataResolver implements ConfigurationSerializable {
 
     /**
      * Just deserialize the data.
-     * 
+     *
      * @param map the map of values to be set.
      * @return new instance of ParticleDataResolver.
      */

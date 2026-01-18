@@ -309,7 +309,9 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
          *
          * @param material the material you need to set for this effect.
          * @return this instance.
+         * @deprecated use {@link #setParticleData(ParticleDataResolver)}
          */
+        @Deprecated
         public Builder setMaterial(final Material material) {
             this.material = material;
             return this;
@@ -321,7 +323,9 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
          *
          * @param materialData the material data you need to set for this effect.
          * @return this instance.
+         * @deprecated use {@link #setParticleData(ParticleDataResolver)}
          */
+        @Deprecated
         public Builder setMaterialData(final Class<? extends MaterialData> materialData) {
             this.materialData = materialData;
             return this;
@@ -332,7 +336,9 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
          *
          * @param materialData the block bata from the material you need to set for this effect.
          * @return this instance.
+         * @deprecated use {@link #setParticleData(ParticleDataResolver)}
          */
+        @Deprecated
         public Builder setMaterialBlockData(final BlockData materialData) {
             this.materialBlockData = materialData;
             return this;
@@ -344,7 +350,9 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
          *
          * @param blockFace the block face set to this effect.
          * @return this instance.
+         * @deprecated use {@link #setParticleData(ParticleDataResolver)}
          */
+        @Deprecated
         public Builder setBlockFace(final BlockFace blockFace) {
             this.blockFace = blockFace;
             return this;
@@ -356,8 +364,9 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
          *
          * @param potion the potion set to this effect.
          * @return this instance.
+         * @deprecated use {@link #setParticleData(ParticleDataResolver)}
          */
-
+        @Deprecated
         public Builder setPotion(final PotionsData potion) {
             this.potion = potion;
             return this;
