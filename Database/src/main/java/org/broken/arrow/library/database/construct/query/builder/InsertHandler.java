@@ -8,15 +8,9 @@ import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBui
 import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A utility class for managing column-value pairs for an SQL {@code INSERT} operation.
@@ -175,9 +169,9 @@ public class InsertHandler {
     }
 
     private String setSelect(final StringBuilder sql, final List<String> columnNames) {
-        final QueryModifier queryModifier = getQueryModifier();
-        final ColumnBuilder<Column, Void> selectBuilder = queryModifier.getSelectBuilder();
-        final String from = queryModifier.getTable();
+        final QueryModifier modifier = getQueryModifier();
+        final ColumnBuilder<Column, Void> selectBuilder = modifier.getSelectBuilder();
+        final String from = modifier.getTable();
         final String selectSql = selectBuilder.build();
 
         if (!selectSql.isEmpty() && from != null) {

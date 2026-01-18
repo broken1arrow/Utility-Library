@@ -1,25 +1,21 @@
 package org.broken.arrow.library.database.construct.query;
 
-
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.InsertHandler;
 import org.broken.arrow.library.database.construct.query.builder.QueryRemover;
 import org.broken.arrow.library.database.construct.query.builder.UpdateBuilder;
 import org.broken.arrow.library.database.construct.query.builder.WithManger;
-import org.broken.arrow.library.database.construct.query.builder.insertbuilder.InsertBuilder;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.AlterTable;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.QueryType;
-import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
+
 
 import javax.annotation.Nonnull;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 /**

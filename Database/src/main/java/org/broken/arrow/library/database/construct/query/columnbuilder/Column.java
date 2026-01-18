@@ -61,8 +61,7 @@ public class Column {
      * @return the aggregation applied to this column, or null if none
      */
     public Aggregation setAggregation() {
-        Aggregation aggregation = new Aggregation(new ColumnManager(), this);
-        return aggregation;
+        return new Aggregation(new ColumnManager(), this);
     }
 
     /**

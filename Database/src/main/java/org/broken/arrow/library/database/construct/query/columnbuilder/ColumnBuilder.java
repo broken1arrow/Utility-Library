@@ -1,7 +1,6 @@
 package org.broken.arrow.library.database.construct.query.columnbuilder;
 
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.SQLConstraints;
-import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 
 import java.util.ArrayList;
 import java.util.Arrays;

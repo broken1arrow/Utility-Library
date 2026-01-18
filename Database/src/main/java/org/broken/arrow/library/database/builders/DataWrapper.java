@@ -1,6 +1,5 @@
 package org.broken.arrow.library.database.builders;
 
-import org.broken.arrow.library.database.utility.WhereClauseApplier;
 import org.broken.arrow.library.database.utility.WhereClauseFunction;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
