@@ -338,8 +338,10 @@ public class ConvertParticlesUtility {
                         .putPlaceholder("{data-type}", part.getDataType() + "");
             });
         } else {
-            ParticleDataResolver resolveParticle = new ParticleDataResolver(particleData);
-            builder.setParticleData(resolveParticle);
+            if (particleData != null) {
+                ParticleDataResolver resolveParticle = new ParticleDataResolver(particleData);
+                builder.setParticleData(resolveParticle);
+            }
         }
     }
 
