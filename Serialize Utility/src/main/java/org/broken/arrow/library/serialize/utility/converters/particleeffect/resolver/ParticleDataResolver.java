@@ -66,8 +66,10 @@ public class ParticleDataResolver implements ConfigurationSerializable {
      * @param particleData the raw particle data object to resolve
      */
     public ParticleDataResolver(final Object particleData) {
-        if (particleData instanceof Material)
+        if (particleData instanceof Material) {
             this.material = (Material) particleData;
+            this.blockData = ((Material) particleData).createBlockData();
+        }
         if (particleData instanceof MaterialData)
             this.materialData = (Class<? extends MaterialData>) particleData;
         if (particleData instanceof BlockData)
