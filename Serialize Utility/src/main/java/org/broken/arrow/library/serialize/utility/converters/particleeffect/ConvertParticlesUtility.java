@@ -245,7 +245,7 @@ public class ConvertParticlesUtility {
                 object = getEffect(String.valueOf(particle));
             }
         }
-        Object particleData = particleEffectWrapper.getParticleData();
+        ParticleDataResolver particleData = particleEffectWrapper.getParticleData();
         String firstColor = particleEffectWrapper.getFromColor();
         String secondColor = particleEffectWrapper.getToColor();
         int amountOfParticles = particleEffectWrapper.getAmountOfParticles();
@@ -350,12 +350,12 @@ public class ConvertParticlesUtility {
      * If the data is non-null but incompatible with the effect's expected data type, a warning is logged suggesting the correct type.
      *
      * @param builder      the ParticleEffect.Builder to configure
-     * @param particleData the extra data object to set, expected to match the effect's data type
+     * @param particleData the data to resolve for the effect type
      * @param effect       the effect type that dictates the expected data type
      */
-    public static void setBuilderExtraDataEffect(Builder builder, Object particleData, Effect effect) {
+    public static void setBuilderExtraDataEffect(final Builder builder,final ParticleDataResolver particleData,final Effect effect) {
         Class<?> effectData = effect.getData();
-        if (effectData != null && effectData.isInstance(particleData)) {
+        if (effectData != null && particleData.compute(effectData) != null ) {
             ParticleDataResolver resolveParticle = new ParticleDataResolver(particleData);
             builder.setParticleData(resolveParticle);
         } else {
@@ -369,13 +369,13 @@ public class ConvertParticlesUtility {
     }
 
 
-    private static Builder buildParticle(final Object object, final Object particleData, final String firstColor, final String secondColor, final int amountOfParticles, final float extra) {
+    private static Builder buildParticle(final Object object, final ParticleDataResolver particleData, final String firstColor, final String secondColor, final int amountOfParticles, final float extra) {
         Builder builder = null;
         if (object instanceof Particle) {
             final Particle part = (Particle) object;
             builder = new Builder(part, part.getDataType());
             ParticleDataResolver particleDataResolver = null;
-            System.out.println("part.name() " + part.name());
+
             if (part.name().equals("BLOCK_MARKER")) {
                 particleDataResolver = new ParticleDataResolver(Material.BARRIER);
             } else {
@@ -387,7 +387,7 @@ public class ConvertParticlesUtility {
                     if (part.getDataType() == Double.class)
                         particleDataResolver = new ParticleDataResolver(Double.valueOf(0));
                 } else {
-                    particleDataResolver = new ParticleDataResolver(particleData);
+                    particleDataResolver = particleData;
                 }
             }
 
@@ -405,7 +405,7 @@ public class ConvertParticlesUtility {
         return builder;
     }
 
-    private static Builder buildEffect(final Object object, final Object particleData, final String firstColor, final String secondColor, final int amountOfParticles, final float extra) {
+    private static Builder buildEffect(final Object object, final ParticleDataResolver particleData, final String firstColor, final String secondColor, final int amountOfParticles, final float extra) {
         Builder builder = null;
         if (object instanceof Effect) {
             final Effect part = (Effect) object;

@@ -233,7 +233,6 @@ public class ParticleCreator {
         final BlockData blockData = this.effectAccessor.getMaterialBlockData();
         final ParticleDataResolver data = this.effectAccessor.getResolveParticle();
         boolean dataSet = true;
-        System.out.println("spawn data " + data);
         if (data != null) {
             Object haveClaasSet = data.compute(this.dataType);
             if (haveClaasSet != null) {
