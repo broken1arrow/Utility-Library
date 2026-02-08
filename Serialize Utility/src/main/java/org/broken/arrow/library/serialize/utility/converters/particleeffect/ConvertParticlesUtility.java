@@ -331,17 +331,15 @@ public class ConvertParticlesUtility {
      * @param part         the particle type that dictates the expected data type
      */
     public static void setBuilderExtraDataParticle(ParticleEffect.Builder builder, Object particleData, Particle part) {
-        if (part.getDataType().isInstance(particleData)) {
+        if (particleData == null && part.getDataType() != Void.class) {
+            logger.warn(messageWrapper -> {
+                messageWrapper.setMessage("You must set the extra data for this '{effect-name}' or the effect will not spawn. The class you should use is '{data-type}'.")
+                        .putPlaceholder("{effect-name}", part.name())
+                        .putPlaceholder("{data-type}", part.getDataType() + "");
+            });
+        } else {
             ParticleDataResolver resolveParticle = new ParticleDataResolver(particleData);
             builder.setParticleData(resolveParticle);
-
-        } else {
-            if (particleData == null && part.getDataType() != Void.class)
-                logger.warn(messageWrapper -> {
-                    messageWrapper.setMessage("You must set the extra data for this '{effect-name}' or the effect will not spawn. The class you should use is '{data-type}'.")
-                            .putPlaceholder("{effect-name}", part.name())
-                            .putPlaceholder("{data-type}", part.getDataType() + "");
-                });
         }
     }
 
