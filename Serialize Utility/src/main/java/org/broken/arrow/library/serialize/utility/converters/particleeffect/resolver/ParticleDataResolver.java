@@ -80,9 +80,9 @@ public class ParticleDataResolver implements ConfigurationSerializable {
         if (particleData instanceof Number) {
             final Number data = (Number) particleData;
             if (data instanceof Integer)
-                this.integerData = (Integer) data;
+                this.integerData = Integer.valueOf(data.toString());
             if (data instanceof Float)
-                this.floatData = (Float) data;
+                this.floatData = Float.valueOf(data.toString());
         }
 
         if (particleData instanceof PotionsData) {
