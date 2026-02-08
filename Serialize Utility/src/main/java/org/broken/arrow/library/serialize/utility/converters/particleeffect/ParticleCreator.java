@@ -246,7 +246,7 @@ public class ParticleCreator {
                 dataSet = false;
             }
         }
-        if (blockData == null || material == null || !dataSet) {
+        if (!dataSet && (blockData == null || material == null)) {
             logger.warning("You have to set the data for this particle '" + this.effectAccessor.getParticle() + "' . The type of data you must implement this class '" + this.particle.getDataType() + "'");
             return false;
         }

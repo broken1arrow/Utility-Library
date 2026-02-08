@@ -266,10 +266,14 @@ public class ParticleDataResolver implements ConfigurationSerializable {
      * @return the resolved data matching the type, or {@code null}
      */
     public Object compute(@Nonnull final Class<?> dataType) {
+        System.out.println(" compute dataType: "  +dataType);
+        System.out.println(" compute dataType: " + dataType.getName());
         if (dataType == Material.class)
             return getMaterial();
         if (dataType == MaterialData.class)
             return getMaterialData();
+        if (dataType == BlockData.class)
+            return getBlockData();
         if (dataType == BlockFace.class)
             return getBlockFace();
         if (dataType == Float.class)
