@@ -233,11 +233,12 @@ public class ParticleCreator {
         final BlockData blockData = this.effectAccessor.getMaterialBlockData();
         final ParticleDataResolver data = this.effectAccessor.getResolveParticle();
         boolean dataSet = true;
+        System.out.println("spawn data " + data);
         if (data != null) {
             Object haveClaasSet = data.compute(this.dataType);
             if (haveClaasSet != null) {
                 if (player != null) {
-                    player.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, blockData);
+                    player.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, haveClaasSet);
                 } else {
                     this.world.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, haveClaasSet);
                 }

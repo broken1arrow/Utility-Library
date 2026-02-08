@@ -8,9 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.material.MaterialData;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -254,7 +251,7 @@ public class ConvertParticlesUtility {
         int amountOfParticles = particleEffectWrapper.getAmountOfParticles();
         float extra = particleEffectWrapper.getExtra();
 
-        ParticleEffect.Builder builder;
+        Builder builder;
         if (SERVER_VERSION >= 9 && !(object instanceof Effect)) {
             builder = buildParticle(object, particleData, firstColor, secondColor, amountOfParticles, extra);
         } else {
@@ -317,7 +314,7 @@ public class ConvertParticlesUtility {
     }
 
     /**
-     * Configures extra data on a {@link ParticleEffect.Builder} based on the given particle data object and particle type.
+     * Configures extra data on a {@link Builder} based on the given particle data object and particle type.
      * <p>
      * This method checks if the provided {@code particleData} matches the expected data type of the {@code effect}.
      * If so, it sets the extra data accordingly with help of the {@link ParticleDataResolver} class.
@@ -330,7 +327,7 @@ public class ConvertParticlesUtility {
      * @param particleData the extra data object to set, expected to match the particle's data type
      * @param part         the particle type that dictates the expected data type
      */
-    public static void setBuilderExtraDataParticle(ParticleEffect.Builder builder, Object particleData, Particle part) {
+    public static void setDataToParticle(final Builder builder, final ParticleDataResolver particleData, final Particle part) {
         if (particleData == null && part.getDataType() != Void.class) {
             logger.warn(messageWrapper -> {
                 messageWrapper.setMessage("You must set the extra data for this '{effect-name}' or the effect will not spawn. The class you should use is '{data-type}'.")
@@ -339,14 +336,13 @@ public class ConvertParticlesUtility {
             });
         } else {
             if (particleData != null) {
-                ParticleDataResolver resolveParticle = new ParticleDataResolver(particleData);
-                builder.setParticleData(resolveParticle);
+                builder.setParticleData(particleData);
             }
         }
     }
 
     /**
-     * Configures extra data on a {@link ParticleEffect.Builder} based on the given particle data object and effect type.
+     * Configures extra data on a {@link Builder} based on the given particle data object and effect type.
      * <p>
      * This method checks if the provided {@code particleData} matches the expected data type of the {@code effect}.
      * If so, it sets the extra data accordingly with help of the {@link ParticleDataResolver} class.
@@ -357,7 +353,7 @@ public class ConvertParticlesUtility {
      * @param particleData the extra data object to set, expected to match the effect's data type
      * @param effect       the effect type that dictates the expected data type
      */
-    public static void setBuilderExtraDataEffect(ParticleEffect.Builder builder, Object particleData, Effect effect) {
+    public static void setBuilderExtraDataEffect(Builder builder, Object particleData, Effect effect) {
         Class<?> effectData = effect.getData();
         if (effectData != null && effectData.isInstance(particleData)) {
             ParticleDataResolver resolveParticle = new ParticleDataResolver(particleData);
@@ -377,22 +373,25 @@ public class ConvertParticlesUtility {
         Builder builder = null;
         if (object instanceof Particle) {
             final Particle part = (Particle) object;
-            builder = new ParticleEffect.Builder(part, part.getDataType());
-
+            builder = new Builder(part, part.getDataType());
+            ParticleDataResolver particleDataResolver = null;
+            System.out.println("part.name() " + part.name());
             if (part.name().equals("BLOCK_MARKER")) {
-                builder.setParticleData(new ParticleDataResolver(Material.BARRIER));
+                particleDataResolver = new ParticleDataResolver(Material.BARRIER);
             } else {
                 if (particleData == null) {
                     if (part.getDataType() == Integer.class)
-                        builder.setParticleData(ParticleDataResolver.ofInteger());
+                        particleDataResolver = ParticleDataResolver.ofInteger();
                     if (part.getDataType() == Float.class)
-                        builder.setParticleData(ParticleDataResolver.ofFloat());
+                        particleDataResolver = ParticleDataResolver.ofFloat();
                     if (part.getDataType() == Double.class)
-                        builder.setParticleData(new ParticleDataResolver(Double.valueOf(0)));
+                        particleDataResolver = new ParticleDataResolver(Double.valueOf(0));
+                } else {
+                    particleDataResolver = new ParticleDataResolver(particleData);
                 }
             }
 
-            setBuilderExtraDataParticle(builder, particleData, part);
+            setDataToParticle(builder, particleDataResolver, part);
             if (firstColor != null && part.name().equals("REDSTONE")) {
                 if (secondColor != null)
                     builder.setDustOptions(new ParticleDustOptions(firstColor, secondColor, extra));

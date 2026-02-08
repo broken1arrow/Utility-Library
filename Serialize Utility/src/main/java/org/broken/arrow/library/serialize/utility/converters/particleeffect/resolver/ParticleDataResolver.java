@@ -359,4 +359,16 @@ public class ParticleDataResolver implements ConfigurationSerializable {
         return new ParticleDataResolver(resolved);
     }
 
+    @Override
+    public String toString() {
+        return "ParticleDataResolver{" +
+                "material=" + material +
+                ", materialData=" + materialData +
+                ", blockData=" + blockData +
+                ", blockFace=" + blockFace +
+                ", integerData=" + integerData +
+                ", floatData=" + floatData +
+                ", potionsData=" + potionsData +
+                '}';
+    }
 }
