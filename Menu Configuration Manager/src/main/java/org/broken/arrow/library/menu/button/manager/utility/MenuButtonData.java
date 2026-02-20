@@ -177,7 +177,6 @@ public class MenuButtonData implements ConfigurationSerializable {
         if(!custom.isEmpty()){
             custom.forEach((key, value) -> resolveCustomButton.put(key, MenuButton.deserialize(value)));
         }
-        System.out.println("custom= " + resolveCustomButton );
         MenuButton deserializeActiveData = null;
         MenuButton deserializePassiveData;
         if (!activeData.isEmpty())

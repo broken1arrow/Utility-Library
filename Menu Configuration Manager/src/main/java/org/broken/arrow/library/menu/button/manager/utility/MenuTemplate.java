@@ -23,22 +23,25 @@ public class MenuTemplate {
 	private final Map<List<Integer>, MenuButtonData> menuButtons;
 	private final int amountOfButtons;
 	private final Sound sound;
+    private final boolean lock;
 
-	/**
-	 * Constructs a new MenuTemplate with the specified parameters.
-	 *
-	 * @param menuTitle   the title of the menu
-	 * @param fillSlots   the positions of slots to be filled with empty space in the menu
-	 * @param menuButtons the map of button positions to MenuButtonData objects
-	 * @param sound       the sound associated with the menu
-	 */
-	public MenuTemplate(String menuTitle, List<Integer> fillSlots, Map<List<Integer>, MenuButtonData> menuButtons, String sound) {
+    /**
+     * Constructs a new MenuTemplate with the specified parameters.
+     *
+     * @param menuTitle   the title of the menu
+     * @param fillSlots   the positions of slots to be filled with empty space in the menu
+     * @param menuButtons the map of button positions to MenuButtonData objects
+     * @param sound       the sound associated with the menu
+     * @param lock
+     */
+	public MenuTemplate(String menuTitle, List<Integer> fillSlots, Map<List<Integer>, MenuButtonData> menuButtons, String sound, final boolean lock) {
 		this.menuTitle = menuTitle;
 		this.fillSlots = fillSlots;
 		this.menuButtons = menuButtons;
 		this.amountOfButtons = calculateAmountOfButtons(menuButtons);
 		this.sound = SpigotSound.getSound(sound);
-	}
+        this.lock = lock;
+    }
 
 	/**
 	 * Returns the number of buttons in the menu template.
@@ -98,7 +101,16 @@ public class MenuTemplate {
 		return sound;
 	}
 
-	/**
+    /**
+     * If you want to look the container as example from items been taken out.
+     *
+     * @return true if the container should be locked.
+     */
+    public boolean isLock() {
+        return lock;
+    }
+
+    /**
 	 * Retrieves the map of button positions to MenuButtonData objects.
 	 *
 	 * @return the map of button positions to MenuButtonData objects, or null if not set
