@@ -776,7 +776,11 @@ public abstract class YamlFileManager {
 				final JarEntry entry = entries.nextElement();
 				final String filePath = entry.getName();
 				if (filePath.startsWith(dirname) && filePath.endsWith(this.getExtension())) {
-					filenames.add(filePath);
+                    int baseLength = dirname.length();
+                    int nextSlash = filePath.indexOf('/', baseLength);
+                    if (nextSlash == -1) {
+                        filenames.add(filePath);
+                    }
 				}
 			}
 		} catch (final IOException e) {
