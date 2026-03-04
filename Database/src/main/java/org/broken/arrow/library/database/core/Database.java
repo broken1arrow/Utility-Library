@@ -10,14 +10,9 @@ import org.broken.arrow.library.database.builders.wrappers.QuerySaver;
 import org.broken.arrow.library.database.builders.wrappers.SaveSetup;
 import org.broken.arrow.library.database.connection.HikariCP;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
-import org.broken.arrow.library.database.construct.query.builder.tablebuilder.AlterTable;
-import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
-import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 import org.broken.arrow.library.database.core.databases.H2DB;
 import org.broken.arrow.library.database.core.databases.MongoDB;
 import org.broken.arrow.library.database.core.databases.MySQL;
@@ -29,6 +24,7 @@ import org.broken.arrow.library.database.utility.BatchExecutorUnsafe;
 import org.broken.arrow.library.database.utility.DatabaseCommandConfig;
 import org.broken.arrow.library.database.utility.DatabaseType;
 import org.broken.arrow.library.database.utility.PrimaryConstraintWrapper;
+import org.broken.arrow.library.database.utility.constrains.SchemaMigrationHandler;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.serialize.utility.serialize.MethodReflectionUtils;
 import org.broken.arrow.library.logging.Logging;
@@ -45,7 +41,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -564,7 +559,33 @@ public abstract class Database {
     }
 
     /**
-     * Update the table, if it missing a column or columns.
+     * Returns the configured constraint handler used during schema migration.
+     *
+     * <p>The handler is invoked when newly declared PRIMARY KEY columns are detected.
+     * It receives:</p>
+     * <ul>
+     *     <li>The table name</li>
+     *     <li>A {@link PrimaryConstraintWrapper} used to define primary key values
+     *     for existing rows</li>
+     * </ul>
+     *
+     * <p>If no handler is configured, new constraints will not be applied,
+     * but missing columns may still be created.</p>
+     *
+     * <p>Within the handler, {@link PrimaryConstraintWrapper#setUnique(boolean)}
+     * can be set to {@code true} to allow a UNIQUE constraint fallback
+     * when primary key values are incomplete.</p>
+     *
+     * @return a {@link BiConsumer} that processes primary key migration,
+     *         or {@code null} if no handler is configured.
+     */
+    @Nullable
+    public BiConsumer<String, PrimaryConstraintWrapper> getHandleConstraints() {
+        return handleConstraints;
+    }
+
+    /**
+     * Update the table, if it's missing a column or columns.
      *
      * @param connection the connection to the database where the changes should be added.
      * @param tableName  the table you want to check.
@@ -640,311 +661,9 @@ public abstract class Database {
             log.log(Level.WARNING, () -> "You must set the connection instance.");
             return;
         }
-        final Set<String> newPrimaryKeys = new HashSet<>();
-        final List<Column> columnsToAdd = new ArrayList<>();
-        boolean failCreateColumns = false;
-
-        for (final Column column : queryTable.getTable().getColumns()) {
-            String columnName = column.getColumnName();
-            if (removeColumns.contains(columnName) || existingColumns.contains(columnName.toLowerCase())) continue;
-            Column tableColumn = column;
-
-            if (column instanceof TableColumn) {
-                final boolean isPrimaryKey = ((TableColumn) column).isPrimaryKey();
-                if (isPrimaryKey) {
-                    newPrimaryKeys.add(columnName);
-                    tableColumn = new TableColumn(null, column.getColumnName(), ((TableColumn) column).getDataType());
-                }
-            }
-            columnsToAdd.add(tableColumn);
-        }
-
-
-        if (!columnsToAdd.isEmpty()) {
-            failCreateColumns = executeCreation(connection, queryTable, columnsToAdd, failCreateColumns);
-        }
-        if (failCreateColumns) {
-            log.log(Level.SEVERE, () -> "Schema migration aborted for " + queryTable.getTableName() +
-                    " due to previous errors. The constraints will not be set.");
-            return;
-        }
-
-        this.preparePrimaryKeyMigration(connection, queryTable, newPrimaryKeys);
+        final SchemaMigrationHandler schemaMigration = new SchemaMigrationHandler(this, connection);
+        schemaMigration.createMissingColumns(queryTable, existingColumns);
     }
-
-    private boolean executeCreation(@Nonnull final Connection connection, @Nonnull final SqlQueryTable queryTable, @Nonnull final List<Column> columnsToAdd, @Nonnull boolean failCreateColumns) {
-        if (this.databaseType == DatabaseType.SQLITE) {
-            for (Column col : columnsToAdd) {
-                final QueryBuilder queryBuilder = new QueryBuilder();
-                final AlterTable alterBuilder = queryBuilder.alterTable(queryTable.getTableName());
-                alterBuilder.add(col);
-                final String query = queryBuilder.build();
-                try (final PreparedStatement statement = connection.prepareStatement(query)) {
-                    statement.execute();
-                    log.log(Level.FINE, () -> "Successfully added column " + col.getColumnName() + " to " + queryTable.getTableName());
-                } catch (final SQLException throwable) {
-                    log.log(throwable, () -> "Failed to add missing column " + col.getColumnName() + " . Query: '" + query + "'");
-                    failCreateColumns = true;
-                }
-            }
-        } else {
-            final QueryBuilder queryBuilder = new QueryBuilder();
-            final AlterTable alterBuilder = queryBuilder.alterTable(queryTable.getTableName());
-            for (Column col : columnsToAdd) {
-                alterBuilder.add(col);
-            }
-            final String query = queryBuilder.build();
-            try (final PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.execute();
-                log.log(Level.FINE, () -> "Successfully added " + columnsToAdd.size() + " columns to " + queryTable.getTableName());
-            } catch (final SQLException throwable) {
-                log.log(throwable, () -> "Failed to add missing columns in batch. Query: '" + query + "'");
-                failCreateColumns = true;
-            }
-        }
-        return failCreateColumns;
-    }
-
-    private void preparePrimaryKeyMigration(final Connection connection, final SqlQueryTable queryTable, final Set<String> newPrimaryKeys) {
-        if (newPrimaryKeys.isEmpty()) {
-            log.log(Level.FINE, () -> "No new primary key columns detected. Skipping primary key migration for table '" + queryTable.getTableName() + "'");
-            return;
-        }
-        Validate.checkNotNull(this.handleConstraints, "Constraint handler not configured. You must provide a callback to define how constraints should be applied to newly created columns.");
-        final PrimaryConstraintWrapper primaryWrapper = new PrimaryConstraintWrapper(this, queryTable);
-        this.handleConstraints.accept(queryTable.getTableName(), primaryWrapper);
-
-        final QueryBuilder builder = new QueryBuilder();
-        builder.select(new ColumnManager().column("*").finish()).from(queryTable.getTableName());
-        final String builtQuery = builder.build();
-        try (final ResultSet resultSet = connection.prepareStatement(builtQuery).executeQuery()) {
-            while (resultSet.next()) {
-                final CreateTableHandler tableHandler = queryTable.getTable();
-                final Map<String, Object> dataFromDB = getDataFromDB(resultSet, tableHandler.getColumns());
-                primaryWrapper.loadMap(dataFromDB);
-            }
-        } catch (final SQLException throwable) {
-            log.log(throwable, () -> "Failed to read existing rows while preparing primary key migration. The query '" + builtQuery + "' and this table '" + queryTable.getTableName() + "'");
-        }
-        Validate.checkBoolean(!primaryWrapper.isSet() && !primaryWrapper.isUnique(), "Primary key creation requested, but required values are missing. Provide values for all primary key columns or configure UNIQUE fallback instead.");
-
-        boolean primaryMapValuesSet = saveDataToColumns(connection, queryTable, primaryWrapper);
-        Validate.checkBoolean(!primaryMapValuesSet && !primaryWrapper.isUnique(), "Primary key creation failed. One or more primary columns contain null " +
-                "values, and UNIQUE fallback is disabled. Either provide values for all primary columns or enable UNIQUE fallback.");
-
-        boolean primaryValuesComplete = primaryWrapper.allPrimaryValuesPresent(newPrimaryKeys);
-        Validate.checkBoolean(!primaryValuesComplete && !primaryWrapper.isUnique(), "Primary key creation failed. Not all columns marked as primary received values during migration. Ensure all PRIMARY KEY columns are populated, or enable UNIQUE fallback. ");
-
-        this.setConstraints(connection, queryTable, newPrimaryKeys, primaryMapValuesSet && primaryValuesComplete);
-    }
-
-    private boolean saveDataToColumns(final Connection connection, final SqlQueryTable queryTable, final PrimaryConstraintWrapper primaryWrapper) {
-        boolean primaryMapValuesSet = true;
-        final Map<String, List<Map<Integer, Object>>> batchGroups = new LinkedHashMap<>();
-
-        if (!primaryWrapper.getPrimaryWrappers().isEmpty()) {
-            primaryMapValuesSet = setValuesToDatabase(queryTable, primaryWrapper, primaryMapValuesSet, batchGroups);
-        }
-
-        if (!batchGroups.isEmpty()) {
-            for (Map.Entry<String, List<Map<Integer, Object>>> entry : batchGroups.entrySet()) {
-                String sql = entry.getKey();
-                List<Map<Integer, Object>> allRowsParams = entry.getValue();
-
-                try (final PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                    for (Map<Integer, Object> rowParams : allRowsParams) {
-                        for (Map.Entry<Integer, Object> param : rowParams.entrySet()) {
-                            preparedStatement.setObject(param.getKey(), param.getValue());
-                        }
-                        preparedStatement.addBatch();
-                    }
-                    preparedStatement.executeBatch();
-                } catch (final SQLException throwable) {
-                    log.log(throwable, () -> "Failed to populate primary key values. SQL: '" + sql + "'. Table: '" + queryTable.getTableName() + "'");
-                }
-            }
-        }
-
-        return primaryMapValuesSet;
-    }
-
-    private boolean setValuesToDatabase(final SqlQueryTable queryTable, final PrimaryConstraintWrapper primaryWrapper, boolean primaryMapValuesSet, final Map<String, List<Map<Integer, Object>>> batchGroups) {
-        for (DataWrapper.PrimaryWrapper primary : primaryWrapper.getPrimaryWrappers()) {
-            if (primary == null) {
-                log.log(Level.WARNING, () -> "A row for this table '" + queryTable.getTableName() + "' is not set.");
-                continue;
-            }
-
-            final QueryBuilder saveBuilder = new QueryBuilder();
-            final Map<String, Object> primaryKeys = primary.getPrimaryKeys();
-
-            if (primaryKeys.entrySet().stream().anyMatch(entry -> entry.getKey() == null || entry.getValue() == null)) {
-                sendLogMessage(primaryWrapper, primaryKeys);
-                primaryMapValuesSet = false;
-            }
-            Selector<ColumnBuilder<Column, Void>, Column> update = saveBuilder
-                    .update(queryTable.getTableName())
-                    .putAll(primaryWrapper.convert(primaryKeys))
-                    .getSelector()
-                    .where(whereBuilder -> {
-                        if (primary.getWhereClause() == null)
-                            return null;
-                        return primary.getWhereClause().apply(whereBuilder);
-                    });
-            if (update.getWhereBuilder() == null) {
-                log.log(Level.WARNING, () -> "Update skipped, no WHERE clause was provided. For this table '" + queryTable.getTableName() + "'" + ". Updates without a WHERE clause are not allowed for safety reasons.");
-            } else {
-                String sql = saveBuilder.build();
-                batchGroups.computeIfAbsent(sql, k -> new ArrayList<>()).add(saveBuilder.getValues());
-            }
-        }
-        return primaryMapValuesSet;
-    }
-
-
-    private void setConstraints(final Connection connection, final SqlQueryTable queryTable, final Set<String> newPrimaryKeys, final boolean primaryValuesComplete) {
-        final List<Column> columnsToBeModified = new ArrayList<>();
-        final List<Column> primaryColumns = queryTable.getPrimaryColumns();
-
-        for (final Column column : primaryColumns) {
-            boolean addingPrimary = false;
-            if (primaryValuesComplete) {
-                columnsToBeModified.add(column);
-                addingPrimary = true;
-            }
-            if (addingPrimary || !newPrimaryKeys.contains(column.getColumnName())) {
-                continue;
-            }
-            columnsToBeModified.add(column);
-        }
-
-        if (!columnsToBeModified.isEmpty() && databaseType == DatabaseType.SQLITE) {
-            copyTable(connection, queryTable, columnsToBeModified);
-            return;
-        }
-        final String tableName = queryTable.getTableName();
-
-        if (!columnsToBeModified.isEmpty() && !primaryValuesComplete) {
-            final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.alterTable(tableName).setConstraints(modifyConstraints ->
-                    modifyConstraints.addUnique(columnsToBeModified.stream().map(Column::getColumnName).toArray(String[]::new)));
-            final String query = queryBuilder.build();
-            try (final PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.execute();
-            } catch (final SQLException throwable) {
-                log.log(throwable, () -> getMessage("Failed to apply UNIQUE constraint during primary key migration. Columns '", tableName, columnsToBeModified));
-            }
-        }
-        if (!columnsToBeModified.isEmpty() && primaryValuesComplete) {
-            final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.alterTable(tableName).setConstraints(modifyConstraints -> {
-                modifyConstraints.dropPrimaryKey();
-                modifyConstraints.addPrimaryKey(columnsToBeModified.stream().map(Column::getColumnName).toArray(String[]::new));
-            });
-            final String query = queryBuilder.build();
-            try (final PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.execute();
-            } catch (final SQLException throwable) {
-                log.log(throwable, () -> getMessage("Failed to apply PRIMARY KEY constraint during migration. Columns ", tableName, columnsToBeModified));
-            }
-        }
-    }
-
-    private void copyTable(@Nonnull final Connection connection, @Nonnull final SqlQueryTable queryTable, @Nonnull final List<Column> columnsToBeModified) {
-        boolean autoCommit = false;
-        try {
-            autoCommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
-            recreateTable(connection, queryTable, columnsToBeModified);
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                log.log(ex, () -> "could not rollback the changes");
-            }
-            log.log(e, () -> "Failed to change the contains on the SSQLite database.");
-        } finally {
-            try {
-                connection.setAutoCommit(autoCommit);
-            } catch (SQLException e) {
-                log.log(e, () -> "Failed to set auto commit back on the SSQLite database.");
-            }
-        }
-    }
-
-    private void recreateTable(final Connection connection, final SqlQueryTable queryTable, final List<Column> columnsToBeModified) {
-        final QueryBuilder queryBuilder = new QueryBuilder();
-        final String tableName = queryTable.getTableName();
-        final String temporaryTable = tableName + "_new";
-
-        queryBuilder.createTable(temporaryTable).addAllColumns(queryTable.getColumns());
-        final String query = queryBuilder.build();
-        try (final PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.execute();
-        } catch (final SQLException throwable) {
-            log.log(throwable, () -> getMessage("Failed to create table during primary key migration. Columns ", tableName , columnsToBeModified));
-        }
-
-        final QueryBuilder queryInsertBuilder = new QueryBuilder();
-        queryInsertBuilder.insertInto(temporaryTable, insertHandler -> {
-            insertHandler.addAll(queryTable.getColumns()).getQueryModifier()
-                    .select(columnBuilder ->
-                            columnBuilder.addAll(queryTable.getColumns()))
-                    .from(tableName);
-        });
-        final String insertQuery = queryInsertBuilder.build();
-        try (final PreparedStatement statement = connection.prepareStatement(insertQuery)) {
-            statement.execute();
-        } catch (final SQLException throwable) {
-            log.log(throwable, () -> getMessage("Failed to create table during primary key migration. Query ", tableName, insertQuery));
-        }
-        //todo handle when the the the primary column is an index.
-        // updateIndex(connection, tableName);
-
-        final QueryBuilder queryDropBuilder = new QueryBuilder();
-        queryDropBuilder.dropTable(tableName);
-        final String dropQuery = queryDropBuilder.build();
-        try (final PreparedStatement statement = connection.prepareStatement(dropQuery)) {
-            statement.execute();
-        } catch (final SQLException throwable) {
-            log.log(throwable, () -> getMessage("Failed to drop table during primary key migration. Query ", tableName, dropQuery));
-        }
-
-        final QueryBuilder queryAlterBuilder = new QueryBuilder();
-        queryAlterBuilder.alterTable(temporaryTable).rename(tableName);
-        final String alterQuery = queryAlterBuilder.build();
-        try (final PreparedStatement statement = connection.prepareStatement(alterQuery)) {
-            statement.execute();
-        } catch (final SQLException throwable) {
-            log.log(throwable, () -> getMessage("Failed to alter table during primary key migration. Query ", tableName, alterQuery));
-        }
-    }
-
-    private void updateIndex(final Connection connection, final String tableName) {
-
-        final QueryBuilder incrementIndexBuilder = new QueryBuilder();
-        List<Column> columns = new ArrayList<>();
-        columns.add(new Column("name", ""));
-        columns.add(new Column("seq", ""));
-
-        incrementIndexBuilder.insertOrReplaceInto("sqlite_sequence", insertHandler -> insertHandler.addAll(columns)
-                .getQueryModifier()
-                .select(columnBuilder -> {
-                    columnBuilder.add(new Column("'" + tableName + "'", ""));
-                    columnBuilder.add(new Column("id", "").setAggregation()
-                            .withAggregation(CalcFunc.MAX).getColumn());
-                })
-                .from(tableName)
-        );
-
-        try (final PreparedStatement statement = connection.prepareStatement(incrementIndexBuilder.build())) {
-            statement.execute();
-        } catch (final SQLException throwable) {
-            log.log(throwable, () -> getMessage("Failed to update index during primary key migration. Query ", tableName,  incrementIndexBuilder));
-        }
-    }
-
 
     /**
      * Create all tables if it not exist yet, will only create a table if it not already exist.
