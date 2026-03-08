@@ -379,16 +379,7 @@ public class ConvertParticlesUtility {
             if (part.name().equals("BLOCK_MARKER")) {
                 particleDataResolver = new ParticleDataResolver(Material.BARRIER);
             } else {
-                if (particleData == null) {
-                    if (part.getDataType() == Integer.class)
-                        particleDataResolver = ParticleDataResolver.ofInteger();
-                    if (part.getDataType() == Float.class)
-                        particleDataResolver = ParticleDataResolver.ofFloat();
-                    if (part.getDataType() == Double.class)
-                        particleDataResolver = new ParticleDataResolver(Double.valueOf(0));
-                } else {
-                    particleDataResolver = particleData;
-                }
+                particleDataResolver = getParticleDataResolver(particleData, part, particleDataResolver);
             }
 
             setDataToParticle(builder, particleDataResolver, part);
@@ -403,6 +394,20 @@ public class ConvertParticlesUtility {
             builder.setCount(amountOfParticles);
         }
         return builder;
+    }
+
+    private static ParticleDataResolver getParticleDataResolver(final ParticleDataResolver particleData, final Particle part, ParticleDataResolver particleDataResolver) {
+        if (particleData == null) {
+            if (part.getDataType() == Integer.class)
+                particleDataResolver = ParticleDataResolver.ofInteger();
+            if (part.getDataType() == Float.class)
+                particleDataResolver = ParticleDataResolver.ofFloat();
+            if (part.getDataType() == Double.class)
+                particleDataResolver = new ParticleDataResolver(Double.valueOf(0));
+        } else {
+            particleDataResolver = particleData;
+        }
+        return particleDataResolver;
     }
 
     private static Builder buildEffect(final Object object, final ParticleDataResolver particleData, final String firstColor, final String secondColor, final int amountOfParticles, final float extra) {

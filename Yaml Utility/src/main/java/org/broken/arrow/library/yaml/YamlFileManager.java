@@ -858,28 +858,7 @@ public abstract class YamlFileManager {
 			}
 		}
 	}
-
-	private void deSerializeConfigg(String path, ConfigurationSection configurationSection, FileConfiguration config, Map<String, Object> fileData) {
-		String nestedKey = "";
-		for (final String yamlKey : configurationSection.getKeys(true)) {
-			String fullPath = path + "." + yamlKey;
-			boolean containMappedValue = this.isConvertNestedSections() && config.contains(fullPath + "._type") && "map".equals(config.getString(fullPath + "._type"));
-			if (containMappedValue) {
-				ConfigurationSection bossSection = config.getConfigurationSection(fullPath);
-				if (bossSection != null && (nestedKey.isEmpty() || !fullPath.contains(nestedKey))) {
-					Map<String, Object> decodedConfigMap = MapYamlConverter.decodeConfig(fullPath, config);
-					nestedKey = fullPath + ".";
-					fileData.put(yamlKey, decodedConfigMap);
-				}
-				continue;
-			}
-			Object object = config.get(fullPath);
-			if (!(object instanceof MemorySection)) {
-				fileData.put(yamlKey, object);
-			}
-		}
-	}
-
+	
     private void deSerializeConfig(final String path, final ConfigurationSection configurationSection, final FileConfiguration config, final Map<String, Object> fileData) {
         Set<String> mapRoots = new HashSet<>();
 

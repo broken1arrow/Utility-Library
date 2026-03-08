@@ -251,6 +251,11 @@ public class ParticleCreator {
             return false;
         }
 
+        spawnAtPlayer(blockData, material);
+        return true;
+    }
+
+    private void spawnAtPlayer(final BlockData blockData, final Material material) {
         if (player != null) {
             if (this.dataType == BlockData.class) {
                 player.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, blockData);
@@ -266,7 +271,6 @@ public class ParticleCreator {
                 this.world.spawnParticle(particle, this.x, this.y, this.z, this.count, this.offsetX, this.offsetY, this.offsetZ, this.extra, new ItemStack(material));
             }
         }
-        return true;
     }
 
     private void spawn(final Location location, final int radius) {
@@ -285,31 +289,12 @@ public class ParticleCreator {
                 if (this.dataType == BlockFace.class)
                     this.player.playEffect(location, this.effect, this.effectAccessor.getBlockFace());
 
-                PotionsData potionsData = this.effectAccessor.getPotion();
-                if (potionsData != null) {
-                    if (PotionsData.isOldPotionAvailable()) {
-                        Potion potion = potionsData.getPotion();
-                        if (potion != null) {
-                            world.playEffect(location, effect, potion);
-                            return;
-                        }
-                    }
-                    PotionEffect potionEffect = potionsData.getPotionEffect();
-                    if (potionEffect != null) {
-                        player.playEffect(location, effect, potionEffect);
-                        if (serverVersion > 20.0F) {
-                            logger.info("Usage of PotionEffect for visual effects is discouraged. Consider using the Particle API for better compatibility and flexibility.");
-                        }
-                    } else {
-                        logger.warning("No valid potion or potion effect found, consider using particle effects.");
-                    }
-                }
+                spawnPotionEffect(location);
             }
         } else {
             spawnInWorld(location, radius);
         }
     }
-
 
     private void spawnInWorld(final Location location, final int radius) {
         final ParticleDataResolver data = this.effectAccessor.getResolveParticle();
@@ -326,24 +311,28 @@ public class ParticleCreator {
             if (this.dataType == BlockFace.class)
                 this.world.playEffect(location, this.effect, this.effectAccessor.getBlockFace(), radius);
 
-            PotionsData potionsData = this.effectAccessor.getPotion();
-            if (potionsData != null) {
-                if (PotionsData.isOldPotionAvailable()) {
-                    Potion potion = potionsData.getPotion();
-                    if (potion != null) {
-                        world.playEffect(location, effect, potion);
-                        return;
-                    }
+            spawnPotionEffect(location);
+        }
+    }
+
+    private void spawnPotionEffect(final Location location) {
+        PotionsData potionsData = this.effectAccessor.getPotion();
+        if (potionsData != null) {
+            if (PotionsData.isOldPotionAvailable()) {
+                Potion potion = potionsData.getPotion();
+                if (potion != null) {
+                    world.playEffect(location, effect, potion);
+                    return;
                 }
-                PotionEffect potionEffect = potionsData.getPotionEffect();
-                if (potionEffect != null) {
-                    player.playEffect(location, effect, potionEffect);
-                    if (serverVersion > 20.0F) {
-                        logger.info("Usage of PotionEffect for visual effects is discouraged. Consider using the Particle API for better compatibility and flexibility.");
-                    }
-                } else {
-                    logger.warning("No valid potion or potion effect found, consider using particle effects.");
+            }
+            PotionEffect potionEffect = potionsData.getPotionEffect();
+            if (potionEffect != null) {
+                player.playEffect(location, effect, potionEffect);
+                if (serverVersion > 20.0F) {
+                    logger.info("Usage of PotionEffect for visual effects is discouraged. Consider using the Particle API for better compatibility and flexibility.");
                 }
+            } else {
+                logger.warning("No valid potion or potion effect found, consider using particle effects.");
             }
         }
     }

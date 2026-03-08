@@ -86,13 +86,13 @@ public class ParticleDataResolver implements ConfigurationSerializable {
         }
 
         if (particleData instanceof PotionsData) {
-            final PotionsData potionsData = (PotionsData) particleData;
-            if ((potionsData).isPotion())
-                this.potionsData = potionsData;
+            final PotionsData potion = (PotionsData) particleData;
+            if ((potion).isPotion())
+                this.potionsData = potion;
         } else {
-            PotionsData potionsData = new PotionsData(particleData);
-            if (potionsData.isPotion())
-                this.potionsData = potionsData;
+            PotionsData potion = new PotionsData(particleData);
+            if (potion.isPotion())
+                this.potionsData = potion;
         }
     }
 

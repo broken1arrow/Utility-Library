@@ -673,7 +673,7 @@ public class ComponentAdapter implements NbtEditor {
                 if (locObj == null) return null;
                 // toString gives namespace:path
                 return locObj.toString();
-            } catch (Throwable t) {
+            } catch (Exception  t) {
                 return null;
             }
         }
