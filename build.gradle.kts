@@ -1,6 +1,7 @@
 import org.apache.tools.ant.taskdefs.Java
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("jvm") version "2.2.0"
     `java-library`
@@ -49,15 +50,15 @@ subprojects {
     plugins.apply("signing")
     plugins.apply("checkstyle")
 
- /*   java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(8))
-        }
-    }
-*/
+    /*   java {
+           toolchain {
+               languageVersion.set(JavaLanguageVersion.of(8))
+           }
+       }
+   */
     tasks.withType<JavaCompile> {
-       //sourceCompatibility = "1.8"
-       // targetCompatibility = "1.8"
+        //sourceCompatibility = "1.8"
+        // targetCompatibility = "1.8"
         options.encoding = Charsets.UTF_8.name()
         options.release.set(8)
     }
@@ -92,7 +93,7 @@ subprojects {
                     artifactId = project.name
                     groupId = project.group.toString()
                     artifactId = project.name
-                    version = "0.107"
+                    version = "0.130"
                     pom {
                         name.set(project.name)
                         description.set("Description for ${project.name}")
@@ -117,43 +118,21 @@ subprojects {
             repositories {
                 mavenLocal()
                 maven {
-                    name = "sonatype"
-                    url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    name = "repsy"
+                    url = uri(project.findProperty("repsyUrl")?.toString() ?:"https://repo.repsy.io/")
                     credentials {
-                        username = findProperty("ossrhUsername") as String? ?: ""
-                        password = findProperty("ossrhPassword") as String? ?: ""
+                        username = System.getenv("REPO_USER").takeIf { !it.isNullOrBlank() }
+                            ?: project.findProperty("repoUser")?.toString()
+
+                        password = System.getenv("REPO_PASSWORD").takeIf { !it.isNullOrBlank() }
+                            ?: project.findProperty("repoPassword")?.toString()
                     }
                 }
             }
         }
-
-        signing {
-            val signatoryConfigured = project.hasProperty("signing.keyId") &&
-                    project.hasProperty("signing.password") &&
-                    project.hasProperty("signing.secretKeyRingFile")
-            if (signatoryConfigured) {
-                val signingKey = findProperty("signing.key") as String?
-                //signingKey?.let { file(it).readText(Charsets.UTF_8) }
-
-                useInMemoryPgpKeys(
-                    findProperty("signing.keyId") as String?,
-                    signingKey,
-                    findProperty("signing.password") as String?
-                )
-                sign(publishing.publications["mavenJava"])
-            }
-        }
     }
 }
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            username.set(findProperty("ossrhUsername") as String?)
-            password.set(findProperty("ossrhPassword") as String?)
-        }
-    }
-}
 
 fun setProjectVersion(project: Project) {
     if (project.version == "" || project.version == "1.0-SNAPSHOT") project.version = version
@@ -170,8 +149,8 @@ tasks {
         // See https://openjdk.java.net/jeps/247 for more information.
         options.release.set(8)
 
-     //   sourceCompatibility = JavaVersion.VERSION_1_8.toString()
-      //  targetCompatibility = JavaVersion.VERSION_1_8.toString()
+        //   sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+        //  targetCompatibility = JavaVersion.VERSION_1_8.toString()
     }
 }
 

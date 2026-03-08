@@ -4,7 +4,6 @@ import org.broken.arrow.library.PublicationManager
 plugins {
 
     alias(libs.plugins.shadow)
-    id ("java")
     id ("java-library")
     id("org.broken.arrow.library.LoadDependency")
 }
