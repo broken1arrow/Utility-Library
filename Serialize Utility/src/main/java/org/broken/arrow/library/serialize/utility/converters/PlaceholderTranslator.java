@@ -206,7 +206,8 @@ public class PlaceholderTranslator {
 
         for (String current : input) {
             if (value instanceof Collection && current.contains(key)) {
-                for (Object element : (Collection<?>) value) {
+                List<?> split = split((Collection<?>) value,10);
+                for (Object element : split) {
                     result.add(current.replace(key, element != null ? element.toString() : ""));
                 }
             } else {
@@ -216,6 +217,34 @@ public class PlaceholderTranslator {
         return result;
     }
 
+    private static List<String> split(Collection<?> input, int maxLineLength) {
+        List<String> output = new ArrayList<>();
+
+        for (Object line : input) {
+            StringTokenizer tok = new StringTokenizer(line + "", " ");
+            StringBuilder currentLine = new StringBuilder();
+
+            while (tok.hasMoreTokens()) {
+                String word = tok.nextToken();
+                String color = "";
+                if (currentLine.length() + word.length() > maxLineLength) {
+                    output.add(currentLine.toString().trim());
+
+                    String start = currentLine.substring(0, Math.min(2, currentLine.length()));
+                    System.out.println("start " + start);
+                    if (start.contains("&") || start.contains("§")) {
+                        color = start;
+                    }
+                    currentLine = new StringBuilder();
+                }
+                currentLine.append(color).append(word).append(" ");
+            }
+            if (currentLine.length() > 0) {
+                output.add(currentLine.toString().trim());
+            }
+        }
+        return output;
+    }
 
     /**
      * A helper class for managing placeholder key-value pairs.
@@ -306,6 +335,9 @@ public class PlaceholderTranslator {
             }
         }
 
+        /**
+         * Clear the log of messages when you for example reload your config.
+         */
         public static void clearPlaceholderWarnings() {
             alreadyWarn.clear();
         }
