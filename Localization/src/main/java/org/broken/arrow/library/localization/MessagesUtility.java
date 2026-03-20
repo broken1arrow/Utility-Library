@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.broken.arrow.library.serialize.utility.converters.PlaceholderTranslator.translatePlaceholders;
-
 /**
  * Utility class responsible for handling plugin messages and localization support.
  * <p>
@@ -90,7 +88,7 @@ public class MessagesUtility {
 		if (language == null) return "";
 		PlaceholderText pluginMessages = language.getLocalization().getPlaceholderText();
 		if (pluginMessages == null) return "";
-		return translatePlaceholders(pluginMessages.getPlaceholder(key), placeholders);
+		return PlaceholderTranslator.translateText(pluginMessages.getPlaceholder(key), placeholders);
 	}
 
 	/**
@@ -128,16 +126,16 @@ public class MessagesUtility {
 	private void sendPlainMessage(@Nullable final Level level, @Nullable final Player player, final PluginMessages pluginMessages, final List<String> messages, final String pluginName, @Nullable final Object[] placeholders) {
 		boolean addPreSuffix = messages.size() > 1;
 		if (addPreSuffix && pluginMessages.getPrefixDecor() != null) {
-			String prefixMsg = PlaceholderTranslator.translatePlaceholders(pluginMessages.getPrefixDecor(), pluginName);
+			String prefixMsg = PlaceholderTranslator.translateText(pluginMessages.getPrefixDecor(), pluginName);
 			sendPlainMessage(level, player, prefixMsg);
 		}
 		for (String message : messages) {
 			if (message == null) continue;
-			message = PlaceholderTranslator.translatePlaceholders((addPreSuffix ? "" : pluginName) + message, placeholders);
+			message = PlaceholderTranslator.translateText((addPreSuffix ? "" : pluginName) + message, placeholders);
 			sendPlainMessage(level, player, message);
 		}
 		if (addPreSuffix && pluginMessages.getSuffixDecor() != null) {
-			String suffixMsg = PlaceholderTranslator.translatePlaceholders(pluginMessages.getSuffixDecor(), pluginName);
+			String suffixMsg = PlaceholderTranslator.translateText(pluginMessages.getSuffixDecor(), pluginName);
 			sendPlainMessage(level, player, suffixMsg);
 		}
 	}

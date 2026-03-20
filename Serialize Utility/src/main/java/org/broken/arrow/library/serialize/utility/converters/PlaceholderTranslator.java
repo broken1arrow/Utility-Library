@@ -2,10 +2,7 @@ package org.broken.arrow.library.serialize.utility.converters;
 
 import org.broken.arrow.library.serialize.utility.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -15,48 +12,62 @@ import java.util.function.Consumer;
  */
 public class PlaceholderTranslator {
 
-    private static final String FALSE_TEXT = "false";
-    private static final String TRUE_TEXT = "true";
+    private static final String FALSE = "false";
+    private static final String TRUE = "true";
 
     private PlaceholderTranslator() {
     }
 
     /**
-     * Translates placeholders in a list of strings by replacing them with corresponding values.
+     * Translates placeholders in a raw text by replacing them with corresponding values.
      * The placeholders are replaced in the order specified by the placeholders array.
      *
-     * @param listOfText   The list of strings to translate.
-     * @param placeholders The values to replace the placeholders with.
-     * @return The translated list of lore strings.
+     * @param text            The raw text to translate.
+     * @param wrapperConsumer The consumer where you provide the placeholder data.
+     * @return The translated text.
      */
-    public static List<String> translatePlaceholdersLore(final List<String> listOfText, final Object... placeholders) {
-        return translatePlaceholdersLore(null, listOfText, placeholders);
+    public static String translateText(final String text, final Consumer<PlaceholderWrapper> wrapperConsumer) {
+        final PlaceholderWrapper placeholderWrapper = new PlaceholderWrapper();
+        wrapperConsumer.accept(placeholderWrapper);
+        final Map<String, Object> placeholderMap = placeholderWrapper.getPlaceholders();
+
+        return applyPlaceholderMap(text, placeholderMap);
     }
 
     /**
-     * Translates placeholders in a list of strings by replacing them with corresponding values.
+     * Translates placeholders in a raw text by replacing them with corresponding values.
      * The placeholders are replaced in the order specified by the placeholders array.
      *
-     * @param listOfText   The list of strings to translate.
+     * @param text         The raw text to translate.
      * @param placeholders The values to replace the placeholders with.
-     * @param replacements The pair of replacements for the boolean values.
-     *                     The first element will replace 'true' and the second will replace 'false'.
-     * @return The translated list of lore strings.
+     * @return The translated text.
      */
-    public static List<String> translatePlaceholdersLore(final Pair<String, String> replacements, final List<String> listOfText, final Object... placeholders) {
-        if (listOfText == null) return new ArrayList<>();
-        List<String> clonedLore = new ArrayList<>(listOfText);
-        List<String> list = new ArrayList<>();
-        for (String lore : clonedLore) {
-            if (!checkListForPlaceholdersAndTranslate(listOfText, lore, placeholders)) {
-                if (replacements != null) {
-                    list.add(translatePlaceholders(replacements, lore, placeholders));
-                } else {
-                    list.add(translatePlaceholders(lore, placeholders));
-                }
-            }
+    public static String translateText(String text, final Object... placeholders) {
+        return translateText(text, null, placeholders);
+    }
+
+    /**
+     * Translates placeholders in a raw text by replacing them with corresponding values.
+     * The placeholders are replaced in the order specified by the placeholders array.
+     *
+     * @param text         The raw text to translate.
+     * @param replacement  The pair of replacements for the boolean values.
+     *                     The first element will replace 'true' and the second will replace 'false'
+     * @param placeholders The values to replace the placeholders with.
+     * @return The translated text.
+     */
+    public static String translateText(String text, final Pair<String, String> replacement, final Object... placeholders) {
+        if (text == null) return "";
+        if (replacement != null) {
+            text = replaceBooleans(text, replacement);
         }
-        return list;
+        for (int i = 0; i < placeholders.length; i++) {
+            Object value = placeholders[i];
+            if (value instanceof Collection) continue;
+
+            text = text.replace("{" + i + "}", value != null ? value.toString() : "");
+        }
+        return text;
     }
 
     /**
@@ -67,177 +78,64 @@ public class PlaceholderTranslator {
      * @param placeholders The consumer where you provide the placeholder data.
      * @return The translated list of lore strings.
      */
-    public static List<String> translatePlaceholders(final List<String> listOfText, final Consumer<PlaceholderWrapper> placeholders) {
+    public static List<String> translateList(final List<String> listOfText, final Consumer<PlaceholderWrapper> placeholders) {
         if (listOfText == null) return new ArrayList<>();
-        List<String> clonedLore = new ArrayList<>(listOfText);
-        List<String> list = new ArrayList<>();
-        for (String text : clonedLore) {
-            final PlaceholderWrapper placeholderWrapper = new PlaceholderWrapper();
-            placeholders.accept(placeholderWrapper);
-            final Map<String, Object> placeholderMap = placeholderWrapper.getPlaceholders();
-
-            if (!checkListForPlaceholdersAndTranslate(text, listOfText, placeholderMap)) {
-                list.add(translatePlaceholders(text, placeholderMap));
-            }
-        }
-        return list;
-    }
-
-    /**
-     * Translates placeholders in a raw text by replacing them with corresponding values.
-     * The placeholders are replaced in the order specified by the placeholders array.
-     *
-     * @param rawText         The raw text to translate.
-     * @param wrapperConsumer The consumer where you provide the placeholder data.
-     * @return The translated text.
-     */
-    public static String translatePlaceholder(final String rawText, final Consumer<PlaceholderWrapper> wrapperConsumer) {
-        final PlaceholderWrapper placeholderWrapper = new PlaceholderWrapper();
-        wrapperConsumer.accept(placeholderWrapper);
-        final Map<String, Object> placeholderMap = placeholderWrapper.getPlaceholders();
-
-        return translatePlaceholders(rawText, placeholderMap);
-    }
-
-    /**
-     * Translates placeholders in a raw text by replacing them with corresponding values.
-     * The placeholders are replaced in the order specified by the placeholders array.
-     *
-     * @param rawText        The raw text to translate.
-     * @param placeholderMap The map with key-value, where key is used to fins the placeholder in the provided text.
-     * @return The translated text.
-     */
-    public static String translatePlaceholders(String rawText, final Map<String, Object> placeholderMap) {
-        if (placeholderMap == null || placeholderMap.isEmpty())
-            return rawText;
-
-        for (Map.Entry<String, Object> entry : placeholderMap.entrySet()) {
-            final String key = entry.getKey();
-            final Object value = entry.getValue();
-
-            if (rawText == null || value instanceof List)
+        final List<String> result = new ArrayList<>();
+        final PlaceholderWrapper wrapper = new PlaceholderWrapper();
+        placeholders.accept(wrapper);
+        for (String text : listOfText) {
+            final Map<String, Object> placeholderMap = wrapper.getPlaceholders();
+            if (placeholderMap.isEmpty()) {
+                result.add(text);
                 continue;
-            if (rawText.contains("{" + key + "}")) {
-                rawText = rawText.replace("{" + key + "}", value != null ? value.toString() : "");
-            } else {
-                rawText = rawText.replace(key, value != null ? value.toString() : "");
             }
-        }
-        return rawText;
-    }
-
-    /**
-     * Checks if the list of strings contains a placeholder from the placeholders array and translates it.
-     * If the placeholder is a list, multiple translations are performed and added to the lore list.
-     *
-     * @param listOfText   The list of  strings.
-     * @param rawText      The text string to check and translate.
-     * @param placeholders The values to replace the placeholders with.
-     * @return True if a placeholder was found and translated, false otherwise.
-     */
-    public static boolean checkListForPlaceholdersAndTranslate(String rawText, List<String> listOfText, Map<String, Object> placeholders) {
-        Map.Entry<String, Object> entry = containsList(placeholders);
-        if (entry == null) return false;
-
-        final String key = entry.getKey();
-        if (rawText.contains("{" + key + "}")) {
-            for (Object text : (List<?>) entry.getValue())
-                listOfText.add(rawText.replace(("{" + key + "}"), (String) text));
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the placeholders array contains a list and returns its index.
-     *
-     * @param placeholders The values to replace the placeholders with.
-     * @return The index of the list in the placeholders array, or -1 if not found.
-     */
-    public static Map.Entry<String, Object> containsList(final Map<String, Object> placeholders) {
-        if (placeholders != null) {
-            for (Map.Entry<String, Object> entry : placeholders.entrySet()) {
-                if (entry.getValue() instanceof List) {
-                    return entry;
-                }
+            List<String> lines = new ArrayList<>();
+            lines.add(text);
+            for (Map.Entry<String, Object> entry : placeholderMap.entrySet()) {
+                lines = applyPlaceholders(lines, entry);
             }
+            result.addAll(lines);
         }
-        return null;
+        return result;
     }
 
-
     /**
-     * Translates placeholders in a raw text by replacing them with corresponding values.
+     * Translates placeholders in a list of strings by replacing them with corresponding values.
      * The placeholders are replaced in the order specified by the placeholders array.
      *
-     * @param rawText      The raw text to translate.
+     * @param listOfText   The list of strings to translate.
+     * @param placeholders The values to replace the placeholders with.
+     * @return The translated list of lore strings.
+     */
+    public static List<String> translateList(final List<String> listOfText, final Object... placeholders) {
+        return translateList(null, listOfText, placeholders);
+    }
+
+
+    /**
+     * Translates placeholders in a list of strings by replacing them with corresponding values.
+     * The placeholders are replaced in the order specified by the placeholders array.
+     *
+     * @param listOfText   The list of strings to translate.
      * @param placeholders The values to replace the placeholders with.
      * @param replacements The pair of replacements for the boolean values.
      *                     The first element will replace 'true' and the second will replace 'false'.
-     * @return The translated text.
+     * @return The translated list of lore strings.
      */
-    public static String translatePlaceholders(Pair<String, String> replacements, String rawText, Object... placeholders) {
-        if (placeholders != null)
-            for (int i = 0; i < placeholders.length; i++) {
-                if (rawText == null || placeholders[i] instanceof List)
-                    continue;
-
-                rawText = rawText.replace("{" + i + "}", placeholders[i] != null ? placeholders[i].toString() : "");
+    public static List<String> translateList(final Pair<String, String> replacements, final List<String> listOfText, final Object... placeholders) {
+        if (listOfText == null) return new ArrayList<>();
+        List<String> result = new ArrayList<>();
+        for (String text : listOfText) {
+            List<String> expandedLines = applyPlaceholders(text, placeholders);
+            for (String line : expandedLines) {
+                if (replacements != null) {
+                    line = replaceBooleans(line, replacements);
+                }
+                result.add(line);
             }
-        if (replacements != null)
-            return replaceBooleans(rawText, replacements);
-        return rawText;
-    }
-
-
-    /**
-     * Checks if the list of strings contains a placeholder from the placeholders array and translates it.
-     * If the placeholder is a list, multiple translations are performed and added to the lore list.
-     *
-     * @param listOfText   The list of  strings.
-     * @param rawText      The text string to check and translate.
-     * @param placeholders The values to replace the placeholders with.
-     * @return True if a placeholder was found and translated, false otherwise.
-     */
-    public static boolean checkListForPlaceholdersAndTranslate(List<String> listOfText, String rawText, Object... placeholders) {
-        int number = containsList(placeholders);
-        if (number < 0) return false;
-
-        if (rawText.contains("{" + number + "}")) {
-            for (Object text : (List<?>) placeholders[number])
-                listOfText.add(rawText.replace(("{" + number + "}"), (String) text));
-            return true;
         }
-        return false;
+        return result;
     }
-
-    /**
-     * Translates placeholders in a raw text by replacing them with corresponding values.
-     * The placeholders are replaced in the order specified by the placeholders array.
-     *
-     * @param rawText      The raw text to translate.
-     * @param placeholders The values to replace the placeholders with.
-     * @return The translated text.
-     */
-    public static String translatePlaceholders(String rawText, Object... placeholders) {
-        return translatePlaceholders(null, rawText, placeholders);
-    }
-
-
-    /**
-     * Checks if the placeholders array contains a list and returns its index.
-     *
-     * @param placeholders The values to replace the placeholders with.
-     * @return The index of the list in the placeholders array, or -1 if not found.
-     */
-    public static int containsList(final Object... placeholders) {
-        if (placeholders != null)
-            for (int i = 0; i < placeholders.length; i++)
-                if (placeholders[i] instanceof List)
-                    return i;
-        return -1;
-    }
-
 
     /**
      * Replaces boolean values in the text with the provided replacements.
@@ -248,19 +146,78 @@ public class PlaceholderTranslator {
      * @return The text with boolean replacements.
      */
     private static String replaceBooleans(String text, Pair<String, String> replacements) {
-        if (text != null) {
-            if (text.contains(TRUE_TEXT)) {
-                return text.replace(TRUE_TEXT, replacements.getFirst());
+        if (text == null) return "";
+        return text.replace(TRUE, replacements.getFirst())
+                .replace(FALSE, replacements.getSecond());
+    }
+
+    /**
+     * Translates placeholders in a raw text by replacing them with corresponding values.
+     * The placeholders are replaced in the order specified by the placeholders array.
+     *
+     * @param rawText        The raw text to translate.
+     * @param placeholderMap The map with key-value, where key is used to fins the placeholder in the provided text.
+     * @return The translated text.
+     */
+    public static String applyPlaceholderMap(String rawText, final Map<String, Object> placeholderMap) {
+        if (placeholderMap == null || placeholderMap.isEmpty())
+            return rawText;
+
+        for (Map.Entry<String, Object> entry : placeholderMap.entrySet()) {
+            final String key = entry.getKey();
+            final Object value = entry.getValue();
+
+            if (rawText == null || value instanceof Collection)
+                continue;
+            if (rawText.contains("{" + key + "}")) {
+                rawText = rawText.replace("{" + key + "}", value != null ? value.toString() : "");
             } else {
-                if (text.contains(FALSE_TEXT)) {
-                    return text.replace(FALSE_TEXT, replacements.getSecond());
-                } else {
-                    return text;
-                }
+                rawText = rawText.replace(key, value != null ? value.toString() : "");
             }
         }
-        return "";
+        return rawText;
     }
+
+
+    private static List<String> applyPlaceholders(String text, Object... placeholders) {
+        List<String> result = new ArrayList<>();
+        result.add(text);
+        for (int i = 0; i < placeholders.length; i++) {
+            Object value = placeholders[i];
+            String key = "{" + i + "}";
+            List<String> newResult = new ArrayList<>();
+            for (String current : result) {
+                if (value instanceof Collection && current.contains(key)) {
+                    for (Object element : (Collection<?>) value) {
+                        newResult.add(current.replace(key, element.toString()));
+                    }
+                } else {
+                    newResult.add(current.replace(key, value != null ? value.toString() : ""));
+                }
+            }
+            result = newResult;
+        }
+        return result;
+    }
+
+    private static List<String> applyPlaceholders(List<String> input, Map.Entry<String, Object> entry) {
+        List<String> result = new ArrayList<>();
+
+        String key =  entry.getKey();
+        Object value = entry.getValue();
+
+        for (String current : input) {
+            if (value instanceof Collection && current.contains(key)) {
+                for (Object element : (Collection<?>) value) {
+                    result.add(current.replace(key, element != null ? element.toString() : ""));
+                }
+            } else {
+                result.add(current.replace(key, value != null ? value.toString() : ""));
+            }
+        }
+        return result;
+    }
+
 
     /**
      * A helper class for managing placeholder key-value pairs.
@@ -280,8 +237,7 @@ public class PlaceholderTranslator {
      * }</pre>
      */
     public static class PlaceholderWrapper {
-
-        private final Map<String, Object> placeholders = new HashMap<>();
+        private final Map<String, Object> placeholders = new LinkedHashMap<>();
 
         /**
          * Adds a placeholder with an integer key.
@@ -290,7 +246,7 @@ public class PlaceholderTranslator {
          * </p>
          *
          * @param placeholderKey the integer key for the placeholder
-         * @param value the value associated with the placeholder
+         * @param value          the value associated with the placeholder
          * @return this {@code PlaceholderWrapper} instance for chaining
          */
         public PlaceholderWrapper put(final int placeholderKey, final Object value) {
@@ -302,7 +258,7 @@ public class PlaceholderTranslator {
          * Adds a placeholder with a string key.
          *
          * @param placeholderKey the string key for the placeholder
-         * @param value the value associated with the placeholder
+         * @param value          the value associated with the placeholder
          * @return this {@code PlaceholderWrapper} instance for chaining
          */
         public PlaceholderWrapper put(final String placeholderKey, final Object value) {
@@ -316,12 +272,12 @@ public class PlaceholderTranslator {
          * This is useful when replacing boolean values with custom string representations.
          * </p>
          *
-         * @param replaceTrue the string to use for {@code true} values
+         * @param replaceTrue  the string to use for {@code true} values
          * @param replaceFalse the string to use for {@code false} values
          */
         public void putBooleans(final String replaceTrue, final String replaceFalse) {
-            placeholders.put(TRUE_TEXT, replaceTrue);
-            placeholders.put(FALSE_TEXT, replaceFalse);
+            placeholders.put(TRUE, replaceTrue);
+            placeholders.put(FALSE, replaceFalse);
         }
 
         /**

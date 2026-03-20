@@ -858,7 +858,7 @@ public abstract class YamlFileManager {
 			}
 		}
 	}
-	
+
     private void deSerializeConfig(final String path, final ConfigurationSection configurationSection, final FileConfiguration config, final Map<String, Object> fileData) {
         Set<String> mapRoots = new HashSet<>();
 
