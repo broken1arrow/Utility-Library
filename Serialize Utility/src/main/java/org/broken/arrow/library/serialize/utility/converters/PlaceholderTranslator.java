@@ -1,9 +1,11 @@
 package org.broken.arrow.library.serialize.utility.converters;
 
+import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.serialize.utility.Pair;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 /**
  * Utility class for replacing string placeholders with corresponding values.
@@ -11,7 +13,7 @@ import java.util.function.Consumer;
  * the position of the value in the placeholders array.
  */
 public class PlaceholderTranslator {
-
+    private static final Logging log = new Logging(PlaceholderTranslator.class);
     private static final String FALSE = "false";
     private static final String TRUE = "true";
 
@@ -169,11 +171,7 @@ public class PlaceholderTranslator {
 
             if (rawText == null || value instanceof Collection)
                 continue;
-            if (rawText.contains("{" + key + "}")) {
-                rawText = rawText.replace("{" + key + "}", value != null ? value.toString() : "");
-            } else {
-                rawText = rawText.replace(key, value != null ? value.toString() : "");
-            }
+            rawText = rawText.replace(key, value != null ? value.toString() : "");
         }
         return rawText;
     }
@@ -203,7 +201,7 @@ public class PlaceholderTranslator {
     private static List<String> applyPlaceholders(List<String> input, Map.Entry<String, Object> entry) {
         List<String> result = new ArrayList<>();
 
-        String key =  entry.getKey();
+        String key = entry.getKey();
         Object value = entry.getValue();
 
         for (String current : input) {
@@ -238,11 +236,13 @@ public class PlaceholderTranslator {
      */
     public static class PlaceholderWrapper {
         private final Map<String, Object> placeholders = new LinkedHashMap<>();
+        private static final Set<String> alreadyWarn = new HashSet<>();
 
         /**
          * Adds a placeholder with an integer key.
          * <p>
-         * The integer key is converted to a string internally.
+         * The integer key is converted to a string internally and will
+         * automatically be wrapped around {}.
          * </p>
          *
          * @param placeholderKey the integer key for the placeholder
@@ -250,7 +250,7 @@ public class PlaceholderTranslator {
          * @return this {@code PlaceholderWrapper} instance for chaining
          */
         public PlaceholderWrapper put(final int placeholderKey, final Object value) {
-            placeholders.put(placeholderKey + "", value);
+            placeholders.put("{" + placeholderKey + "}", value);
             return this;
         }
 
@@ -262,6 +262,7 @@ public class PlaceholderTranslator {
          * @return this {@code PlaceholderWrapper} instance for chaining
          */
         public PlaceholderWrapper put(final String placeholderKey, final Object value) {
+            this.warnAndSuggest(placeholderKey);
             placeholders.put(placeholderKey, value);
             return this;
         }
@@ -287,6 +288,26 @@ public class PlaceholderTranslator {
          */
         public Map<String, Object> getPlaceholders() {
             return placeholders;
+        }
+
+        private void warnAndSuggest(String key) {
+            if (!alreadyWarn.add(key)) return;
+
+            boolean wrapped = (key.startsWith("{") && key.endsWith("}"))
+                    || (key.startsWith("<") && key.endsWith(">"))
+                    || (key.startsWith("[") && key.endsWith("]"))
+                    || (key.startsWith("%") && key.endsWith("%"));
+
+            if (!wrapped) {
+                String suggested = "{" + key + "}";
+                log.log(Level.WARNING, () -> "Warning: placeholder '" + key
+                        + "' is not wrapped in {}, <>, [], or %%. If you use other wrapper symbols, you can safely ignore this. " +
+                        "It is recommended you wrap your key like this: '" + suggested + "'.");
+            }
+        }
+
+        public static void clearPlaceholderWarnings() {
+            alreadyWarn.clear();
         }
     }
 }
