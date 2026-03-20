@@ -16,6 +16,7 @@ public class PlaceholderTranslator {
     private static final Logging log = new Logging(PlaceholderTranslator.class);
     private static final String FALSE = "false";
     private static final String TRUE = "true";
+    private static int SPLIT = -1;
 
     private PlaceholderTranslator() {
     }
@@ -176,6 +177,15 @@ public class PlaceholderTranslator {
         return rawText;
     }
 
+    /**
+     * If the placeholder object is longer than
+     * x amount you can set where it should split.
+     *
+     * @param split either set to grate value than 0, and default is turned off.
+     */
+    public static void setSplit(int split) {
+        PlaceholderTranslator.SPLIT = split;
+    }
 
     private static List<String> applyPlaceholders(String text, Object... placeholders) {
         List<String> result = new ArrayList<>();
@@ -186,7 +196,8 @@ public class PlaceholderTranslator {
             List<String> newResult = new ArrayList<>();
             for (String current : result) {
                 if (value instanceof Collection && current.contains(key)) {
-                    for (Object element : (Collection<?>) value) {
+                    final Collection<?> split = split((Collection<?>) value);
+                    for (Object element : split) {
                         newResult.add(current.replace(key, element.toString()));
                     }
                 } else {
@@ -206,7 +217,7 @@ public class PlaceholderTranslator {
 
         for (String current : input) {
             if (value instanceof Collection && current.contains(key)) {
-                List<?> split = split((Collection<?>) value,10);
+                final Collection<?> split = split((Collection<?>) value);
                 for (Object element : split) {
                     result.add(current.replace(key, element != null ? element.toString() : ""));
                 }
@@ -217,33 +228,10 @@ public class PlaceholderTranslator {
         return result;
     }
 
-    private static List<String> split(Collection<?> input, int maxLineLength) {
-        List<String> output = new ArrayList<>();
-
-        for (Object line : input) {
-            StringTokenizer tok = new StringTokenizer(line + "", " ");
-            StringBuilder currentLine = new StringBuilder();
-
-            while (tok.hasMoreTokens()) {
-                String word = tok.nextToken();
-                String color = "";
-                if (currentLine.length() + word.length() > maxLineLength) {
-                    output.add(currentLine.toString().trim());
-
-                    String start = currentLine.substring(0, Math.min(2, currentLine.length()));
-                    System.out.println("start " + start);
-                    if (start.contains("&") || start.contains("§")) {
-                        color = start;
-                    }
-                    currentLine = new StringBuilder();
-                }
-                currentLine.append(color).append(word).append(" ");
-            }
-            if (currentLine.length() > 0) {
-                output.add(currentLine.toString().trim());
-            }
-        }
-        return output;
+    private static List<?> split(Collection<?> input) {
+        if (SPLIT < 1)
+            return new ArrayList<>(input);
+        return TranslatePlaceholdersItem.split(input, SPLIT);
     }
 
     /**

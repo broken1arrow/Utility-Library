@@ -7,10 +7,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -78,7 +75,7 @@ public class TranslatePlaceholdersItem {
      * @param maxLineLength the maximum allowed length of each line before splitting occurs
      * @return a new list of strings, where long lines are split into multiple shorter lines respecting word boundaries
      */
-    public static List<String> split(final List<?> input, final int maxLineLength) {
+    public static List<String> split(final Collection<?> input, final int maxLineLength) {
         List<String> output = new ArrayList<>();
 
         for (Object line : input) {
