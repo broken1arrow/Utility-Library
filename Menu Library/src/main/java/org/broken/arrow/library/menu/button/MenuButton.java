@@ -92,4 +92,24 @@ public abstract class MenuButton {
 	public int getId(){
 		return id;
 	}
+
+	@Override
+	public String toString() {
+		return "MenuButton{" +
+				"id=" + id +
+				'}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof MenuButton)) return false;
+		MenuButton that = (MenuButton) o;
+		return id == that.id;
+	}
+
+	@Override
+	public int hashCode() {
+		return Integer.hashCode(id);
+	}
 }

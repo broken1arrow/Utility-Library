@@ -57,7 +57,7 @@ public class MenuUtility<T> {
 
     private final MenuRenderer<T> menuRenderer;
     private final CheckItemsInsideMenu checkItemsInsideMenu;
-    private final List<MenuButton> buttonsToUpdate = new ArrayList<>();
+    private List<MenuButton> buttonsToUpdate = new ArrayList<>();
     private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
     private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
     private final MenuInteractionChecks<T> menuInteractionChecks;
@@ -82,6 +82,7 @@ public class MenuUtility<T> {
     protected boolean ignoreItemCheck;
     protected boolean autoTitleCurrentPage;
     protected boolean useColorConversion;
+    protected boolean fullyRefreshButtons;
 
     protected int animateButtonTime = 20;
     protected int slotIndex;
@@ -317,7 +318,7 @@ public class MenuUtility<T> {
     }
 
     /**
-     * Get slot this menu button is added to, if you want get all slots this button is set to
+     * Get slot this menu button is added to, if you want to get all slots this button is set to
      * use {@link #getButtonSlots(MenuDataUtility, MenuButton)} (MenuButton)}.
      * Because this only return first match.
      *
@@ -378,6 +379,13 @@ public class MenuUtility<T> {
      */
     public List<MenuButton> getButtonsToUpdate() {
         return buttonsToUpdate;
+    }
+
+    /**
+     * Clear all set buttons.
+     */
+    public void clearButtonsToUpdate() {
+        buttonsToUpdate = new ArrayList<>();
     }
 
     /**
@@ -601,6 +609,25 @@ public class MenuUtility<T> {
     @Deprecated
     public int getSlot(final int slot) {
         return (this.getPageNumber() * this.getInventorySize()) + slot;
+    }
+
+    /**
+     * Retrieve if it set to refresh the buttons.
+     *
+     * @return true if it shall refresh the buttons.
+     */
+    public boolean isFullyRefreshButtons() {
+        return fullyRefreshButtons;
+    }
+
+    /**
+     * If it shall fully refresh the set buttons set in the menu when
+     * update the button.
+     *
+     * @param fullyRefreshButtons set to tru if it shall refresh buttons.
+     */
+    public void setFullyRefreshButtons(boolean fullyRefreshButtons) {
+        this.fullyRefreshButtons = fullyRefreshButtons;
     }
 
     /**
@@ -915,9 +942,7 @@ public class MenuUtility<T> {
         final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex, isFillSlot);
 
         if (menuButton != null) {
-            if (menuButton.shouldUpdateButtons()) this.buttonsToUpdate.add(menuButton);
-
-            menuDataUtility.putButton(slot, menuButton, tButtonDataWrapper -> tButtonDataWrapper.setItemStack(result));
+            menuDataUtility.putButton(slot, menuButton,menuButton.getId(), tButtonDataWrapper -> tButtonDataWrapper.setItemStack(result));
         }
     }
 

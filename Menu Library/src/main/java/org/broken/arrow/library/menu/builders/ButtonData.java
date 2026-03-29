@@ -100,7 +100,7 @@ public class ButtonData<T> {
      * Create a copy with your new itemstack set.
      *
      * @param itemStack the itemstack to replace the old menu button item with.
-     * @return new instance of this class where it copy the old button instance and the object/fill item.
+     * @return new instance of this class where it copies the old button instance and the object/fill item.
      */
     public ButtonData<T> copy(final ItemStack itemStack) {
         return new ButtonData<>(this.menuButtonLinkedToThisItem, itemStack, this.isFillButton, this.object);

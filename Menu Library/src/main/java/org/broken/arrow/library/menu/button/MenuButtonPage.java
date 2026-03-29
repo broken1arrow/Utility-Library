@@ -45,8 +45,8 @@ public abstract class MenuButtonPage<T> extends MenuButton {
     /**
      * Retrieves the item that is associated with the specified fill item.
      *
-     * @param fillItem The fill item for which the itemstack will presents the object in your implementation.
-     * @return The itemstack associated with the fill item, or null if not match your preferences.
+     * @param fillItem The fill item for which the itemStack will present the object in your implementation.
+     * @return The itemStack associated with the fill item, or null if not match your preferences.
      */
     @Nullable
     public ItemStack getItem(@Nonnull final T fillItem) {
@@ -57,7 +57,7 @@ public abstract class MenuButtonPage<T> extends MenuButton {
      * Retrieves the item that is associated with the specified fill item and slot.
      *
      * @param slot     The slot number where the item is added. This number can exceed the inventory size.
-     * @param fillItem The fill item for which the itemstack will presents the object in your implementation.
+     * @param fillItem The fill item for which the itemstack will present the object in your implementation.
      * @return The itemstack associated with the fill item and slot, or null if not found.
      */
     @Nullable

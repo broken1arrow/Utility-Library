@@ -32,6 +32,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
+import java.util.logging.Level;
 
 /**
  * A library for the Bukkit API to create player skulls
@@ -294,6 +295,7 @@ public class SkullCreator {
                 }
             }
             ((Skull) skullState).setOwnerProfile(profile);
+            skullState.update(true,false);
             return;
         }
         Skull skull = (Skull) skullState;
@@ -495,14 +497,25 @@ public class SkullCreator {
      * @param b64   The base64 texture string.
      */
     private static void mutateBlockState(Skull block, String b64) {
+        if (checks.isHasOwnerProfileSupport()) {
+            try {
+                block.setOwnerProfile(makePlayerProfile(b64));
+            } catch (MalformedURLException ex2) {
+                LOG.log(ex2, () -> "Can't invoke the profile from the SkullMeta.");
+            }
+            return;
+        }
         try {
             if (blockProfileField == null) {
                 blockProfileField = block.getClass().getDeclaredField(PROFILE);
                 blockProfileField.setAccessible(true);
             }
             blockProfileField.set(block, makeProfile(b64));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            LOG.log(e, () -> "Failed to change the skull block");
+        } catch (NoSuchMethodError | NoSuchFieldException | IllegalAccessException e) {
+            if (e instanceof Exception)
+                LOG.log((Exception) e, () -> "Failed to change the skull block");
+            else
+                LOG.log(Level.WARNING, () -> "Failed to change the skull block, as 'getProperties()' method not exist in this Minecraft version.");
         }
     }
 

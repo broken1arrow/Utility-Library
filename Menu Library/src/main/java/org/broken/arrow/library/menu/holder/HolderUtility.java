@@ -109,8 +109,10 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         onMenuOpenPlaySound();
         setMetadataKey(MenuMetadataKey.MENU_OPEN.name());
 
-        if (!getButtonsToUpdate().isEmpty())
+        final MenuDataUtility<T> menuData = getMenuData(player);
+        if (menuData != null && !menuData.getButtonsToUpdate().isEmpty())
             this.updateButtonsInList();
+
         this.runAnimateTitle();
 
         Bukkit.getScheduler().runTaskLater(menuAPI.getPlugin(), () -> this.updateTitle(), 1);
@@ -389,7 +391,6 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         changePage(true);
     }
 
-
     /**
      * Update only one button. Set this inside the {@link MenuButton#onClickInsideMenu(Player, Inventory, ClickType, ItemStack)}
      * method and use this to tell what button some shall be updated.
@@ -406,29 +407,16 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         if (menuDataUtility != null && menu != null) {
             if (!buttonSlots.isEmpty()) {
                 for (final int slot : buttonSlots) {
-                    final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
-                    if (buttonData == null) return;
-
-                    final ItemStack menuItem = getMenuItem(menuButton, buttonData, slot, true);
-                    menu.setItem(slot, menuItem);
-                    menuDataUtility.putButton(slot, buttonData.copy(menuItem));
+                    refreshButton(menuButton, menuDataUtility, menu, slot);
                 }
             } else {
                 final int buttonSlot = this.getButtonSlot(page, menuButton);
-                final ButtonData<T> buttonData = menuDataUtility.getButton(buttonSlot);
-                if (buttonData == null) return;
-
-                final ItemStack itemStack = getMenuItem(menuButton, buttonData, buttonSlot, true);
-                menu.setItem(buttonSlot, itemStack);
-                menuDataUtility.putButton(buttonSlot, menuButton, tButtonDataWrapper -> tButtonDataWrapper
-                        .setItemStack(itemStack)
-                        .setObject(buttonData.getObject())
-                        .setFillButton(buttonData.isFillButton())
-                );
+                refreshButton(menuButton, menuDataUtility, menu, buttonSlot);
             }
             this.putAddedButtonsCache(page, menuDataUtility);
         }
     }
+
 
     /**
      * Update all buttons inside the menu.
@@ -526,5 +514,27 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
     @Nullable
     public MenuCacheKey getMenuCacheKey() {
         return this.getLoadInventoryHandler().getMenuCacheKey();
+    }
+
+    private void refreshButton(MenuButton menuButton, MenuDataUtility<T> menuDataUtility, Inventory menu, int slot) {
+        final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
+        if (buttonData == null) return;
+
+        MenuButton buttonAt = menuButton;
+        if (this.isFullyRefreshButtons()) {
+            buttonAt = this.getFillButtonAt(slot);
+            if (buttonAt == null)
+                buttonAt = this.getButtonAt(slot);
+        }
+
+        if (buttonAt != null) {
+            final ItemStack itemStack = getMenuItem(buttonAt, buttonData, slot, true);
+            menu.setItem(slot, itemStack);
+            menuDataUtility.putButton(slot, buttonAt, menuButton.getId(), dataWrapper -> dataWrapper
+                    .setItemStack(itemStack)
+                    .setObject(buttonData.getObject())
+                    .setFillButton(buttonData.isFillButton())
+            );
+        }
     }
 }
