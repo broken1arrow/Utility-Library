@@ -14,12 +14,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -113,20 +111,24 @@ public class ButtonAnimation<T> extends BukkitRunnable {
             return;
         }
 
-        final List<MenuButton> buttons = new ArrayList<>(menuDataUtility.getButtonsToUpdate());
-        for (final MenuButton menuButton : buttons) {
-
+        final Map<Integer, ButtonData<T>> buttons = menuDataUtility.getButtonsToUpdate();
+        final Map<Integer, ButtonAnimationGroup> itemSlots = this.getItemSlotsMap(menuDataUtility, buttons);
+        for (final Map.Entry<Integer, ButtonAnimationGroup> dataEntry : itemSlots.entrySet()) {
+            final MenuButton menuButton = dataEntry.getValue().getMenuButton();
+            if (menuButton == null)
+                continue;
             final Long timeLeft = getTimeWhenUpdatesButton(menuButton);
             if (timeLeft != null && timeLeft == -1) continue;
 
             if (timeLeft == null || timeLeft == 0)
                 putTimeWhenUpdatesButtons(menuButton, counter + getTime(menuButton));
-            else if (counter >= timeLeft && startUpdateButton(menuButton, menuDataUtility, buttonAnimationData)) {
+            else if (counter >= timeLeft && startUpdateButton(buttonAnimationData, dataEntry, menuDataUtility)) {
                 return;
             }
         }
         counter++;
     }
+
 
     /**
      * Gets the mapping of button IDs to the counter tick at which they should next update.
@@ -171,47 +173,37 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         return menuButton.setUpdateTime();
     }
 
-    private boolean startUpdateButton(MenuButton menuButton, MenuDataUtility<T> menuDataUtility, ButtonAnimationData buttonAnimationData) {
-        final Set<Integer> itemSlots = getItemSlotsMap(menuDataUtility, menuButton);
-        return updateButtonsData(buttonAnimationData, menuButton, menuDataUtility, itemSlots);
-    }
-
-    private boolean updateButtonsData(@Nonnull final ButtonAnimationData buttonAnimationData, final MenuButton menuButton, final MenuDataUtility<T> menuDataUtility, final Set<Integer> itemSlots) {
-        if (!itemSlots.isEmpty()) {
-            setButtons(buttonAnimationData, menuButton, menuDataUtility, itemSlots);
-        }
+    private boolean startUpdateButton(final ButtonAnimationData buttonAnimationData, final Map.Entry<Integer, ButtonAnimationGroup> dataEntry, final MenuDataUtility<T> menuDataUtility) {
+        setButtons(buttonAnimationData, menuDataUtility, dataEntry);
         return false;
     }
 
-    private void setButtons(@Nonnull final ButtonAnimationData buttonAnimationData, final MenuButton menuButton, final MenuDataUtility<T> menuDataUtility, Set<Integer> itemSlots) {
-        Inventory menu = buttonAnimationData.getMenu();
+    private void setButtons(@Nonnull final ButtonAnimationData buttonAnimationData, @Nonnull final MenuDataUtility<T> menuDataUtility, @Nonnull final Map.Entry<Integer, ButtonAnimationGroup> dataEntry) {
+        final Inventory menu = buttonAnimationData.getMenu();
+        final ButtonAnimationGroup entryValue = dataEntry.getValue();
+        final MenuButton menuButton = entryValue.getMenuButton();
+
         if (menu == null)
             return;
+        if (menuButton == null)
+            return;
+
         final long time = getTime(menuButton);
-        final Iterator<Integer> slotList = itemSlots.iterator();
+        final Iterator<Integer> slotList = entryValue.getSlots().iterator();
         while (slotList.hasNext()) {
             final Integer slot = slotList.next();
             final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
             if (buttonData == null) continue;
 
-            MenuButton button = menuButton;
-            if (this.menuUtility.isFullyRefreshButtons()) {
-                button = this.menuUtility.getFillSpace().contains(slot) ? this.menuUtility.getFillButtonAt(slot) : null;
-                if (button == null)
-                    button = this.menuUtility.getButtonAt(slot);
-            }
-            if (button == null) continue;
-
-
-            final ItemStack menuItem = getMenuItemStack(button, buttonData, slot);
+            final ItemStack menuItem = getMenuItemStack(menuButton, buttonData, slot);
             menu.setItem(slot, menuItem);
-            menuDataUtility.putButton(slot, button, menuButton.getId(), dataWrapper -> dataWrapper
+            menuDataUtility.putButton(slot, menuButton, menuButton.getId(), dataWrapper -> dataWrapper
                     .setItemStack(menuItem)
                     .setObject(buttonData.getObject())
                     .setFillButton(buttonData.isFillButton()));
-            putTimeWhenUpdatesButtons(button, counter + time);
             slotList.remove();
         }
+        putTimeWhenUpdatesButtons(menuButton, counter + time);
     }
 
     @Nullable
@@ -223,33 +215,57 @@ public class ButtonAnimation<T> extends BukkitRunnable {
      * Get all slots same menu button is connected too.
      *
      * @param menuDataUtility the instance of the cached with all slots and menu data
-     * @param menuButton      the menu buttons you want to match with.
-     * @return set of slots that match same menu button.
+     * @param buttons         the menu buttons you want to match with.
+     * @return map of slots that match same menu button.
      */
-    @Nonnull
-    private Set<Integer> getItemSlotsMap(final MenuDataUtility<T> menuDataUtility, final MenuButton menuButton) {
-        final Set<Integer> slotList = new HashSet<>();
-        if (menuDataUtility == null) return slotList;
+    private Map<Integer, ButtonAnimationGroup> getItemSlotsMap(@Nonnull final MenuDataUtility<T> menuDataUtility, @Nonnull final Map<Integer, ButtonData<T>> buttons) {
+        final Map<Integer, ButtonAnimationGroup> slotMap = new LinkedHashMap<>();
+        if (buttons.isEmpty()) return slotMap;
 
         for (int slot = 0; slot < inventorySize; slot++) {
-            final ButtonData<T> addedButtons = menuDataUtility.getButton(slot);
-            if (addedButtons == null) continue;
+            final ButtonData<T> buttonData = buttons.get(slot);
+            if (buttonData == null) continue;
 
-            final MenuButton cacheMenuButton = addedButtons.getMenuButton();
-            final MenuButton fillMenuButton = menuDataUtility.getFillMenuButton(slot);
-            final int menuButtonId = menuButton.getId();
-            if (isValidButton(cacheMenuButton, fillMenuButton, menuButtonId)) {
-                slotList.add(slot);
+            MenuButton resolvedButton = buttonData.getMenuButton();
+            if (this.menuUtility.isFullyRefreshButtons()) {
+                resolvedButton = this.menuUtility.getFillSpace().contains(slot)
+                        ? this.menuUtility.getFillButtonAt(slot)
+                        : null;
+
+                if (resolvedButton == null)
+                    resolvedButton = this.menuUtility.getButtonAt(slot);
+            } else if (resolvedButton == null) {
+                resolvedButton = menuDataUtility.getFillMenuButton(slot);
             }
+            if (resolvedButton == null) continue;
+            final int buttonID = resolvedButton.getId();
+            final MenuButton finalResolvedButton = resolvedButton;
+
+            slotMap.computeIfAbsent(buttonID, k -> new ButtonAnimationGroup(finalResolvedButton))
+                    .add(slot);
         }
-        return slotList;
+        return slotMap;
     }
 
-    private boolean isValidButton(final MenuButton cacheMenuButton, final MenuButton fillMenuButton, final int menuButtonId) {
-        if (cacheMenuButton == null && fillMenuButton != null) {
-            return fillMenuButton.getId() == menuButtonId;
+    private static class ButtonAnimationGroup {
+        List<Integer> slots = new ArrayList<>();
+        MenuButton menuButton;
+
+        public ButtonAnimationGroup(final MenuButton menuButton) {
+            this.menuButton = menuButton;
         }
 
-        return cacheMenuButton != null && menuButtonId == cacheMenuButton.getId();
+        public void add(int slot) {
+            slots.add(slot);
+        }
+
+        public List<Integer> getSlots() {
+            return slots;
+        }
+
+        public MenuButton getMenuButton() {
+            return menuButton;
+        }
     }
+
 }

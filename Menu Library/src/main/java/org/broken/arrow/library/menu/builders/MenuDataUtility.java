@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -217,20 +218,17 @@ public final class MenuDataUtility<T> {
     /**
      * Retrieve a set of buttons that should be updated.
      *
-     * @return a set of menu buttons that currently shall be updated.
+     * @return a map of menu buttons that currently shall be updated.
      */
-    public Set<MenuButton> getButtonsToUpdate() {
-        Set<MenuButton> menuButtons = new HashSet<>();
-        for (ButtonData<T> buttonData : buttons.values()) {
-            MenuButton menuButton = buttonData.getMenuButton();
-            if (menuButton != null && menuButton.shouldUpdateButtons()) {
-                menuButtons.add(menuButton);
-            }
-        }
-
-        return menuButtons;
+    public Map<Integer, ButtonData<T>> getButtonsToUpdate() {
+        final Map<Integer, ButtonData<T>> buttonList = new LinkedHashMap<>();
+        buttons.entrySet().stream().filter(MenuDataUtility::shouldBeUpdated)
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(buttonDataEntry ->
+                        buttonList.put(buttonDataEntry.getKey(), buttonDataEntry.getValue())
+                );
+        return buttonList;
     }
-
 
     /**
      * Retrieves the {@link MenuButton} shown at the given slot,
@@ -258,6 +256,10 @@ public final class MenuDataUtility<T> {
                 ", fillMenuButton=" + fillMenuButton +
                 ", fillMenuButtons=" + fillMenuButtons +
                 '}';
+    }
+
+    private static <T> boolean shouldBeUpdated(Map.Entry<Integer, ButtonData<T>> buttonData) {
+        return buttonData.getValue().getMenuButton() != null && buttonData.getValue().getMenuButton().shouldUpdateButtons();
     }
 
 }
