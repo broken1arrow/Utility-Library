@@ -1,6 +1,6 @@
 # Utility-Library
 
-[![Static Badge](https://img.shields.io/badge/Repsy-0.130-brightgreen?style=flat&logo=codio&logoColor=%23b112cf&labelColor=gray)](https://repo.repsy.io/mvn/broken-arrow/utility-library/org/broken/arrow/library/)
+[![Static Badge](https://img.shields.io/badge/Repsy-0.131-brightgreen?style=flat&logo=codio&logoColor=%23b112cf&labelColor=gray)](https://repo.repsy.io/mvn/broken-arrow/utility-library/org/broken/arrow/library/)
 [![Java CI with Gradle](https://github.com/broken1arrow/Utility-Library/actions/workflows/gradle.yml/badge.svg)](https://github.com/broken1arrow/Utility-Library/actions/workflows/gradle.yml)
 
 To import the library, please refer to the wiki for more details. If you want to compile specific modules only, you can find more information there as well. 
@@ -35,7 +35,7 @@ If you do want to use the Utility Library plugin, you can follow the instruction
 
 ```kotlin
 repositories {
-    maven { url = uri("https://repo.repsy.io") }
+    maven { url = uri("https://repo.repsy.io/broken-arrow/utility-librar") }
 }
 
 dependencies {
