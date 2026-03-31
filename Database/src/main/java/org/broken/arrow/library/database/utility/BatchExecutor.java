@@ -255,6 +255,26 @@ public class BatchExecutor<T> {
     }
 
     /**
+     * Removes matching rows from the specified table based on a value and a where clause.
+     *
+     * @param tableName   the database table name.
+     * @param whereClause the where clause applier to select the row.
+     */
+    public void remove(@Nonnull final String tableName,@Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+        final SqlQueryTable table = this.database.getTableFromName(tableName);
+        if (table == null) {
+            this.printFailFindTable(tableName);
+            return;
+        }
+
+        final SqlHandler sqlHandler = new SqlHandler(tableName, database);
+        List<SqlQueryPair> queryList = new ArrayList<>();
+        queryList.add(sqlHandler.removeRow(whereClause));
+        this.executeDatabaseTasks(queryList);
+    }
+
+
+    /**
      * Drops the entire table with the specified name.
      *
      * @param tableName the database table name to drop.

@@ -11,6 +11,8 @@ import org.broken.arrow.library.database.builders.wrappers.SaveSetup;
 import org.broken.arrow.library.database.connection.HikariCP;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
+import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.core.databases.H2DB;
@@ -421,6 +423,32 @@ public abstract class Database {
             return;
         }
         batchExecutor.remove(tableName, value, table::createWhereClauseFromPrimaryColumns);
+    }
+
+    /**
+     * Remove rows from specified database table.
+     *
+     * @param tableName   name of the table you want to get data from.
+     * @param whereClause build your where clause for the conditions needed to match.
+     */
+    public void remove(@Nonnull final String tableName, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+        BatchExecutor<DataWrapper> batchExecutor;
+        Connection connection = this.attemptToConnect();
+        if (connection == null) {
+            return;
+        }
+        if (this.secureQuery)
+            batchExecutor = new BatchExecutor<>(this, connection, new ArrayList<>());
+        else {
+            batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
+        }
+        final SqlQueryTable table = this.getTableFromName(tableName);
+
+        if (table == null) {
+            this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
+            return;
+        }
+        batchExecutor.remove(tableName, whereClause);
     }
 
     /**
