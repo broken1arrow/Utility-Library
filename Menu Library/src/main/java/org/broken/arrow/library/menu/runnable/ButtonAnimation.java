@@ -113,10 +113,9 @@ public class ButtonAnimation<T> extends BukkitRunnable {
 
         final Map<Integer, ButtonData<T>> buttons = menuDataUtility.getButtonsToUpdate();
         final Map<Integer, ButtonAnimationGroup> itemSlots = this.getItemSlotsMap(menuDataUtility, buttons);
+
         for (final Map.Entry<Integer, ButtonAnimationGroup> dataEntry : itemSlots.entrySet()) {
             final MenuButton menuButton = dataEntry.getValue().getMenuButton();
-            if (menuButton == null)
-                continue;
             final Long timeLeft = getTimeWhenUpdatesButton(menuButton);
             if (timeLeft != null && timeLeft == -1) continue;
 
@@ -185,8 +184,6 @@ public class ButtonAnimation<T> extends BukkitRunnable {
 
         if (menu == null)
             return;
-        if (menuButton == null)
-            return;
 
         final long time = getTime(menuButton);
         final Iterator<Integer> slotList = entryValue.getSlots().iterator();
@@ -251,7 +248,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         List<Integer> slots = new ArrayList<>();
         MenuButton menuButton;
 
-        public ButtonAnimationGroup(final MenuButton menuButton) {
+        public ButtonAnimationGroup(@Nonnull final MenuButton menuButton) {
             this.menuButton = menuButton;
         }
 
@@ -259,10 +256,12 @@ public class ButtonAnimation<T> extends BukkitRunnable {
             slots.add(slot);
         }
 
+        @Nonnull
         public List<Integer> getSlots() {
             return slots;
         }
 
+        @Nonnull
         public MenuButton getMenuButton() {
             return menuButton;
         }
