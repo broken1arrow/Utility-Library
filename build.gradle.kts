@@ -119,7 +119,7 @@ subprojects {
                 mavenLocal()
                 maven {
                     name = "repsy"
-                    url = uri(project.findProperty("repsyUrl")?.toString() ?:"https://repo.repsy.io/")
+                    url = uri(project.findProperty("repoUrl")?.toString() ?:"https://repo.repsy.io/")
                     credentials {
                         username = System.getenv("REPO_USER").takeIf { !it.isNullOrBlank() }
                             ?: project.findProperty("repoUser")?.toString()
