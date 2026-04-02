@@ -17,10 +17,22 @@ import javax.annotation.Nullable;
  * @param <T>  The type of data being rendered as the object connected to the item.
  */
 public class ButtonDataWrapper<T> {
-    private final MenuButton menuButton;
+    private MenuButton menuButton;
     private  ItemStack itemStack;
     private  boolean isFillButton;
     private  T object;
+
+    /**
+     * Constructs a new {@code ButtonDataWrapper} for the specified menu button.
+     *
+     * @param buttonData the menu button associated with this wrapper; must not be {@code null}.
+     */
+    public ButtonDataWrapper(@Nonnull final ButtonData<T> buttonData) {
+        this.menuButton = buttonData.getMenuButton();
+        this.itemStack = buttonData.getItemStack();
+        this.isFillButton = buttonData.isFillButton();
+        this.object = buttonData.getObject();
+    }
 
     /**
      * Constructs a new {@code ButtonDataWrapper} for the specified menu button.
@@ -34,10 +46,19 @@ public class ButtonDataWrapper<T> {
     /**
      * Gets the {@link MenuButton} associated with this wrapper.
      *
-     * @return the menu button; never {@code null}.
+     * @return the menu button, never {@code null}.
      */
     public MenuButton getMenuButton() {
         return menuButton;
+    }
+
+    /**
+     * Set the {@link MenuButton} associated with this wrapper.
+     *
+     * @param  menuButton the menu button instance.
+     */
+    public void setMenuButton(@Nonnull final MenuButton menuButton) {
+        this.menuButton = menuButton;
     }
 
     /**

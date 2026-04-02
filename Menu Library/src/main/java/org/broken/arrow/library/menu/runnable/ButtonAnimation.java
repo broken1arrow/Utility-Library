@@ -80,7 +80,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
     }
 
     /**
-     * Set an dynamic animation for the buttons as an option.
+     * Set a dynamic custom animation for the buttons as an option.
      *
      * @param dataSupplier the custom task to run instead of the default one.
      */
@@ -96,14 +96,11 @@ public class ButtonAnimation<T> extends BukkitRunnable {
     @Override
     public void run() {
         ButtonAnimationData buttonAnimationData = this.dataSupplier.get();
-        if (buttonAnimationData == null) {
+        if (buttonAnimationData == null || !buttonAnimationData.isSet()) {
             cancel();
             return;
         }
-        if (!buttonAnimationData.isSet()) {
-            cancel();
-            return;
-        }
+
         int pageNumber = buttonAnimationData.getPage();
         final MenuDataUtility<T> menuDataUtility = menuUtility.getMenuData(null, pageNumber);
         if (menuDataUtility == null) {
@@ -116,11 +113,11 @@ public class ButtonAnimation<T> extends BukkitRunnable {
 
         for (final Map.Entry<Integer, ButtonAnimationGroup> dataEntry : itemSlots.entrySet()) {
             final MenuButton menuButton = dataEntry.getValue().getMenuButton();
-            final Long timeLeft = getTimeWhenUpdatesButton(menuButton);
+            final Long timeLeft = getUpdateTime(menuButton);
             if (timeLeft != null && timeLeft == -1) continue;
 
             if (timeLeft == null || timeLeft == 0)
-                putTimeWhenUpdatesButtons(menuButton, counter + getTime(menuButton));
+                updateScheduledTime(menuButton);
             else if (counter >= timeLeft && startUpdateButton(buttonAnimationData, dataEntry, menuDataUtility)) {
                 return;
             }
@@ -146,18 +143,44 @@ public class ButtonAnimation<T> extends BukkitRunnable {
      * @return the counter tick for next update, or null if none scheduled
      */
     @Nullable
-    public Long getTimeWhenUpdatesButton(final MenuButton menuButton) {
-        return getTimeWhenUpdatesButtons().getOrDefault(menuButton.getId(), null);
+    public Long getUpdateTime(final MenuButton menuButton) {
+        return this.getTimeWhenUpdatesButtons().get(menuButton.getId());
     }
 
     /**
      * Sets the scheduled counter tick when the specified button should update next.
      *
      * @param menuButton the button to schedule for update
-     * @param time       the counter tick at which update should occur
      */
-    protected void putTimeWhenUpdatesButtons(final MenuButton menuButton, final Long time) {
-        this.getTimeWhenUpdatesButtons().put(menuButton.getId(), time);
+    public void updateScheduledTime(final MenuButton menuButton) {
+        this.getTimeWhenUpdatesButtons().put(menuButton.getId(), this.counter + getTime(menuButton));
+    }
+
+    /**
+     * Sets the scheduled counter tick when the specified button should update next.
+     *
+     * @param menuButton  the button to schedule for update
+     * @param carriedTime set time to use instead of current time or will use defoult time.
+     */
+    public void updateScheduledTime(final MenuButton menuButton, final long carriedTime) {
+        this.getTimeWhenUpdatesButtons().compute(menuButton.getId(), (id, existingTime) -> {
+            if (existingTime != null) {
+                return existingTime;
+            }
+            if (carriedTime > 0) {
+                return carriedTime;
+            }
+            return this.counter + getTime(menuButton);
+        });
+    }
+
+    /**
+     * Remove the set button time.
+     *
+     * @param menuButton the button to remove.
+     */
+    public void removeUpdateTime(@Nonnull final MenuButton menuButton) {
+        this.getTimeWhenUpdatesButtons().remove(menuButton.getId());
     }
 
     /**
@@ -185,8 +208,8 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         if (menu == null)
             return;
 
-        final long time = getTime(menuButton);
         final Iterator<Integer> slotList = entryValue.getSlots().iterator();
+
         while (slotList.hasNext()) {
             final Integer slot = slotList.next();
             final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
@@ -194,13 +217,10 @@ public class ButtonAnimation<T> extends BukkitRunnable {
 
             final ItemStack menuItem = getMenuItemStack(menuButton, buttonData, slot);
             menu.setItem(slot, menuItem);
-            menuDataUtility.putButton(slot, menuButton, menuButton.getId(), dataWrapper -> dataWrapper
-                    .setItemStack(menuItem)
-                    .setObject(buttonData.getObject())
-                    .setFillButton(buttonData.isFillButton()));
+            menuDataUtility.updateButton(slot, menuButton, dataWrapper -> dataWrapper.setItemStack(menuItem));
             slotList.remove();
         }
-        putTimeWhenUpdatesButtons(menuButton, counter + time);
+        this.updateScheduledTime(menuButton);
     }
 
     @Nullable
@@ -224,7 +244,12 @@ public class ButtonAnimation<T> extends BukkitRunnable {
             if (buttonData == null) continue;
 
             MenuButton resolvedButton = buttonData.getMenuButton();
-            if (this.menuUtility.isFullyRefreshButtons()) {
+            final long carriedScheduledTime = getCurrentTime(resolvedButton);
+            final boolean refreshButtons = this.menuUtility.isFullyRefreshButtons();
+            if (refreshButtons) {
+                if (resolvedButton != null) {
+                    this.removeUpdateTime(resolvedButton);
+                }
                 resolvedButton = this.menuUtility.getFillSpace().contains(slot)
                         ? this.menuUtility.getFillButtonAt(slot)
                         : null;
@@ -238,10 +263,27 @@ public class ButtonAnimation<T> extends BukkitRunnable {
             final int buttonID = resolvedButton.getId();
             final MenuButton finalResolvedButton = resolvedButton;
 
-            slotMap.computeIfAbsent(buttonID, k -> new ButtonAnimationGroup(finalResolvedButton))
-                    .add(slot);
+            this.updateScheduledTime(resolvedButton, carriedScheduledTime);
+            slotMap.computeIfAbsent(buttonID, k -> new ButtonAnimationGroup(finalResolvedButton)).add(slot);
+            menuDataUtility.updateButton(slot, finalResolvedButton, (dataWrapper) -> dataWrapper.setMenuButton(finalResolvedButton));
         }
         return slotMap;
+    }
+
+
+    private long getCurrentTime(MenuButton resolvedButton) {
+        long time;
+        if (resolvedButton == null) {
+            time = 0;
+        } else {
+            Long updateTime = getUpdateTime(resolvedButton);
+            if (updateTime != null) {
+                time = updateTime;
+            } else {
+                time = 0;
+            }
+        }
+        return time;
     }
 
     private static class ButtonAnimationGroup {

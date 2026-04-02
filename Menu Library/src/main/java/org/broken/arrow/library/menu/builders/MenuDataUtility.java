@@ -1,6 +1,7 @@
 package org.broken.arrow.library.menu.builders;
 
 import org.broken.arrow.library.menu.button.MenuButton;
+import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -107,6 +108,43 @@ public final class MenuDataUtility<T> {
         if (menuButton.shouldUpdateButtons())
             this.buttonsToUpdate.add(menuButton);
 
+        return this;
+    }
+
+    /**
+     * Adds a {@link MenuButton} to the specified slot and allows customization of its associated {@link ButtonData} via a {@link ButtonDataWrapper}.
+     * <p>
+     * This is useful when dynamically constructing buttons with inline configuration logic.
+     * </p>
+     * <p>
+     * If {@link ButtonDataWrapper#isFillButton()} is {@code true}, the method checks whether the provided button should be treated
+     * as the shared {@link #fillMenuButton} or stored in the per-slot {@link #fillMenuButtons} map:
+     * </p>
+     * <ul>
+     *   <li>If the shared {@code fillMenuButton} is {@code null} or matches the provided button, it is set as the shared fill button.</li>
+     *   <li>Otherwise, the provided button is added to the {@code fillMenuButtons} map for the specific slot.</li>
+     * </ul>
+     *
+     * @param slot       the slot to place the button in.
+     * @param menuButton the button to display.
+     * @param buttonData a consumer to configure the {@link ButtonDataWrapper} for this button.
+     * @return the current instance for chaining.
+     */
+    public MenuDataUtility<T> updateButton(final int slot, @Nonnull final MenuButton menuButton, @Nonnull final Consumer<ButtonDataWrapper<T>> buttonData) {
+        final ButtonData<T> oldButton = buttons.get(slot);
+
+        final ButtonDataWrapper<T> buttonDataWrapper = oldButton != null ? new ButtonDataWrapper<>(oldButton) : new ButtonDataWrapper<>(menuButton);
+        buttonData.accept(buttonDataWrapper);
+        buttons.put(slot, buttonDataWrapper.build());
+
+        if (buttonDataWrapper.isFillButton()) {
+            if (this.getFillMenuButton() != null && this.getFillMenuButton().getId() != menuButton.getId()) {
+                if (this.fillMenuButtons == null)
+                    this.fillMenuButtons = new HashMap<>();
+                this.fillMenuButtons.put(slot, menuButton);
+            } else
+                return this.setFillMenuButton(menuButton);
+        }
         return this;
     }
 

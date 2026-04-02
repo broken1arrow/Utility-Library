@@ -292,7 +292,7 @@ public class MenuUtility<T> {
      * Get slots and items inside the cache, on this page.
      *
      * @param pageNumber of the page you want to get the buttons from.
-     * @return map with all set buttons..
+     * @return map with all set buttons.
      */
     public Map<Integer, ButtonData<T>> getMenuButtons(final int pageNumber) {
         final MenuDataUtility<T> utilityMap = this.pagesOfButtonsData.get(pageNumber);
