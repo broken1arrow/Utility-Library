@@ -7,6 +7,7 @@ import org.broken.arrow.library.menu.builders.MenuDataUtility;
 import org.broken.arrow.library.menu.button.MenuButton;
 import org.broken.arrow.library.menu.cache.MenuCache;
 import org.broken.arrow.library.menu.cache.MenuCacheKey;
+import org.broken.arrow.library.menu.event.update.UpdateEvent;
 import org.broken.arrow.library.menu.holder.HolderUtility;
 import org.broken.arrow.library.menu.holder.MenuHolder;
 import org.broken.arrow.library.menu.holder.MenuHolderPage;
@@ -57,7 +58,6 @@ public class MenuUtility<T> {
 
     private final MenuRenderer<T> menuRenderer;
     private final CheckItemsInsideMenu checkItemsInsideMenu;
-    private List<MenuButton> buttonsToUpdate = new ArrayList<>();
     private final Map<Integer, MenuDataUtility<T>> pagesOfButtonsData = new HashMap<>();
     private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
     private final MenuInteractionChecks<T> menuInteractionChecks;
@@ -73,6 +73,7 @@ public class MenuUtility<T> {
     protected Supplier<JsonObject> titleFunctionJson;
     protected Supplier<String> animateTitle;
     protected Supplier<JsonObject> animateTitleJson;
+    protected  UpdateEvent updateEvent;
 
     protected boolean shallCacheItems;
     protected boolean slotsYouCanAddItems;
@@ -83,6 +84,7 @@ public class MenuUtility<T> {
     protected boolean autoTitleCurrentPage;
     protected boolean useColorConversion;
     protected boolean fullyRefreshButtons;
+    protected boolean updated;
 
     protected int animateButtonTime = 20;
     protected int slotIndex;
@@ -100,6 +102,8 @@ public class MenuUtility<T> {
     private String playerMetadataKey;
 
     private int manuallySetPages = -1;
+
+
 
     /**
      * Creates a menu instance.
@@ -129,6 +133,7 @@ public class MenuUtility<T> {
         this.updateTime = -1;
         this.menuOpenSound = new SoundUtility().getMenuOpenSound();
         this.checkItemsInsideMenu = new CheckItemsInsideMenu(menuAPI);
+        this.updateEvent = new UpdateEvent();
     }
 
     /**
@@ -197,10 +202,10 @@ public class MenuUtility<T> {
     }
 
     /**
-     * Get if this menu allow shiftclick or not. Defult will
-     * it allow shiftclick.
+     * Get if this menu allow shift-click or not. Default will
+     * it allow shift click.
      *
-     * @return true if shiftclick shall be allowd.
+     * @return true if shift-click shall be allowed.
      */
 
     public boolean isAllowShiftClick() {
@@ -238,6 +243,15 @@ public class MenuUtility<T> {
      */
     public boolean isIgnoreItemCheck() {
         return ignoreItemCheck;
+    }
+
+    /**
+     * Registers a listener that will be invoked on update.
+     *
+     * @param listener the listener to invoke when an update occurs
+     */
+    public void addListener(@Nonnull final Runnable listener) {
+        this.updateEvent.addListener(listener);
     }
 
     /**
@@ -370,22 +384,6 @@ public class MenuUtility<T> {
             }
         }
         return slots;
-    }
-
-    /**
-     * Get all buttons some shall update when menu is open.
-     *
-     * @return list of buttons some shall be updated when inventory is open.
-     */
-    public List<MenuButton> getButtonsToUpdate() {
-        return buttonsToUpdate;
-    }
-
-    /**
-     * Clear all set buttons.
-     */
-    public void clearButtonsToUpdate() {
-        buttonsToUpdate = new ArrayList<>();
     }
 
     /**
@@ -984,6 +982,7 @@ public class MenuUtility<T> {
 
         this.redrawInventory();
         this.updateTimeButtons();
+        this.updateEvent.markUpdated();
     }
 
     protected void updateTimeButtons() {
@@ -994,8 +993,8 @@ public class MenuUtility<T> {
             cancelTask = true;
         }
         if (cancelTask) {
-            updateButtonsInList();
             this.getTimeWhenUpdatesButtons().clear();
+            updateButtonsInList();
         }
     }
 
@@ -1149,6 +1148,5 @@ public class MenuUtility<T> {
     public Plugin getPlugin() {
         return menuAPI.getPlugin();
     }
-
 
 }

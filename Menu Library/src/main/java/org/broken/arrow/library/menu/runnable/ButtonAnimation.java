@@ -31,6 +31,7 @@ import java.util.function.Supplier;
  */
 public class ButtonAnimation<T> extends BukkitRunnable {
     private final Map<Integer, Long> timeWhenUpdatesButtons = new HashMap<>();
+    private Map<Integer, ButtonAnimationGroup> itemSlots = new HashMap<>();
     private final MenuUtility<T> menuUtility;
     private final int inventorySize;
     private Supplier<ButtonAnimationData> dataSupplier;
@@ -47,6 +48,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         this.menuUtility = menuUtility;
         this.dataSupplier = () -> new ButtonAnimationData(menuUtility.getMenu(), menuUtility.getPageNumber());
         this.inventorySize = menuUtility.getInventorySize();
+        this.checkMenuUpdates(menuUtility);
     }
 
     /**
@@ -109,7 +111,8 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         }
 
         final Map<Integer, ButtonData<T>> buttons = menuDataUtility.getButtonsToUpdate();
-        final Map<Integer, ButtonAnimationGroup> itemSlots = this.getItemSlotsMap(menuDataUtility, buttons);
+        if (itemSlots.isEmpty())
+            itemSlots = this.getItemSlotsMap(menuDataUtility, buttons);
 
         for (final Map.Entry<Integer, ButtonAnimationGroup> dataEntry : itemSlots.entrySet()) {
             final MenuButton menuButton = dataEntry.getValue().getMenuButton();
@@ -307,6 +310,24 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         public MenuButton getMenuButton() {
             return menuButton;
         }
+    }
+
+    private void checkMenuUpdates(MenuUtility<T> menuUtility) {
+        menuUtility.addListener(() -> {
+            if (this.dataSupplier == null) return;
+
+            ButtonAnimationData buttonAnimationData = this.dataSupplier.get();
+            if (buttonAnimationData == null || !buttonAnimationData.isSet()) {
+                return;
+            }
+            int pageNumber = buttonAnimationData.getPage();
+            final MenuDataUtility<T> menuDataUtility = this.menuUtility.getMenuData(null, pageNumber);
+            if (menuDataUtility == null) {
+                return;
+            }
+            final Map<Integer, ButtonData<T>> buttons = menuDataUtility.getButtonsToUpdate();
+            this.itemSlots = this.getItemSlotsMap(menuDataUtility, buttons);
+        });
     }
 
 }

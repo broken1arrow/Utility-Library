@@ -415,6 +415,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
             }
             this.putAddedButtonsCache(page, menuDataUtility);
         }
+       this.updateEvent.markUpdated();
     }
 
 
