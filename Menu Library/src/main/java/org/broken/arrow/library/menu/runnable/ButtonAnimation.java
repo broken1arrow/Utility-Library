@@ -109,10 +109,10 @@ public class ButtonAnimation<T> extends BukkitRunnable {
             cancel();
             return;
         }
-
-        final Map<Integer, ButtonData<T>> buttons = menuDataUtility.getButtonsToUpdate();
-        if (itemSlots.isEmpty())
+        if (itemSlots.isEmpty()) {
+            final Map<Integer, ButtonData<T>> buttons = menuDataUtility.getButtonsToUpdate();
             itemSlots = this.getItemSlotsMap(menuDataUtility, buttons);
+        }
 
         for (final Map.Entry<Integer, ButtonAnimationGroup> dataEntry : itemSlots.entrySet()) {
             final MenuButton menuButton = dataEntry.getValue().getMenuButton();
@@ -211,17 +211,13 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         if (menu == null)
             return;
 
-        final Iterator<Integer> slotList = entryValue.getSlots().iterator();
-
-        while (slotList.hasNext()) {
-            final Integer slot = slotList.next();
+        for (Integer slot : entryValue.getSlots()) {
             final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
             if (buttonData == null) continue;
 
             final ItemStack menuItem = getMenuItemStack(menuButton, buttonData, slot);
             menu.setItem(slot, menuItem);
             menuDataUtility.updateButton(slot, menuButton, dataWrapper -> dataWrapper.setItemStack(menuItem));
-            slotList.remove();
         }
         this.updateScheduledTime(menuButton);
     }
