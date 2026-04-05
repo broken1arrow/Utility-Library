@@ -1,6 +1,6 @@
 # Utility-Library
 
-[![Static Badge](https://img.shields.io/badge/Repsy-0.131-brightgreen?style=flat&logo=codio&logoColor=%23b112cf&labelColor=gray)](https://repo.repsy.io/mvn/broken-arrow/utility-library/org/broken/arrow/library/)
+[![Static Badge](https://img.shields.io/badge/Repsy-0.132-brightgreen?style=flat&logo=codio&logoColor=%23b112cf&labelColor=gray)](https://repo.repsy.io/mvn/broken-arrow/utility-library/org/broken/arrow/library/)
 [![Java CI with Gradle](https://github.com/broken1arrow/Utility-Library/actions/workflows/gradle.yml/badge.svg)](https://github.com/broken1arrow/Utility-Library/actions/workflows/gradle.yml)
 
 To import the library, please refer to the wiki for more details. If you want to compile specific modules only, you can find more information there as well. 
