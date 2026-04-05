@@ -14,6 +14,7 @@ import org.bukkit.SkullType;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -30,6 +31,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -145,11 +147,8 @@ public class SkullCreator {
         notNull(item, "item");
         notNull(name, NAME);
 
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        if (meta != null && checks.isUsingLegacyApi())
-            meta.setOwner(name);
-        else
-            setOwningPlayer(meta, Bukkit.getOfflinePlayer(name));
+        final SkullMeta meta = (SkullMeta) item.getItemMeta();
+        setOwningPlayer(meta, Bukkit.getOfflinePlayer(name));
         item.setItemMeta(meta);
         return item;
     }
@@ -165,10 +164,9 @@ public class SkullCreator {
         notNull(item, "item");
         notNull(id, "id");
 
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
+        final SkullMeta meta = (SkullMeta) item.getItemMeta();
         setOwningPlayer(meta, Bukkit.getOfflinePlayer(id));
         item.setItemMeta(meta);
-
         return item;
     }
 
@@ -229,9 +227,9 @@ public class SkullCreator {
         notNull(block, BLOCK);
         notNull(name, NAME);
 
-        Skull state = (Skull) block.getState();
-        state.setOwningPlayer(Bukkit.getOfflinePlayer(name));
-        state.update(false, false);
+        final Skull skullState = (Skull) block.getState();
+        setOwningPlayer(skullState, Bukkit.getOfflinePlayer(name));
+        skullState.update(true, false);
     }
 
     /**
@@ -245,9 +243,9 @@ public class SkullCreator {
         notNull(id, "id");
 
         setToSkull(block);
-        Skull state = (Skull) block.getState();
-        state.setOwningPlayer(Bukkit.getOfflinePlayer(id));
-        state.update(false, false);
+        final Skull skullState = (Skull) block.getState();
+        setOwningPlayer(skullState, Bukkit.getOfflinePlayer(id));
+        skullState.update(true, false);
     }
 
     /**
@@ -295,7 +293,7 @@ public class SkullCreator {
                 }
             }
             ((Skull) skullState).setOwnerProfile(profile);
-            skullState.update(true,false);
+            skullState.update(true, false);
             return;
         }
         Skull skull = (Skull) skullState;
@@ -325,7 +323,7 @@ public class SkullCreator {
         setToSkull(block);
         Skull state = (Skull) block.getState();
         mutateBlockState(state, base64);
-        state.update(false, false);
+        state.update(true, false);
     }
 
 
@@ -598,14 +596,18 @@ public class SkullCreator {
      * @param meta   The SkullMeta to modify.
      * @param player The OfflinePlayer to set as owner.
      */
-    private static void setOwningPlayer(@Nullable final SkullMeta meta,final OfflinePlayer player) {
-        if(meta == null)
+    private static void setOwningPlayer(@Nullable final SkullMeta meta, final OfflinePlayer player) {
+        if (meta == null)
             return;
         try {
             if (checks.isUsingLegacyApi()) {
                 meta.setOwner(player.getName());
             } else {
-                meta.setOwningPlayer(player);
+                final PlayerProfile profile = Bukkit.createPlayerProfile(player.getUniqueId());
+                meta.setOwnerProfile(profile);
+                if (player.getName() != null) {
+                    meta.setDisplayName("§e" + player.getName() + "'s Head");
+                }
             }
         } catch (Exception ignored) {
             //We ignore the thrown error.
@@ -613,22 +615,26 @@ public class SkullCreator {
     }
 
     /**
-     * Converts a Mojang skin URL to a base64 encoded string for skull textures.
+     * Sets the owning player of the Skull state using the appropriate method depending on Bukkit API version.
      *
-     * @param url The Mojang skin URL.
-     * @return The base64 encoded texture string.
-     * @throws Validate.ValidateExceptions if the URL syntax is invalid.
+     * @param meta   The Skull state to modify.
+     * @param player The OfflinePlayer to set as owner.
      */
-    private static String urlToBase64(String url) {
-        URI actualUrl;
+    private static void setOwningPlayer(@Nullable final Skull meta, final OfflinePlayer player) {
+        if (meta == null)
+            return;
         try {
-            actualUrl = new URI(url);
-        } catch (URISyntaxException e) {
-            throw new Validate.ValidateExceptions(e, "Could not create the Base64 from the url");
+            if (checks.isUsingLegacyApi()) {
+                meta.setOwner(player.getName());
+            } else {
+                final PlayerProfile profile = Bukkit.createPlayerProfile(player.getUniqueId());
+                meta.setOwnerProfile(profile);
+            }
+        } catch (Exception ignored) {
+            //We ignore the thrown error.
         }
-        String toEncode = "{\"textures\":{\"SKIN\":{\"url\":\"" + actualUrl + "\"}}}";
-        return Base64.getEncoder().encodeToString(toEncode.getBytes());
     }
+
 
     /**
      * Creates a PlayerProfile with textures set from the given base64 string.
@@ -690,7 +696,7 @@ public class SkullCreator {
      *   <li>Whether {@link SkullMeta} supports {@code setOwnerProfile(PlayerProfile)}</li>
      *   <li>Whether legacy owner methods such as {@code setOwner(String)} should be used instead</li>
      * </ul>
-     *
+     * <p>
      * The resolved values can safely be reused to apply the correct metadata
      * and material without performing further version checks.
      *
