@@ -47,7 +47,7 @@ public class VersionUtil {
      * @return true if the current server version is equal or newer, false otherwise
      */
     public boolean versionAtLeast(double version) {
-        return version >= this.version;
+        return this.version >= version;
     }
 
     /**

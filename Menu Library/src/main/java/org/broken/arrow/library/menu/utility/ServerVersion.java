@@ -66,4 +66,9 @@ public class ServerVersion {
 	static {
         versionUtil = new VersionUtil();
 	}
+
+	@Override
+	public String toString() {
+		return "ServerVersion{" + versionUtil.getServerVersion() + "}";
+	}
 }
