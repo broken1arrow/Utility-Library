@@ -13,7 +13,7 @@ import org.broken.arrow.library.version.VersionUtil;
  * </p>
  */
 public class ServerVersion {
-    private static final VersionUtil versionUtil ;
+    private static final VersionUtil versionUtil;
 
 	/**
 	 * Checks if the current server version is at least the given version.

@@ -32,6 +32,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,12 +51,13 @@ import java.util.logging.Level;
 public abstract class YamlFileManager {
     private final Logging log = new Logging(YamlFileManager.class);
 
-    private FileConfiguration currentConfig;
+	private FileConfiguration currentConfig;
 	private File currentConfigFile;
 	private final File dataFolder;
 	private boolean shallGenerateFiles;
 	private boolean singleFile;
 	private boolean convertNestedSections;
+	private boolean recursive;
 	private final String path;
 	private final String fileName;
 	private int version;
@@ -92,12 +94,20 @@ public abstract class YamlFileManager {
 		this.shallGenerateFiles = shallGenerateFiles;
 		this.plugin = plugin;
 		this.dataFolder = plugin.getDataFolder();
+
+		String formatedPath = path;
+		if (formatedPath.endsWith("/*")) {
+			recursive = true;
+			formatedPath = path.substring(0, path.length() - 2);
+		}
+
 		if (singleFile)
-			this.fileName = this.getNameOfFile(path);
+			this.fileName = this.getNameOfFile(formatedPath);
 		else
 			this.fileName = "";
-		this.path = this.setExtensionIfExist(path);
-		this.resourcePath = singleFile ? path : this.path;
+
+		this.path = this.setExtensionIfExist(formatedPath);
+		this.resourcePath = singleFile ? formatedPath: this.path;
 		final File folder = this.dataFolder;
 		if (!folder.exists())
 			folder.mkdir();
@@ -588,10 +598,17 @@ public abstract class YamlFileManager {
 		final File folder = new File(this.getDataFolder(), directory);
 		if (!folder.exists() && !directory.isEmpty())
 			folder.mkdirs();
-		if (this.filesFromResource != null)
-			createMissingFiles(folder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension())));
-
-		return folder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension()));
+		if (this.filesFromResource != null) {
+			createMissingFiles(dataFolder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension())));
+		}
+		File[] files;
+		if (this.recursive) {
+			files = getFilesRecursive(dataFolder);
+		} else {
+			files = dataFolder.listFiles(file ->
+					!file.isDirectory() && file.getName().endsWith("." + getExtension()));
+		}
+		return files;
 	}
 
 	/**
@@ -905,5 +922,21 @@ public abstract class YamlFileManager {
         return insideMappedSection;
     }
 
+	private File[] getFilesRecursive(@Nonnull final File folder) {
+		List<File> result = new ArrayList<>();
+
+		File[] files = folder.listFiles();
+		if (files == null) return new File[0];
+
+		for (File file : files) {
+			if (file.isDirectory()) {
+				result.addAll(Arrays.asList(getFilesRecursive(file)));
+			} else if (file.getName().endsWith("." + getExtension())) {
+				result.add(file);
+			}
+		}
+
+		return result.toArray(new File[0]);
+	}
 
 }

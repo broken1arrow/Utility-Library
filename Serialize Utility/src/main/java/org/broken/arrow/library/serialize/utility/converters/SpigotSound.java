@@ -2,6 +2,8 @@ package org.broken.arrow.library.serialize.utility.converters;
 
 import org.bukkit.Sound;
 
+import javax.annotation.Nullable;
+
 /**
  * Get the sound from string.
  */
@@ -15,17 +17,16 @@ public class SpigotSound {
 	 * Get the sound from string.
 	 *
 	 * @param sound the sound name.
-	 * @return bukkit sound.
+	 * @return bukkit sound or {@code null} if was not valid sound type.
 	 */
-	public static Sound getSound(String sound) {
+	@Nullable
+	public static Sound getSound(@Nullable String sound) {
 		if (sound == null) return null;
-		final Sound[] sounds = Sound.values();
 		sound = sound.toUpperCase();
-
-		for (final Sound sound1 : sounds) {
-			if (sound1.name().equals(sound))
-				return sound1;
+		try {
+			return Sound.valueOf(sound);
+		} catch (IllegalArgumentException e) {
+			return null;
 		}
-		return null;
 	}
 }
