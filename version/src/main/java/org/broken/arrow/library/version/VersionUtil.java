@@ -80,8 +80,8 @@ public class VersionUtil {
     /**
      * Returns the parsed server version as a float.
      *
-     * @deprecated  should no longer be used.
      * @return the server version number
+     * @deprecated should no longer be used.
      */
     @Deprecated
     public double getServerVersion() {
@@ -93,8 +93,74 @@ public class VersionUtil {
      *
      * @return a array of the version from major to patch.
      */
-    public int[] getVersion() {
-        return new int[]{major, minor, patch};
+    public Version getVersion() {
+        return new Version();
+    }
+
+    /**
+     * Represents the parsed Minecraft server version.
+     *
+     * <p>This class provides a simplified view of the server version using
+     * major, minor, and patch components.</p>
+     *
+     * <p><strong>Version format handling:</strong></p>
+     * <ul>
+     *   <li>For legacy versions (e.g. 1.21.5): major = 1, minor = 21, patch = 5</li>
+     *   <li>For newer versions (e.g. 26.0.1): major = 26, minor = 0, patch = 1</li>
+     * </ul>
+     *
+     * <p>Note: The meaning of minor and patch differs between legacy and newer
+     * version formats, but their positions remain consistent.
+     * </p>
+     */
+    public class Version {
+
+        /**
+         * Returns the major version number.
+         *
+         * <p>Examples:</p>
+         * <ul>
+         *   <li>1.21.5 → 1</li>
+         *   <li>26.0.1 → 26</li>
+         * </ul>
+         *
+         * @return the major version
+         */
+        public int getMajor() {
+            return major;
+        }
+
+        /**
+         * Returns the minor version number.
+         *
+         * <p>Examples:</p>
+         * <ul>
+         *   <li>1.21.5 → 21</li>
+         *   <li>26.0.1 → 0</li>
+         * </ul>
+         *
+         * @return the minor version
+         */
+        public int getMinor() {
+            return minor;
+        }
+
+        /**
+         * Returns the patch version number.
+         *
+         * <p>Examples:</p>
+         * <ul>
+         *   <li>1.21.5 → 5</li>
+         *   <li>26.0.1 → 1</li>
+         * </ul>
+         *
+         * <p>If the patch version cannot be parsed, this may return 0.</p>
+         *
+         * @return the patch version
+         */
+        public int getPatch() {
+            return patch;
+        }
     }
 
     /**
@@ -125,7 +191,7 @@ public class VersionUtil {
             } catch (NumberFormatException ignore) {
                 patch = 0;
             }
-            version = Double.parseDouble(major + "." +  minor);
+            version = Double.parseDouble(major + "." + minor);
             return;
         }
         setVersionLegacy(firstString, versionPieces);
@@ -166,4 +232,5 @@ public class VersionUtil {
 
         return Integer.compare(this.minor, minor);
     }
+
 }
