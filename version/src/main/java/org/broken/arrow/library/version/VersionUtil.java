@@ -110,8 +110,6 @@ public class VersionUtil {
         else
             versionPieces = plugin.getServer().getBukkitVersion().split("\\.");
 
-        final String firstNumber;
-        String secondNumber;
         final String firstString = versionPieces[1];
         final String mainVersionString = versionPieces[0];
         int majorVersion = Integer.parseInt(mainVersionString);
@@ -130,6 +128,13 @@ public class VersionUtil {
             version = Double.parseDouble(major + "." +  minor);
             return;
         }
+        setVersionLegacy(firstString, versionPieces);
+    }
+
+    private void setVersionLegacy(String firstString, String[] versionPieces) {
+        final String firstNumber;
+        String secondNumber;
+
         if (firstString.contains("-")) {
             int endIndex = firstString.lastIndexOf("-");
             firstNumber = firstString.substring(0, Math.max(endIndex, 1));
