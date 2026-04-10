@@ -94,9 +94,9 @@ public class RegisterNbtAPI {
         if (itemStacks == null) return new ItemStack[0];
 
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(itemStacks)) {
-            return NBT.itemStackArrayFromNBT(NBT.readNBT(  byteArrayInputStream));
+            return NBT.itemStackArrayFromNBT(NBT.readNBT(byteArrayInputStream));
         } catch (IOException e) {
-            logger.log(e,() -> "Could not deserialize the itemStacks.");
+            logger.log(e, () -> "Could not deserialize the itemStacks.");
         }
         return new ItemStack[0];
     }
