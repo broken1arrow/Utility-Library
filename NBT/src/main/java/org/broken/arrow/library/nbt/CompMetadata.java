@@ -8,6 +8,7 @@ import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.logging.Validate.ValidateExceptions;
 import org.broken.arrow.library.nbt.utility.NBTDataWriterWrapper;
 import org.broken.arrow.library.nbt.utility.NBTReaderWrapper;
+import org.broken.arrow.library.version.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -48,7 +49,7 @@ public final class CompMetadata {
      * The tag delimiter
      */
     private static final String DELIMITER = "%-%";
-    private static final float SERVER_VERSION;
+    private static final double SERVER_VERSION;
     private final Plugin plugin;
     private static final String READING_NULL_ITEM = "Reading NBT tag got null item";
     private static final String ITEM_IS_NULL = "Setting NBT tag got null item";
@@ -64,22 +65,7 @@ public final class CompMetadata {
     }
 
     static {
-        final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
-        final String firstNumber;
-        String secondNumber;
-        final String firstString = versionPieces[1];
-        if (firstString.contains("-")) {
-            firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
-
-            secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
-            final int index = secondNumber.toUpperCase().indexOf("R");
-            if (index >= 0) secondNumber = secondNumber.substring(index + 1);
-        } else {
-            final String secondString = versionPieces[2];
-            firstNumber = firstString;
-            secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
-        }
-        SERVER_VERSION = Float.parseFloat(firstNumber + "." + secondNumber);
+        SERVER_VERSION = new VersionUtil().getServerVersion();
     }
     // ----------------------------------------------------------------------------------------
     // Setting metadata
