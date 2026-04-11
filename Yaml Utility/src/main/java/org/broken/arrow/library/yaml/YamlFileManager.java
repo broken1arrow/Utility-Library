@@ -138,6 +138,7 @@ public abstract class YamlFileManager {
 	public void reload() {
 		try {
 			Set<String> fromResource = this.filesFromResource;
+			System.out.println("fromResource " + fromResource);
 			if (fromResource == null || fromResource.isEmpty()) {
 				load(getAllFilesInPluginJar());
 			} else {
@@ -595,17 +596,18 @@ public abstract class YamlFileManager {
 				this.saveResource(this.resourcePath);
 			return new File(checkFile.getParent()).listFiles(file -> !file.isDirectory() && file.getName().equals(getFileName(this.getPathWithExtension())));
 		}
+
 		final File folder = new File(this.getDataFolder(), directory);
 		if (!folder.exists() && !directory.isEmpty())
 			folder.mkdirs();
 		if (this.filesFromResource != null) {
-			createMissingFiles(dataFolder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension())));
+			createMissingFiles(folder.listFiles(file -> !file.isDirectory() && file.getName().endsWith("." + getExtension())));
 		}
 		File[] files;
 		if (this.recursive) {
-			files = getFilesRecursive(dataFolder);
+			files = getFilesRecursive(folder);
 		} else {
-			files = dataFolder.listFiles(file ->
+			files = folder.listFiles(file ->
 					!file.isDirectory() && file.getName().endsWith("." + getExtension()));
 		}
 		return files;
