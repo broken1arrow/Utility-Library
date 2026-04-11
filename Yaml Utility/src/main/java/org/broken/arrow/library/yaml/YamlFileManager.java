@@ -138,7 +138,6 @@ public abstract class YamlFileManager {
 	public void reload() {
 		try {
 			Set<String> fromResource = this.filesFromResource;
-			System.out.println("fromResource " + fromResource);
 			if (fromResource == null || fromResource.isEmpty()) {
 				load(getAllFilesInPluginJar());
 			} else {
