@@ -7,7 +7,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class VersionUtil {
-
     private Version serverVersion;
     private double version;
 
@@ -24,11 +23,56 @@ public class VersionUtil {
      * Constructs a ServerVersion instance by extracting the server version
      * from the provided plugin's server or the default Bukkit server if the plugin is null.
      *
-     * @param plugin the plugin instance to get the server version from; may be null
+     * @param plugin the plugin instance to get the server version from
      */
     public VersionUtil(@Nonnull final Plugin plugin) {
         setServerVersion(plugin);
     }
+
+    /**
+     * Creates a version comparison context for the given version.
+     *
+     * <p><strong>Version format:</strong></p>
+     * <ul>
+     *   <li><b>Legacy versions (≤ 1.21.x):</b> use (minor, patch)<br>
+     *       Example: Minecraft 1.21.5 → {@code compareTo(21, 5)}</li>
+     *   <li><b>Modern versions (≥ 26.x.x):</b> use (major, minor)<br>
+     *       Example: Minecraft 26.0.1 → {@code compareTo(26, 0)}</li>
+     * </ul>
+     *
+     * <p>The meaning of the parameters depends on the Minecraft version format,
+     * but their positions remain consistent.</p>
+     *
+     * @param majorVersion for legacy: Minecraft minor (e.g. 21 in 1.21.x),
+     *                     for modern: actual major version (e.g. 26)
+     * @param minorVersion for legacy: patch version (e.g. 5 in 1.21.5),
+     *                     for modern: minor version (e.g. 0 in 26.0.x)
+     * @return a {@link VersionContext} for chained comparisons
+     */
+    public VersionContext compareTo(int majorVersion, int minorVersion) {
+        return new VersionContext(majorVersion, minorVersion, 0);
+    }
+
+    /**
+     * Creates a version comparison context for the given version.
+     *
+     * <p><strong>Version format:</strong></p>
+     * <ul>
+     *   <li><b>Legacy versions (≤ 1.21.x):</b> use (minor, patch, 0)<br>
+     *       Example: Minecraft 1.21.5 → {@code compareTo(21, 5, 0)}</li>
+     *   <li><b>Modern versions (≥ 26.x.x):</b> use (major, minor, patch)<br>
+     *       Example: Minecraft 26.0.1 → {@code compareTo(26, 0, 1)}</li>
+     * </ul>
+     *
+     * @param majorVersion see {@link #compareTo(int, int)}
+     * @param minorVersion see {@link #compareTo(int, int)}
+     * @param patchVersion patch version (used in modern versions)
+     * @return a {@link VersionContext} for chained comparisons
+     */
+    public VersionContext compareTo(final int majorVersion, final int minorVersion, final int patchVersion) {
+        return new VersionContext(majorVersion, minorVersion, patchVersion);
+    }
+
 
     /**
      * Checks if the current server version is newer than the given version.
@@ -187,6 +231,107 @@ public class VersionUtil {
          */
         public boolean isLegacy() {
             return this.major < 25;
+        }
+    }
+
+    public class VersionContext {
+        private final int major;
+        private final int minor;
+        private final int patch;
+
+        /**
+         * The version context you can compare
+         *
+         * @param major the major version component
+         * @param minor the minor version component
+         * @param patch the patch version component
+         */
+        public VersionContext(int major, int minor, int patch) {
+            this.major = major;
+            this.minor = minor;
+            this.patch = patch;
+        }
+
+        /**
+         * Checks if the current server version is newer than the given version.
+         *
+         * @return true if the current server version is newer, false otherwise
+         */
+        public boolean newer() {
+            final int result = compareVersion();
+            return result > 0;
+        }
+
+        /**
+         * Checks if the current server version is at least the given version.
+         * This means it is either equal to or newer than the given version.
+         *
+         * @return true if the current server version is equal or newer, false otherwise
+         */
+        public boolean atLeast() {
+            final int result = compareVersion();
+            return result >= 0;
+        }
+
+        /**
+         * Checks if the current server version is older than the given version.
+         *
+         * @return true if the current server version is older, false otherwise
+         */
+        public boolean older() {
+            final int result = compareVersion();
+            return result < 0;
+        }
+
+        /**
+         * Checks if the current server version is within the range starting at the
+         * version represented by this instance (inclusive) up to the given upper bound (exclusive).
+         *
+         * <p>Equivalent to: {@code current >= this && current < max}</p>
+         *
+         * <p>This method supports both legacy and modern version formats. The level of
+         * precision depends on how the version is defined (e.g. {@code 21, 10} vs {@code 26, 10}).</p>
+         *
+         * <pre>{@code
+         * version.compareTo(21, 10).until(21, 12);
+         * // true for 21.10 and 21.11, false for 21.12
+         * }</pre>
+         *
+         * @param maxMajor the upper bound major version
+         * @param maxMinor the upper bound minor version
+         * @return true if the current version is within the defined range
+         */
+        public boolean until(int maxMajor, int maxMinor) {
+            return until(maxMajor, maxMinor, 0);
+        }
+
+        /**
+         * Checks if the current server version is within the range starting at the
+         * version represented by this instance (inclusive) up to the given upper bound (exclusive).
+         *
+         * <p>Equivalent to: {@code current >= this && current < max}</p>
+         *
+         * <p>This method supports both legacy and modern version formats. Use the patch
+         * component when finer-grained comparisons are required.</p>
+         *
+         * <pre>{@code
+         * version.compareTo(26, 10, 0).until(26, 12, 0);
+         * // true for 26.10.0 and 26.11.0, false for 26.12.0
+         * }</pre>
+         *
+         * @param maxMajor the upper bound major version
+         * @param maxMinor the upper bound minor version
+         * @param maxPatch the upper bound patch version
+         * @return true if the current version is within the defined range
+         */
+        public boolean until(int maxMajor, int maxMinor, int maxPatch) {
+            int lower = compareVersion();
+            int upper = compare(maxMajor, maxMinor, maxPatch);
+            return lower >= 0 && upper < 0;
+        }
+
+        private int compareVersion() {
+            return compare(this.major, this.minor, this.patch);
         }
     }
 
