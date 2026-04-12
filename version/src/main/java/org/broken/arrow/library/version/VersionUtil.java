@@ -5,14 +5,11 @@ import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 
 public class VersionUtil {
 
+    private Version serverVersion;
     private double version;
-    int major;
-    int minor;
-    int patch;
 
     /**
      * Constructs a ServerVersion instance by extracting the server version
@@ -42,9 +39,7 @@ public class VersionUtil {
     public boolean versionNewer(double version) {
         int[] v = split(version);
         final int major = compare(v[0], v[1], v[1]);
-        if (this.major >= 26)
-            return (this.major > v[0] || (major >=0 && this.minor > v[1]));
-        return (major >= 0 && this.patch > v[1]);
+        return major > 0;
     }
 
     /**
@@ -57,9 +52,7 @@ public class VersionUtil {
     public boolean versionAtLeast(double version) {
         int[] v = split(version);
         final int major = compare(v[0], v[1], v[1]);
-        if (this.major >= 26)
-            return this.major > v[0] || (major >= 0 && this.minor >= v[1]);
-        return (major >= 0 && this.patch >= v[1]);
+        return major >= 0;
     }
 
     /**
@@ -82,9 +75,7 @@ public class VersionUtil {
     public boolean versionOlder(double version) {
         int[] v = split(version);
         final int major = compare(v[0], v[1], v[1]);
-        if (this.major >= 26)
-            return this.major > v[0] || (major == 0 && this.minor < v[1]) || major < 0;
-        return (major == 0 && this.patch < v[1]) || major < 0;
+        return major < 0;
     }
 
     /**
@@ -101,10 +92,10 @@ public class VersionUtil {
     /**
      * Get the version for this Minecraft version
      *
-     * @return a array of the version from major to patch.
+     * @return The version instance.
      */
     public Version getVersion() {
-        return new Version();
+        return serverVersion;
     }
 
     /**
@@ -123,7 +114,23 @@ public class VersionUtil {
      * version formats, but their positions remain consistent.
      * </p>
      */
-    public class Version {
+    public static class Version {
+        private final int major;
+        private final int minor;
+        private final int patch;
+
+        /**
+         * Create new version instance.
+         *
+         * @param major the major version.
+         * @param minor the minor version.
+         * @param patch the path version, where smaller changes is made.
+         */
+        public Version(int major, int minor, int patch) {
+            this.major = major;
+            this.minor = minor;
+            this.patch = patch;
+        }
 
         /**
          * Returns the major version number.
@@ -171,6 +178,16 @@ public class VersionUtil {
         public int getPatch() {
             return patch;
         }
+
+        /**
+         * If its legacy version where it's using the 1.21.5 version instead of
+         * 26.0.1.
+         *
+         * @return {@code true if legacy} other cases false.
+         */
+        public boolean isLegacy() {
+            return this.major < 25;
+        }
     }
 
     /**
@@ -190,18 +207,18 @@ public class VersionUtil {
         final String mainVersionString = versionPieces[0];
         int majorVersion = Integer.parseInt(mainVersionString);
         if (majorVersion > 21) {
-            major = majorVersion;
-            minor = Integer.parseInt(firstString);
+            int minor = Integer.parseInt(firstString);
             String patchString = versionPieces[2];
             if (!patchString.isEmpty() && !Character.isDigit(patchString.charAt(0))) {
                 patchString = patchString.replaceAll("\\D.*", "");
             }
+            int patch = 0;
             try {
                 patch = Integer.parseInt(patchString);
             } catch (NumberFormatException ignore) {
-                patch = 0;
             }
-            version = Double.parseDouble(major + "." + minor);
+            this.serverVersion = new Version(majorVersion, minor, patch);
+            version = Double.parseDouble(majorVersion + "." + minor);
             return;
         }
         setVersionLegacy(firstString, versionPieces);
@@ -225,24 +242,45 @@ public class VersionUtil {
             secondNumber = secondString.substring(0, Math.max(endIndex, 1));
         }
         version = Double.parseDouble(firstNumber + "." + secondNumber);
-        major = 1;
-        minor = Integer.parseInt(firstNumber);
-        patch = Integer.parseInt(secondNumber);
+        int major = 1;
+        int minor = Integer.parseInt(firstNumber);
+        int patch = Integer.parseInt(secondNumber);
+        this.serverVersion = new Version(major, minor, patch);
     }
 
-    private int[] split(double value) {
+    private int[] split(final double value) {
         int major = (int) value;
-        int minor = (int) Math.round((value - major) * 10);
+        int minor = (int) Math.round((value - major) * 100);
         return new int[]{major, minor};
     }
 
-    private int compare(int major, int minor, int patch) {
-        if (this.major < 26)
-            return Integer.compare(this.minor, major);
-        if (this.major != major)
-            return Integer.compare(this.major, major);
+    private int compare(final int major, final int minor, final int patch) {
+        final Version version = getVersion();
+        if (version == null)
+            return -1;
+        if (!version.isLegacy())
+            return compareModern(version, major, minor, patch);
+        else
+            return compareLegacy(version, major, minor);
+    }
 
-        return Integer.compare(this.minor, minor);
+    private int compareLegacy(@Nonnull final Version version, final int major, final int minor) {
+        int versionMinor = version.getMinor();
+        if (versionMinor != major)
+            return Integer.compare(versionMinor, major);
+        return Integer.compare(version.getPatch(), minor);
+    }
+
+    private int compareModern(@Nonnull final Version version, final int major, final int minor, final int patch) {
+        int versionMajor = version.getMinor();
+        int versionMinor = version.getMinor();
+        int versionPatch = version.getPatch();
+        if (versionMajor != major)
+            return Integer.compare(versionMajor, major);
+        if (versionMinor != minor)
+            return Integer.compare(versionMinor, minor);
+
+        return Integer.compare(versionPatch, patch);
     }
 
 }
