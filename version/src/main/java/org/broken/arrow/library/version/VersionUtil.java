@@ -5,6 +5,7 @@ import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
 public class VersionUtil {
 
@@ -40,7 +41,7 @@ public class VersionUtil {
      */
     public boolean versionNewer(double version) {
         int[] v = split(version);
-        return compare(v[0], v[1]) > 0;
+        return compare(v[0], v[1], v[1]) > 0;
     }
 
     /**
@@ -52,7 +53,10 @@ public class VersionUtil {
      */
     public boolean versionAtLeast(double version) {
         int[] v = split(version);
-        return compare(v[0], v[1]) >= 0;
+        System.out.println("version " + version);
+        System.out.println("version spliy " + Arrays.toString(v));
+        System.out.println("compare(v[0], v[1], v[1] " + compare(v[0], v[1], v[1]));
+        return compare(v[0], v[1], v[1]) >= 0;
     }
 
     /**
@@ -74,7 +78,7 @@ public class VersionUtil {
      */
     public boolean versionOlder(double version) {
         int[] v = split(version);
-        return compare(v[0], v[1]) < 0;
+        return compare(v[0], v[1], v[1]) < 0;
     }
 
     /**
@@ -226,7 +230,9 @@ public class VersionUtil {
         return new int[]{major, minor};
     }
 
-    private int compare(int major, int minor) {
+    private int compare(int major, int minor, int patch) {
+        if (this.major < 26)
+            return Integer.compare(this.minor, major);
         if (this.major != major)
             return Integer.compare(this.major, major);
 

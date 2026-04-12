@@ -18,6 +18,7 @@ dependencies {
     api(project(":item-creator"))
     api(project(":title-update"))
     api(project(":log-and-validate"))
+    api(project(":version"))
 
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.com.google.code.gson.gson)
