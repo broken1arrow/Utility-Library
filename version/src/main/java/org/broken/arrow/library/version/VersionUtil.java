@@ -53,9 +53,6 @@ public class VersionUtil {
      */
     public boolean versionAtLeast(double version) {
         int[] v = split(version);
-        System.out.println("version " + version);
-        System.out.println("version spliy " + Arrays.toString(v));
-        System.out.println("compare(v[0], v[1], v[1] " + compare(v[0], v[1], v[1]));
         return compare(v[0], v[1], v[1]) >= 0;
     }
 
