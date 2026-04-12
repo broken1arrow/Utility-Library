@@ -41,7 +41,10 @@ public class VersionUtil {
      */
     public boolean versionNewer(double version) {
         int[] v = split(version);
-        return compare(v[0], v[1], v[1]) > 0;
+        final int major = compare(v[0], v[1], v[1]);
+        if (this.major >= 26)
+            return (this.major > v[0] || (major >=0 && this.minor > v[1]));
+        return (major >= 0 && this.patch > v[1]);
     }
 
     /**
@@ -53,7 +56,10 @@ public class VersionUtil {
      */
     public boolean versionAtLeast(double version) {
         int[] v = split(version);
-        return compare(v[0], v[1], v[1]) >= 0;
+        final int major = compare(v[0], v[1], v[1]);
+        if (this.major >= 26)
+            return this.major > v[0] || (major >= 0 && this.minor >= v[1]);
+        return (major >= 0 && this.patch >= v[1]);
     }
 
     /**
@@ -75,7 +81,10 @@ public class VersionUtil {
      */
     public boolean versionOlder(double version) {
         int[] v = split(version);
-        return compare(v[0], v[1], v[1]) < 0;
+        final int major = compare(v[0], v[1], v[1]);
+        if (this.major >= 26)
+            return this.major > v[0] || (major == 0 && this.minor < v[1]) || major < 0;
+        return (major == 0 && this.patch < v[1]) || major < 0;
     }
 
     /**
