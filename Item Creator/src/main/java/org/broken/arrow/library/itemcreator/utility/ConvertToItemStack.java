@@ -2,6 +2,7 @@ package org.broken.arrow.library.itemcreator.utility;
 
 import com.google.common.base.Enums;
 import org.broken.arrow.library.itemcreator.utility.matrials.Materials;
+import org.broken.arrow.library.version.VersionUtil;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -19,16 +20,15 @@ import static org.broken.arrow.library.itemcreator.utility.matrials.Materials.ch
  */
 @SuppressWarnings("deprecation")
 public class ConvertToItemStack {
-
-    private final double serverVersion;
+    private final boolean older_than_13;
 
     /**
      * Create new instance of the conversion class.
      *
      * @param serverVersion the version is formatted 16.0,17.0,18.0,19.2 and so on.
      */
-    public ConvertToItemStack(final double serverVersion) {
-        this.serverVersion = serverVersion;
+    public ConvertToItemStack(final VersionUtil serverVersion) {
+        this.older_than_13 = serverVersion.compareTo(1, 13, 0).older();
     }
 
     /**
@@ -65,7 +65,7 @@ public class ConvertToItemStack {
      * @return itemStack instance with your set values or null if the object is null or not ItemStack, Material or String.
      */
     @Nullable
-    public ItemStack checkItem(@Nullable final Object object,@Nullable final String color) {
+    public ItemStack checkItem(@Nullable final Object object, @Nullable final String color) {
         return this.checkItem(object, (short) 0, color, null);
     }
 
@@ -80,11 +80,11 @@ public class ConvertToItemStack {
      * @param object of ether ItemStack,Material or String.
      * @param damage the item damage, for older versions it also used to set data on some items.
      * @param color  of your item (if it like glass,wool or concrete as example).
-     * @param data the the item data, should only be used for minecraft versions below 1.13.
+     * @param data   the the item data, should only be used for minecraft versions below 1.13.
      * @return itemStack instance with your set values or null if the object is null or not ItemStack, Material or String.
      */
     @Nullable
-    public ItemStack checkItem(@Nullable final Object object, short damage,@Nullable final String color,@Nullable final Byte data) {
+    public ItemStack checkItem(@Nullable final Object object, short damage, @Nullable final String color, @Nullable final Byte data) {
         if (object == null) {
             return null;
         }
@@ -124,12 +124,12 @@ public class ConvertToItemStack {
      * minecraft version it is. If version is above 1.12 it will just return back same item-stack.
      *
      * @param itemStack the item-stack you want to update.
-     * @param damage the damage value used also as data.
+     * @param damage    the damage value used also as data.
      * @return the item-stack either modified or the original item-stack. Returns {@code null}
      * if the original item-stack is null.
      */
     public ItemStack checkItemStack(final ItemStack itemStack, final short damage) {
-        if (serverVersion < 13.0 && itemStack != null) {
+        if (older_than_13 && itemStack != null) {
             final ItemStack stack = new ItemStack(itemStack.getType(), itemStack.getAmount(), damage);
             final ItemMeta itemMeta = itemStack.getItemMeta();
             if (itemMeta != null)
@@ -143,12 +143,12 @@ public class ConvertToItemStack {
      * Try to receive the item-stack from the string name.
      *
      * @param stringName the enum name of the item-stack.
-     * @param data the data only used if Minecraft version is below 1.13.
+     * @param data       the data only used if Minecraft version is below 1.13.
      * @return the item-stack either modified or the original item-stack. Returns an item-stack
      * with {@code Material.AIR} if the original item-stack is null or could not be found.
      */
     public ItemStack checkString(final String stringName, Byte data) {
-        if (serverVersion < 13.0) {
+        if (older_than_13) {
             final ItemStack stack = createStack(stringName, 1, data);
             if (stack != null)
                 return stack;
@@ -161,7 +161,7 @@ public class ConvertToItemStack {
      *
      * @param item   the 1.13+ item name.
      * @param amount the amount you want to create.
-     * @param data the data on the item, mostly used on legacy versions.
+     * @param data   the data on the item, mostly used on legacy versions.
      * @return ItemStack with the amount or null.
      */
     @Nullable

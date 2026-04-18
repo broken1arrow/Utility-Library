@@ -40,6 +40,7 @@ public class MetaHandler {
     private ShieldMeta shieldMeta;
     private MapWrapperMeta mapMeta;
     private BookMeta bookMeta;
+    private ItemFlagsMeta itemFlagsMeta;
 
     /**
      * Retrieve the banner meta set.
@@ -132,6 +133,7 @@ public class MetaHandler {
         this.enhancements = new EnhancementMeta();
         return this.enhancements;
     }
+
     /**
      * Retrieve the set {@link EnhancementMeta}.
      *
@@ -235,7 +237,7 @@ public class MetaHandler {
      *
      * @param metaFunction a consumer that modifies and returns a value from the {@link BookMeta}.
      */
-    public void setBookMeta(final Consumer<BookMeta>  metaFunction) {
+    public void setBookMeta(final Consumer<BookMeta> metaFunction) {
         BookMeta meta = new BookMeta();
         metaFunction.accept(meta);
         this.bookMeta = meta;
@@ -243,9 +245,9 @@ public class MetaHandler {
 
     /**
      * Initializes and configures the book metadata by using
-     * {@link BookMeta } class.
+     * {@link BookMeta} class.
      *
-     * @return the {@link BookMeta }} where you set the propitiates for your book.
+     * @return the {@link BookMeta } where you set the propitiates for your book.
      */
     public BookMeta createBookMeta() {
         this.bookMeta = new BookMeta();
@@ -261,6 +263,40 @@ public class MetaHandler {
     public BookMeta getBookMeta() {
         return bookMeta;
     }
+
+    /**
+     * Set the flags top hide the different types, like enchants, some properties and
+     * potion effects.
+     *
+     * @param metaFunction a consumer that modifies and returns a value from the {@link ItemFlagsMeta}.
+     */
+    public void setItemFlagsMeta(final Consumer<ItemFlagsMeta> metaFunction) {
+        final ItemFlagsMeta itemFlags = new ItemFlagsMeta();
+        metaFunction.accept(itemFlags);
+        this.itemFlagsMeta = itemFlags;
+    }
+
+    /**
+     * Initializes and configures the item flags metadata by using
+     * {@link ItemFlagsMeta} class.
+     *
+     * @return the {@link ItemFlagsMeta} where you set the item flags you want to hide.
+     */
+    public ItemFlagsMeta createItemFlagsMeta() {
+        this.itemFlagsMeta = new ItemFlagsMeta();
+        return this.itemFlagsMeta;
+    }
+
+    /**
+     * Retrieve the set {@link ItemFlagsMeta} class.
+     *
+     * @return instance of the {@link ItemFlagsMeta} class or {@code null} if not set.
+     */
+    @Nullable
+    public ItemFlagsMeta getItemFlagsMeta() {
+        return itemFlagsMeta;
+    }
+
     /**
      * Applies all configured metadata (if any) to the provided {@link ItemMeta},
      * and updates the {@link ItemStack}'s type when necessary (e.g., for banner base colors).
@@ -297,8 +333,11 @@ public class MetaHandler {
             if (mapMeta != null) {
                 mapMeta.applyMapMeta(itemStack, itemMeta);
             }
-            if(this.bookMeta != null)
+            if (this.bookMeta != null)
                 this.bookMeta.applyBookMenta(itemMeta);
+
+            if (this.itemFlagsMeta != null)
+                this.itemFlagsMeta.applyFlagsMenta(itemMeta);
         }
     }
 

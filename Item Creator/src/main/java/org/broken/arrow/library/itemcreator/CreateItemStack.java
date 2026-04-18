@@ -13,6 +13,7 @@ import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
 import org.broken.arrow.library.itemcreator.utility.nbt.NBTDataWriter;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
+import org.broken.arrow.library.version.VersionUtil;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -31,13 +32,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-
 /**
- * Create items with your set data. When you make a item it will also detect minecraft version
- * and provide help when make items for different minecraft versions (you can ether let it auto convert colors depending
- * on version or hardcode itself).
+ * Create items with your set data. When you make a item it will also detect Minecraft version
+ * and provide help when make items for different Minecraft versions (you can either let it automatically
+ * convert colors depending on version or hardcode itself).
  */
-
 public class CreateItemStack {
     private static final Logging logger = new Logging(CreateItemStack.class);
     private final ItemCreator itemCreator;
@@ -46,9 +45,10 @@ public class CreateItemStack {
     private final Iterable<?> itemArray;
     private final String displayName;
     private final List<String> loreList;
-    private final double serverVersion;
+    private final VersionUtil serverVersion;
     private final boolean haveTextTranslator;
     private final boolean enableColorTranslation;
+    private final boolean newerThan_12;
 
     private String color;
     private List<ItemFlag> itemFlags;
@@ -65,6 +65,7 @@ public class CreateItemStack {
     private boolean keepOldMeta = true;
     private boolean copyOfItem;
 
+
     /**
      * Create an instance for the CreateItemStack that wraps your item creation.
      *
@@ -73,7 +74,8 @@ public class CreateItemStack {
      */
     public CreateItemStack(final ItemCreator itemCreator, final ItemBuilder itemBuilder) {
         this.itemCreator = itemCreator;
-        this.serverVersion = ItemCreator.getServerVersion();
+        this.serverVersion = ItemCreator.getVersion();
+        this.newerThan_12 =  serverVersion.compareTo(1, 12, 2).newer();
         this.convertItems = itemCreator.getConvertItems();
 
         this.itemBuilder = itemBuilder;
@@ -586,7 +588,7 @@ public class CreateItemStack {
             }
             ConvertToItemStack convertToItemStack = this.getConvertItems();
             if (builder.getMaterial() != null) {
-                if (serverVersion > 12.2) {
+                if (newerThan_12) {
                     result = new ItemStack(builder.getMaterial());
                 } else {
                     result = convertToItemStack.checkItem(builder.getMaterial(), this.getDamage(), this.color, this.getData());
@@ -615,7 +617,7 @@ public class CreateItemStack {
     private void setDamageMeta(final ItemStack itemStack, final ItemMeta itemMeta) {
         short dmg = getDmg(itemMeta);
         if (dmg > 0) {
-            if (serverVersion > 12.2) {
+            if (newerThan_12) {
                 ((Damageable) itemMeta).setDamage(dmg);
             } else {
                 itemStack.setDurability(dmg);
@@ -649,7 +651,7 @@ public class CreateItemStack {
     }
 
     private void addCustomModelData(final ItemMeta itemMeta) {
-        if (this.getCustomModelData() > 0 && serverVersion >= 14.0)
+        if (this.getCustomModelData() > 0 && serverVersion.compareTo(1,14,0).atLeast())
             itemMeta.setCustomModelData(this.getCustomModelData());
     }
 

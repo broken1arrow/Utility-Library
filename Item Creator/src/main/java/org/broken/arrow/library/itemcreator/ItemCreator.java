@@ -35,7 +35,6 @@ import java.util.List;
 public class ItemCreator {
     private static final Logging log = new Logging(ItemCreator.class);
     private static VersionUtil serverVersion;
-    private static UnbreakableUtil unbreakableUtil;
     private static Plugin plugin;
     private final NBTManger nbtManger;
     private final ConvertToItemStack convertItems;
@@ -70,7 +69,7 @@ public class ItemCreator {
         this.nbtManger = new NBTManger(pluginInstance, turnOffLogger);
         setServerVersion(pluginInstance);
 
-        this.convertItems = new ConvertToItemStack(serverVersion.getServerVersion());
+        this.convertItems = new ConvertToItemStack(serverVersion);
 
         try {
             TextTranslator.getInstance();
