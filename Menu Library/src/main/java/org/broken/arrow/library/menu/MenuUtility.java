@@ -940,7 +940,7 @@ public class MenuUtility<T> {
         final ItemStack result = getItemAtSlot(menuButton, slot, fillSlotIndex, isFillSlot);
 
         if (menuButton != null) {
-            menuDataUtility.putButton(slot, menuButton,menuButton.getId(), tButtonDataWrapper -> tButtonDataWrapper.setItemStack(result));
+            menuDataUtility.putButton(slot, menuButton, tButtonDataWrapper -> tButtonDataWrapper.setItemStack(result));
         }
     }
 

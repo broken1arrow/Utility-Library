@@ -35,7 +35,7 @@ public class ButtonDataWrapper<T> {
     /**
      * Constructs a new {@code ButtonDataWrapper} for the specified menu button.
      *
-     * @param menuButton the menu button associated with this wrapper; must not be {@code null}.
+     * @param menuButton the menu button associated with this wrapper, must not be {@code null}.
      */
     public ButtonDataWrapper(@Nonnull final MenuButton menuButton) {
         this.menuButton = menuButton;

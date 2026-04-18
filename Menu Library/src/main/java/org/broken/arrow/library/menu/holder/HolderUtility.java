@@ -517,7 +517,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         return this.getLoadInventoryHandler().getMenuCacheKey();
     }
 
-    private void refreshButton(MenuButton menuButton, MenuDataUtility<T> menuDataUtility, Inventory menu, int slot) {
+    private void refreshButton(@Nonnull final MenuButton menuButton,@Nonnull final MenuDataUtility<T> menuDataUtility,@Nonnull final Inventory menu,final int slot) {
         final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
         if (buttonData == null) return;
 
@@ -531,7 +531,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         if (buttonAt != null) {
             final ItemStack itemStack = getMenuItem(buttonAt, buttonData, slot, true);
             menu.setItem(slot, itemStack);
-            menuDataUtility.putButton(slot, buttonAt, menuButton.getId(), dataWrapper -> dataWrapper
+            menuDataUtility.putButton(slot, buttonAt,  dataWrapper -> dataWrapper
                     .setItemStack(itemStack)
                     .setObject(buttonData.getObject())
                     .setFillButton(buttonData.isFillButton())

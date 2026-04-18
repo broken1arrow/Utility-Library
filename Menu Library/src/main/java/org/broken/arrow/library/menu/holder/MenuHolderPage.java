@@ -315,7 +315,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         if (menuButton != null) {
             T fillItem = getFillItem(fillSlot);
             boolean shallAddMenuButton = !isLastFillSlot && isFillSlot && this.getListOfFillItems() != null && !this.getListOfFillItems().isEmpty();
-            menuDataUtility.putButton(slot, menuButton, menuButton.getId(), buttonDataWrapper -> buttonDataWrapper
+            menuDataUtility.putButton(slot, menuButton,  buttonDataWrapper -> buttonDataWrapper
                     .setItemStack(result)
                     .setFillButton(shallAddMenuButton)
                     .setObject(fillItem));

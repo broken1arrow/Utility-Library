@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public final class MenuDataUtility<T> {
 
     private final Map<Integer, ButtonData<T>> buttons = new HashMap<>();
-    private List<MenuButton> buttonsToUpdate = new ArrayList<>();
     private Map<Integer, MenuButton> fillMenuButtons;
     private MenuButton fillMenuButton;
 
@@ -86,11 +85,10 @@ public final class MenuDataUtility<T> {
      *
      * @param slot       the slot to place the button in.
      * @param menuButton the button to display.
-     * @param oldID      the old button id if you update old button.
      * @param buttonData a consumer to configure the {@link ButtonDataWrapper} for this button.
      * @return the current instance for chaining.
      */
-    public MenuDataUtility<T> putButton(final int slot, @Nonnull final MenuButton menuButton, final int oldID, @Nonnull final Consumer<ButtonDataWrapper<T>> buttonData) {
+    public MenuDataUtility<T> putButton(final int slot, @Nonnull final MenuButton menuButton, @Nonnull final Consumer<ButtonDataWrapper<T>> buttonData) {
         final ButtonDataWrapper<T> buttonDataWrapper = new ButtonDataWrapper<>(menuButton);
         buttonData.accept(buttonDataWrapper);
         buttons.put(slot, buttonDataWrapper.build());
@@ -103,11 +101,6 @@ public final class MenuDataUtility<T> {
             } else
                 return this.setFillMenuButton(menuButton);
         }
-
-        this.buttonsToUpdate.removeIf(oldButton -> oldButton.getId() == oldID);
-        if (menuButton.shouldUpdateButtons())
-            this.buttonsToUpdate.add(menuButton);
-
         return this;
     }
 
@@ -126,7 +119,7 @@ public final class MenuDataUtility<T> {
      * </ul>
      *
      * @param slot       the slot to place the button in.
-     * @param menuButton the button to display.
+     * @param menuButton the new button to display if the slot missing in the cache.
      * @param buttonData a consumer to configure the {@link ButtonDataWrapper} for this button.
      * @return the current instance for chaining.
      */
