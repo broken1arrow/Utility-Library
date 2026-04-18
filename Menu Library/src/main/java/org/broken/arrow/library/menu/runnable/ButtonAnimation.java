@@ -227,6 +227,25 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         return this.menuUtility.getMenuItem(menuButton, cachedButtons, slot, menuButton.shouldUpdateButtons());
     }
 
+    private void checkMenuUpdates(MenuUtility<T> menuUtility) {
+        menuUtility.addListener(() -> {
+            if (this.dataSupplier == null) return;
+
+            ButtonAnimationData buttonAnimationData = this.dataSupplier.get();
+            if (buttonAnimationData == null || !buttonAnimationData.isSet()) {
+                return;
+            }
+            int pageNumber = buttonAnimationData.getPage();
+            final MenuDataUtility<T> menuDataUtility = this.menuUtility.getMenuData(null, pageNumber);
+            if (menuDataUtility == null) {
+                return;
+            }
+            final Map<Integer, ButtonData<T>> buttons = menuDataUtility.getButtonsToUpdate();
+            this.itemSlots = this.getItemSlotsMap(menuDataUtility, buttons);
+        });
+    }
+
+
     /**
      * Get all slots same menu button is connected too.
      *
@@ -285,6 +304,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         return time;
     }
 
+
     private static class ButtonAnimationGroup {
         List<Integer> slots = new ArrayList<>();
         MenuButton menuButton;
@@ -307,23 +327,4 @@ public class ButtonAnimation<T> extends BukkitRunnable {
             return menuButton;
         }
     }
-
-    private void checkMenuUpdates(MenuUtility<T> menuUtility) {
-        menuUtility.addListener(() -> {
-            if (this.dataSupplier == null) return;
-
-            ButtonAnimationData buttonAnimationData = this.dataSupplier.get();
-            if (buttonAnimationData == null || !buttonAnimationData.isSet()) {
-                return;
-            }
-            int pageNumber = buttonAnimationData.getPage();
-            final MenuDataUtility<T> menuDataUtility = this.menuUtility.getMenuData(null, pageNumber);
-            if (menuDataUtility == null) {
-                return;
-            }
-            final Map<Integer, ButtonData<T>> buttons = menuDataUtility.getButtonsToUpdate();
-            this.itemSlots = this.getItemSlotsMap(menuDataUtility, buttons);
-        });
-    }
-
 }

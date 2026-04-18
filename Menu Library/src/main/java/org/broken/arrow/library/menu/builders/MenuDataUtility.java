@@ -131,9 +131,9 @@ public final class MenuDataUtility<T> {
      * @return the current instance for chaining.
      */
     public MenuDataUtility<T> updateButton(final int slot, @Nonnull final MenuButton menuButton, @Nonnull final Consumer<ButtonDataWrapper<T>> buttonData) {
-        final ButtonData<T> oldButton = buttons.get(slot);
+        final ButtonData<T> currentButtonData = buttons.get(slot);
 
-        final ButtonDataWrapper<T> buttonDataWrapper = oldButton != null ? new ButtonDataWrapper<>(oldButton) : new ButtonDataWrapper<>(menuButton);
+        final ButtonDataWrapper<T> buttonDataWrapper = currentButtonData != null ? new ButtonDataWrapper<>(currentButtonData) : new ButtonDataWrapper<>(menuButton);
         buttonData.accept(buttonDataWrapper);
         buttons.put(slot, buttonDataWrapper.build());
 

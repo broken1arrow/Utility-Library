@@ -9,23 +9,21 @@ import javax.annotation.Nullable;
 /**
  * A wrapper for configuring {@link ButtonData} in a controlled manner.
  * <p>
- * This class allows internal customization of button properties without exposing
- * unnecessary complexity or mutation options to the end user.
  * It helps decouple setup logic from direct {@link ButtonData} construction.
  * </p>
  *
- * @param <T>  The type of data being rendered as the object connected to the item.
+ * @param <T> The type of data being rendered as the object connected to the item.
  */
 public class ButtonDataWrapper<T> {
     private MenuButton menuButton;
-    private  ItemStack itemStack;
-    private  boolean isFillButton;
-    private  T object;
+    private ItemStack itemStack;
+    private boolean isFillButton;
+    private T object;
 
     /**
      * Constructs a new {@code ButtonDataWrapper} for the specified menu button.
      *
-     * @param buttonData the menu button associated with this wrapper; must not be {@code null}.
+     * @param buttonData the menu button associated with this wrapper, must not be {@code null}.
      */
     public ButtonDataWrapper(@Nonnull final ButtonData<T> buttonData) {
         this.menuButton = buttonData.getMenuButton();
@@ -55,7 +53,7 @@ public class ButtonDataWrapper<T> {
     /**
      * Set the {@link MenuButton} associated with this wrapper.
      *
-     * @param  menuButton the menu button instance.
+     * @param menuButton the menu button instance.
      */
     public void setMenuButton(@Nonnull final MenuButton menuButton) {
         this.menuButton = menuButton;
