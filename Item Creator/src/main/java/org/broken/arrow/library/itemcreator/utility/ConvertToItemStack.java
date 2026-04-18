@@ -16,7 +16,7 @@ import static org.broken.arrow.library.itemcreator.utility.matrials.Materials.ch
 /**
  * This class convert object to itemStack (if the object can be translated), It is also checking if you
  * input string enum of an item. First check and translate it to right item depending
- * on minecraft version and then convert to material and last to itemStack.
+ * on Minecraft version and then convert to material and last to itemStack.
  */
 @SuppressWarnings("deprecation")
 public class ConvertToItemStack {
