@@ -12,7 +12,7 @@ dependencyResolutionManagement {
             library("org.spigotmc.spigotapi", "org.spigotmc:spigot-api:1.20.2-R0.1-SNAPSHOT")
             library("tr7zw.item.nbt.api", "de.tr7zw:item-nbt-api:2.15.7")
             library("google.findbugs.jsr305", "com.google.code.findbugs:jsr305:3.0.2")
-            library("mojang.authlib","com.mojang:authlib:1.6.25");
+            library("mojang.authlib", "com.mojang:authlib:1.6.25");
             plugin("shadow", "com.gradleup.shadow").version("9.3.0")
         }
     }
@@ -21,7 +21,7 @@ dependencyResolutionManagement {
 /**
  * Version: 8.1.1
  */
- val shadowVersion = "8.1.1"
+val shadowVersion = "8.1.1"
 
 
 rootProject.name = "utility-library-core"
@@ -41,6 +41,8 @@ include(":item-creator")
 include(":serialize-utility")
 include(":nbt")
 include(":version")
+include("chunk-relevance")
+
 project(":title-update").projectDir = file("Title Update")
 project(":menu-library").projectDir = file("Menu Library")
 project(":block-visualization").projectDir = file("Block Visualization")
@@ -56,3 +58,4 @@ project(":localization").projectDir = file("Localization")
 project(":item-creator").projectDir = file("Item Creator")
 project(":serialize-utility").projectDir = file("Serialize Utility")
 project(":nbt").projectDir = file("NBT")
+
