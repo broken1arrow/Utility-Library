@@ -22,7 +22,9 @@ import org.broken.arrow.library.chunk.tracking.handlers.ChunkEventHandler;
  * player-related events rather than mixing them with chunk lifecycle events,
  * as ordering between these event types is not strictly guaranteed.
  */
-public final class PlayerChunkEvents {
+public final class PlayerChunkEvent {
+
+    private PlayerChunkEvent() {}
 
     /**
      * Wraps a synchronous {@link ChunkEventHandler}, forwarding only player-related events.

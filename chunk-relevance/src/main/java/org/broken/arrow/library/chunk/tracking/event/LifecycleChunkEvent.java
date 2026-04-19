@@ -20,9 +20,11 @@ import org.broken.arrow.library.chunk.tracking.handlers.ChunkEventHandler;
  * <p>
  * <strong>Note:</strong> Event ordering between lifecycle and player-related
  * events is not strictly guaranteed. If consistent player tracking is required,
- * prefer using {@link PlayerChunkEvents}.
+ * prefer using {@link PlayerChunkEvent}.
  */
-public class LifecycleChunkEvents {
+public final class LifecycleChunkEvent {
+
+    private LifecycleChunkEvent() {}
 
     /**
      * Wraps a synchronous {@link ChunkEventHandler}, forwarding only lifecycle events.
