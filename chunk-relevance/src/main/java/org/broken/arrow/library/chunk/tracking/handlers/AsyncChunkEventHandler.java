@@ -24,10 +24,10 @@ public interface AsyncChunkEventHandler {
     /**
      * Handles a chunk-related event asynchronously.
      *
-     * @param chunkKey the affected chunk
+     * @param chunkKey      the affected chunk
      * @param chunkSnapshot an optional snapshot of the chunk, or {@code null}
-     * @param state the chunk event status
+     * @param state         the chunk event status
      */
-    void handle(@Nonnull final ChunkKey chunkKey, @Nullable final ChunkSnapshot chunkSnapshot, @Nonnull final ChunkStatus state);
+    void handle(@Nonnull final ChunkKey chunkKey, @Nonnull final ChunkStatus state, @Nullable final ChunkSnapshot chunkSnapshot);
 
 }

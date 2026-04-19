@@ -25,6 +25,6 @@ public interface ChunkEventHandler {
      * @param chunk the live chunk instance, or {@code null} if unavailable
      * @param state the chunk event status
      */
-    void handle(@Nonnull final ChunkKey chunkKey, @Nullable final Chunk chunk, @Nonnull final ChunkStatus state);
+    void handle(@Nonnull final ChunkKey chunkKey, @Nonnull final ChunkStatus state, @Nullable final Chunk chunk);
 
 }
