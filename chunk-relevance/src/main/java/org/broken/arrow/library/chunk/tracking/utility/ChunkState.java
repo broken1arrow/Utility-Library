@@ -2,34 +2,89 @@ package org.broken.arrow.library.chunk.tracking.utility;
 
 import org.broken.arrow.library.chunk.tracking.ChunkKey;
 import org.broken.arrow.library.chunk.tracking.event.status.ChunkStatus;
-import org.broken.arrow.library.chunk.tracking.handlers.ChunkChangeHandler;
+import org.broken.arrow.library.chunk.tracking.handlers.AsyncChunkEventHandler;
 import org.bukkit.ChunkSnapshot;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * Represents a deferred chunk state change.
+ *
+ * <p>
+ * A {@code ChunkState} encapsulates all data required to process a chunk
+ * update at a later time, including the chunk identifier, an optional
+ * snapshot of the chunk, the resulting {@link ChunkStatus}, and the
+ * {@link AsyncChunkEventHandler} responsible for handling the change.
+ *
+ * <p>
+ * Instances of this class are typically submitted to a dispatcher (e.g.
+ * {@code ChunkChangeDispatcher}) to allow batching or delayed processing
+ * of chunk updates. If multiple updates for the same {@link ChunkKey}
+ * are submitted, only the most recent state may be applied.
+ *
+ * <p>
+ * The snapshot may be {@code null} if no snapshot is available or if the
+ * chunk is no longer loaded at the time of submission.
+ *
+ * <p>
+ * This class is immutable and thread-safe.
+ */
 public class ChunkState {
     private final ChunkKey key;
     private final ChunkSnapshot snapshot;
     private final ChunkStatus state;
-    private final ChunkChangeHandler handler;
+    private final AsyncChunkEventHandler handler;
 
-    private ChunkState(@Nonnull final ChunkKey key, @Nullable final ChunkSnapshot snapshot, @Nonnull final ChunkStatus state, @Nonnull final ChunkChangeHandler handler) {
+    /**
+     * Creates a new chunk state.
+     *
+     * @param key the chunk key identifying the chunk
+     * @param snapshot an optional snapshot of the chunk, or {@code null}
+     * @param state the resulting chunk status
+     * @param handler the handler that will process the chunk change
+     */
+    private ChunkState(@Nonnull final ChunkKey key, @Nullable final ChunkSnapshot snapshot, @Nonnull final ChunkStatus state, @Nonnull final AsyncChunkEventHandler handler) {
         this.key = key;
         this.snapshot = snapshot;
         this.state = state;
         this.handler = handler;
     }
 
-    public static ChunkState of(@Nonnull final ChunkKey key, @Nullable final ChunkSnapshot snapshot, @Nonnull final ChunkStatus state, @Nonnull final ChunkChangeHandler handler) {
+    /**
+     * Creates a new {@code ChunkState} instance.
+     *
+     * @param key the chunk key identifying the chunk
+     * @param snapshot an optional snapshot of the chunk, or {@code null}
+     * @param state the resulting chunk status
+     * @param handler the handler that will process the chunk change
+     * @return a new chunk state instance
+     */
+    public static ChunkState of(@Nonnull final ChunkKey key, @Nullable final ChunkSnapshot snapshot, @Nonnull final ChunkStatus state, @Nonnull final AsyncChunkEventHandler handler) {
         return new ChunkState(key, snapshot, state, handler);
     }
 
+    /**
+     * Returns the chunk key associated with this state.
+     *
+     * @return the chunk key
+     */
     public ChunkKey getKey() {
         return key;
     }
 
+    /**
+     * Applies this chunk state by invoking the associated handler.
+     *
+     * <p>
+     * This method triggers {@link AsyncChunkEventHandler#handle(ChunkKey, ChunkSnapshot, ChunkStatus)}
+     * with the stored data.
+     *
+     * <p>
+     * This is typically called by a dispatcher and should not be invoked
+     * directly unless immediate processing is desired.
+     */
     public void apply() {
-        handler.onChunkChange(key, snapshot, state);
+        handler.handle(key, snapshot, state);
     }
 }

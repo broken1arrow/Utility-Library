@@ -2,7 +2,7 @@ package org.broken.arrow.library.chunk.tracking.chunk;
 
 import org.broken.arrow.library.chunk.tracking.ChunkKey;
 import org.broken.arrow.library.chunk.tracking.ChunkRelevanceTracker;
-import org.broken.arrow.library.chunk.tracking.tasks.TickTask;
+import org.broken.arrow.library.chunk.tracking.tasks.TickClock;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * Tracks player movement across chunks and updates chunk relevance accordingly.
@@ -128,7 +129,7 @@ public class PlayerChunkTracker {
      * @param center the center chunk
      */
     private void applyArea(final @Nonnull UUID uuid, final @Nonnull ChunkDelta delta, final ChunkKey center) {
-        final long now = TickTask.getTick();
+        final long now = TickClock.getTick();
         final World world = center.getWorld();
         if (world == null) return;
 
@@ -153,7 +154,7 @@ public class PlayerChunkTracker {
      * @param dz   movement along the Z axis (-1, 0, 1)
      */
     private void applyBorderDiff(final UUID uuid, final ChunkKey from, final ChunkKey to, final int dx, final int dz) {
-        final long now = TickTask.getTick();
+        final long now = TickClock.getTick();
         final World world = from.getWorld();
         if (world == null) return;
 

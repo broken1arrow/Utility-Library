@@ -3,10 +3,10 @@ package org.broken.arrow.library.chunk.tracking;
 import org.broken.arrow.library.chunk.tracking.chunk.ChunkEntry;
 import org.broken.arrow.library.chunk.tracking.event.status.ChunkStatus;
 import org.broken.arrow.library.chunk.tracking.event.status.Relevance;
-import org.broken.arrow.library.chunk.tracking.handlers.ChunkAccessHandler;
-import org.broken.arrow.library.chunk.tracking.handlers.ChunkChangeHandler;
+import org.broken.arrow.library.chunk.tracking.handlers.ChunkEventHandler;
+import org.broken.arrow.library.chunk.tracking.handlers.AsyncChunkEventHandler;
 import org.broken.arrow.library.chunk.tracking.tasks.ChunkChangeDispatcher;
-import org.broken.arrow.library.chunk.tracking.tasks.TickTask;
+import org.broken.arrow.library.chunk.tracking.tasks.TickClock;
 import org.broken.arrow.library.chunk.tracking.chunk.PlayerChunkTracker;
 import org.broken.arrow.library.chunk.tracking.utility.ChunkState;
 import org.bukkit.*;
@@ -44,8 +44,8 @@ public class ChunkRelevanceTracker {
     private final PlayerChunkTracker playerChunkTracker = new PlayerChunkTracker(this);
     private final Map<ChunkKey, ChunkEntry> cache = new ConcurrentHashMap<>();
     private final ChunkChangeDispatcher chunkDispatcher;
-    private ChunkChangeHandler chunkChange;
-    private ChunkAccessHandler chunkAccess;
+    private AsyncChunkEventHandler chunkChange;
+    private ChunkEventHandler chunkAccess;
 
     /**
      * Creates and initializes the chunk relevance tracker.
@@ -57,7 +57,7 @@ public class ChunkRelevanceTracker {
      */
     public ChunkRelevanceTracker(@Nonnull final Plugin plugin) {
         Bukkit.getPluginManager().registerEvents(new ChunkEvent(), plugin);
-        new TickTask(plugin).start();
+        new TickClock(plugin).start();
         this.chunkDispatcher = new ChunkChangeDispatcher(plugin);
         this.chunkDispatcher.start();
     }
@@ -65,24 +65,54 @@ public class ChunkRelevanceTracker {
     /**
      * Registers an asynchronous handler for chunk state changes.
      *
-     * <p>This handler is invoked off the main thread and should not interact with
-     * Bukkit API methods that require the main thread.</p>
+     * <p>
+     * This handler is invoked off the main server thread and must not interact with
+     * Bukkit API methods that are not thread-safe.
+     *
+     * <p>
+     * <strong>Important:</strong> When processed asynchronously, the order between
+     * chunk lifecycle events (load/unload) and player-related events is not guaranteed.
+     * A player entering a chunk may be observed before or after the corresponding
+     * chunk load event.
+     *
+     * <p>
+     * Because of this, mixing chunk lifecycle states with player-driven states may
+     * result in inconsistent logic.
+     *
+     * <p>
+     * <strong>Recommendation:</strong> For player tracking, rely exclusively on
+     * {@link ChunkStatus#PLAYER_ENTERED} and {@link ChunkStatus#PLAYER_EXITED}.
      *
      * @param chunkChange the handler to receive chunk change updates
      */
-    public void onChunkChangeAsynchronous(@Nonnull final ChunkChangeHandler chunkChange) {
+    public void onChunkEventAsynchronous(@Nonnull final AsyncChunkEventHandler chunkChange) {
         this.chunkChange = chunkChange;
     }
 
     /**
-     * Registers a synchronous handler for chunk access events.
+     * Registers a synchronous handler for chunk events.
      *
-     * <p>This handler is invoked on the main thread and may safely interact with
-     * Bukkit API methods.</p>
+     * <p>
+     * This handler is invoked on the main server thread and may safely interact with
+     * Bukkit API methods.
      *
-     * @param chunkAccess the handler to receive chunk access updates
+     * <p>
+     * <strong>Important:</strong> Even when processed synchronously, the order between
+     * chunk lifecycle events (load/unload) and player-related events is not guaranteed
+     * to be perfectly aligned. A player entering or leaving a chunk may not occur in
+     * strict sequence with the corresponding chunk state changes.
+     *
+     * <p>
+     * Because of this, mixing chunk lifecycle states with player-driven states may
+     * result in inconsistent logic.
+     *
+     * <p>
+     * <strong>Recommendation:</strong> For player tracking, rely exclusively on
+     * {@link ChunkStatus#PLAYER_ENTERED} and {@link ChunkStatus#PLAYER_EXITED}.
+     *
+     * @param chunkAccess the handler to receive chunk event updates
      */
-    public void onChunkAccessSynchronous(@Nonnull final ChunkAccessHandler chunkAccess) {
+    public void onChunkEventSynchronous(@Nonnull final ChunkEventHandler chunkAccess) {
         this.chunkAccess = chunkAccess;
     }
 
@@ -108,7 +138,7 @@ public class ChunkRelevanceTracker {
      */
     @Nonnull
     public Relevance getRelevance(@Nonnull final World world, final int chunkX, final int chunkZ) {
-        final long now = TickTask.getTick();
+        final long now = TickClock.getTick();
         final ChunkKey key = ChunkKey.of(world, chunkX, chunkZ);
         final ChunkEntry entry = cache.get(key);
 
@@ -295,7 +325,7 @@ public class ChunkRelevanceTracker {
             //Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {this.chunkChange.onChunkChange(chunkKey, snapshot, status);}, 1);
         }
         if (this.chunkAccess != null) {
-            this.chunkAccess.onChunkAccess(chunkKey, chunk, status);
+            this.chunkAccess.handle(chunkKey, chunk, status);
         }
     }
 
@@ -309,7 +339,7 @@ public class ChunkRelevanceTracker {
         }
 
         if (this.chunkAccess != null) {
-            this.chunkAccess.onChunkAccess(chunkKey, null, status);
+            this.chunkAccess.handle(chunkKey, null, status);
         }
     }
 
@@ -331,11 +361,11 @@ public class ChunkRelevanceTracker {
         if (chunkStatus != null) {
             return chunkStatus;
         }
-        return playerInChunk ? ChunkStatus.PLAYER_LOADED : ChunkStatus.PLAYER_LEFT;
+        return playerInChunk ? ChunkStatus.PLAYER_ENTERED : ChunkStatus.PLAYER_EXITED;
     }
 
     private boolean isPlayerInChunk(final ChunkEntry entry) {
-        final Relevance relevance = entry.getRelevance(TickTask.getTick());
+        final Relevance relevance = entry.getRelevance(TickClock.getTick());
         return relevance == Relevance.FORCED || relevance == Relevance.RECENT || relevance == Relevance.PLAYER;
     }
 
@@ -354,7 +384,7 @@ public class ChunkRelevanceTracker {
             final Chunk chunk = event.getChunk();
             processChunkState(ChunkKey.of(chunk), chunk, ChunkStatus.LOADED, cacheEntry -> {
                 cacheEntry.setForceLoaded(chunk.isForceLoaded());
-                cacheEntry.seen(TickTask.getTick());
+                cacheEntry.seen(TickClock.getTick());
             });
         }
 
