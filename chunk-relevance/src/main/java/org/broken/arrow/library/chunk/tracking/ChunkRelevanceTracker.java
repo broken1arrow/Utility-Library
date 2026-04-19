@@ -1,7 +1,7 @@
 package org.broken.arrow.library.chunk.tracking;
 
 import org.broken.arrow.library.chunk.tracking.chunk.ChunkEntry;
-import org.broken.arrow.library.chunk.tracking.event.PlayerChunkEvents;
+import org.broken.arrow.library.chunk.tracking.event.PlayerChunkEvent;
 import org.broken.arrow.library.chunk.tracking.event.status.ChunkStatus;
 import org.broken.arrow.library.chunk.tracking.event.status.Relevance;
 import org.broken.arrow.library.chunk.tracking.handlers.ChunkEventHandler;
@@ -61,7 +61,7 @@ public class ChunkRelevanceTracker {
         new TickClock(plugin).start();
         this.chunkDispatcher = new ChunkChangeDispatcher(plugin);
         this.chunkDispatcher.start();
-        onChunkEventSynchronous(PlayerChunkEvents.sync((chunkKey, state, chunk) -> {}));
+        onChunkEventSynchronous(PlayerChunkEvent.sync((chunkKey, state, chunk) -> {}));
     }
 
     /**
