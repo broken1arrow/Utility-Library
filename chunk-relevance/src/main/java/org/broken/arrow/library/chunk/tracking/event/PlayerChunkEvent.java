@@ -42,6 +42,7 @@ public final class PlayerChunkEvent {
             }
         };
     }
+
     /**
      * Wraps an asynchronous {@link AsyncChunkEventHandler}, forwarding only player-related events.
      *

@@ -61,7 +61,6 @@ public class ChunkRelevanceTracker {
         new TickClock(plugin).start();
         this.chunkDispatcher = new ChunkChangeDispatcher(plugin);
         this.chunkDispatcher.start();
-        onChunkEventSynchronous(PlayerChunkEvent.sync((chunkKey, state, chunk) -> {}));
     }
 
     /**
