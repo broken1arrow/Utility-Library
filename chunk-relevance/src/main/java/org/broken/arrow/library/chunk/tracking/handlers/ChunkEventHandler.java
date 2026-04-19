@@ -14,18 +14,6 @@ import javax.annotation.Nullable;
  * This handler is invoked synchronously and may safely interact with the
  * Bukkit API, including the live {@link Chunk} instance when available.
  *
- * <p>
- * Events may represent chunk lifecycle changes (load/unload) or player
- * interactions (enter/exit), depending on the provided {@link ChunkStatus}.
- *
- * <p>
- * <strong>Important:</strong> Ordering between chunk lifecycle events and player
- * movement events is not strictly guaranteed. Do not assume perfect
- * sequencing between them.
- *
- * <p>
- * For player tracking, rely exclusively on
- * {@link ChunkStatus#PLAYER_ENTERED} and {@link ChunkStatus#PLAYER_EXITED}.
  */
 @FunctionalInterface
 public interface ChunkEventHandler {

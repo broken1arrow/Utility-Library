@@ -17,19 +17,6 @@ import javax.annotation.Nullable;
  * <p>
  * This handler is typically used for background processing such as caching,
  * persistence, or analysis where direct world interaction is not required.
- *
- * <p>
- * <strong>Important:</strong> Chunk lifecycle events and player-related events are not
- * strictly ordered when processed asynchronously. A player entering a chunk
- * may be observed before or after the corresponding chunk load event.
- *
- * <p>
- * Because of this, mixing lifecycle and player-driven states may lead to
- * inconsistent behavior.
- *
- * <p>
- * For player tracking, rely exclusively on
- * {@link ChunkStatus#PLAYER_ENTERED} and {@link ChunkStatus#PLAYER_EXITED}.
  */
 @FunctionalInterface
 public interface AsyncChunkEventHandler {
