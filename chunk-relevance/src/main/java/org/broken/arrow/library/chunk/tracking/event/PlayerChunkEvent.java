@@ -35,10 +35,10 @@ public final class PlayerChunkEvent {
      *         {@link ChunkStatus#PLAYER_EXITED} events
      */
     public static ChunkEventHandler sync(ChunkEventHandler handler) {
-        return (key, status, chunk) -> {
+        return (key, entry, status, chunk) -> {
             if (status == ChunkStatus.PLAYER_ENTERED ||
                 status == ChunkStatus.PLAYER_EXITED) {
-                handler.handle(key, status, chunk);
+                handler.handle(key, entry, status, chunk);
             }
         };
     }
@@ -52,10 +52,10 @@ public final class PlayerChunkEvent {
      *         {@link ChunkStatus#PLAYER_EXITED} events
      */
     public static AsyncChunkEventHandler async(AsyncChunkEventHandler handler) {
-        return (key, status, snapshot) -> {
+        return (key, entry, status, snapshot) -> {
             if (status == ChunkStatus.PLAYER_ENTERED ||
                 status == ChunkStatus.PLAYER_EXITED) {
-                handler.handle(key, status, snapshot);
+                handler.handle(key, entry, status, snapshot);
             }
         };
     }

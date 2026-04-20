@@ -1,7 +1,6 @@
 package org.broken.arrow.library.chunk.tracking;
 
 import org.broken.arrow.library.chunk.tracking.chunk.ChunkEntry;
-import org.broken.arrow.library.chunk.tracking.event.PlayerChunkEvent;
 import org.broken.arrow.library.chunk.tracking.event.status.ChunkStatus;
 import org.broken.arrow.library.chunk.tracking.event.status.Relevance;
 import org.broken.arrow.library.chunk.tracking.handlers.ChunkEventHandler;
@@ -318,47 +317,43 @@ public class ChunkRelevanceTracker {
     }
 
     private void processChunkState(@Nonnull final ChunkKey chunkKey, @Nullable final Chunk chunk, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
-        final ChunkStatus status = updateChunkEntry(chunkKey, chunkStatus, callback);
+        final ChunkEntry entry = updateChunkEntry(chunkKey, chunkStatus, callback);
+        final ChunkStatus status = getChunkStatus(chunkStatus, entry);
 
         if (this.chunkChange != null) {
             ChunkSnapshot snapshot = chunk != null ? chunk.getChunkSnapshot(true, false, false) : null;
-            chunkDispatcher.submit(ChunkState.of(chunkKey, snapshot, status, this.chunkChange));
+            chunkDispatcher.submit(ChunkState.of(chunkKey, entry, snapshot, status, this.chunkChange));
             //Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {this.chunkChange.onChunkChange(chunkKey, snapshot, status);}, 1);
         }
         if (this.chunkAccess != null) {
-            this.chunkAccess.handle(chunkKey,status, chunk);
+            this.chunkAccess.handle(chunkKey, entry, status, chunk);
         }
     }
 
 
     private void processChunkState(@Nonnull final ChunkKey chunkKey, @Nullable final ChunkSnapshot snapshot, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
-        final ChunkStatus status = updateChunkEntry(chunkKey, chunkStatus, callback);
-
+        final ChunkEntry entry = updateChunkEntry(chunkKey, chunkStatus, callback);
+        final ChunkStatus status = getChunkStatus(chunkStatus, entry);
         if (this.chunkChange != null) {
-            chunkDispatcher.submit(ChunkState.of(chunkKey, snapshot, status, this.chunkChange));
+            chunkDispatcher.submit(ChunkState.of(chunkKey, entry, snapshot, status, this.chunkChange));
             //Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {this.chunkChange.onChunkChange(chunkKey, snapshot, status);}, 1);
         }
 
         if (this.chunkAccess != null) {
-            this.chunkAccess.handle(chunkKey, status, null);
+            this.chunkAccess.handle(chunkKey, entry, status, null);
         }
     }
 
     @Nonnull
-    private ChunkStatus updateChunkEntry(@Nonnull final ChunkKey chunkKey, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
+    private ChunkEntry updateChunkEntry(@Nonnull final ChunkKey chunkKey, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
         final ChunkEntry entry = cache.computeIfAbsent(chunkKey, k -> new ChunkEntry());
         callback.accept(entry);
-        return getChunkStatus(chunkStatus, entry);
+        return entry;
     }
 
     @Nonnull
     private ChunkStatus getChunkStatus(@Nullable final ChunkStatus chunkStatus, @Nonnull final ChunkEntry entry) {
         final boolean playerInChunk = isPlayerInChunk(entry);
-        return this.getChunkStatus(chunkStatus, playerInChunk);
-    }
-
-    @Nonnull
-    private ChunkStatus getChunkStatus(@Nullable final ChunkStatus chunkStatus, final boolean playerInChunk) {
         if (chunkStatus != null) {
             return chunkStatus;
         }

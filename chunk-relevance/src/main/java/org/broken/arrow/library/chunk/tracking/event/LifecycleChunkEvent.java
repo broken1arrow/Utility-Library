@@ -34,10 +34,10 @@ public final class LifecycleChunkEvent {
      *         and {@link ChunkStatus#UNLOADED} events
      */
     public static ChunkEventHandler sync(ChunkEventHandler handler) {
-        return (key, status, chunk) -> {
+        return (key, entry, status, chunk) -> {
             if (status == ChunkStatus.LOADED ||
                     status == ChunkStatus.UNLOADED) {
-                handler.handle(key, status, chunk);
+                handler.handle(key, entry, status, chunk);
             }
         };
     }
@@ -50,10 +50,10 @@ public final class LifecycleChunkEvent {
      *         and {@link ChunkStatus#UNLOADED} events
      */
     public static AsyncChunkEventHandler async(AsyncChunkEventHandler handler) {
-        return (key, status, snapshot) -> {
+        return (key, entry, status, snapshot) -> {
             if (status == ChunkStatus.LOADED ||
                     status == ChunkStatus.UNLOADED) {
-                handler.handle(key, status, snapshot);
+                handler.handle(key, entry, status, snapshot);
             }
         };
     }

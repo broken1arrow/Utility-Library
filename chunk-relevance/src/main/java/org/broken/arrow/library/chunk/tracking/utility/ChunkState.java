@@ -1,6 +1,7 @@
 package org.broken.arrow.library.chunk.tracking.utility;
 
 import org.broken.arrow.library.chunk.tracking.ChunkKey;
+import org.broken.arrow.library.chunk.tracking.chunk.ChunkEntry;
 import org.broken.arrow.library.chunk.tracking.event.status.ChunkStatus;
 import org.broken.arrow.library.chunk.tracking.handlers.AsyncChunkEventHandler;
 import org.bukkit.ChunkSnapshot;
@@ -32,6 +33,7 @@ import javax.annotation.Nullable;
  */
 public class ChunkState {
     private final ChunkKey key;
+    private final ChunkEntry entry;
     private final ChunkSnapshot snapshot;
     private final ChunkStatus state;
     private final AsyncChunkEventHandler handler;
@@ -40,12 +42,14 @@ public class ChunkState {
      * Creates a new chunk state.
      *
      * @param key      the chunk key identifying the chunk
+     * @param entry    the storage chunk entity
      * @param snapshot an optional snapshot of the chunk, or {@code null}
      * @param state    the resulting chunk status
      * @param handler  the handler that will process the chunk change
      */
-    private ChunkState(@Nonnull final ChunkKey key, @Nullable final ChunkSnapshot snapshot, @Nonnull final ChunkStatus state, @Nonnull final AsyncChunkEventHandler handler) {
+    private ChunkState(@Nonnull final ChunkKey key, @Nonnull final ChunkEntry entry, @Nonnull final ChunkStatus state, @Nullable final ChunkSnapshot snapshot, @Nonnull final AsyncChunkEventHandler handler) {
         this.key = key;
+        this.entry = entry;
         this.snapshot = snapshot;
         this.state = state;
         this.handler = handler;
@@ -55,13 +59,14 @@ public class ChunkState {
      * Creates a new {@code ChunkState} instance.
      *
      * @param key      the chunk key identifying the chunk
+     * @param entry    the storage chunk entity
      * @param snapshot an optional snapshot of the chunk, or {@code null}
      * @param state    the resulting chunk status
      * @param handler  the handler that will process the chunk change
      * @return a new chunk state instance
      */
-    public static ChunkState of(@Nonnull final ChunkKey key, @Nullable final ChunkSnapshot snapshot, @Nonnull final ChunkStatus state, @Nonnull final AsyncChunkEventHandler handler) {
-        return new ChunkState(key, snapshot, state, handler);
+    public static ChunkState of(@Nonnull final ChunkKey key, @Nonnull final ChunkEntry entry, @Nullable final ChunkSnapshot snapshot, @Nonnull final ChunkStatus state, @Nonnull final AsyncChunkEventHandler handler) {
+        return new ChunkState(key, entry, state, snapshot, handler);
     }
 
     /**
@@ -77,7 +82,7 @@ public class ChunkState {
      * Applies this chunk state by invoking the associated handler.
      *
      * <p>
-     * This method triggers {@link AsyncChunkEventHandler#handle(ChunkKey, ChunkStatus, ChunkSnapshot)}
+     * This method triggers {@link AsyncChunkEventHandler#handle(ChunkKey, ChunkEntry, ChunkStatus, ChunkSnapshot)}
      * with the stored data.
      *
      * <p>
@@ -85,6 +90,6 @@ public class ChunkState {
      * directly unless immediate processing is desired.
      */
     public void apply() {
-        handler.handle(key, state, snapshot);
+        handler.handle(key, entry, state, snapshot);
     }
 }

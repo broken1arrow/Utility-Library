@@ -1,6 +1,7 @@
 package org.broken.arrow.library.chunk.tracking.handlers;
 
 import org.broken.arrow.library.chunk.tracking.ChunkKey;
+import org.broken.arrow.library.chunk.tracking.chunk.ChunkEntry;
 import org.broken.arrow.library.chunk.tracking.event.status.ChunkStatus;
 import org.bukkit.ChunkSnapshot;
 
@@ -24,10 +25,11 @@ public interface AsyncChunkEventHandler {
     /**
      * Handles a chunk-related event asynchronously.
      *
-     * @param chunkKey      the affected chunk
-     * @param chunkSnapshot an optional snapshot of the chunk, or {@code null}
+     * @param chunkKey      the affected chunk key
+     * @param entry         the storage chunk entity
      * @param state         the chunk event status
+     * @param chunkSnapshot an optional snapshot of the chunk, or {@code null}
      */
-    void handle(@Nonnull final ChunkKey chunkKey, @Nonnull final ChunkStatus state, @Nullable final ChunkSnapshot chunkSnapshot);
+    void handle(@Nonnull final ChunkKey chunkKey, @Nonnull final ChunkEntry entry, @Nonnull final ChunkStatus state, @Nullable final ChunkSnapshot chunkSnapshot);
 
 }
