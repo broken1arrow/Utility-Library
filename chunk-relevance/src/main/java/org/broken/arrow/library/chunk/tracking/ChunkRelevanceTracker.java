@@ -42,7 +42,7 @@ import java.util.function.Consumer;
  */
 public class ChunkRelevanceTracker {
     private final PlayerChunkTracker playerChunkTracker = new PlayerChunkTracker(this);
-    private final Map<ChunkKey, ChunkEntry> cache = new ConcurrentHashMap<>();
+    private final Map<ChunkKey, ChunkEntry> chunksTracked = new ConcurrentHashMap<>();
     private final ChunkChangeDispatcher chunkDispatcher;
     private AsyncChunkEventHandler chunkChange;
     private ChunkEventHandler chunkAccess;
@@ -140,7 +140,7 @@ public class ChunkRelevanceTracker {
     public Relevance getRelevance(@Nonnull final World world, final int chunkX, final int chunkZ) {
         final long now = TickClock.getTick();
         final ChunkKey key = ChunkKey.of(world, chunkX, chunkZ);
-        final ChunkEntry entry = cache.get(key);
+        final ChunkEntry entry = chunksTracked.get(key);
 
         if (entry != null) {
             return entry.getRelevance(now);
@@ -188,7 +188,7 @@ public class ChunkRelevanceTracker {
      * @return a map of tracked chunk keys to their entries
      */
     public Map<ChunkKey, ChunkEntry> getTrackedChunks() {
-        return Collections.unmodifiableMap(cache);
+        return Collections.unmodifiableMap(chunksTracked);
     }
 
     /**
@@ -199,7 +199,7 @@ public class ChunkRelevanceTracker {
      */
     @Nullable
     public ChunkEntry getTrackedChunk(final @Nonnull Location location) {
-        return this.cache.get(ChunkKey.of(location));
+        return this.chunksTracked.get(ChunkKey.of(location));
     }
 
     /**
@@ -210,7 +210,7 @@ public class ChunkRelevanceTracker {
      */
     @Nullable
     public ChunkEntry getTrackedChunk(final @Nonnull ChunkKey chunkKey) {
-        return this.cache.get(chunkKey);
+        return this.chunksTracked.get(chunkKey);
     }
 
     /**
@@ -220,7 +220,7 @@ public class ChunkRelevanceTracker {
      * @return true if the chunk exists in the internal cache
      */
     public boolean isTracked(final @Nonnull Location location) {
-        return this.cache.containsKey(ChunkKey.of(location));
+        return this.chunksTracked.containsKey(ChunkKey.of(location));
     }
 
     /**
@@ -242,7 +242,7 @@ public class ChunkRelevanceTracker {
      * @param chunk the chunk to remove
      */
     public void removeChunk(final Chunk chunk) {
-        cache.remove(ChunkKey.of(chunk));
+        chunksTracked.remove(ChunkKey.of(chunk));
     }
 
     /**
@@ -251,7 +251,7 @@ public class ChunkRelevanceTracker {
      * @param location the location representing the chunk
      */
     public void removeChunk(final @Nonnull Location location) {
-        cache.remove(ChunkKey.of(location));
+        chunksTracked.remove(ChunkKey.of(location));
     }
 
     /**
@@ -260,14 +260,14 @@ public class ChunkRelevanceTracker {
      * @param chunkKey the chunk key wrapper.
      */
     public void removeChunk(final @Nonnull ChunkKey chunkKey) {
-        cache.remove(chunkKey);
+        chunksTracked.remove(chunkKey);
     }
 
     /**
      * Clears all tracked chunks.
      */
     public void clearCachedChunks() {
-        this.cache.clear();
+        this.chunksTracked.clear();
     }
 
     /**
@@ -346,7 +346,7 @@ public class ChunkRelevanceTracker {
 
     @Nonnull
     private ChunkEntry updateChunkEntry(@Nonnull final ChunkKey chunkKey, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
-        final ChunkEntry entry = cache.computeIfAbsent(chunkKey, k -> new ChunkEntry());
+        final ChunkEntry entry = chunksTracked.computeIfAbsent(chunkKey, k -> new ChunkEntry());
         callback.accept(entry);
         return entry;
     }

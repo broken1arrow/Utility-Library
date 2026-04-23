@@ -88,6 +88,7 @@ public class ChunkKey {
      * @return a new chunk key
      */
     public static ChunkKey of(@Nonnull final World world, final int x, final int z) {
+        Validate.checkNotNull(world, "World can't be null for the chunk key.");
         return new ChunkKey(world.getUID(), x, z);
     }
 
