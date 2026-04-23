@@ -17,3 +17,7 @@ dependencies {
 
 }
 
+java {
+    withJavadocJar()
+}
+
