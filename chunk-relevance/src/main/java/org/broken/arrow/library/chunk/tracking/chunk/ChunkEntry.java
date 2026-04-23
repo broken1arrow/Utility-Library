@@ -1,6 +1,7 @@
 package org.broken.arrow.library.chunk.tracking.chunk;
 
 import org.broken.arrow.library.chunk.tracking.event.status.Relevance;
+import org.broken.arrow.library.chunk.tracking.tasks.TickClock;
 
 
 import javax.annotation.Nonnull;
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     <li>Recent activity (decay-based)</li>
  * </ul>
  *
- * <p>Relevance is derived dynamically using {@link #getRelevance(long)},
+ * <p>Relevance is derived dynamically using {@link #getRelevance()},
  * allowing consumers to determine how "active" a chunk is without relying
  * on Bukkit's internal chunk state.</p>
  *
@@ -59,15 +60,14 @@ public class ChunkEntry {
     }
 
     /**
-     * Updates the last seen tick for this chunk.
+     * Marks this chunk as seen at the current tick.
      *
      * <p>This is used to determine whether the chunk should be considered
      * {@link Relevance#RECENT}.</p>
      *
-     * @param now the current tick
      */
-    public void seen(long now) {
-        lastSeenTick = now;
+    public void markSeen() {
+        lastSeenTick = TickClock.getTick();
     }
 
     /**
@@ -127,14 +127,14 @@ public class ChunkEntry {
      * <ol>
      *     <li>{@link Relevance#PLAYER} if one or more players are present</li>
      *     <li>{@link Relevance#FORCED} if the chunk is force-loaded</li>
-     *     <li>{@link Relevance#RECENT} if recently seen within a decay window</li>
+     *     <li>{@link Relevance#RECENT} if recently seen within a decay window of {@value DECAY_TICKS}</li>
      *     <li>{@link Relevance#NONE} otherwise</li>
      * </ol>
      *
-     * @param now the current tick
      * @return the computed relevance
      */
-    public @Nonnull Relevance getRelevance(long now) {
+    public @Nonnull Relevance getRelevance() {
+        final long now = TickClock.getTick();
         if (playerRefs.get() > 0) return Relevance.PLAYER;
         if (forceLoaded) return Relevance.FORCED;
         if (now - lastSeenTick < DECAY_TICKS) return Relevance.RECENT;

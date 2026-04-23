@@ -138,12 +138,11 @@ public class ChunkRelevanceTracker {
      */
     @Nonnull
     public Relevance getRelevance(@Nonnull final World world, final int chunkX, final int chunkZ) {
-        final long now = TickClock.getTick();
         final ChunkKey key = ChunkKey.of(world, chunkX, chunkZ);
         final ChunkEntry entry = chunksTracked.get(key);
 
         if (entry != null) {
-            return entry.getRelevance(now);
+            return entry.getRelevance();
         }
         return Relevance.NOT_CACHED;
     }
@@ -361,7 +360,7 @@ public class ChunkRelevanceTracker {
     }
 
     private boolean isPlayerInChunk(final ChunkEntry entry) {
-        final Relevance relevance = entry.getRelevance(TickClock.getTick());
+        final Relevance relevance = entry.getRelevance();
         return relevance == Relevance.FORCED || relevance == Relevance.RECENT || relevance == Relevance.PLAYER;
     }
 
@@ -380,7 +379,7 @@ public class ChunkRelevanceTracker {
             final Chunk chunk = event.getChunk();
             processChunkState(ChunkKey.of(chunk), chunk, ChunkStatus.LOADED, cacheEntry -> {
                 cacheEntry.setForceLoaded(chunk.isForceLoaded());
-                cacheEntry.seen(TickClock.getTick());
+                cacheEntry.markSeen();
             });
         }
 

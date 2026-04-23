@@ -119,6 +119,18 @@ public class ChunkKey {
     }
 
     /**
+     * Returns the world id associated with this chunk key.
+     *
+     * <p>
+     *
+     * @return the world id of the world.
+     */
+    @Nonnull
+    public UUID getWorldUUID() {
+        return worldId;
+    }
+
+    /**
      * Returns the chunk X coordinate.
      *
      * @return the chunk X coordinate

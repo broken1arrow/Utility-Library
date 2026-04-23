@@ -2,7 +2,6 @@ package org.broken.arrow.library.chunk.tracking.chunk;
 
 import org.broken.arrow.library.chunk.tracking.ChunkKey;
 import org.broken.arrow.library.chunk.tracking.ChunkRelevanceTracker;
-import org.broken.arrow.library.chunk.tracking.tasks.TickClock;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -12,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 
 /**
  * Tracks player movement across chunks and updates chunk relevance accordingly.
@@ -89,7 +87,7 @@ public class PlayerChunkTracker {
         final int dz = to.getChunkZ() - from.getChunkZ();
         final UUID uuid = p.getUniqueId();
 
-        if (Math.abs(dx) > 1 || Math.abs(dz) > 1) {
+        if (Math.abs(dx) > 1 || Math.abs(dz) > 1 || !from.getWorldUUID().equals(to.getWorldUUID())) {
             applyArea(uuid, ChunkDelta.UNLOAD, from);
             applyArea(uuid, ChunkDelta.LOAD, to);
             playerCenter.put(uuid, to);
@@ -129,13 +127,12 @@ public class PlayerChunkTracker {
      * @param center the center chunk
      */
     private void applyArea(final @Nonnull UUID uuid, final @Nonnull ChunkDelta delta, final ChunkKey center) {
-        final long now = TickClock.getTick();
         final World world = center.getWorld();
         if (world == null) return;
 
         for (int dx = -viewDistance; dx <= viewDistance; dx++) {
             for (int dz = -viewDistance; dz <= viewDistance; dz++) {
-                update(uuid, world, center.getChunkX() + dx, center.getChunkZ() + dz, delta, now);
+                update(uuid, world, center.getChunkX() + dx, center.getChunkZ() + dz, delta);
             }
         }
     }
@@ -154,7 +151,6 @@ public class PlayerChunkTracker {
      * @param dz   movement along the Z axis (-1, 0, 1)
      */
     private void applyBorderDiff(final UUID uuid, final ChunkKey from, final ChunkKey to, final int dx, final int dz) {
-        final long now = TickClock.getTick();
         final World world = from.getWorld();
         if (world == null) return;
 
@@ -169,8 +165,8 @@ public class PlayerChunkTracker {
             int loadX = tx + viewDistance;
 
             for (int z = -viewDistance; z <= viewDistance; z++) {
-                update(uuid, world, unloadX, fz + z, ChunkDelta.UNLOAD, now);
-                update(uuid, world, loadX, tz + z, ChunkDelta.LOAD, now);
+                update(uuid, world, unloadX, fz + z, ChunkDelta.UNLOAD);
+                update(uuid, world, loadX, tz + z, ChunkDelta.LOAD);
 
             }
         }
@@ -181,8 +177,8 @@ public class PlayerChunkTracker {
 
             for (int z = -viewDistance; z <= viewDistance; z++) {
 
-                update(uuid, world, unloadX, fz + z, ChunkDelta.UNLOAD, now);
-                update(uuid, world, loadX, tz + z, ChunkDelta.LOAD, now);
+                update(uuid, world, unloadX, fz + z, ChunkDelta.UNLOAD);
+                update(uuid, world, loadX, tz + z, ChunkDelta.LOAD);
 
             }
         }
@@ -193,8 +189,8 @@ public class PlayerChunkTracker {
 
             for (int x = -viewDistance; x <= viewDistance; x++) {
 
-                update(uuid, world, fx + x, unloadZ, ChunkDelta.UNLOAD, now);
-                update(uuid, world, tx + x, loadZ, ChunkDelta.LOAD, now);
+                update(uuid, world, fx + x, unloadZ, ChunkDelta.UNLOAD);
+                update(uuid, world, tx + x, loadZ, ChunkDelta.LOAD);
 
             }
         }
@@ -204,8 +200,8 @@ public class PlayerChunkTracker {
             int loadZ = tz - viewDistance;
 
             for (int x = -viewDistance; x <= viewDistance; x++) {
-                update(uuid, world, fx + x, unloadZ, ChunkDelta.UNLOAD, now);
-                update(uuid, world, tx + x, loadZ, ChunkDelta.LOAD, now);
+                update(uuid, world, fx + x, unloadZ, ChunkDelta.UNLOAD);
+                update(uuid, world, tx + x, loadZ, ChunkDelta.LOAD);
 
             }
         }
@@ -222,23 +218,14 @@ public class PlayerChunkTracker {
      * @param chunkX the chunk X coordinate
      * @param chunkZ the chunk Z coordinate
      * @param delta  the change to apply
-     * @param now    the current tick
      */
-    private void update(@Nonnull final UUID uuid, @Nonnull final World world, final int chunkX, final int chunkZ, @Nonnull final ChunkDelta delta, final long now) {
+    private void update(@Nonnull final UUID uuid, @Nonnull final World world, final int chunkX, final int chunkZ, @Nonnull final ChunkDelta delta) {
         final ChunkKey key = ChunkKey.of(world, chunkX, chunkZ);
 
         chunkLoadLogic.updateChunk(key, cacheEntry -> {
             cacheEntry.addPlayerRefs(uuid, delta.getDelta());
-            cacheEntry.seen(now);
-		/*	if (!Bukkit.getPlayer(uuid).getName().equals("broken_arrow1")) return;
+            cacheEntry.markSeen();
 
-			Location location = new Location(world, (chunkX * 16) + 8, 150, (chunkZ * 16) + 8);
-			if (cacheEntry.getPlayerRefs() < 1)
-				location.getBlock().setType(Material.AIR);
-			if (cacheEntry.getPlayerRefs() == 1)
-				location.getBlock().setType(Material.YELLOW_CONCRETE);
-			if (cacheEntry.getPlayerRefs() == 2)
-				location.getBlock().setType(Material.GREEN_CONCRETE);*/
         });
     }
 
@@ -254,7 +241,7 @@ public class PlayerChunkTracker {
         private final int delta;
 
         /**
-         * Construct instnace with the set delta.
+         * Construct instance with the set delta.
          *
          * @param delta the delta value to set.
          */
