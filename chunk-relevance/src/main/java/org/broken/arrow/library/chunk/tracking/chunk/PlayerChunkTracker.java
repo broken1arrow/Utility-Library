@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Tracks player movement across chunks and updates chunk relevance accordingly.
@@ -28,7 +29,7 @@ import java.util.UUID;
  * controlled tracking.</p>
  */
 public class PlayerChunkTracker {
-    private final Map<UUID, ChunkKey> playerCenter = new HashMap<>();
+    private final Map<UUID, ChunkKey> playerCenter = new ConcurrentHashMap<>();
     private final ChunkRelevanceTracker chunkLoadLogic;
     private final int viewDistance;
 
@@ -77,33 +78,33 @@ public class PlayerChunkTracker {
      * and new positions is updated for optimal performance.</p>
      *
      * @param p    the player
-     * @param from the previous chunk
-     * @param to   the new chunk
+     * @param to   the new chunk the player enters.
      */
-    public void onPlayerChunkChange(final @Nonnull Player p, final @Nonnull ChunkKey from, final @Nonnull ChunkKey to) {
-        if (from.equals(to)) return;
-
-        final int dx = to.getChunkX() - from.getChunkX();
-        final int dz = to.getChunkZ() - from.getChunkZ();
+    public void onPlayerChunkChange(final @Nonnull Player p, final @Nonnull ChunkKey to) {
         final UUID uuid = p.getUniqueId();
+        final ChunkKey currentCenter = playerCenter.get(uuid);
+        if (currentCenter == null || to.equals(currentCenter)) return;
 
-        if (Math.abs(dx) > 1 || Math.abs(dz) > 1 || !from.getWorldUUID().equals(to.getWorldUUID())) {
-            applyArea(uuid, ChunkDelta.UNLOAD, from);
+        final int dx = to.getChunkX() - currentCenter.getChunkX();
+        final int dz = to.getChunkZ() - currentCenter.getChunkZ();
+
+        if (Math.abs(dx) > 1 || Math.abs(dz) > 1 || !currentCenter.getWorldUUID().equals(to.getWorldUUID())) {
+            applyArea(uuid, ChunkDelta.UNLOAD, currentCenter);
             applyArea(uuid, ChunkDelta.LOAD, to);
             playerCenter.put(uuid, to);
             return;
         }
-        ChunkKey current = from;
+        ChunkKey stepFrom = currentCenter;
         if (dx != 0) {
-            final ChunkKey intermediate = ChunkKey.of(from.getWorld(),
-                    from.getChunkX() + dx,
-                    from.getChunkZ());
+            final ChunkKey intermediate = ChunkKey.of(currentCenter.getWorld(),
+                    currentCenter.getChunkX() + dx,
+                    currentCenter.getChunkZ());
 
-            applyBorderDiff(uuid, from, intermediate, dx, 0);
-            current = intermediate;
+            applyBorderDiff(uuid, currentCenter, intermediate, dx, 0);
+            stepFrom = intermediate;
         }
         if (dz != 0) {
-            applyBorderDiff(uuid, current, to, 0, dz);
+            applyBorderDiff(uuid, stepFrom, to, 0, dz);
         }
         playerCenter.put(uuid, to);
     }

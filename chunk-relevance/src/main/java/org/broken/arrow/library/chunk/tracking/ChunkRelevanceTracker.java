@@ -392,7 +392,6 @@ public class ChunkRelevanceTracker {
         public void onMove(final PlayerMoveEvent e) {
             playerChunkTracker.onPlayerChunkChange(
                     e.getPlayer(),
-                    ChunkKey.of(e.getFrom()),
                     ChunkKey.of(e.getTo())
             );
         }
@@ -406,7 +405,6 @@ public class ChunkRelevanceTracker {
         public void onTeleport(final PlayerTeleportEvent e) {
             playerChunkTracker.onPlayerChunkChange(
                     e.getPlayer(),
-                    ChunkKey.of(e.getFrom()),
                     ChunkKey.of(e.getTo())
             );
 
