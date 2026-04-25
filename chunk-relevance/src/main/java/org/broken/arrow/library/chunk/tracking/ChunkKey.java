@@ -32,7 +32,7 @@ public class ChunkKey {
      * @param x the chunk X coordinate
      * @param z the chunk Z coordinate
      */
-    public ChunkKey(@Nonnull final UUID worldId, final int x, final int z) {
+    private ChunkKey(@Nonnull final UUID worldId, final int x, final int z) {
         this.worldId = worldId;
         this.x = x;
         this.z = z;
@@ -44,7 +44,8 @@ public class ChunkKey {
      * @param chunk the chunk
      * @return a new chunk key representing the given chunk
      */
-    public static ChunkKey of(final Chunk chunk) {
+    public static ChunkKey of(@Nonnull final Chunk chunk) {
+        Validate.checkNotNull(chunk, "Chunk can't be null.");
         return of(chunk.getWorld(), chunk.getX(), chunk.getZ());
     }
 
@@ -58,10 +59,28 @@ public class ChunkKey {
      * @return a new chunk key representing the given snapshot
      * @throws IllegalArgumentException if the world cannot be resolved
      */
-    public static ChunkKey of(final ChunkSnapshot snapshot) {
+    public static ChunkKey of(@Nonnull final ChunkSnapshot snapshot) {
+        Validate.checkNotNull(snapshot, "Chunk snapshot can't be null.");
         final World world = Bukkit.getWorld(snapshot.getWorldName());
-        Validate.checkNotNull(world, "World can't be null for the chunk key.");
+        Validate.checkNotNull(world, "World is not loaded for snapshot: " + snapshot.getWorldName());
         return of(world, snapshot.getX(), snapshot.getZ());
+    }
+
+    /**
+     * Creates a chunk key from a {@link ChunkSnapshot}.
+     *
+     * <p>
+     * The world is resolved using the snapshot's world name.
+     *
+     * @param snapshot the chunk snapshot
+     * @param worldId the world UUID
+     * @return a new chunk key representing the given snapshot
+     * @throws IllegalArgumentException if the world id cannot be resolved
+     */
+    public static ChunkKey of(@Nonnull final UUID worldId, @Nonnull final ChunkSnapshot snapshot) {
+        Validate.checkNotNull(worldId, "World UUID can't be null.");
+        Validate.checkNotNull(snapshot, "Chunk snapshot can't be null.");
+        return of(worldId, snapshot.getX(), snapshot.getZ());
     }
 
     /**
@@ -74,7 +93,8 @@ public class ChunkKey {
      * @return a new chunk key representing the chunk containing the location
      * @throws IllegalArgumentException if the location's world is {@code null}
      */
-    public static ChunkKey of(final Location loc) {
+    public static ChunkKey of(@Nonnull final Location loc) {
+        Validate.checkNotNull(loc, "Location can't be null.");
         Validate.checkNotNull(loc.getWorld(), "World can't be null for the chunk key.");
         return of(loc.getWorld(), loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
     }
@@ -89,7 +109,7 @@ public class ChunkKey {
      */
     public static ChunkKey of(@Nonnull final World world, final int x, final int z) {
         Validate.checkNotNull(world, "World can't be null for the chunk key.");
-        return new ChunkKey(world.getUID(), x, z);
+        return of(world.getUID(), x, z);
     }
 
     /**
@@ -101,6 +121,7 @@ public class ChunkKey {
      * @return a new chunk key
      */
     public static ChunkKey of(@Nonnull final UUID worldId, final int x, final int z) {
+        Validate.checkNotNull(worldId, "World UUID can't be null for the chunk key.");
         return new ChunkKey(worldId, x, z);
     }
 
@@ -150,9 +171,11 @@ public class ChunkKey {
 
     @Override
     public boolean equals(final Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (!(o instanceof ChunkKey)) return false;
+
         final ChunkKey key = (ChunkKey) o;
-        return x == key.x && z == key.z && Objects.equals(worldId, key.worldId);
+        return x == key.x && z == key.z && worldId.equals(key.worldId);
     }
 
     @Override

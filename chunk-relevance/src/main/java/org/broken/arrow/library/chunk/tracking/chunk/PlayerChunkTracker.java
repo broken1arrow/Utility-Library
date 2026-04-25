@@ -96,7 +96,7 @@ public class PlayerChunkTracker {
         }
         ChunkKey stepFrom = currentCenter;
         if (dx != 0) {
-            final ChunkKey intermediate = ChunkKey.of(currentCenter.getWorld(),
+            final ChunkKey intermediate = ChunkKey.of(currentCenter.getWorldUUID(),
                     currentCenter.getChunkX() + dx,
                     currentCenter.getChunkZ());
 
