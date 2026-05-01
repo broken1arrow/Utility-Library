@@ -8,6 +8,7 @@ import org.broken.arrow.library.chunk.tracking.handlers.AsyncChunkEventHandler;
 import org.broken.arrow.library.chunk.tracking.tasks.ChunkChangeDispatcher;
 import org.broken.arrow.library.chunk.tracking.tasks.TickClock;
 import org.broken.arrow.library.chunk.tracking.chunk.PlayerChunkTracker;
+import org.broken.arrow.library.chunk.tracking.utility.ChunkDelta;
 import org.broken.arrow.library.chunk.tracking.utility.ChunkState;
 import org.bukkit.*;
 import org.bukkit.event.EventHandler;
@@ -26,22 +27,26 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
- * Tracks chunk relevance by combining chunk lifecycle events and player activity.
+ * Aggregates chunk relevance based on player activity and chunk lifecycle events.
  *
- * <p>This class maintains a lightweight cache of {@link ChunkEntry} objects representing
- * the current known state of chunks without forcing them to load. It provides a higher-level
- * abstraction over raw Bukkit chunk events by incorporating player presence and recent activity
- * into a unified {@link Relevance} model.</p>
+ * <p>This class maintains a cache of {@link ChunkEntry} instances representing
+ * the current relevance state of chunks. It combines player-driven updates and
+ * chunk lifecycle signals into a unified {@link Relevance} model.</p>
  *
- * <p>The tracker supports both synchronous access callbacks and asynchronous change notifications,
- * allowing efficient integration without impacting server performance.</p>
+ * <p>Updates are received from internal systems such as {@link PlayerChunkTracker}
+ * and processed into the cache, where relevance is computed and optionally
+ * dispatched to registered listeners.</p>
+ *
+ * <p>This class acts as the central coordination point for chunk relevance and
+ * provides both synchronous and asynchronous access to chunk state.</p>
  */
 public class ChunkRelevanceTracker {
-    private final PlayerChunkTracker playerChunkTracker = new PlayerChunkTracker(this);
+    private final PlayerChunkTracker playerChunkTracker;
     private final Map<ChunkKey, ChunkEntry> chunksTracked = new ConcurrentHashMap<>();
     private final ChunkChangeDispatcher chunkDispatcher;
     private AsyncChunkEventHandler chunkChange;
@@ -50,13 +55,15 @@ public class ChunkRelevanceTracker {
     /**
      * Creates and initializes the chunk relevance tracker.
      *
-     * <p>This registers internal listeners for chunk and player events and starts
-     * the background dispatcher responsible for asynchronous updates.</p>
+     * <p>This sets up internal trackers, registers event listeners, and starts
+     * the background dispatcher responsible for propagating chunk updates.</p>
      *
      * @param plugin the owning plugin instance
      */
     public ChunkRelevanceTracker(@Nonnull final Plugin plugin) {
-        Bukkit.getPluginManager().registerEvents(new ChunkEvent(), plugin);
+        this.playerChunkTracker = new PlayerChunkTracker(this::handlePlayerChunkChange);
+
+        Bukkit.getPluginManager().registerEvents(new BukkitChunkListener(), plugin);
         new TickClock(plugin).start();
         this.chunkDispatcher = new ChunkChangeDispatcher(plugin);
         this.chunkDispatcher.start();
@@ -364,7 +371,14 @@ public class ChunkRelevanceTracker {
         return relevance == Relevance.FORCED || relevance == Relevance.RECENT || relevance == Relevance.PLAYER;
     }
 
-    private class ChunkEvent implements Listener {
+    private void handlePlayerChunkChange(@Nonnull final UUID uuid,@Nonnull final ChunkKey chunkKey,@Nonnull final ChunkDelta delta) {
+        updateChunk(chunkKey, cacheEntry -> {
+            cacheEntry.addPlayerRefs(uuid, delta.getDelta());
+            cacheEntry.markSeen();
+        });
+    }
+
+    private class BukkitChunkListener implements Listener {
 
         @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
         public void chunkUnLoad(final ChunkUnloadEvent event) {

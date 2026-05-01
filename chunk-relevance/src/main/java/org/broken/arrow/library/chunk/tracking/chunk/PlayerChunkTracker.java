@@ -1,45 +1,46 @@
 package org.broken.arrow.library.chunk.tracking.chunk;
 
 import org.broken.arrow.library.chunk.tracking.ChunkKey;
-import org.broken.arrow.library.chunk.tracking.ChunkRelevanceTracker;
+import org.broken.arrow.library.chunk.tracking.handlers.ChunkChangeListener;
+import org.broken.arrow.library.chunk.tracking.utility.ChunkDelta;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Tracks player movement across chunks and updates chunk relevance accordingly.
+ * Tracks player movement across chunks and emits chunk relevance updates.
  *
- * <p>This class maintains each player's current chunk center and applies incremental
- * updates to surrounding chunks based on movement. Instead of recalculating the full
- * view distance area on every movement, it performs optimized border-diff updates
- * when players move between adjacent chunks.</p>
+ * <p>This class maintains each player's current chunk center and detects when
+ * movement affects the set of chunks within their view distance. Instead of
+ * recalculating the entire area on every movement, it performs optimized
+ * incremental updates when players move between adjacent chunks.</p>
  *
- * <p>Chunk updates are propagated to the {@link ChunkRelevanceTracker}, where
- * player references are incremented or decremented using {@link ChunkDelta}.</p>
+ * <p>For each affected chunk, a {@link ChunkChangeListener} is invoked to signal
+ * whether the chunk is entering or leaving the player's view.</p>
  *
- * <p>This tracker does not directly depend on Bukkit chunk load events and instead
- * derives chunk activity purely from player movement, allowing more efficient and
- * controlled tracking.</p>
+ * <p>This class does not interact with chunk storage or lifecycle systems and
+ * does not depend on Bukkit chunk load events. It derives all updates purely
+ * from player movement.</p>
  */
 public class PlayerChunkTracker {
     private final Map<UUID, ChunkKey> playerCenter = new ConcurrentHashMap<>();
-    private final ChunkRelevanceTracker chunkLoadLogic;
+    private final ChunkChangeListener playerChunkEvent;
     private final int viewDistance;
+
 
     /**
      * Creates a new player chunk tracker.
      *
-     * @param chunkLoadLogic the chunk relevance tracker used to apply updates
+     * @param playerChunkEvent the listener that will receive chunk relevance updates
      */
-    public PlayerChunkTracker(@Nonnull final ChunkRelevanceTracker chunkLoadLogic) {
-        this.chunkLoadLogic = chunkLoadLogic;
+    public PlayerChunkTracker(@Nonnull final ChunkChangeListener playerChunkEvent) {
+        this.playerChunkEvent = playerChunkEvent;
         this.viewDistance = Bukkit.getViewDistance();
     }
 
@@ -77,8 +78,8 @@ public class PlayerChunkTracker {
      * cycle is performed. Otherwise, only the border difference between the previous
      * and new positions is updated for optimal performance.</p>
      *
-     * @param p    the player
-     * @param to   the new chunk the player enters.
+     * @param p  the player
+     * @param to to the new chunk the player enters.
      */
     public void onPlayerChunkChange(final @Nonnull Player p, final @Nonnull ChunkKey to) {
         final UUID uuid = p.getUniqueId();
@@ -221,42 +222,7 @@ public class PlayerChunkTracker {
      * @param delta  the change to apply
      */
     private void update(@Nonnull final UUID uuid, @Nonnull final World world, final int chunkX, final int chunkZ, @Nonnull final ChunkDelta delta) {
-        final ChunkKey key = ChunkKey.of(world, chunkX, chunkZ);
-
-        chunkLoadLogic.updateChunk(key, cacheEntry -> {
-            cacheEntry.addPlayerRefs(uuid, delta.getDelta());
-            cacheEntry.markSeen();
-
-        });
-    }
-
-    /**
-     * Represents a change in player presence for a chunk.
-     *
-     * <p>This is used to increment or decrement the number of players
-     * affecting a chunk.</p>
-     */
-    enum ChunkDelta {
-        LOAD(+1),
-        UNLOAD(-1);
-        private final int delta;
-
-        /**
-         * Construct instance with the set delta.
-         *
-         * @param delta the delta value to set.
-         */
-        ChunkDelta(final int delta) {
-            this.delta = delta;
-        }
-
-        /**
-         * Returns the numeric value of this delta.
-         *
-         * @return +1 for load, -1 for unload
-         */
-        public int getDelta() {
-            return delta;
-        }
+        final ChunkKey chunkKey = ChunkKey.of(world, chunkX, chunkZ);
+        playerChunkEvent.onChunkChange(uuid, chunkKey, delta);
     }
 }
