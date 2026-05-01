@@ -27,6 +27,7 @@ dependencies {
     api(project(":serialize-utility"))
     api(project(":nbt"))
     api(project(":log-and-validate"))
+    api(project(":chunk-relevance"))
 
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.google.findbugs.jsr305)

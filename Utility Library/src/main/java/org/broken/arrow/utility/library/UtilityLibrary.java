@@ -1,6 +1,7 @@
 package org.broken.arrow.utility.library;
 
 
+import org.broken.arrow.library.chunk.tracking.ChunkRelevanceTracker;
 import org.broken.arrow.library.command.CommandRegister;
 import org.broken.arrow.library.command.commandhandler.CommandRegistering;
 import org.broken.arrow.library.database.core.databases.MySQL;
@@ -10,6 +11,9 @@ import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.menu.RegisterMenuAPI;
 import org.broken.arrow.library.title.update.UpdateTitle;
 import org.broken.arrow.library.visualization.BlockVisualize;
+import org.broken.arrow.utility.library.chunk.tracker.ChunkRelevanceTrackerWrapper;
+import org.broken.arrow.utility.library.listner.UtilityListener;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -22,19 +26,21 @@ import java.util.logging.Level;
  * compile every module into your plugin.
  */
 public final class UtilityLibrary extends JavaPlugin {
-
 	private static UtilityLibrary instance;
 	private RegisterMenuAPI menuAPI;
+	private ChunkRelevanceTrackerWrapper chunkRelevanceTracker;
 
 	@Override
 	public void onLoad() {
 		instance = this;
 		UpdateTitle.update(null, "");
 		this.menuAPI = new RegisterMenuAPI(this);
+		this.chunkRelevanceTracker = new ChunkRelevanceTrackerWrapper(this);
 	}
 
 	@Override
 	public void onEnable() {
+		Bukkit.getPluginManager().registerEvents(new UtilityListener(this.chunkRelevanceTracker),this);
 		getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version= " + getDescription().getVersion());
 	}
 
@@ -96,7 +102,6 @@ public final class UtilityLibrary extends JavaPlugin {
 		return new CommandRegister();
 	}
 
-
 	/**
 	 * Retrieves a new BlockVisualize instance for the given plugin.
 	 *
@@ -105,5 +110,17 @@ public final class UtilityLibrary extends JavaPlugin {
 	 */
 	public BlockVisualize getVisualizer(Plugin plugin) {
 		return new BlockVisualize(plugin);
+	}
+
+	/**
+	 * Provides access to the {@link ChunkRelevanceTracker} used by this plugin.
+	 *
+	 * <p>This tracker exposes the public API for interacting with chunk relevance,
+	 * including checking whether a chunk has players present or is force-loaded.</p>
+	 *
+	 * @return the {@link ChunkRelevanceTracker} instance
+	 */
+	public ChunkRelevanceTracker getChunkRelevanceTracker() {
+		return chunkRelevanceTracker;
 	}
 }

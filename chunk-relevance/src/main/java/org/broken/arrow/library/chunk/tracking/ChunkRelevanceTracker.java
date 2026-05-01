@@ -60,10 +60,10 @@ public class ChunkRelevanceTracker {
      *
      * @param plugin the owning plugin instance
      */
-    public ChunkRelevanceTracker(@Nonnull final Plugin plugin) {
+    protected ChunkRelevanceTracker(@Nonnull final Plugin plugin) {
         this.playerChunkTracker = new PlayerChunkTracker(this::handlePlayerChunkChange);
 
-        Bukkit.getPluginManager().registerEvents(new BukkitChunkListener(), plugin);
+        this.registerListener(plugin);
         new TickClock(plugin).start();
         this.chunkDispatcher = new ChunkChangeDispatcher(plugin);
         this.chunkDispatcher.start();
@@ -322,27 +322,74 @@ public class ChunkRelevanceTracker {
         this.processChunkState(ChunkKey.of(chunk), chunk, chunkStatus, callback);
     }
 
-    private void processChunkState(@Nonnull final ChunkKey chunkKey, @Nullable final Chunk chunk, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
+    /**
+     * Registers the internal Bukkit listener responsible for handling
+     * player movement and chunk lifecycle events (load/unload).
+     *
+     * <p>This method is invoked automatically when the tracker is created
+     * with listener lifecycle management enabled. Subclasses may override
+     * this method to customize how and where event listeners are registered,
+     * for example when delegating to a shared or centralized listener system.</p>
+     *
+     * <p>Overriding this method implies that the caller is responsible for
+     * ensuring that all relevant events are correctly forwarded to this tracker.</p>
+     *
+     * @param plugin the owning plugin instance used for event registration
+     */
+    protected void registerListener(@Nonnull final Plugin plugin) {
+        Bukkit.getPluginManager().registerEvents(new BukkitChunkListener(), plugin);
+    }
+
+    /**
+     * Processes a chunk state transition using a live {@link Chunk} reference.
+     *
+     * <p>This method updates the internal {@link ChunkEntry} state, resolves the
+     * effective {@link ChunkStatus}, and propagates the change to all registered
+     * handlers such as the chunk dispatcher and access listeners.</p>
+     *
+     * <p>This is the primary entry point used by the internal Bukkit listener for
+     * chunk load and unload events. Subclasses may call this method when integrating
+     * with a custom or centralized event system.</p>
+     *
+     * @param chunkKey   the unique key identifying the chunk
+     * @param chunk      the live chunk instance, or {@code null} if not available
+     * @param chunkStatus the new chunk status, or {@code null} to infer from existing state
+     * @param callback   a mutator applied to the {@link ChunkEntry} before propagation
+     */
+    protected void processChunkState(@Nonnull final ChunkKey chunkKey, @Nullable final Chunk chunk, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
         final ChunkEntry entry = updateChunkEntry(chunkKey, chunkStatus, callback);
         final ChunkStatus status = getChunkStatus(chunkStatus, entry);
 
         if (this.chunkChange != null) {
             ChunkSnapshot snapshot = chunk != null ? chunk.getChunkSnapshot(true, false, false) : null;
             chunkDispatcher.submit(ChunkState.of(chunkKey, entry, snapshot, status, this.chunkChange));
-            //Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {this.chunkChange.onChunkChange(chunkKey, snapshot, status);}, 1);
         }
         if (this.chunkAccess != null) {
             this.chunkAccess.handle(chunkKey, entry, status, chunk);
         }
     }
 
-
-    private void processChunkState(@Nonnull final ChunkKey chunkKey, @Nullable final ChunkSnapshot snapshot, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
+    /**
+     * Processes a chunk state transition using a precomputed {@link ChunkSnapshot}.
+     *
+     * <p>This variant is useful when chunk data has already been captured or when
+     * operating outside the main thread where direct access to a live {@link Chunk}
+     * instance may not be safe or available.</p>
+     *
+     * <p>The method updates the internal {@link ChunkEntry}, resolves the effective
+     * {@link ChunkStatus}, and dispatches the resulting state to all registered
+     * handlers.</p>
+     *
+     * @param chunkKey    the unique key identifying the chunk
+     * @param snapshot    a snapshot of the chunk state, or {@code null} if not available
+     * @param chunkStatus the new chunk status, or {@code null} to infer from existing state
+     * @param callback    a mutator applied to the {@link ChunkEntry} before propagation
+     */
+    protected void processChunkState(@Nonnull final ChunkKey chunkKey, @Nullable final ChunkSnapshot snapshot, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
         final ChunkEntry entry = updateChunkEntry(chunkKey, chunkStatus, callback);
         final ChunkStatus status = getChunkStatus(chunkStatus, entry);
         if (this.chunkChange != null) {
             chunkDispatcher.submit(ChunkState.of(chunkKey, entry, snapshot, status, this.chunkChange));
-            //Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {this.chunkChange.onChunkChange(chunkKey, snapshot, status);}, 1);
         }
 
         if (this.chunkAccess != null) {
@@ -371,7 +418,7 @@ public class ChunkRelevanceTracker {
         return relevance == Relevance.FORCED || relevance == Relevance.RECENT || relevance == Relevance.PLAYER;
     }
 
-    private void handlePlayerChunkChange(@Nonnull final UUID uuid,@Nonnull final ChunkKey chunkKey,@Nonnull final ChunkDelta delta) {
+    private void handlePlayerChunkChange(@Nonnull final UUID uuid, @Nonnull final ChunkKey chunkKey, @Nonnull final ChunkDelta delta) {
         updateChunk(chunkKey, cacheEntry -> {
             cacheEntry.addPlayerRefs(uuid, delta.getDelta());
             cacheEntry.markSeen();
