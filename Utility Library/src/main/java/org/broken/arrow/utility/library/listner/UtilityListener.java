@@ -17,16 +17,29 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 
 import javax.annotation.Nonnull;
 
+/**
+ * Central listener that delegates events to module-specific bukkit events.
+ */
 public class UtilityListener implements Listener {
     private final ChunkRelevanceTrackerWrapper chunkRelevanceTracker;
     private final PlayerChunkTracker playerChunkTracker;
 
+
+    /**
+     * Creates a new listener instance.
+     *
+     * @param chunkRelevanceTracker main chunk relevance handler
+     */
     public UtilityListener(@Nonnull final ChunkRelevanceTrackerWrapper chunkRelevanceTracker) {
         this.chunkRelevanceTracker = chunkRelevanceTracker;
         this.playerChunkTracker = chunkRelevanceTracker.getPlayerChunkTracker();
     }
 
-
+    /**
+     * Event called when chunk unloading.
+     *
+     * @param event the unload event.
+     */
     @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
     public void chunkUnLoad(final ChunkUnloadEvent event) {
         final Chunk chunk = event.getChunk();
@@ -35,6 +48,11 @@ public class UtilityListener implements Listener {
         });
     }
 
+    /**
+     *  Handles chunk load events.
+     *
+     * @param event the load event.
+     */
     @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
     public void chunkLoad(final ChunkLoadEvent event) {
         final Chunk chunk = event.getChunk();
@@ -44,11 +62,21 @@ public class UtilityListener implements Listener {
         });
     }
 
+    /**
+     * Event called when player join server.
+     *
+     * @param e the load event.
+     */
     @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
     public void onJoin(final PlayerJoinEvent e) {
         this.playerChunkTracker.trackPlayer(e.getPlayer());
     }
 
+    /**
+     * Updates player chunk on movement.
+     *
+     * @param e the player move event.
+     */
     @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
     public void onMove(final PlayerMoveEvent e) {
         this.playerChunkTracker.onPlayerChunkChange(
@@ -57,11 +85,21 @@ public class UtilityListener implements Listener {
         );
     }
 
+    /**
+     * Untracks player on quit.
+     *
+     * @param e the player move event.
+     */
     @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
     public void onQuit(final PlayerQuitEvent e) {
         this.playerChunkTracker.untrackPlayer(e.getPlayer());
     }
 
+    /**
+     * Updates player chunk on teleport.
+     *
+     * @param e the player teleport.
+     */
     @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
     public void onTeleport(final PlayerTeleportEvent e) {
         this.playerChunkTracker.onPlayerChunkChange(
