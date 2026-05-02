@@ -46,8 +46,8 @@ import java.util.function.Consumer;
  * provides both synchronous and asynchronous access to chunk state.</p>
  */
 public class ChunkRelevanceTracker {
-    private final PlayerChunkTracker playerChunkTracker;
     private final Map<ChunkKey, ChunkEntry> chunksTracked = new ConcurrentHashMap<>();
+    private final PlayerChunkTracker playerChunkTracker;
     private final ChunkChangeDispatcher chunkDispatcher;
     private AsyncChunkEventHandler chunkChange;
     private ChunkEventHandler chunkAccess;
