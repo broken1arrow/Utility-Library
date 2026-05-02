@@ -65,11 +65,10 @@ public final class UtilityLibrary extends JavaPlugin {
 	/**
 	 * Creates a new ItemCreator instance for the given plugin.
 	 *
-	 * @param plugin The plugin to create the ItemCreator for.
 	 * @return The ItemCreator instance.
 	 */
-	public ItemCreator getItemCreator(Plugin plugin) {
-		return new ItemCreator(plugin);
+	public ItemCreator getItemCreator() {
+		return new ItemCreator(this);
 	}
 
 	/**
@@ -105,11 +104,10 @@ public final class UtilityLibrary extends JavaPlugin {
 	/**
 	 * Retrieves a new BlockVisualize instance for the given plugin.
 	 *
-	 * @param plugin The plugin to create the BlockVisualize for.
 	 * @return The BlockVisualize instance.
 	 */
-	public BlockVisualize getVisualizer(Plugin plugin) {
-		return new BlockVisualize(plugin);
+	public BlockVisualize getVisualizer() {
+		return new BlockVisualize(this);
 	}
 
 	/**
