@@ -34,12 +34,12 @@ public final class UtilityLibrary extends JavaPlugin {
 	public void onLoad() {
 		instance = this;
 		UpdateTitle.update(null, "");
-		this.menuAPI = new RegisterMenuAPI(this);
-		this.chunkRelevanceTracker = new ChunkRelevanceTrackerWrapper(this);
 	}
 
 	@Override
 	public void onEnable() {
+		this.chunkRelevanceTracker = new ChunkRelevanceTrackerWrapper(this);
+		this.menuAPI = new RegisterMenuAPI(this);
 		Bukkit.getPluginManager().registerEvents(new UtilityListener(this.chunkRelevanceTracker),this);
 		getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version= " + getDescription().getVersion());
 	}
