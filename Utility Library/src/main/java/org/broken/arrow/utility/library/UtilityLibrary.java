@@ -13,6 +13,7 @@ import org.broken.arrow.library.title.update.UpdateTitle;
 import org.broken.arrow.library.visualization.BlockVisualize;
 import org.broken.arrow.utility.library.chunk.tracker.ChunkRelevanceTrackerWrapper;
 import org.broken.arrow.utility.library.listner.UtilityListener;
+import org.broken.arrow.utility.library.menu.MenuWrapper;
 import org.broken.arrow.utility.library.utility.UtilityServices;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
@@ -49,18 +50,16 @@ public final class UtilityLibrary extends JavaPlugin {
     @Override
     public void onEnable() {
         this.chunkRelevanceTracker = new ChunkRelevanceTrackerWrapper(this);
-        this.menuAPI = new RegisterMenuAPI(this);
-        this.utilityServices = new UtilityServices(menuAPI, chunkRelevanceTracker);
-        Bukkit.getPluginManager().registerEvents(new UtilityListener(this.chunkRelevanceTracker), this);
+        this.menuAPI = new MenuWrapper(this);
+        this.utilityServices = new UtilityServices(this.menuAPI, this.chunkRelevanceTracker);
+        Bukkit.getPluginManager().registerEvents(new UtilityListener(this.menuAPI,this.chunkRelevanceTracker), this);
 
         getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version= " + getDescription().getVersion());
 
         Bukkit.getServicesManager().register(UtilityServices.class, this.utilityServices, this, ServicePriority.Normal);
         Bukkit.getScheduler().runTaskLater(this, () -> {
             ready = true;
-            for (Consumer<UtilityServices> callback : callbacks) {
-                callback.accept(utilityServices);
-            }
+            callbacks.forEach(callback -> callback.accept(this.utilityServices));
             callbacks.clear();
         }, 20L);
     }

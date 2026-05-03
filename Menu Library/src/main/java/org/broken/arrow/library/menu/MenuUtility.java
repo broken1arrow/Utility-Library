@@ -954,6 +954,45 @@ public class MenuUtility<T> {
         return this.getLoadInventoryHandler().getUniqueKey();
     }
 
+
+    /**
+     * Play a sound when player open menu. You can
+     * use this for your own menu, if you're allowing
+     * several players interact with the same menu.
+     *
+     * @param player the player that open the menu.
+     */
+    public void onMenuOpenPlaySound(@Nullable final Player player) {
+        final Sound sound = this.menuOpenSound;
+        if (sound == null) return;
+        if (player == null) return;
+
+        player.playSound(player.getLocation(), sound, 1, 1);
+    }
+
+    /**
+     * This method just remove all associated data to the player with the menu and also stop the animation
+     * if no players view the menu.
+     *
+     * @param player The player that currently closing the menu.
+     */
+    public void unregister(@Nonnull final Player player) {
+        final MetadataPlayer metadataPlayer = this.menuAPI.getPlayerMeta();
+        final MenuCache menuCache = this.menuAPI.getMenuCache();
+
+        if (metadataPlayer.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN)) {
+            metadataPlayer.removePlayerMenuMetadata(this.player, MenuMetadataKey.MENU_OPEN);
+        }
+        if (metadataPlayer.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
+                this.isAutoClearCache() && this.getAmountOfViewers() < 1) {
+            final MenuCacheKey menuCacheKey = metadataPlayer.getPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION, MenuCacheKey.class);
+            menuCache.removeMenuCached(menuCacheKey);
+        }
+
+        if (this.getAmountOfViewers() < 1)
+            closeTasks();
+    }
+
     protected void putTimeWhenUpdatesButtons(final MenuButton menuButton, final Long time) {
         this.getTimeWhenUpdatesButtons().put(menuButton.getId(), time);
     }
@@ -1004,44 +1043,6 @@ public class MenuUtility<T> {
 
     protected void onMenuOpenPlaySound() {
         this.onMenuOpenPlaySound(this.player);
-    }
-
-    /**
-     * Play a sound when player open menu. You can
-     * use this for your own menu, if you're allowing
-     * several players interact with the same menu.
-     *
-     * @param player the player that open the menu.
-     */
-    public void onMenuOpenPlaySound(@Nullable final Player player) {
-        final Sound sound = this.menuOpenSound;
-        if (sound == null) return;
-        if (player == null) return;
-
-        player.playSound(player.getLocation(), sound, 1, 1);
-    }
-
-    /**
-     * This method just remove all associated data to the player with the menu and also stop the animation
-     * if no players view the menu.
-     *
-     * @param player The player that currently closing the menu.
-     */
-    protected void unregister(@Nonnull final Player player) {
-        final MetadataPlayer metadataPlayer = this.menuAPI.getPlayerMeta();
-        final MenuCache menuCache = this.menuAPI.getMenuCache();
-
-        if (metadataPlayer.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN)) {
-            metadataPlayer.removePlayerMenuMetadata(this.player, MenuMetadataKey.MENU_OPEN);
-        }
-        if (metadataPlayer.hasPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION) &&
-                this.isAutoClearCache() && this.getAmountOfViewers() < 1) {
-            final MenuCacheKey menuCacheKey = metadataPlayer.getPlayerMetadata(this.player, MenuMetadataKey.MENU_OPEN_LOCATION, MenuCacheKey.class);
-            menuCache.removeMenuCached(menuCacheKey);
-        }
-
-        if (this.getAmountOfViewers() < 1)
-            closeTasks();
     }
 
     /**

@@ -77,8 +77,8 @@ public class RegisterMenuAPI {
      *
      * @param plugin the plugin instance to associate with this API.
      */
-    public RegisterMenuAPI(final Plugin plugin) {
-        this(plugin, false);
+    public RegisterMenuAPI(@Nonnull final Plugin plugin) {
+        this(plugin, true);
     }
 
     /**
@@ -91,7 +91,7 @@ public class RegisterMenuAPI {
      * @param plugin        the plugin instance to associate with this API.
      * @param turnOffLogger true to disable version check logging; false to enable.
      */
-    public RegisterMenuAPI(final Plugin plugin, boolean turnOffLogger) {
+    public RegisterMenuAPI(final Plugin plugin,final boolean turnOffLogger) {
         registerInstance(this);
         this.plugin = plugin;
         this.menuCache = new MenuCache();
@@ -243,7 +243,22 @@ public class RegisterMenuAPI {
         return messages;
     }
 
-    private void registerMenuEvent(final Plugin plugin) {
+    /**
+     * <p>
+     * Registers the internal Bukkit listener responsible for handling
+     * player clicking inside the inventory/menu.
+     * </p>
+     * <p>This method is invoked automatically when the tracker is created
+     * with listener lifecycle management enabled. Subclasses may override
+     * this method to customize how and where event listeners are registered,
+     * for example when delegating to a shared or centralized listener system.</p>
+     *
+     * <p>Overriding this method implies that the caller is responsible for
+     * ensuring that all relevant events are correctly forwarded to this tracker.</p>
+     *
+     * @param plugin the owning plugin instance used for event registration
+     */
+    protected void registerMenuEvent(final Plugin plugin) {
         final MenuHolderListener menuHolderListener = new MenuHolderListener();
         Bukkit.getPluginManager().registerEvents(menuHolderListener, plugin);
 
