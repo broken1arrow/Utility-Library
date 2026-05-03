@@ -52,8 +52,9 @@ public final class UtilityLibrary extends JavaPlugin {
         this.menuAPI = new RegisterMenuAPI(this);
         this.utilityServices = new UtilityServices(menuAPI, chunkRelevanceTracker);
         Bukkit.getPluginManager().registerEvents(new UtilityListener(this.chunkRelevanceTracker), this);
+
         getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version= " + getDescription().getVersion());
-runnable
+
         Bukkit.getServicesManager().register(UtilityServices.class, this.utilityServices, this, ServicePriority.Normal);
         Bukkit.getScheduler().runTaskLater(this, () -> {
             ready = true;
