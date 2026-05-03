@@ -13,10 +13,15 @@ import org.broken.arrow.library.title.update.UpdateTitle;
 import org.broken.arrow.library.visualization.BlockVisualize;
 import org.broken.arrow.utility.library.chunk.tracker.ChunkRelevanceTrackerWrapper;
 import org.broken.arrow.utility.library.listner.UtilityListener;
+import org.broken.arrow.utility.library.utility.UtilityServices;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
@@ -26,99 +31,133 @@ import java.util.logging.Level;
  * compile every module into your plugin.
  */
 public final class UtilityLibrary extends JavaPlugin {
-	private static UtilityLibrary instance;
-	private RegisterMenuAPI menuAPI;
-	private ChunkRelevanceTrackerWrapper chunkRelevanceTracker;
+    private static UtilityLibrary instance;
 
-	@Override
-	public void onLoad() {
-		instance = this;
-		UpdateTitle.update(null, "");
-	}
+    private final List<Consumer<UtilityServices>> callbacks = new ArrayList<>();
+    private UtilityServices utilityServices;
+    private volatile boolean ready;
 
-	@Override
-	public void onEnable() {
-		this.chunkRelevanceTracker = new ChunkRelevanceTrackerWrapper(this);
-		this.menuAPI = new RegisterMenuAPI(this);
-		Bukkit.getPluginManager().registerEvents(new UtilityListener(this.chunkRelevanceTracker),this);
-		getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version= " + getDescription().getVersion());
-	}
+    private RegisterMenuAPI menuAPI;
+    private ChunkRelevanceTrackerWrapper chunkRelevanceTracker;
 
-	/**
-	 * Retrieves the instance of the UtilityLibrary plugin.
-	 *
-	 * @return The instance of UtilityLibrary.
-	 */
-	public static UtilityLibrary getInstance() {
-		return instance;
-	}
+    @Override
+    public void onLoad() {
+        instance = this;
+        UpdateTitle.update(null, "");
+    }
 
-	/**
-	 * Get the RegisterMenuAPI instance for the given plugin.
-	 *
-	 * @return The RegisterMenuAPI instance.
-	 */
-	public RegisterMenuAPI getMenuApi() {
-		return menuAPI;
-	}
+    @Override
+    public void onEnable() {
+        this.chunkRelevanceTracker = new ChunkRelevanceTrackerWrapper(this);
+        this.menuAPI = new RegisterMenuAPI(this);
+        this.utilityServices = new UtilityServices(menuAPI, chunkRelevanceTracker);
+        Bukkit.getPluginManager().registerEvents(new UtilityListener(this.chunkRelevanceTracker), this);
+        getLogger().log(Level.INFO, "Has started API " + getDescription().getName() + " version= " + getDescription().getVersion());
+runnable
+        Bukkit.getServicesManager().register(UtilityServices.class, this.utilityServices, this, ServicePriority.Normal);
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            ready = true;
+            for (Consumer<UtilityServices> callback : callbacks) {
+                callback.accept(utilityServices);
+            }
+            callbacks.clear();
+        }, 20L);
+    }
 
-	/**
-	 * Creates a new ItemCreator instance for the given plugin.
-	 *
-	 * @return The ItemCreator instance.
-	 */
-	public ItemCreator getItemCreator() {
-		return new ItemCreator(this);
-	}
+    /**
+     * Registers a callback that will be executed once all services are fully initialized.
+     *
+     * <p>If the UtilityLibrary is already ready, the callback is executed immediately.
+     * Otherwise, it will be invoked once initialization has completed.</p>
+     *
+     * <p>This is the recommended way to access {@link UtilityServices}, as it guarantees
+     * that all services are safe to use.</p>
+     *
+     * @param callback the callback to execute when services are ready.
+     */
+    public void whenReady(@Nonnull final Consumer<UtilityServices> callback) {
+        if (ready) {
+            callback.accept(utilityServices);
+        } else {
+            callbacks.add(callback);
+        }
+    }
 
-	/**
-	 * Creates a new MySQL instance with the given MySQL preferences.
-	 *
-	 * @param mysqlPreference The MySQL preferences.
-	 * @return The MySQL instance.
-	 */
-	public MySQL createMySQLInstance(ConnectionSettings mysqlPreference) {
-		return new MySQL(mysqlPreference);
-	}
+    /**
+     * Retrieves the instance of the UtilityLibrary plugin.
+     *
+     * @return The instance of UtilityLibrary.
+     */
+    public static UtilityLibrary getInstance() {
+        return instance;
+    }
 
-	/**
-	 * Creates a new SQLite instance with the given parent and child paths.
-	 *
-	 * @param parent The parent path where file is located.
-	 * @param child  The child path where file is located.
-	 * @return The SQLite instance.
-	 */
-	public SQLite createSQLiteInstance(String parent, String child) {
-		return new SQLite(parent, child);
-	}
+    /**
+     * Get the RegisterMenuAPI instance for the given plugin.
+     *
+     * @return The RegisterMenuAPI instance.
+     */
+    public RegisterMenuAPI getMenuApi() {
+        return menuAPI;
+    }
 
-	/**
-	 * Retrieves a new CommandRegistering instance.
-	 *
-	 * @return The CommandRegistering instance.
-	 */
-	public CommandRegistering getCommandRegistry() {
-		return new CommandRegister();
-	}
+    /**
+     * Creates a new ItemCreator instance for the given plugin.
+     *
+     * @return The ItemCreator instance.
+     */
+    public ItemCreator getItemCreator() {
+        return new ItemCreator(this);
+    }
 
-	/**
-	 * Retrieves a new BlockVisualize instance for the given plugin.
-	 *
-	 * @return The BlockVisualize instance.
-	 */
-	public BlockVisualize getVisualizer() {
-		return new BlockVisualize(this);
-	}
+    /**
+     * Creates a new MySQL instance with the given MySQL preferences.
+     *
+     * @param mysqlPreference The MySQL preferences.
+     * @return The MySQL instance.
+     */
+    public MySQL createMySQLInstance(ConnectionSettings mysqlPreference) {
+        return new MySQL(mysqlPreference);
+    }
 
-	/**
-	 * Provides access to the {@link ChunkRelevanceTracker} used by this plugin.
-	 *
-	 * <p>This tracker exposes the public API for interacting with chunk relevance,
-	 * including checking whether a chunk has players present or is force-loaded.</p>
-	 *
-	 * @return the {@link ChunkRelevanceTracker} instance
-	 */
-	public ChunkRelevanceTracker getChunkRelevanceTracker() {
-		return chunkRelevanceTracker;
-	}
+    /**
+     * Creates a new SQLite instance with the given parent and child paths.
+     *
+     * @param parent The parent path where file is located.
+     * @param child  The child path where file is located.
+     * @return The SQLite instance.
+     */
+    public SQLite createSQLiteInstance(String parent, String child) {
+        return new SQLite(parent, child);
+    }
+
+    /**
+     * Retrieves a new CommandRegistering instance.
+     *
+     * @return The CommandRegistering instance.
+     */
+    public CommandRegistering getCommandRegistry() {
+        return new CommandRegister();
+    }
+
+    /**
+     * Retrieves a new BlockVisualize instance for the given plugin.
+     *
+     * @return The BlockVisualize instance.
+     */
+    public BlockVisualize getVisualizer() {
+        return new BlockVisualize(this);
+    }
+
+    /**
+     * Provides access to the {@link ChunkRelevanceTracker} used by this plugin.
+     *
+     * <p>This tracker exposes the public API for interacting with chunk relevance,
+     * including checking whether a chunk has players present or is force-loaded.</p>
+     *
+     * @return the {@link ChunkRelevanceTracker} instance
+     */
+    public ChunkRelevanceTracker getChunkRelevanceTracker() {
+        return chunkRelevanceTracker;
+    }
 }
