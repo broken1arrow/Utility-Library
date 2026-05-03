@@ -3,7 +3,7 @@ package org.broken.arrow.library.menu.messages;
 
 import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.library.color.TextTranslator;
-import org.broken.arrow.library.menu.utility.TriFunction;
+import org.broken.arrow.library.menu.utility.DuplicateMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -15,7 +15,7 @@ import java.util.function.Function;
  */
 public class SendMsgDuplicatedItems {
     private Function<ItemStack, String> blacklistMessage;
-    private TriFunction<String, ItemStack, Integer, Integer> duplicatedMessage;
+    private DuplicateMessage duplicatedMessage;
     private boolean notFoundTextTranslator;
 
     /**
@@ -148,7 +148,7 @@ public class SendMsgDuplicatedItems {
      * @param duplicatedMessage a function that takes the item type, duplicated {@link ItemStack}, and finally duplicated item count,
      *                          and returns the base message string to be processed.
      */
-    public void setDuplicatedMessage(final TriFunction<String, ItemStack, Integer, Integer> duplicatedMessage) {
+    public void setDuplicatedMessage(final DuplicateMessage duplicatedMessage) {
         this.duplicatedMessage = duplicatedMessage;
     }
 
