@@ -1,6 +1,9 @@
 package org.broken.arrow.library.menu.utility;
 
+import org.broken.arrow.library.menu.messages.SendMsgDuplicatedItems;
 import org.bukkit.inventory.ItemStack;
+
+import javax.annotation.Nonnull;
 
 /**
  * Represents a duplicate message that takes three arguments and produces a result.
@@ -9,13 +12,11 @@ import org.bukkit.inventory.ItemStack;
 public interface DuplicateMessage {
 
     /**
-     * Applies this message to the given arguments.
+     * Applies this message to the given argument.
      *
-     * @param item the itemStack that is duplicate
-     * @param amount the amount of items that is duplicated.
-     * @param itemAmount the amount of items you get back.
-     * @return the function result
+     * @param duplicatedWrapper The instance of the wrapper to retrieve the data on the item that is a duplicate.
+     * @return the text set that placeholders will be translated and color codes.
      */
-    String apply(final ItemStack item, final int amount, final int itemAmount );
+    String apply(@Nonnull final SendMsgDuplicatedItems.DuplicatedItemWrapper duplicatedWrapper);
 
 }

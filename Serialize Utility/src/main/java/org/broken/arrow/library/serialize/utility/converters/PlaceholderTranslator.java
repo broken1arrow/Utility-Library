@@ -3,6 +3,7 @@ package org.broken.arrow.library.serialize.utility.converters;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.serialize.utility.Pair;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -34,6 +35,19 @@ public class PlaceholderTranslator {
         wrapperConsumer.accept(placeholderWrapper);
         final Map<String, Object> placeholderMap = placeholderWrapper.getPlaceholders();
 
+        return applyPlaceholderMap(text, placeholderMap);
+    }
+
+    /**
+     * Translates placeholders in a raw text by replacing them with corresponding values.
+     * The placeholders are replaced in the order specified by the placeholders array.
+     *
+     * @param text               The raw text to translate.
+     * @param placeholderWrapper The placeholders where you provide the placeholder data.
+     * @return The translated text.
+     */
+    public static String translateText(final String text, @Nonnull final PlaceholderWrapper placeholderWrapper) {
+        final Map<String, Object> placeholderMap = placeholderWrapper.getPlaceholders();
         return applyPlaceholderMap(text, placeholderMap);
     }
 

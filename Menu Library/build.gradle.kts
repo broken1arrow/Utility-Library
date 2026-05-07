@@ -19,6 +19,7 @@ dependencies {
     api(project(":title-update"))
     api(project(":log-and-validate"))
     api(project(":version"))
+    api(project(":serialize-utility"))
 
     compileOnly(libs.org.spigotmc.spigotapi)
     compileOnly(libs.com.google.code.gson.gson)

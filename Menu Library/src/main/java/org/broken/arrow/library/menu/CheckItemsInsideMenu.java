@@ -287,12 +287,13 @@ public class CheckItemsInsideMenu {
 
 				itemStack.setAmount(amount);
 				final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(mapEntry.getKey());
-				if (offlinePlayer.getPlayer() != null) {
-					final HashMap<Integer, ItemStack> ifInventorFull = offlinePlayer.getPlayer().getInventory().addItem(itemStack);
-					if (!ifInventorFull.isEmpty() && offlinePlayer.getPlayer().getLocation().getWorld() != null)
-						offlinePlayer.getPlayer().getLocation().getWorld().dropItemNaturally(offlinePlayer.getPlayer().getLocation(), ifInventorFull.get(0));
+				final Player player = offlinePlayer.getPlayer();
+				if (player != null) {
+					final HashMap<Integer, ItemStack> ifInventorFull = player.getInventory().addItem(itemStack);
+					if (!ifInventorFull.isEmpty() && player.getLocation().getWorld() != null)
+						player.getLocation().getWorld().dropItemNaturally(player.getLocation(), ifInventorFull.get(0));
 
-					this.registerMenuAPI.getMessages().sendDuplicatedMessage(offlinePlayer.getPlayer(), new SendMsgDuplicatedItems.DuplicatedItemWrapper(itemStack, mapEntry.getValue().size(), amount));
+					this.registerMenuAPI.getMessages().sendDuplicatedMessage(player, new SendMsgDuplicatedItems.DuplicatedItemWrapper(itemStack, mapEntry.getValue().size(), amount));
 				} else if (location != null && location.getWorld() != null)
 					location.getWorld().dropItemNaturally(location, itemStack);
 			}
