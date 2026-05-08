@@ -303,15 +303,16 @@ public class SendMsgDuplicatedItems {
          *
          * <p><b>Example (default indexed placeholders):</b></p>
          * <pre>
-         * "&fYou can't add more if this &6 {0} &ftype, you get back &6 {2} &fitems.
-         *  You have added totally &4 {1} &fextra itemstacks"
+         * {@code "&fYou can't add more if this &6 {0} &ftype, you get back &6 {2} &fitems. You have added totally &4 {1} &fextra itemstacks"}
          * </pre>
          *
          * <p><b>Example (custom named placeholders):</b></p>
          * <pre>
+         *     {@code
          * wrapper.put("{type}", itemStack.getType())
-         *        .put("{addedStacks}", size)
-         *        .put("{returnedItems}", itemAmount);
+                   .put("{addedStacks}", size)
+                   .put("{returnedItems}", itemAmount);
+              }
          *
          * "&fYou can't add more if this &6 {type} &ftype, you get back &6 {returnedItems} &fitems.
          *  You have added totally &4 {addedStacks} &fextra itemstacks"

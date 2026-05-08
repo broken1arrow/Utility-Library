@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Use this class when you need low-level, version-independent access to both
  * custom and vanilla item data. For simpler, high-level operations, consider using
- * {@link ComponentFactory} or {@link NbtData}.</p>
+ * {@link ComponentFactory} or {@link org.broken.arrow.library.itemcreator.utility.compound.NbtData}.</p>
  */
 public class ComponentAdapter implements NbtEditor {
     private static final Logging logger = new Logging(ComponentAccess.class);
