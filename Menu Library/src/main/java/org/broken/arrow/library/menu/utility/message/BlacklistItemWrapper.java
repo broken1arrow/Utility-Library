@@ -9,18 +9,18 @@ import org.bukkit.inventory.ItemStack;
 public class BlacklistItemWrapper {
     private final PlaceholderTranslator.PlaceholderWrapper placeholderWrapper;
     private final ItemStack itemStack;
-    private final int size;
+    private final int amount;
 
     /**
      * Constructs a new wrapper containing blacklisted items data.
      *
      * @param itemStack the blacklisted item stack
-     * @param size      the total number of blacklisted items
+     * @param amount      the total number of blacklisted items
      */
-    public BlacklistItemWrapper(final ItemStack itemStack, final int size) {
+    public BlacklistItemWrapper(final ItemStack itemStack, final int amount) {
         this.placeholderWrapper = new PlaceholderTranslator.PlaceholderWrapper();
         this.itemStack = itemStack;
-        this.size = size;
+        this.amount = amount;
     }
 
     /**
@@ -37,8 +37,8 @@ public class BlacklistItemWrapper {
      *
      * @return duplicated stacks count
      */
-    public int getSize() {
-        return size;
+    public int getAmount() {
+        return amount;
     }
 
 
@@ -47,28 +47,26 @@ public class BlacklistItemWrapper {
      * key-based placeholders instead of using the default indexed placeholder system.
      *
      * <p>If no custom placeholders are provided, the system falls back to
-     * {@link #retrieveAsPlaceholderData()}, which uses ordered placeholders such as
-     * {@code {0}}, {@code {1}}, {@code {2}}.</p>
+     * {@link #retrieveAsPlaceholderData()}, which uses indexed placeholders such as
+     * <code>{0}</code>, <code>{1}</code>.</p>
      *
-     * <p>When this wrapper contains entries, it is used instead and allows named
-     * placeholders.</p>
+     * <p>When this wrapper contains entries, it overrides the default behavior and
+     * allows the use of named placeholders.</p>
      *
      * <p><b>Example (default indexed placeholders):</b></p>
-     * <pre>
-     * {@code "&fYou can't add more if this &6 {0} &ftype, you get back &6 {2} &fitems. You have added totally &4 {1} &fextra itemstacks"}
-     * </pre>
+     * <pre>{@code
+     * "&fThis item&6 {0}&f are blacklisted and you get {1} back."
+     * }</pre>
      *
      * <p><b>Example (custom named placeholders):</b></p>
-     * <pre>
-     * {@code
+     * <pre>{@code
      * wrapper.put("{type}", itemStack.getType())
-     * .put("{addedStacks}", size)
-     * .put("{returnedItems}", itemAmount);
-     * }
-     * {@code "&fYou can't add more if this &6 {type} &ftype, you get back &6 {returnedItems} &fitems. You have added totally &4 {addedStacks} &fextra itemstacks"}
-     * </pre>
+     *        .put("{amount}", amount);
      *
-     * @return the {@link PlaceholderTranslator.PlaceholderWrapper} for custom placeholders
+     * "&fThis item&6 {type}&f are blacklisted and you get {amount} back."
+     * }</pre>
+     *
+     * @return the {@link PlaceholderTranslator.PlaceholderWrapper} used for custom placeholders
      */
     public PlaceholderTranslator.PlaceholderWrapper getPlaceholderWrapper() {
         return placeholderWrapper;
@@ -81,6 +79,6 @@ public class BlacklistItemWrapper {
      * @return an array of placeholder data objects
      */
     public Object[] retrieveAsPlaceholderData() {
-        return new Object[]{itemStack.getType(), size};
+        return new Object[]{itemStack.getType(), amount};
     }
 }
