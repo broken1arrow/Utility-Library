@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -276,11 +277,14 @@ public class CheckItemsInsideMenu {
 	/**
 	 * Drops back all items currently stored in the duplicated items map for all players.
 	 *
-	 * @param location the location to drop the items if could not add it to the player.
+	 * @param location the location to drop the items if it could not add it to the player.
 	 */
 	private void addItemsBackToPlayer(final Location location) {
+		if(duplicatedItems.isEmpty()) return;
+		final Iterator<Entry<UUID, Map<ItemStack, Integer>>> iterator = duplicatedItems.entrySet().iterator();
 
-		for (final Entry<UUID, Map<ItemStack, Integer>> mapEntry : this.duplicatedItems.entrySet()) {
+		while (iterator.hasNext()) {
+			Entry<UUID, Map<ItemStack, Integer>> mapEntry = iterator.next();
 			for (final Map.Entry<ItemStack, Integer> items : mapEntry.getValue().entrySet()) {
 				final ItemStack itemStack = items.getKey();
 				final int amount = items.getValue();
@@ -289,17 +293,19 @@ public class CheckItemsInsideMenu {
 				final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(mapEntry.getKey());
 				final Player player = offlinePlayer.getPlayer();
 				if (player != null) {
-					final HashMap<Integer, ItemStack> ifInventorFull = player.getInventory().addItem(itemStack);
-					if (!ifInventorFull.isEmpty() && player.getLocation().getWorld() != null)
-						player.getLocation().getWorld().dropItemNaturally(player.getLocation(), ifInventorFull.get(0));
-
+					final HashMap<Integer, ItemStack> overflow = player.getInventory().addItem(itemStack);
+					Location playerLocation = player.getLocation();
+					if (!overflow.isEmpty() && playerLocation.getWorld() != null) {
+						overflow.values().forEach(item ->
+								playerLocation.getWorld().dropItemNaturally(playerLocation, item));
+					}
 					this.registerMenuAPI.getMessages().sendDuplicatedMessage(player, new SendMsgDuplicatedItems.DuplicatedItemWrapper(itemStack, mapEntry.getValue().size(), amount));
-				} else if (location != null && location.getWorld() != null)
+				} else if (location != null && location.getWorld() != null) {
 					location.getWorld().dropItemNaturally(location, itemStack);
+				}
 			}
-			this.duplicatedItems.remove(mapEntry.getKey());
+			iterator.remove();
 		}
-
 	}
 
 	/**
