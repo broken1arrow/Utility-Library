@@ -5,10 +5,13 @@ import org.broken.arrow.library.menu.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.library.menu.utility.FilterMatch;
 import org.broken.arrow.library.menu.utility.ItemCreator;
 import org.broken.arrow.library.menu.utility.MatchCheckItemStack;
+import org.broken.arrow.library.menu.utility.message.BlacklistItemWrapper;
+import org.broken.arrow.library.menu.utility.message.DuplicatedItemWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -265,13 +268,10 @@ public class CheckItemsInsideMenu {
      * @param itemStack The item stack to return.
      */
     private void addItemsBackToPlayer(final Player player, final ItemStack itemStack) {
-
-        final HashMap<Integer, ItemStack> ifInventorFull = player.getInventory().addItem(itemStack);
-        if (!ifInventorFull.isEmpty() && player.getLocation().getWorld() != null)
-            player.getLocation().getWorld().dropItemNaturally(player.getLocation(), ifInventorFull.get(0));
+        this.returnsBackItems(player, itemStack);
 
         if (!this.sendMsgPlayer) {
-            this.registerMenuAPI.getMessages().sendBlacklistMessage(player, itemStack);
+            this.registerMenuAPI.getMessages().sendBlacklistMessage(player, new BlacklistItemWrapper(itemStack.clone(), itemStack.getAmount()));
             this.sendMsgPlayer = true;
         }
     }
@@ -295,18 +295,24 @@ public class CheckItemsInsideMenu {
                 final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(mapEntry.getKey());
                 final Player player = offlinePlayer.getPlayer();
                 if (player != null) {
-                    final HashMap<Integer, ItemStack> overflow = player.getInventory().addItem(itemStack);
-                    Location playerLocation = player.getLocation();
-                    if (!overflow.isEmpty() && playerLocation.getWorld() != null) {
-                        overflow.values().forEach(item ->
-                                playerLocation.getWorld().dropItemNaturally(playerLocation, item));
-                    }
-                    this.registerMenuAPI.getMessages().sendDuplicatedMessage(player, new SendMsgDuplicatedItems.DuplicatedItemWrapper(itemStack, mapEntry.getValue().size(), amount));
+                    this.returnsBackItems(player, itemStack);
+                    this.registerMenuAPI.getMessages().sendDuplicatedMessage(player, new DuplicatedItemWrapper(itemStack, mapEntry.getValue().size(), amount));
                 } else if (location != null && location.getWorld() != null) {
                     location.getWorld().dropItemNaturally(location, itemStack);
                 }
             }
             iterator.remove();
+        }
+    }
+
+    private void returnsBackItems(Player player, ItemStack itemStack) {
+        final HashMap<Integer, ItemStack> overflow = player.getInventory().addItem(itemStack);
+        final Location playerLocation = player.getLocation();
+        final World world = playerLocation.getWorld();
+
+        if (!overflow.isEmpty() && world != null) {
+            overflow.values().forEach(item ->
+                    world.dropItemNaturally(playerLocation, item));
         }
     }
 
@@ -401,7 +407,7 @@ public class CheckItemsInsideMenu {
          *
          * @return map of material to its corresponding batch
          */
-        public Map<Material, Map<ItemStack, Integer>>  getItems() {
+        public Map<Material, Map<ItemStack, Integer>> getItems() {
             return items.entrySet().stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
@@ -416,7 +422,7 @@ public class CheckItemsInsideMenu {
          *
          * <p>Each insertion treats the first item of a new metadata group as the
          * "retained" item. Only the remaining amount is stored as overflow.</p>
-         *
+         * <p>
          * This method groups items by metadata and handles overflow automatically.
          *
          * @param itemStack the item to add (will be normalized to amount = 1 internally)
@@ -454,6 +460,7 @@ public class CheckItemsInsideMenu {
         public Map<ItemStack, Integer> getItems() {
             return Collections.unmodifiableMap(items);
         }
+
         /**
          * Adds an item stack to this batch.
          *
@@ -470,9 +477,9 @@ public class CheckItemsInsideMenu {
          * </ul>
          *
          * @param itemStack the item to add (will be normalized to amount = 1)
-         * @param amount the overflow amount derived from the item stack size
+         * @param amount    the overflow amount derived from the item stack size
          */
-        public void putItem(@Nonnull final ItemStack itemStack,final int amount) {
+        public void putItem(@Nonnull final ItemStack itemStack, final int amount) {
             final ItemStack stackAsOne = ItemCreator.createItemStackAsOne(itemStack);
             items.compute(stackAsOne, (key, currentAmount) -> {
                 if (currentAmount == null) {

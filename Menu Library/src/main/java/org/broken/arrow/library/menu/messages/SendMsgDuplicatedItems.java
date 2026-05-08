@@ -3,7 +3,10 @@ package org.broken.arrow.library.menu.messages;
 
 import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.library.color.TextTranslator;
-import org.broken.arrow.library.menu.utility.DuplicateMessage;
+import org.broken.arrow.library.menu.utility.message.BlacklistItemWrapper;
+import org.broken.arrow.library.menu.utility.message.BlacklistMessage;
+import org.broken.arrow.library.menu.utility.message.DuplicateMessage;
+import org.broken.arrow.library.menu.utility.message.DuplicatedItemWrapper;
 import org.broken.arrow.library.serialize.utility.converters.PlaceholderTranslator;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -15,7 +18,7 @@ import java.util.function.Function;
  * Set messages when player add duplicated items or items you have blacklisted.
  */
 public class SendMsgDuplicatedItems {
-    private Function<ItemStack, String> blacklistMessage;
+    private BlacklistMessage blacklistMessage;
     private DuplicateMessage duplicatedMessage;
     private boolean notFoundTextTranslator;
 
@@ -35,10 +38,12 @@ public class SendMsgDuplicatedItems {
      * Set message for when player have added item some are blacklisted.
      * Support both hex and &amp; color codes.
      *
-     * <p><b>Supported color formats:</b></p>
+     * <p><b>Formatting support:</b></p>
      * <ul>
-     *   <li>Hex colors: {@code <#8000ff>} or gradients like {@code <#8000ff:#ff0080>} (requires color conversion module).</li>
-     *   <li>Fallback to Spigot's legacy format: {@code &x&6&6&6&6&6&6}, or for white: {@code &x&F&F&F&F&F&F}, if color conversion is not enabled.</li>
+     *   <li>Legacy color codes: {@code &a}, {@code &f}, etc.</li>
+     *   <li>Legacy hex format (Spigot-compatible): {@code &x&R&R&G&G&B&B}</li>
+     *   <li>Hex colors: {@code <#RRGGBB>} and gradients like {@code <#RRGGBB:#RRGGBB>}
+     *       (supported when the internal formatter is available)</li>
      * </ul>
      *
      * <p>&nbsp;</p>
@@ -48,7 +53,7 @@ public class SendMsgDuplicatedItems {
      * @param blacklistMessage set a message.
      */
     public void setBlacklistMessage(final String blacklistMessage) {
-        this.blacklistMessage = itemStack -> blacklistMessage;
+        this.blacklistMessage = (blacklistItemWrapper) -> blacklistMessage;
     }
 
     /**
@@ -60,10 +65,12 @@ public class SendMsgDuplicatedItems {
      * if you're using a localization file or want the text to be updated externally with minimal code changes.
      * </p>
      *
-     * <p><b>Supported color formats:</b></p>
+     * <p><b>Formatting support:</b></p>
      * <ul>
-     *   <li>Hex colors: {@code <#8000ff>} or gradients like {@code <#8000ff:#ff0080>} (requires the color conversion module).</li>
-     *   <li>Fallback to Spigot's legacy format: {@code &x&6&6&6&6&6&6}, or for white: {@code &x&F&F&F&F&F&F}, if color conversion is not enabled.</li>
+     *   <li>Legacy color codes: {@code &a}, {@code &f}, etc.</li>
+     *   <li>Legacy hex format (Spigot-compatible): {@code &x&R&R&G&G&B&B}</li>
+     *   <li>Hex colors: {@code <#RRGGBB>} and gradients like {@code <#RRGGBB:#RRGGBB>}
+     *       (supported when the internal formatter is available)</li>
      * </ul>
      *
      * <p><b>Available placeholders:</b></p>
@@ -85,7 +92,7 @@ public class SendMsgDuplicatedItems {
      *
      * @param blacklistMessage a function that receives the {@link ItemStack} and returns the base message string to process.
      */
-    public void setBlacklistMessage(final Function<ItemStack, String> blacklistMessage) {
+    public void setBlacklistMessage(final BlacklistMessage blacklistMessage) {
         this.blacklistMessage = blacklistMessage;
     }
 
@@ -175,23 +182,30 @@ public class SendMsgDuplicatedItems {
      * The message supports color codes and placeholder replacement.
      *
      * @param player    the player to send the message to
-     * @param itemStack the blacklisted item stack triggering the message
+     * @param blacklistItemWrapper the blacklist wrapper for the item stack triggering the message
      */
-    public void sendBlacklistMessage(Player player, ItemStack itemStack) {
+    public void sendBlacklistMessage(final Player player,@Nonnull final BlacklistItemWrapper blacklistItemWrapper) {
         String message;
         if (blacklistMessage == null) {
             message = "&fThis item&6 {0}&f are blacklisted and you get the items back.";
         } else {
-            message = blacklistMessage.apply(itemStack.clone());
+            message = blacklistMessage.apply(blacklistItemWrapper);
         }
 
         if (message == null || message.isEmpty())
             return;
 
-        String itemName = itemStack.getType().name().toLowerCase();
+        final PlaceholderTranslator.PlaceholderWrapper wrapper = blacklistItemWrapper.getPlaceholderWrapper();
+        if (!wrapper.getPlaceholders().isEmpty())
+            message = PlaceholderTranslator.translateText(message, wrapper);
+        else {
+            message = PlaceholderTranslator.translateText(message, blacklistItemWrapper.retrieveAsPlaceholderData());
+        }
+
         if (notFoundTextTranslator)
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', (translatePlaceholders(message, itemName))));
-        else player.sendMessage(TextTranslator.toSpigotFormat(translatePlaceholders(message, itemName)));
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+        else
+            player.sendMessage(TextTranslator.toSpigotFormat(message));
     }
 
     /**
@@ -240,98 +254,5 @@ public class SendMsgDuplicatedItems {
         return rawText;
     }
 
-    /**
-     * Wrapper class holding information about duplicated items for placeholder substitution.
-     */
-    public static class DuplicatedItemWrapper {
-        private final PlaceholderTranslator.PlaceholderWrapper placeholderWrapper;
-        private final ItemStack itemStack;
-        private final int size;
-        private final int itemAmount;
 
-        /**
-         * Constructs a new wrapper containing duplicated item data.
-         *
-         * @param itemStack  the duplicated item stack
-         * @param size       the total number of duplicated stacks
-         * @param itemAmount the total number of duplicated items
-         */
-        public DuplicatedItemWrapper(final ItemStack itemStack, final int size, final int itemAmount) {
-            this.placeholderWrapper = new PlaceholderTranslator.PlaceholderWrapper();
-            this.itemStack = itemStack;
-            this.size = size;
-            this.itemAmount = itemAmount;
-        }
-
-        /**
-         * Returns the duplicated item stack.
-         *
-         * @return the item stack
-         */
-        public ItemStack getItemStack() {
-            return itemStack.clone();
-        }
-
-        /**
-         * Returns the total number of duplicated stacks.
-         *
-         * @return duplicated stacks count
-         */
-        public int getSize() {
-            return size;
-        }
-
-        /**
-         * Returns the total number of duplicated items.
-         *
-         * @return duplicated item count
-         */
-        public int getItemAmount() {
-            return itemAmount;
-        }
-
-        /**
-         * Returns a {@link PlaceholderTranslator.PlaceholderWrapper} for defining custom
-         * key-based placeholders instead of using the default indexed placeholder system.
-         *
-         * <p>If no custom placeholders are provided, the system falls back to
-         * {@link #retrieveAsPlaceholderData()}, which uses ordered placeholders such as
-         * {@code {0}}, {@code {1}}, {@code {2}}.</p>
-         *
-         * <p>When this wrapper contains entries, it is used instead and allows named
-         * placeholders.</p>
-         *
-         * <p><b>Example (default indexed placeholders):</b></p>
-         * <pre>
-         * {@code "&fYou can't add more if this &6 {0} &ftype, you get back &6 {2} &fitems. You have added totally &4 {1} &fextra itemstacks"}
-         * </pre>
-         *
-         * <p><b>Example (custom named placeholders):</b></p>
-         * <pre>
-         *     {@code
-         * wrapper.put("{type}", itemStack.getType())
-                   .put("{addedStacks}", size)
-                   .put("{returnedItems}", itemAmount);
-              }
-         *
-         * "&fYou can't add more if this &6 {type} &ftype, you get back &6 {returnedItems} &fitems.
-         *  You have added totally &4 {addedStacks} &fextra itemstacks"
-         * </pre>
-         *
-         * @return the {@link PlaceholderTranslator.PlaceholderWrapper} for custom placeholders
-         */
-        public PlaceholderTranslator.PlaceholderWrapper getPlaceholderWrapper() {
-            return placeholderWrapper;
-        }
-
-        /**
-         * Returns an array of objects to be used as placeholders in messages:
-         * item type, duplicated stacks count, and duplicated items count.
-         *
-         * @return an array of placeholder data objects
-         */
-        public Object[] retrieveAsPlaceholderData() {
-            return new Object[]{itemStack.getType(), size, itemAmount};
-        }
-    }
 }
