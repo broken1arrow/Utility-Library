@@ -1,7 +1,6 @@
 package org.broken.arrow.library.menu;
 
 
-import org.broken.arrow.library.menu.messages.SendMsgDuplicatedItems;
 import org.broken.arrow.library.menu.utility.FilterMatch;
 import org.broken.arrow.library.menu.utility.ItemCreator;
 import org.broken.arrow.library.menu.utility.MatchCheckItemStack;
@@ -28,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 public class CheckItemsInsideMenu {
 
-    private final Map<UUID, Map<ItemStack, Integer>> duplicatedItems = new HashMap<>();
+    private final Map<UUID, ItemOverflowBatch> duplicatedItems = new HashMap<>();
     private final RegisterMenuAPI registerMenuAPI;
     private FilterMatch filterMatch = FilterMatch.TYPE;
     private MatchCheckItemStack matchCheck = new MatchCheckItemStack();
@@ -241,19 +241,16 @@ public class CheckItemsInsideMenu {
         final Set<ItemStack> set = new HashSet<>();
         this.sendMsgPlayer = false;
         for (final Map.Entry<Integer, ItemStack> entity : items.entrySet()) {
-
             if (entity.getValue() != null) {
-
-                if (entity.getValue().getAmount() > 1) {
-                    cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), itemStacks)) - 1);
-                    duplicatedItems.put(player.getUniqueId(), cachedDuplicatedItems);
+            /*    if (entity.getValue().getAmount() > 1) {
+                    //cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), itemStacks)) - 1);
+                    duplicatedItems.computeIfAbsent(player.getUniqueId(), uuid -> new ItemOverflowBatch()).putItem(entity.getValue());
                 }
-                if (!set.add(ItemCreator.createItemStackAsOne(entity.getValue()))) {
-                    cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), itemStacks)) - 1);
-                    duplicatedItems.put(player.getUniqueId(), cachedDuplicatedItems);
-                } else {
+*/
+                //cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), itemStacks)) - 1);
+                duplicatedItems.computeIfAbsent(player.getUniqueId(), uuid -> new ItemOverflowBatch()).putItem(entity.getValue());
+                if (set.add(ItemCreator.createItemStackAsOne(entity.getValue())))
                     itemStacksNoDoubleEntity.put(entity.getKey(), ItemCreator.createItemStackAsOne(entity.getValue()));
-                }
             }
         }
         addItemsBackToPlayer(location);
@@ -283,24 +280,26 @@ public class CheckItemsInsideMenu {
      */
     private void addItemsBackToPlayer(final Location location) {
         if (duplicatedItems.isEmpty()) return;
-        final Iterator<Entry<UUID, Map<ItemStack, Integer>>> iterator = duplicatedItems.entrySet().iterator();
+        final Iterator<Entry<UUID, ItemOverflowBatch>> iterator = duplicatedItems.entrySet().iterator();
 
         while (iterator.hasNext()) {
-            Entry<UUID, Map<ItemStack, Integer>> mapEntry = iterator.next();
-            for (final Map.Entry<ItemStack, Integer> items : mapEntry.getValue().entrySet()) {
-                final ItemStack itemStack = items.getKey();
-                final int amount = items.getValue();
+            Entry<UUID, ItemOverflowBatch> mapEntry = iterator.next();
+            mapEntry.getValue().getItem(duplicateStacks -> {
+                for (final Entry<ItemStack, Integer> items : duplicateStacks.entrySet()) {
+                    final ItemStack itemStack = items.getKey();
+                    final int amount = items.getValue();
 
-                itemStack.setAmount(amount);
-                final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(mapEntry.getKey());
-                final Player player = offlinePlayer.getPlayer();
-                if (player != null) {
-                    this.returnsBackItems(player, itemStack);
-                    this.registerMenuAPI.getMessages().sendDuplicatedMessage(player, new DuplicatedItemWrapper(itemStack, mapEntry.getValue().size(), amount));
-                } else if (location != null && location.getWorld() != null) {
-                    location.getWorld().dropItemNaturally(location, itemStack);
+                    itemStack.setAmount(amount);
+                    final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(mapEntry.getKey());
+                    final Player player = offlinePlayer.getPlayer();
+                    if (player != null) {
+                        this.returnsBackItems(player, itemStack);
+                        this.registerMenuAPI.getMessages().sendDuplicatedMessage(player, new DuplicatedItemWrapper(itemStack, duplicateStacks.size(), amount));
+                    } else if (location != null && location.getWorld() != null) {
+                        location.getWorld().dropItemNaturally(location, itemStack);
+                    }
                 }
-            }
+            });
             iterator.remove();
         }
     }
@@ -416,6 +415,15 @@ public class CheckItemsInsideMenu {
         }
 
         /**
+         * Returns a callback to access the of the batched items.
+         *
+         * @param callback the callback for get the items that is duplicated.
+         */
+        public void getItem(final Consumer<Map<ItemStack, Integer>> callback) {
+            items.forEach((key, value) -> callback.accept(value.getItems()));
+        }
+
+        /**
          * Adds an item stack to this batch.
          *
          * <p>Items with the same metadata are merged, and their amounts are accumulated.</p>
@@ -484,7 +492,7 @@ public class CheckItemsInsideMenu {
             items.compute(stackAsOne, (key, currentAmount) -> {
                 if (currentAmount == null) {
                     int overflow = amount - 1;
-                    return overflow > 0 ? overflow : null;
+                    return overflow > 0 ? overflow : 0;
                 }
                 return currentAmount + amount;
             });
