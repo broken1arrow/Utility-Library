@@ -675,15 +675,14 @@ public class MenuUtility<T> {
      */
     @Nonnull
     public CheckItemsInsideMenu getCheckItemsInsideMenuByStrings(@Nullable List<String> blackListedMaterials) {
+        List<ItemStack> materials = new ArrayList<>();
         if (blackListedMaterials != null) {
-            List<ItemStack> materials = new ArrayList<>();
             for (String item : blackListedMaterials) {
                 Material material = convertMaterialFromString(menuAPI, item);
                 materials.add(new ItemStack(material));
             }
-            this.checkItemsInsideMenu.setBlacklistedItems(materials);
         }
-        return this.checkItemsInsideMenu;
+        return getCheckItemsInsideMenuByItems(materials);
     }
 
     /**
@@ -696,9 +695,10 @@ public class MenuUtility<T> {
      */
     @Nonnull
     public CheckItemsInsideMenu getCheckItemsInsideMenuByItems(@Nullable List<ItemStack> blackListedMaterials) {
-        if (blackListedMaterials != null) {
+        if (blackListedMaterials != null && !blackListedMaterials.isEmpty()) {
             this.checkItemsInsideMenu.setBlacklistedItems(blackListedMaterials);
         }
+        this.checkItemsInsideMenu.setSlotsToCheck(this.getFillSpace());
         return this.checkItemsInsideMenu;
     }
 
