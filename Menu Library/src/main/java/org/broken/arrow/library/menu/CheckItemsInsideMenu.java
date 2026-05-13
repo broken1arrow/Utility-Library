@@ -16,6 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -367,7 +368,7 @@ public class CheckItemsInsideMenu {
      * @param slot      The slot to update.
      * @param item      The ItemStack currently in the slot.
      */
-    public void setToOneItem(final Inventory inventory, final int slot, final ItemStack item) {
+    public void setToOneItem(@Nonnull final Inventory inventory, final int slot, @Nullable final ItemStack item) {
         if (checkDuplicates && item != null) {
             ItemStack clone = new ItemStack(item);
             clone.setAmount(1);
@@ -375,7 +376,7 @@ public class CheckItemsInsideMenu {
         }
     }
 
-    private static boolean nameEquals(final Material mat, final String... names) {
+    private static boolean nameEquals(@Nonnull final Material mat, final String... names) {
         final String matName = mat.toString();
 
         for (final String name : names)
