@@ -60,7 +60,7 @@ public class ChunkRelevanceTracker {
      *
      * @param plugin the owning plugin instance
      */
-    protected ChunkRelevanceTracker(@Nonnull final Plugin plugin) {
+    public ChunkRelevanceTracker(@Nonnull final Plugin plugin) {
         this.playerChunkTracker = new PlayerChunkTracker(this::handlePlayerChunkChange);
 
         this.registerListener(plugin);
