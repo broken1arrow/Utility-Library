@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * A utility class for registering and managing registered commands.The commandRegister provides
@@ -80,7 +81,7 @@ public class CommandRegister implements CommandRegistering {
      *
      * <p>The plugin name is used as a fallback namespace for command registration.</p>
      *
-     * @param plugin the owning plugin instance (used for namespace and registration context)
+     * @param plugin      the owning plugin instance (used for namespace and registration context)
      * @param mainCommand the root command label (e.g. "plugin" in "/plugin menu")
      * @return a {@link CommandBuilder} used to configure the command structure
      */
@@ -92,6 +93,29 @@ public class CommandRegister implements CommandRegistering {
         commandsNew.put(mainCommand, mainCommandHandler);
         this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
         return commandBuilder;
+    }
+
+    /**
+     * Registers a new command entry point for this plugin.
+     *
+     * <p>This is the primary entry method for creating and configuring a command.
+     * It initializes the internal command handler and returns a {@link CommandBuilder}
+     * used to define aliases, subcommands, execution behavior, and display settings.</p>
+     *
+     * <p>The plugin name is used as a fallback namespace for command registration.</p>
+     *
+     * @param plugin      the owning plugin instance (used for namespace and registration context)
+     * @param mainCommand the root command label (e.g. "plugin" in "/plugin menu")
+     * @param callback The builder to set the command.
+     */
+    public void registerCommand(@Nonnull final Plugin plugin, @Nonnull final String mainCommand, @Nonnull final Consumer<CommandBuilder> callback) {
+        final CommandDisplayConfig commandDisplayConfig = new CommandDisplayConfig();
+        final MainCommandHandler mainCommandHandler = new MainCommandHandler(commandDisplayConfig);
+        final CommandBuilder commandBuilder = new CommandBuilder(mainCommandHandler);
+
+        callback.accept(commandBuilder);
+        commandsNew.put(mainCommand, mainCommandHandler);
+        this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
     }
 
     /**
