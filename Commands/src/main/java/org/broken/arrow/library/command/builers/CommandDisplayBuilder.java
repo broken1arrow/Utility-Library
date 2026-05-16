@@ -36,7 +36,7 @@ public class CommandDisplayBuilder {
      *     config.setDescription(
      *                 "Brief explanation of the command and its usage",
      *                 "including subcommand permissions.")
-     *            .setCommandLabelMessageNoPerms("&fUse command &6{label}&f (perm: &6{perm}&f)")
+     *            .setCommandLabelMessageNoPerms("&fUsage: &6<{label}>&f (perm: &6{perm}&f)")
      *            .setCommandLabelMessage("&fUsage: &6<{label}>")
      *            .setPrefixMessage("&f---------------&8<&6Command info&8>&f---------------")
      *            .setSuffixMessage("&f---------------&8<&6Command info&8>&f---------------");
