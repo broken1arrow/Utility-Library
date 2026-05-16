@@ -172,6 +172,11 @@ public class MainCommandHandler {
         }
     }
 
+    /**
+     * Retrieve the subcommands set if you not using the main command.
+     *
+     * @return The list of sub commands or empty list if non is set.
+     */
     public  List<CommandProperty> getSubcommands() {
         return this.commands;
     }
