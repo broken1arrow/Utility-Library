@@ -107,7 +107,7 @@ public class CommandExecutor extends Command {
         if (commandHandler != null) {
             CommandProperty mainCommand = commandHandler.getMainCommand();
             if (mainCommand != null) {
-                final List<String> tabComplete = mainCommand.executeTabComplete(sender,alias,args);
+                final List<String> tabComplete = mainCommand.executeTabComplete(sender, alias, args);
                 return tabComplete != null && checkPermission(sender, mainCommand) ? tabComplete : new ArrayList<>();
             }
             if (args.length > 0) {
@@ -198,7 +198,7 @@ public class CommandExecutor extends Command {
         if (commandHandler.isSubCommandsSet()) return false;
 
         if (args.length == 0) {
-            this.sendMessage(sender, commandHandler.getCommandDisplayConfig(), commandLabel);
+            this.sendMessage(sender, commandHandler, commandLabel);
             return false;
         }
 
@@ -241,9 +241,24 @@ public class CommandExecutor extends Command {
                 sender.sendMessage(colors(suffixMessage));
     }
 
-    private void sendMessage(@Nonnull final CommandSender sender, @Nonnull final CommandDisplayConfig commandDisplayConfig, @Nonnull final String commandLabel) {
+    private void sendToSender(final CommandSender sender, final String commandLabel, final String commandLabelMessage, final String labelMessageNoPerms) {
+        for (final CommandProperty subcommand : commandRegister.getCommands()) {
+            if (subcommand.isHideLabel() && !checkPermission(sender, subcommand)) {
+                continue;
+            }
+            if (!checkPermission(sender, subcommand) && labelMessageNoPerms != null && !labelMessageNoPerms.isEmpty()) {
+                sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, subcommand)));
+            }
+            if (checkPermission(sender, subcommand)) {
+                sender.sendMessage(colors(placeholders(commandLabelMessage, commandLabel, subcommand)));
+            }
+        }
+    }
 
+    private void sendMessage(@Nonnull final CommandSender sender, final @NonNull MainCommandHandler commandHandler, @Nonnull final String commandLabel) {
+        final CommandDisplayConfig commandDisplayConfig = commandHandler.getCommandDisplayConfig();
         final List<String> helpPrefixMessage = commandDisplayConfig.getPrefixMessage();
+
         if (helpPrefixMessage != null && !helpPrefixMessage.isEmpty())
             for (final String prefixMessage : helpPrefixMessage)
                 sender.sendMessage(colors(prefixMessage));
@@ -254,7 +269,7 @@ public class CommandExecutor extends Command {
             sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, null)));
 
         } else if (commandLabelMessage != null && !commandLabelMessage.isEmpty()) {
-            sendToSender(sender, commandLabel, commandLabelMessage, labelMessageNoPerms);
+            sendBody(sender, commandLabel, commandHandler, labelMessageNoPerms);
         }
         final List<String> helpSuffixMessage = commandDisplayConfig.getSuffixMessage();
         if (helpSuffixMessage != null && !helpSuffixMessage.isEmpty())
@@ -262,8 +277,11 @@ public class CommandExecutor extends Command {
                 sender.sendMessage(colors(suffixMessage));
     }
 
-    private void sendToSender(final CommandSender sender, final String commandLabel, final String commandLabelMessage, final String labelMessageNoPerms) {
-        for (final CommandProperty subcommand : commandRegister.getCommands()) {
+    private void sendBody(final CommandSender sender, final String commandLabel, @NonNull final MainCommandHandler commandHandler, final String labelMessageNoPerms) {
+        final CommandDisplayConfig commandDisplayConfig = commandHandler.getCommandDisplayConfig();
+        final String commandLabelMessage = commandDisplayConfig.getCommandLabelMessage();
+
+        for (final CommandProperty subcommand : commandHandler.getSubcommands()) {
             if (subcommand.isHideLabel() && !checkPermission(sender, subcommand)) {
                 continue;
             }
