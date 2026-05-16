@@ -56,7 +56,20 @@ public class CommandProperty  {
     private String permissionMessage;
     private String helpKeyword;
     private List<String> usageMessages;
-    private boolean hideLabel;
+    private boolean hideLabel = true;
+
+    /**
+     * Constructs your command with this class.
+     *
+     * @param commandLabel The label for your command.
+     * @throws IllegalArgumentException if no command labels are provided.
+     */
+    protected CommandProperty(final String commandLabel) {
+        if (commandLabel == null || commandLabel.isEmpty()) {
+            throw new IllegalArgumentException("At least one command label must be provided.");
+        }
+        commandLabels.add(commandLabel);
+    }
 
     /**
      * Constructs your command with this class.
@@ -64,7 +77,7 @@ public class CommandProperty  {
      * @param commandLabel The different labels for your command. At least one label must be provided.
      * @throws IllegalArgumentException if no command labels are provided.
      */
-    public CommandProperty(String... commandLabel) {
+    protected CommandProperty(final String... commandLabel) {
         if (commandLabel == null || commandLabel.length == 0) {
             throw new IllegalArgumentException("At least one command label must be provided.");
         }

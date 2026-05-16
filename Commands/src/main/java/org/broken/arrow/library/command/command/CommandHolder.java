@@ -60,21 +60,8 @@ import java.util.function.Function;
  * @see CommandRegister#registerSubCommand(CommandProperty)
  */
 public abstract class CommandHolder extends CommandProperty {
-
     private String[] arguments;
     private CommandSender sender;
-
-    /**
-     * Set the label for your subcommand. You can have several.
-     * <p>&nbsp;</p>
-     * Note: that you need to at least set one label.
-     *
-     * @param commandLabel The different labels for your command. At least one label must be provided.
-     * @throws IllegalArgumentException if no command labels are provided.
-     */
-    protected CommandHolder(final String... commandLabel) {
-        super(commandLabel);
-    }
 
     /**
      * Called when the command is executed by the specified sender. The sender can be a player or another command sender,
@@ -281,10 +268,10 @@ public abstract class CommandHolder extends CommandProperty {
      * with the given suggestions. We sort them and only select ones
      * that the last word starts with.
      *
-     * @param toString    the function you want to exicute.
+     * @param toString    the function you want to execute.
      * @param <T>         class this list are from.
      * @param suggestions list of suggestions you want to tabcomplete.
-     * @return list of words mathing one or several suggestions.
+     * @return list of words matching one or several suggestions.
      */
     @Nonnull
     protected final <T> List<String> completeLastWord(final Iterable<T> suggestions, final Function<T, String> toString) {

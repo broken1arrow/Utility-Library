@@ -58,7 +58,6 @@ public class CommandExecutor extends Command {
             this.sendMessage(sender, commandLabel);
         }
         if (args.length > 0) {
-
             if (!this.sendDescriptions(sender, commandLabel, args))
                 return false;
             final CommandProperty executor = commandRegister.getCommandBuilder(args[0]);
@@ -133,7 +132,7 @@ public class CommandExecutor extends Command {
     /**
      * Send sub command.
      *
-     * @param sender the sender of the command.
+     * @param sender       the sender of the command.
      * @param commandLabel the label of the sub command.
      */
     public void sendSubDescription(final CommandSender sender, final String commandLabel) {
@@ -186,15 +185,20 @@ public class CommandExecutor extends Command {
     }
 
     private boolean sendDescription(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] args, CommandProperty executor) {
-        if (executor.getDescription() != null) {
-            String arguments = Arrays.toString(args);
-
-            if (arguments.endsWith("?]") || arguments.endsWith("help]")) {
-                sender.sendMessage(placeholders(executor.getDescription(), commandLabel, executor));
+        final String executorDescription = executor.getDescription();
+        if (executorDescription != null) {
+            final String lastArg = args[args.length - 1];
+            if (lastArg.endsWith("?") || lastArg.endsWith("help") || hasCustomKeyWorld(executor, lastArg)) {
+                sender.sendMessage(placeholders(executorDescription, commandLabel, executor));
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean hasCustomKeyWorld(CommandProperty executor, String lastArg) {
+        final String helpKeyword = executor.getHelpKeyword();
+        return helpKeyword != null && !helpKeyword.isEmpty() && lastArg.endsWith(helpKeyword);
     }
 
     private String placeholders(final String message, final String commandLabel, final CommandProperty subcommand) {
@@ -227,11 +231,13 @@ public class CommandExecutor extends Command {
 
     private boolean sendDescriptions(CommandSender sender, String commandLabel, String[] args) {
         final List<String> descriptions = commandRegister.getDescriptions();
-        if (args.length == 1 && descriptions != null && !descriptions.isEmpty() &&
-                (Arrays.toString(args).endsWith("?]") || Arrays.toString(args).endsWith("help]"))) {
-            for (String description : descriptions)
-                sender.sendMessage(placeholders(description, commandLabel, null));
-            return false;
+        if (args.length == 1 && descriptions != null && !descriptions.isEmpty()) {
+            final String lastArg = args[args.length - 1];
+            if ((lastArg.endsWith("?") || lastArg.endsWith("help"))) {
+                for (String description : descriptions)
+                    sender.sendMessage(placeholders(description, commandLabel, null));
+                return false;
+            }
         }
         return true;
     }
