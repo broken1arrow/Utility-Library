@@ -20,7 +20,7 @@ public class CommandDisplayBuilder {
     /**
      * Creates a new display builder.
      *
-     * @param commandRegister parent command builder
+     * @param commandRegister    parent command builder
      * @param mainCommandHandler internal command handler
      */
     public CommandDisplayBuilder(@Nonnull final CommandBuilder commandRegister, @Nonnull final MainCommandHandler mainCommandHandler) {
@@ -31,13 +31,15 @@ public class CommandDisplayBuilder {
     /**
      * Applies display configuration to the command.
      *
-     * <p>This includes messages, prefixes, suffixes, and other visual output
-     * shown when interacting with the command system.</p>
-     *
      * <pre>{@code
      * display(config -> {
-     *     config.setPrefixMessage("...");
-     *     config.setSuffixMessage("...");
+     *     config.setDescription(
+     *                 "Brief explanation of the command and its usage",
+     *                 "including subcommand permissions.")
+     *            .setCommandLabelMessageNoPerms("&fUse command &6{label}&f (perm: &6{perm}&f)")
+     *            .setCommandLabelMessage("&fUsage: &6<{label}>")
+     *            .setPrefixMessage("&f---------------&8<&6Command info&8>&f---------------")
+     *            .setSuffixMessage("&f---------------&8<&6Command info&8>&f---------------");
      * });
      * }</pre>
      *

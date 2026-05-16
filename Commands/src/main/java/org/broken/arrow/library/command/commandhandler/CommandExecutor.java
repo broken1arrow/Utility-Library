@@ -3,10 +3,12 @@ package org.broken.arrow.library.command.commandhandler;
 import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.command.CommandRegister;
 import org.broken.arrow.library.command.command.CommandProperty;
+import org.broken.arrow.library.command.subcommand.CommandDisplayConfig;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -54,16 +56,31 @@ public class CommandExecutor extends Command {
      */
     @Override
     public boolean execute(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] args) {
+        final MainCommandHandler commandHandler = commandRegister.getCommand(commandLabel);
+
+        if (commandHandler != null) {
+            CommandProperty mainCommand = commandHandler.getMainCommand();
+            if (mainCommand != null) {
+                final String permission = mainCommand.getPermission();
+                if (permission != null && !permission.isEmpty() && !sender.hasPermission(permission)) {
+                    sender.sendMessage((colors(placeholders(mainCommand.getPermissionMessage().replace("{perm}", permission), commandLabel, null))));
+                    return false;
+                }
+                return mainCommand.executeCommand(sender, commandLabel, args);
+            }
+            return this.handleSubCommand(sender, commandLabel, commandHandler, args);
+        }
+
         if (args.length == 0) {
             this.sendMessage(sender, commandLabel);
         }
         if (args.length > 0) {
             if (!this.sendDescriptions(sender, commandLabel, args))
                 return false;
+
             final CommandProperty executor = commandRegister.getCommandBuilder(args[0]);
             if (executor != null) {
                 if (sendDescription(sender, commandLabel, args, executor)) return false;
-
                 if (sendNoPermission(sender, commandLabel, executor)) return false;
 
                 boolean executeCommand = executor.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
@@ -85,6 +102,26 @@ public class CommandExecutor extends Command {
     @Nonnull
     @Override
     public List<String> tabComplete(@Nonnull final CommandSender sender, @Nonnull final String alias, @Nonnull final String[] args) throws IllegalArgumentException {
+        final MainCommandHandler commandHandler = commandRegister.getCommand(alias);
+
+        if (commandHandler != null) {
+            CommandProperty mainCommand = commandHandler.getMainCommand();
+            if (mainCommand != null) {
+                final List<String> tabComplete = mainCommand.executeTabComplete(sender,alias,args);
+                return tabComplete != null && checkPermission(sender, mainCommand) ? tabComplete : new ArrayList<>();
+            }
+            if (args.length > 0) {
+                final CommandProperty subcommand = commandRegister.getCommandBuilder(args[0], true);
+                if (subcommand == null) return new ArrayList<>();
+                if (args.length == 1) {
+                    return tabCompleteSubcommands(sender, commandHandler.getSubcommands(), args[0], subcommand.isHideLabel());
+                }
+                final List<String> tabComplete = subcommand.executeTabComplete(sender, alias, Arrays.copyOfRange(args, 1, args.length));
+                return tabComplete != null && checkPermission(sender, subcommand) ? tabComplete : new ArrayList<>();
+            }
+            return new ArrayList<>();
+        }
+
         if (args.length > 0) {
             final CommandProperty subcommand = commandRegister.getCommandBuilder(args[0], true);
             if (subcommand == null) return new ArrayList<>();
@@ -99,6 +136,19 @@ public class CommandExecutor extends Command {
     @Override
     public List<String> tabComplete(@Nonnull final CommandSender sender, @Nonnull final String alias, @Nonnull final String[] args, @Nullable final Location location) throws IllegalArgumentException {
         return tabComplete(sender, alias, args);
+    }
+
+    /**
+     * Send sub command.
+     *
+     * @param sender       the sender of the command.
+     * @param commandLabel the label of the sub command.
+     */
+    public void sendSubDescription(final CommandSender sender, final String commandLabel) {
+        for (final CommandProperty subcommand : commandRegister.getCommands()) {
+            if (isSendLabelMessage(sender, subcommand)) continue;
+            sender.sendMessage(placeholders(subcommand.getDescription(), commandLabel, subcommand));
+        }
     }
 
     private boolean checkPermission(final CommandSender sender, final CommandProperty commandBuilder) {
@@ -129,17 +179,39 @@ public class CommandExecutor extends Command {
         return tab;
     }
 
-    /**
-     * Send sub command.
-     *
-     * @param sender       the sender of the command.
-     * @param commandLabel the label of the sub command.
-     */
-    public void sendSubDescription(final CommandSender sender, final String commandLabel) {
-        for (final CommandProperty subcommand : commandRegister.getCommands()) {
-            if (isSendLabelMessage(sender, subcommand)) continue;
-            sender.sendMessage(placeholders(subcommand.getDescription(), commandLabel, subcommand));
+    private List<String> tabCompleteSubcommands(@Nonnull final CommandSender sender, @Nonnull final List<CommandProperty> subcommandsList, @Nonnull String param, final boolean overridePermission) {
+        param = param.toLowerCase();
+        final List<String> tab = new ArrayList<>();
+        for (final CommandProperty subcommand : subcommandsList) {
+            final Set<String> setOfLabels = subcommand.getCommandLabels();
+            if (!checkPermission(sender, subcommand) && overridePermission) {
+                continue;
+            }
+            for (String label : setOfLabels) {
+                if (!label.trim().isEmpty() && label.startsWith(param)) tab.add(label);
+            }
         }
+        return tab;
+    }
+
+    private boolean handleSubCommand(@NonNull final CommandSender sender, @NonNull final String commandLabel, @NonNull final MainCommandHandler commandHandler, @NonNull final String[] args) {
+        if (commandHandler.isSubCommandsSet()) return false;
+
+        if (args.length == 0) {
+            this.sendMessage(sender, commandHandler.getCommandDisplayConfig(), commandLabel);
+            return false;
+        }
+
+        final CommandProperty subCommand = commandHandler.getCommandBuilder(args[0]);
+        if (subCommand != null) {
+            if (this.sendNoPermission(sender, commandLabel, subCommand)) return false;
+            if (this.sendDescription(sender, commandLabel, args, subCommand)) return false;
+
+            final boolean executeCommand = subCommand.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
+            this.sendUsageMessage(sender, commandLabel, subCommand, executeCommand);
+            return executeCommand;
+        }
+        return false;
     }
 
     private boolean isSendLabelMessage(final CommandSender sender, final CommandProperty subcommand) {
@@ -150,7 +222,6 @@ public class CommandExecutor extends Command {
     }
 
     private void sendMessage(final CommandSender sender, final String commandLabel) {
-
         final List<String> helpPrefixMessage = commandRegister.getPrefixMessage();
         if (helpPrefixMessage != null && !helpPrefixMessage.isEmpty())
             for (final String prefixMessage : helpPrefixMessage)
@@ -165,6 +236,27 @@ public class CommandExecutor extends Command {
             sendToSender(sender, commandLabel, commandLabelMessage, labelMessageNoPerms);
         }
         final List<String> helpSuffixMessage = commandRegister.getSuffixMessage();
+        if (helpSuffixMessage != null && !helpSuffixMessage.isEmpty())
+            for (final String suffixMessage : helpSuffixMessage)
+                sender.sendMessage(colors(suffixMessage));
+    }
+
+    private void sendMessage(@Nonnull final CommandSender sender, @Nonnull final CommandDisplayConfig commandDisplayConfig, @Nonnull final String commandLabel) {
+
+        final List<String> helpPrefixMessage = commandDisplayConfig.getPrefixMessage();
+        if (helpPrefixMessage != null && !helpPrefixMessage.isEmpty())
+            for (final String prefixMessage : helpPrefixMessage)
+                sender.sendMessage(colors(prefixMessage));
+
+        final String commandLabelMessage = commandDisplayConfig.getCommandLabelMessage();
+        final String labelMessageNoPerms = commandDisplayConfig.getCommandLabelMessageNoPerms();
+        if (labelMessageNoPerms != null && !labelMessageNoPerms.isEmpty() && !permissionCheck(sender, commandDisplayConfig.getCommandLabelPermission())) {
+            sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, null)));
+
+        } else if (commandLabelMessage != null && !commandLabelMessage.isEmpty()) {
+            sendToSender(sender, commandLabel, commandLabelMessage, labelMessageNoPerms);
+        }
+        final List<String> helpSuffixMessage = commandDisplayConfig.getSuffixMessage();
         if (helpSuffixMessage != null && !helpSuffixMessage.isEmpty())
             for (final String suffixMessage : helpSuffixMessage)
                 sender.sendMessage(colors(suffixMessage));

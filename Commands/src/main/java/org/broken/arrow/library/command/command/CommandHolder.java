@@ -64,6 +64,26 @@ public abstract class CommandHolder extends CommandProperty {
     private CommandSender sender;
 
     /**
+     * Constructs your command with this class.
+     *
+     * @param commandLabel The label for your command.
+     * @throws IllegalArgumentException if no command labels are provided.
+     */
+    public CommandHolder(final String commandLabel) {
+        super(commandLabel);
+    }
+
+    /**
+     * Constructs your command with this class.
+     *
+     * @param commandLabel The different labels for your command. At least one label must be provided.
+     * @throws IllegalArgumentException if no command labels are provided.
+     */
+    public CommandHolder(final String... commandLabel) {
+        super(commandLabel);
+    }
+
+    /**
      * Called when the command is executed by the specified sender. The sender can be a player or another command sender,
      * such as the console. Make sure to check the type of the sender before casting it to a specific sender type.
      *

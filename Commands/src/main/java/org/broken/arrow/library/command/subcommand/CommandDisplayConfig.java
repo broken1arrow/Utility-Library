@@ -3,6 +3,12 @@ package org.broken.arrow.library.command.subcommand;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Configuration for command display output.
+ *
+ * <p>This class defines all visual and informational elements shown when a command
+ * or its subcommands are displayed to the player (e.g. help output, labels, headers).</p>
+ */
 public class CommandDisplayConfig {
 
     private String commandLabelMessage;
@@ -22,8 +28,12 @@ public class CommandDisplayConfig {
 
     /**
      * Sets the message to display as the command label.
-     * Use {label} to replace it with the command name.
-     *
+     * <p>Supports placeholders:
+     * <ul>
+     *     <li>{label} - command label</li>
+     *     <li>{perm} - required permission</li>
+     * </ul>
+     * </p>
      * @param commandLabelMessage The command label message to set.
      * @return The CommandRegister instance.
      */
@@ -95,21 +105,21 @@ public class CommandDisplayConfig {
     }
 
     /**
-     * Returns the description of the command. The description could provide information about the main command
-     * and/or brief explanation to the subcommands. Player then add a "?" or "help" at the end of the command to
-     * request additional information about the command.
+     * Returns the descriptions displayed in command help output.
      *
-     * @return The description.
+     * <p>These describe the command or its subcommands depending on context.</p>
+     *
+     * @return list of description lines
      */
-    public List<String> getDescriptions() {
+    public List<String> getDescription() {
         return descriptions;
     }
 
     /**
-     * Set the description for your command.
+     * Sets the description lines for the command display.
      *
-     * @param descriptions the description for your command.
-     * @return this class for chaining.
+     * @param descriptions description text lines
+     * @return this configuration instance for chaining
      */
     public CommandDisplayConfig setDescription(final String... descriptions) {
         this.descriptions = Arrays.asList(descriptions);
@@ -117,19 +127,26 @@ public class CommandDisplayConfig {
     }
 
     /**
-     * Get the message if player not have the permission.
+     * Returns the message displayed when a player lacks permission.
      *
-     * @return the message or null.
+     * @return no-permission message format
      */
     public String getCommandLabelMessageNoPerms() {
         return commandLabelMessageNoPerms;
     }
 
     /**
-     * Use {label} to replace it with the command name and {perm} to get permission. Used if you not have permission.
+     * Sets the message shown when a player lacks permission.
      *
-     * @param commandLabelMessage the message send for every subcommand.
-     * @return this class for chaining.
+     * <p>Supports placeholders:
+     * <ul>
+     *     <li>{label} - command label</li>
+     *     <li>{perm} - required permission</li>
+     * </ul>
+     * </p>
+     *
+     * @param commandLabelMessage message format for missing permission
+     * @return this configuration instance for chaining
      */
     public CommandDisplayConfig setCommandLabelMessageNoPerms(String commandLabelMessage) {
         this.commandLabelMessageNoPerms = commandLabelMessage;
@@ -137,19 +154,19 @@ public class CommandDisplayConfig {
     }
 
     /**
-     * Get the permission for use the main command.
+     * Returns the permission required for the command label.
      *
-     * @return the permission or null if not set.
+     * @return permission string or null if not set
      */
     public String getCommandLabelPermission() {
         return commandLabelPermission;
     }
 
     /**
-     * Set the permission used.
+     * Sets the permission required to use the command.
      *
-     * @param commandLabelPermission the permission
-     * @return this class.
+     * @param commandLabelPermission permission node
+     * @return this configuration instance for chaining
      */
     public CommandDisplayConfig setCommandLabelPermission(final String commandLabelPermission) {
         this.commandLabelPermission = commandLabelPermission;

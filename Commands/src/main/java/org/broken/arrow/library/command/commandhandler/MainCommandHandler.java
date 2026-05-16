@@ -171,4 +171,8 @@ public class MainCommandHandler {
             throw new CommandException("&c" + "You can´t register a command without labels");
         }
     }
+
+    public  List<CommandProperty> getSubcommands() {
+        return this.commands;
+    }
 }

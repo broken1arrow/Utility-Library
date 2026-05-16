@@ -68,23 +68,6 @@ public class CommandRegister implements CommandRegistering {
         for (CommandProperty registerSubCommand : subCommands) {
             this.registerSubCommand(registerSubCommand);
         }
-
-        registerCommand(null, "test")
-                .setAliases("before")
-                .registerSubCommandGroup(subCommand->{
-                    subCommand.registerSubCommand(null);
-                })
-                .display(displayConfig -> {
-                    displayConfig.setCommandLabelMessage("");
-                    displayConfig.setSuffixMessage("-----<suffix>-----");
-                    displayConfig.setPrefixMessage("-----<prefix>-----");
-                })
-                .setAliases("testings");
-
-        registerCommand(null, "testing")
-                .setMainDescription("something")
-                .setMainCommand(null)
-                .setMainDescription("a command");
         return this;
     }
 
@@ -109,6 +92,16 @@ public class CommandRegister implements CommandRegistering {
         commandsNew.put(mainCommand, mainCommandHandler);
         this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
         return commandBuilder;
+    }
+
+    /**
+     * Returns the main command set.
+     *
+     * @param command Your main command label that you register your command with.
+     * @return the returns the settings set for the main command.
+     */
+    public MainCommandHandler getCommand(@Nonnull final String command) {
+        return commandsNew.get(command.toLowerCase(Locale.ROOT));
     }
 
     /**
@@ -326,8 +319,6 @@ public class CommandRegister implements CommandRegistering {
     @Nullable
     @Override
     public CommandProperty getCommandBuilder(String label, boolean startsWith) {
-        if (startsWith)
-            System.out.println("getCommandBuilder " + label);
         for (final CommandProperty command : commands) {
             if (startsWith && (label.isEmpty() || command.firstLabelMatch(label, true) != null))
                 return command;
