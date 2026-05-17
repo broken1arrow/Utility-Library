@@ -2,6 +2,7 @@ package org.broken.arrow.library.command.builers;
 
 import org.broken.arrow.library.command.command.CommandProperty;
 import org.broken.arrow.library.command.commandhandler.MainCommandHandler;
+import org.broken.arrow.library.command.subcommand.CommandDisplayConfig;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.command.CommandException;
 
@@ -21,10 +22,9 @@ public class CommandBuilder extends CommandOptions {
     /**
      * Creates a new command builder tied to the given {@link MainCommandHandler}.
      *
-     * @param mainCommandHandler internal handler responsible for managing command registration
      */
-    public CommandBuilder(@Nonnull final MainCommandHandler mainCommandHandler) {
-        this.mainCommandHandler = mainCommandHandler;
+    public CommandBuilder() {
+        this.mainCommandHandler = new MainCommandHandler(this);
     }
 
     /**
@@ -116,4 +116,12 @@ public class CommandBuilder extends CommandOptions {
         return this;
     }
 
+    /**
+     * Retrieve the main command handler.
+     *
+     * @return Returns the main command handler.
+     */
+    public MainCommandHandler getMainCommandHandler() {
+        return this.mainCommandHandler;
+    }
 }

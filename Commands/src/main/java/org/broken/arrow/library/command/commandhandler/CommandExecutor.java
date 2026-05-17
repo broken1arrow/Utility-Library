@@ -2,6 +2,7 @@ package org.broken.arrow.library.command.commandhandler;
 
 import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.command.CommandRegister;
+import org.broken.arrow.library.command.builers.CommandOptions;
 import org.broken.arrow.library.command.command.CommandProperty;
 import org.broken.arrow.library.command.subcommand.CommandDisplayConfig;
 import org.bukkit.Location;
@@ -14,6 +15,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -59,14 +61,17 @@ public class CommandExecutor extends Command {
         final MainCommandHandler commandHandler = commandRegister.getCommand(commandLabel);
 
         if (commandHandler != null) {
-            CommandProperty mainCommand = commandHandler.getMainCommand();
+            final CommandProperty mainCommand = commandHandler.getMainCommand();
             if (mainCommand != null) {
                 final String permission = mainCommand.getPermission();
                 if (permission != null && !permission.isEmpty() && !sender.hasPermission(permission)) {
                     sender.sendMessage((colors(placeholders(mainCommand.getPermissionMessage().replace("{perm}", permission), commandLabel, null))));
                     return false;
                 }
-                return mainCommand.executeCommand(sender, commandLabel, args);
+                boolean executeCommand = mainCommand.executeCommand(sender, commandLabel, args);
+                if (this.sendHelpMessage(commandHandler, sender, commandLabel, args, executeCommand))
+                    return true;
+                return executeCommand;
             }
             return this.handleSubCommand(sender, commandLabel, commandHandler, args);
         }
@@ -111,10 +116,10 @@ public class CommandExecutor extends Command {
                 return tabComplete != null && checkPermission(sender, mainCommand) ? tabComplete : new ArrayList<>();
             }
             if (args.length > 0) {
-                final CommandProperty subcommand = commandRegister.getCommandBuilder(args[0], true);
+                final CommandProperty subcommand = commandHandler.getCommandBuilder(args[0], true);
                 if (subcommand == null) return new ArrayList<>();
                 if (args.length == 1) {
-                    return tabCompleteSubcommands(sender, commandHandler.getSubcommands(), args[0], subcommand.isHideLabel());
+                    return tabCompleteSubcommands(sender, commandHandler, args[0]);
                 }
                 final List<String> tabComplete = subcommand.executeTabComplete(sender, alias, Arrays.copyOfRange(args, 1, args.length));
                 return tabComplete != null && checkPermission(sender, subcommand) ? tabComplete : new ArrayList<>();
@@ -151,6 +156,35 @@ public class CommandExecutor extends Command {
         }
     }
 
+    private boolean sendHelpMessage(@NonNull final MainCommandHandler commandHandler, @NonNull final CommandSender sender, @NonNull final String commandLabel, @NonNull final String[] args, final boolean executeCommand) {
+        final CommandProperty mainCommand = commandHandler.getMainCommand();
+        final CommandOptions commandBuilder = commandHandler.getCommandBuilder();
+        if (!executeCommand) {
+            String mainUsageMessage = commandBuilder.getMainUsageMessage();
+            if (mainUsageMessage == null || mainUsageMessage.isEmpty()) {
+                List<String> usageMessage = mainCommand.getUsageMessages();
+                if (usageMessage != null && !usageMessage.isEmpty()) {
+                    usageMessage.forEach(message ->
+                            sender.sendMessage((colors(placeholders(message, commandLabel, null)))));
+                }
+                return true;
+            }
+            sender.sendMessage((colors(placeholders(mainUsageMessage, commandLabel, null))));
+            return true;
+        }
+        String description = commandBuilder.getMainDescription();
+        if (description == null || description.isEmpty()) {
+            description = mainCommand.getDescription();
+        }
+
+        final String lastArg = args[args.length - 1];
+        if (lastArg.endsWith("?") || lastArg.endsWith("help") || hasCustomKeyWorld(mainCommand, lastArg)) {
+            sender.sendMessage(placeholders(description, commandLabel, mainCommand));
+            return true;
+        }
+        return false;
+    }
+
     private boolean checkPermission(final CommandSender sender, final CommandProperty commandBuilder) {
         if (commandBuilder.getPermission() == null || commandBuilder.getPermission().isEmpty()) return true;
         return permissionCheck(sender, commandBuilder.getPermission());
@@ -179,12 +213,12 @@ public class CommandExecutor extends Command {
         return tab;
     }
 
-    private List<String> tabCompleteSubcommands(@Nonnull final CommandSender sender, @Nonnull final List<CommandProperty> subcommandsList, @Nonnull String param, final boolean overridePermission) {
+    private List<String> tabCompleteSubcommands(@Nonnull final CommandSender sender, @Nonnull final MainCommandHandler subcommandsList, @Nonnull String param) {
         param = param.toLowerCase();
         final List<String> tab = new ArrayList<>();
-        for (final CommandProperty subcommand : subcommandsList) {
+        for (final CommandProperty subcommand : subcommandsList.getSubcommands()) {
             final Set<String> setOfLabels = subcommand.getCommandLabels();
-            if (!checkPermission(sender, subcommand) && overridePermission) {
+            if (!checkPermission(sender, subcommand) && subcommand.isHideLabel()) {
                 continue;
             }
             for (String label : setOfLabels) {

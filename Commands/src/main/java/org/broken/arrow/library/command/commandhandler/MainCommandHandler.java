@@ -1,5 +1,7 @@
 package org.broken.arrow.library.command.commandhandler;
 
+import org.broken.arrow.library.command.builers.CommandBuilder;
+import org.broken.arrow.library.command.builers.CommandOptions;
 import org.broken.arrow.library.command.command.CommandProperty;
 import org.broken.arrow.library.command.subcommand.CommandDisplayConfig;
 import org.broken.arrow.library.logging.Validate;
@@ -8,24 +10,29 @@ import org.bukkit.command.CommandException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MainCommandHandler {
-    private final List<CommandProperty> commands = Collections.synchronizedList(new ArrayList<>());
+    private final Map<String, CommandProperty> commands = new ConcurrentHashMap<>();
     private final CommandDisplayConfig commandDisplayConfig;
+    private final CommandBuilder commandBuilder;
     private CommandProperty mainCommand;
 
     /**
      * Creates a new command handler that store your subcommands or your main command instance.
      *
-     * @param commandDisplayConfig  internal handler to configure {@link CommandDisplayConfig} for sub commands.
+     * @param commandBuilder The settings for the main command outside for what you set for {@link CommandProperty}
      */
-    public MainCommandHandler(@Nonnull final CommandDisplayConfig commandDisplayConfig ) {
-        this.commandDisplayConfig = commandDisplayConfig;
+    public MainCommandHandler(@Nonnull final CommandBuilder commandBuilder) {
+        this.commandDisplayConfig = new CommandDisplayConfig();
+        this.commandBuilder = commandBuilder;
     }
 
     /**
@@ -38,13 +45,7 @@ public class MainCommandHandler {
      */
     public MainCommandHandler registerSubCommand(final CommandProperty subCommand) {
         Set<String> commandLabels = subCommand.getCommandLabels();
-        if (addCommands(subCommand, commandLabels)) {
-            return this;
-        }
-        commands.removeIf(oldCommandBuilder -> oldCommandBuilder.equals(subCommand));
-        commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getCommandLabels().equals(subCommand.getCommandLabels()));
-        commands.add(subCommand);
-        commands.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
+        commandLabels.forEach(label -> commands.put(label, subCommand));
         return this;
     }
 
@@ -54,7 +55,7 @@ public class MainCommandHandler {
      *
      * @param subCommands The sub-commands to register. Must not be null and should have valid command labels.
      * @return Returns the class instance for method chaining.
-     * @throws CommandException if the command labels are empty or null.
+     * @throws CommandException            if the command labels are empty or null.
      * @throws Validate.ValidateExceptions if a main command has already been set.
      */
     public MainCommandHandler registerSubCommands(final CommandProperty... subCommands) {
@@ -98,7 +99,7 @@ public class MainCommandHandler {
      * @param subLabel The sub-label of the subcommand to unregister.
      */
     public void unregisterSubCommand(String subLabel) {
-        commands.forEach(commandBuilder -> commandBuilder.getCommandLabels().removeIf(label -> label.equals(subLabel)));
+        commands.remove(subLabel);
     }
 
     /**
@@ -106,6 +107,7 @@ public class MainCommandHandler {
      * checks before the sub commands is checked.
      * <p>
      * Note: Only used when at least one sub command is registern.
+     *
      * @return instance of the CommandDisplayConfig
      */
     @Nonnull
@@ -133,11 +135,16 @@ public class MainCommandHandler {
      */
     @Nullable
     public CommandProperty getCommandBuilder(String label, boolean startsWith) {
-        for (final CommandProperty command : commands) {
-            if (startsWith && (label.isEmpty() || command.firstLabelMatch(label, true) != null))
-                return command;
-            if (command.firstLabelMatch(label) != null)
-                return command;
+        CommandProperty commandProperty = commands.get(label);
+        if (commandProperty != null)
+            return commandProperty;
+
+        for (final Map.Entry<String, CommandProperty> command : commands.entrySet()) {
+            CommandProperty value = command.getValue();
+            if (startsWith && (label.isEmpty() || value.firstLabelMatch(label, true) != null))
+                return value;
+            if (value.firstLabelMatch(label) != null)
+                return value;
         }
         return null;
     }
@@ -147,8 +154,27 @@ public class MainCommandHandler {
      *
      * @return Returns {@code true} if no subcommands is registered.
      */
-    public boolean isSubCommandsSet(){
+    public boolean isSubCommandsSet() {
         return commands.isEmpty();
+    }
+
+
+    /**
+     * Retrieve the subcommands set if you're not using the main command.
+     *
+     * @return The list of sub commands or empty list if non is set.
+     */
+    public Collection<CommandProperty> getSubcommands() {
+        return this.commands.values();
+    }
+
+    /**
+     * Retrieve the set options for the command, outside the {@link CommandProperty}.
+     *
+     * @return Returns the instance of messages set for the main part of the command.
+     */
+    public CommandOptions getCommandBuilder() {
+        return commandBuilder;
     }
 
     /**
@@ -164,20 +190,9 @@ public class MainCommandHandler {
                 if (label == null)
                     throw new CommandException("&c" + "You can´t register a command with a label set to null.");
             }
-            commands.add(subCommand);
-            commands.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
             return true;
         } else {
             throw new CommandException("&c" + "You can´t register a command without labels");
         }
-    }
-
-    /**
-     * Retrieve the subcommands set if you not using the main command.
-     *
-     * @return The list of sub commands or empty list if non is set.
-     */
-    public  List<CommandProperty> getSubcommands() {
-        return this.commands;
     }
 }

@@ -86,11 +86,8 @@ public class CommandRegister implements CommandRegistering {
      * @return a {@link CommandBuilder} used to configure the command structure
      */
     public CommandBuilder registerCommand(final Plugin plugin, final String mainCommand) {
-        final CommandDisplayConfig commandDisplayConfig = new CommandDisplayConfig();
-        final MainCommandHandler mainCommandHandler = new MainCommandHandler(commandDisplayConfig);
-        final CommandBuilder commandBuilder = new CommandBuilder(mainCommandHandler);
-
-        commandsNew.put(mainCommand, mainCommandHandler);
+        final CommandBuilder commandBuilder = new CommandBuilder();
+        commandsNew.put(mainCommand, commandBuilder.getMainCommandHandler());
         this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
         return commandBuilder;
     }
@@ -109,12 +106,10 @@ public class CommandRegister implements CommandRegistering {
      * @param callback The builder to set the command.
      */
     public void registerCommand(@Nonnull final Plugin plugin, @Nonnull final String mainCommand, @Nonnull final Consumer<CommandBuilder> callback) {
-        final CommandDisplayConfig commandDisplayConfig = new CommandDisplayConfig();
-        final MainCommandHandler mainCommandHandler = new MainCommandHandler(commandDisplayConfig);
-        final CommandBuilder commandBuilder = new CommandBuilder(mainCommandHandler);
+        final CommandBuilder commandBuilder = new CommandBuilder();
 
         callback.accept(commandBuilder);
-        commandsNew.put(mainCommand, mainCommandHandler);
+        commandsNew.put(mainCommand, commandBuilder.getMainCommandHandler());
         this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
     }
 
@@ -395,6 +390,7 @@ public class CommandRegister implements CommandRegistering {
     public CommandRegistering registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand, @Nonnull final String description, @Nonnull final String usageMessage, @Nonnull final String... aliases) {
         final String[] main = mainCommand.split("\\|");
         if (registeredMainCommand) return this;
+        System.out.println("usageMessage " + usageMessage);
         if (main.length > 1)
             for (final String command : main)
                 this.register(fallbackPrefix, new CommandExecutor(this, command, description, usageMessage, Arrays.asList(aliases)));
