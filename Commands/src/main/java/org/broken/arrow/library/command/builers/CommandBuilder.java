@@ -27,36 +27,18 @@ public class CommandBuilder extends CommandOptions {
         this.mainCommandHandler = new MainCommandHandler(this);
     }
 
-    /**
-     * Sets the command description.
-     *
-     * @param description human-readable description of the command
-     * @return this builder instance for chaining
-     */
     @Override
-    public CommandBuilder setMainDescription(String description) {
+    public CommandBuilder setMainDescription(@Nonnull final String... description) {
         super.setMainDescription(description);
         return this;
     }
 
-    /**
-     * Sets the usage message displayed when the command is used incorrectly or help is requested.
-     *
-     * @param usageMessage usage instruction string
-     * @return this builder instance for chaining
-     */
     @Override
-    public CommandBuilder setMainUsageMessage(String usageMessage) {
+    public CommandBuilder setMainUsageMessage(@Nonnull final String... usageMessage) {
         super.setMainUsageMessage(usageMessage);
         return this;
     }
 
-    /**
-     * Defines alternative aliases for this command.
-     *
-     * @param aliases alternative command labels
-     * @return this builder instance for chaining
-     */
     @Override
     public CommandBuilder setAliases(String... aliases) {
         super.setAliases(aliases);

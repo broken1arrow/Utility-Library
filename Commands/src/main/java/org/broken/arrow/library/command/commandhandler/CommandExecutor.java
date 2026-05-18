@@ -15,7 +15,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -65,7 +64,7 @@ public class CommandExecutor extends Command {
             if (mainCommand != null) {
                 final String permission = mainCommand.getPermission();
                 if (permission != null && !permission.isEmpty() && !sender.hasPermission(permission)) {
-                    sender.sendMessage((colors(placeholders(mainCommand.getPermissionMessage().replace("{perm}", permission), commandLabel, null))));
+                    sender.sendMessage((colors(placeholders(mainCommand.getPermissionMessage(), commandLabel, mainCommand))));
                     return false;
                 }
                 boolean executeCommand = mainCommand.executeCommand(sender, commandLabel, args);
@@ -85,7 +84,8 @@ public class CommandExecutor extends Command {
 
             final CommandProperty executor = commandRegister.getCommandBuilder(args[0]);
             if (executor != null) {
-                if (sendDescription(sender, commandLabel, args, executor)) return false;
+                if (sendDescription(sender, commandLabel, args, commandHandler.getCommandBuilder(), executor))
+                    return false;
                 if (sendNoPermission(sender, commandLabel, executor)) return false;
 
                 boolean executeCommand = executor.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
@@ -160,26 +160,37 @@ public class CommandExecutor extends Command {
         final CommandProperty mainCommand = commandHandler.getMainCommand();
         final CommandOptions commandBuilder = commandHandler.getCommandBuilder();
         if (!executeCommand) {
-            String mainUsageMessage = commandBuilder.getMainUsageMessage();
-            if (mainUsageMessage == null || mainUsageMessage.isEmpty()) {
+            String[] mainUsageMessage = commandBuilder.getMainUsageMessage();
+            if (mainUsageMessage.length == 0) {
                 List<String> usageMessage = mainCommand.getUsageMessages();
                 if (usageMessage != null && !usageMessage.isEmpty()) {
                     usageMessage.forEach(message ->
-                            sender.sendMessage((colors(placeholders(message, commandLabel, null)))));
+                            sender.sendMessage((colors(placeholders(message, commandLabel, mainCommand)))));
                 }
                 return true;
             }
-            sender.sendMessage((colors(placeholders(mainUsageMessage, commandLabel, null))));
+            for (String description : mainUsageMessage) {
+                sender.sendMessage((colors(placeholders(description, commandLabel, mainCommand))));
+            }
             return true;
         }
-        String description = commandBuilder.getMainDescription();
-        if (description == null || description.isEmpty()) {
-            description = mainCommand.getDescription();
-        }
+        return descriptionMessage(sender, commandLabel, args, commandBuilder, mainCommand);
+    }
 
+    private boolean descriptionMessage(@NonNull CommandSender sender, @NonNull String commandLabel, @NonNull String[] args, CommandOptions commandBuilder, CommandProperty mainCommand) {
         final String lastArg = args[args.length - 1];
+        String[] descriptions = commandBuilder.getMainDescription();
+        if (descriptions.length > 0) {
+            if (lastArg.endsWith("?") || lastArg.endsWith("help") || hasCustomKeyWorld(mainCommand, lastArg)) {
+                for (String description : descriptions) {
+                    sender.sendMessage(placeholders(description, commandLabel, mainCommand));
+                }
+                return true;
+            }
+        }
         if (lastArg.endsWith("?") || lastArg.endsWith("help") || hasCustomKeyWorld(mainCommand, lastArg)) {
-            sender.sendMessage(placeholders(description, commandLabel, mainCommand));
+            String commandDescription = mainCommand.getDescription();
+            sender.sendMessage(placeholders(commandDescription, commandLabel, mainCommand));
             return true;
         }
         return false;
@@ -239,7 +250,8 @@ public class CommandExecutor extends Command {
         final CommandProperty subCommand = commandHandler.getCommandBuilder(args[0]);
         if (subCommand != null) {
             if (this.sendNoPermission(sender, commandLabel, subCommand)) return false;
-            if (this.sendDescription(sender, commandLabel, args, subCommand)) return false;
+            if (this.sendDescription(sender, commandLabel, args, commandHandler.getCommandBuilder(), subCommand))
+                return false;
 
             final boolean executeCommand = subCommand.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
             this.sendUsageMessage(sender, commandLabel, subCommand, executeCommand);
@@ -264,7 +276,7 @@ public class CommandExecutor extends Command {
         final String commandLabelMessage = commandRegister.getCommandLabelMessage();
         final String labelMessageNoPerms = commandRegister.getCommandLabelMessageNoPerms();
         if (labelMessageNoPerms != null && !labelMessageNoPerms.isEmpty() && !permissionCheck(sender, commandRegister.getCommandLabelPermission())) {
-            sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, null)));
+            sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, (CommandProperty) null)));
 
         } else if (commandLabelMessage != null && !commandLabelMessage.isEmpty()) {
             sendToSender(sender, commandLabel, commandLabelMessage, labelMessageNoPerms);
@@ -291,24 +303,41 @@ public class CommandExecutor extends Command {
 
     private void sendMessage(@Nonnull final CommandSender sender, final @NonNull MainCommandHandler commandHandler, @Nonnull final String commandLabel) {
         final CommandDisplayConfig commandDisplayConfig = commandHandler.getCommandDisplayConfig();
-        final List<String> helpPrefixMessage = commandDisplayConfig.getPrefixMessage();
-
-        if (helpPrefixMessage != null && !helpPrefixMessage.isEmpty())
-            for (final String prefixMessage : helpPrefixMessage)
-                sender.sendMessage(colors(prefixMessage));
-
+        final List<String> prefixMessages = commandDisplayConfig.getPrefixMessage();
         final String commandLabelMessage = commandDisplayConfig.getCommandLabelMessage();
         final String labelMessageNoPerms = commandDisplayConfig.getCommandLabelMessageNoPerms();
+
+        if (commandLabelMessage == null || labelMessageNoPerms == null) {
+            if (sendHelpMessage(sender, commandHandler, commandLabel, commandDisplayConfig)) return;
+        }
+
+        if (prefixMessages != null && !prefixMessages.isEmpty()) {
+            for (final String prefixMessage : prefixMessages)
+                sender.sendMessage(colors(prefixMessage));
+        }
+
         if (labelMessageNoPerms != null && !labelMessageNoPerms.isEmpty() && !permissionCheck(sender, commandDisplayConfig.getCommandLabelPermission())) {
-            sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, null)));
+            sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, commandDisplayConfig)));
 
         } else if (commandLabelMessage != null && !commandLabelMessage.isEmpty()) {
             sendBody(sender, commandLabel, commandHandler, labelMessageNoPerms);
         }
+
         final List<String> helpSuffixMessage = commandDisplayConfig.getSuffixMessage();
         if (helpSuffixMessage != null && !helpSuffixMessage.isEmpty())
             for (final String suffixMessage : helpSuffixMessage)
                 sender.sendMessage(colors(suffixMessage));
+    }
+
+    private boolean sendHelpMessage(@NonNull CommandSender sender, @NonNull MainCommandHandler commandHandler, @NonNull String commandLabel, CommandDisplayConfig commandDisplayConfig) {
+        String[] mainUsageMessage = commandHandler.getCommandBuilder().getMainUsageMessage();
+        if (mainUsageMessage.length > 0) {
+            for (String usageMessage : mainUsageMessage) {
+                sender.sendMessage(colors(placeholders(usageMessage, commandLabel, commandDisplayConfig)));
+            }
+            return true;
+        }
+        return false;
     }
 
     private void sendBody(final CommandSender sender, final String commandLabel, @NonNull final MainCommandHandler commandHandler, final String labelMessageNoPerms) {
@@ -328,8 +357,19 @@ public class CommandExecutor extends Command {
         }
     }
 
-    private boolean sendDescription(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] args, CommandProperty executor) {
+    private boolean sendDescription(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] args, CommandOptions commandBuilder, CommandProperty executor) {
         final String executorDescription = executor.getDescription();
+        if (executorDescription == null) {
+            final String[] mainDescription = commandBuilder.getMainDescription();
+            final String lastArg = args[args.length - 1];
+            if (lastArg.endsWith("?") || lastArg.endsWith("help") || hasCustomKeyWorld(executor, lastArg)) {
+                for (String description : mainDescription) {
+                    sender.sendMessage(placeholders(description, commandLabel, executor));
+                }
+                return true;
+            }
+        }
+
         if (executorDescription != null) {
             final String lastArg = args[args.length - 1];
             if (lastArg.endsWith("?") || lastArg.endsWith("help") || hasCustomKeyWorld(executor, lastArg)) {
@@ -345,11 +385,21 @@ public class CommandExecutor extends Command {
         return helpKeyword != null && !helpKeyword.isEmpty() && lastArg.endsWith(helpKeyword);
     }
 
-    private String placeholders(final String message, final String commandLabel, final CommandProperty subcommand) {
+    private String placeholders(@Nullable final String message, @Nonnull final String commandLabel, @Nullable final CommandProperty subcommand) {
         if (message == null) return "";
         String permission = subcommand != null ? subcommand.getPermission() : null;
         if (permission == null) permission = "";
         return message.replace("{label}", "/" + commandLabel + (subcommand != null ? " " + this.formatSet(subcommand.getCommandLabels()) : "")).replace("{perm}", permission);
+    }
+
+    private String placeholders(@Nullable final String message, @Nonnull final String commandLabel, @Nonnull final CommandDisplayConfig displayConfig) {
+        if (message == null) return "";
+        final String labelPermission = displayConfig.getCommandLabelPermission();
+        String permission = labelPermission != null && !labelPermission.isEmpty() ? labelPermission : null;
+
+        if (permission == null) permission = "";
+
+        return message.replace("{label}", "/" + commandLabel).replace("{perm}", permission);
     }
 
     /**
@@ -379,7 +429,7 @@ public class CommandExecutor extends Command {
             final String lastArg = args[args.length - 1];
             if ((lastArg.endsWith("?") || lastArg.endsWith("help"))) {
                 for (String description : descriptions)
-                    sender.sendMessage(placeholders(description, commandLabel, null));
+                    sender.sendMessage(placeholders(description, commandLabel, (CommandProperty) null));
                 return false;
             }
         }

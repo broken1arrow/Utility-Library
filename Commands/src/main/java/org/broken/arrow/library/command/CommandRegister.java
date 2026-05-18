@@ -390,7 +390,7 @@ public class CommandRegister implements CommandRegistering {
     public CommandRegistering registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand, @Nonnull final String description, @Nonnull final String usageMessage, @Nonnull final String... aliases) {
         final String[] main = mainCommand.split("\\|");
         if (registeredMainCommand) return this;
-        System.out.println("usageMessage " + usageMessage);
+
         if (main.length > 1)
             for (final String command : main)
                 this.register(fallbackPrefix, new CommandExecutor(this, command, description, usageMessage, Arrays.asList(aliases)));
@@ -415,8 +415,8 @@ public class CommandRegister implements CommandRegistering {
     }
 
     private void registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand, @Nonnull final CommandBuilder commandBuilder) {
-        final String description = commandBuilder.getMainDescription();
-        final String usageMessage = commandBuilder.getMainUsageMessage();
+        final String description = commandBuilder.getMainDescription()[0];
+        final String usageMessage = commandBuilder.getMainUsageMessage()[0];
         final String[] aliases = commandBuilder.getAliases();
         this.registerMainCommand(fallbackPrefix, mainCommand, description, usageMessage, aliases);
     }

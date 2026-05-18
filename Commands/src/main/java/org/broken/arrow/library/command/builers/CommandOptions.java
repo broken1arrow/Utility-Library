@@ -1,5 +1,7 @@
 package org.broken.arrow.library.command.builers;
 
+import javax.annotation.Nonnull;
+
 /**
  * Base configuration for the main command.
  *
@@ -7,40 +9,38 @@ package org.broken.arrow.library.command.builers;
  * including description, usage information, and aliases.</p>
  */
 public class CommandOptions {
-    private String description;
-    private String usageMessage;
+    private String[] description;
+    private String[] usageMessage;
     private String[] aliases;
 
     /**
-     * Sets the description of the main command.
+     * Sets the command description.
      *
-     * <p>This description is used when displaying general command help
-     * for the root command entry point.</p>
-     *
-     * @param description main command description shown in help output
+     * @param description human-readable description of the command
      * @return this builder instance for chaining
      */
-    public CommandOptions setMainDescription(String description) {
+    public CommandOptions setMainDescription(@Nonnull final String... description) {
         this.description = description;
         return this;
     }
 
+
     /**
-     * Sets the usage message for the command.
+     * Sets the usage message displayed when the command is used incorrectly or help is requested.
      *
-     * @param usageMessage usage instruction text
-     * @return this instance for chaining
+     * @param usageMessage usage instruction string
+     * @return this builder instance for chaining
      */
-    public CommandOptions setMainUsageMessage(String usageMessage) {
+    public CommandOptions setMainUsageMessage(@Nonnull final String... usageMessage) {
         this.usageMessage = usageMessage;
         return this;
     }
 
     /**
-     * Sets alternative command aliases.
+     * Defines alternative aliases for this command.
      *
      * @param aliases alternative command labels
-     * @return this instance for chaining
+     * @return this builder instance for chaining
      */
     public CommandOptions setAliases(String... aliases) {
         this.aliases = aliases;
@@ -52,9 +52,10 @@ public class CommandOptions {
      *
      * @return description or empty string if not set
      */
-    public String getMainDescription() {
+    @Nonnull
+    public String[] getMainDescription() {
         if (description == null)
-            return "";
+            return new String[]{""};
         return description;
     }
 
@@ -63,9 +64,10 @@ public class CommandOptions {
      *
      * @return usage message or empty string if not set
      */
-    public String getMainUsageMessage() {
+    @Nonnull
+    public String[] getMainUsageMessage() {
         if (usageMessage == null)
-            return "";
+            return new String[]{""};
         return usageMessage;
     }
 
