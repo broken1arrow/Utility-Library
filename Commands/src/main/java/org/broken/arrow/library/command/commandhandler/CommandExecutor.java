@@ -316,10 +316,10 @@ public class CommandExecutor extends Command {
                 continue;
             }
             if (!checkPermission(sender, subcommand) && labelMessageNoPerms != null && !labelMessageNoPerms.isEmpty()) {
-                sender.sendMessage(colors(placeholders(new String[]{labelMessageNoPerms}, commandLabel, subcommand)));
+                sender.sendMessage(colors(placeholders(labelMessageNoPerms, commandLabel, subcommand)));
             }
             if (checkPermission(sender, subcommand)) {
-                sender.sendMessage(colors(placeholders(new String[]{commandLabelMessage}, commandLabel, subcommand)));
+                sender.sendMessage(colors(placeholders(commandLabelMessage, commandLabel, subcommand)));
             }
         }
     }
