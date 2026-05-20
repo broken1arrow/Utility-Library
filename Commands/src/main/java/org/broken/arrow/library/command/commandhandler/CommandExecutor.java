@@ -290,8 +290,6 @@ public class CommandExecutor extends Command {
         final String commandLabelMessage = commandDisplayConfig.getCommandLabelMessage();
         final String labelMessageNoPerms = commandDisplayConfig.getCommandLabelMessageNoPerms();
 
-
-
         if (prefixMessages != null && !prefixMessages.isEmpty()) {
             sender.sendMessage(colors(prefixMessages.toArray(new String[0])));
         }
@@ -375,16 +373,6 @@ public class CommandExecutor extends Command {
         return new String[]{message.replace("{label}", "/" + commandLabel).replace("{perm}", permission)};
     }
 
-    private String[] placeholders(String[] messages, @NonNull String commandLabel, CommandDisplayConfig commandDisplayConfig) {
-        if (messages == null) return new String[]{""};
-        String permission = commandDisplayConfig != null ? commandDisplayConfig.getCommandLabelPermission() : null;
-        if (permission == null) permission = "";
-        String[] string = new String[messages.length];
-        for (int i = 0; i < messages.length; i++) {
-            string[i] = messages[i].replace("{label}", "/" + commandLabel).replace("{perm}", permission);
-        }
-        return string;
-    }
 
     /**
      * Translate colors on a text.
