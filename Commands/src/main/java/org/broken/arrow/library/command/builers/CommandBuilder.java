@@ -2,7 +2,6 @@ package org.broken.arrow.library.command.builers;
 
 import org.broken.arrow.library.command.command.CommandProperty;
 import org.broken.arrow.library.command.commandhandler.MainCommandHandler;
-import org.broken.arrow.library.command.subcommand.CommandDisplayConfig;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.command.CommandException;
 
@@ -16,7 +15,7 @@ import java.util.function.Consumer;
  * <p>This class represents the primary configuration stage of a command before it transitions
  * into execution-specific or display configuration stages.</p>
  */
-public class CommandBuilder extends CommandOptions {
+public class CommandBuilder  {
     private final MainCommandHandler mainCommandHandler;
 
     /**
@@ -24,26 +23,9 @@ public class CommandBuilder extends CommandOptions {
      *
      */
     public CommandBuilder() {
-        this.mainCommandHandler = new MainCommandHandler(this);
+        this.mainCommandHandler = new MainCommandHandler();
     }
 
-    @Override
-    public CommandBuilder setMainDescription(@Nonnull final String... description) {
-        super.setMainDescription(description);
-        return this;
-    }
-
-    @Override
-    public CommandBuilder setMainUsageMessage(@Nonnull final String... usageMessage) {
-        super.setMainUsageMessage(usageMessage);
-        return this;
-    }
-
-    @Override
-    public CommandBuilder setAliases(String... aliases) {
-        super.setAliases(aliases);
-        return this;
-    }
 
     /**
      * Registers a group of subcommands using a configuration wrapper.
@@ -90,12 +72,12 @@ public class CommandBuilder extends CommandOptions {
      * <p>This mode is mutually exclusive with subcommand registration.</p>
      *
      * @param mainCommand the main command definition
-     * @return this builder instance for further configuration
+     * @return The provided mainCommand instance for further configuration
      * @throws Validate.ValidateExceptions if subcommands have already been registered
      */
-    public CommandOptions setMainCommand(@Nonnull final CommandProperty mainCommand) {
+    public CommandProperty setMainCommand(@Nonnull final CommandProperty mainCommand) {
         mainCommandHandler.setMainCommand(mainCommand);
-        return this;
+        return mainCommand;
     }
 
     /**

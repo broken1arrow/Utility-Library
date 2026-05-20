@@ -44,11 +44,11 @@ public class CommandDisplayBuilder {
      * }</pre>
      *
      * @param callback consumer used to configure {@link CommandDisplayConfig}
-     * @return the original {@link CommandOptions} builder to continue configuration
+     * @return the original {@link MainCommandHandler} builder to continue configuration
      */
-    public CommandOptions display(final Consumer<CommandDisplayConfig> callback) {
+    public MainCommandHandler display(final Consumer<CommandDisplayConfig> callback) {
         callback.accept(mainCommandHandler.getCommandDisplayConfig());
-        return commandRegister;
+        return mainCommandHandler;
     }
 
 }

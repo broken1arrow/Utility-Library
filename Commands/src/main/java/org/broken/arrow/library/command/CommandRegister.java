@@ -6,7 +6,6 @@ import org.broken.arrow.library.command.commandhandler.CommandExecutor;
 import org.broken.arrow.library.command.commandhandler.CommandRegistering;
 import org.broken.arrow.library.command.commandhandler.MainCommandHandler;
 import org.broken.arrow.library.command.builers.CommandBuilder;
-import org.broken.arrow.library.command.subcommand.CommandDisplayConfig;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -415,9 +414,9 @@ public class CommandRegister implements CommandRegistering {
     }
 
     private void registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand, @Nonnull final CommandBuilder commandBuilder) {
-        final String description = commandBuilder.getMainDescription()[0];
-        final String usageMessage = commandBuilder.getMainUsageMessage()[0];
-        final String[] aliases = commandBuilder.getAliases();
+        final String description = "This is the command registered: " + mainCommand;
+        final String usageMessage = "usage for command/" + mainCommand;
+        final String[] aliases = new String[0];
         this.registerMainCommand(fallbackPrefix, mainCommand, description, usageMessage, aliases);
     }
 

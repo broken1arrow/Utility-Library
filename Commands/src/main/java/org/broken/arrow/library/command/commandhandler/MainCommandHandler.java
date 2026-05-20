@@ -1,7 +1,7 @@
 package org.broken.arrow.library.command.commandhandler;
 
 import org.broken.arrow.library.command.builers.CommandBuilder;
-import org.broken.arrow.library.command.builers.CommandOptions;
+import org.broken.arrow.library.command.builers.CommandMessages;
 import org.broken.arrow.library.command.command.CommandProperty;
 import org.broken.arrow.library.command.subcommand.CommandDisplayConfig;
 import org.broken.arrow.library.logging.Validate;
@@ -9,12 +9,7 @@ import org.bukkit.command.CommandException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,17 +17,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MainCommandHandler {
     private final Map<String, CommandProperty> commands = new ConcurrentHashMap<>();
     private final CommandDisplayConfig commandDisplayConfig;
-    private final CommandBuilder commandBuilder;
     private CommandProperty mainCommand;
 
     /**
      * Creates a new command handler that store your subcommands or your main command instance.
-     *
-     * @param commandBuilder The settings for the main command outside for what you set for {@link CommandProperty}
      */
-    public MainCommandHandler(@Nonnull final CommandBuilder commandBuilder) {
+    public MainCommandHandler() {
         this.commandDisplayConfig = new CommandDisplayConfig();
-        this.commandBuilder = commandBuilder;
     }
 
     /**
@@ -168,14 +159,6 @@ public class MainCommandHandler {
         return this.commands.values();
     }
 
-    /**
-     * Retrieve the set options for the command, outside the {@link CommandProperty}.
-     *
-     * @return Returns the instance of messages set for the main part of the command.
-     */
-    public CommandOptions getCommandBuilder() {
-        return commandBuilder;
-    }
 
     /**
      * Checks and add the subcommand from the specified command builder with the given command labels.

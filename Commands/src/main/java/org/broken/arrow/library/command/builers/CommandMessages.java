@@ -1,17 +1,21 @@
 package org.broken.arrow.library.command.builers;
 
+import org.broken.arrow.library.command.command.CommandProperty;
+
 import javax.annotation.Nonnull;
 
 /**
- * Base configuration for the main command.
+ * Base messages for the command.
  *
  * <p>Defines metadata used when displaying or executing the root command,
  * including description, usage information, and aliases.</p>
  */
-public class CommandOptions {
+public class CommandMessages {
     private String[] description;
     private String[] usageMessage;
+    private String permissionMessage;
     private String[] aliases;
+
 
     /**
      * Sets the command description.
@@ -19,7 +23,7 @@ public class CommandOptions {
      * @param description human-readable description of the command
      * @return this builder instance for chaining
      */
-    public CommandOptions setMainDescription(@Nonnull final String... description) {
+    public CommandMessages setDescription(@Nonnull final String... description) {
         this.description = description;
         return this;
     }
@@ -31,10 +35,11 @@ public class CommandOptions {
      * @param usageMessage usage instruction string
      * @return this builder instance for chaining
      */
-    public CommandOptions setMainUsageMessage(@Nonnull final String... usageMessage) {
+    public CommandMessages setUsageMessage(@Nonnull final String... usageMessage) {
         this.usageMessage = usageMessage;
         return this;
     }
+
 
     /**
      * Defines alternative aliases for this command.
@@ -42,18 +47,31 @@ public class CommandOptions {
      * @param aliases alternative command labels
      * @return this builder instance for chaining
      */
-    public CommandOptions setAliases(String... aliases) {
+    public CommandMessages setAliases(String... aliases) {
         this.aliases = aliases;
         return this;
     }
 
     /**
-     * Returns the command description.
+     * Sets the message to display when the player can't run the command.
+     * Use "{perm}" to replace it with the missing permission automatically.
      *
-     * @return description or empty string if not set
+     * @param permissionMessage The permission failure message.
+     * @return The class instance.
+     */
+    public CommandMessages setPermissionMessage(String permissionMessage) {
+        this.permissionMessage = permissionMessage;
+        return this;
+    }
+
+    /**
+     * Returns the description of the command. The description should provide information about what the command does
+     * and guidelines how to use it. Players add a "?" or "help" at the end of the command to request the information.
+     *
+     * @return The description.
      */
     @Nonnull
-    public String[] getMainDescription() {
+    public String[] getDescription() {
         if (description == null)
             return new String[]{""};
         return description;
@@ -65,10 +83,19 @@ public class CommandOptions {
      * @return usage message or empty string if not set
      */
     @Nonnull
-    public String[] getMainUsageMessage() {
+    public String[] getUsageMessage() {
         if (usageMessage == null)
             return new String[]{""};
         return usageMessage;
+    }
+
+    /**
+     * Returns the message to display when the command is executed without the required permission.
+     *
+     * @return The permission message.
+     */
+    public String getPermissionMessage() {
+        return permissionMessage;
     }
 
     /**
