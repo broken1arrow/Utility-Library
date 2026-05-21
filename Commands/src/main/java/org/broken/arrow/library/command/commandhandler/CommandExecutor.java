@@ -142,18 +142,6 @@ public class CommandExecutor extends Command {
         return tabComplete(sender, alias, args);
     }
 
-    /**
-     * Send sub command.
-     *
-     * @param sender       the sender of the command.
-     * @param commandLabel the label of the sub command.
-     */
-    public void sendSubDescription(final CommandSender sender, final String commandLabel) {
-        for (final CommandProperty subcommand : commandRegister.getCommands()) {
-            if (isSendLabelMessage(sender, subcommand)) continue;
-            sender.sendMessage(placeholders(subcommand.getDescription(), commandLabel, subcommand));
-        }
-    }
 
     private boolean sendHelpMessage(@NonNull final MainCommandHandler commandHandler, @NonNull final CommandSender sender, @NonNull final String commandLabel, @NonNull final String[] args, final boolean executeCommand) {
         final CommandProperty mainCommand = commandHandler.getMainCommand();
