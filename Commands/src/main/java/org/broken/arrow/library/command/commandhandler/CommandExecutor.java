@@ -392,7 +392,7 @@ public class CommandExecutor extends Command {
     private boolean sendNoPermission(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final CommandProperty executor) {
         if (!checkPermission(sender, executor)) {
             String permissionMessage = executor.getPermissionMessage();
-            if (permissionMessage != null)
+            if (permissionMessage != null && !permissionMessage.isEmpty())
                 sender.sendMessage(colors(placeholders(permissionMessage, commandLabel, executor)));
             return true;
         }

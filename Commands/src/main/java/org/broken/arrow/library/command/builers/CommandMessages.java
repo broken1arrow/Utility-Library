@@ -14,7 +14,6 @@ public class CommandMessages {
     private String[] description;
     private String[] usageMessage;
     private String permissionMessage;
-    private String[] aliases;
 
 
     /**
@@ -30,25 +29,13 @@ public class CommandMessages {
 
 
     /**
-     * Sets the usage message displayed when the command is used incorrectly or help is requested.
+     * Sets the usage message displayed when the command is used incorrectly.
      *
      * @param usageMessage usage instruction string
      * @return this builder instance for chaining
      */
     public CommandMessages setUsageMessage(@Nonnull final String... usageMessage) {
         this.usageMessage = usageMessage;
-        return this;
-    }
-
-
-    /**
-     * Defines alternative aliases for this command.
-     *
-     * @param aliases alternative command labels
-     * @return this builder instance for chaining
-     */
-    public CommandMessages setAliases(String... aliases) {
-        this.aliases = aliases;
         return this;
     }
 
@@ -98,14 +85,5 @@ public class CommandMessages {
         return permissionMessage;
     }
 
-    /**
-     * Returns command aliases.
-     *
-     * @return array of aliases or empty array if none are defined
-     */
-    public String[] getAliases() {
-        if (aliases == null)
-            return new String[0];
-        return aliases;
-    }
+
 }

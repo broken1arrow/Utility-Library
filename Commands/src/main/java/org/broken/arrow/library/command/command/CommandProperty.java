@@ -2,6 +2,7 @@ package org.broken.arrow.library.command.command;
 
 import org.broken.arrow.library.command.builers.CommandMessages;
 import org.bukkit.command.CommandSender;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,10 +40,10 @@ import java.util.stream.Collectors;
  * <pre>
  * {@code
  * CommandProperty myCommand = new CommandProperty();
- * myCommand.setPermission("myplugin.command.use");
+ * myCommand.setPermission("myplugin.command.reload");
  * myCommand.setDescription("This command does something cool.");
  * myCommand.setPermissionMessage("You do not have permission to use this command.");
- * myCommand.setUsageMessages("/mycommand <args>");
+ * myCommand.setUsageMessage("/mycommand <args>");
  * myCommand.setHelpKeyword("help");
  * myCommand.setHideLabel(false);
  * }
@@ -52,7 +53,6 @@ import java.util.stream.Collectors;
 public class CommandProperty extends CommandMessages {
     private final Set<String> commandLabels = new HashSet<>();
     private String permission;
-    private String permissionMessage;
     private String helpKeyword;
     private boolean hideLabel = true;
 
@@ -82,16 +82,9 @@ public class CommandProperty extends CommandMessages {
         commandLabels.addAll(Arrays.asList(commandLabel));
     }
 
-    /**
-     * Sets a list of messages to suggest to the player how to use the command. These usage messages provide guidance on how to properly
-     * use the command and its arguments.
-     * Note: When you use the {@link CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
-     * method and set it too false to indicate that the specified usage message or messages should be displayed.
-     *
-     * @param usageMessages The array of usage messages.
-     * @return The class instance.
-     */
-    public CommandProperty setUsageMessages(final String... usageMessages) {
+
+    @Override
+    public CommandProperty setUsageMessage(@NonNull final String... usageMessages) {
         super.setUsageMessage(usageMessages);
         return this;
     }
@@ -108,8 +101,6 @@ public class CommandProperty extends CommandMessages {
     /**
      * Sets a list of messages to suggest to the player how to use the command. These usage messages provide guidance on how to properly
      * use the command and its arguments.
-     * Note: When you use the {@link CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
-     * method and it returns false, the specified usage message or messages should be displayed.
      *
      * @param usageMessages The list of usage messages.
      * @return The class instance.
@@ -168,7 +159,7 @@ public class CommandProperty extends CommandMessages {
      * @return The class instance.
      */
     public CommandProperty setPermissionMessage(final String permissionMessage) {
-        this.permissionMessage = permissionMessage;
+        super.setPermissionMessage(permissionMessage);
         return this;
     }
 
@@ -316,12 +307,11 @@ public class CommandProperty extends CommandMessages {
         return hideLabel == that.hideLabel &&
                 Objects.equals(commandLabels, that.commandLabels) &&
                 Objects.equals(permission, that.permission) &&
-                Objects.equals(permissionMessage, that.permissionMessage) &&
                 Objects.equals(helpKeyword, that.helpKeyword);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(commandLabels, permission, permissionMessage, helpKeyword, hideLabel);
+        return Objects.hash(commandLabels, permission, helpKeyword, hideLabel);
     }
 }
