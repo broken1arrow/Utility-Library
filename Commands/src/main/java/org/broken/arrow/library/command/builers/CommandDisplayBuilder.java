@@ -14,17 +14,15 @@ import java.util.function.Consumer;
  * <p>This stage is typically entered after subcommand registration.</p>
  */
 public class CommandDisplayBuilder {
-    private final CommandBuilder commandRegister;
+
     private final MainCommandHandler mainCommandHandler;
 
     /**
      * Creates a new display builder.
      *
-     * @param commandRegister    parent command builder
      * @param mainCommandHandler internal command handler
      */
-    public CommandDisplayBuilder(@Nonnull final CommandBuilder commandRegister, @Nonnull final MainCommandHandler mainCommandHandler) {
-        this.commandRegister = commandRegister;
+    public CommandDisplayBuilder(@Nonnull final MainCommandHandler mainCommandHandler) {
         this.mainCommandHandler = mainCommandHandler;
     }
 
@@ -44,11 +42,11 @@ public class CommandDisplayBuilder {
      * }</pre>
      *
      * @param callback consumer used to configure {@link CommandDisplayConfig}
-     * @return the original {@link MainCommandHandler} builder to continue configuration
+     * @return the original {@link SubcommandWrapper} builder to continue configuration
      */
-    public MainCommandHandler display(final Consumer<CommandDisplayConfig> callback) {
+    public SubcommandWrapper display(final Consumer<CommandDisplayConfig> callback) {
         callback.accept(mainCommandHandler.getCommandDisplayConfig());
-        return mainCommandHandler;
+        return new SubcommandWrapper(  mainCommandHandler);
     }
 
 }

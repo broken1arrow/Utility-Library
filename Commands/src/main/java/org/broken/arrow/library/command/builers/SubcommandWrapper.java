@@ -23,7 +23,6 @@ public class SubcommandWrapper {
      * @param mainCommandHandler internal handler managing subcommand registration
      */
     public SubcommandWrapper( @Nonnull final MainCommandHandler mainCommandHandler) {
-
         this.mainCommandHandler = mainCommandHandler;
     }
     /**

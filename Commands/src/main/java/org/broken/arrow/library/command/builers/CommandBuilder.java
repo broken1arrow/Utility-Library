@@ -15,7 +15,7 @@ import java.util.function.Consumer;
  * <p>This class represents the primary configuration stage of a command before it transitions
  * into execution-specific or display configuration stages.</p>
  */
-public class CommandBuilder  {
+public class CommandBuilder {
     private final MainCommandHandler mainCommandHandler;
 
     /**
@@ -47,7 +47,7 @@ public class CommandBuilder  {
     public CommandDisplayBuilder registerSubCommandGroup(@Nonnull final Consumer<SubcommandWrapper> consumer) {
         final SubcommandWrapper subcommandWrapper = new SubcommandWrapper(mainCommandHandler);
         consumer.accept(subcommandWrapper);
-        return new CommandDisplayBuilder(this, mainCommandHandler);
+        return new CommandDisplayBuilder(mainCommandHandler);
     }
 
     /**
@@ -58,12 +58,12 @@ public class CommandBuilder  {
      *
      * @param subCommands subcommands to register (must not be null or empty)
      * @return a {@link CommandDisplayBuilder} to continue configuration (e.g. display settings)
-     * @throws CommandException if any subcommand has invalid or empty command labels
+     * @throws CommandException            if any subcommand has invalid or empty command labels
      * @throws Validate.ValidateExceptions if a main command has already been configured
      */
     public CommandDisplayBuilder registerSubCommands(final CommandProperty... subCommands) {
         mainCommandHandler.registerSubCommands(subCommands);
-        return new CommandDisplayBuilder(this, mainCommandHandler);
+        return new CommandDisplayBuilder(mainCommandHandler);
     }
 
     /**
