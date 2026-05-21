@@ -18,6 +18,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.function.Consumer;
 public class CommandRegister implements CommandRegistering {
     private final Logging log = new Logging(CommandRegister.class);
 
-    private final List<CommandProperty> commands = Collections.synchronizedList(new ArrayList<>());
+    private final List<CommandProperty> commandsLegacy = Collections.synchronizedList(new ArrayList<>());
     private final Map<String, MainCommandHandler> commandsNew = new ConcurrentHashMap<>();
 
     private String commandLabelMessage;
@@ -46,30 +47,6 @@ public class CommandRegister implements CommandRegistering {
     private List<String> suffixMessage;
     private boolean registeredMainCommand;
     private List<String> descriptions;
-
-    @Override
-    public CommandRegistering registerSubCommand(final CommandProperty subCommand) {
-        Set<String> commandLabels = subCommand.getCommandLabels();
-
-        if (addCommands(subCommand, commandLabels)) {
-            return this;
-        }
-        commands.removeIf(oldCommandBuilder -> oldCommandBuilder.equals(subCommand));
-        commands.removeIf(oldCommandBuilder -> oldCommandBuilder.getCommandLabels().equals(subCommand.getCommandLabels()));
-        commands.add(subCommand);
-        commands.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
-        return this;
-    }
-
-    @Override
-    public CommandRegistering registerSubCommands(final CommandProperty... subCommands) {
-        if (subCommands == null)
-            return this;
-        for (CommandProperty registerSubCommand : subCommands) {
-            this.registerSubCommand(registerSubCommand);
-        }
-        return this;
-    }
 
     /**
      * Registers a new command entry point for this plugin.
@@ -86,8 +63,19 @@ public class CommandRegister implements CommandRegistering {
      */
     public CommandBuilder registerCommand(final Plugin plugin, final String mainCommand) {
         final CommandBuilder commandBuilder = new CommandBuilder();
-        commandsNew.put(mainCommand, commandBuilder.getMainCommandHandler());
-        this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
+        commandsNew.compute(mainCommand, (s, mainCommandHandler) -> {
+            if (mainCommandHandler != null) {
+                final CommandProperty command = mainCommandHandler.getMainCommand();
+                final Collection<CommandProperty> commands = mainCommandHandler.getSubcommands();
+                if (command != null)
+                    log.log(() -> "The command is already registered: '" + mainCommand + "' and have this command registered:" + command);
+                if (commands != null)
+                    log.log(() -> "The command is already registered: '" + mainCommand + "' and have this sub commands registered: '" + commands + "'");
+                return null;
+            }
+            this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
+            return commandBuilder.getMainCommandHandler();
+        });
         return commandBuilder;
     }
 
@@ -102,14 +90,24 @@ public class CommandRegister implements CommandRegistering {
      *
      * @param plugin      the owning plugin instance (used for namespace and registration context)
      * @param mainCommand the root command label (e.g. "plugin" in "/plugin menu")
-     * @param callback The builder to set the command.
+     * @param callback    The builder to set the command.
      */
     public void registerCommand(@Nonnull final Plugin plugin, @Nonnull final String mainCommand, @Nonnull final Consumer<CommandBuilder> callback) {
         final CommandBuilder commandBuilder = new CommandBuilder();
-
         callback.accept(commandBuilder);
-        commandsNew.put(mainCommand, commandBuilder.getMainCommandHandler());
-        this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
+        commandsNew.compute(mainCommand, (s, mainCommandHandler) -> {
+            if (mainCommandHandler != null) {
+                final CommandProperty command = mainCommandHandler.getMainCommand();
+                final Collection<CommandProperty> commands = mainCommandHandler.getSubcommands();
+                if (command != null)
+                    log.log(() -> "The command is already registered: '" + mainCommand + "' and have this command registered:" + command);
+                if (commands != null)
+                    log.log(() -> "The command is already registered: '" + mainCommand + "' and have this sub commands registered: '" + commands + "'");
+                return null;
+            }
+            this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
+            return commandBuilder.getMainCommandHandler();
+        });
     }
 
     /**
@@ -120,6 +118,30 @@ public class CommandRegister implements CommandRegistering {
      */
     public MainCommandHandler getCommand(@Nonnull final String command) {
         return commandsNew.get(command.toLowerCase(Locale.ROOT));
+    }
+
+    @Override
+    public CommandRegistering registerSubCommand(final CommandProperty subCommand) {
+        Set<String> commandLabels = subCommand.getCommandLabels();
+
+        if (addCommands(subCommand, commandLabels)) {
+            return this;
+        }
+        commandsLegacy.removeIf(oldCommandBuilder -> oldCommandBuilder.equals(subCommand));
+        commandsLegacy.removeIf(oldCommandBuilder -> oldCommandBuilder.getCommandLabels().equals(subCommand.getCommandLabels()));
+        commandsLegacy.add(subCommand);
+        commandsLegacy.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
+        return this;
+    }
+
+    @Override
+    public CommandRegistering registerSubCommands(final CommandProperty... subCommands) {
+        if (subCommands == null)
+            return this;
+        for (CommandProperty registerSubCommand : subCommands) {
+            this.registerSubCommand(registerSubCommand);
+        }
+        return this;
     }
 
     /**
@@ -301,7 +323,7 @@ public class CommandRegister implements CommandRegistering {
      */
     @Override
     public void unregisterSubCommand(String subLabel) {
-        commands.forEach(commandBuilder -> commandBuilder.getCommandLabels().removeIf(label -> label.equals(subLabel)));
+        commandsLegacy.forEach(commandBuilder -> commandBuilder.getCommandLabels().removeIf(label -> label.equals(subLabel)));
     }
 
     /**
@@ -312,7 +334,7 @@ public class CommandRegister implements CommandRegistering {
      */
     @Override
     public List<CommandProperty> getCommands() {
-        return Collections.unmodifiableList(commands);
+        return Collections.unmodifiableList(commandsLegacy);
     }
 
     /**
@@ -337,7 +359,7 @@ public class CommandRegister implements CommandRegistering {
     @Nullable
     @Override
     public CommandProperty getCommandBuilder(String label, boolean startsWith) {
-        for (final CommandProperty command : commands) {
+        for (final CommandProperty command : commandsLegacy) {
             if (startsWith && (label.isEmpty() || command.firstLabelMatch(label, true) != null))
                 return command;
             if (command.firstLabelMatch(label) != null)
@@ -405,8 +427,8 @@ public class CommandRegister implements CommandRegistering {
                 if (label == null)
                     throw new CommandException("&c" + "You can´t register a command with a label set to null.");
             }
-            commands.add(subCommand);
-            commands.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
+            commandsLegacy.add(subCommand);
+            commandsLegacy.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
             return true;
         } else {
             throw new CommandException("&c" + "You can´t register a command without labels");
@@ -446,11 +468,11 @@ public class CommandRegister implements CommandRegistering {
         if (this == o) return true;
         if (!(o instanceof CommandRegister)) return false;
         final CommandRegister that = (CommandRegister) o;
-        return registeredMainCommand == that.registeredMainCommand && commands.equals(that.commands) && Objects.equals(commandLabelMessage, that.commandLabelMessage) && Objects.equals(commandLabelMessageNoPerms, that.commandLabelMessageNoPerms) && Objects.equals(prefixMessage, that.prefixMessage) && Objects.equals(suffixMessage, that.suffixMessage);
+        return registeredMainCommand == that.registeredMainCommand && commandsLegacy.equals(that.commandsLegacy) && Objects.equals(commandLabelMessage, that.commandLabelMessage) && Objects.equals(commandLabelMessageNoPerms, that.commandLabelMessageNoPerms) && Objects.equals(prefixMessage, that.prefixMessage) && Objects.equals(suffixMessage, that.suffixMessage);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(commands, commandLabelMessage, commandLabelMessageNoPerms, prefixMessage, suffixMessage, registeredMainCommand);
+        return Objects.hash(commandsLegacy, commandLabelMessage, commandLabelMessageNoPerms, prefixMessage, suffixMessage, registeredMainCommand);
     }
 }

@@ -2,6 +2,7 @@ package org.broken.arrow.library.command.commandhandler;
 
 import org.broken.arrow.library.command.command.CommandProperty;
 import org.bukkit.command.CommandException;
+import org.bukkit.plugin.Plugin;
 
 import java.util.List;
 import java.util.Set;
@@ -21,7 +22,9 @@ public interface CommandRegistering {
 	 * @param subCommand The sub-command to register. Must not be null and should have valid command labels.
 	 * @return Returns the class instance.
 	 * @throws CommandException if the command labels are empty or null.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering registerSubCommand(CommandProperty subCommand);
 
 	/**
@@ -31,14 +34,18 @@ public interface CommandRegistering {
 	 * @param subCommands The sub-commands to register. Must not be null and should have valid command labels.
 	 * @return Returns the class instance.
 	 * @throws CommandException if the command labels are empty or null.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering registerSubCommands(CommandProperty... subCommands);
 	/**
 	 * Use {label} to replace it with the command name and {perm} to get permission.
 	 *
 	 * @param commandLabelMessage the message send for every sub-command.
      * @return Returns the class instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering  setCommandLabelMessage(String commandLabelMessage);
 
 	/**
@@ -46,7 +53,9 @@ public interface CommandRegistering {
 	 *
 	 * @param helpPrefixMessage the message send before.
      * @return Returns the class instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering  setPrefixMessage(String... helpPrefixMessage);
 
 	/**
@@ -54,7 +63,9 @@ public interface CommandRegistering {
 	 *
 	 * @param helpPrefixMessage the message send before.
      * @return Returns the class instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering  setPrefixMessage(List<String> helpPrefixMessage);
 
 	/**
@@ -62,7 +73,9 @@ public interface CommandRegistering {
 	 *
 	 * @param suffixMessage the message send before.
      * @return Returns the class instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering  setSuffixMessage(String... suffixMessage);
 
 	/**
@@ -70,7 +83,9 @@ public interface CommandRegistering {
 	 *
 	 * @param helpSuffixMessage the message send before.
      * @return Returns the class instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering  setSuffixMessage(List<String> helpSuffixMessage);
 
 	/**
@@ -80,7 +95,9 @@ public interface CommandRegistering {
 	 *
 	 * @param descriptions The description message that explains what the command does.
 	 * @return The Builder instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering setDescriptions(String... descriptions);
 
 	/**
@@ -88,7 +105,9 @@ public interface CommandRegistering {
 	 *
 	 * @param commandLabelPermission the permission
      * @return Returns the class instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering setCommandLabelPermission(String commandLabelPermission);
 
 	/**
@@ -96,28 +115,36 @@ public interface CommandRegistering {
 	 *
 	 * @param commandLabelMessage the message send for every subcommand.
      * @return Returns the class instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering  setCommandLabelMessageNoPerms(String commandLabelMessage);
 
 	/**
 	 * Returns the list of prefix messages to display in the command help.
 	 *
 	 * @return The list of prefix messages.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	List<String> getPrefixMessage();
 
 	/**
 	 * Returns the list of suffix messages to display in the command help.
 	 *
 	 * @return The list of suffix messages.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	List<String> getSuffixMessage();
 
 	/**
 	 * Get the message if player not have the permission.
 	 *
 	 * @return the message or null.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	String getCommandLabelMessageNoPerms();
 
 
@@ -125,14 +152,18 @@ public interface CommandRegistering {
 	 * Returns the message to display as the command label.
 	 *
 	 * @return The command label message.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	String getCommandLabelMessage();
 
 	/**
 	 * Get the permission for use the main command.
 	 *
 	 * @return the permission or null if not set.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	String getCommandLabelPermission();
 
 	/**
@@ -147,7 +178,9 @@ public interface CommandRegistering {
 	 *
 	 * @param label The sub-label of the command builder to retrieve.
 	 * @return The command builder with the specified sub-label, or null if not found.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandProperty getCommandBuilder(String label);
 
 	/**
@@ -156,14 +189,18 @@ public interface CommandRegistering {
 	 * @param label      The sub-label of the command builder to retrieve.
 	 * @param startsWith Specifies whether the sub-label should match the beginning of the command builder's sub-label.
 	 * @return The command builder with the specified sub-label, or null if not found.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandProperty getCommandBuilder(String label, boolean startsWith);
 
 	/**
 	 * Unregisters a subcommand with the specified sub-label.
 	 *
 	 * @param subLabel The sub-label of the subcommand to unregister.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	void unregisterSubCommand(String subLabel);
 
 	/**
@@ -172,7 +209,9 @@ public interface CommandRegistering {
 	 * @param fallbackPrefix the prefix to use if could not use the normal command.
 	 * @param mainCommand    the command you want to register.
 	 * @return it return CommandRegister instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering  registerMainCommand(String fallbackPrefix, String mainCommand);
 
 	/**
@@ -182,7 +221,9 @@ public interface CommandRegistering {
 	 * @param aliases        set alias for your command to use instead of the main command.
 	 * @param mainCommand    the command you want to register.
 	 * @return it return CommandRegister instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering  registerMainCommand(String fallbackPrefix, String mainCommand, String... aliases);
 
 	/**
@@ -194,7 +235,9 @@ public interface CommandRegistering {
 	 * @param usageMessage   message how to use the command.
 	 * @param aliases        set alias for your command to use instead of the main command.
 	 * @return it return CommandRegister instance.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	CommandRegistering  registerMainCommand(String fallbackPrefix, String mainCommand, String description, String usageMessage, String... aliases);
 
 	/**
@@ -203,6 +246,8 @@ public interface CommandRegistering {
 	 * @param subCommand The command builder to collect subcommands from.
 	 * @param commandLabels  The command labels to assign to the subcommands.
 	 * @return {@code true} if subcommands were collected, {@code false} otherwise.
+	 * @deprecated use the new {@link org.broken.arrow.library.command.CommandRegister#registerCommand(Plugin, String)}
 	 */
+	@Deprecated
 	boolean addCommands(CommandProperty subCommand, Set<String> commandLabels);
 }

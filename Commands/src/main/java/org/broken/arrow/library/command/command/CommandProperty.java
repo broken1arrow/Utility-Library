@@ -323,4 +323,14 @@ public class CommandProperty extends CommandMessages {
     public int hashCode() {
         return Objects.hash(commandLabels, permission, helpKeyword, hideLabel);
     }
+
+    @Override
+    public String toString() {
+        return "CommandProperty{" +
+                "commandLabels=" + commandLabels +
+                ", permission='" + permission + '\'' +
+                ", helpKeyword='" + helpKeyword + '\'' +
+                ", hideLabel=" + hideLabel +
+                '}';
+    }
 }
