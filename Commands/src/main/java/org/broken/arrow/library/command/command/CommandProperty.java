@@ -39,13 +39,21 @@ import java.util.stream.Collectors;
  * <p>Example usage:</p>
  * <pre>
  * {@code
- * CommandProperty myCommand = new CommandProperty();
- * myCommand.setPermission("myplugin.command.reload");
- * myCommand.setDescription("This command does something cool.");
- * myCommand.setPermissionMessage("You do not have permission to use this command.");
- * myCommand.setUsageMessage("/mycommand <args>");
- * myCommand.setHelpKeyword("help");
- * myCommand.setHideLabel(false);
+ * public class ReloadCommand extends CommandProperty {
+ *    public ReloadCommand(){
+ *         super("reload")
+ *         this.setPermission("myplugin.command.reload");
+ *         this.setDescription("This command does something cool.");
+ *         this.setPermissionMessage("You do not have permission to use this command.");
+ *         this.setUsageMessage("/mycommand <args>");
+ *         this.setHelpKeyword("help");
+ *         this.setHideLabel(false);
+ *     }
+ *
+ *    public boolean executeCommand(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] cmdArg) {
+ *         return false;
+ *    }
+ * }
  * }
  * </pre>
  *
@@ -82,9 +90,45 @@ public class CommandProperty extends CommandMessages {
         commandLabels.addAll(Arrays.asList(commandLabel));
     }
 
+    /**
+     * Called when the command is executed by the specified sender. The sender can be either a player or, for example, the console.
+     * Therefore, check if the sender is a player before casting it to a Player instance. Alternatively, use {@link CommandHolder#getPlayer()}
+     * to get the player without needing to cast the sender, or {@link CommandHolder#checkConsole()} to prevent something other than a
+     * player from executing the command.
+     *
+     * @param sender       The command sender, which could be a player or the console.
+     * @param commandLabel The command prefix. For example, if the command is "/command", it will be converted to commandName.
+     * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
+     *                     after the command prefix. For example, if the command used is "/commandName menu main 5," the
+     *                     `cmdArg` array will contain ["main", "5"]. You can use these arguments to execute the next
+     *                     part of the command.
+     * @return True if the command execution is successful, false otherwise. If the method returns false, it could then send the {@link CommandProperty#getUsageMessages()}
+     * if the message is set.
+     */
+    public boolean executeCommand(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] cmdArg) {
+        return false;
+    }
+
+    /**
+     * Called when the sender is trying to tab-complete/type the command. This method is used to suggest the next part
+     * of the command after the initial part.
+     *
+     * @param sender       The command sender, could be player or console.
+     * @param commandLabel The command prefix for example this will be /commandName converted to command.
+     * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
+     *                     after the initial part of the command. For example, if the command typed so far is
+     *                     "/commandName menu 1," and the user is currently trying to type the next argument, the
+     *                     `cmdArg` array will contain ["1"]. You can use these arguments to suggest the next
+     *                     part of the command or provide auto-completion options.
+     * @return A list of command suggestions.
+     */
+    @Nullable
+    public List<String> executeTabComplete(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] cmdArg) {
+        return new ArrayList<>();
+    }
 
     @Override
-    public CommandProperty setUsageMessage(@NonNull final String... usageMessages) {
+    public CommandProperty setUsageMessage(@NonNull final String @NonNull ... usageMessages) {
         super.setUsageMessage(usageMessages);
         return this;
     }
@@ -184,7 +228,7 @@ public class CommandProperty extends CommandMessages {
     }
 
     /**
-     * Returns the list of usage messages for the command. When use method {@link CommandHolder#onCommand(org.bukkit.command.CommandSender, String, String[])}
+     * Returns the list of usage messages for the command. When use method {@link #executeCommand(CommandSender, String, String[])}
      * and it returns false to indicate that the specified usage message should be displayed.
      *
      * @return The list of usage messages.
@@ -263,42 +307,7 @@ public class CommandProperty extends CommandMessages {
         return sortedLabels.isEmpty() ? null : sortedLabels.get(0);
     }
 
-    /**
-     * Called when the command is executed by the specified sender. The sender can be either a player or, for example, the console.
-     * Therefore, check if the sender is a player before casting it to a Player instance. Alternatively, use {@link CommandHolder#getPlayer()}
-     * to get the player without needing to cast the sender, or {@link CommandHolder#checkConsole()} to prevent something other than a
-     * player from executing the command.
-     *
-     * @param sender       The command sender, which could be a player or the console.
-     * @param commandLabel The command prefix. For example, if the command is "/command", it will be converted to commandName.
-     * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
-     *                     after the command prefix. For example, if the command used is "/commandName menu main 5," the
-     *                     `cmdArg` array will contain ["main", "5"]. You can use these arguments to execute the next
-     *                     part of the command.
-     * @return True if the command execution is successful, false otherwise. If the method returns false, it could then send the {@link CommandProperty#getUsageMessages()}
-     * if the message is set.
-     */
-    public boolean executeCommand(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] cmdArg) {
-        return false;
-    }
 
-    /**
-     * Called when the sender is trying to tab-complete/type the command. This method is used to suggest the next part
-     * of the command after the initial part.
-     *
-     * @param sender       The command sender, could be player or console.
-     * @param commandLabel The command prefix for example this will be /commandName converted to command.
-     * @param cmdArg       The arguments for the command. The `cmdArg` array contains the additional arguments provided
-     *                     after the initial part of the command. For example, if the command typed so far is
-     *                     "/commandName menu 1," and the user is currently trying to type the next argument, the
-     *                     `cmdArg` array will contain ["1"]. You can use these arguments to suggest the next
-     *                     part of the command or provide auto-completion options.
-     * @return A list of command suggestions.
-     */
-    @Nullable
-    public List<String> executeTabComplete(@Nonnull CommandSender sender, @Nonnull String commandLabel, @Nonnull String[] cmdArg) {
-        return new ArrayList<>();
-    }
 
     @Override
     public boolean equals(Object o) {
