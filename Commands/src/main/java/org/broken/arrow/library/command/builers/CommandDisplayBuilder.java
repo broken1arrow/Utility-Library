@@ -42,11 +42,9 @@ public class CommandDisplayBuilder {
      * }</pre>
      *
      * @param callback consumer used to configure {@link CommandDisplayConfig}
-     * @return the original {@link SubcommandWrapper} builder to continue configuration
      */
-    public SubcommandWrapper display(final Consumer<CommandDisplayConfig> callback) {
+    public void display(final Consumer<CommandDisplayConfig> callback) {
         callback.accept(mainCommandHandler.getCommandDisplayConfig());
-        return new SubcommandWrapper(  mainCommandHandler);
     }
 
 }
