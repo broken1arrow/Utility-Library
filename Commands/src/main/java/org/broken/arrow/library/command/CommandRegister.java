@@ -36,9 +36,8 @@ import java.util.function.Consumer;
  */
 public class CommandRegister implements CommandRegistering {
     private final Logging log = new Logging(CommandRegister.class);
-
     private final List<CommandProperty> commandsLegacy = Collections.synchronizedList(new ArrayList<>());
-    private final Map<String, MainCommandHandler> commandsNew = new ConcurrentHashMap<>();
+    private final Map<String, MainCommandHandler> commands = new ConcurrentHashMap<>();
 
     private String commandLabelMessage;
     private String commandLabelMessageNoPerms;
@@ -63,7 +62,7 @@ public class CommandRegister implements CommandRegistering {
      */
     public CommandBuilder registerCommand(final Plugin plugin, final String mainCommand) {
         final CommandBuilder commandBuilder = new CommandBuilder();
-        commandsNew.compute(mainCommand, (s, mainCommandHandler) -> {
+        commands.compute(mainCommand, (s, mainCommandHandler) -> {
             if (mainCommandHandler != null) {
                 final CommandProperty command = mainCommandHandler.getMainCommand();
                 final Collection<CommandProperty> commands = mainCommandHandler.getSubcommands();
@@ -95,7 +94,7 @@ public class CommandRegister implements CommandRegistering {
     public void registerCommand(@Nonnull final Plugin plugin, @Nonnull final String mainCommand, @Nonnull final Consumer<CommandBuilder> callback) {
         final CommandBuilder commandBuilder = new CommandBuilder();
         callback.accept(commandBuilder);
-        commandsNew.compute(mainCommand, (s, mainCommandHandler) -> {
+        commands.compute(mainCommand, (s, mainCommandHandler) -> {
             if (mainCommandHandler != null) {
                 final CommandProperty command = mainCommandHandler.getMainCommand();
                 final Collection<CommandProperty> commands = mainCommandHandler.getSubcommands();
@@ -117,10 +116,11 @@ public class CommandRegister implements CommandRegistering {
      * @return the returns the settings set for the main command.
      */
     public MainCommandHandler getCommand(@Nonnull final String command) {
-        return commandsNew.get(command.toLowerCase(Locale.ROOT));
+        return commands.get(command.toLowerCase(Locale.ROOT));
     }
 
     @Override
+    @Deprecated
     public CommandRegistering registerSubCommand(final CommandProperty subCommand) {
         Set<String> commandLabels = subCommand.getCommandLabels();
 
@@ -135,6 +135,7 @@ public class CommandRegister implements CommandRegistering {
     }
 
     @Override
+    @Deprecated
     public CommandRegistering registerSubCommands(final CommandProperty... subCommands) {
         if (subCommands == null)
             return this;
@@ -150,6 +151,7 @@ public class CommandRegister implements CommandRegistering {
      * @return The command label message.
      */
     @Override
+    @Deprecated
     public String getCommandLabelMessage() {
         return commandLabelMessage;
     }
@@ -162,6 +164,7 @@ public class CommandRegister implements CommandRegistering {
      * @return The CommandRegister instance.
      */
     @Override
+    @Deprecated
     public CommandRegistering setCommandLabelMessage(String commandLabelMessage) {
         this.commandLabelMessage = commandLabelMessage;
         return this;
@@ -173,6 +176,7 @@ public class CommandRegister implements CommandRegistering {
      * @return The list of prefix messages.
      */
     @Override
+    @Deprecated
     public List<String> getPrefixMessage() {
         return prefixMessage;
     }
@@ -184,6 +188,7 @@ public class CommandRegister implements CommandRegistering {
      * @return The CommandRegistering instance.
      */
     @Override
+    @Deprecated
     public CommandRegistering setPrefixMessage(String... prefixMessage) {
         this.prefixMessage = Arrays.asList(prefixMessage);
         return this;
@@ -196,6 +201,7 @@ public class CommandRegister implements CommandRegistering {
      * @return The CommandRegistering instance.
      */
     @Override
+    @Deprecated
     public CommandRegistering setPrefixMessage(List<String> prefixMessage) {
         this.prefixMessage = prefixMessage;
         return this;
@@ -207,6 +213,7 @@ public class CommandRegister implements CommandRegistering {
      * @return The list of suffix messages.
      */
     @Override
+    @Deprecated
     public List<String> getSuffixMessage() {
         return suffixMessage;
     }
@@ -218,6 +225,7 @@ public class CommandRegister implements CommandRegistering {
      * @return The CommandRegistering instance.
      */
     @Override
+    @Deprecated
     public CommandRegistering setSuffixMessage(String... suffixMessage) {
         this.suffixMessage = Arrays.asList(suffixMessage);
         return this;
@@ -230,6 +238,7 @@ public class CommandRegister implements CommandRegistering {
      * @return The CommandRegistering instance.
      */
     @Override
+    @Deprecated
     public CommandRegistering setSuffixMessage(List<String> suffixMessage) {
         this.suffixMessage = suffixMessage;
         return this;
@@ -242,11 +251,13 @@ public class CommandRegister implements CommandRegistering {
      *
      * @return The description.
      */
+    @Deprecated
     public List<String> getDescriptions() {
         return descriptions;
     }
 
     @Override
+    @Deprecated
     public CommandRegistering setDescriptions(final String... descriptions) {
         this.descriptions = Arrays.asList(descriptions);
         return this;
@@ -258,6 +269,7 @@ public class CommandRegister implements CommandRegistering {
      * @return the message or null.
      */
     @Override
+    @Deprecated
     public String getCommandLabelMessageNoPerms() {
         return commandLabelMessageNoPerms;
     }
@@ -269,6 +281,7 @@ public class CommandRegister implements CommandRegistering {
      * @return this class.
      */
     @Override
+    @Deprecated
     public CommandRegistering setCommandLabelMessageNoPerms(String commandLabelMessage) {
         this.commandLabelMessageNoPerms = commandLabelMessage;
         return this;
@@ -280,6 +293,7 @@ public class CommandRegister implements CommandRegistering {
      * @return the permission or null if not set.
      */
     @Override
+    @Deprecated
     public String getCommandLabelPermission() {
         return commandLabelPermission;
     }
@@ -291,6 +305,7 @@ public class CommandRegister implements CommandRegistering {
      * @return this class.
      */
     @Override
+    @Deprecated
     public CommandRegistering setCommandLabelPermission(final String commandLabelPermission) {
         this.commandLabelPermission = commandLabelPermission;
         return this;
@@ -301,6 +316,7 @@ public class CommandRegister implements CommandRegistering {
      *
      * @return It returns {@code true} if the command is set.
      */
+    @Deprecated
     public boolean isRegisteredMainCommand() {
         return registeredMainCommand;
     }
@@ -311,6 +327,7 @@ public class CommandRegister implements CommandRegistering {
      * @param registeredMainCommand Set it to {@code false } if you want to register more than one main command.
      * @return this class for chaining.
      */
+    @Deprecated
     public CommandRegistering setRegisteredMainCommand(final boolean registeredMainCommand) {
         this.registeredMainCommand = registeredMainCommand;
         return this;
@@ -322,6 +339,7 @@ public class CommandRegister implements CommandRegistering {
      * @param subLabel The sub-label of the subcommand to unregister.
      */
     @Override
+    @Deprecated
     public void unregisterSubCommand(String subLabel) {
         commandsLegacy.forEach(commandBuilder -> commandBuilder.getCommandLabels().removeIf(label -> label.equals(subLabel)));
     }
@@ -331,8 +349,10 @@ public class CommandRegister implements CommandRegistering {
      * this list.
      *
      * @return The list of sub commands.
+     * @deprecated use {@link #getCommand(String)}
      */
     @Override
+    @Deprecated
     public List<CommandProperty> getCommands() {
         return Collections.unmodifiableList(commandsLegacy);
     }
@@ -342,9 +362,11 @@ public class CommandRegister implements CommandRegistering {
      *
      * @param label The sub-label of the command builder to retrieve.
      * @return The command builder with the specified sub-label, or null if not found.
+     * @deprecated use {@link #getCommand(String)}
      */
     @Nullable
     @Override
+    @Deprecated
     public CommandProperty getCommandBuilder(String label) {
         return getCommandBuilder(label, false);
     }
@@ -355,9 +377,11 @@ public class CommandRegister implements CommandRegistering {
      * @param label      The sub-label of the command builder to retrieve.
      * @param startsWith Specifies whether the sub-label should match the beginning of the command builder's sub-label.
      * @return The command builder with the specified sub-label, or null if not found.
+     * @deprecated use {@link #getCommand(String)}
      */
     @Nullable
     @Override
+    @Deprecated
     public CommandProperty getCommandBuilder(String label, boolean startsWith) {
         for (final CommandProperty command : commandsLegacy) {
             if (startsWith && (label.isEmpty() || command.firstLabelMatch(label, true) != null))
@@ -421,6 +445,7 @@ public class CommandRegister implements CommandRegistering {
     }
 
     @Override
+    @Deprecated
     public boolean addCommands(CommandProperty subCommand, Set<String> commandLabels) {
         if (!commandLabels.isEmpty()) {
             for (final String label : commandLabels) {
