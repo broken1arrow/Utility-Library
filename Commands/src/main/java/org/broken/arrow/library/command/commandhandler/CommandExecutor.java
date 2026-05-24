@@ -56,7 +56,8 @@ public class CommandExecutor extends Command {
      */
     @Override
     public boolean execute(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final String[] args) {
-        final MainCommandHandler commandHandler = commandRegister.getCommand(commandLabel);
+        final int index = commandLabel.indexOf(":");
+        final MainCommandHandler commandHandler = commandRegister.getCommand(index > 0 ? commandLabel.substring(index + 1) : commandLabel);
 
         if (commandHandler != null) {
             final CommandProperty mainCommand = commandHandler.getMainCommand();
@@ -106,7 +107,8 @@ public class CommandExecutor extends Command {
     @Nonnull
     @Override
     public List<String> tabComplete(@Nonnull final CommandSender sender, @Nonnull final String alias, @Nonnull final String[] args) throws IllegalArgumentException {
-        final MainCommandHandler commandHandler = commandRegister.getCommand(alias);
+        final int index = alias.indexOf(":");
+        final MainCommandHandler commandHandler = commandRegister.getCommand(index > 0 ? alias.substring(index + 1) : alias);
 
         if (commandHandler != null) {
             CommandProperty mainCommand = commandHandler.getMainCommand();
