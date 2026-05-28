@@ -340,14 +340,20 @@ public class CommandExecutor extends Command {
         if (messages == null) return new String[]{""};
         String permission = subcommand != null ? subcommand.getPermission() : null;
         if (permission == null) permission = "";
-        String[] string = new String[messages.length];
+        List<String> resultList = new ArrayList<>();
 
-        for (int i = 0; i < messages.length; i++) {
-            final String message = messages[i].replace("{label}", "/" + commandLabel + (subcommand != null ? " " + this.formatSet(subcommand.getCommandLabels()) : "")).replace("{perm}", permission);
-            string[i] = this.translateColors(message);
+        for (String message : messages) {
+            if(message != null) {
+                final String messageFormated = message
+                        .replace("{label}", "/" + commandLabel + (subcommand != null ? " " + this.formatSet(subcommand.getCommandLabels()) : ""))
+                        .replace("{perm}", permission);
+
+                if (!messageFormated.isEmpty()) {
+                    resultList.add(this.translateColors(messageFormated));
+                }
+            }
         }
-
-        return string;
+        return resultList.toArray(new String[0]);
     }
 
     private String[] placeholders(@Nullable final String message, @Nonnull final String commandLabel, @Nullable final CommandProperty subcommand) {
@@ -421,7 +427,9 @@ public class CommandExecutor extends Command {
     private void sendUsageMessage(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final CommandProperty executor, final boolean executeCommand) {
         String[] message = executor.getUsageMessage();
         if (message.length > 0 && !executeCommand) {
-            sender.sendMessage(placeholders(message, commandLabel, executor));
+            String[] placeholders = placeholders(message, commandLabel, executor);
+            if (placeholders.length > 0)
+                sender.sendMessage(placeholders);
         }
     }
 
