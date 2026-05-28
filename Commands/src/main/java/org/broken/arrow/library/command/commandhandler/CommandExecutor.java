@@ -150,7 +150,9 @@ public class CommandExecutor extends Command {
         if (!executeCommand || args.length == 0) {
             final String[] usageMessage = mainCommand.getUsageMessage();
             if (usageMessage.length > 0) {
-                sender.sendMessage(placeholders(usageMessage, commandLabel, mainCommand));
+                final String[] resolvedMessage = placeholders(usageMessage, commandLabel, mainCommand);
+                if (resolvedMessage.length > 0 && !resolvedMessage[0].isEmpty())
+                    sender.sendMessage(resolvedMessage);
                 return true;
             }
             return true;
@@ -163,8 +165,10 @@ public class CommandExecutor extends Command {
             return false;
         final String lastArg = args[args.length - 1];
         if (lastArg.endsWith("?") || lastArg.endsWith("help") || hasCustomKeyWorld(mainCommand, lastArg)) {
-            String[] commandDescription = mainCommand.getDescription();
-            sender.sendMessage(placeholders(commandDescription, commandLabel, mainCommand));
+            final String[] commandDescription = mainCommand.getDescription();
+            final String[] resolvedMessage = placeholders(commandDescription, commandLabel, mainCommand);
+            if (resolvedMessage.length > 0)
+                sender.sendMessage(resolvedMessage);
             return true;
         }
         return false;
