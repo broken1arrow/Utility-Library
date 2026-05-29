@@ -9,23 +9,16 @@ import org.broken.arrow.library.command.builers.CommandBuilder;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -36,33 +29,13 @@ import java.util.function.Consumer;
  */
 public class CommandRegister implements CommandRegistering {
     private final Logging log = new Logging(CommandRegister.class);
-    private final List<CommandProperty> commandsLegacy = Collections.synchronizedList(new ArrayList<>());
     private final Map<String, MainCommandHandler> commands = new ConcurrentHashMap<>();
-
-    private String commandLabelMessage;
-    private String commandLabelMessageNoPerms;
-    private String commandLabelPermission;
-    private List<String> prefixMessage;
-    private List<String> suffixMessage;
     private boolean registeredMainCommand;
-    private List<String> descriptions;
 
-    /**
-     * Registers a new command entry point for this plugin.
-     *
-     * <p>This is the primary entry method for creating and configuring a command.
-     * It initializes the internal command handler and returns a {@link CommandBuilder}
-     * used to define aliases, subcommands, execution behavior, and display settings.</p>
-     *
-     * <p>The plugin name is used as a fallback namespace for command registration.</p>
-     *
-     * @param plugin      the owning plugin instance (used for namespace and registration context)
-     * @param mainCommand the root command label (e.g. "plugin" in "/plugin menu")
-     * @return a {@link CommandBuilder} used to configure the command structure
-     */
+    @Override
     public CommandBuilder registerCommand(final Plugin plugin, final String mainCommand) {
         final CommandBuilder commandBuilder = new CommandBuilder();
-        commands.compute(mainCommand, (s, mainCommandHandler) -> {
+        commands.compute(mainCommand, (commandLabel, mainCommandHandler) -> {
             if (mainCommandHandler != null) {
                 final CommandProperty command = mainCommandHandler.getMainCommand();
                 final Collection<CommandProperty> commands = mainCommandHandler.getSubcommands();
@@ -72,29 +45,17 @@ public class CommandRegister implements CommandRegistering {
                     log.log(() -> "The command is already registered: '" + mainCommand + "' and have this sub commands registered: '" + commands + "'");
                 return null;
             }
-            this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
+            this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand);
             return commandBuilder.getMainCommandHandler();
         });
         return commandBuilder;
     }
 
-    /**
-     * Registers a new command entry point for this plugin.
-     *
-     * <p>This is the primary entry method for creating and configuring a command.
-     * It initializes the internal command handler and returns a {@link CommandBuilder}
-     * used to define aliases, subcommands, execution behavior, and display settings.</p>
-     *
-     * <p>The plugin name is used as a fallback namespace for command registration.</p>
-     *
-     * @param plugin      the owning plugin instance (used for namespace and registration context)
-     * @param mainCommand the root command label (e.g. "plugin" in "/plugin menu")
-     * @param callback    The builder to set the command.
-     */
+    @Override
     public void registerCommand(@Nonnull final Plugin plugin, @Nonnull final String mainCommand, @Nonnull final Consumer<CommandBuilder> callback) {
         final CommandBuilder commandBuilder = new CommandBuilder();
         callback.accept(commandBuilder);
-        commands.compute(mainCommand, (s, mainCommandHandler) -> {
+        commands.compute(mainCommand, (commandLabel, mainCommandHandler) -> {
             if (mainCommandHandler != null) {
                 final CommandProperty command = mainCommandHandler.getMainCommand();
                 final Collection<CommandProperty> commands = mainCommandHandler.getSubcommands();
@@ -104,292 +65,23 @@ public class CommandRegister implements CommandRegistering {
                     log.log(() -> "The command is already registered: '" + mainCommand + "' and have this sub commands registered: '" + commands + "'");
                 return null;
             }
-            this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand, commandBuilder);
+            this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand);
             return commandBuilder.getMainCommandHandler();
         });
     }
 
-    /**
-     * Returns the main command set.
-     *
-     * @param command Your main command label that you register your command with.
-     * @return the returns the settings set for the main command.
-     */
+    @Override
     public MainCommandHandler getCommand(@Nonnull final String command) {
         return commands.get(command.toLowerCase(Locale.ROOT));
     }
 
-    @Override
-    @Deprecated
-    public CommandRegistering registerSubCommand(final CommandProperty subCommand) {
-        Set<String> commandLabels = subCommand.getCommandLabels();
-
-        if (addCommands(subCommand, commandLabels)) {
-            return this;
-        }
-        commandsLegacy.removeIf(oldCommandBuilder -> oldCommandBuilder.equals(subCommand));
-        commandsLegacy.removeIf(oldCommandBuilder -> oldCommandBuilder.getCommandLabels().equals(subCommand.getCommandLabels()));
-        commandsLegacy.add(subCommand);
-        commandsLegacy.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
-        return this;
-    }
-
-    @Override
-    @Deprecated
-    public CommandRegistering registerSubCommands(final CommandProperty... subCommands) {
-        if (subCommands == null)
-            return this;
-        for (CommandProperty registerSubCommand : subCommands) {
-            this.registerSubCommand(registerSubCommand);
-        }
-        return this;
-    }
-
     /**
-     * Returns the message to display as the command label.
+     * Set if you want to prevent creation of commands after you register your commands.
      *
-     * @return The command label message.
+     * @param registeredMainCommand set to {@code true} if you want to block new commands be set after you set yours.
      */
-    @Override
-    @Deprecated
-    public String getCommandLabelMessage() {
-        return commandLabelMessage;
-    }
-
-    /**
-     * Sets the message to display as the command label.
-     * Use {label} to replace it with the command name.
-     *
-     * @param commandLabelMessage The command label message to set.
-     * @return The CommandRegister instance.
-     */
-    @Override
-    @Deprecated
-    public CommandRegistering setCommandLabelMessage(String commandLabelMessage) {
-        this.commandLabelMessage = commandLabelMessage;
-        return this;
-    }
-
-    /**
-     * Returns the list of prefix messages to display in the command help.
-     *
-     * @return The list of prefix messages.
-     */
-    @Override
-    @Deprecated
-    public List<String> getPrefixMessage() {
-        return prefixMessage;
-    }
-
-    /**
-     * Sets the prefix messages to display in the command help using the provided string values.
-     *
-     * @param prefixMessage The prefix messages to set.
-     * @return The CommandRegistering instance.
-     */
-    @Override
-    @Deprecated
-    public CommandRegistering setPrefixMessage(String... prefixMessage) {
-        this.prefixMessage = Arrays.asList(prefixMessage);
-        return this;
-    }
-
-    /**
-     * Sets the prefix messages to display in the command help using the provided list of strings.
-     *
-     * @param prefixMessage The prefix messages to set.
-     * @return The CommandRegistering instance.
-     */
-    @Override
-    @Deprecated
-    public CommandRegistering setPrefixMessage(List<String> prefixMessage) {
-        this.prefixMessage = prefixMessage;
-        return this;
-    }
-
-    /**
-     * Returns the list of suffix messages to display in the command help.
-     *
-     * @return The list of suffix messages.
-     */
-    @Override
-    @Deprecated
-    public List<String> getSuffixMessage() {
-        return suffixMessage;
-    }
-
-    /**
-     * Sets the suffix messages to display in the command help using the provided string values.
-     *
-     * @param suffixMessage The suffix messages to set.
-     * @return The CommandRegistering instance.
-     */
-    @Override
-    @Deprecated
-    public CommandRegistering setSuffixMessage(String... suffixMessage) {
-        this.suffixMessage = Arrays.asList(suffixMessage);
-        return this;
-    }
-
-    /**
-     * Sets the suffix messages to display in the command using the provided list of strings.
-     *
-     * @param suffixMessage The suffix messages to set.
-     * @return The CommandRegistering instance.
-     */
-    @Override
-    @Deprecated
-    public CommandRegistering setSuffixMessage(List<String> suffixMessage) {
-        this.suffixMessage = suffixMessage;
-        return this;
-    }
-
-    /**
-     * Returns the description of the command. The description could provide information about the main command
-     * and/or brief explanation to the subcommands. Player then add a "?" or "help" at the end of the command to
-     * request additional information about the command.
-     *
-     * @return The description.
-     */
-    @Deprecated
-    public List<String> getDescriptions() {
-        return descriptions;
-    }
-
-    @Override
-    @Deprecated
-    public CommandRegistering setDescriptions(final String... descriptions) {
-        this.descriptions = Arrays.asList(descriptions);
-        return this;
-    }
-
-    /**
-     * Get the message if player not have the permission.
-     *
-     * @return the message or null.
-     */
-    @Override
-    @Deprecated
-    public String getCommandLabelMessageNoPerms() {
-        return commandLabelMessageNoPerms;
-    }
-
-    /**
-     * Use {label} to replace it with the command name and {perm} to get permission. Used if you not have permission.
-     *
-     * @param commandLabelMessage the message send for every subcommand.
-     * @return this class.
-     */
-    @Override
-    @Deprecated
-    public CommandRegistering setCommandLabelMessageNoPerms(String commandLabelMessage) {
-        this.commandLabelMessageNoPerms = commandLabelMessage;
-        return this;
-    }
-
-    /**
-     * Get the permission for use the main command.
-     *
-     * @return the permission or null if not set.
-     */
-    @Override
-    @Deprecated
-    public String getCommandLabelPermission() {
-        return commandLabelPermission;
-    }
-
-    /**
-     * Set the permission used.
-     *
-     * @param commandLabelPermission the permission
-     * @return this class.
-     */
-    @Override
-    @Deprecated
-    public CommandRegistering setCommandLabelPermission(final String commandLabelPermission) {
-        this.commandLabelPermission = commandLabelPermission;
-        return this;
-    }
-
-    /**
-     * Check if the main command is set or not.
-     *
-     * @return It returns {@code true} if the command is set.
-     */
-    @Deprecated
-    public boolean isRegisteredMainCommand() {
-        return registeredMainCommand;
-    }
-
-    /**
-     * Set this too {@code false } to register a secondary main command.
-     *
-     * @param registeredMainCommand Set it to {@code false } if you want to register more than one main command.
-     * @return this class for chaining.
-     */
-    @Deprecated
-    public CommandRegistering setRegisteredMainCommand(final boolean registeredMainCommand) {
+    public void setRegisteredMainCommand(final boolean registeredMainCommand) {
         this.registeredMainCommand = registeredMainCommand;
-        return this;
-    }
-
-    /**
-     * Unregisters a subcommand with the specified sub-label.
-     *
-     * @param subLabel The sub-label of the subcommand to unregister.
-     */
-    @Override
-    @Deprecated
-    public void unregisterSubCommand(String subLabel) {
-        commandsLegacy.forEach(commandBuilder -> commandBuilder.getCommandLabels().removeIf(label -> label.equals(subLabel)));
-    }
-
-    /**
-     * Returns the list of registered sub commands. You can't change
-     * this list.
-     *
-     * @return The list of sub commands.
-     * @deprecated use {@link #getCommand(String)}
-     */
-    @Override
-    @Deprecated
-    public List<CommandProperty> getCommands() {
-        return Collections.unmodifiableList(commandsLegacy);
-    }
-
-    /**
-     * Returns the command builder with the specified sub-label.
-     *
-     * @param label The sub-label of the command builder to retrieve.
-     * @return The command builder with the specified sub-label, or null if not found.
-     * @deprecated use {@link #getCommand(String)}
-     */
-    @Nullable
-    @Override
-    @Deprecated
-    public CommandProperty getCommandBuilder(String label) {
-        return getCommandBuilder(label, false);
-    }
-
-    /**
-     * Returns the command builder with the specified sub-label.
-     *
-     * @param label      The sub-label of the command builder to retrieve.
-     * @param startsWith Specifies whether the sub-label should match the beginning of the command builder's sub-label.
-     * @return The command builder with the specified sub-label, or null if not found.
-     * @deprecated use {@link #getCommand(String)}
-     */
-    @Nullable
-    @Override
-    @Deprecated
-    public CommandProperty getCommandBuilder(String label, boolean startsWith) {
-        for (final CommandProperty command : commandsLegacy) {
-            if (startsWith && (label.isEmpty() || command.firstLabelMatch(label, true) != null))
-                return command;
-            if (command.firstLabelMatch(label) != null)
-                return command;
-        }
-        return null;
     }
 
     /**
@@ -400,9 +92,10 @@ public class CommandRegister implements CommandRegistering {
      * @param mainCommand    The main command to register.
      * @return The CommandRegistering instance.
      */
-    @Override
-    public CommandRegistering registerMainCommand(String fallbackPrefix, String mainCommand) {
-        return this.registerMainCommand(fallbackPrefix, mainCommand, "", "", new String[0]);
+    private CommandRegistering registerMainCommand(String fallbackPrefix, String mainCommand) {
+        final String description = "This is the command registered: " + mainCommand;
+        final String usageMessage = "usage for command/" + mainCommand;
+        return this.registerMainCommand(fallbackPrefix, mainCommand, description, usageMessage, new String[0]);
     }
 
     /**
@@ -414,11 +107,11 @@ public class CommandRegister implements CommandRegistering {
      * @param aliases        The aliases of the main command.
      * @return The CommandRegistering instance.
      */
-    @Override
-    public CommandRegistering registerMainCommand(String fallbackPrefix, String mainCommand, String... aliases) {
-        return this.registerMainCommand(fallbackPrefix, mainCommand, "", "", aliases);
+    private CommandRegistering registerMainCommand(String fallbackPrefix, String mainCommand, String... aliases) {
+        final String description = "This is the command registered: " + mainCommand;
+        final String usageMessage = "usage for command/" + mainCommand;
+        return this.registerMainCommand(fallbackPrefix, mainCommand, description, usageMessage, aliases);
     }
-
 
     /**
      * Registers the main command with the specified fallback prefix, command, description, usage message, and aliases.
@@ -431,8 +124,7 @@ public class CommandRegister implements CommandRegistering {
      * @param aliases        The aliases of the main command.
      * @return The CommandRegistering instance.
      */
-    @Override
-    public CommandRegistering registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand, @Nonnull final String description, @Nonnull final String usageMessage, @Nonnull final String... aliases) {
+    private CommandRegistering registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand, @Nonnull final String description, @Nonnull final String usageMessage, @Nonnull final String... aliases) {
         final String[] main = mainCommand.split("\\|");
         if (registeredMainCommand) return this;
 
@@ -444,29 +136,6 @@ public class CommandRegister implements CommandRegistering {
         return this;
     }
 
-    @Override
-    @Deprecated
-    public boolean addCommands(CommandProperty subCommand, Set<String> commandLabels) {
-        if (!commandLabels.isEmpty()) {
-            for (final String label : commandLabels) {
-                if (label == null)
-                    throw new CommandException("&c" + "You can´t register a command with a label set to null.");
-            }
-            commandsLegacy.add(subCommand);
-            commandsLegacy.sort(Comparator.comparing(CommandProperty::getFirstSortedLabel, Comparator.nullsLast(String::compareTo)));
-            return true;
-        } else {
-            throw new CommandException("&c" + "You can´t register a command without labels");
-        }
-    }
-
-    private void registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand, @Nonnull final CommandBuilder commandBuilder) {
-        final String description = "This is the command registered: " + mainCommand;
-        final String usageMessage = "usage for command/" + mainCommand;
-        final String[] aliases = new String[0];
-        this.registerMainCommand(fallbackPrefix, mainCommand, description, usageMessage, aliases);
-    }
-
 
     /**
      * Registers the specified command with the provided fallback prefix.
@@ -475,7 +144,7 @@ public class CommandRegister implements CommandRegistering {
      * @param fallbackPrefix The fallback prefix to use if the normal command cannot be used.
      * @param command        The command to register.
      */
-    public void register(final String fallbackPrefix, final Command command) {
+    private void register(final String fallbackPrefix, final Command command) {
         try {
             final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
 
@@ -489,15 +158,14 @@ public class CommandRegister implements CommandRegistering {
     }
 
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CommandRegister)) return false;
-        final CommandRegister that = (CommandRegister) o;
-        return registeredMainCommand == that.registeredMainCommand && commandsLegacy.equals(that.commandsLegacy) && Objects.equals(commandLabelMessage, that.commandLabelMessage) && Objects.equals(commandLabelMessageNoPerms, that.commandLabelMessageNoPerms) && Objects.equals(prefixMessage, that.prefixMessage) && Objects.equals(suffixMessage, that.suffixMessage);
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        CommandRegister that = (CommandRegister) o;
+        return registeredMainCommand == that.registeredMainCommand && Objects.equals(commands, that.commands);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(commandsLegacy, commandLabelMessage, commandLabelMessageNoPerms, prefixMessage, suffixMessage, registeredMainCommand);
+        return Objects.hash(commands, registeredMainCommand);
     }
 }

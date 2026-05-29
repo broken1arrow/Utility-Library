@@ -75,23 +75,6 @@ public class CommandExecutor extends Command {
             return this.handleSubCommand(sender, commandLabel, commandHandler, args);
         }
 
-        if (args.length == 0) {
-            this.sendMessage(sender, commandLabel);
-        }
-        if (args.length > 0) {
-            if (!this.sendDescriptions(sender, commandLabel, args))
-                return false;
-
-            final CommandProperty executor = commandRegister.getCommandBuilder(args[0]);
-            if (executor != null) {
-                if (sendDescription(sender, commandLabel, args, executor))
-                    return false;
-                if (sendNoPermission(sender, commandLabel, executor)) return false;
-
-                boolean executeCommand = executor.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
-                sendUsageMessage(sender, commandLabel, executor, executeCommand);
-            }
-        }
         return false;
     }
 
@@ -127,14 +110,6 @@ public class CommandExecutor extends Command {
             }
             return new ArrayList<>();
         }
-
-        if (args.length > 0) {
-            final CommandProperty subcommand = commandRegister.getCommandBuilder(args[0], true);
-            if (subcommand == null) return new ArrayList<>();
-            if (args.length == 1) return tabCompleteSubcommands(sender, args[0], subcommand.isHideLabel());
-            final List<String> tabComplete = subcommand.executeTabComplete(sender, alias, Arrays.copyOfRange(args, 1, args.length));
-            return tabComplete != null && checkPermission(sender, subcommand) ? tabComplete : new ArrayList<>();
-        }
         return new ArrayList<>();
     }
 
@@ -144,6 +119,53 @@ public class CommandExecutor extends Command {
         return tabComplete(sender, alias, args);
     }
 
+    /**
+     * Translate colors on a text.
+     *
+     * @param messages the message to check the colors.
+     * @return Array of strings that has formated colors.
+     */
+    public String[] colors(final String[] messages) {
+        if (messages == null) return new String[]{""};
+        String[] string = new String[messages.length];
+        for (int i = 0; i < messages.length; i++) {
+            string[i] = TextTranslator.toSpigotFormat(messages[i]);
+        }
+        return string;
+    }
+
+    /**
+     * Translate colors on a text.
+     *
+     * @param message the message to translate the color codes.
+     * @return Array of strings that has formated colors.
+     */
+    public String translateColors(final String message) {
+        if (message == null) return "";
+        return TextTranslator.toSpigotFormat(message);
+    }
+
+
+    private boolean handleSubCommand(@NonNull final CommandSender sender, @NonNull final String commandLabel, @NonNull final MainCommandHandler commandHandler, @NonNull final String[] args) {
+        if (commandHandler.isSubCommandsSet()) return false;
+
+        if (args.length == 0) {
+            this.sendMessage(sender, commandHandler, commandLabel);
+            return false;
+        }
+
+        final CommandProperty subCommand = commandHandler.getCommandBuilder(args[0]);
+        if (subCommand != null) {
+            if (this.sendNoPermission(sender, commandLabel, subCommand)) return false;
+            if (this.sendDescription(sender, commandLabel, args, subCommand))
+                return false;
+
+            final boolean executeCommand = subCommand.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
+            this.sendUsageMessage(sender, commandLabel, subCommand, executeCommand);
+            return executeCommand;
+        }
+        return false;
+    }
 
     private boolean sendHelpMessage(@NonNull final MainCommandHandler commandHandler, @NonNull final CommandSender sender, @NonNull final String commandLabel, @NonNull final String[] args, final boolean executeCommand) {
         final CommandProperty mainCommand = commandHandler.getMainCommand();
@@ -187,21 +209,6 @@ public class CommandExecutor extends Command {
         return player.isOp() || player.hasPermission(permission);
     }
 
-    private List<String> tabCompleteSubcommands(final CommandSender sender, String param, final boolean overridePermission) {
-        param = param.toLowerCase();
-        final List<String> tab = new ArrayList<>();
-        for (final CommandProperty subcommand : commandRegister.getCommands()) {
-            final Set<String> setOfLabels = subcommand.getCommandLabels();
-            if (!checkPermission(sender, subcommand) && overridePermission) {
-                continue;
-            }
-            for (String label : setOfLabels) {
-                if (!label.trim().isEmpty() && label.startsWith(param)) tab.add(label);
-            }
-        }
-        return tab;
-    }
-
     private List<String> tabCompleteSubcommands(@Nonnull final CommandSender sender, @Nonnull final MainCommandHandler subcommandsList, @Nonnull String param) {
         param = param.toLowerCase();
         final List<String> tab = new ArrayList<>();
@@ -217,65 +224,6 @@ public class CommandExecutor extends Command {
         return tab;
     }
 
-    private boolean handleSubCommand(@NonNull final CommandSender sender, @NonNull final String commandLabel, @NonNull final MainCommandHandler commandHandler, @NonNull final String[] args) {
-        if (commandHandler.isSubCommandsSet()) return false;
-
-        if (args.length == 0) {
-            this.sendMessage(sender, commandHandler, commandLabel);
-            return false;
-        }
-
-        final CommandProperty subCommand = commandHandler.getCommandBuilder(args[0]);
-        if (subCommand != null) {
-            if (this.sendNoPermission(sender, commandLabel, subCommand)) return false;
-            if (this.sendDescription(sender, commandLabel, args, subCommand))
-                return false;
-
-            final boolean executeCommand = subCommand.executeCommand(sender, commandLabel, Arrays.copyOfRange(args, 1, args.length));
-            this.sendUsageMessage(sender, commandLabel, subCommand, executeCommand);
-            return executeCommand;
-        }
-        return false;
-    }
-
-    private boolean isSendLabelMessage(final CommandSender sender, final CommandProperty subcommand) {
-        if (subcommand.isHideLabel() && !checkPermission(sender, subcommand)) {
-            return true;
-        }
-        return subcommand.getDescription()[0].isEmpty();
-    }
-
-    private void sendMessage(final CommandSender sender, final String commandLabel) {
-        final List<String> helpPrefixMessage = commandRegister.getPrefixMessage();
-        if (helpPrefixMessage != null && !helpPrefixMessage.isEmpty())
-            sender.sendMessage(colors(helpPrefixMessage.toArray(new String[0])));
-
-        final String commandLabelMessage = commandRegister.getCommandLabelMessage();
-        final String labelMessageNoPerms = commandRegister.getCommandLabelMessageNoPerms();
-        if (labelMessageNoPerms != null && !labelMessageNoPerms.isEmpty() && !permissionCheck(sender, commandRegister.getCommandLabelPermission())) {
-            sender.sendMessage(placeholders(labelMessageNoPerms, commandLabel, (CommandProperty) null));
-
-        } else if (commandLabelMessage != null && !commandLabelMessage.isEmpty()) {
-            sendToSender(sender, commandLabel, commandLabelMessage, labelMessageNoPerms);
-        }
-        final List<String> helpSuffixMessage = commandRegister.getSuffixMessage();
-        if (helpSuffixMessage != null && !helpSuffixMessage.isEmpty())
-            sender.sendMessage(colors(helpSuffixMessage.toArray(new String[0])));
-    }
-
-    private void sendToSender(final CommandSender sender, final String commandLabel, final String commandLabelMessage, final String labelMessageNoPerms) {
-        for (final CommandProperty subcommand : commandRegister.getCommands()) {
-            if (subcommand.isHideLabel() && !checkPermission(sender, subcommand)) {
-                continue;
-            }
-            if (!checkPermission(sender, subcommand) && labelMessageNoPerms != null && !labelMessageNoPerms.isEmpty()) {
-                sender.sendMessage(this.placeholders(labelMessageNoPerms, commandLabel, subcommand));
-            }
-            if (checkPermission(sender, subcommand)) {
-                sender.sendMessage(this.placeholders(labelMessageNoPerms, commandLabel, subcommand));
-            }
-        }
-    }
 
     private void sendMessage(@Nonnull final CommandSender sender, final @NonNull MainCommandHandler commandHandler, @Nonnull final String commandLabel) {
         final CommandDisplayConfig commandDisplayConfig = commandHandler.getCommandDisplayConfig();
@@ -376,32 +324,6 @@ public class CommandExecutor extends Command {
     }
 
 
-    /**
-     * Translate colors on a text.
-     *
-     * @param messages the message to check the colors.
-     * @return Array of strings that has formated colors.
-     */
-    public String[] colors(final String[] messages) {
-        if (messages == null) return new String[]{""};
-        String[] string = new String[messages.length];
-        for (int i = 0; i < messages.length; i++) {
-            string[i] = TextTranslator.toSpigotFormat(messages[i]);
-        }
-        return string;
-    }
-
-    /**
-     * Translate colors on a text.
-     *
-     * @param message the message to translate the color codes.
-     * @return Array of strings that has formated colors.
-     */
-    public String translateColors(final String message) {
-        if (message == null) return "";
-        return TextTranslator.toSpigotFormat(message);
-    }
-
     private boolean sendNoPermission(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final CommandProperty executor) {
         if (!checkPermission(sender, executor)) {
             String permissionMessage = executor.getPermissionMessage();
@@ -412,17 +334,6 @@ public class CommandExecutor extends Command {
         return false;
     }
 
-    private boolean sendDescriptions(CommandSender sender, String commandLabel, String[] args) {
-        final List<String> descriptions = commandRegister.getDescriptions();
-        if (args.length == 1 && descriptions != null && !descriptions.isEmpty()) {
-            final String lastArg = args[args.length - 1];
-            if ((lastArg.endsWith("?") || lastArg.endsWith("help"))) {
-                sender.sendMessage(placeholders(descriptions.toArray(new String[0]), commandLabel, (CommandProperty) null));
-                return false;
-            }
-        }
-        return true;
-    }
 
     private void sendUsageMessage(@Nonnull final CommandSender sender, @Nonnull final String commandLabel, @Nonnull final CommandProperty executor, final boolean executeCommand) {
         String[] message = executor.getUsageMessage();
