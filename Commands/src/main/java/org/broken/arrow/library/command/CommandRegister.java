@@ -1,6 +1,8 @@
 package org.broken.arrow.library.command;
 
 
+import net.md_5.bungee.api.ChatColor;
+import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.command.command.CommandProperty;
 import org.broken.arrow.library.command.commandhandler.CommandExecutor;
 import org.broken.arrow.library.command.commandhandler.CommandRegistering;
@@ -8,11 +10,13 @@ import org.broken.arrow.library.command.commandhandler.MainCommandHandler;
 import org.broken.arrow.library.command.builers.CommandBuilder;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
+import javax.print.attribute.standard.ColorSupported;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,7 +34,17 @@ import java.util.function.Consumer;
 public class CommandRegister implements CommandRegistering {
     private final Logging log = new Logging(CommandRegister.class);
     private final Map<String, MainCommandHandler> commands = new ConcurrentHashMap<>();
+    private static boolean hasColorLib;
     private boolean registeredMainCommand;
+
+    public CommandRegister() {
+        try {
+            TextTranslator.getInstance();
+            hasColorLib = true;
+        } catch (NoClassDefFoundError | NoSuchMethodError exception) {
+            hasColorLib = false;
+        }
+    }
 
     @Override
     public CommandBuilder registerCommand(final Plugin plugin, final String mainCommand) {
@@ -82,6 +96,19 @@ public class CommandRegister implements CommandRegistering {
      */
     public void setRegisteredMainCommand(final boolean registeredMainCommand) {
         this.registeredMainCommand = registeredMainCommand;
+    }
+
+    /**
+     * Translate colors on a text.
+     *
+     * @param message the message to translate the color codes.
+     * @return Array of strings that has formated colors.
+     */
+    public static String translateColors(final String message) {
+        if (message == null) return "";
+        if (hasColorLib)
+            return TextTranslator.toSpigotFormat(message);
+        return ChatColor.translateAlternateColorCodes('&', message);
     }
 
     /**

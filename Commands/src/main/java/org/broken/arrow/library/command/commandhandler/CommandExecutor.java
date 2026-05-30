@@ -142,7 +142,7 @@ public class CommandExecutor extends Command {
      */
     public String translateColors(final String message) {
         if (message == null) return "";
-        return TextTranslator.toSpigotFormat(message);
+        return CommandRegister.translateColors(message);
     }
 
 
