@@ -37,6 +37,10 @@ public class CommandRegister implements CommandRegistering {
     private static boolean hasColorLib;
     private boolean registeredMainCommand;
 
+    /**
+     * Create new instance where it also checks if the color translator is included
+     * when shaded
+     */
     public CommandRegister() {
         try {
             TextTranslator.getInstance();
@@ -49,6 +53,7 @@ public class CommandRegister implements CommandRegistering {
     @Override
     public CommandBuilder registerCommand(final Plugin plugin, final String mainCommand) {
         final CommandBuilder commandBuilder = new CommandBuilder();
+
         commands.compute(mainCommand, (commandLabel, mainCommandHandler) -> {
             if (mainCommandHandler != null) {
                 final CommandProperty command = mainCommandHandler.getMainCommand();
