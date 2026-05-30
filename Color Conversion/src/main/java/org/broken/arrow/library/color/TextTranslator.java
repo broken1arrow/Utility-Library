@@ -110,42 +110,24 @@ public final class TextTranslator {
 	}
 
 	/**
-	 * This is for component when you want to send message through vanilla minecraft MNS for example.
-	 * DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
-	 *
-	 * @param message      your string message.
-	 * @param defaultColor set default color when colors are not set in the message.
-	 * @return json object with the set colors.
-	 */
-	private JsonObject componentFormat(String message, String defaultColor) {
-		CreateComponent createComponent = new CreateComponent(this,message);
-		return createComponent.componentFormat(defaultColor);
-	}
-
-
-	/**
-	 * Type your message/string text here. you use
+	 * Converts a legacy Spigot formatted string to a JSON object, suitable for use with Minecraft's chat serializer.
+	 * Most usefully for Minecraft version 1.16 and newer, when you want to use gradients or hexadecimal colors,
+	 * and not want to use my methods to convert colors.
+	 * <p>&nbsp;</p>
 	 * <p>
-	 * §/&amp; color code or &lt;#55F758&gt; for normal hex and
-	 * &lt;#5e4fa2:#f79459&gt; for gradient (use any color code to stop gradient).
+	 * Legacy Spigot formatting uses symbols like '&amp;' or '§' and supports two specific formats:
+	 * </p>
+	 * <ul>
+	 *   <li>Hexadecimal format: e.g., '&amp;x&amp;d&amp;4&amp;c&amp;3&amp;1&amp;1'</li>
+	 *   <li>Color codes: e.g., '&amp;f' for white.</li>
+	 * </ul>
 	 *
-	 * @param message your string message.
-	 * @return spigot compatible translation.
+	 * @param message      The input string to check and convert to JSON.
+	 * @param defaultColor The default color to use if a color is not specified in the message.
+	 * @return A JSON object representing the formatted text.
 	 */
-
-	private String spigotFormat(String message) {
-		String messageCopy = checkStringForGradient(message);
-		Matcher matcher = HEX_PATTERN.matcher(messageCopy);
-
-		while (matcher.find()) {
-			String match = matcher.group(0);
-			int firstPos = match.indexOf("#");
-			if (match.length() <= 9)
-				messageCopy = messageCopy.replace(match, "&x&" + match.charAt(firstPos + 1) + "&" + match.charAt(firstPos + 1) + "&" + match.charAt(firstPos + 2) + "&" + match.charAt(firstPos + 2) + "&" + match.charAt(firstPos + 3) + "&" + match.charAt(firstPos + 3));
-			else
-				messageCopy = messageCopy.replace(match, "&x&" + match.charAt(firstPos + 1) + "&" + match.charAt(firstPos + 2) + "&" + match.charAt(firstPos + 3) + "&" + match.charAt(firstPos + 4) + "&" + match.charAt(firstPos + 5) + "&" + match.charAt(firstPos + 6));
-		}
-		return ChatColor.translateAlternateColorCodes('&', messageCopy);
+	public static JsonObject fromLegacyText(String message, ChatColors defaultColor) {
+		return CreateFromLegacyText.fromLegacyText( message,defaultColor);
 	}
 
 	/**
@@ -189,26 +171,6 @@ public final class TextTranslator {
 		return messageCopy;
 	}
 
-	/**
-	 * Converts a legacy Spigot formatted string to a JSON object, suitable for use with Minecraft's chat serializer.
-	 * Most usefully for Minecraft version 1.16 and newer, when you want to use gradients or hexadecimal colors,
-	 * and not want to use my methods to convert colors.
-	 * <p>&nbsp;</p>
-	 * <p>
-	 * Legacy Spigot formatting uses symbols like '&amp;' or '§' and supports two specific formats:
-	 * </p>
-	 * <ul>
-	 *   <li>Hexadecimal format: e.g., '&amp;x&amp;d&amp;4&amp;c&amp;3&amp;1&amp;1'</li>
-	 *   <li>Color codes: e.g., '&amp;f' for white.</li>
-	 * </ul>
-	 *
-	 * @param message      The input string to check and convert to JSON.
-	 * @param defaultColor The default color to use if a color is not specified in the message.
-	 * @return A JSON object representing the formatted text.
-	 */
-	public static JsonObject fromLegacyText(String message, ChatColors defaultColor) {
-		return CreateFromLegacyText.fromLegacyText( message,defaultColor);
-	}
 
 	/**
 	 * Sets the color for the text.
@@ -261,5 +223,44 @@ public final class TextTranslator {
 		public String getType() {
 			return type;
 		}
+	}
+
+	/**
+	 * This is for component when you want to send message through vanilla minecraft MNS for example.
+	 * DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
+	 *
+	 * @param message      your string message.
+	 * @param defaultColor set default color when colors are not set in the message.
+	 * @return json object with the set colors.
+	 */
+	private JsonObject componentFormat(String message, String defaultColor) {
+		CreateComponent createComponent = new CreateComponent(this,message);
+		return createComponent.componentFormat(defaultColor);
+	}
+
+
+	/**
+	 * Type your message/string text here. you use
+	 * <p>
+	 * §/&amp; color code or &lt;#55F758&gt; for normal hex and
+	 * &lt;#5e4fa2:#f79459&gt; for gradient (use any color code to stop gradient).
+	 *
+	 * @param message your string message.
+	 * @return spigot compatible translation.
+	 */
+
+	private String spigotFormat(String message) {
+		String messageCopy = checkStringForGradient(message);
+		Matcher matcher = HEX_PATTERN.matcher(messageCopy);
+
+		while (matcher.find()) {
+			String match = matcher.group(0);
+			int firstPos = match.indexOf("#");
+			if (match.length() <= 9)
+				messageCopy = messageCopy.replace(match, "&x&" + match.charAt(firstPos + 1) + "&" + match.charAt(firstPos + 1) + "&" + match.charAt(firstPos + 2) + "&" + match.charAt(firstPos + 2) + "&" + match.charAt(firstPos + 3) + "&" + match.charAt(firstPos + 3));
+			else
+				messageCopy = messageCopy.replace(match, "&x&" + match.charAt(firstPos + 1) + "&" + match.charAt(firstPos + 2) + "&" + match.charAt(firstPos + 3) + "&" + match.charAt(firstPos + 4) + "&" + match.charAt(firstPos + 5) + "&" + match.charAt(firstPos + 6));
+		}
+		return ChatColor.translateAlternateColorCodes('&', messageCopy);
 	}
 }

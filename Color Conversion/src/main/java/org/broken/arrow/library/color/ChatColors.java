@@ -25,28 +25,28 @@ import java.util.regex.Pattern;
 public final class ChatColors {
 
 	/**
-	 * The special character which prefixes all chat colour codes. Use this if
-	 * you need to dynamically convert colour codes from your custom format.
+	 * The special character which prefixes all chat color codes. Use this if
+	 * you need to dynamically convert color codes from your custom format.
 	 */
 	public static final char COLOR_CHAR = '\u00A7';
 	/**
-	 * The special character which prefixes all chat colour codes. Use this if
-	 * you need to dynamically convert colour codes from your custom format.
+	 * The special character which prefixes all chat color codes. Use this if
+	 * you need to dynamically convert color codes from your custom format.
 	 */
 	public static final char COLOR_AMPERSAND = '\u0026';
 	private  static final char[] ALL_CODES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'a', 'B', 'b', 'C', 'c', 'D', 'd', 'E', 'e', 'F', 'f', 'K', 'k', 'L', 'l', 'M', 'm', 'N', 'n', 'O', 'o', 'R', 'r', 'X', 'x'};
 	private static final char[] ALL_CHAR_COLOR_CODES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'a', 'B', 'b', 'C', 'c', 'D', 'd', 'E', 'e', 'F', 'f', 'R', 'r', 'X', 'x'};
 	private static final char[] SPECIAL_SIGN = {'l', 'n', 'o', 'k', 'm', 'r'};
 	/**
-	 * Pattern to remove all colour codes.
+	 * Pattern to remove all color codes.
 	 */
 	public static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + COLOR_CHAR + "[0-9A-FK-ORX]");
 	/**
-	 * Colour instances keyed by their active character.
+	 * Color instances keyed by their active character.
 	 */
 	private static final Map<Character, ChatColors> BY_CHAR = new HashMap<>();
 	/**
-	 * Colour instances keyed by their name.
+	 * Color instances keyed by their name.
 	 */
 	private static final Map<String, ChatColors> BY_NAME = new HashMap<>();
 	/**
