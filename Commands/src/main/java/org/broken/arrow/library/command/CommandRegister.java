@@ -14,6 +14,7 @@ import org.bukkit.Color;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.Plugin;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.print.attribute.standard.ColorSupported;
@@ -53,15 +54,10 @@ public class CommandRegister implements CommandRegistering {
     @Override
     public CommandBuilder registerCommand(final Plugin plugin, final String mainCommand) {
         final CommandBuilder commandBuilder = new CommandBuilder();
+        if (isCommandRegistered(mainCommand)) return commandBuilder;
 
         commands.compute(mainCommand, (commandLabel, mainCommandHandler) -> {
             if (mainCommandHandler != null) {
-                final CommandProperty command = mainCommandHandler.getMainCommand();
-                final Collection<CommandProperty> commands = mainCommandHandler.getSubcommands();
-                if (command != null)
-                    log.log(() -> "The command is already registered: '" + mainCommand + "' and have this command registered:" + command);
-                if (commands != null)
-                    log.log(() -> "The command is already registered: '" + mainCommand + "' and have this sub commands registered: '" + commands + "'");
                 return null;
             }
             this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand);
@@ -72,16 +68,12 @@ public class CommandRegister implements CommandRegistering {
 
     @Override
     public void registerCommand(@Nonnull final Plugin plugin, @Nonnull final String mainCommand, @Nonnull final Consumer<CommandBuilder> callback) {
+        if (isCommandRegistered(mainCommand)) return;
+
         final CommandBuilder commandBuilder = new CommandBuilder();
         callback.accept(commandBuilder);
         commands.compute(mainCommand, (commandLabel, mainCommandHandler) -> {
             if (mainCommandHandler != null) {
-                final CommandProperty command = mainCommandHandler.getMainCommand();
-                final Collection<CommandProperty> commands = mainCommandHandler.getSubcommands();
-                if (command != null)
-                    log.log(() -> "The command is already registered: '" + mainCommand + "' and have this command registered:" + command);
-                if (commands != null)
-                    log.log(() -> "The command is already registered: '" + mainCommand + "' and have this sub commands registered: '" + commands + "'");
                 return null;
             }
             this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand);
@@ -187,6 +179,20 @@ public class CommandRegister implements CommandRegistering {
         } catch (final NoSuchFieldException | IllegalAccessException e) {
             log.log(e, () -> "It failed to register your command");
         }
+    }
+
+    private boolean isCommandRegistered(@NonNull final String mainCommand) {
+        final MainCommandHandler commandHandler = commands.get(mainCommand);
+        if(commandHandler != null){
+            final CommandProperty command = commandHandler.getMainCommand();
+            final Collection<CommandProperty> commands = commandHandler.getSubcommands();
+            if (command != null)
+                log.log(() -> "The command is already registered: '" + mainCommand + "' and have this command registered:" + command);
+            if (commands != null)
+                log.log(() -> "The command is already registered: '" + mainCommand + "' and have this sub commands registered: '" + commands + "'");
+            return true;
+        }
+        return false;
     }
 
     @Override
