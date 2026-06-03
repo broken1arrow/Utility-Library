@@ -17,16 +17,12 @@ import java.util.Map;
  */
 public class MenuButtonData implements ConfigurationSerializable {
 
-    private final MenuButton passiveButton;
-    private final MenuButton activeButton;
-    private final Map<String, MenuButton> resolveCustomButtons;
+    private final Map<String, MenuButton> resolveButtons;
     private final String actionType;
     private final List<String> extra;
 
-    private MenuButtonData(@Nonnull final MenuButton passiveButton, @Nullable final MenuButton activeButton,@Nonnull final Map<String, MenuButton> resolveCustomButtons, @Nullable String actionType, @Nullable List<String> extra) {
-        this.passiveButton = passiveButton;
-        this.activeButton = activeButton;
-        this.resolveCustomButtons = resolveCustomButtons;
+    private MenuButtonData(@Nonnull final Map<String, MenuButton> resolveButtons, @Nullable String actionType, @Nullable List<String> extra) {
+        this.resolveButtons = resolveButtons;
         this.actionType = actionType;
         this.extra = extra;
     }
@@ -38,7 +34,10 @@ public class MenuButtonData implements ConfigurationSerializable {
      */
     @Nonnull
     public MenuButton getPassiveButton() {
-        return passiveButton;
+        final MenuButton menuButton = this.resolveButtons.get("passive");
+        if (menuButton != null)
+            return menuButton;
+        return new MenuButton.Builder("STONE").setDisplayName("&4Not set a default button").build();
     }
 
     /**
@@ -48,7 +47,7 @@ public class MenuButtonData implements ConfigurationSerializable {
      */
     @Nullable
     public MenuButton getActiveButton() {
-        return activeButton;
+        return this.resolveButtons.get("active");
     }
 
     /**
@@ -57,7 +56,7 @@ public class MenuButtonData implements ConfigurationSerializable {
      * @return unmodifiable map containing all custom buttons
      */
     public Map<String, MenuButton> getCustomButtons() {
-        return Collections.unmodifiableMap(resolveCustomButtons);
+        return Collections.unmodifiableMap(resolveButtons);
     }
 
     /**
@@ -67,8 +66,8 @@ public class MenuButtonData implements ConfigurationSerializable {
      * @return Returns your set button or null if not find it.
      */
     @Nullable
-    public  MenuButton getCustomButton(final String name) {
-        return resolveCustomButtons.get(name);
+    public MenuButton getCustomButton(final String name) {
+        return resolveButtons.get(name);
     }
 
     /**
@@ -82,8 +81,8 @@ public class MenuButtonData implements ConfigurationSerializable {
      */
     @Nonnull
     public MenuButton resolveCustomButton(final String name) {
-        MenuButton menuButton = resolveCustomButtons.get(name);
-        if(menuButton != null)
+        MenuButton menuButton = resolveButtons.get(name);
+        if (menuButton != null)
             return menuButton;
         return this.getPassiveButton();
     }
@@ -125,9 +124,9 @@ public class MenuButtonData implements ConfigurationSerializable {
     @Override
     public String toString() {
         return "MenuButtonData{" +
-                "passive=" + passiveButton +
-                ", active=" + activeButton +
-                ", actionType=" + actionType +
+                "resolveCustomButtons=" + resolveButtons +
+                ", actionType='" + actionType + '\'' +
+                ", extra=" + extra +
                 '}';
     }
 
@@ -135,9 +134,8 @@ public class MenuButtonData implements ConfigurationSerializable {
     @Override
     public Map<String, Object> serialize() {
         final Map<String, Object> map = new LinkedHashMap<>();
-        map.put("passive", this.passiveButton);
-        map.put("active", this.activeButton);
         if (actionType != null) map.put("action_type", actionType);
+        if (!resolveButtons.isEmpty()) map.put("buttons", resolveButtons);
         return map;
     }
 
@@ -149,42 +147,33 @@ public class MenuButtonData implements ConfigurationSerializable {
      */
     public static MenuButtonData deserialize(final Map<String, Object> map) {
         Map<String, Object> activeData = new LinkedHashMap<>();
-        Map<String, Object> passiveData = new LinkedHashMap<>();
-        Map<String, Map<String, Object>> custom = new HashMap<>();
+
+        Map<String, Map<String, Object>> buttons = new HashMap<>();
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             final String entryKey = entry.getKey();
-            if (entryKey.startsWith("active.")) {
-                String key = entryKey.replace("active.", "");
-                activeData.put(key, entry.getValue());
-            } else if (entryKey.startsWith("passive.")) {
-                String key = entryKey.replace("passive.", "");
-                passiveData.put(key, entry.getValue());
-            } else {
-                int index = entryKey.indexOf(".");
-                if(index > 0) {
-                    String key = entryKey.substring(index + 1);
-                    final String substring = entryKey.substring(0, index);
-                    Map<String, Object> stringObjectMap = custom.get(substring);
-                    if (stringObjectMap == null)
-                        stringObjectMap = new HashMap<>();
-                    stringObjectMap.put(key, entry.getValue());
-                    custom.put(substring, stringObjectMap);
-                }
+            final int index = entryKey.indexOf(".");
+            if (index > 0) {
+                String key = entryKey.substring(index + 1);
+                final String substring = entryKey.substring(0, index);
+                Map<String, Object> stringObjectMap = buttons.get(substring);
+                if (stringObjectMap == null)
+                    stringObjectMap = new HashMap<>();
+                stringObjectMap.put(key, entry.getValue());
+                buttons.put(substring, stringObjectMap);
             }
         }
 
-        Map<String, MenuButton> resolveCustomButton = new HashMap<>();
-        if(!custom.isEmpty()){
-            custom.forEach((key, value) -> resolveCustomButton.put(key, MenuButton.deserialize(value)));
+        final Object material = map.get("material");
+        if(material != null) {
+            buttons.put("passive", map);
         }
-        MenuButton deserializeActiveData = null;
-        MenuButton deserializePassiveData;
-        if (!activeData.isEmpty())
-            deserializeActiveData = MenuButton.deserialize(activeData);
-        if (!passiveData.isEmpty())
-            deserializePassiveData = MenuButton.deserialize(passiveData);
-        else
-            deserializePassiveData = MenuButton.deserialize(map);
+
+        System.out.println("buttons keySet " +  buttons.keySet());
+        System.out.println("buttons values" +  buttons.values());
+        Map<String, MenuButton> resolveCustomButton = new HashMap<>();
+        if (!buttons.isEmpty()) {
+            buttons.forEach((key, value) -> resolveCustomButton.put(key, MenuButton.deserialize(value)));
+        }
         String actionType = (String) map.get("action_type");
         Object extra = map.get("extra");
         List<String> extras;
@@ -193,6 +182,6 @@ public class MenuButtonData implements ConfigurationSerializable {
         } else {
             extras = Collections.singletonList(extra + "");
         }
-        return new MenuButtonData(deserializePassiveData, deserializeActiveData,resolveCustomButton, actionType, extras);
+        return new MenuButtonData(resolveCustomButton, actionType, extras);
     }
 }
