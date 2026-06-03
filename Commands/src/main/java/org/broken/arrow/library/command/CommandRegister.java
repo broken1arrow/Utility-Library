@@ -154,7 +154,7 @@ public class CommandRegister implements CommandRegistering {
 
         if (main.length > 1)
             for (final String command : main)
-                this.register(fallbackPrefix, new CommandExecutor(this, command, description, usageMessage, Arrays.asList(aliases)));
+                this.register(fallbackPrefix + ":" + mainCommand, new CommandExecutor(this, command, description, usageMessage, Arrays.asList(aliases)));
         else
             this.register(fallbackPrefix, new CommandExecutor(this, mainCommand, description, usageMessage, Arrays.asList(aliases)));
         return this;
@@ -183,7 +183,7 @@ public class CommandRegister implements CommandRegistering {
 
     private boolean isCommandRegistered(@NonNull final String mainCommand) {
         final MainCommandHandler commandHandler = commands.get(mainCommand);
-        if(commandHandler != null){
+        if (commandHandler != null) {
             final CommandProperty command = commandHandler.getMainCommand();
             final Collection<CommandProperty> commands = commandHandler.getSubcommands();
             if (command != null)
