@@ -242,16 +242,11 @@ public class CheckItemsInsideMenu {
         final Set<ItemStack> set = new HashSet<>();
         this.sendMsgPlayer = false;
         for (final Map.Entry<Integer, ItemStack> entity : items.entrySet()) {
-            if (entity.getValue() != null) {
-            /*    if (entity.getValue().getAmount() > 1) {
-                    //cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), itemStacks)) - 1);
-                    duplicatedItems.computeIfAbsent(player.getUniqueId(), uuid -> new ItemOverflowBatch()).putItem(entity.getValue());
-                }
-*/
-                //cachedDuplicatedItems.put(ItemCreator.createItemStackAsOne(entity.getValue()), (ItemCreator.countItemStacks(entity.getValue(), itemStacks)) - 1);
-                duplicatedItems.computeIfAbsent(player.getUniqueId(), uuid -> new ItemOverflowBatch()).putItem(entity.getValue());
-                if (set.add(ItemCreator.createItemStackAsOne(entity.getValue())))
-                    itemStacksNoDoubleEntity.put(entity.getKey(), ItemCreator.createItemStackAsOne(entity.getValue()));
+            ItemStack stack = entity.getValue();
+            if (stack != null && stack.getType() != Material.AIR) {
+                duplicatedItems.computeIfAbsent(player.getUniqueId(), uuid -> new ItemOverflowBatch()).putItem(stack);
+                if (set.add(ItemCreator.createItemStackAsOne(stack)))
+                    itemStacksNoDoubleEntity.put(entity.getKey(), ItemCreator.createItemStackAsOne(stack));
             }
         }
         addItemsBackToPlayer(location);

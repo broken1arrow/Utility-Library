@@ -168,8 +168,6 @@ public class MenuButtonData implements ConfigurationSerializable {
             buttons.put("passive", map);
         }
 
-        System.out.println("buttons keySet " +  buttons.keySet());
-        System.out.println("buttons values" +  buttons.values());
         Map<String, MenuButton> resolveCustomButton = new HashMap<>();
         if (!buttons.isEmpty()) {
             buttons.forEach((key, value) -> resolveCustomButton.put(key, MenuButton.deserialize(value)));
