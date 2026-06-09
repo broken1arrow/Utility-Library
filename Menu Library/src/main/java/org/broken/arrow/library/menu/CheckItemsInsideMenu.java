@@ -238,7 +238,6 @@ public class CheckItemsInsideMenu {
      */
     private Map<Integer, ItemStack> addToMuchItems(final Map<Integer, ItemStack> items, final Player player, final ItemStack[] itemStacks, final Location location) {
         final Map<Integer, ItemStack> itemStacksNoDoubleEntity = new HashMap<>();
-        final Map<ItemStack, Integer> cachedDuplicatedItems = new HashMap<>();
         final Set<ItemStack> set = new HashSet<>();
         this.sendMsgPlayer = false;
         for (final Map.Entry<Integer, ItemStack> entity : items.entrySet()) {
@@ -284,6 +283,8 @@ public class CheckItemsInsideMenu {
                 for (final Entry<ItemStack, Integer> items : duplicateStacks.entrySet()) {
                     final ItemStack itemStack = items.getKey();
                     final int amount = items.getValue();
+                    if (amount <= 0 || itemStack == null || itemStack.getType() == Material.AIR)
+                        continue;
 
                     itemStack.setAmount(amount);
                     final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(mapEntry.getKey());
