@@ -1,9 +1,13 @@
 package org.broken.arrow.library.serialize.utility.converters;
 
+import org.broken.arrow.library.color.ChatColors;
+import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.serialize.utility.Pair;
+import org.bukkit.Color;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -95,23 +99,39 @@ public class PlaceholderTranslator {
      * @param placeholders The consumer where you provide the placeholder data.
      * @return The translated list of lore strings.
      */
-    public static List<String> translateList(final List<String> listOfText, final Consumer<PlaceholderWrapper> placeholders) {
+    public static List<String> translateList(@Nullable final List<String> listOfText, @Nonnull final Consumer<PlaceholderWrapper> placeholders) {
+        return translateList(listOfText, text -> text, placeholders);
+    }
+
+    /**
+     * Translates placeholders in a list of strings by replacing them with corresponding values.
+     * The placeholders are replaced in the order specified by the placeholders array.
+     *
+     * @param listOfText   The list of strings to translate.
+     * @param forEachText  handle color codes or other things for each text line
+     * @param placeholders The consumer where you provide the placeholder data.
+     * @return The translated list of lore strings.
+     */
+    public static List<String> translateList(@Nullable final List<String> listOfText, @Nonnull final TextResult forEachText, @Nonnull final Consumer<PlaceholderWrapper> placeholders) {
         if (listOfText == null) return new ArrayList<>();
         final List<String> result = new ArrayList<>();
         final PlaceholderWrapper wrapper = new PlaceholderWrapper();
         placeholders.accept(wrapper);
+        final Map<String, Object> placeholderMap = wrapper.getPlaceholders();
+
         for (String text : listOfText) {
-            final Map<String, Object> placeholderMap = wrapper.getPlaceholders();
             if (placeholderMap.isEmpty()) {
-                result.add(text);
+                result.add(getText(forEachText, text));
                 continue;
             }
             List<String> lines = new ArrayList<>();
             lines.add(text);
-            for (Map.Entry<String, Object> entry : placeholderMap.entrySet()) {
+            for (final Map.Entry<String, Object> entry : placeholderMap.entrySet()) {
                 lines = applyPlaceholders(lines, entry);
             }
-            result.addAll(lines);
+            for (final String finalLine : lines) {
+                result.add(getText(forEachText, finalLine));
+            }
         }
         return result;
     }
@@ -223,20 +243,26 @@ public class PlaceholderTranslator {
         return result;
     }
 
-    private static List<String> applyPlaceholders(List<String> input, Map.Entry<String, Object> entry) {
+    private static List<String> applyPlaceholders(final List<String> input, final Map.Entry<String, Object> entry) {
         List<String> result = new ArrayList<>();
 
         String key = entry.getKey();
         Object value = entry.getValue();
 
         for (String current : input) {
-            if (value instanceof Collection && current.contains(key)) {
+            if (current == null || !current.contains(key)) {
+                result.add(current);
+                continue;
+            }
+            if (value instanceof Collection) {
                 final Collection<?> split = split((Collection<?>) value);
                 for (Object element : split) {
-                    result.add(current.replace(key, element != null ? element.toString() : ""));
+                    final String replacedPlaceholders = current.replace(key, element != null ? element.toString() : "");
+                    result.add(replacedPlaceholders);
                 }
             } else {
-                result.add(current.replace(key, value != null ? value.toString() : ""));
+                String replacedPlaceholders = current.replace(key, value != null ? value.toString() : "");
+                result.add(replacedPlaceholders);
             }
         }
         return result;
@@ -247,6 +273,15 @@ public class PlaceholderTranslator {
             return new ArrayList<>(input);
         return TranslatePlaceholdersItem.split(input, SPLIT);
     }
+
+    private static String getText(@Nonnull final TextResult forEachText, String text) {
+        final String resultText = forEachText.apply(text != null ? text : "");
+        if (resultText != null && !resultText.isEmpty()) {
+            text = resultText;
+        }
+        return text;
+    }
+
 
     /**
      * A helper class for managing placeholder key-value pairs.
@@ -343,5 +378,22 @@ public class PlaceholderTranslator {
         public static void clearPlaceholderWarnings() {
             alreadyWarn.clear();
         }
+    }
+
+
+    /**
+     * This function is used to allowing you to do other changes to
+     * the result when placeholders is replaced, like for example translate
+     * color codes.
+     */
+    public interface TextResult {
+
+        /**
+         * Apply the changes to text
+         *
+         * @param text the text result.
+         * @return the text you want it to return.
+         */
+        String apply(@Nonnull final String text);
     }
 }
