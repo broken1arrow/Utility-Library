@@ -163,17 +163,17 @@ public class MenuButtonData implements ConfigurationSerializable {
         }
 
         final Object material = map.get("material");
-        if(material != null) {
+        if (material != null) {
             buttons.put("passive", map);
         }
 
-        Map<String, MenuButton> resolveCustomButton = new HashMap<>();
+        final Map<String, MenuButton> resolveCustomButton = new HashMap<>();
         if (!buttons.isEmpty()) {
             buttons.forEach((key, value) -> resolveCustomButton.put(key, MenuButton.deserialize(value)));
         }
-        String actionType = (String) map.get("action_type");
-        Object extra = map.get("extra");
-        List<String> extras;
+        final String actionType = (String) map.get("action_type");
+        final Object extra = map.get("extra");
+        final List<String> extras;
         if (extra instanceof List) {
             extras = (List<String>) extra;
         } else {
