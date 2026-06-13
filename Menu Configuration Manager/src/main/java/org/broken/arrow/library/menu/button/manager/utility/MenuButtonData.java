@@ -146,9 +146,8 @@ public class MenuButtonData implements ConfigurationSerializable {
      * @return the deserialized MenuButtonData object
      */
     public static MenuButtonData deserialize(final Map<String, Object> map) {
-        Map<String, Object> activeData = new LinkedHashMap<>();
+        final Map<String, Map<String, Object>> buttons = new HashMap<>();
 
-        Map<String, Map<String, Object>> buttons = new HashMap<>();
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             final String entryKey = entry.getKey();
             final int index = entryKey.indexOf(".");
