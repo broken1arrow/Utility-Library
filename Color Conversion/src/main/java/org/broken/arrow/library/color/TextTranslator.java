@@ -257,14 +257,13 @@ public final class TextTranslator {
         String messageCopy = checkStringForGradient(message);
         Matcher matcher = HEX_PATTERN.matcher(messageCopy);
         StringBuffer result = new StringBuffer();
-
         while (matcher.find()) {
             String match = matcher.group(0);
             String replacement = getHexReplacement(match);
             matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }
         matcher.appendTail(result);
-        return ChatColor.translateAlternateColorCodes('&', messageCopy);
+        return ChatColor.translateAlternateColorCodes('&',   result.toString());
     }
 
     @NonNull
