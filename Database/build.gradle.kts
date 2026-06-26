@@ -16,6 +16,7 @@ version = "1.0-SNAPSHOT"
 dependencies {
     api(project(":log-and-validate"))
     api(project(":serialize-utility"))
+    api(project(":version"))
     compileOnly(libs.org.xerial.sqlite.jdbc)
     compileOnly(libs.com.zaxxer.hikaricp)
     compileOnly(libs.mysql.connector.j)

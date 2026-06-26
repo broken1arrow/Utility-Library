@@ -2,6 +2,7 @@ package org.broken.arrow.library.serialize.utility.converters.particleeffect;
 
 import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.serialize.utility.converters.particleeffect.resolver.ParticleDataResolver;
+import org.broken.arrow.library.version.VersionUtil;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -23,7 +24,7 @@ import java.util.logging.Logger;
 public class ParticleCreator {
     private final Logger logger = Logger.getLogger(String.valueOf(ParticleCreator.class));
 
-    private final float serverVersion;
+    private final VersionUtil serverVersion;
     private final Effect effect;
     private final Particle particle;
     private final ParticleEffectAccessor effectAccessor;
@@ -328,7 +329,7 @@ public class ParticleCreator {
             PotionEffect potionEffect = potionsData.getPotionEffect();
             if (potionEffect != null) {
                 player.playEffect(location, effect, potionEffect);
-                if (serverVersion > 20.0F) {
+                if (serverVersion.versionNewer(20.0)) {
                     logger.info("Usage of PotionEffect for visual effects is discouraged. Consider using the Particle API for better compatibility and flexibility.");
                 }
             } else {

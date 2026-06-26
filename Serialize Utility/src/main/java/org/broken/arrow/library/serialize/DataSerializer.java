@@ -8,7 +8,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 import org.broken.arrow.library.serialize.utility.converters.LocationSerializer;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
-import org.bukkit.Bukkit;
+import org.broken.arrow.library.version.VersionUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -38,30 +38,14 @@ import java.util.stream.Collectors;
  */
 
 final class DataSerializer {
-	private static final float SERVER_VERSION;
+	private static final VersionUtil VERSION_CONTEXT;
 
 	private DataSerializer() {}
 
 	static {
-		final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
-		final String firstNumber;
-		String secondNumber;
-		final String firstString = versionPieces[1];
-		if (firstString.contains("-")) {
-			firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
-
-			secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
-			final int index = secondNumber.toUpperCase().indexOf("R");
-			if (index >= 0)
-				secondNumber = secondNumber.substring(index + 1);
-		} else {
-			final String secondString = versionPieces[2];
-			firstNumber = firstString;
-			secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
-		}
-		SERVER_VERSION = Float.parseFloat(firstNumber + "." + secondNumber);
+		VERSION_CONTEXT = new VersionUtil();
 	}
-	
+
 	/**
 	 * Serializes an object into a format suitable for storage or database usage.
 	 *
@@ -120,9 +104,9 @@ final class DataSerializer {
 		return chatColor.name();
 	}
 
-	private static Object serializeBungeeChatColor(net.md_5.bungee.api.ChatColor chatColor) {
-		return SERVER_VERSION >= 16.0 ? chatColor.toString() : chatColor.name();
-	}
+    private static Object serializeBungeeChatColor(net.md_5.bungee.api.ChatColor chatColor) {
+        return VERSION_CONTEXT.compareTo(16, 0).atLeast() ? chatColor.toString() : chatColor.name();
+    }
 
 	private static Object serializeHoverEvent(HoverEvent event) {
 		Map<String, Object> serialize = new HashMap<>();
@@ -163,8 +147,8 @@ final class DataSerializer {
 	}
 
 	private static String toJson(final BaseComponent... comps) {
-		if (SERVER_VERSION < 8.8)
-			return "{}";
+        if (VERSION_CONTEXT.compareTo(8, 8).older())
+            return "{}";
 		String json;
 		try {
 			json = ComponentSerializer.toString(comps);

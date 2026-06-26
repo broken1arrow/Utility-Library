@@ -4,6 +4,7 @@ import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.serialize.utility.Pair;
 import org.broken.arrow.library.serialize.utility.converters.particleeffect.ParticleEffect.Builder;
 import org.broken.arrow.library.serialize.utility.converters.particleeffect.resolver.ParticleDataResolver;
+import org.broken.arrow.library.version.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Material;
@@ -19,39 +20,23 @@ import java.util.Map;
  */
 public class ConvertParticlesUtility {
 
-    private static final float SERVER_VERSION;
+    private static final VersionUtil VERSION;
     private static final Logging logger = new Logging(ConvertParticlesUtility.class);
 
     private ConvertParticlesUtility() {
     }
 
     static {
-        final String[] versionPieces = Bukkit.getServer().getBukkitVersion().split("\\.");
-        final String firstNumber;
-        String secondNumber;
-        final String firstString = versionPieces[1];
-        if (firstString.contains("-")) {
-            firstNumber = firstString.substring(0, firstString.lastIndexOf("-"));
-
-            secondNumber = firstString.substring(firstString.lastIndexOf("-") + 1);
-            final int index = secondNumber.toUpperCase().indexOf("R");
-            if (index >= 0)
-                secondNumber = secondNumber.substring(index + 1);
-        } else {
-            final String secondString = versionPieces[2];
-            firstNumber = firstString;
-            secondNumber = secondString.substring(0, secondString.lastIndexOf("-"));
-        }
-        SERVER_VERSION = Float.parseFloat(firstNumber + "." + secondNumber);
+        VERSION = new VersionUtil();
     }
 
     /**
-     * Gets the parsed server version as a float value representing major.minor version.
+     * Gets the parsed server version instance.
      *
-     * @return the server version, e.g., 20.4 or 19.3
+     * @return the VersionUtil instance
      */
-    public static float getServerVersion() {
-        return SERVER_VERSION;
+    public static VersionUtil getServerVersion() {
+        return VERSION;
     }
 
     /**
@@ -237,7 +222,7 @@ public class ConvertParticlesUtility {
         Object particle = particleEffectWrapper.getParticle();
         if (particle == null) return null;
         Object object;
-        if (SERVER_VERSION < 9) {
+        if (VERSION.versionOlder(9.0)) {
             object = getEffect(String.valueOf(particle));
         } else {
             object = getParticle(String.valueOf(particle));
@@ -252,7 +237,7 @@ public class ConvertParticlesUtility {
         float extra = particleEffectWrapper.getExtra();
 
         Builder builder;
-        if (SERVER_VERSION >= 9 && !(object instanceof Effect)) {
+        if (VERSION.versionNewer(9.0) && !(object instanceof Effect)) {
             builder = buildParticle(object, particleData, firstColor, secondColor, amountOfParticles, extra);
         } else {
             builder = buildEffect(object, particleData, firstColor, secondColor, amountOfParticles, extra);
@@ -308,7 +293,7 @@ public class ConvertParticlesUtility {
      */
     public static String replaceBarrier(final String particle) {
 
-        if (SERVER_VERSION >= 17 && particle.equals("BARRIER"))
+        if (VERSION.versionAtLeast(17) && particle.equals("BARRIER"))
             return "BLOCK_MARKER";
         return particle;
     }

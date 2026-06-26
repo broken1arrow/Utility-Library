@@ -417,7 +417,7 @@ public class VersionUtil {
     }
 
     private int compareModern(@Nonnull final Version version, final int major, final int minor, final int patch) {
-        int versionMajor = version.getMinor();
+        int versionMajor = version.getMajor();
         int versionMinor = version.getMinor();
         int versionPatch = version.getPatch();
         if (versionMajor != major)
