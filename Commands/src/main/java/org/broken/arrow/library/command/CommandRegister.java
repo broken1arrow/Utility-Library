@@ -54,8 +54,22 @@ public class CommandRegister implements CommandRegistering {
     @Override
     public CommandBuilder registerCommand(final Plugin plugin, final String mainCommand) {
         final CommandBuilder commandBuilder = new CommandBuilder();
-        if (isCommandRegistered(mainCommand)) return commandBuilder;
+        final String[] mainCommands = mainCommand.split("\\|");
 
+        if (mainCommands.length > 0) {
+            for (String main : mainCommands) {
+                if (isCommandRegistered(main)) continue;
+                commands.compute(main, (commandLabel, mainCommandHandler) -> {
+                    if (mainCommandHandler != null) {
+                        return null;
+                    }
+                    this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), main);
+                    return commandBuilder.getMainCommandHandler();
+                });
+            }
+            return commandBuilder;
+        }
+        if (isCommandRegistered(mainCommand)) return commandBuilder;
         commands.compute(mainCommand, (commandLabel, mainCommandHandler) -> {
             if (mainCommandHandler != null) {
                 return null;
@@ -68,10 +82,23 @@ public class CommandRegister implements CommandRegistering {
 
     @Override
     public void registerCommand(@Nonnull final Plugin plugin, @Nonnull final String mainCommand, @Nonnull final Consumer<CommandBuilder> callback) {
-        if (isCommandRegistered(mainCommand)) return;
-
+        final String[] mainCommands = mainCommand.split("\\|");
         final CommandBuilder commandBuilder = new CommandBuilder();
         callback.accept(commandBuilder);
+        if (mainCommands.length > 0) {
+            for (String main : mainCommands) {
+                if (isCommandRegistered(main)) continue;
+                commands.compute(main, (commandLabel, mainCommandHandler) -> {
+                    if (mainCommandHandler != null) {
+                        return null;
+                    }
+                    this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), main);
+                    return commandBuilder.getMainCommandHandler();
+                });
+            }
+            return;
+        }
+        if (isCommandRegistered(mainCommand)) return;
         commands.compute(mainCommand, (commandLabel, mainCommandHandler) -> {
             if (mainCommandHandler != null) {
                 return null;
