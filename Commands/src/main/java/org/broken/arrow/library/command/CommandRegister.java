@@ -58,27 +58,16 @@ public class CommandRegister implements CommandRegistering {
 
         if (mainCommands.length > 0) {
             for (String main : mainCommands) {
-                if (isCommandRegistered(main)) continue;
-                commands.compute(main, (commandLabel, mainCommandHandler) -> {
-                    if (mainCommandHandler != null) {
-                        return null;
-                    }
-                    this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), main);
-                    return commandBuilder.getMainCommandHandler();
-                });
+                if (this.isCommandRegistered(main)) continue;
+                this.registerCommand(plugin, main, commandBuilder);
             }
             return commandBuilder;
         }
-        if (isCommandRegistered(mainCommand)) return commandBuilder;
-        commands.compute(mainCommand, (commandLabel, mainCommandHandler) -> {
-            if (mainCommandHandler != null) {
-                return null;
-            }
-            this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand);
-            return commandBuilder.getMainCommandHandler();
-        });
+        if (this.isCommandRegistered(mainCommand)) return commandBuilder;
+        this.registerCommand(plugin, mainCommand, commandBuilder);
         return commandBuilder;
     }
+
 
     @Override
     public void registerCommand(@Nonnull final Plugin plugin, @Nonnull final String mainCommand, @Nonnull final Consumer<CommandBuilder> callback) {
@@ -87,25 +76,13 @@ public class CommandRegister implements CommandRegistering {
         callback.accept(commandBuilder);
         if (mainCommands.length > 0) {
             for (String main : mainCommands) {
-                if (isCommandRegistered(main)) continue;
-                commands.compute(main, (commandLabel, mainCommandHandler) -> {
-                    if (mainCommandHandler != null) {
-                        return null;
-                    }
-                    this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), main);
-                    return commandBuilder.getMainCommandHandler();
-                });
+                if (this.isCommandRegistered(main)) continue;
+                this.registerCommand(plugin, main, commandBuilder);
             }
             return;
         }
-        if (isCommandRegistered(mainCommand)) return;
-        commands.compute(mainCommand, (commandLabel, mainCommandHandler) -> {
-            if (mainCommandHandler != null) {
-                return null;
-            }
-            this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), mainCommand);
-            return commandBuilder.getMainCommandHandler();
-        });
+        if (this.isCommandRegistered(mainCommand)) return;
+        this.registerCommand(plugin, mainCommand, commandBuilder);
     }
 
     @Override
@@ -136,6 +113,23 @@ public class CommandRegister implements CommandRegistering {
     }
 
     /**
+     * Register the command both to both cache and server.
+     *
+     * @param plugin         the plugin to register
+     * @param main           The main command to register.
+     * @param commandBuilder The CommandRegistering instance.
+     */
+    private void registerCommand(@Nonnull final Plugin plugin, @Nonnull final String main, @Nonnull final CommandBuilder commandBuilder) {
+        commands.compute(main, (commandLabel, mainCommandHandler) -> {
+            if (mainCommandHandler != null) {
+                return null;
+            }
+            this.registerMainCommand(plugin.getName().toLowerCase(Locale.ROOT), main);
+            return commandBuilder.getMainCommandHandler();
+        });
+    }
+
+    /**
      * Registers the main command with the specified fallback prefix, command, description, usage message, and aliases.
      * If the main command has already been registered, this method does nothing.
      *
@@ -143,10 +137,8 @@ public class CommandRegister implements CommandRegistering {
      * @param mainCommand    The main command to register.
      * @return The CommandRegistering instance.
      */
-    private CommandRegistering registerMainCommand(String fallbackPrefix, String mainCommand) {
-        final String description = "This is the command registered: " + mainCommand;
-        final String usageMessage = "usage for command/" + mainCommand;
-        return this.registerMainCommand(fallbackPrefix, mainCommand, description, usageMessage, new String[0]);
+    private CommandRegistering registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand) {
+        return this.registerMainCommand(fallbackPrefix, mainCommand, new String[0]);
     }
 
     /**
@@ -158,7 +150,7 @@ public class CommandRegister implements CommandRegistering {
      * @param aliases        The aliases of the main command.
      * @return The CommandRegistering instance.
      */
-    private CommandRegistering registerMainCommand(String fallbackPrefix, String mainCommand, String... aliases) {
+    private CommandRegistering registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand, @Nonnull final String... aliases) {
         final String description = "This is the command registered: " + mainCommand;
         final String usageMessage = "usage for command/" + mainCommand;
         return this.registerMainCommand(fallbackPrefix, mainCommand, description, usageMessage, aliases);
@@ -176,14 +168,9 @@ public class CommandRegister implements CommandRegistering {
      * @return The CommandRegistering instance.
      */
     private CommandRegistering registerMainCommand(@Nonnull final String fallbackPrefix, @Nonnull final String mainCommand, @Nonnull final String description, @Nonnull final String usageMessage, @Nonnull final String... aliases) {
-        final String[] main = mainCommand.split("\\|");
         if (registeredMainCommand) return this;
 
-        if (main.length > 1)
-            for (final String command : main)
-                this.register(fallbackPrefix + ":" + mainCommand, new CommandExecutor(this, command, description, usageMessage, Arrays.asList(aliases)));
-        else
-            this.register(fallbackPrefix, new CommandExecutor(this, mainCommand, description, usageMessage, Arrays.asList(aliases)));
+        this.register(fallbackPrefix, new CommandExecutor(this, mainCommand, description, usageMessage, Arrays.asList(aliases)));
         return this;
     }
 
@@ -195,7 +182,7 @@ public class CommandRegister implements CommandRegistering {
      * @param fallbackPrefix The fallback prefix to use if the normal command cannot be used.
      * @param command        The command to register.
      */
-    private void register(final String fallbackPrefix, final Command command) {
+    private void register(@Nonnull final String fallbackPrefix, @Nonnull final Command command) {
         try {
             final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
 
