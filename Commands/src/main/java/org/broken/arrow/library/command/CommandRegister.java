@@ -52,7 +52,7 @@ public class CommandRegister implements CommandRegistering {
     }
 
     @Override
-    public CommandBuilder registerCommand(final Plugin plugin, final String mainCommand) {
+    public CommandBuilder registerCommand(@Nonnull final Plugin plugin, @Nonnull final String mainCommand) {
         final CommandBuilder commandBuilder = new CommandBuilder();
         final String[] mainCommands = mainCommand.split("\\|");
 
@@ -103,7 +103,7 @@ public class CommandRegister implements CommandRegistering {
      * Translate colors on a text.
      *
      * @param message the message to translate the color codes.
-     * @return Array of strings that has formated colors.
+     * @return A string that has formated colors.
      */
     public static String translateColors(final String message) {
         if (message == null) return "";
