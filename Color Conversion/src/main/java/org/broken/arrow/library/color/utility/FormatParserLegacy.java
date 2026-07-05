@@ -6,6 +6,8 @@ import org.broken.arrow.library.color.ChatColors;
 import org.broken.arrow.library.color.Component;
 import org.broken.arrow.library.color.TextTranslator;
 
+import java.util.regex.Pattern;
+
 /**
  * Utility class for converting legacy-formatted Minecraft chat text into a
  * JSON-based text component compatible with Minecraft's modern chat system.
@@ -26,9 +28,10 @@ import org.broken.arrow.library.color.TextTranslator;
  * JSON format that Minecraft can use for advanced chat messages.
  * </p>
  */
-public class CreateFromLegacyText {
+public class FormatParserLegacy {
+    private static final Pattern url = Pattern.compile("^(?:(https?)://)?([-\\w_.]{2,}\\.[a-z]{2,4})(/\\S*)?$");
 
-    private CreateFromLegacyText() {
+    private FormatParserLegacy() {
     }
 
     /**
@@ -142,7 +145,7 @@ public class CreateFromLegacyText {
         if (builder.length() > 0) {
             addComponentToJsonArray(builder, component, jsonArray);
         }
-        TextTranslator.getInstance().setColor(
+        setColor(
                 defaultColor != null ? defaultColor.getName() : "",
                 component,
                 format.getName()
@@ -195,6 +198,33 @@ public class CreateFromLegacyText {
             return jsonObject;
         }
         return component.build().toJson();
+    }
+
+    /**
+     * Sets the color for the text.
+     *
+     * @param defaultColor The default color if not provided one.
+     * @param component    the builder so apply the color
+     * @param format       the color format.
+     */
+    private static void setColor(final String defaultColor, final Component.Builder component, String format) {
+        if (format.equals(ChatColors.BOLD.getName())) {
+            component.bold(true);
+        } else if (format.equals(ChatColors.ITALIC.getName())) {
+            component.italic(true);
+        } else if (format.equals(ChatColors.UNDERLINE.getName())) {
+            component.underline(true);
+        } else if (format.equals(ChatColors.STRIKETHROUGH.getName())) {
+            component.strikethrough(true);
+        } else if (format.equals(ChatColors.MAGIC.getName())) {
+            component.obfuscated(true);
+        } else if (format.equals(ChatColors.RESET.getName())) {
+            format = defaultColor;
+            component.reset(true);
+            component.colorCode(format);
+        } else {
+            component.colorCode(format);
+        }
     }
 
 }

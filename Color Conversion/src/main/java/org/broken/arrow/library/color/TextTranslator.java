@@ -1,14 +1,10 @@
 package org.broken.arrow.library.color;
 
 import com.google.gson.JsonObject;
-import net.md_5.bungee.api.ChatColor;
 import org.broken.arrow.library.color.Component.Builder;
-import org.broken.arrow.library.color.utility.CreateComponent;
-import org.broken.arrow.library.color.utility.CreateFromLegacyText;
-import org.broken.arrow.library.color.utility.TextGradientUtil;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.broken.arrow.library.color.utility.ChatFormatParser;
 
-import java.util.regex.Matcher;
+import org.broken.arrow.library.color.utility.FormatParserLegacy;
 import java.util.regex.Pattern;
 
 /**
@@ -31,9 +27,6 @@ import java.util.regex.Pattern;
  * </p>
  */
 public final class TextTranslator {
-    private static final Pattern HEX_PATTERN = Pattern.compile("(?<!\\\\\\\\)(<#[a-fA-F0-9]{6}>)|(?<!\\\\\\\\)(<#[a-fA-F0-9]{3}>)");
-    private static final Pattern GRADIENT_PATTERN = Pattern.compile("(<#[a-fA-F0-9]{6}:#[a-fA-F0-9]{6}>)");
-    private static final Pattern url = Pattern.compile("^(?:(https?)://)?([-\\w_.]{2,}\\.[a-z]{2,4})(/\\S*)?$");
     private static final TextTranslator instance = new TextTranslator();
 
     /**
@@ -53,21 +46,22 @@ public final class TextTranslator {
      * <li> For normal gradients <strong>&lt;#5e4fa2:#f79459&gt;</strong> </li>
      * <li> For hsv use <strong>gradients_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
      * <li> For use multicolor <strong>gradients_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
-     * <li> For change balance between colors add this to the end of gradients or gradients_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
+     * <li> For change balance between colors add this to the end of gradients or <strong>gradients_hsv_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong>
      *  Like these <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
-     *  If you not add this it will have even balance between colors.</li>
+     *  If you not add this it will have even balanced between colors.</li>
      * </ul>
      *
      * @param message your string message.
      * @return spigot compatible translation.
      */
     public static String toSpigotFormat(String message) {
-        return getInstance().spigotFormat(message);
+        ChatFormatParser chatFormatParser = new ChatFormatParser();
+        return chatFormatParser.parseToLegacy(message, "white");
     }
 
     /**
      * This is for component when you want to send message
-     * thru vanilla minecraft MNS for example. DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
+     * through vanilla Minecraft MNS for example. DOESN'T SUPPORT SPIGOT API, AS IT LACK TOOLS NEEDED TO  HANDLE JSON. Use {@link #toSpigotFormat(String)}
      * <br> You use this format for colors:<br>
      * <ul>
      * <li> For vanilla color codes <strong>&amp; or &#167;</strong> and the color code.</li>
@@ -82,7 +76,7 @@ public final class TextTranslator {
      *
      * @param message      your string message.
      * @param defaultColor set default color when colors are not set in the message.
-     * @return json object with the set colors.
+     * @return JSON object with the set colors.
      */
     public static JsonObject toComponent(String message, String defaultColor) {
         return getInstance().componentFormat(message, defaultColor);
@@ -90,7 +84,7 @@ public final class TextTranslator {
 
     /**
      * This is for component when you want to send message
-     * thought vanilla minecraft MNS for example. DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
+     * thought vanilla Minecraft MNS for example. DOESN'T SUPPORT SPIGOT API, AS IT LACK TOOLS NEEDED TO  HANDLE JSON. Use {@link #toSpigotFormat(String)}
      * <br> You use this format for colors:<br>
      * <ul>
      * <li> For vanilla color codes <strong>&amp; or &#167;</strong> and the color code.</li>
@@ -104,7 +98,7 @@ public final class TextTranslator {
      * </ul>
      *
      * @param message your string message.
-     * @return json object with the set colors.
+     * @return JSON object with the set colors.
      */
 
     public static JsonObject toComponent(String message) {
@@ -129,77 +123,9 @@ public final class TextTranslator {
      * @return A JSON object representing the formatted text.
      */
     public static JsonObject fromLegacyText(String message, ChatColors defaultColor) {
-        return CreateFromLegacyText.fromLegacyText(message, defaultColor);
+        return FormatParserLegacy.fromLegacyText(message, defaultColor);
     }
 
-    /**
-     * Check the string if it contains gradients.
-     * <ul>
-     * <li> For vanilla color codes <strong>&amp; or §</strong> and the color code.</li>
-     * <li> For hex <strong>&lt;#5e4fa2&gt;</strong> </li>
-     * <li> For normal gradients <strong>&lt;#5e4fa2:#f79459&gt;</strong> </li>
-     * <li> For hsv use <strong>gradients_hsv_&lt;#5e4fa2:...&gt;</strong> add at least 2 colors or more</li>
-     * <li> For use multicolor <strong>gradients_&lt;#6B023E:...&gt;</strong>add at least 2 colors or more </li>
-     * <li> For change balance between colors add this to the end of gradients or gradients_hsv <strong>_portion&lt;0.2:0.6:0.2&gt;</strong>
-     *  Like this <strong>gradients_&lt;#6B023E:#3360B3:#fc9:#e76424&gt;_portion&lt;0.2:0.6:0.2&gt;</strong> ,
-     *  If you not add this it will have even balance between colors.</li>
-     * </ul>
-     *
-     * @param text to check.
-     * @return the message translated if has any gradients or untouched.
-     */
-    public String checkStringForGradient(final String text) {
-        String messageCopy = text;
-        GradientType type = null;
-        TextGradientUtil textGradientUtil;
-        if (text.contains(GradientType.HSV_GRADIENT_PATTERN.getType()))
-            type = GradientType.HSV_GRADIENT_PATTERN;
-        if (text.contains(GradientType.SIMPLE_GRADIENT_PATTERN.getType()))
-            type = GradientType.SIMPLE_GRADIENT_PATTERN;
-        if (type != null) {
-            textGradientUtil = new TextGradientUtil(type, text);
-            StringBuilder builder = new StringBuilder();
-            for (String textSplit : textGradientUtil.splitOnGradient())
-                builder.append(textGradientUtil.convertToMultiGradients(textSplit));
-            messageCopy = builder.toString();
-        }
-        if (messageCopy == null)
-            messageCopy = text;
-        Matcher matcherGradient = GRADIENT_PATTERN.matcher(messageCopy);
-        if (matcherGradient.find()) {
-            textGradientUtil = new TextGradientUtil(type, messageCopy);
-            messageCopy = textGradientUtil.convertGradients();
-        }
-        return messageCopy;
-    }
-
-
-    /**
-     * Sets the color for the text.
-     *
-     * @param defaultColor The default color if not provided one.
-     * @param component    the builder so apply the color
-     * @param format       the color format.
-     */
-    public void setColor(final String defaultColor, final Builder component, String format) {
-        if (format.equals(ChatColors.BOLD.getName())) {
-            component.bold(true);
-        } else if (format.equals(ChatColors.ITALIC.getName())) {
-            component.italic(true);
-        } else if (format.equals(ChatColors.UNDERLINE.getName())) {
-            component.underline(true);
-        } else if (format.equals(ChatColors.STRIKETHROUGH.getName())) {
-            component.strikethrough(true);
-        } else if (format.equals(ChatColors.MAGIC.getName())) {
-            component.obfuscated(true);
-        } else if (format.equals(ChatColors.RESET.getName())) {
-            format = defaultColor;
-            component.reset(true);
-            component.colorCode(format);
-        } else {
-            component.colorCode(format);
-        }
-    }
 
     /**
      * The type of gradients set.
@@ -230,57 +156,17 @@ public final class TextTranslator {
     }
 
     /**
-     * This is for component when you want to send message through vanilla minecraft MNS for example.
-     * DO NOT WORK IN SPIGOT API. Use {@link #toSpigotFormat(String)}
+     * This is for component when you want to send message through vanilla Minecraft MNS for example.
+     * DOESN'T SUPPORT SPIGOT API, AS IT LACK TOOLS NEEDED TO  HANDLE JSON. Use {@link #toSpigotFormat(String)}
      *
      * @param message      your string message.
      * @param defaultColor set default color when colors are not set in the message.
      * @return json object with the set colors.
      */
     private JsonObject componentFormat(String message, String defaultColor) {
-        CreateComponent createComponent = new CreateComponent(this, message);
-        return createComponent.componentFormat(defaultColor);
+        ChatFormatParser createComponent = new ChatFormatParser();
+        return createComponent.parse(message, defaultColor);
     }
 
 
-    /**
-     * Type your message/string text here. you use
-     * <p>
-     * §/&amp; color code or &lt;#55F758&gt; for normal hex and
-     * &lt;#5e4fa2:#f79459&gt; for gradient (use any color code to stop gradient).
-     *
-     * @param message your string message.
-     * @return spigot compatible translation.
-     */
-
-    private String spigotFormat(String message) {
-        String messageCopy = checkStringForGradient(message);
-        Matcher matcher = HEX_PATTERN.matcher(messageCopy);
-        StringBuffer result = new StringBuffer();
-        while (matcher.find()) {
-            String match = matcher.group(0);
-            String replacement = getHexReplacement(match);
-            matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
-        }
-        matcher.appendTail(result);
-        return ChatColor.translateAlternateColorCodes('&',   result.toString());
-    }
-
-    @NonNull
-    private String getHexReplacement(@NonNull final String match) {
-        int hashIndex = match.indexOf('#');
-        final String replacement;
-        if (match.length() < 9) {
-            replacement = "&x&"
-                    + match.charAt(hashIndex + 1) + "&" + match.charAt(hashIndex + 1)
-                    + "&" + match.charAt(hashIndex + 2) + "&" + match.charAt(hashIndex + 2)
-                    + "&" + match.charAt(hashIndex + 3) + "&" + match.charAt(hashIndex + 3);
-        } else {
-            replacement = "&x&"
-                    + match.charAt(hashIndex + 1) + "&" + match.charAt(hashIndex + 2)
-                    + "&" + match.charAt(hashIndex + 3) + "&" + match.charAt(hashIndex + 4)
-                    + "&" + match.charAt(hashIndex + 5) + "&" + match.charAt(hashIndex + 6);
-        }
-        return replacement;
-    }
 }

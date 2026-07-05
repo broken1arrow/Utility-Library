@@ -203,7 +203,7 @@ public final class ChatColors {
 	 *
 	 * @return an array of special formatting characters
 	 */
-	public char[] getSpecialSign() {
+	public static char[] getSpecialSign() {
 		return SPECIAL_SIGN;
 	}
 
@@ -299,6 +299,17 @@ public final class ChatColors {
 			if (color == letter)
 				return 1;
 		return -1;
+	}
+
+	/**
+	 * Check the special formatting codes (bold, italic, underline, etc.),
+	 * but will ignore the r for reset.
+	 *
+	 * @param c the character to check.
+	 * @return true if it is a special formatting code.
+	 */
+	public static boolean isFormatCode(final char c) {
+		return c == 'l' || c == 'm' || c == 'n' || c == 'o' || c == 'k';
 	}
 
 	/**
