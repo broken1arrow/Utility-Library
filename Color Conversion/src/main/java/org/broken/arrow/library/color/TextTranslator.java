@@ -136,9 +136,13 @@ public final class TextTranslator {
          */
         SIMPLE_GRADIENT_PATTERN("gradients_"),
         /**
-         * HSV-based gradients, identified by the prefix {@code "gradients_hsv_"}.
+         * HSV-based gradients, identified by the prefix {@code "hsv_"}.
          */
-        HSV_GRADIENT_PATTERN("gradients_hsv_");
+        HSV_GRADIENT_PATTERN("hsv_"),
+        /**
+         * HSL-based gradients, identified by the prefix {@code "hsl_"}.
+         */
+        HSL_GRADIENT_PATTERN("hsl_");
         private final String type;
 
         GradientType(String type) {
