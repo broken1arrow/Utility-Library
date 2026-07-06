@@ -15,7 +15,6 @@ import static org.broken.arrow.library.color.ChatColors.COLOR_AMPERSAND;
  * related to color formatting.
  */
 public class StringUtility {
-
 	private static final Logging LOG = new Logging(StringUtility.class);
 
 	private StringUtility() {

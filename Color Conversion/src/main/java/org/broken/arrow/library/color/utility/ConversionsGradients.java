@@ -1,5 +1,8 @@
 package org.broken.arrow.library.color.utility;
 
+import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
@@ -8,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class ConversionsGradients {
+    private static final Logging LOG = new Logging(ConversionsGradients.class);
 
     private ConversionsGradients() {
     }
@@ -19,26 +23,17 @@ public final class ConversionsGradients {
      * @return an array of colors.
      */
     public static Color[] parseColors(@Nonnull final String raw) {
-        if (raw.isEmpty()) {
-            throw new IllegalArgumentException("Gradient colors cannot be empty");
-        }
+        Validate.checkBoolean(raw.isEmpty(), "Gradient colors cannot be empty");
+
         String[] split = raw.split(":");
         List<Color> colors = new ArrayList<>();
 
         for (String s : split) {
             s = s.trim();
-
-            if (!StringUtility.isValidHexCode(s)) {
-                throw new IllegalArgumentException("Invalid color in gradient: " + s);
-            }
-
+            Validate.checkBoolean(!StringUtility.isValidHexCode(s), "Invalid color in gradient: " + s);
             colors.add(Color.decode(normalizeHex(s)));
         }
-
-        if (colors.size() < 2) {
-            throw new IllegalArgumentException("Gradient requires at least 2 colors");
-        }
-
+        Validate.checkBoolean(colors.size() < 2, "Gradient requires at least 2 colors");
         return colors.toArray(new Color[0]);
     }
 
@@ -55,22 +50,17 @@ public final class ConversionsGradients {
             Arrays.fill(even, 1.0 / expectedSegments);
             return even;
         }
-
         String[] split = raw.split(":");
-        if (split.length != expectedSegments) {
-            throw new IllegalArgumentException(
-                    "Portions must match gradient segments: expected " +
-                            expectedSegments + " but got " + split.length
-            );
-        }
+
+        Validate.checkBoolean(split.length != expectedSegments,  "Portions must match gradient segments: expected " +
+                expectedSegments + " but got " + split.length);
 
         Double[] portions = new Double[split.length];
         double sum = 0;
 
         for (int i = 0; i < split.length; i++) {
             double v = Double.parseDouble(split[i].trim());
-            if (v < 0) throw new IllegalArgumentException("Portion cannot be negative: " + v);
-
+            Validate.checkBoolean(v < 0,  "Portion part for gradient cannot be negative: " + v);
             portions[i] = v;
             sum += v;
         }
