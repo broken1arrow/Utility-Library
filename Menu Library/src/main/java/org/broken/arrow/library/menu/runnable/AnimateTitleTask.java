@@ -96,7 +96,7 @@ public class AnimateTitleTask<T> extends BukkitRunnable {
     public void run() {
         if (this.cancelled) return;
 
-        Object text = this.animateTitle != null ? this.animateTitle.get(): null;
+        Object text = this.animateTitle != null ? this.animateTitle.get() : null;
         if (itShouldNotAnimateTitle(text)) {
             this.cancelled = true;
             this.cancel();
@@ -120,8 +120,10 @@ public class AnimateTitleTask<T> extends BukkitRunnable {
     private boolean itShouldNotAnimateTitle(Object text) {
         if (player != null && (!player.isOnline() || hasNotInventoryWithTitle()))
             return true;
-
-        return text == null || (ServerVersion.atLeast(1.9) && this.isCancelled());
+        if (ServerVersion.getVersionUtil().compareTo(9, 0).atLeast()) {
+            return text == null || this.isCancelled();
+        }
+        return text == null;
     }
 
     /**

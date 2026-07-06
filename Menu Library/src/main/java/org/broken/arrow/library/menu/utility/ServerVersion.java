@@ -47,6 +47,15 @@ public class ServerVersion {
 	}
 
 	/**
+	 * Returns the versionUtil instance.
+	 *
+	 * @return the version util
+	 */
+	public static VersionUtil getVersionUtil() {
+		return versionUtil;
+	}
+
+	/**
      * Returns the numeric version representation of this enum constant.
      *
      * @return the numeric version as a float
@@ -54,6 +63,7 @@ public class ServerVersion {
 	public double getVersion() {
 		return versionUtil.getServerVersion();
 	}
+
 
 
 	/**
