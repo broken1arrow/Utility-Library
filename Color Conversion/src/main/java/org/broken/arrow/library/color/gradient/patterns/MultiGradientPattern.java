@@ -24,6 +24,9 @@ public class MultiGradientPattern implements GradientPattern {
         }
         final String gradientType = m.group(1);
         final boolean hsv = gradientType != null && (gradientType.startsWith("gradients_hsv") || gradientType.startsWith("hsv"));
+        GradientType type = hsv ? GradientType.HSV_GRADIENT_PATTERN : GradientType.SIMPLE_GRADIENT_PATTERN;
+        if (gradientType != null && gradientType.startsWith("hsl"))
+            type = GradientType.HSL_GRADIENT_PATTERN;
 
         final String colorsRaw = m.group(2);
         final String portionsRaw = m.group(3);
@@ -32,7 +35,7 @@ public class MultiGradientPattern implements GradientPattern {
         final Double[] portions = gradients.parsePortions(portionsRaw);
 
         final GradientMatch d = new GradientMatch();
-        d.setType(hsv ? GradientType.HSV_GRADIENT_PATTERN : GradientType.SIMPLE_GRADIENT_PATTERN);
+        d.setType(type);
         d.setColors(colors);
         d.setPortions(portions);
         d.setTagLength(m.group(0).length());

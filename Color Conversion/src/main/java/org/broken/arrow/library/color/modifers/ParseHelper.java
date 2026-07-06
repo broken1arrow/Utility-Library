@@ -134,7 +134,8 @@ public final class ParseHelper {
         int i = start;
         while (i < message.length()) {
             char c = message.charAt(i);
-            if (message.startsWith("gradients_", i) || message.startsWith("hsv_", i)) break;
+            if (message.startsWith("gradients_", i) || message.startsWith("hsv_", i) || message.startsWith("hsl_", i))
+                break;
             if (c == '<' && i + 1 < message.length() && message.charAt(i + 1) == '#') break;
             if ((c == '&' || c == '§') && i + 1 < message.length()) {
                 char nextChar = Character.toLowerCase(message.charAt(i + 1));
