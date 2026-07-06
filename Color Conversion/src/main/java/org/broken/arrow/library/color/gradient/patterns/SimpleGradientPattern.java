@@ -15,17 +15,17 @@ public class SimpleGradientPattern implements GradientPattern {
 
 	@Override
 	public GradientMatch tryParse(@NonNull String message, int index) {
-
-		String sub = message.substring(index);
-		Matcher m = SIMPLE_GRADIENT.matcher(sub);
+		final String sub = message.substring(index);
+		final Matcher m = SIMPLE_GRADIENT.matcher(sub);
 		if (!m.lookingAt()) {
 			return null;
 		}
 
-		String colorsRaw = m.group(1);
-		Color[] colors = ConversionsGradients.parseColors(colorsRaw);
+		final String colorsRaw = m.group(1);
+		final ConversionsGradients gradients = ConversionsGradients.parse(colorsRaw);
+		final Color[] colors = gradients.getColors();
 
-		GradientMatch d = new GradientMatch();
+		final GradientMatch d = new GradientMatch();
 		d.setType(GradientType.SIMPLE_GRADIENT_PATTERN);
 		d.setColors(colors);
 		d.setPortions(null);

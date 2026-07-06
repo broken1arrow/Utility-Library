@@ -12,8 +12,75 @@ import java.util.List;
 
 public final class ConversionsGradients {
     private static final Logging LOG = new Logging(ConversionsGradients.class);
+    private final Color[] colors;
 
-    private ConversionsGradients() {
+    /**
+     * Create an instance to convert to the Color array
+     *
+     * @param hexHolors The string that is formated #E786C5:#D3FB5F with two or more color.
+     */
+    private ConversionsGradients(@Nonnull final String hexHolors) {
+        colors = parseColors(hexHolors);
+    }
+
+    /**
+     * Split up colors from a string that is formated #E786C5:#D3FB5F
+     *
+     * @param hexHolors The string that is formated #E786C5:#D3FB5F with two or more color.
+     * @return an array of colors.
+     */
+    public static ConversionsGradients parse(@Nonnull final String hexHolors) {
+        return new ConversionsGradients(hexHolors);
+    }
+
+    /**
+     * Retrieve the set colors.
+     *
+     * @return the array of colors set.
+     */
+    @Nonnull
+    public Color[] getColors() {
+        if (this.colors == null)
+            return new Color[0];
+        return colors;
+    }
+
+    /**
+     * The portion wight of the colors that should look like this 0.3:0.5:0.4
+     *
+     * @param raw The string with just the portion.
+     * @return an array of how it shall wight every gradient transition.
+     */
+    public Double[] parsePortions(@Nullable final String raw) {
+        final int expectedSegments = this.colors.length;
+
+        if (raw == null || raw.isEmpty()) {
+            Double[] even = new Double[expectedSegments];
+            Arrays.fill(even, 1.0 / expectedSegments);
+            return even;
+        }
+        String[] split = raw.split(":");
+
+        Validate.checkBoolean(split.length != expectedSegments, "Portions must match gradient segments: expected " +
+                expectedSegments + " but got " + split.length);
+
+        Double[] portions = new Double[split.length];
+        double sum = 0;
+
+        for (int i = 0; i < split.length; i++) {
+            double v = Double.parseDouble(split[i].trim());
+            Validate.checkBoolean(v < 0, "Portion part for gradient cannot be negative: " + v);
+            portions[i] = v;
+            sum += v;
+        }
+
+        if (Math.abs(sum - 1.0) > 0.0001) {
+            for (int i = 0; i < portions.length; i++) {
+                portions[i] /= sum;
+            }
+        }
+
+        return portions;
     }
 
     /**
@@ -22,7 +89,8 @@ public final class ConversionsGradients {
      * @param raw The string with just the color codes.
      * @return an array of colors.
      */
-    public static Color[] parseColors(@Nonnull final String raw) {
+    @Nonnull
+    private Color[] parseColors(@Nonnull final String raw) {
         Validate.checkBoolean(raw.isEmpty(), "Gradient colors cannot be empty");
 
         String[] split = raw.split(":");
@@ -35,43 +103,6 @@ public final class ConversionsGradients {
         }
         Validate.checkBoolean(colors.size() < 2, "Gradient requires at least 2 colors");
         return colors.toArray(new Color[0]);
-    }
-
-    /**
-     * The portion wight of the colors that should look like this 0.3:0.5:0.4
-     *
-     * @param raw              The string with just the portion .
-     * @param expectedSegments The amount of portions need match amount of colors provided.
-     * @return an array of how it shall wight every gradient transition.
-     */
-    public static Double[] parsePortions(@Nullable final String raw, final int expectedSegments) {
-        if (raw == null || raw.isEmpty()) {
-            Double[] even = new Double[expectedSegments];
-            Arrays.fill(even, 1.0 / expectedSegments);
-            return even;
-        }
-        String[] split = raw.split(":");
-
-        Validate.checkBoolean(split.length != expectedSegments,  "Portions must match gradient segments: expected " +
-                expectedSegments + " but got " + split.length);
-
-        Double[] portions = new Double[split.length];
-        double sum = 0;
-
-        for (int i = 0; i < split.length; i++) {
-            double v = Double.parseDouble(split[i].trim());
-            Validate.checkBoolean(v < 0,  "Portion part for gradient cannot be negative: " + v);
-            portions[i] = v;
-            sum += v;
-        }
-
-        if (Math.abs(sum - 1.0) > 0.0001) {
-            for (int i = 0; i < portions.length; i++) {
-                portions[i] /= sum;
-            }
-        }
-
-        return portions;
     }
 
     private static String normalizeHex(final String hex) {

@@ -12,31 +12,32 @@ import java.util.regex.Pattern;
 
 
 public class MultiGradientPattern implements GradientPattern {
-	private static final Pattern PATTERN = Pattern.compile("(gradients_hsv_|gradients_|hsv_)<([^>]+)>(?:_portion<([^>]+)>)?");
+    private static final Pattern PATTERN = Pattern.compile("(gradients_hsv_|gradients_|hsv_)<([^>]+)>(?:_portion<([^>]+)>)?");
 
-	@Override
-	public GradientMatch tryParse(@NonNull String message, int index) {
-		String sub = message.substring(index);
+    @Override
+    public GradientMatch tryParse(@NonNull String message, int index) {
+        final String sub = message.substring(index);
+        final Matcher m = PATTERN.matcher(sub);
 
-		Matcher m = PATTERN.matcher(sub);
-		if (!m.find() || m.start() != 0) {
-			return null;
-		}
+        if (!m.find() || m.start() != 0) {
+            return null;
+        }
+        final String gradientType = m.group(1);
+        final boolean hsv = gradientType != null && (gradientType.startsWith("gradients_hsv") || gradientType.startsWith("hsv"));
 
-		boolean hsv = m.group(1) != null;
-		String colorsRaw = m.group(2);
-		String portionsRaw = m.group(3);
+        final String colorsRaw = m.group(2);
+        final String portionsRaw = m.group(3);
+        final ConversionsGradients gradients = ConversionsGradients.parse(colorsRaw);
+        final Color[] colors = gradients.getColors();
+        final Double[] portions = gradients.parsePortions(portionsRaw);
 
-		Color[] colors = ConversionsGradients.parseColors(colorsRaw);
-		Double[] portions = ConversionsGradients.parsePortions(portionsRaw, colors.length);
+        final GradientMatch d = new GradientMatch();
+        d.setType(hsv ? GradientType.HSV_GRADIENT_PATTERN : GradientType.SIMPLE_GRADIENT_PATTERN);
+        d.setColors(colors);
+        d.setPortions(portions);
+        d.setTagLength(m.group(0).length());
 
-		GradientMatch d = new GradientMatch();
-		d.setType(hsv ? GradientType.HSV_GRADIENT_PATTERN  : GradientType.SIMPLE_GRADIENT_PATTERN);
-		d.setColors(colors);
-		d.setPortions(portions);
-		d.setTagLength(m.group(0).length());
-
-		return d;
-	}
+        return d;
+    }
 
 }
