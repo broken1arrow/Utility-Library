@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 
 public class MultiGradientPattern implements GradientPattern {
-    private static final Pattern PATTERN = Pattern.compile("(gradients_hsv_|gradients_|hsv_)<([^>]+)>(?:_portion<([^>]+)>)?");
+    private static final Pattern PATTERN = Pattern.compile("(gradients_hsv_|gradients_|hsv_|hsl_)<([^>]+)>(?:_portion<([^>]+)>)?");
 
     @Override
     public GradientMatch tryParse(@NonNull String message, int index) {
