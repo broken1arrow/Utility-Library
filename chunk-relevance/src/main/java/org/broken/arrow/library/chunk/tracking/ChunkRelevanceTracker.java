@@ -10,6 +10,7 @@ import org.broken.arrow.library.chunk.tracking.tasks.TickClock;
 import org.broken.arrow.library.chunk.tracking.chunk.PlayerChunkTracker;
 import org.broken.arrow.library.chunk.tracking.utility.ChunkDelta;
 import org.broken.arrow.library.chunk.tracking.utility.ChunkState;
+import org.broken.arrow.library.serialize.utility.converters.world.ChunkKey;
 import org.bukkit.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -351,10 +352,10 @@ public class ChunkRelevanceTracker {
      * chunk load and unload events. Subclasses may call this method when integrating
      * with a custom or centralized event system.</p>
      *
-     * @param chunkKey   the unique key identifying the chunk
-     * @param chunk      the live chunk instance, or {@code null} if not available
+     * @param chunkKey    the unique key identifying the chunk
+     * @param chunk       the live chunk instance, or {@code null} if not available
      * @param chunkStatus the new chunk status, or {@code null} to infer from existing state
-     * @param callback   a mutator applied to the {@link ChunkEntry} before propagation
+     * @param callback    a mutator applied to the {@link ChunkEntry} before propagation
      */
     protected void processChunkState(@Nonnull final ChunkKey chunkKey, @Nullable final Chunk chunk, @Nullable final ChunkStatus chunkStatus, @Nonnull final Consumer<ChunkEntry> callback) {
         final ChunkEntry entry = updateChunkEntry(chunkKey, chunkStatus, callback);
@@ -451,10 +452,17 @@ public class ChunkRelevanceTracker {
 
         @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
         public void onMove(final PlayerMoveEvent e) {
-            playerChunkTracker.onPlayerChunkChange(
-                    e.getPlayer(),
-                    ChunkKey.of(e.getTo())
-            );
+            int fromX = e.getFrom().getBlockX() >> 4;
+            int fromZ = e.getFrom().getBlockZ() >> 4;
+            int toX = e.getTo().getBlockX() >> 4;
+            int toZ = e.getTo().getBlockZ() >> 4;
+
+            if (fromX != toX || fromZ != toZ) {
+                playerChunkTracker.onPlayerChunkChange(
+                        e.getPlayer(),
+                        ChunkKey.of(e.getTo())
+                );
+            }
         }
 
         @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGH)
