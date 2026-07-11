@@ -1,6 +1,5 @@
 package org.broken.arrow.utility.library.listner;
 
-import org.broken.arrow.library.chunk.tracking.ChunkKey;
 import org.broken.arrow.library.chunk.tracking.chunk.PlayerChunkTracker;
 import org.broken.arrow.library.chunk.tracking.event.status.ChunkStatus;
 import org.broken.arrow.library.menu.MenuUtility;

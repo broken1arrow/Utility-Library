@@ -1,6 +1,5 @@
 package org.broken.arrow.utility.library.chunk.tracker;
 
-import org.broken.arrow.library.chunk.tracking.ChunkKey;
 import org.broken.arrow.library.chunk.tracking.ChunkRelevanceTracker;
 import org.broken.arrow.library.chunk.tracking.chunk.ChunkEntry;
 import org.broken.arrow.library.chunk.tracking.event.status.ChunkStatus;

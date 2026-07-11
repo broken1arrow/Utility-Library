@@ -1,8 +1,8 @@
 package org.broken.arrow.library.chunk.tracking.handlers;
 
-import org.broken.arrow.library.chunk.tracking.ChunkKey;
 import org.broken.arrow.library.chunk.tracking.chunk.ChunkEntry;
 import org.broken.arrow.library.chunk.tracking.event.status.ChunkStatus;
+import org.broken.arrow.library.serialize.utility.converters.world.ChunkKey;
 import org.bukkit.ChunkSnapshot;
 
 import javax.annotation.Nonnull;

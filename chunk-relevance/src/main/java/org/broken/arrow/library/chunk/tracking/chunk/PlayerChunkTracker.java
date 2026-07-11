@@ -1,8 +1,8 @@
 package org.broken.arrow.library.chunk.tracking.chunk;
 
-import org.broken.arrow.library.chunk.tracking.ChunkKey;
 import org.broken.arrow.library.chunk.tracking.handlers.ChunkChangeListener;
 import org.broken.arrow.library.chunk.tracking.utility.ChunkDelta;
+import org.broken.arrow.library.serialize.utility.converters.world.ChunkKey;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;

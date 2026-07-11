@@ -1,7 +1,7 @@
 package org.broken.arrow.library.chunk.tracking.handlers;
 
-import org.broken.arrow.library.chunk.tracking.ChunkKey;
 import org.broken.arrow.library.chunk.tracking.utility.ChunkDelta;
+import org.broken.arrow.library.serialize.utility.converters.world.ChunkKey;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
