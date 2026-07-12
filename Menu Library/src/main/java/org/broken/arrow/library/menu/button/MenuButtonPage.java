@@ -54,7 +54,8 @@ public abstract class MenuButtonPage<T> extends MenuButton {
      * @param click       click type (right,left or shift click)
      * @param clickedItem item some are clicked on
      * @param object      object that is connected to the menu button item.
-     * @deprecated use the new {@link #onClickInsideMenu(Player, ClickType, Object, ClickContext)} as it gives cleaner usage pattern with more context.
+     * @deprecated use the new {@link #onClickInsideMenu(Player, ClickType, Object, ClickContext)} as it gives cleaner usage pattern with more context and
+     * this is not invoked in the code any longer.
      */
     @Deprecated
     public void onClickInsideMenu(@Nonnull final Player player, @Nonnull final Inventory menu, @Nonnull final ClickType click, @Nonnull final ItemStack clickedItem, @Nullable final T object) {

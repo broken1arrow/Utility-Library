@@ -231,7 +231,6 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             if (menuButton instanceof MenuButtonPage) {
                 final T object = this.getFillItem(slot);
                 ((MenuButtonPage<T>) menuButton).onClickInsideMenu(player, clickType, object, clickContext);
-                ((MenuButtonPage<T>) menuButton).onClickInsideMenu(player, menu, clickType, clickedItem, object);
             } else {
                 menuButton.onClickInsideMenu(player, clickType, clickContext);
             }
