@@ -2,26 +2,32 @@ package org.broken.arrow.library.menu.button.logic;
 
 import org.broken.arrow.library.menu.MenuUtility;
 
+import javax.annotation.Nonnull;
+
 /**
- * Represents a button within a menu that defines the action to take when clicked and the item to display.
- * This class allows customization of click actions, item display, and button update behavior.
+ * Represents a dynamic, context-bound button template used to populate paginated or recurring layouts.
+ * <p>
+ * Unlike a standard button, a {@code FillMenuButton} is bound to a specific data type {@code <T>},
+ * allowing individual slots to dynamically generate their visual items and click logic based on the
+ * underlying data object mapped to that slot position.
+ * </p>
  *
- * @param <T> the type of objects associated with the button.
+ * @param <T> the type of data object associated with this button template.
  */
 public class FillMenuButton<T> {
 
 
     private FillClickAction<T> click;
-    private OnRetrieveItem<T> menuFillItem;
+    private ItemProvider<T> itemProvider;
 
     private boolean updateButtonsTimer;
     private long updateTime;
 
     /**
-     * Constructs a new {@code FillMenuButton} with default behaviors.
+     * Constructs a new {@code FillMenuButton} with default fallback behaviors.
      * <p>
-     * The default click action returns {@link ButtonUpdateAction#NONE} (no update),
-     * and the fill item retriever returns {@code null} (no item).
+     * By default, the click action returns {@link ButtonUpdateAction#NONE} and the
+     * item retriever yields {@code null} (rendering an empty slot).
      * </p>
      */
     public FillMenuButton() {
@@ -29,102 +35,124 @@ public class FillMenuButton<T> {
     }
 
     /**
-     * Constructs a new {@code FillMenuButton} with specified click and fill item behaviors.
+     * Constructs a new {@code FillMenuButton} with specified click and fill behaviors.
      *
-     * @param click        the click handler defining the action when this button is clicked; must not be {@code null}.
-     * @param menuFillItem the function that retrieves the fill item for this button based on slot and item; must not be {@code null}.
+     * @param click        the click handler defining actions when a filled slot is clicked; must not be {@code null}.
+     * @param provider the function that generates the {@link org.bukkit.inventory.ItemStack} based on slot index and data object; must not be {@code null}.
      */
-    public FillMenuButton(FillClickAction<T> click,
-                          OnRetrieveItem<T> menuFillItem) {
+    public FillMenuButton(@Nonnull final FillClickAction<T> click, @Nonnull final ItemProvider<T> provider) {
         this.click = click;
-        this.menuFillItem = menuFillItem;
+        this.itemProvider = provider;
+    }
+
+
+    /**
+     * Creates a new {@code FillMenuButton} instance with a defined click action.
+     *
+     * @param <T>         the data type bound to the button.
+     * @param clickAction the handler containing the click logic.
+     * @return a new {@code FillMenuButton} instance.
+     */
+    @Nonnull
+    public static <T> FillMenuButton<T> make(@Nonnull final FillClickAction<T> clickAction) {
+        return new FillMenuButton<>(clickAction, (slot, data) -> null);
     }
 
     /**
-     * This method is used when you don't want to use it in the constructor. It provides information about the player, inventory,
-     * the type of click the player performed, the itemstack, and the object associated with the specific slot.
+     * Creates a new {@code FillMenuButton} instance with both click and item retrieval logic.
      *
-     * @param click the function instance you provide to update the button's type of action. It cannot be set to null.
-     * @return this instance.
+     * @param <T>          the data type bound to the button.
+     * @param clickAction  the handler containing the click logic.
+     * @param provider the logic determining how the display item is constructed.
+     * @return a new {@code FillMenuButton} instance.
      */
-    public FillMenuButton<T> setClick(FillClickAction<T> click) {
+    @Nonnull
+    public static <T> FillMenuButton<T> make(@Nonnull final FillClickAction<T> clickAction, @Nonnull final ItemProvider<T> provider) {
+        return new FillMenuButton<>(clickAction, provider);
+    }
+
+
+    /**
+     * Assigns or overrides the click action configuration.
+     *
+     * @param click the custom click handler logic.
+     * @return this instance for builder chaining.
+     */
+    @Nonnull
+    public FillMenuButton<T> setClick(@Nonnull final FillClickAction<T> click) {
         this.click = click;
         return this;
     }
 
     /**
-     * This method is used when you don't want to use it in the constructor. It provides information about the current slot and
-     * the object you added to the inventory. Keep in mind that it accepts null as a valid value for the object.
+     * Assigns or overrides the display item generation logic.
      *
-     * @param menuFillItem the function instance you provide to specify the itemstack for a specific slot or to use the same item for all slots.
-     * @return this instance.
+     * @param provider the item generation function.
+     * @return this instance for builder chaining.
      */
-    public FillMenuButton<T> setMenuFillItem(OnRetrieveItem<T> menuFillItem) {
-        this.menuFillItem = menuFillItem;
+    @Nonnull
+    public FillMenuButton<T> setItemProvider(@Nonnull final ItemProvider<T> provider) {
+        this.itemProvider = provider;
         return this;
     }
 
     /**
-     * Returns true if the buttons should be updated automatically on a timer when the menu is open and no buttons are pushed.
-     * By default, this method returns false. Set this to true if you want the buttons to be updated automatically.
+     * Checks if this button configuration is set to automatically update on an active timer cycle.
      *
-     * @return true if the buttons should be updated automatically, false otherwise.
+     * @return {@code true} if auto-refreshing is enabled; {@code false} otherwise.
      */
     public boolean isUpdateButtonsTimer() {
         return updateButtonsTimer;
     }
 
     /**
-     * Set this to true if you want this button to be updated automatically on a timer.
+     * Toggles whether the buttons generated by this template should dynamically refresh on an automated timer cycle.
      *
-     * @param updateButtonsTimer set this to true if the buttons should be updated automatically, false otherwise.
+     * @param updateButtonsTimer {@code true} to enable automated background refreshes.
      */
     public void setUpdateButtonsTimer(boolean updateButtonsTimer) {
         this.updateButtonsTimer = updateButtonsTimer;
     }
 
     /**
-     * Retrieve the interval between automatic updates of buttons.
-     * If this is set to -1, it will use the global interval set by {@link MenuUtility#getUpdateTime()}.
-     * <p>
-     * Note: You need to set {@link #setUpdateButtonsTimer(boolean)} to true to enable automatic updates.
+     * Retrieves the custom tick update interval designated for this button configuration.
      *
-     * @return -1 or the interval in seconds between updates.
+     * @return the tick interval, or {@code -1} if falling back to the default menu update rate.
      */
     public long getUpdateTime() {
         return updateTime;
     }
 
     /**
-     * Set the interval between automatic updates of buttons.
-     * If this is set to -1, it will use the global interval set by {@link MenuUtility#getUpdateTime()}.
+     * Configures a specific tick interval loop for refreshing this button configuration.
      * <p>
-     * Note: You need to set {@link #setUpdateButtonsTimer(boolean)} to true to enable automatic updates.
+     * Note: Automated refreshes will only occur if {@link #setUpdateButtonsTimer(boolean)} is enabled.
+     * </p>
      *
-     * @param updateTime -1 or the interval in seconds between updates.
+     * @param updateTime the update loop delay in seconds, or {@code -1} to inherit the base menu's update rate from
+     *                   this {@link MenuUtility#getUpdateTime()}.
      */
     public void setUpdateTime(long updateTime) {
         this.updateTime = updateTime;
     }
 
     /**
-     * Retrieve the click action associated with this button.
+     * Retrieves the click callback logic assigned to this button configuration.
      *
-     * @return the OnClick instance defining the action to take when the button is clicked and providing
-     * how it should update the button.
-     * @see ButtonUpdateAction
+     * @return the active {@link FillClickAction} instance.
      */
+    @Nonnull
     public FillClickAction<T> getClick() {
         return click;
     }
 
     /**
-     * Retrieve the itemstack used for filling the button when the menu is redrawn or updated.
+     * Retrieves the display item generation logic assigned to this button configuration.
      *
-     * @return the OnRetrieveItem instance providing the slot numbers and accounting for several pages for the button,
-     * along with the object associated with it. To display the itemstack, it requires you to provide it.
+     * @return the active {@link ItemProvider} instance.
      */
-    public OnRetrieveItem<T> getMenuFillItem() {
-        return menuFillItem;
+    @Nonnull
+    public ItemProvider<T> getItemProvider() {
+        return itemProvider;
     }
 }

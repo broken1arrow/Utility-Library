@@ -10,7 +10,7 @@ import org.broken.arrow.library.menu.button.logic.ButtonUpdateAction;
 import org.broken.arrow.library.menu.button.logic.ClickContext;
 import org.broken.arrow.library.menu.button.logic.FillClickAction;
 import org.broken.arrow.library.menu.button.logic.FillMenuButton;
-import org.broken.arrow.library.menu.button.logic.OnRetrieveItem;
+import org.broken.arrow.library.menu.button.logic.ItemProvider;
 import org.broken.arrow.library.menu.utility.FillItems;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -215,7 +215,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
             @Override
             public ItemStack getItem(int slot, @Nullable T fillItem) {
-                OnRetrieveItem<T> menuItem = fillMenuButton.getMenuFillItem();
+                ItemProvider<T> menuItem = fillMenuButton.getItemProvider();
                 return menuItem.apply(slot, fillItem);
             }
         };

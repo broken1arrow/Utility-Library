@@ -6,9 +6,10 @@ import org.broken.arrow.library.menu.button.logic.ButtonUpdateAction;
 import org.broken.arrow.library.menu.button.logic.ClickAction;
 import org.broken.arrow.library.menu.button.logic.ClickContext;
 import org.broken.arrow.library.menu.holder.HolderUtility;
+import org.broken.arrow.library.menu.holder.MenuHolderPage;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -18,19 +19,112 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * A utility builder designed to streamline the creation of {@link MenuButton} instances.
+ * A factory-style builder designed to streamline the construction of {@link MenuButton} instances.
  * <p>
- * This builder eliminates the boilerplate of creating anonymous {@code MenuButton}
- * classes manually. It allows for a clean, fluent API to configure a button's
- * visual item, click behavior, and animation update intervals.
+ * This class eliminates the boilerplate of implementing anonymous {@code MenuButton} classes.
+ * It provides a fluent API for defining click logic, item generation (both static and dynamic),
+ * and animation timing.
  * </p>
  */
 public class ButtonBuilder {
-    private ClickAction clickAction;
+    private final ClickAction clickAction;
+    private final HolderUtility<?> holderUtility;
     private Supplier<ItemStack> itemSupplier;
     private Function<Integer, ItemStack> function;
     private boolean shouldUpdateButtons;
     private int updateInterval = -1;
+
+    /**
+     * Create the button instance.
+     *
+     * @param holderUtility the menu holder instance, allows for automatic button refreshing.
+     * @param clickAction   the handler containing the click logic.
+     */
+    private ButtonBuilder(@Nullable final HolderUtility<?> holderUtility, @Nonnull final ClickAction clickAction) {
+        this.holderUtility = holderUtility;
+        this.clickAction = clickAction;
+    }
+
+    /**
+     * Initializes a new {@code ButtonBuilder} without an attached {@link HolderUtility}.
+     * <p>
+     * Use this factory method when you want to handle menu refreshes manually inside
+     * your {@link ClickAction}.
+     * </p>
+     *
+     * @param clickAction the handler containing the click logic.
+     * @return a new instance of {@link ButtonBuilder}.
+     */
+    public static ButtonBuilder make(@Nonnull final ClickAction clickAction) {
+        return new ButtonBuilder(null, clickAction);
+    }
+
+    /**
+     * Initializes a new {@code ButtonBuilder} with an attached {@link HolderUtility}.
+     * <p>
+     * Use this factory method when you want the {@link ButtonUpdateAction} returned
+     * by your click action to automatically trigger refreshes on the menu holder.
+     * </p>
+     *
+     * @param holderUtility the menu holder instance, allows for automatic button refreshing.
+     * @param clickAction   the handler containing the click logic.
+     * @return a new instance of {@link ButtonBuilder}.
+     */
+    public static ButtonBuilder make(@Nullable final HolderUtility<?> holderUtility, @Nonnull final ClickAction clickAction) {
+        return new ButtonBuilder(holderUtility, clickAction);
+    }
+
+    /**
+     * Creates a pre-configured builder for a page-forward navigation button.
+     *
+     * @param pageMenu the paginated menu holder instance.
+     * @return a configured ButtonBuilder ready for customization or building.
+     */
+    public static ButtonBuilder next(@Nonnull final MenuHolderPage<?> pageMenu) {
+        return next(pageMenu, (player, clickType, clickContext) -> ButtonUpdateAction.NONE);
+    }
+
+    /**
+     * Creates a pre-configured builder for a page-backward navigation button.
+     *
+     * @param pageMenu    the paginated menu holder instance.
+     * @param clickAction the handler containing the click logic.
+     * @return a configured ButtonBuilder ready for customization or building.
+     */
+    public static ButtonBuilder next(@Nonnull final MenuHolderPage<?> pageMenu, @Nonnull final ClickAction clickAction) {
+        return new ButtonBuilder(pageMenu, (player, click, context) -> {
+            clickAction.apply(player, click, context);
+            pageMenu.nextPage();
+            return ButtonUpdateAction.NONE;
+        }).item(() -> new ItemStack(Material.ARROW));
+    }
+
+
+    /**
+     * Creates a pre-configured builder for a page-backward navigation button.
+     *
+     * @param pageMenu the paginated menu holder instance.
+     * @return a configured ButtonBuilder ready for customization or building.
+     */
+    public static ButtonBuilder previous(@Nonnull final MenuHolderPage<?> pageMenu) {
+        return previous(pageMenu, (player, clickType, clickContext) -> ButtonUpdateAction.NONE);
+    }
+
+    /**
+     * Creates a pre-configured builder for a page-backward navigation button.
+     *
+     * @param pageMenu    the paginated menu holder instance.
+     * @param clickAction the handler containing the click logic.
+     * @return a configured ButtonBuilder ready for customization or building.
+     */
+    public static ButtonBuilder previous(@Nonnull final MenuHolderPage<?> pageMenu, @Nonnull final ClickAction clickAction) {
+        return new ButtonBuilder(pageMenu, (player, click, context) -> {
+            clickAction.apply(player, click, context);
+            pageMenu.previousPage();
+            return ButtonUpdateAction.NONE;
+        }).item(() -> new ItemStack(Material.ARROW));
+    }
+
 
     /**
      * Sets a dynamic item generator for the button, which is evaluated every time the menu updates.
@@ -58,16 +152,6 @@ public class ButtonBuilder {
         return this;
     }
 
-    /**
-     * Sets the action to be executed when a player clicks this button.
-     *
-     * @param clickAction the handler containing the click logic.
-     * @return this builder instance for chaining.
-     */
-    public ButtonBuilder onClick(@Nonnull final ClickAction clickAction) {
-        this.clickAction = clickAction;
-        return this;
-    }
 
     /**
      * Determines whether this button should trigger a visual update cycle for other buttons.
@@ -92,45 +176,29 @@ public class ButtonBuilder {
     }
 
     /**
-     * Builds a standard {@link MenuButton} without tying it to a specific menu utility.
+     * Constructs a {@link MenuButton} based on the current configuration.
      * <p>
-     * Note: Buttons built this way will execute their click logic, but cannot
-     * automatically trigger menu-wide visual updates. You have to manually invoke the
-     * {@link HolderUtility#updateButton(MenuButton)} or {@link HolderUtility#updateButtons()}
-     * inside the {@link #onClick(ClickAction)} method.
+     * If a {@link HolderUtility} was provided during construction, the resulting
+     * button will automatically invoke menu updates based on the {@link ButtonUpdateAction}
+     * returned by the click handler.
      * </p>
      *
      * @return a newly constructed {@link MenuButton}.
      */
     public MenuButton build() {
-        return build(null);
-    }
-
-    /**
-     * Builds a {@link MenuButton} linked to a specific {@link HolderUtility}.
-     * <p>
-     * Linking the utility allows the button to automatically process the
-     * {@link ButtonUpdateAction} returned by its {@link ClickAction}, seamlessly
-     * refreshing the current button or the entire menu.
-     * </p>
-     *
-     * @param menuUtility the utility managing the menu this button belongs to; may be {@code null}.
-     * @return a newly constructed {@link MenuButton}.
-     */
-    public MenuButton build(@Nullable final HolderUtility<?> menuUtility) {
         return new MenuButton() {
             @Override
             public void onClickInsideMenu(@NonNull final Player player, @NonNull final ClickType click, @NonNull final ClickContext clickContext) {
                 Validate.checkNotNull(clickAction, "Your click action can't be null for the button.");
                 ButtonUpdateAction buttonUpdateAction = clickAction.apply(player, click, clickContext);
-                if (menuUtility == null) return;
+                if (holderUtility == null) return;
 
                 switch (buttonUpdateAction) {
                     case ALL:
-                        menuUtility.updateButtons();
+                        holderUtility.updateButtons();
                         break;
                     case THIS:
-                        menuUtility.updateButton(this);
+                        holderUtility.updateButton(this);
                         break;
                     case NONE:
                         break;
