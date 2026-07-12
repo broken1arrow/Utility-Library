@@ -13,6 +13,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import static org.broken.arrow.library.menu.utility.ItemCreator.isItemSimilar;
 
@@ -46,18 +47,17 @@ public class MenuInteractionChecks<T> {
      * @param clickedItem the {@link ItemStack} that was clicked on
      * @return true if the click was handled by a menu button, false otherwise
      */
-    public boolean whenPlayerClick(final InventoryClickEvent event, final Player player, ItemStack clickedItem) {
-
+    public boolean whenPlayerClick(@Nonnull final InventoryClickEvent event, @Nonnull final Player player, @Nullable ItemStack clickedItem) {
         if (!this.menuUtility.isAddedButtonsCacheEmpty()) {
             final int clickedSlot = event.getSlot();
             Inventory clickedInventory = event.getClickedInventory();
             if (clickedInventory == null) return false;
             if (checkClickIsAllowed(event, clickedSlot, clickedInventory)) return false;
 
-            final MenuButton menuButton = getClickedButton(player,clickedItem, clickedSlot);
+            final MenuButton menuButton = getClickedButton(player, clickedItem, clickedSlot);
             if (menuButton != null) {
                 event.setCancelled(true);
-                if (clickedInventory.getType() == InventoryType.PLAYER ) {
+                if (clickedInventory.getType() == InventoryType.PLAYER) {
                     return false;
                 }
                 if (clickedItem == null)

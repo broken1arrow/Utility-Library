@@ -4,7 +4,6 @@ import org.broken.arrow.library.menu.MenuUtility;
 import org.broken.arrow.library.menu.builders.ButtonData;
 import org.broken.arrow.library.menu.builders.MenuDataUtility;
 import org.broken.arrow.library.menu.button.MenuButton;
-import org.broken.arrow.library.menu.button.logic.ButtonAnimationData;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -14,7 +13,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +32,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
     private Map<Integer, ButtonAnimationGroup> itemSlots = new HashMap<>();
     private final MenuUtility<T> menuUtility;
     private final int inventorySize;
-    private Supplier<ButtonAnimationData> dataSupplier;
+    private Supplier<AnimationContext> dataSupplier;
     private int counter = 0;
     private int taskId;
 
@@ -46,7 +44,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
      */
     public ButtonAnimation(MenuUtility<T> menuUtility) {
         this.menuUtility = menuUtility;
-        this.dataSupplier = () -> new ButtonAnimationData(menuUtility.getMenu(), menuUtility.getPageNumber());
+        this.dataSupplier = () -> new AnimationContext(menuUtility.getMenu(), menuUtility.getViewer(), menuUtility.getPageNumber());
         this.inventorySize = menuUtility.getInventorySize();
         this.checkMenuUpdates(menuUtility);
     }
@@ -86,7 +84,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
      *
      * @param dataSupplier the custom task to run instead of the default one.
      */
-    public void setDataForAnimation(@Nonnull final Supplier<ButtonAnimationData> dataSupplier) {
+    public void setDataForAnimation(@Nonnull final Supplier<AnimationContext> dataSupplier) {
         if (dataSupplier.get() != null)
             this.dataSupplier = dataSupplier;
     }
@@ -97,14 +95,14 @@ public class ButtonAnimation<T> extends BukkitRunnable {
      */
     @Override
     public void run() {
-        ButtonAnimationData buttonAnimationData = this.dataSupplier.get();
-        if (buttonAnimationData == null || !buttonAnimationData.isSet()) {
+        AnimationContext animationContext = this.dataSupplier.get();
+        if (animationContext == null || !animationContext.isSet()) {
             cancel();
             return;
         }
 
-        int pageNumber = buttonAnimationData.getPage();
-        final MenuDataUtility<T> menuDataUtility = menuUtility.getMenuData(null, pageNumber);
+        int pageNumber = animationContext.getPage();
+        final MenuDataUtility<T> menuDataUtility = menuUtility.getMenuData(animationContext.getPlayer(), pageNumber);
         if (menuDataUtility == null) {
             cancel();
             return;
@@ -121,7 +119,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
 
             if (timeLeft == null || timeLeft == 0)
                 updateScheduledTime(menuButton);
-            else if (counter >= timeLeft && startUpdateButton(buttonAnimationData, dataEntry, menuDataUtility)) {
+            else if (counter >= timeLeft && startUpdateButton(animationContext, dataEntry, menuDataUtility)) {
                 return;
             }
         }
@@ -198,13 +196,13 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         return menuButton.setUpdateTime();
     }
 
-    private boolean startUpdateButton(final ButtonAnimationData buttonAnimationData, final Map.Entry<Integer, ButtonAnimationGroup> dataEntry, final MenuDataUtility<T> menuDataUtility) {
-        setButtons(buttonAnimationData, menuDataUtility, dataEntry);
+    private boolean startUpdateButton(final AnimationContext animationContext, final Map.Entry<Integer, ButtonAnimationGroup> dataEntry, final MenuDataUtility<T> menuDataUtility) {
+        setButtons(animationContext, menuDataUtility, dataEntry);
         return false;
     }
 
-    private void setButtons(@Nonnull final ButtonAnimationData buttonAnimationData, @Nonnull final MenuDataUtility<T> menuDataUtility, @Nonnull final Map.Entry<Integer, ButtonAnimationGroup> dataEntry) {
-        final Inventory menu = buttonAnimationData.getMenu();
+    private void setButtons(@Nonnull final AnimationContext animationContext, @Nonnull final MenuDataUtility<T> menuDataUtility, @Nonnull final Map.Entry<Integer, ButtonAnimationGroup> dataEntry) {
+        final Inventory menu = animationContext.getMenu();
         final ButtonAnimationGroup entryValue = dataEntry.getValue();
         final MenuButton menuButton = entryValue.getMenuButton();
 
@@ -231,11 +229,11 @@ public class ButtonAnimation<T> extends BukkitRunnable {
         menuUtility.addListener(() -> {
             if (this.dataSupplier == null) return;
 
-            ButtonAnimationData buttonAnimationData = this.dataSupplier.get();
-            if (buttonAnimationData == null || !buttonAnimationData.isSet()) {
+            AnimationContext animationContext = this.dataSupplier.get();
+            if (animationContext == null || !animationContext.isSet()) {
                 return;
             }
-            int pageNumber = buttonAnimationData.getPage();
+            int pageNumber = animationContext.getPage();
             final MenuDataUtility<T> menuDataUtility = this.menuUtility.getMenuData(null, pageNumber);
             if (menuDataUtility == null) {
                 return;

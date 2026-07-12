@@ -1,10 +1,6 @@
 package org.broken.arrow.library.menu.button.logic;
 
 import org.broken.arrow.library.menu.MenuUtility;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 /**
  * Represents a button within a menu that defines the action to take when clicked and the item to display.
@@ -15,8 +11,8 @@ import org.bukkit.inventory.ItemStack;
 public class FillMenuButton<T> {
 
 
-    private OnClick<ButtonUpdateAction, Player, Inventory, ClickType, ItemStack, T> click;
-    private OnRetrieveItem<ItemStack, Integer, T> menuFillItem;
+    private FillClickAction<T> click;
+    private OnRetrieveItem<T> menuFillItem;
 
     private boolean updateButtonsTimer;
     private long updateTime;
@@ -38,8 +34,8 @@ public class FillMenuButton<T> {
      * @param click        the click handler defining the action when this button is clicked; must not be {@code null}.
      * @param menuFillItem the function that retrieves the fill item for this button based on slot and item; must not be {@code null}.
      */
-    public FillMenuButton(OnClick<ButtonUpdateAction, Player, Inventory, ClickType, ItemStack, T> click,
-                          OnRetrieveItem<ItemStack, Integer, T> menuFillItem) {
+    public FillMenuButton(FillClickAction<T> click,
+                          OnRetrieveItem<T> menuFillItem) {
         this.click = click;
         this.menuFillItem = menuFillItem;
     }
@@ -51,7 +47,7 @@ public class FillMenuButton<T> {
      * @param click the function instance you provide to update the button's type of action. It cannot be set to null.
      * @return this instance.
      */
-    public FillMenuButton<T> setClick(OnClick<ButtonUpdateAction, Player, Inventory, ClickType, ItemStack, T> click) {
+    public FillMenuButton<T> setClick(FillClickAction<T> click) {
         this.click = click;
         return this;
     }
@@ -63,7 +59,7 @@ public class FillMenuButton<T> {
      * @param menuFillItem the function instance you provide to specify the itemstack for a specific slot or to use the same item for all slots.
      * @return this instance.
      */
-    public FillMenuButton<T> setMenuFillItem(OnRetrieveItem<ItemStack, Integer, T> menuFillItem) {
+    public FillMenuButton<T> setMenuFillItem(OnRetrieveItem<T> menuFillItem) {
         this.menuFillItem = menuFillItem;
         return this;
     }
@@ -118,7 +114,7 @@ public class FillMenuButton<T> {
      * how it should update the button.
      * @see ButtonUpdateAction
      */
-    public OnClick<ButtonUpdateAction, Player, Inventory, ClickType, ItemStack, T> getClick() {
+    public FillClickAction<T> getClick() {
         return click;
     }
 
@@ -126,9 +122,9 @@ public class FillMenuButton<T> {
      * Retrieve the itemstack used for filling the button when the menu is redrawn or updated.
      *
      * @return the OnRetrieveItem instance providing the slot numbers and accounting for several pages for the button,
-     *         along with the object associated with it. To display the itemstack, it requires you to provide it.
+     * along with the object associated with it. To display the itemstack, it requires you to provide it.
      */
-    public OnRetrieveItem<ItemStack, Integer, T> getMenuFillItem() {
+    public OnRetrieveItem<T> getMenuFillItem() {
         return menuFillItem;
     }
 }

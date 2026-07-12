@@ -1,6 +1,7 @@
 package org.broken.arrow.library.menu.button;
 
 import org.broken.arrow.library.menu.MenuUtility;
+import org.broken.arrow.library.menu.button.logic.ClickContext;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
@@ -23,33 +24,49 @@ import javax.annotation.Nullable;
  */
 public abstract class MenuButton {
 
-	private static int counter = 0;
-	private final int id;
+    private static int counter = 0;
+    private final int id;
 
-	/**
-	 * new button instance that sets the id for the button.
-	 */
-	protected MenuButton() {
-		this.id = counter++;
-	}
+    /**
+     * new button instance that sets the id for the button.
+     */
+    protected MenuButton() {
+        this.id = counter++;
+    }
 
-	/**
-	 * when you click inside the menu.
-	 *
-	 * @param player      player some clicked in the menu.
-	 * @param menu        menu some are currently open.
-	 * @param click       click type (right,left or shift click)
-	 * @param clickedItem item some are clicked on
-	 */
-	public abstract void onClickInsideMenu(@Nonnull final Player player, @Nonnull final Inventory menu, @Nonnull final ClickType click, @Nonnull final ItemStack clickedItem);
+    /**
+     * Handles the interaction event when a player clicks on this button within a menu.
+     * <p>
+     * This method acts as the entry point for interactions. It provides a modern {@link ClickContext}
+     * containing secondary details (menu, item and more), while primary details are passed explicitly.
+     * </p>
+     *
+     * @param player       the player who performed the click.
+     * @param click        the type of click interaction (e.g., LEFT, RIGHT, SHIFT_LEFT).
+     * @param clickContext the contextual details regarding the menu and slot interaction.
+     */
+    public void onClickInsideMenu(@Nonnull final Player player, @Nonnull final ClickType click, @Nonnull final ClickContext clickContext) {
+        onClickInsideMenu(player, clickContext.getMenu(), click, clickContext.getClickedItem());
+    }
+
+    /**
+     * Legacy handler for menu clicks. Will soon be marked as deprecated.
+     *
+     * @param player      the player who performed the click.
+     * @param menu        the menu inventory where the click occurred.
+     * @param click       the type of click interaction.
+     * @param clickedItem the {@link ItemStack} that was clicked.
+     */
+    public void onClickInsideMenu(@Nonnull final Player player, @Nonnull final Inventory menu, @Nonnull final ClickType click, @Nonnull final ItemStack clickedItem) {
+    }
 
     /**
      * Retrieves the itemstack to be added with this menu button.
      *
      * @return The itemstack to be added with this menu button, or null if not specified.
      */
-	@Nullable
-	public abstract ItemStack getItem();
+    @Nullable
+    public abstract ItemStack getItem();
 
     /**
      * Retrieves the itemstack associated with the specified slot or index in your implementation.
@@ -58,58 +75,58 @@ public abstract class MenuButton {
      * @return The itemstack associated with the specified slot, or null if not the slot match.
      */
     @Nullable
-	public ItemStack getItem(final int slot) {
+    public ItemStack getItem(final int slot) {
         return null;
     }
 
-	/**
-	 * Set your own time, if and when it shall update buttons. If this is set to -1
-	 * It will use the global from {@link MenuUtility#getUpdateTime()}
-	 * <p>
-	 * You also need set this to true {@link #shouldUpdateButtons()}
-	 *
-	 * @return -1 or seconds between updates.
-	 */
-	public long setUpdateTime() {
-		return -1;
-	}
+    /**
+     * Set your own time, if and when it shall update buttons. If this is set to -1
+     * It will use the global from {@link MenuUtility#getUpdateTime()}
+     * <p>
+     * You also need set this to true {@link #shouldUpdateButtons()}
+     *
+     * @return -1 or seconds between updates.
+     */
+    public long setUpdateTime() {
+        return -1;
+    }
 
-	/**
-	 * Returns true if the buttons should be updated, when menu is open and no buttons are pushed. By default, this method
-	 * returns false. If you want to update the buttons, override this method and return true in your implementation.
-	 *
-	 * @return true if the buttons should be updated, false otherwise.
-	 */
-	public boolean shouldUpdateButtons() {
-		return false;
-	}
+    /**
+     * Returns true if the buttons should be updated, when menu is open and no buttons are pushed. By default, this method
+     * returns false. If you want to update the buttons, override this method and return true in your implementation.
+     *
+     * @return true if the buttons should be updated, false otherwise.
+     */
+    public boolean shouldUpdateButtons() {
+        return false;
+    }
 
-	/**
-	 * The unique id for this instance.
-	 *
-	 * @return the id for this instance.
-	 */
-	public int getId(){
-		return id;
-	}
+    /**
+     * The unique id for this instance.
+     *
+     * @return the id for this instance.
+     */
+    public int getId() {
+        return id;
+    }
 
-	@Override
-	public String toString() {
-		return "MenuButton{" +
-				"id=" + id +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "MenuButton{" +
+                "id=" + id +
+                '}';
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof MenuButton)) return false;
-		MenuButton that = (MenuButton) o;
-		return id == that.id;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MenuButton)) return false;
+        MenuButton that = (MenuButton) o;
+        return id == that.id;
+    }
 
-	@Override
-	public int hashCode() {
-		return Integer.hashCode(id);
-	}
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
 }

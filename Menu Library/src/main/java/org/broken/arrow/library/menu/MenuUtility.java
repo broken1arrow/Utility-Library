@@ -5,6 +5,7 @@ import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.menu.builders.ButtonData;
 import org.broken.arrow.library.menu.builders.MenuDataUtility;
 import org.broken.arrow.library.menu.button.MenuButton;
+import org.broken.arrow.library.menu.button.logic.ClickContext;
 import org.broken.arrow.library.menu.cache.MenuCache;
 import org.broken.arrow.library.menu.cache.MenuCacheKey;
 import org.broken.arrow.library.menu.event.update.UpdateEvent;
@@ -73,7 +74,7 @@ public class MenuUtility<T> {
     protected Supplier<JsonObject> titleFunctionJson;
     protected Supplier<String> animateTitle;
     protected Supplier<JsonObject> animateTitleJson;
-    protected  UpdateEvent updateEvent;
+    protected UpdateEvent updateEvent;
 
     protected boolean shallCacheItems;
     protected boolean slotsYouCanAddItems;
@@ -102,7 +103,6 @@ public class MenuUtility<T> {
     private String playerMetadataKey;
 
     private int manuallySetPages = -1;
-
 
 
     /**
@@ -715,6 +715,7 @@ public class MenuUtility<T> {
 
     /**
      * Receive the highest fill slot.
+     *
      * @return the highest full slot if it set or -1 if could not find any slots set.
      */
     public int getHighestFillSlot() {
@@ -813,7 +814,7 @@ public class MenuUtility<T> {
      * Update the title while player has the menu open.
      *
      * @param player the player you want to update the title for.
-     * @param text the text to set.
+     * @param text   the text to set.
      */
     public void updateTitle(@Nullable final Player player, final Object text) {
         if (player == null)
@@ -854,9 +855,12 @@ public class MenuUtility<T> {
      * @param clickType   the type of click the player is performing, such as right-click, left-click, or shift-click.
      * @param clickedItem the item clicked on.
      */
-    public void onClick(MenuButton menuButton, Player player, int clickedPos, ClickType clickType, ItemStack clickedItem) {
-        if (this.getMenu() != null)
-            menuButton.onClickInsideMenu(player, this.getMenu(), clickType, clickedItem);
+    public void onClick(@Nonnull final MenuButton menuButton, @Nonnull final Player player, final int clickedPos, @Nonnull final ClickType clickType, @Nonnull final ItemStack clickedItem) {
+        Inventory menu = this.getMenu();
+        if (menu != null) {
+            final ClickContext clickContext = new ClickContext(menu, clickedItem, clickedPos);
+            menuButton.onClickInsideMenu(player, clickType, clickContext);
+        }
     }
 
     /**
@@ -1144,6 +1148,7 @@ public class MenuUtility<T> {
 
     /**
      * Retrieve the set plugin instance.
+     *
      * @return the plugin instance set.
      */
     public Plugin getPlugin() {

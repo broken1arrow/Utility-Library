@@ -1,11 +1,14 @@
 package org.broken.arrow.library.menu.holder;
 
 import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.menu.builders.ButtonData;
 import org.broken.arrow.library.menu.builders.MenuDataUtility;
 import org.broken.arrow.library.menu.button.MenuButton;
 import org.broken.arrow.library.menu.button.MenuButtonPage;
 import org.broken.arrow.library.menu.button.logic.ButtonUpdateAction;
+import org.broken.arrow.library.menu.button.logic.ClickContext;
+import org.broken.arrow.library.menu.button.logic.FillClickAction;
 import org.broken.arrow.library.menu.button.logic.FillMenuButton;
 import org.broken.arrow.library.menu.button.logic.OnRetrieveItem;
 import org.broken.arrow.library.menu.utility.FillItems;
@@ -14,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -182,8 +186,10 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         FillMenuButton<T> fillMenuButton = createFillMenuButton();
         if (fillMenuButton != null) return new MenuButtonPage<T>() {
             @Override
-            public void onClickInsideMenu(@Nonnull Player player, @Nonnull Inventory menu, @Nonnull ClickType click, @Nonnull ItemStack clickedItem, @Nullable T fillItem) {
-                ButtonUpdateAction buttonUpdateAction = fillMenuButton.getClick().apply(player, menu, click, clickedItem, fillItem);
+            public void onClickInsideMenu(@NonNull Player player, @NonNull ClickType click, @Nullable T fillItem, @NonNull ClickContext clickContext) {
+                FillClickAction<T> menuButtonClick = fillMenuButton.getClick();
+                Validate.checkNotNull(menuButtonClick, "Your click action can't be null for the fill buttons.");
+                ButtonUpdateAction buttonUpdateAction = menuButtonClick.apply(player, clickContext.getMenu(), click, clickContext.getClickedItem(), fillItem);
 
                 switch (buttonUpdateAction) {
                     case ALL:
@@ -209,7 +215,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
 
             @Override
             public ItemStack getItem(int slot, @Nullable T fillItem) {
-                OnRetrieveItem<ItemStack, Integer, T> menuItem = fillMenuButton.getMenuFillItem();
+                OnRetrieveItem<T> menuItem = fillMenuButton.getMenuFillItem();
                 return menuItem.apply(slot, fillItem);
             }
         };
@@ -219,12 +225,15 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
     @Override
     public void onClick(@Nonnull MenuButton menuButton, @Nonnull Player player, int clickedPos, @Nonnull ClickType clickType, @Nonnull ItemStack clickedItem) {
         int slot = fillSlotsMapping.getOrDefault(clickedPos, -1);
-        if (this.getMenu() != null) {
+        Inventory menu = this.getMenu();
+        if (menu != null) {
+            final ClickContext clickContext = new ClickContext(menu, clickedItem, clickedPos);
             if (menuButton instanceof MenuButtonPage) {
                 final T object = this.getFillItem(slot);
-                ((MenuButtonPage<T>) menuButton).onClickInsideMenu(player, this.getMenu(), clickType, clickedItem, object);
+                ((MenuButtonPage<T>) menuButton).onClickInsideMenu(player, clickType, object, clickContext);
+                ((MenuButtonPage<T>) menuButton).onClickInsideMenu(player, menu, clickType, clickedItem, object);
             } else {
-                menuButton.onClickInsideMenu(player, this.getMenu(), clickType, clickedItem);
+                menuButton.onClickInsideMenu(player, clickType, clickContext);
             }
         }
     }
@@ -315,7 +324,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
         if (menuButton != null) {
             T fillItem = getFillItem(fillSlot);
             boolean shallAddMenuButton = !isLastFillSlot && isFillSlot && this.getListOfFillItems() != null && !this.getListOfFillItems().isEmpty();
-            menuDataUtility.putButton(slot, menuButton,  buttonDataWrapper -> buttonDataWrapper
+            menuDataUtility.putButton(slot, menuButton, buttonDataWrapper -> buttonDataWrapper
                     .setItemStack(result)
                     .setFillButton(shallAddMenuButton)
                     .setObject(fillItem));

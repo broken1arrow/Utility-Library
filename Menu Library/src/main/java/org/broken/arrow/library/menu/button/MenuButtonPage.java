@@ -1,5 +1,6 @@
 package org.broken.arrow.library.menu.button;
 
+import org.broken.arrow.library.menu.button.logic.ClickContext;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
@@ -18,17 +19,32 @@ import javax.annotation.Nullable;
  * in the cache. Additionally, when setting the item, you can alter its properties based on the
  * fill object.</p>
  *
- * @see MenuButton
  * @param <T> the type of the fill item for the menu.
+ * @see MenuButton
  */
 public abstract class MenuButtonPage<T> extends MenuButton {
 
-    protected MenuButtonPage() {}
+    protected MenuButtonPage() {
+    }
 
     @Override
-    public void onClickInsideMenu(@Nonnull Player player, @Nonnull Inventory menu, @Nonnull ClickType click, @Nonnull ItemStack clickedItem) {
-        this.onClickInsideMenu(player, menu, click, clickedItem, null);
+    public void onClickInsideMenu(@Nonnull final Player player, @Nonnull final ClickType click, @Nonnull final ClickContext clickContext) {
+        this.onClickInsideMenu(player, click, null, clickContext);
     }
+
+    /**
+     * when you click inside the menu.
+     * <p>
+     * This method acts as the entry point for interactions. It provides a modern {@link ClickContext}
+     * containing secondary details (menu, item and more), while primary details are passed explicitly.
+     * </p>
+     *
+     * @param player       player some clicked in the menu.
+     * @param click        click type (right,left or shift click)
+     * @param object       object that is connected to the menu button item.
+     * @param clickContext the contextual details regarding the menu and slot interaction
+     */
+    public abstract void onClickInsideMenu(@Nonnull final Player player, @Nonnull final ClickType click, @Nullable final T object, @Nonnull final ClickContext clickContext);
 
     /**
      * when you click inside the menu.
@@ -38,8 +54,11 @@ public abstract class MenuButtonPage<T> extends MenuButton {
      * @param click       click type (right,left or shift click)
      * @param clickedItem item some are clicked on
      * @param object      object that is connected to the menu button item.
+     * @deprecated use the new {@link #onClickInsideMenu(Player, ClickType, Object, ClickContext)} as it gives cleaner usage pattern with more context.
      */
-    public abstract void onClickInsideMenu(@Nonnull Player player, @Nonnull Inventory menu, @Nonnull ClickType click, @Nonnull ItemStack clickedItem, @Nullable T object);
+    @Deprecated
+    public void onClickInsideMenu(@Nonnull final Player player, @Nonnull final Inventory menu, @Nonnull final ClickType click, @Nonnull final ItemStack clickedItem, @Nullable final T object) {
+    }
 
 
     /**
