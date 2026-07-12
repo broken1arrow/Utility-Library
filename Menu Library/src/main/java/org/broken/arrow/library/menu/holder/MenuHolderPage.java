@@ -189,7 +189,7 @@ public abstract class MenuHolderPage<T> extends HolderUtility<T> {
             public void onClickInsideMenu(@NonNull Player player, @NonNull ClickType click, @Nullable T fillItem, @NonNull ClickContext clickContext) {
                 FillClickAction<T> menuButtonClick = fillMenuButton.getClick();
                 Validate.checkNotNull(menuButtonClick, "Your click action can't be null for the fill buttons.");
-                ButtonUpdateAction buttonUpdateAction = menuButtonClick.apply(player, clickContext.getMenu(), click, clickContext.getClickedItem(), fillItem);
+                ButtonUpdateAction buttonUpdateAction = menuButtonClick.apply(player, click, fillItem, clickContext);
 
                 switch (buttonUpdateAction) {
                     case ALL:
