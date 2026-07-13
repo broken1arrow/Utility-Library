@@ -653,7 +653,7 @@ public class CreateItemStack {
     }
 
     private void addCustomModelData(final ItemMeta itemMeta) {
-        if (this.getCustomModelData() > 0 && serverVersion.compareTo(1,14,0).atLeast())
+        if (this.getCustomModelData() > 0 && serverVersion.compareTo(14,0).atLeast())
             itemMeta.setCustomModelData(this.getCustomModelData());
     }
 

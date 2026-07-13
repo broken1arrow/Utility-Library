@@ -41,6 +41,8 @@ import java.util.logging.Level;
  * version-independent operations, prefer using {@link NbtData} or {@link ComponentFactory}.</p>
  */
 public class NBTAdapter implements NbtEditor {
+    private static final boolean IS_NEVER_16 = ItemCreator.getVersion().compareTo(16,5).newer();
+
     private static final Logging logger = new Logging(NBTAdapter.class);
     private static final MethodHandle NMS_ITEM_COPY;
     private static final MethodHandle AS_BUKKIT_ITEM_COPY;
@@ -54,7 +56,6 @@ public class NBTAdapter implements NbtEditor {
     protected static final boolean REFLECTION_READY;
     private final Object nmsItemCopy;
     private final ItemStack bukkitItem;
-    private boolean finalize = false;
     private CompoundState compoundState = CompoundState.NOT_CREATED;
 
     static {
@@ -198,7 +199,6 @@ public class NBTAdapter implements NbtEditor {
                 return this.bukkitItem;
             }
             SET_TAG.invoke(nmsItemCopy, compound);
-            finalize = true;
             return (ItemStack) AS_BUKKIT_ITEM_COPY.invoke(nmsItemCopy);
         } catch (Throwable e) {
             logger.logError(e, () -> "Failed to apply back to itemStack");
@@ -596,7 +596,7 @@ public class NBTAdapter implements NbtEditor {
 
     private static String getNbtTagBasePath() {
         final String nmsPath = getNmsPath();
-        if (ItemCreator.getVersion().versionNewer(16.5))
+        if (IS_NEVER_16)
             return nmsPath + ".nbt.NBTBase";
 
         return nmsPath + ".NBTBase";
@@ -611,14 +611,15 @@ public class NBTAdapter implements NbtEditor {
 
     private static String getItemStackPath() {
         final String nmsPath = getNmsPath();
-        if (ItemCreator.getVersion().versionNewer(16.5))
+        if (IS_NEVER_16)
             return nmsPath + ".world.item.ItemStack";
         return nmsPath + ".ItemStack";
     }
 
     private static String getNbtTagPath() {
         final String nmsPath = getNmsPath();
-        if (ItemCreator.getVersion().versionNewer(16.5)) {
+
+        if (IS_NEVER_16) {
             if (ItemCreator.getVersion().versionNewer(20.4))
                 return nmsPath + ".nbt.CompoundTag";
             return nmsPath + ".nbt.NBTTagCompound";
@@ -627,7 +628,7 @@ public class NBTAdapter implements NbtEditor {
     }
 
     private static String getNmsPath() {
-        if (ItemCreator.getVersion().versionNewer(16.5))
+        if (IS_NEVER_16)
             return "net.minecraft";
         return "net.minecraft.server." + getPackageVersion();
     }
