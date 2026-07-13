@@ -1,7 +1,7 @@
-package org.broken.arrow.library.itemcreator.utility.nms.api;
+package org.broken.arrow.library.itemcreator.utility.nbt.nms.api;
 
-import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.nms.NBTAdapter;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.NBTLegacyAdapter;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -50,7 +50,7 @@ public interface NbtEditor {
      * </ul>
      *
      * <p><strong>Note:</strong> On older versions, the returned {@link CompoundTag} may not be correctly loaded
-     * until you explicitly create a root tag with the above method.</p>
+     * until you explicitly create a root tag with the {@link #getOrCreateCompound()} method.</p>
      *
      * @return the {@link CompoundTag} instance.
      */
@@ -117,13 +117,13 @@ public interface NbtEditor {
      * created via {@link #getOrCreateCompound(String)}. The returned item will contain the
      * full NBT structure currently set in this session.
      * <p>
-     * The method checks the {@link NBTAdapter.CompoundState} before applying changes:
+     * The method checks the {@link NBTLegacyAdapter.CompoundState} before applying changes:
      * <ul>
-     *     <li>{@link NBTAdapter.CompoundState#CREATED}: Compound exists and will be applied.</li>
-     *     <li>{@link NBTAdapter.CompoundState#NULL}: No compound exists, nothing is applied.</li>
-     *     <li>{@link NBTAdapter.CompoundState#ERROR}: Reflection failed or compound initialization failed,
+     *     <li>{@link NBTLegacyAdapter.CompoundState#CREATED}: Compound exists and will be applied.</li>
+     *     <li>{@link NBTLegacyAdapter.CompoundState#NULL}: No compound exists, nothing is applied.</li>
+     *     <li>{@link NBTLegacyAdapter.CompoundState#ERROR}: Reflection failed or compound initialization failed,
      *     nothing is applied.</li>
-     *     <li>{@link NBTAdapter.CompoundState#NOT_CREATED}: No compound has been created yet.</li>
+     *     <li>{@link NBTLegacyAdapter.CompoundState#NOT_CREATED}: No compound has been created yet.</li>
      * </ul>
      * <p>
      * Use {@link #getOrCreateCompound()} or {@link #getOrCreateCompound(String)} to ensure a

@@ -1,6 +1,7 @@
-package org.broken.arrow.library.itemcreator.utility.compound;
+package org.broken.arrow.library.itemcreator.utility.nbt.nms.compound;
 
-import org.broken.arrow.library.itemcreator.utility.nms.ComponentAdapter;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.ComponentAdapter;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.VanillaComponentSession;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,7 +19,7 @@ import javax.annotation.Nullable;
  *   <li>{@code minecraft:custom_model_data}</li>
  * </ul>
  *
- * <p>All operations are forwarded to a {@link ComponentAdapter.VanillaComponentSession},
+ * <p>All operations are forwarded to a {@link VanillaComponentSession},
  * which handles reflection-based access to these components.</p>
  *
  * <p><strong>Reflection loading:</strong></p>
@@ -36,7 +37,7 @@ import javax.annotation.Nullable;
  */
 public final class VanillaComponentTag extends CompoundTag {
 
-    private final ComponentAdapter.VanillaComponentSession vanillaSession;
+    private final VanillaComponentSession vanillaSession;
 
     /**
      * Constructs a new wrapper for editing vanilla component data.
@@ -44,7 +45,7 @@ public final class VanillaComponentTag extends CompoundTag {
      * @param base           the underlying component root object (not used directly)
      * @param vanillaSession the vanilla component session that performs all read/write operations
      */
-    public VanillaComponentTag(@Nonnull final Object base, @Nonnull final ComponentAdapter.VanillaComponentSession vanillaSession) {
+    public VanillaComponentTag(@Nonnull final Object base, @Nonnull final VanillaComponentSession vanillaSession) {
         super(base);
         this.vanillaSession = vanillaSession;
     }

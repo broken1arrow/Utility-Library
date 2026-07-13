@@ -9,6 +9,7 @@ import org.broken.arrow.library.itemcreator.meta.MetaHandler;
 import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementWrapper;
 import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
+import org.broken.arrow.library.itemcreator.utility.UnbreakableUtil;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
 import org.broken.arrow.library.itemcreator.utility.nbt.NBTDataWriter;
 import org.broken.arrow.library.logging.Logging;
@@ -649,7 +650,7 @@ public class CreateItemStack {
     private ItemMeta setUnbreakableMeta(final ItemMeta itemMeta) {
         if(!isUnbreakable())
             return itemMeta;
-        return ItemCreator.applyUnbreakable(itemMeta,isUnbreakable());
+        return UnbreakableUtil.applyToMeta(itemMeta, unbreakable);
     }
 
     private void addCustomModelData(final ItemMeta itemMeta) {

@@ -1,15 +1,13 @@
 package org.broken.arrow.library.itemcreator.utility;
 
-import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.compound.NbtData;
-import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.NbtWrapper;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.InvocationTargetException;
 
 public final class UnbreakableUtil {
     private static final NmsNbtBridge NMS_NBT_BRIDGE;
@@ -159,7 +157,7 @@ public final class UnbreakableUtil {
          * @return a new Bukkit ItemStack instance with updated NBT
          */
         public ItemStack applyUnbreakableTag(@Nonnull final ItemStack item, @Nonnull final String key, final boolean unbreakable) {
-            NbtData nms = new NbtData(item);
+            NbtWrapper nms = new NbtWrapper(item);
             if (!nms.isReflectionReady()) return item;
 
             CompoundTag compound = nms.getOrCreateCompound();
@@ -176,7 +174,7 @@ public final class UnbreakableUtil {
          * @return {@code true} if the key exists and is set to {@code true}
          */
         public boolean hasBooleanTag(@Nonnull final ItemStack item, @Nonnull String key) {
-            NbtData nms = new NbtData(item);
+            NbtWrapper nms = new NbtWrapper(item);
             if (!nms.isReflectionReady()) return false;
 
             final CompoundTag compound = nms.getCompound();

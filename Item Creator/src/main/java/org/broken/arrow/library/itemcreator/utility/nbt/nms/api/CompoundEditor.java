@@ -1,11 +1,11 @@
-package org.broken.arrow.library.itemcreator.utility.nms.api;
+package org.broken.arrow.library.itemcreator.utility.nbt.nms.api;
 
-import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface CompoundEditor{
+public interface CompoundEditor {
 
     /**
      * Checks if it has loaded all reflections.

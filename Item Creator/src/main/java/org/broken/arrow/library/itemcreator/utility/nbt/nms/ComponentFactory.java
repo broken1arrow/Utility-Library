@@ -1,10 +1,11 @@
-package org.broken.arrow.library.itemcreator.utility.nms;
+package org.broken.arrow.library.itemcreator.utility.nbt.nms;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
-import org.broken.arrow.library.itemcreator.utility.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.compound.NbtData;
-import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
-import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.CompoundEditor;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.ComponentAdapter;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.CompoundSession;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.NBTLegacyAdapter;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.ItemStack;
 
@@ -19,16 +20,16 @@ import java.util.logging.Level;
  * <ul>
  *   <li>On modern versions (1.20.5+), it returns a {@link ComponentAdapter} for
  *       manipulating item components (CUSTOM_DATA + optional vanilla components).</li>
- *   <li>On older versions, it returns an {@link NBTAdapter} for direct manipulation
+ *   <li>On older versions, it returns an {@link NBTLegacyAdapter} for direct manipulation
  *       of legacy NBT compounds.</li>
  * </ul>
  *
  * <p>The factory handles all reflection readiness checks. If the necessary bridge
  * classes failed to initialize, methods will return {@code null} and log a warning.
- * Higher-level APIs, like {@link NbtData}, are expected to handle this safely.</p>
+ * Higher-level APIs, like {@link NbtWrapper}, are expected to handle this safely.</p>
  *
  * <p>Plugin developers should generally <b>not</b> call this class directly. Use
- * {@link NbtData} for version-independent item data operations.</p>
+ * {@link NbtWrapper} for version-independent item data operations.</p>
  */
 public class ComponentFactory {
     private static final Logging logger = new Logging(ComponentFactory.class);
@@ -45,18 +46,19 @@ public class ComponentFactory {
      */
     public static NbtEditor session(@Nonnull final ItemStack stack) {
         if (ItemCreator.getVersion().versionNewer(20.4)) {
-            ComponentAdapter componentItem = new ComponentAdapter(stack);
+            final ComponentAdapter componentItem = new ComponentAdapter(stack);
             if (!componentItem.isReady()) {
                 logger.log(Level.WARNING, () -> "NMS bridge not loaded");
                 return null;
             }
             return new ComponentAdapter(stack);
         }
-        if (!NBTAdapter.REFLECTION_READY) {
+        final NBTLegacyAdapter legacyAdapter = new NBTLegacyAdapter(stack);
+        if (!legacyAdapter.isReady()) {
             logger.log(Level.WARNING, () -> "NMS bridge not loaded");
             return null;
         }
-        return new NBTAdapter(stack);
+        return legacyAdapter;
     }
 
 
@@ -74,14 +76,14 @@ public class ComponentFactory {
      * @param handle the raw {@code NBTTagCompound} instance from NMS or the
      *               {@code CustomData} object in 1.20.5+
      * @return a new {@link CompoundEditor} bound to the provided handle,
-     *         or {@code null} if the reflection layer is not ready
+     * or {@code null} if the reflection layer is not ready
      */
     public static CompoundEditor compoundSession(@Nonnull final Object handle) {
-        if (!NBTAdapter.CompoundSession.isReady()) {
+        if (!CompoundSession.isReady()) {
             logger.log(Level.WARNING, () -> "CompoundSession not loaded");
             return null;
         }
-        return new NBTAdapter.CompoundSession(handle);
+        return new CompoundSession(handle);
     }
 
 }

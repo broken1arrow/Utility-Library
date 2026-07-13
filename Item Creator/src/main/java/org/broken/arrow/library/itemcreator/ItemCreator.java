@@ -455,20 +455,6 @@ public class ItemCreator {
     }
 
     /**
-     * Applies the "Unbreakable" property to the given ItemMeta.
-     *
-     * <p>On legacy versions (1.8–1.12), this will return a new copy of the metadata.
-     * On modern versions (1.13+), the original metadata instance is modified and returned.</p>
-     *
-     * @param meta        the ItemMeta to modify
-     * @param unbreakable true to make the item unbreakable, false otherwise
-     * @return the modified ItemMeta, it will be a new instance on legacy versions.
-     */
-    public static ItemMeta applyUnbreakable(final ItemMeta meta, final boolean unbreakable) {
-        return UnbreakableUtil.applyToMeta(meta, unbreakable);
-    }
-
-    /**
      * Applies the "Unbreakable" property directly to the given ItemStack.
      *
      * <p>On legacy versions, this may create a new ItemStack copy.

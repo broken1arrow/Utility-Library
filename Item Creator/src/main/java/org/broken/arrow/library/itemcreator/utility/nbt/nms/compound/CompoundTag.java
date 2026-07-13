@@ -1,8 +1,9 @@
-package org.broken.arrow.library.itemcreator.utility.compound;
+package org.broken.arrow.library.itemcreator.utility.nbt.nms.compound;
 
-import org.broken.arrow.library.itemcreator.utility.nms.ComponentFactory;
-import org.broken.arrow.library.itemcreator.utility.nms.api.CompoundEditor;
-import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.ComponentFactory;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.NbtWrapper;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.CompoundEditor;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.NbtEditor;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
@@ -25,8 +26,8 @@ import javax.annotation.Nullable;
  * the {@link CompoundEditor} returned from {@link ComponentFactory#compoundSession(Object)}.</p>
  *
  * <p>This class is intended for low-level operations. For high-level, version-independent
- * item data access, consider using {@link NbtData}, which handles the creation of the compound
- * smoothly. Use {@link NbtData#getSession()} to access {@link NbtEditor#enableVanillaTagEditor()},
+ * item data access, consider using {@link NbtWrapper}, which handles the creation of the compound
+ * smoothly. Use {@link NbtWrapper#getSession()} to access {@link NbtEditor#enableVanillaTagEditor()},
  * and refer to its documentation, as behavior differs between 1.20.5+ and earlier versions.</p>
  */
 public class CompoundTag {
@@ -42,7 +43,7 @@ public class CompoundTag {
      *
      * @param handle the raw NBTTagCompound instance from NMS
      */
-    public CompoundTag(@Nonnull final Object  handle) {
+    public CompoundTag(@Nonnull final Object handle) {
         Validate.checkNotNull(handle, "CompoundTag handle cannot be null");
         compoundSession = ComponentFactory.compoundSession(handle);
         Validate.checkNotNull(compoundSession, "The compound session could not be loaded.");
@@ -83,7 +84,7 @@ public class CompoundTag {
      *
      * @param key the key of the int value
      * @return the stored int value, or {@code -1} if reflection fail
-     *         or if the key does not exist in the NBT data.
+     * or if the key does not exist in the NBT data.
      */
     public int getInt(@Nonnull final String key) {
         return this.compoundSession.getInt(key);
@@ -104,7 +105,7 @@ public class CompoundTag {
      *
      * @param key the key of the string value
      * @return the stored string value, or empty string if reflection fail
-     *         or {@code null} if the key does not exist in the NBT data.
+     * or {@code null} if the key does not exist in the NBT data.
      */
     public String getString(@Nonnull final String key) {
         return this.compoundSession.getString(key);
@@ -152,7 +153,7 @@ public class CompoundTag {
      *
      * @param key the name of the tag to read
      * @return the byte array, {@code null} if the tag is missing, or
-     *         an empty array on reflection failure.
+     * an empty array on reflection failure.
      */
     @Nullable
     public byte[] getByteArray(@Nonnull final String key) {

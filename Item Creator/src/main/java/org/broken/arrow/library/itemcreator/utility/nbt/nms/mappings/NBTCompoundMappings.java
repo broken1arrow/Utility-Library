@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.utility.nms.mappings;
+package org.broken.arrow.library.itemcreator.utility.nbt.nms.mappings;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
 

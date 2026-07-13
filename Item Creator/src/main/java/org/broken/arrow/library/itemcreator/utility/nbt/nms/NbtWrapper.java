@@ -1,7 +1,7 @@
-package org.broken.arrow.library.itemcreator.utility.compound;
+package org.broken.arrow.library.itemcreator.utility.nbt.nms;
 
-import org.broken.arrow.library.itemcreator.utility.nms.ComponentFactory;
-import org.broken.arrow.library.itemcreator.utility.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.inventory.ItemStack;
 
@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
  * level and affect the actual behavior of the item, unlike custom NBT
  * values used only by plugins.</p>
  */
-public class NbtData {
+public class NbtWrapper {
     private final NbtEditor session;
 
     /**
@@ -26,7 +26,7 @@ public class NbtData {
      *
      * @param itemStack the itemStack to alter the NBT tags on.
      */
-    public NbtData(final ItemStack itemStack) {
+    public NbtWrapper(final ItemStack itemStack) {
         this.session = ComponentFactory.session(itemStack);
         Validate.checkNotNull(this.session,"The underlying NBT session could not be loaded.");
     }
