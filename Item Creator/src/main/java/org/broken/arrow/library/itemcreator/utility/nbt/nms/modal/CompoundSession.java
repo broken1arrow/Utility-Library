@@ -115,6 +115,12 @@ public class CompoundSession implements CompoundEditor {
 
     }
 
+    /**
+     * Used internally not recommended to create own instance.
+     *
+     * @param handle the raw {@code NBTTagCompound} instance from NMS or the
+     *               {@code CustomData} object in 1.20.5+
+     */
     public CompoundSession(@Nonnull final Object handle) {
         Validate.checkNotNull(handle, "CompoundTag handle cannot be null");
         this.handle = handle;

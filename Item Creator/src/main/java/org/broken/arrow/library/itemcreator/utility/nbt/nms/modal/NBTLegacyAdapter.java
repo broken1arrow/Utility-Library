@@ -114,6 +114,11 @@ public class NBTLegacyAdapter implements NbtEditor {
 
     }
 
+    /**
+     * The instance for the legacy component modification (NBT data on the stack).
+     *
+     * @param item the bukkit itemStack to modify.
+     */
     public NBTLegacyAdapter(@Nonnull final ItemStack item) {
         this.nmsItemCopy = toNmsItemStack(item);
         this.bukkitItem = item.clone();
