@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator;
+package org.broken.arrow.library.itemcreator.persistent.data.container;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -102,35 +102,6 @@ public final class PersistentDataUtility {
     }
 
     /**
-     * Attempts to store array types in the {@link PersistentDataContainer}.
-     * <p>
-     * This method supports {@code byte[]}, {@code int[]}, and {@code long[]} arrays.
-     *
-     * @param targetType    the type of the value
-     * @param value         the array value to store
-     * @param dataContainer the persistent data container to modify
-     * @param namespacedKey the key under which to store the value
-     * @return {@code true} if the array type was handled successfully; {@code false} otherwise
-     */
-    private boolean setArrays(final Class<?> targetType, final Object value, final PersistentDataContainer dataContainer, final NamespacedKey namespacedKey) {
-        if (targetType.isArray()) {
-            if (value instanceof byte[]) {
-                dataContainer.set(namespacedKey, PersistentDataType.BYTE_ARRAY, (byte[]) value);
-                return true;
-            }
-            if (value instanceof int[]) {
-                dataContainer.set(namespacedKey, PersistentDataType.INTEGER_ARRAY, (int[]) value);
-                return true;
-            }
-            if (value instanceof long[]) {
-                dataContainer.set(namespacedKey, PersistentDataType.LONG_ARRAY, (long[]) value);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Custom {@link PersistentDataType} for storing {@link UUID} values in a {@code byte[]} format.
      * <p>
      * UUIDs are stored in a 16-byte array (two longs).
@@ -203,4 +174,34 @@ public final class PersistentDataUtility {
             return ItemStack.deserialize(map);
         }
     }
+
+    /**
+     * Attempts to store array types in the {@link PersistentDataContainer}.
+     * <p>
+     * This method supports {@code byte[]}, {@code int[]}, and {@code long[]} arrays.
+     *
+     * @param targetType    the type of the value
+     * @param value         the array value to store
+     * @param dataContainer the persistent data container to modify
+     * @param namespacedKey the key under which to store the value
+     * @return {@code true} if the array type was handled successfully; {@code false} otherwise
+     */
+    private boolean setArrays(final Class<?> targetType, final Object value, final PersistentDataContainer dataContainer, final NamespacedKey namespacedKey) {
+        if (targetType.isArray()) {
+            if (value instanceof byte[]) {
+                dataContainer.set(namespacedKey, PersistentDataType.BYTE_ARRAY, (byte[]) value);
+                return true;
+            }
+            if (value instanceof int[]) {
+                dataContainer.set(namespacedKey, PersistentDataType.INTEGER_ARRAY, (int[]) value);
+                return true;
+            }
+            if (value instanceof long[]) {
+                dataContainer.set(namespacedKey, PersistentDataType.LONG_ARRAY, (long[]) value);
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

@@ -432,7 +432,11 @@ public class ChunkRelevanceTracker {
         public void chunkUnLoad(final ChunkUnloadEvent event) {
             final Chunk chunk = event.getChunk();
             processChunkState(ChunkKey.of(chunk), chunk, ChunkStatus.UNLOADED, cacheEntry -> {
-                cacheEntry.setForceLoaded(event.getChunk().isForceLoaded());
+                try {
+                    cacheEntry.setForceLoaded(event.getChunk().isForceLoaded());
+                } catch (NoSuchMethodError ignore) {
+                    //not needed as legacy.
+                }
             });
         }
 
@@ -440,7 +444,11 @@ public class ChunkRelevanceTracker {
         public void chunkLoad(final ChunkLoadEvent event) {
             final Chunk chunk = event.getChunk();
             processChunkState(ChunkKey.of(chunk), chunk, ChunkStatus.LOADED, cacheEntry -> {
-                cacheEntry.setForceLoaded(chunk.isForceLoaded());
+                try {
+                    cacheEntry.setForceLoaded(chunk.isForceLoaded());
+                } catch (NoSuchMethodError ignore) {
+                    //not needed as legacy.
+                }
                 cacheEntry.markSeen();
             });
         }

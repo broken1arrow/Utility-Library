@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator;
 
+import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
 import org.bukkit.plugin.Plugin;
 
@@ -14,6 +15,7 @@ import javax.annotation.Nullable;
  * </p>
  */
 public class NBTManger {
+    Logging LOG = new Logging(NBTManger.class);
     private RegisterNbtAPI nbtApi;
 
     /**
@@ -30,6 +32,7 @@ public class NBTManger {
         try {
             nbtApi = new RegisterNbtAPI(plugin, turnOffLogger);
         } catch (NoClassDefFoundError ignore) {
+            LOG.log(() ->"Could not find the NbtAPI, it may not set the NBT tags on your items on legacy versions.");
             nbtApi = null;
         }
     }

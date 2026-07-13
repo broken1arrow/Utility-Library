@@ -70,7 +70,11 @@ public class UtilityListener implements Listener {
     public void chunkUnLoad(final ChunkUnloadEvent event) {
         final Chunk chunk = event.getChunk();
         this.chunkRelevanceTracker.processChunkState(ChunkKey.of(chunk), chunk, ChunkStatus.UNLOADED, cacheEntry -> {
-            cacheEntry.setForceLoaded(chunk.isForceLoaded());
+            try {
+                cacheEntry.setForceLoaded(chunk.isForceLoaded());
+            } catch (NoSuchMethodError ignore) {
+                //not needed as legacy.
+            }
         });
     }
 
@@ -83,7 +87,11 @@ public class UtilityListener implements Listener {
     public void chunkLoad(final ChunkLoadEvent event) {
         final Chunk chunk = event.getChunk();
         this.chunkRelevanceTracker.processChunkState(ChunkKey.of(chunk), chunk, ChunkStatus.LOADED, cacheEntry -> {
-            cacheEntry.setForceLoaded(chunk.isForceLoaded());
+            try {
+                cacheEntry.setForceLoaded(chunk.isForceLoaded());
+            } catch (NoSuchMethodError ignore) {
+                //not needed as legacy.
+            }
             cacheEntry.markSeen();
         });
     }

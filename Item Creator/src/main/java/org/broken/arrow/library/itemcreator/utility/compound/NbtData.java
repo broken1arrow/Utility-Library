@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
  * <p>This class is only fully functional in legacy Minecraft versions where
  * certain vanilla item properties are not exposed by the Bukkit API.
  * These values (for example {@code Unbreakable}) are written at a low NMS
- * level and affect the actual behaviour of the item, unlike custom NBT
+ * level and affect the actual behavior of the item, unlike custom NBT
  * values used only by plugins.</p>
  */
 public class NbtData {
