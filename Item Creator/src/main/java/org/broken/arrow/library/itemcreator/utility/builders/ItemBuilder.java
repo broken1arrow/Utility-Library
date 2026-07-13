@@ -195,4 +195,15 @@ public final class ItemBuilder {
 	public boolean isItemSet() {
 		return item != null;
 	}
+
+	@Override
+	public String toString() {
+		return "ItemBuilder{" +
+				"item=" + item +
+				", itemCreator=" + itemCreator +
+				", itemArray=" + itemArray +
+				", displayName='" + displayName + '\'' +
+				", lore=" + lore +
+				'}';
+	}
 }

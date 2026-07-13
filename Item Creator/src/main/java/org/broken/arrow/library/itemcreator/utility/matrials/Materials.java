@@ -804,7 +804,10 @@ public enum Materials {
      * GRASS_BLOCK
      */
     GRASS_BLOCK(createStack("GRASS")),
-
+    /**
+     * CHORUS_FRUIT
+     */
+    CHORUS_FRUIT(createStack("ENDER_PEARL")),
     /**
      * COD
      */

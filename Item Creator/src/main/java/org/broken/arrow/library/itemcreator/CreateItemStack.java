@@ -75,7 +75,7 @@ public class CreateItemStack {
     public CreateItemStack(final ItemCreator itemCreator, final ItemBuilder itemBuilder) {
         this.itemCreator = itemCreator;
         this.serverVersion = ItemCreator.getVersion();
-        this.newerThan_12 =  serverVersion.compareTo(1, 12, 2).newer();
+        this.newerThan_12 =  serverVersion.compareTo(12, 2).newer();
         this.convertItems = itemCreator.getConvertItems();
 
         this.itemBuilder = itemBuilder;
@@ -585,17 +585,17 @@ public class CreateItemStack {
             ItemStack result = null;
             if (builder.getItemStack() != null) {
                 result = builder.getItemStack();
-            }
-            ConvertToItemStack convertToItemStack = this.getConvertItems();
-            if (builder.getMaterial() != null) {
-                if (newerThan_12) {
-                    result = new ItemStack(builder.getMaterial());
-                } else {
-                    result = convertToItemStack.checkItem(builder.getMaterial(), this.getDamage(), this.color, this.getData());
+            } else {
+                ConvertToItemStack convertToItemStack = this.getConvertItems();
+                if (builder.getMaterial() != null) {
+                    if (newerThan_12) {
+                        result = new ItemStack(builder.getMaterial());
+                    } else {
+                        result = convertToItemStack.checkItem(builder.getMaterial(), this.getDamage(), this.color, this.getData());
+                    }
+                } else if (builder.getStringItem() != null) {
+                    result = convertToItemStack.checkItem(builder.getStringItem(), this.getDamage(), this.color, this.getData());
                 }
-            }
-            if (builder.getStringItem() != null) {
-                result = convertToItemStack.checkItem(builder.getStringItem(), this.getDamage(), this.color, this.getData());
             }
             return result;
         }
@@ -647,6 +647,8 @@ public class CreateItemStack {
     }
 
     private ItemMeta setUnbreakableMeta(final ItemMeta itemMeta) {
+        if(!isUnbreakable())
+            return itemMeta;
         return ItemCreator.applyUnbreakable(itemMeta,isUnbreakable());
     }
 

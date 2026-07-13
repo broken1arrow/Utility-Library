@@ -28,7 +28,7 @@ public class ConvertToItemStack {
      * @param serverVersion the version is formatted 16.0,17.0,18.0,19.2 and so on.
      */
     public ConvertToItemStack(final VersionUtil serverVersion) {
-        this.older_than_13 = serverVersion.compareTo(1, 13, 0).older();
+        this.older_than_13 = serverVersion.compareTo( 13, 0).older();
     }
 
     /**
@@ -106,11 +106,9 @@ public class ConvertToItemStack {
         }
         if (object instanceof String) {
             String stringName = ((String) object).toUpperCase(Locale.ROOT);
-            if (color != null || data != null) {
-                result = checkString(stringName, data);
-                if (result != null) {
-                    result.setDurability(damage);
-                }
+            result = checkString(stringName, data);
+            if (result != null) {
+                result.setDurability(damage);
             } else {
                 Material material = Material.getMaterial(stringName);
                 result = new ItemStack(material != null ? material : Material.AIR, 1);
