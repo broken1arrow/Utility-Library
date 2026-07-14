@@ -1,6 +1,9 @@
 package org.broken.arrow.library.itemcreator;
 
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
+import org.broken.arrow.library.itemcreator.nbt.nms.NbtWrapper;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.persistent.data.container.NBTDataUtility;
 import org.broken.arrow.library.itemcreator.persistent.data.container.legacy.LegacyPersistentData;
 import org.broken.arrow.library.itemcreator.persistent.data.container.PersistentDataUtility;
 import org.broken.arrow.library.itemcreator.nbt.NBTDataWriter;
@@ -136,10 +139,8 @@ public final class NBTDataWrapper {
         if (nbtApi != null) {
             return applyNbtToItem(nbtApi, itemStack, nbtData);
         } else {
-            this.setPersistentData(itemStack, nbtData);
+            return this.setPersistentData(itemStack, nbtData);
         }
-
-        return itemStack;
     }
 
 
@@ -155,18 +156,18 @@ public final class NBTDataWrapper {
     }
 
 
-    private void setPersistentData(final ItemStack itemStack, final NBTDataWriter nbtData) {
+    private ItemStack setPersistentData(final ItemStack itemStack, final NBTDataWriter nbtData) {
         final Map<String, NBTValue> nbtCache = nbtData.getNbtCache();
         final Map<String, Object> metaDataMap = this.getMetaDataMap();
         final ItemMeta meta = itemStack.getItemMeta();
         if (meta != null && ItemCreator.getVersion().versionBetween(13.1, 14.0)) {
-            if(this.legacyPersistentData == null) return;
+            if (this.legacyPersistentData == null) return itemStack;
 
             nbtCache.forEach((key, nbtValue) -> {
                 legacyPersistentData.setCustomTagContainer(key, nbtValue, meta);
             });
         } else if (ItemCreator.getVersion().versionNewer(13.2) && meta != null) {
-            if(this.persistentData == null) return;
+            if (this.persistentData == null) return itemStack;
 
             if (!metaDataMap.isEmpty())
                 metaDataMap.forEach((s, nbtValue) ->
@@ -176,8 +177,23 @@ public final class NBTDataWrapper {
                 nbtCache.forEach((key, nbtValue) ->
                         this.persistentData.setPersistentDataContainer(key, nbtValue, meta.getPersistentDataContainer())
                 );
+        } else {
+            NbtWrapper nbtWrapper = new NbtWrapper(itemStack);
+            final CompoundTag compound = nbtWrapper.getOrCreateCompound(this.getCompoundKey());
+            NBTDataUtility nBTDataUtility = new NBTDataUtility();
+            if (!metaDataMap.isEmpty()) {
+                metaDataMap.forEach((s, nbtValue) ->
+                        nBTDataUtility.setPersistentData(compound, s, new NBTValue(nbtValue))
+                );
+            } else {
+                nbtCache.forEach((key, nbtValue) ->
+                        nBTDataUtility.setPersistentData(compound, key, nbtValue)
+                );
+            }
+            return nbtWrapper.apply();
         }
         itemStack.setItemMeta(meta);
+        return itemStack;
     }
 
     private ItemStack applyNbtToItem(final RegisterNbtAPI nbtApi, final ItemStack itemStack, final NBTDataWriter nbtData) {
@@ -203,6 +219,15 @@ public final class NBTDataWrapper {
                             });
                     }
                 });
+    }
+
+    /**
+     * Retrieve the key used for set metadata.
+     *
+     * @return the compound key.
+     */
+    private String getCompoundKey() {
+        return plugin.getName() + "_NBT";
     }
 }
 

@@ -2,6 +2,7 @@ package org.broken.arrow.library.itemcreator.nbt.nms.modal;
 
 import org.broken.arrow.library.itemcreator.nbt.nms.api.ComponentEditor;
 import org.broken.arrow.library.logging.Logging;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,7 +47,7 @@ public final class VanillaComponentSession implements ComponentEditor {
      */
     @Override
     public void setInt(@Nonnull final String key, final int value) {
-        buffer.put(key, Integer.valueOf(value));
+        buffer.put(key, value);
     }
 
     /**
@@ -59,6 +60,32 @@ public final class VanillaComponentSession implements ComponentEditor {
         Object v = getRaw(key);
         if (v instanceof Number)
             return ((Number) v).intValue();
+        return -1;
+    }
+
+    @Override
+    public void setDouble(@NonNull String key, double value) {
+        buffer.put(key, value);
+    }
+
+    @Override
+    public double getDouble(@NonNull String key) {
+        Object v = getRaw(key);
+        if (v instanceof Number)
+            return ((Number) v).doubleValue();
+        return -1;
+    }
+
+    @Override
+    public void setLong(@NonNull String key, long value) {
+        buffer.put(key, value);
+    }
+
+    @Override
+    public long getLong(@NonNull String key) {
+        Object v = getRaw(key);
+        if (v instanceof Number)
+            return ((Number) v).longValue();
         return -1;
     }
 
@@ -103,6 +130,16 @@ public final class VanillaComponentSession implements ComponentEditor {
         buffer.put(key, value);
     }
 
+    @Override
+    public void setIntArray(String key, int[] value) {
+        buffer.put(key, value);
+    }
+
+    @Override
+    public void setLongArray(String key, long[] value) {
+        buffer.put(key, value);
+    }
+
     @Nonnull
     @Override
     public byte[] getByteArray(@Nonnull final String key) {
@@ -110,6 +147,22 @@ public final class VanillaComponentSession implements ComponentEditor {
         if (v instanceof byte[])
             return (byte[]) v;
         return new byte[0];
+    }
+
+    @Override
+    public int @NonNull [] getIntArray(String key) {
+        Object v = getRaw(key);
+        if (v instanceof int[])
+            return (int[]) v;
+        return new int[0];
+    }
+
+    @Override
+    public long @NonNull [] getLongArray(String key) {
+        Object v = getRaw(key);
+        if (v instanceof long[])
+            return (long[]) v;
+        return new long[0];
     }
 
     /**

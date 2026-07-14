@@ -70,7 +70,7 @@ public class CompoundTag {
     }
 
     /**
-     * Sets a int value in the underlying NBTTagCompound.
+     * Sets an int value in the underlying NBTTagCompound.
      *
      * @param key   the key to set
      * @param value the int value to assign
@@ -80,7 +80,7 @@ public class CompoundTag {
     }
 
     /**
-     * Gets a int value from the underlying NBTTagCompound.
+     * Gets an int value from the underlying NBTTagCompound.
      *
      * @param key the key of the int value
      * @return the stored int value, or {@code -1} if reflection fail
@@ -88,6 +88,48 @@ public class CompoundTag {
      */
     public int getInt(@Nonnull final String key) {
         return this.compoundSession.getInt(key);
+    }
+
+    /**
+     * Sets a double value in the underlying NBTTagCompound.
+     *
+     * @param key   the key to set
+     * @param value the double value to assign
+     */
+    public void setDouble(@Nonnull final String key, final double value) {
+        this.compoundSession.setDouble(key, value);
+    }
+
+    /**
+     * Gets a double value from the underlying NBTTagCompound.
+     *
+     * @param key the key of the double value
+     * @return the stored int value, or {@code -1.0} if reflection fail
+     * or if the key does not exist in the NBT data.
+     */
+    public double getDouble(@Nonnull final String key) {
+        return this.compoundSession.getDouble(key);
+    }
+
+    /**
+     * Sets a long  value in the underlying NBTTagCompound.
+     *
+     * @param key   the key to set
+     * @param value the long  value to assign
+     */
+    public void setLong(@Nonnull String key, long value) {
+        this.compoundSession.setLong(key, value);
+    }
+
+    /**
+     * Gets a long value from the underlying NBTTagCompound.
+     *
+     * @param key the key of the long value
+     * @return the stored int value, or {@code -1} if reflection fail
+     * or if the key does not exist in the NBT data.
+     */
+    public long getLong(@Nonnull String key) {
+        return this.compoundSession.getLong(key);
     }
 
     /**
@@ -158,6 +200,65 @@ public class CompoundTag {
     @Nullable
     public byte[] getByteArray(@Nonnull final String key) {
         return this.compoundSession.getByteArray(key);
+    }
+
+
+    /**
+     * Stores a int array under the specified key in the underlying NBTTagCompound.
+     * <p>
+     * This method provides flexibility for attaching arbitrary binary data to an NBT
+     * structure, allowing more complex or custom payloads to be stored efficiently.
+     *
+     * @param key   the name of the tag to write
+     * @param value the byte array to store, may be {@code null} depending on implementation
+     */
+    public void setIntArray(@Nonnull final String key, final int[] value) {
+        this.compoundSession.setIntArray(key, value);
+    }
+
+    /**
+     * Retrieves a stored int array associated with the given key from the underlying
+     * NBTTagCompound.
+     * <p>
+     * This is useful for reading custom binary data previously written with
+     * {@link #setIntArray(String, int[])} .
+     *
+     * @param key the name of the tag to read
+     * @return the byte array, {@code null} if the tag is missing, or
+     * an empty array on reflection failure.
+     */
+    @Nonnull
+    public int[] getIntArray(@Nonnull final String key) {
+        return this.compoundSession.getIntArray(key);
+    }
+
+    /**
+     * Stores a long array under the specified key in the underlying NBTTagCompound.
+     * <p>
+     * This method provides flexibility for attaching arbitrary binary data to an NBT
+     * structure, allowing more complex or custom payloads to be stored efficiently.
+     *
+     * @param key   the name of the tag to write
+     * @param value the byte array to store, may be {@code null} depending on implementation
+     */
+    public void setLongArray(@Nonnull final String key, final long[] value) {
+        this.compoundSession.setLongArray(key, value);
+    }
+
+    /**
+     * Retrieves a stored long array associated with the given key from the underlying
+     * NBTTagCompound.
+     * <p>
+     * This is useful for reading custom binary data previously written with
+     * {@link #setLongArray(String, long[])}.
+     *
+     * @param key the name of the tag to read
+     * @return the byte array, {@code null} if the tag is missing, or
+     * an empty array on reflection failure.
+     */
+    @Nonnull
+    public long[] getLongArray(@Nonnull final String key) {
+        return this.compoundSession.getLongArray(key);
     }
 
     /**
