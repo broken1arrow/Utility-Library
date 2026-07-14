@@ -3,8 +3,8 @@ package org.broken.arrow.library.itemcreator;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import org.broken.arrow.library.itemcreator.persistent.data.container.legacy.LegacyPersistentData;
 import org.broken.arrow.library.itemcreator.persistent.data.container.PersistentDataUtility;
-import org.broken.arrow.library.itemcreator.utility.nbt.NBTDataWriter;
-import org.broken.arrow.library.itemcreator.utility.nbt.NBTValue;
+import org.broken.arrow.library.itemcreator.nbt.NBTDataWriter;
+import org.broken.arrow.library.itemcreator.nbt.NBTValue;
 import org.broken.arrow.library.nbt.RegisterNbtAPI;
 import org.broken.arrow.library.nbt.utility.ConvertObjectType;
 import org.bukkit.inventory.ItemStack;
@@ -14,7 +14,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;

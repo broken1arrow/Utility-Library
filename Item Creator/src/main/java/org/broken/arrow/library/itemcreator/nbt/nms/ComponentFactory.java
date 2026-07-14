@@ -1,11 +1,11 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms;
+package org.broken.arrow.library.itemcreator.nbt.nms;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.CompoundEditor;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.NbtEditor;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.ComponentAdapter;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.CompoundSession;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.NBTLegacyAdapter;
+import org.broken.arrow.library.itemcreator.nbt.nms.api.CompoundEditor;
+import org.broken.arrow.library.itemcreator.nbt.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.nbt.nms.modal.ComponentAdapter;
+import org.broken.arrow.library.itemcreator.nbt.nms.modal.CompoundSession;
+import org.broken.arrow.library.itemcreator.nbt.nms.modal.NBTLegacyAdapter;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.ItemStack;
 
@@ -45,13 +45,13 @@ public class ComponentFactory {
      * or {@code null} if reflection initialization failed
      */
     public static NbtEditor session(@Nonnull final ItemStack stack) {
-        if (ItemCreator.getVersion().versionNewer(20.4)) {
+        if (ItemCreator.getVersion().compareTo(20,4).newer()) {
             final ComponentAdapter componentItem = new ComponentAdapter(stack);
             if (!componentItem.isReady()) {
                 logger.log(Level.WARNING, () -> "NMS bridge not loaded");
                 return null;
             }
-            return new ComponentAdapter(stack);
+            return componentItem;
         }
         final NBTLegacyAdapter legacyAdapter = new NBTLegacyAdapter(stack);
         if (!legacyAdapter.isReady()) {
@@ -69,9 +69,8 @@ public class ComponentFactory {
      * <p>This method binds reflective access to the underlying object, enabling
      * operations such as {@code hasKey}, {@code setBoolean}, and {@code getBoolean}.</p>
      *
-     * <p>If the reflection layer is not fully initialized, this method will return
-     * {@code null} and log a warning. Callers should always verify readiness when
-     * performing operations on the returned {@link CompoundEditor}.</p>
+     * <p>If the reflection layer is not fully initialized or fail the reflection, this method will return
+     * {@code null} and log a warning.</p>
      *
      * @param handle the raw {@code NBTTagCompound} instance from NMS or the
      *               {@code CustomData} object in 1.20.5+
@@ -79,11 +78,12 @@ public class ComponentFactory {
      * or {@code null} if the reflection layer is not ready
      */
     public static CompoundEditor compoundSession(@Nonnull final Object handle) {
-        if (!CompoundSession.isReady()) {
+        CompoundSession compoundSession = new CompoundSession(handle);
+        if (!compoundSession.isReady()) {
             logger.log(Level.WARNING, () -> "CompoundSession not loaded");
             return null;
         }
-        return new CompoundSession(handle);
+        return compoundSession;
     }
 
 }

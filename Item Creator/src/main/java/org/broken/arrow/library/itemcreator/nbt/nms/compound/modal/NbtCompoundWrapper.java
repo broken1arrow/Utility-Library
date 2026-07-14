@@ -1,42 +1,63 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms.modal;
+package org.broken.arrow.library.itemcreator.nbt.nms.compound.modal;
 
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.CompoundEditor;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.mappings.NBTCompoundMappings;
+import org.broken.arrow.library.itemcreator.ItemCreator;
+import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
-import org.broken.arrow.library.logging.Validate;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-
-import static org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.NBTLegacyAdapter.getNbtTagPath;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 /**
- * A per-NBTTagCompound reflective session. Provides low-level access to manipulate
- * properties on the NMS compound.
+ * Provides a version-independent wrapper for interacting with Minecraft's
+ * internal NBT compound implementation.
  *
- * <p>Should generally be used via {@link CompoundTag} rather than directly.</p>
+ * <p>This class abstracts differences between Minecraft versions by binding
+ * required NBT compound methods through {@link MethodHandle}s. Older versions
+ * use unobfuscated method names, while newer versions use their remapped
+ * internal names.</p>
+ *
+ * <p>The wrapper provides access to common NBT operations such as reading,
+ * writing, and removing primitive values without exposing version-specific
+ * NMS classes to callers.</p>
+ *
+ * <p>The wrapped handle represents the internal NBT compound instance. For
+ * Minecraft versions 1.20.5 and newer, this may represent the internal
+ * {@code CustomData} storage rather than a direct {@code NBTTagCompound}.</p>
+ *
+ * <p>This class is intended for internal library usage.</p>
  */
-public class CompoundSession implements CompoundEditor {
-    private static final Logging logger = new Logging(CompoundSession.class);
+public class NbtCompoundWrapper implements NbtCompoundAccessor {
+    private static final Logging logger = new Logging(NbtCompoundWrapper.class);
+    private static final boolean LEGACY_NBT_METHOD_NAMES = ItemCreator.getVersion().compareTo(18, 0).older();
 
     private static final MethodHandle hasKey;
     private static final MethodHandle remove;
+
     private static final MethodHandle setString;
     private static final MethodHandle getString;
+
     private static final MethodHandle setInt;
     private static final MethodHandle getInt;
+
     private static final MethodHandle getShort;
     private static final MethodHandle setShort;
+
     private static final MethodHandle setByte;
     private static final MethodHandle getByte;
+
     private static final MethodHandle setByteArray;
     private static final MethodHandle getByteArray;
+
     private static final MethodHandle setBoolean;
     private static final MethodHandle getBoolean;
+
     private final Object handle;
 
     static {
@@ -55,44 +76,44 @@ public class CompoundSession implements CompoundEditor {
         MethodHandle setBooleanM = null;
         MethodHandle getBooleanM = null;
         try {
-            final Class<?> nbtTag = Class.forName(getNbtTagPath());
+            final Class<?> nbtCompound = Class.forName(NbtPathsUtil.getCompoundPackage());
             final MethodHandles.Lookup lookup = MethodHandles.lookup();
-            final NBTCompoundMappings compoundName = new NBTCompoundMappings();
+            NbtMethodMappings names = NbtMethodMappings.of(LEGACY_NBT_METHOD_NAMES);
 
-            hasTagKey = lookup.findVirtual(nbtTag, compoundName.hasKeyName(),
+            hasTagKey = lookup.findVirtual(nbtCompound, names.hasKey,
                     MethodType.methodType(boolean.class, String.class));
-            removeM = lookup.findVirtual(nbtTag, compoundName.removeName(),
+
+            removeM = lookup.findVirtual(nbtCompound, names.remove,
                     MethodType.methodType(void.class, String.class));
 
-
-            setIntM = lookup.findVirtual(nbtTag, compoundName.setIntName(),
+            setIntM = lookup.findVirtual(nbtCompound, names.setInt,
                     MethodType.methodType(void.class, String.class, int.class));
-            getIntM = lookup.findVirtual(nbtTag, compoundName.getIntName(),
+            getIntM = lookup.findVirtual(nbtCompound, names.getInt,
                     MethodType.methodType(int.class, String.class));
 
-            setShortM = lookup.findVirtual(nbtTag, compoundName.setShortName(),
+            setShortM = lookup.findVirtual(nbtCompound, names.setShort,
                     MethodType.methodType(void.class, String.class, short.class));
-            getShortM = lookup.findVirtual(nbtTag, compoundName.getShortName(),
+            getShortM = lookup.findVirtual(nbtCompound, names.getShort,
                     MethodType.methodType(short.class, String.class));
 
-            setByteM = lookup.findVirtual(nbtTag, compoundName.setByteName(),
+            setByteM = lookup.findVirtual(nbtCompound, names.setByte,
                     MethodType.methodType(void.class, String.class, byte.class));
-            getByteM = lookup.findVirtual(nbtTag, compoundName.getByteName(),
+            getByteM = lookup.findVirtual(nbtCompound, names.getByte,
                     MethodType.methodType(byte.class, String.class));
 
-            setByteArrayM = lookup.findVirtual(nbtTag, compoundName.setByteArrayName(),
+            setByteArrayM = lookup.findVirtual(nbtCompound, names.setByteArray,
                     MethodType.methodType(void.class, String.class, byte[].class));
-            getByteArrayM = lookup.findVirtual(nbtTag, compoundName.getByteArrayName(),
+            getByteArrayM = lookup.findVirtual(nbtCompound, names.getByteArray,
                     MethodType.methodType(byte[].class, String.class));
 
-            setStringM = lookup.findVirtual(nbtTag, compoundName.setStringName(),
+            setStringM = lookup.findVirtual(nbtCompound, names.setString,
                     MethodType.methodType(void.class, String.class, String.class));
-            getStringM = lookup.findVirtual(nbtTag, compoundName.getStringName(),
+            getStringM = lookup.findVirtual(nbtCompound, names.getString,
                     MethodType.methodType(String.class, String.class));
 
-            setBooleanM = lookup.findVirtual(nbtTag, compoundName.setBooleanName(),
+            setBooleanM = lookup.findVirtual(nbtCompound, names.setBoolean,
                     MethodType.methodType(void.class, String.class, boolean.class));
-            getBooleanM = lookup.findVirtual(nbtTag, compoundName.getBooleanName(),
+            getBooleanM = lookup.findVirtual(nbtCompound, names.getBoolean,
                     MethodType.methodType(boolean.class, String.class));
 
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
@@ -112,33 +133,26 @@ public class CompoundSession implements CompoundEditor {
         getByteArray = getByteArrayM;
         setBoolean = setBooleanM;
         getBoolean = getBooleanM;
-
     }
 
     /**
-     * Used internally not recommended to create own instance.
+     * Creates an adapter around an internal Minecraft NBT compound instance.
      *
-     * @param handle the raw {@code NBTTagCompound} instance from NMS or the
-     *               {@code CustomData} object in 1.20.5+
+     * <p>The adapter uses the version-specific method bindings initialized during
+     * class loading to provide access to NBT operations.</p>
+     *
+     * <p>This constructor is intended for internal library usage. Creating an
+     * instance with an incompatible handle type may result in invocation errors.</p>
+     *
+     * @param handle the internal NBT compound instance
      */
-    public CompoundSession(@Nonnull final Object handle) {
-        Validate.checkNotNull(handle, "CompoundTag handle cannot be null");
+    public NbtCompoundWrapper(Object handle) {
         this.handle = handle;
     }
 
-    /**
-     * Checks if it has loaded all reflections.
-     *
-     * @return true if everything is loaded correctly.
-     */
-    public static boolean isReady() {
-        return hasKey != null && setBoolean != null && getBoolean != null;
-    }
-
     @Override
-    @Nonnull
-    public Object getHandle() {
-        return handle;
+    public @NonNull Object getHandle() {
+        return this.handle;
     }
 
     @Override
@@ -241,6 +255,7 @@ public class CompoundSession implements CompoundEditor {
         return -1;
     }
 
+
     @Override
     public void setByteArray(@Nonnull final String key, final byte[] value) {
         if (setByteArray == null) return;
@@ -315,5 +330,84 @@ public class CompoundSession implements CompoundEditor {
             logger.logError(e, () -> "Failed to retrieve short value from reflection");
         }
         return -1;
+    }
+
+    @Override
+    public boolean isReady() {
+        return hasKey != null && getBoolean != null;
+    }
+
+    private final static class NbtMethodMappings {
+
+        public final String hasKey;
+        public final String remove;
+
+        public final String setInt;
+        public final String getInt;
+
+        public final String setShort;
+        public final String getShort;
+
+        public final String setByte;
+        public final String getByte;
+
+        public final String setByteArray;
+        public final String getByteArray;
+
+        public final String setString;
+        public final String getString;
+
+        public final String setBoolean;
+        public final String getBoolean;
+
+        private NbtMethodMappings(boolean old) {
+            if (old) {
+                hasKey = "hasKey";
+                remove = "remove";
+
+                setInt = "setInt";
+                getInt = "getInt";
+
+                setShort = "setShort";
+                getShort = "getShort";
+
+                setByte = "setByte";
+                getByte = "getByte";
+
+                setByteArray = "setByteArray";
+                getByteArray = "getByteArray";
+
+                setString = "setString";
+                getString = "getString";
+
+                setBoolean = "setBoolean";
+                getBoolean = "getBoolean";
+            } else {
+                hasKey = "e";
+                remove = "r";
+
+                setInt = "a";
+                getInt = "h";
+
+                setShort = "a";
+                getShort = "g";
+
+                setByte = "a";
+                getByte = "f";
+
+                setByteArray = "a";
+                getByteArray = "m";
+
+                setString = "a";
+                getString = "l";
+
+                setBoolean = "a";
+                getBoolean = "q";
+            }
+        }
+
+        public static NbtMethodMappings of(boolean oldVersion) {
+            return new NbtMethodMappings(oldVersion);
+        }
     }
 }

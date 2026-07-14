@@ -1,6 +1,6 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms.modal;
+package org.broken.arrow.library.itemcreator.nbt.nms.modal;
 
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.ComponentEditor;
+import org.broken.arrow.library.itemcreator.nbt.nms.api.ComponentEditor;
 import org.broken.arrow.library.logging.Logging;
 
 import javax.annotation.Nonnull;

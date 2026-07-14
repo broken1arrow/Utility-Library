@@ -1,9 +1,9 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms.compound;
+package org.broken.arrow.library.itemcreator.nbt.nms.compound;
 
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.ComponentFactory;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.NbtWrapper;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.CompoundEditor;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.nbt.nms.ComponentFactory;
+import org.broken.arrow.library.itemcreator.nbt.nms.NbtWrapper;
+import org.broken.arrow.library.itemcreator.nbt.nms.api.CompoundEditor;
+import org.broken.arrow.library.itemcreator.nbt.nms.api.NbtEditor;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  *
  * <p>This class is intended for low-level operations. For high-level, version-independent
  * item data access, consider using {@link NbtWrapper}, which handles the creation of the compound
- * smoothly. Use {@link NbtWrapper#getSession()} to access {@link NbtEditor#enableVanillaTagEditor()},
+ * smoothly. Use {@link NbtWrapper#getSession()} to access {@link NbtEditor#getVanillaTagEditor()},
  * and refer to its documentation, as behavior differs between 1.20.5+ and earlier versions.</p>
  */
 public class CompoundTag {

@@ -1,6 +1,6 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms.api;
+package org.broken.arrow.library.itemcreator.nbt.nms.api;
 
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

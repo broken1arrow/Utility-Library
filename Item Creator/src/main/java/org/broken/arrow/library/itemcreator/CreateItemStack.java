@@ -11,7 +11,7 @@ import org.broken.arrow.library.itemcreator.meta.potion.PotionTypeWrapper;
 import org.broken.arrow.library.itemcreator.utility.ConvertToItemStack;
 import org.broken.arrow.library.itemcreator.utility.UnbreakableUtil;
 import org.broken.arrow.library.itemcreator.utility.builders.ItemBuilder;
-import org.broken.arrow.library.itemcreator.utility.nbt.NBTDataWriter;
+import org.broken.arrow.library.itemcreator.nbt.NBTDataWriter;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.broken.arrow.library.version.VersionUtil;

@@ -1,11 +1,11 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms.modal;
+package org.broken.arrow.library.itemcreator.nbt.nms.modal;
 
 import org.broken.arrow.library.itemcreator.ItemCreator;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.NbtWrapper;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.ComponentFactory;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.NbtEditor;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.mappings.NBTItemTagMappings;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.nbt.nms.NbtWrapper;
+import org.broken.arrow.library.itemcreator.nbt.nms.ComponentFactory;
+import org.broken.arrow.library.itemcreator.nbt.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
@@ -72,11 +72,11 @@ public class NBTLegacyAdapter implements NbtEditor {
             final String nmsPath = getItemStackPath();
             final Class<?> craftItemStack = Class.forName(craftPath + ".inventory.CraftItemStack");
             final Class<?> nmsItemStack = Class.forName(nmsPath);
-            final Class<?> nbtTagCompound = Class.forName(getNbtTagPath());
+            final Class<?> nbtTagCompound = Class.forName(NbtPathsUtil.getCompoundPackage());
             final Class<?> nbtTagBase = Class.forName(getNbtTagBasePath());
 
             final MethodHandles.Lookup lookup = MethodHandles.lookup();
-            final NBTItemTagMappings itemTagName = new NBTItemTagMappings();
+            final NBTCompoundMethodNames itemTagName = new NBTCompoundMethodNames();
 
             nMSCopyItem = lookup.findStatic(craftItemStack, "asNMSCopy",
                     MethodType.methodType(nmsItemStack, ItemStack.class));
@@ -160,7 +160,7 @@ public class NBTLegacyAdapter implements NbtEditor {
 
     @Nonnull
     @Override
-    public CompoundTag enableVanillaTagEditor() {
+    public CompoundTag getVanillaTagEditor() {
         return new CompoundTag(this.getCompound());
     }
 
@@ -208,22 +208,6 @@ public class NBTLegacyAdapter implements NbtEditor {
             logger.logError(e, () -> "Failed to apply back to itemStack");
         }
         return this.bukkitItem;
-    }
-
-    /**
-     * Retrieve the compound path
-     *
-     * @return the path to the compound class.
-     */
-    public static String getNbtTagPath() {
-        final String nmsPath = getNmsPath();
-
-        if (IS_NEVER_16) {
-            if (ItemCreator.getVersion().versionNewer(20.4))
-                return nmsPath + ".nbt.CompoundTag";
-            return nmsPath + ".nbt.NBTTagCompound";
-        }
-        return nmsPath + ".NBTTagCompound";
     }
 
     /**

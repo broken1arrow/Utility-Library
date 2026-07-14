@@ -1,7 +1,7 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms;
+package org.broken.arrow.library.itemcreator.nbt.nms;
 
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.NbtEditor;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.nbt.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.inventory.ItemStack;
 

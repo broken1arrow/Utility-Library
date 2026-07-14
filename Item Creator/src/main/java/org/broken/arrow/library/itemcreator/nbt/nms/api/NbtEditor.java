@@ -1,7 +1,7 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms.api;
+package org.broken.arrow.library.itemcreator.nbt.nms.api;
 
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.NBTLegacyAdapter;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.nbt.nms.modal.NBTLegacyAdapter;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -55,7 +55,7 @@ public interface NbtEditor {
      * @return the {@link CompoundTag} instance.
      */
     @Nonnull
-    CompoundTag enableVanillaTagEditor();
+    CompoundTag getVanillaTagEditor();
 
     /**
      * Returns the root {@link CompoundTag} of this item, creating one if it does not exist.

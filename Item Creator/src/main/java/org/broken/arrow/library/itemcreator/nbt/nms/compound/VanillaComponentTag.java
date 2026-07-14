@@ -1,7 +1,7 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms.compound;
+package org.broken.arrow.library.itemcreator.nbt.nms.compound;
 
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.ComponentAdapter;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.modal.VanillaComponentSession;
+import org.broken.arrow.library.itemcreator.nbt.nms.modal.ComponentAdapter;
+import org.broken.arrow.library.itemcreator.nbt.nms.modal.VanillaComponentSession;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * <p><strong>Reflection loading:</strong></p>
  * <ul>
  *   <li>Vanilla component support is loaded lazily.</li>
- *   <li>Reflection is initialized only when {@link ComponentAdapter#enableVanillaTagEditor()} is called.</li>
+ *   <li>Reflection is initialized only when {@link ComponentAdapter#getVanillaTagEditor()} is called.</li>
  *   <li>Method calls are safe — null checks and logging prevent server crashes if reflection is not ready.</li>
  * </ul>
  *

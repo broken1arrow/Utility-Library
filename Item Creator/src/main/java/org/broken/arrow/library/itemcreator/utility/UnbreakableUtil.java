@@ -1,7 +1,7 @@
 package org.broken.arrow.library.itemcreator.utility;
 
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.NbtWrapper;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.nbt.nms.NbtWrapper;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;

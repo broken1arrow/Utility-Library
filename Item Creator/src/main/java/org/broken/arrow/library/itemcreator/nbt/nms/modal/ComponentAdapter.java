@@ -1,10 +1,12 @@
-package org.broken.arrow.library.itemcreator.utility.nbt.nms.modal;
+package org.broken.arrow.library.itemcreator.nbt.nms.modal;
 
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.CompoundTag;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.NbtWrapper;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.compound.VanillaComponentTag;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.ComponentFactory;
-import org.broken.arrow.library.itemcreator.utility.nbt.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.ItemCreator;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
+import org.broken.arrow.library.itemcreator.nbt.nms.NbtWrapper;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.VanillaComponentTag;
+import org.broken.arrow.library.itemcreator.nbt.nms.ComponentFactory;
+import org.broken.arrow.library.itemcreator.nbt.nms.api.NbtEditor;
+import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.inventory.ItemStack;
@@ -38,7 +40,7 @@ import java.lang.reflect.Modifier;
  *   <li><code>ComponentItemDataSession</code> handles <strong>CUSTOM_DATA</strong> only.
  *       Its reflection usage is lightweight and initialized eagerly in the static initializer.</li>
  *   <li><code>VanillaComponentSession</code> is a <em>lazy-loaded</em> static nested class.
- *       Its static initializer runs only when {@link #enableVanillaTagEditor()} is called,
+ *       Its static initializer runs only when {@link #getVanillaTagEditor()} is called,
  *       meaning the heavier reflection cost of vanilla component support is incurred only if used.</li>
  * </ul>
  *
@@ -89,7 +91,12 @@ public class ComponentAdapter implements NbtEditor {
             compoundClass = Class.forName("net.minecraft.nbt.CompoundTag");
 
             asNms = LOOKUP.findStatic(craftItem, "asNMSCopy", MethodType.methodType(itemStack, ItemStack.class));
-            asBukkit = LOOKUP.findStatic(craftItem, "asBukkitCopy", MethodType.methodType(ItemStack.class, itemStack));
+            if(ItemCreator.getVersion().compareTo(21,0).atLeast()) {
+                asBukkit = LOOKUP.findStatic(craftItem, "asCraftMirror", MethodType.methodType(craftItem, itemStack));
+            } else {
+                asBukkit = LOOKUP.findStatic(craftItem, "asBukkitCopy", MethodType.methodType(ItemStack.class, itemStack));
+            }
+
 
             // find CUSTOM_DATA key (robust to obf)
             Field f = getCustomDataField(dataComponentsClass);
@@ -158,7 +165,7 @@ public class ComponentAdapter implements NbtEditor {
 
     @Nonnull
     @Override
-    public VanillaComponentTag enableVanillaTagEditor() {
+    public VanillaComponentTag getVanillaTagEditor() {
         if (vanillaSession == null)
             vanillaSession = new VanillaComponentSession(nmsStack);
         return new VanillaComponentTag(this.rootCustomDataCache, vanillaSession);
@@ -328,7 +335,7 @@ public class ComponentAdapter implements NbtEditor {
 
     private static MethodHandle getCompoundTagPut(@Nonnull final Class<?> compoundClass) throws IllegalAccessException, ClassNotFoundException {
         // CompoundTag.put
-        final Class<?> tagInterface = Class.forName("net.minecraft.nbt.Tag");
+        final Class<?> tagInterface = NbtPathsUtil.getTagInterface();
         try {
             return LOOKUP.findVirtual(compoundClass, "put", MethodType.methodType(tagInterface, String.class, tagInterface));
         } catch (NoSuchMethodException | IllegalAccessException t) {
