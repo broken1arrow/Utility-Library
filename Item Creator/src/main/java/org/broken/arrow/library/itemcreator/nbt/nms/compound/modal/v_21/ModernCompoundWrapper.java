@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.v_21;
 
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.NbtCompoundAccessor;
 import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
@@ -420,12 +421,13 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
             final Class<?> nbtCompound = Class.forName(NbtPathsUtil.getCompoundPackage());
             final Class<?> nbtTag = NbtPathsUtil.getTagInterface();
             final MethodHandles.Lookup lookup = MethodHandles.lookup();
+            final boolean IS_AT_LEAST_21_11 = ItemCreator.getVersion().compareTo(21, 11).atLeast();
 
             hasTagKey = lookup.findVirtual(nbtCompound, "contains",
                     MethodType.methodType(boolean.class, String.class));
 
             removeM = lookup.findVirtual(nbtCompound, "remove",
-                    MethodType.methodType(nbtTag, String.class));
+                    MethodType.methodType(IS_AT_LEAST_21_11 ? nbtTag : void.class, String.class));
 
             setIntM = lookup.findVirtual(nbtCompound, "putInt",
                     MethodType.methodType(void.class, String.class, int.class));
