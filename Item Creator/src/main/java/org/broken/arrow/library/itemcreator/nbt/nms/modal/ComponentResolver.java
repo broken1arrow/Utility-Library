@@ -144,34 +144,6 @@ public class ComponentResolver {
         }
         return null;
     }
-/*
-    @Nullable
-    private static Object resolveInternalOld(String key) {
-        try {
-            final String keyChecked = rl(key);
-            Object componentRL;
-
-            try {
-                Method parseMethod = RESOURCE_LOCATION_CLASS.getMethod("parse", String.class);
-                componentRL = parseMethod.invoke(null, keyChecked);
-            } catch (NoSuchMethodException e) {
-                componentRL = RESOURCE_LOCATION_CLASS
-                        .getConstructor(String.class).newInstance(keyChecked);
-            }
-            // Create ResourceKey<DataComponentType> for this component
-            final Object resourceKey = CREATE_METHOD.invoke(
-                    null,
-                    DATA_COMPONENT_REGISTRY_KEY,
-                    componentRL
-            );
-            // Fetch component type from registry
-            return REGISTRY_GET_METHOD.invoke(DATA_COMPONENT_REGISTRY, resourceKey);
-
-        } catch (Exception ex) {
-            logger.logError(ex, () -> "Failed to resolve component: " + key);
-        }
-        return null;
-    }*/
 
     // Construct a ResourceLocation namespace:path
     private static String rl(String key) {
