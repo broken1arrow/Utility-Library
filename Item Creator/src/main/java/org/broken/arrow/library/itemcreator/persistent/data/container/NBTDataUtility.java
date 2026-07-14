@@ -173,14 +173,14 @@ public final class NBTDataUtility {
                 compound.setByteArray(key, (byte[]) value);
                 return true;
             }
-         /*   if (value instanceof int[]) {
-                compound.set(namespacedKey, PersistentDataType.INTEGER_ARRAY, (int[]) value);
+           if (value instanceof int[]) {
+                compound.setIntArray(key, (int[]) value);
                 return true;
             }
             if (value instanceof long[]) {
-                compound.set(namespacedKey, PersistentDataType.LONG_ARRAY, (long[]) value);
+                compound.setLongArray(key, (long[]) value);
                 return true;
-            }*/
+            }
         }
         return false;
     }
