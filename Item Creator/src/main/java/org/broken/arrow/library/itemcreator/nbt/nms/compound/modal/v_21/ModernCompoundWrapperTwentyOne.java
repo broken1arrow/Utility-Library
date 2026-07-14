@@ -4,7 +4,6 @@ import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.NbtCompoundAccessor;
 import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
-import org.broken.arrow.library.logging.Validate;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
@@ -12,30 +11,31 @@ import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.Optional;
+import java.util.logging.Level;
 
 /**
- * Provides a version-independent adapter for interacting with Minecraft's
+ * Provides a version-independent wrapper for interacting with Minecraft's
  * internal NBT compound implementation.
  *
  * <p>This class abstracts differences between Minecraft versions by binding
- * the required NBT compound methods through {@link MethodHandle}s. Older
- * versions use unobfuscated method names, while newer versions use their
- * remapped internal names.</p>
+ * required NBT compound methods through {@link MethodHandle}s. Older versions
+ * use unobfuscated method names, while newer versions use their remapped
+ * internal names.</p>
  *
- * <p>The adapter supports reading, writing, and removing primitive NBT values
- * without exposing version-specific NMS classes to callers.</p>
+ * <p>The wrapper provides access to common NBT operations such as reading,
+ * writing, and removing primitive values without exposing version-specific
+ * NMS classes to callers.</p>
  *
- * <p>The wrapped handle represents an internal NBT compound instance. For
- * Minecraft versions 1.20.5 and newer, this may be the internal
- * {@code CustomData} compound representation rather than a direct
- * {@code NBTTagCompound} instance.</p>
+ * <p>The wrapped handle represents the internal NBT compound instance. For
+ * Minecraft versions 1.20.5 and newer, this may represent the internal
+ * {@code CustomData} storage rather than a direct {@code NBTTagCompound}.</p>
  *
- * <p>This class is intended for internal use by the library and should not
- * normally be instantiated directly.</p>
+ * <p>This class is intended for internal library usage.</p>
  */
-public class ModernCompoundWrapper implements NbtCompoundAccessor {
-    private static final Logging logger = new Logging(ModernCompoundWrapper.class);
+public class ModernCompoundWrapperTwentyOne implements NbtCompoundAccessor {
+    private static final Logging logger = new Logging(ModernCompoundWrapperTwentyOne.class);
+    private static final boolean LEGACY_NBT_METHOD_NAMES = ItemCreator.getVersion().compareTo(18, 0).older();
+    private static final boolean LEGACY_NBT_METHOD_AT_LEAST_12 = ItemCreator.getVersion().compareTo(12, 0).atLeast();
 
     private static final MethodHandle hasKey;
     private static final MethodHandle remove;
@@ -72,7 +72,6 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
 
     private final Object handle;
 
-
     /**
      * Creates an adapter around an internal Minecraft NBT compound instance.
      *
@@ -84,13 +83,8 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
      *
      * @param handle the internal NBT compound instance
      */
-    public ModernCompoundWrapper(Object handle) {
-        if (handle instanceof Optional<?>) {
-            this.handle = ((Optional<?>) handle).orElse(null);
-            Validate.checkNotNull(this.handle, "The NBT compound handle can't be null");
-        } else {
-            this.handle = handle;
-        }
+    public ModernCompoundWrapperTwentyOne(Object handle) {
+        this.handle = handle;
     }
 
     @Override
@@ -137,7 +131,7 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         if (getInt == null) return -1;
 
         try {
-            Object intObject = getInt.invoke(handle, key, -1);
+            Object intObject = getInt.invoke(handle, key);
             if (intObject == null)
                 return -1;
             return (int) intObject;
@@ -163,7 +157,7 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         if (getDouble == null) return -1.0;
 
         try {
-            Object intObject = getDouble.invoke(handle, key, -1.0);
+            Object intObject = getDouble.invoke(handle, key);
             if (intObject == null)
                 return -1.0;
             return (double) intObject;
@@ -172,7 +166,6 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         }
         return -1.0;
     }
-
 
     @Override
     public void setLong(@Nonnull final String key, final long value) {
@@ -187,17 +180,17 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
 
     @Override
     public long getLong(@Nonnull final String key) {
-        if (getLong == null) return (long) -1;
+        if (getLong == null) return -1;
 
         try {
-            Object intObject = getLong.invoke(handle, key, (long) -1);
+            Object intObject = getLong.invoke(handle, key);
             if (intObject == null)
-                return (long) -1;
+                return -1;
             return (long) intObject;
         } catch (Throwable e) {
             logger.logError(e, () -> "Failed to retrieve long value from reflection");
         }
-        return (long) -1;
+        return -1;
     }
 
     @Override
@@ -217,7 +210,7 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         if (getString == null) return "";
 
         try {
-            Object stringObject = getString.invoke(handle, key, "");
+            Object stringObject = getString.invoke(handle, key);
             if (stringObject == null) return "";
             return (String) stringObject;
         } catch (Throwable e) {
@@ -242,13 +235,40 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         if (getByte == null) return -1;
 
         try {
-            Object byteObject = getByte.invoke(handle, key, (byte) -1);
+            Object byteObject = getByte.invoke(handle, key);
             if (byteObject == null) return -1;
             return (byte) byteObject;
         } catch (Throwable e) {
             logger.logError(e, () -> "Failed to retrieve byte value from reflection");
         }
         return -1;
+    }
+
+
+    @Override
+    public void setByteArray(@Nonnull final String key, final byte[] value) {
+        if (setByteArray == null) return;
+
+        try {
+            setByteArray.invoke(handle, key, value);
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to set byte value from reflection");
+        }
+    }
+
+    @Override
+    @Nullable
+    public byte[] getByteArray(@Nonnull final String key) {
+        if (getByteArray == null) return new byte[0];
+
+        try {
+            Object byteArray = getByteArray.invoke(handle, key);
+            if (byteArray == null) return null;
+            return (byte[]) byteArray;
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to retrieve byte value from reflection");
+        }
+        return new byte[0];
     }
 
     @Override
@@ -267,7 +287,7 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         if (getBoolean == null) return false;
 
         try {
-            Object booleanObject = getBoolean.invoke(handle, key, false);
+            Object booleanObject = getBoolean.invoke(handle, key);
             if (booleanObject == null) return false;
             return (boolean) booleanObject;
         } catch (Throwable e) {
@@ -292,7 +312,7 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         if (getShort == null) return -1;
 
         try {
-            Object shortObject = getShort.invoke(handle, key, (short) -1);
+            Object shortObject = getShort.invoke(handle, key);
             if (shortObject == null) return -1;
             return (short) shortObject;
         } catch (Throwable e) {
@@ -302,54 +322,35 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
     }
 
     @Override
-    public void setByteArray(@Nonnull final String key, final byte[] value) {
-        if (setByteArray == null) return;
-
-        try {
-            setByteArray.invoke(handle, key, value);
-        } catch (Throwable e) {
-            logger.logError(e, () -> "Failed to set byte value from reflection");
-        }
-    }
-
-    @Override
-    @Nullable
-    public byte[] getByteArray(@Nonnull final String key) {
-        if (getByteArray == null) return new byte[0];
-
-        try {
-            Object byteArray = getByteArray.invoke(handle, key);
-            if (byteArray == null) return null;
-            if (byteArray instanceof Optional)
-                return ((Optional<byte[]>) byteArray).orElse(new byte[0]);
-            if (byteArray instanceof byte[])
-                return (byte[]) byteArray;
-        } catch (Throwable e) {
-            logger.logError(e, () -> "Failed to retrieve byte value from reflection");
-        }
-        return new byte[0];
-    }
-
-    @Override
     public void setIntArray(String key, int[] value) {
         if (setIntArray == null) return;
 
         try {
             setIntArray.invoke(handle, key, value);
         } catch (Throwable e) {
-            logger.logError(e, () -> "Failed to set byte value from reflection");
+            logger.logError(e, () -> "Failed to set int value from reflection");
         }
     }
 
     @Override
     public void setLongArray(String key, long[] value) {
-        if (setLongArray == null) return;
-
-        try {
-            setLongArray.invoke(handle, key, value);
-        } catch (Throwable e) {
-            logger.logError(e, () -> "Failed to set byte value from reflection");
+        if (value == null) return;
+        if (setLongArray != null) {
+            try {
+                setLongArray.invoke(handle, key, value);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to set long value from reflection");
+            }
+            return;
         }
+        logger.log(Level.WARNING, () -> "Long Array is not supported on this Minecraft version. Saving as Int Array via bit-splitting instead.");
+        int[] fallbackArray = new int[value.length * 2];
+        for (int i = 0; i < value.length; i++) {
+            long val = value[i];
+            fallbackArray[i * 2] = (int) (val >> 32);
+            fallbackArray[i * 2 + 1] = (int) val;
+        }
+        this.setIntArray(key, fallbackArray);
     }
 
     @Override
@@ -359,11 +360,8 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         try {
             Object intArray = getIntArray.invoke(handle, key);
             if (intArray == null) return new int[0];
-            if (intArray instanceof Optional)
-                return ((Optional<int[]>) intArray).orElse(new int[0]);
-            if (intArray instanceof int[]) {
-                return (int[]) intArray;
-            }
+
+            return (int[]) intArray;
         } catch (Throwable e) {
             logger.logError(e, () -> "Failed to retrieve int value from reflection");
         }
@@ -372,25 +370,109 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
 
     @Override
     public long @NonNull [] getLongArray(String key) {
-        if (getLongArray == null) return new long[0];
-
-        try {
-            Object longArray = getLongArray.invoke(handle, key);
-            if (longArray == null) return new long[0];
-            if (longArray instanceof Optional)
-                return ((Optional<long[]>) longArray).orElse(new long[0]);
-            if (longArray instanceof long[]) {
+        if (getLongArray != null) {
+            try {
+                Object longArray = getLongArray.invoke(handle, key);
+                if (longArray == null) return new long[0];
                 return (long[]) longArray;
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to retrieve long value from reflection");
             }
-        } catch (Throwable e) {
-            logger.logError(e, () -> "Failed to retrieve long value from reflection");
+            return new long[0];
         }
-        return new long[0];
+        logger.log(Level.WARNING, () -> "Long Array is not supported on this Minecraft version. It will try solve it as a Int Array.");
+        int[] intArray = this.getIntArray(key);
+        if (intArray.length == 0 || intArray.length % 2 != 0) {
+            logger.log(Level.WARNING, () -> "This Int Array could not be restored: " + (intArray.length == 0 ? "The array is empty" : "The Array can't be divided by two."));
+            return new long[0];
+        }
+        long[] restoredArray = new long[intArray.length / 2];
+        for (int i = 0; i < restoredArray.length; i++) {
+            long high = intArray[i * 2];
+            long low = intArray[i * 2 + 1];
+            restoredArray[i] = (high << 32) | (low & 0xFFFFFFFFL);
+        }
+        return restoredArray;
     }
 
     @Override
     public boolean isReady() {
-        return remove != null && getBoolean != null;
+        return hasKey != null && getBoolean != null;
+    }
+
+    private final static class NbtMethodMappings {
+        private final String hasKey;
+        private final String remove;
+
+        private final String setInt;
+        private final String getInt;
+
+        private final String setDouble;
+        private final String getDouble;
+
+        private final String getLong;
+        private final String setLong;
+
+        private final String setShort;
+        private final String getShort;
+
+        private final String setByte;
+        private final String getByte;
+
+        private final String setByteArray;
+        private final String getByteArray;
+
+        private final String setLongArray;
+        private final String getLongArray;
+
+        private final String getIntArray;
+        private final String setIntArray;
+
+        private final String setString;
+        private final String getString;
+
+        private final String setBoolean;
+        private final String getBoolean;
+
+
+        private NbtMethodMappings(boolean old) {
+            hasKey = "contains";
+            remove = "remove";
+
+            setInt = "putInt";
+            getInt = "getInt";
+
+            setDouble = "putDouble";
+            getDouble = "getDouble";
+
+            setLong = "putLong";
+            getLong = "getLong";
+
+            setShort = "putShort";
+            getShort = "getShort";
+
+            setByte = "putByte";
+            getByte = "getByte";
+
+            setByteArray = "putByteArray";
+            getByteArray = "getByteArray";
+
+            setIntArray = "putIntArray";
+            getIntArray = "getIntArray";
+
+            setLongArray = "putLongArray";
+            getLongArray = "getLongArray";
+
+            setString = "putString";
+            getString = "getString";
+
+            setBoolean = "putBoolean";
+            getBoolean = "getBoolean";
+        }
+
+        public static NbtMethodMappings of(boolean oldVersion) {
+            return new NbtMethodMappings(oldVersion);
+        }
     }
 
 
@@ -419,65 +501,66 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         MethodHandle getBooleanM = null;
         try {
             final Class<?> nbtCompound = Class.forName(NbtPathsUtil.getCompoundPackage());
-            final Class<?> nbtTag = NbtPathsUtil.getTagInterface();
             final MethodHandles.Lookup lookup = MethodHandles.lookup();
-            final boolean IS_AT_LEAST_21_11 = ItemCreator.getVersion().compareTo(21, 11).atLeast();
+            NbtMethodMappings names = NbtMethodMappings.of(LEGACY_NBT_METHOD_NAMES);
 
-            hasTagKey = lookup.findVirtual(nbtCompound, "contains",
+            hasTagKey = lookup.findVirtual(nbtCompound, names.hasKey,
                     MethodType.methodType(boolean.class, String.class));
 
-            removeM = lookup.findVirtual(nbtCompound, "remove",
-                    MethodType.methodType(IS_AT_LEAST_21_11 ? nbtTag : void.class, String.class));
+            removeM = lookup.findVirtual(nbtCompound, names.remove,
+                    MethodType.methodType(void.class, String.class));
 
-            setIntM = lookup.findVirtual(nbtCompound, "putInt",
+            setIntM = lookup.findVirtual(nbtCompound, names.setInt,
                     MethodType.methodType(void.class, String.class, int.class));
-            getIntM = lookup.findVirtual(nbtCompound, "getIntOr",
-                    MethodType.methodType(int.class, String.class, int.class));
+            getIntM = lookup.findVirtual(nbtCompound, names.getInt,
+                    MethodType.methodType(int.class, String.class));
 
-            setDoubleM = lookup.findVirtual(nbtCompound, "putDouble",
+            setDoubleM = lookup.findVirtual(nbtCompound, names.setDouble,
                     MethodType.methodType(void.class, String.class, double.class));
-            getDoubleM = lookup.findVirtual(nbtCompound, "getDoubleOr",
-                    MethodType.methodType(double.class, String.class, double.class));
+            getDoubleM = lookup.findVirtual(nbtCompound, names.getDouble,
+                    MethodType.methodType(double.class, String.class));
 
-            setLongM = lookup.findVirtual(nbtCompound, "putLong",
+            setLongM = lookup.findVirtual(nbtCompound, names.setLong,
                     MethodType.methodType(void.class, String.class, long.class));
-            getLongM = lookup.findVirtual(nbtCompound, "getLongOr",
-                    MethodType.methodType(long.class, String.class, long.class));
+            getLongM = lookup.findVirtual(nbtCompound, names.getLong,
+                    MethodType.methodType(long.class, String.class));
 
-            setShortM = lookup.findVirtual(nbtCompound, "putShort",
+            setShortM = lookup.findVirtual(nbtCompound, names.setShort,
                     MethodType.methodType(void.class, String.class, short.class));
-            getShortM = lookup.findVirtual(nbtCompound, "getShortOr",
-                    MethodType.methodType(short.class, String.class, short.class));
+            getShortM = lookup.findVirtual(nbtCompound, names.getShort,
+                    MethodType.methodType(short.class, String.class));
 
-            setByteM = lookup.findVirtual(nbtCompound, "putByte",
+            setByteM = lookup.findVirtual(nbtCompound, names.setByte,
                     MethodType.methodType(void.class, String.class, byte.class));
-            getByteM = lookup.findVirtual(nbtCompound, "getByteOr",
-                    MethodType.methodType(byte.class, String.class, byte.class));
+            getByteM = lookup.findVirtual(nbtCompound, names.getByte,
+                    MethodType.methodType(byte.class, String.class));
 
-            setByteArrayM = lookup.findVirtual(nbtCompound, "putByteArray",
+            setByteArrayM = lookup.findVirtual(nbtCompound, names.setByteArray,
                     MethodType.methodType(void.class, String.class, byte[].class));
-            getByteArrayM = lookup.findVirtual(nbtCompound, "getByteArray",
-                    MethodType.methodType(Optional.class, String.class));
+            getByteArrayM = lookup.findVirtual(nbtCompound, names.getByteArray,
+                    MethodType.methodType(byte[].class, String.class));
 
-            setIntArrayM = lookup.findVirtual(nbtCompound, "putIntArray",
+            setIntArrayM = lookup.findVirtual(nbtCompound, names.setIntArray,
                     MethodType.methodType(void.class, String.class, int[].class));
-            getIntArrayM = lookup.findVirtual(nbtCompound, "getIntArray",
-                    MethodType.methodType(Optional.class, String.class));
+            getIntArrayM = lookup.findVirtual(nbtCompound, names.getIntArray,
+                    MethodType.methodType(int[].class, String.class));
 
-            setLongArrayM = lookup.findVirtual(nbtCompound, "putLongArray",
+
+            setLongArrayM = lookup.findVirtual(nbtCompound, names.setLongArray,
                     MethodType.methodType(void.class, String.class, long[].class));
-            getLongArrayM = lookup.findVirtual(nbtCompound, "getLongArray",
-                    MethodType.methodType(Optional.class, String.class));
+            getLongArrayM = lookup.findVirtual(nbtCompound, names.getLongArray,
+                    MethodType.methodType(long[].class, String.class));
 
-            setStringM = lookup.findVirtual(nbtCompound, "putString",
+
+            setStringM = lookup.findVirtual(nbtCompound, names.setString,
                     MethodType.methodType(void.class, String.class, String.class));
-            getStringM = lookup.findVirtual(nbtCompound, "getStringOr",
-                    MethodType.methodType(String.class, String.class, String.class));
+            getStringM = lookup.findVirtual(nbtCompound, names.getString,
+                    MethodType.methodType(String.class, String.class));
 
-            setBooleanM = lookup.findVirtual(nbtCompound, "putBoolean",
+            setBooleanM = lookup.findVirtual(nbtCompound, names.setBoolean,
                     MethodType.methodType(void.class, String.class, boolean.class));
-            getBooleanM = lookup.findVirtual(nbtCompound, "getBooleanOr",
-                    MethodType.methodType(boolean.class, String.class, boolean.class));
+            getBooleanM = lookup.findVirtual(nbtCompound, names.getBoolean,
+                    MethodType.methodType(boolean.class, String.class));
 
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
             logger.logError(e, () -> "Failed to bind NBT methods");
@@ -486,12 +569,12 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         hasKey = hasTagKey;
         setString = setStringM;
         getString = getStringM;
+        setInt = setIntM;
+        getInt = getIntM;
         setDouble = setDoubleM;
         getDouble = getDoubleM;
         setLong = setLongM;
         getLong = getLongM;
-        setInt = setIntM;
-        getInt = getIntM;
         getShort = getShortM;
         setShort = setShortM;
         setByte = setByteM;
@@ -505,4 +588,5 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         setBoolean = setBooleanM;
         getBoolean = getBooleanM;
     }
+
 }

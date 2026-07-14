@@ -5,7 +5,8 @@ import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
 import org.broken.arrow.library.itemcreator.nbt.nms.api.CompoundEditor;
 import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.NbtCompoundWrapper;
 import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.NbtCompoundAccessor;
-import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.v_21.ModernCompoundWrapper;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.v_21.ModernCompoundWrapperTwentyOne;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.v_21_5.ModernCompoundWrapper;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -34,10 +35,13 @@ public class CompoundSession implements CompoundEditor {
     public CompoundSession(@Nonnull final Object handle) {
         Validate.checkNotNull(handle, "CompoundTag handle cannot be null");
         this.handle = handle;
-        if (ItemCreator.getVersion().compareTo(21, 0).atLeast())
+        if (ItemCreator.getVersion().compareTo(21, 5).atLeast())
             this.compoundAccessor = new ModernCompoundWrapper(handle);
-        else
+        else if (ItemCreator.getVersion().compareTo(21, 0).atLeast()) {
+            this.compoundAccessor = new ModernCompoundWrapperTwentyOne(handle);
+        } else {
             this.compoundAccessor = new NbtCompoundWrapper(handle);
+        }
     }
 
     /**

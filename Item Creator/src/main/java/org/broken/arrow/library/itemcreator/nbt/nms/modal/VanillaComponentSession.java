@@ -7,6 +7,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public final class VanillaComponentSession implements ComponentEditor {
      */
     public VanillaComponentSession(@Nonnull final Object nmsStack) {
         this.nmsStack = nmsStack;
-        this.cachedRoot = loadRootComponentMap(nmsStack);
+        this.cachedRoot = ComponentAccess.loadRootComponentMap(nmsStack);
     }
 
     /**
@@ -298,8 +299,9 @@ public final class VanillaComponentSession implements ComponentEditor {
         }
     }
 
+
     @SuppressWarnings("unchecked")
-    private Map<String, Object> loadRootComponentMap(Object nmsStack) {
+    private Map<String, Object> loadRootComponentMapremove(Object nmsStack) {
         Map<String, Object> out = new HashMap<>();
 
         try {
@@ -316,4 +318,5 @@ public final class VanillaComponentSession implements ComponentEditor {
         }
         return out;
     }
+
 }
