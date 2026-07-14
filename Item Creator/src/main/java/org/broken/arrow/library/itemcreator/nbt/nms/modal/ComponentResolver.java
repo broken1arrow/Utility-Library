@@ -68,13 +68,10 @@ public class ComponentResolver {
 
             createMethod = lookup.unreflect(mCreate);
             registryGetMethod = lookup.unreflect(mGet);
-
-            try {
+            if (ItemCreator.getVersion().compareTo(21, 0).atLeast()) {
                 holderClass = Class.forName("net.minecraft.core.Holder");
                 Method valueMethod = holderClass.getMethod("value");
                 holderValueMethod = lookup.unreflect(valueMethod);
-            } catch (ClassNotFoundException | NoSuchMethodException ignored) {
-                // Older versions don't have Holders, which is fine
             }
 
         } catch (Exception ex) {
@@ -116,24 +113,25 @@ public class ComponentResolver {
         try {
             final String keyChecked = rl(key);
 
-            // 1. Create ResourceLocation (Automatically uses 'parse' or 'new' based on static block)
+            //Create ResourceLocation (Automatically uses 'parse' or 'new constructor instance' based on static block)
             final Object componentRL = CREATE_RESOURCE_LOCATION.invoke(keyChecked);
 
-            // 2. Create ResourceKey<DataComponentType>
+            //Create ResourceKey<DataComponentType>
             final Object resourceKey = CREATE_METHOD.invoke(
                     DATA_COMPONENT_REGISTRY_KEY,
                     componentRL
             );
-            // 3. Fetch component type from registry
+            //Fetch component type from registry
             Object registryResult = REGISTRY_GET_METHOD.invoke(DATA_COMPONENT_REGISTRY, resourceKey);
-            // 4. Unwrap Optional if Minecraft wrapped it (1.20.5+)
+
+            //Unwrap Optional if Minecraft wrapped it (1.20.5+)
             if (registryResult instanceof Optional) {
                 Optional<?> opt = (Optional<?>) registryResult;
                 if (!opt.isPresent()) return null;
                 registryResult = opt.get();
             }
 
-            // 5. Unwrap Holder if Mojang wrapped it in a Reference/Holder (1.20.5+ Registry behavior)
+            // Unwrap Holder if Mojang wrapped it in a Reference/Holder (1.20.5+ Registry behavior)
             if (HOLDER_CLASS != null && HOLDER_CLASS.isInstance(registryResult)) {
                 registryResult = HOLDER_VALUE_METHOD.invoke(registryResult);
             }
