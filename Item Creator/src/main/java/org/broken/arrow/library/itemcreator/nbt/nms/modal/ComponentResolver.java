@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.nbt.nms.modal;
 
+import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.logging.Logging;
 
 import javax.annotation.Nullable;
@@ -36,7 +37,13 @@ public class ComponentResolver {
         try {
             final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-            final Class<?> resourceLocationClass = Class.forName("net.minecraft.resources.ResourceLocation");
+            Class<?> resourceLocationClass;
+            if (ItemCreator.getVersion().compareTo(21, 11).atLeast()) {
+                resourceLocationClass = Class.forName("net.minecraft.resources.Identifier");
+            } else {
+                resourceLocationClass = Class.forName("net.minecraft.resources.ResourceLocation");
+            }
+
             final Class<?> resourceKeyClass = Class.forName("net.minecraft.resources.ResourceKey");
             final Class<?> builtInRegistries = Class.forName("net.minecraft.core.registries.BuiltInRegistries");
 
