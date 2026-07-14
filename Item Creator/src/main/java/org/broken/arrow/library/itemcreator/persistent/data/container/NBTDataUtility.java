@@ -103,7 +103,13 @@ public final class NBTDataUtility {
      * UUIDs are stored in a 16-byte array (two longs).
      */
     public static class UUIDItemTagType {
-
+        /**
+         * Returns the primitive data that resembles the complex object passed to
+         * this method.
+         *
+         * @param uuid the UUID you want to convert.
+         * @return the primitive value
+         */
         @Nonnull
         public byte[] toPrimitive(@Nonnull final UUID uuid) {
             ByteBuffer buffer = ByteBuffer.allocate(16);
@@ -112,6 +118,12 @@ public final class NBTDataUtility {
             return buffer.array();
         }
 
+        /**
+         * Creates a complex object based of the passed primitive value
+         *
+         * @param bytes the primitive bytes value
+         * @return the complex object instance
+         */
         @Nonnull
         public UUID fromPrimitive(@Nonnull byte[] bytes) {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
@@ -129,6 +141,13 @@ public final class NBTDataUtility {
      */
     public static class ItemStackTagType {
 
+        /**
+         * Returns the primitive data that resembles the complex object passed to
+         * this method.
+         *
+         * @param complex the ItemStack you want to convert.
+         * @return the primitive value
+         */
         public String toPrimitive(@Nonnull final ItemStack complex) {
             try {
                 ByteArrayOutputStream io = new ByteArrayOutputStream();
@@ -143,6 +162,12 @@ public final class NBTDataUtility {
             }
         }
 
+        /**
+         * Creates a complex object based of the passed primitive value
+         *
+         * @param primitive the primitive bytes value
+         * @return the complex object instance
+         */
         public ItemStack fromPrimitive(@Nonnull final String primitive) {
             try {
                 byte[] serializedObject = Base64.getDecoder().decode(primitive);
