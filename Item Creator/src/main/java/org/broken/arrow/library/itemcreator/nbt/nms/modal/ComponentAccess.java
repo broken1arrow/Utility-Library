@@ -304,46 +304,4 @@ public final class ComponentAccess {
         return resLocOpt.get().invoke(keyObj);
     }
 
-    /**
-     * Get the id for the component.
-     *
-     * @param componentKey Get the component key.
-     * @return returns the name.
-     */
-    public static String getIdold(Object componentKey) {
-        try {
-            Object keyObj = null;
-            // Find field whose type ends with "ComponentTypeKey"
-            for (Field f : componentKey.getClass().getDeclaredFields()) {
-                if (f.getType().getSimpleName().contains("ComponentTypeKey")) {
-                    f.setAccessible(true);
-                    keyObj = f.get(componentKey);
-                    break;
-                }
-            }
-
-            if (keyObj == null) return null;
-
-            Object locObj = getResourceKeyr(keyObj);
-            if (locObj == null) return null;
-            // toString gives namespace:path
-            return locObj.toString();
-        } catch (Exception t) {
-            return null;
-        }
-    }
-
-    private static Object getResourceKeyr(final Object keyObj) throws IllegalAccessException {
-        Object locObj = null;
-        // Find field whose type ends with "MinecraftKey" or "ResourceLocation"
-        for (Field f : keyObj.getClass().getDeclaredFields()) {
-            String n = f.getType().getSimpleName();
-            if (n.contains("MinecraftKey") || n.contains("ResourceLocation")) {
-                f.setAccessible(true);
-                locObj = f.get(keyObj);
-                break;
-            }
-        }
-        return locObj;
-    }
 }

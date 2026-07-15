@@ -4,10 +4,13 @@ import org.broken.arrow.library.itemcreator.nbt.nms.ComponentFactory;
 import org.broken.arrow.library.itemcreator.nbt.nms.NbtWrapper;
 import org.broken.arrow.library.itemcreator.nbt.nms.api.CompoundEditor;
 import org.broken.arrow.library.itemcreator.nbt.nms.api.NbtEditor;
+import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Wraps a compound data object (either a legacy {@code NBTTagCompound} or a modern
@@ -31,7 +34,15 @@ import javax.annotation.Nullable;
  * and refer to its documentation, as behavior differs between 1.20.5+ and earlier versions.</p>
  */
 public class CompoundTag {
+    Logging logger = new Logging(CompoundTag.class);
     private final CompoundEditor compoundSession;
+
+    /**
+     * Don't invoke this constructor, use the public one.
+     */
+    private CompoundTag() {
+        this.compoundSession = null;
+    }
 
     /**
      * Creates a new {@link CompoundTag} for the given NBTTagCompound handle.
@@ -50,12 +61,26 @@ public class CompoundTag {
     }
 
     /**
+     * Just instance of the CompoundTag without a usage, used for
+     * crate instance for the get and create compound not return null.
+     *
+     * @return returns an empty non-functional instance.
+     */
+    public static CompoundTag empty() {
+        return new CompoundTag();
+    }
+
+    /**
      * Checks whether this {@link CompoundTag} contains the given key.
      *
      * @param key the NBT key to check
      * @return {@code true} if the key exists, otherwise {@code false}
      */
     public boolean hasKey(@Nonnull String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return false;
+        }
         return this.compoundSession.hasKey(key);
     }
 
@@ -66,6 +91,10 @@ public class CompoundTag {
      * @param key the key to remove
      */
     public void remove(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.remove(key);
     }
 
@@ -76,6 +105,10 @@ public class CompoundTag {
      * @param value the int value to assign
      */
     public void setInt(@Nonnull final String key, final int value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setInt(key, value);
     }
 
@@ -87,6 +120,10 @@ public class CompoundTag {
      * or if the key does not exist in the NBT data.
      */
     public int getInt(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return -1;
+        }
         return this.compoundSession.getInt(key);
     }
 
@@ -97,6 +134,10 @@ public class CompoundTag {
      * @param value the double value to assign
      */
     public void setDouble(@Nonnull final String key, final double value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setDouble(key, value);
     }
 
@@ -108,6 +149,10 @@ public class CompoundTag {
      * or if the key does not exist in the NBT data.
      */
     public double getDouble(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return -1.0;
+        }
         return this.compoundSession.getDouble(key);
     }
 
@@ -118,6 +163,10 @@ public class CompoundTag {
      * @param value the long  value to assign
      */
     public void setLong(@Nonnull String key, long value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setLong(key, value);
     }
 
@@ -129,6 +178,10 @@ public class CompoundTag {
      * or if the key does not exist in the NBT data.
      */
     public long getLong(@Nonnull String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return -1;
+        }
         return this.compoundSession.getLong(key);
     }
 
@@ -139,6 +192,10 @@ public class CompoundTag {
      * @param value the String value to assign
      */
     public void setString(@Nonnull final String key, final String value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setString(key, value);
     }
 
@@ -150,6 +207,10 @@ public class CompoundTag {
      * or {@code null} if the key does not exist in the NBT data.
      */
     public String getString(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return "";
+        }
         return this.compoundSession.getString(key);
     }
 
@@ -160,6 +221,10 @@ public class CompoundTag {
      * @param value the byte value to assign
      */
     public void setByte(@Nonnull final String key, final byte value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setByte(key, value);
     }
 
@@ -170,6 +235,10 @@ public class CompoundTag {
      * @return the stored byte value, or {@code -1} if unavailable
      */
     public byte getByte(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return -1;
+        }
         return this.compoundSession.getByte(key);
     }
 
@@ -183,6 +252,10 @@ public class CompoundTag {
      * @param value the byte array to store, may be {@code null} depending on implementation
      */
     public void setByteArray(@Nonnull final String key, final byte[] value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setByteArray(key, value);
     }
 
@@ -199,6 +272,10 @@ public class CompoundTag {
      */
     @Nullable
     public byte[] getByteArray(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return new byte[0];
+        }
         return this.compoundSession.getByteArray(key);
     }
 
@@ -213,6 +290,10 @@ public class CompoundTag {
      * @param value the byte array to store, may be {@code null} depending on implementation
      */
     public void setIntArray(@Nonnull final String key, final int[] value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setIntArray(key, value);
     }
 
@@ -229,6 +310,10 @@ public class CompoundTag {
      */
     @Nonnull
     public int[] getIntArray(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return new int[0];
+        }
         return this.compoundSession.getIntArray(key);
     }
 
@@ -242,6 +327,10 @@ public class CompoundTag {
      * @param value the byte array to store, may be {@code null} depending on implementation
      */
     public void setLongArray(@Nonnull final String key, final long[] value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setLongArray(key, value);
     }
 
@@ -258,6 +347,10 @@ public class CompoundTag {
      */
     @Nonnull
     public long[] getLongArray(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return new long[0];
+        }
         return this.compoundSession.getLongArray(key);
     }
 
@@ -268,6 +361,10 @@ public class CompoundTag {
      * @param value the boolean value to assign
      */
     public void setBoolean(@Nonnull final String key, final boolean value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setBoolean(key, value);
     }
 
@@ -278,6 +375,10 @@ public class CompoundTag {
      * @return the stored boolean value, or {@code false} if unavailable
      */
     public boolean getBoolean(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return false;
+        }
         return this.compoundSession.getBoolean(key);
     }
 
@@ -288,6 +389,10 @@ public class CompoundTag {
      * @param value the short value to assign
      */
     public void setShort(@Nonnull final String key, final short value) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return;
+        }
         this.compoundSession.setShort(key, value);
     }
 
@@ -298,7 +403,15 @@ public class CompoundTag {
      * @return the stored short value, or {@code -1} if unavailable
      */
     public short getShort(@Nonnull final String key) {
+        if (this.compoundSession == null) {
+            debugLog();
+            return (short) -1;
+        }
         return this.compoundSession.getShort(key);
+    }
+
+    private void debugLog() {
+        logger.log(Level.FINE, () -> "Can't use the Compund session as it is not set");
     }
 
 }

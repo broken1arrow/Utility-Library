@@ -142,17 +142,14 @@ public class CompoundSession implements CompoundEditor {
     }
 
     @Override
-    @NonNull
-    public int[] getIntArray(String key) {
+    public int @NonNull [] getIntArray(String key) {
         return this.compoundAccessor.getIntArray(key);
     }
 
     @Override
-    @NonNull
-    public long[] getLongArray(String key) {
+    public long @NonNull [] getLongArray(String key) {
         return this.compoundAccessor.getLongArray(key);
     }
-
 
     @Override
     public void setBoolean(@Nonnull final String key, final boolean value) {

@@ -1,6 +1,5 @@
 package org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.v_21;
 
-import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.NbtCompoundAccessor;
 import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
@@ -34,8 +33,6 @@ import java.util.logging.Level;
  */
 public class ModernCompoundWrapperTwentyOne implements NbtCompoundAccessor {
     private static final Logging logger = new Logging(ModernCompoundWrapperTwentyOne.class);
-    private static final boolean LEGACY_NBT_METHOD_NAMES = ItemCreator.getVersion().compareTo(18, 0).older();
-    private static final boolean LEGACY_NBT_METHOD_AT_LEAST_12 = ItemCreator.getVersion().compareTo(12, 0).atLeast();
 
     private static final MethodHandle hasKey;
     private static final MethodHandle remove;
@@ -400,82 +397,6 @@ public class ModernCompoundWrapperTwentyOne implements NbtCompoundAccessor {
         return hasKey != null && getBoolean != null;
     }
 
-    private final static class NbtMethodMappings {
-        private final String hasKey;
-        private final String remove;
-
-        private final String setInt;
-        private final String getInt;
-
-        private final String setDouble;
-        private final String getDouble;
-
-        private final String getLong;
-        private final String setLong;
-
-        private final String setShort;
-        private final String getShort;
-
-        private final String setByte;
-        private final String getByte;
-
-        private final String setByteArray;
-        private final String getByteArray;
-
-        private final String setLongArray;
-        private final String getLongArray;
-
-        private final String getIntArray;
-        private final String setIntArray;
-
-        private final String setString;
-        private final String getString;
-
-        private final String setBoolean;
-        private final String getBoolean;
-
-
-        private NbtMethodMappings(boolean old) {
-            hasKey = "contains";
-            remove = "remove";
-
-            setInt = "putInt";
-            getInt = "getInt";
-
-            setDouble = "putDouble";
-            getDouble = "getDouble";
-
-            setLong = "putLong";
-            getLong = "getLong";
-
-            setShort = "putShort";
-            getShort = "getShort";
-
-            setByte = "putByte";
-            getByte = "getByte";
-
-            setByteArray = "putByteArray";
-            getByteArray = "getByteArray";
-
-            setIntArray = "putIntArray";
-            getIntArray = "getIntArray";
-
-            setLongArray = "putLongArray";
-            getLongArray = "getLongArray";
-
-            setString = "putString";
-            getString = "getString";
-
-            setBoolean = "putBoolean";
-            getBoolean = "getBoolean";
-        }
-
-        public static NbtMethodMappings of(boolean oldVersion) {
-            return new NbtMethodMappings(oldVersion);
-        }
-    }
-
-
     static {
         MethodHandle hasTagKey = null;
         MethodHandle removeM = null;
@@ -502,64 +423,64 @@ public class ModernCompoundWrapperTwentyOne implements NbtCompoundAccessor {
         try {
             final Class<?> nbtCompound = Class.forName(NbtPathsUtil.getCompoundPackage());
             final MethodHandles.Lookup lookup = MethodHandles.lookup();
-            NbtMethodMappings names = NbtMethodMappings.of(LEGACY_NBT_METHOD_NAMES);
 
-            hasTagKey = lookup.findVirtual(nbtCompound, names.hasKey,
+
+            hasTagKey = lookup.findVirtual(nbtCompound, "contains",
                     MethodType.methodType(boolean.class, String.class));
 
-            removeM = lookup.findVirtual(nbtCompound, names.remove,
+            removeM = lookup.findVirtual(nbtCompound, "remove",
                     MethodType.methodType(void.class, String.class));
 
-            setIntM = lookup.findVirtual(nbtCompound, names.setInt,
+            setIntM = lookup.findVirtual(nbtCompound,  "putInt",
                     MethodType.methodType(void.class, String.class, int.class));
-            getIntM = lookup.findVirtual(nbtCompound, names.getInt,
+            getIntM = lookup.findVirtual(nbtCompound, "getInt",
                     MethodType.methodType(int.class, String.class));
 
-            setDoubleM = lookup.findVirtual(nbtCompound, names.setDouble,
+            setDoubleM = lookup.findVirtual(nbtCompound, "putDouble",
                     MethodType.methodType(void.class, String.class, double.class));
-            getDoubleM = lookup.findVirtual(nbtCompound, names.getDouble,
+            getDoubleM = lookup.findVirtual(nbtCompound, "getDouble",
                     MethodType.methodType(double.class, String.class));
 
-            setLongM = lookup.findVirtual(nbtCompound, names.setLong,
+            setLongM = lookup.findVirtual(nbtCompound, "putLong",
                     MethodType.methodType(void.class, String.class, long.class));
-            getLongM = lookup.findVirtual(nbtCompound, names.getLong,
+            getLongM = lookup.findVirtual(nbtCompound, "getLong",
                     MethodType.methodType(long.class, String.class));
 
-            setShortM = lookup.findVirtual(nbtCompound, names.setShort,
+            setShortM = lookup.findVirtual(nbtCompound, "putShort",
                     MethodType.methodType(void.class, String.class, short.class));
-            getShortM = lookup.findVirtual(nbtCompound, names.getShort,
+            getShortM = lookup.findVirtual(nbtCompound,  "getShort",
                     MethodType.methodType(short.class, String.class));
 
-            setByteM = lookup.findVirtual(nbtCompound, names.setByte,
+            setByteM = lookup.findVirtual(nbtCompound,  "putByte",
                     MethodType.methodType(void.class, String.class, byte.class));
-            getByteM = lookup.findVirtual(nbtCompound, names.getByte,
+            getByteM = lookup.findVirtual(nbtCompound, "getByte",
                     MethodType.methodType(byte.class, String.class));
 
-            setByteArrayM = lookup.findVirtual(nbtCompound, names.setByteArray,
+            setByteArrayM = lookup.findVirtual(nbtCompound, "putByteArray",
                     MethodType.methodType(void.class, String.class, byte[].class));
-            getByteArrayM = lookup.findVirtual(nbtCompound, names.getByteArray,
+            getByteArrayM = lookup.findVirtual(nbtCompound, "getByteArray",
                     MethodType.methodType(byte[].class, String.class));
 
-            setIntArrayM = lookup.findVirtual(nbtCompound, names.setIntArray,
+            setIntArrayM = lookup.findVirtual(nbtCompound, "putIntArray",
                     MethodType.methodType(void.class, String.class, int[].class));
-            getIntArrayM = lookup.findVirtual(nbtCompound, names.getIntArray,
+            getIntArrayM = lookup.findVirtual(nbtCompound, "getIntArray",
                     MethodType.methodType(int[].class, String.class));
 
 
-            setLongArrayM = lookup.findVirtual(nbtCompound, names.setLongArray,
+            setLongArrayM = lookup.findVirtual(nbtCompound, "putLongArray",
                     MethodType.methodType(void.class, String.class, long[].class));
-            getLongArrayM = lookup.findVirtual(nbtCompound, names.getLongArray,
+            getLongArrayM = lookup.findVirtual(nbtCompound, "getLongArray",
                     MethodType.methodType(long[].class, String.class));
 
 
-            setStringM = lookup.findVirtual(nbtCompound, names.setString,
+            setStringM = lookup.findVirtual(nbtCompound, "putString",
                     MethodType.methodType(void.class, String.class, String.class));
-            getStringM = lookup.findVirtual(nbtCompound, names.getString,
+            getStringM = lookup.findVirtual(nbtCompound, "getString",
                     MethodType.methodType(String.class, String.class));
 
-            setBooleanM = lookup.findVirtual(nbtCompound, names.setBoolean,
+            setBooleanM = lookup.findVirtual(nbtCompound, "putBoolean",
                     MethodType.methodType(void.class, String.class, boolean.class));
-            getBooleanM = lookup.findVirtual(nbtCompound, names.getBoolean,
+            getBooleanM = lookup.findVirtual(nbtCompound, "getBoolean",
                     MethodType.methodType(boolean.class, String.class));
 
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {

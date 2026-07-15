@@ -17,14 +17,6 @@ public interface CompoundEditor {
     }
 
     /**
-     * This handle is the NBTTagCompound object.
-     *
-     * @return returns the NBTTagCompound object.
-     */
-    @Nonnull
-    Object getHandle();
-
-    /**
      * Checks whether this {@link CompoundTag} contains the given key.
      *
      * @param key the NBT key to check
@@ -228,4 +220,12 @@ public interface CompoundEditor {
      */
     @Nonnull
     long[] getLongArray(String key);
+
+    /**
+     * This handle is the NBTTagCompound object.
+     *
+     * @return returns the NBTTagCompound object.
+     */
+    @Nonnull
+    Object getHandle();
 }

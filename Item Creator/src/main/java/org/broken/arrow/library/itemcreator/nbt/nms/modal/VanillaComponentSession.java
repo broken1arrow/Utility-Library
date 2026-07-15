@@ -40,22 +40,12 @@ public final class VanillaComponentSession implements ComponentEditor {
         this.cachedRoot = ComponentAccess.loadRootComponentMap(nmsStack);
     }
 
-    /**
-     * Set the int value to the raw compound.
-     *
-     * @param key   component key.
-     * @param value a number
-     */
     @Override
     public void setInt(@Nonnull final String key, final int value) {
         buffer.put(key, value);
     }
 
-    /**
-     * Retrieve the int value from  the raw compound.
-     *
-     * @param key component key.
-     */
+
     @Override
     public int getInt(@Nonnull final String key) {
         Object v = getRaw(key);
@@ -90,22 +80,11 @@ public final class VanillaComponentSession implements ComponentEditor {
         return -1;
     }
 
-    /**
-     * Set the String value to the raw compound.
-     *
-     * @param key   component key.
-     * @param value a string
-     */
     @Override
     public void setString(@Nonnull final String key, final String value) {
         buffer.put(key, value);
     }
 
-    /**
-     * Retrieve the String value from the raw compound.
-     *
-     * @param key component key.
-     */
     @Override
     @Nonnull
     public String getString(@Nonnull final String key) {
@@ -166,24 +145,12 @@ public final class VanillaComponentSession implements ComponentEditor {
         return new long[0];
     }
 
-    /**
-     * Set the String value to the raw compound.
-     *
-     * @param key   component key.
-     * @param value true or false
-     */
     @Override
     public void setBoolean(@Nonnull final String key, boolean value) {
         buffer.put(key, value);
     }
 
-    /**
-     * Retrieve the boolean value from the raw compound.
-     *
-     * @param key component key.
-     * @return Returns {@code true} if value exists and set to true. Check
-     * with {@link #hasKey(String)} to make sure the key is set.
-     */
+
     @Override
     public boolean getBoolean(@Nonnull final String key) {
         Object v = getRaw(key);
@@ -212,23 +179,14 @@ public final class VanillaComponentSession implements ComponentEditor {
         return "";
     }
 
-    /**
-     * Checks whether a component key exists in the underlying NMS ItemStack.
-     *
-     * @param key component key
-     * @return true if the key exists
-     */
+
     @Override
     public boolean hasKey(@Nonnull String key) {
         Object type = getRaw(key);
         return type != null;
     }
 
-    /**
-     * Remove a component from the "components" compound
-     *
-     * @param key component key.
-     */
+    @Override
     public void remove(@Nonnull String key) {
         Object type = ComponentAccess.resolve(key);
         ComponentAccess.removeComponent(nmsStack, type);
@@ -248,16 +206,13 @@ public final class VanillaComponentSession implements ComponentEditor {
             return buffer.get(key);
 
         // Cached root snapshot
-        Object v = cachedRoot.get(key);
-        if (v != null)
-            return v;
+        if (cachedRoot.containsKey(key))
+            return cachedRoot.get(key);
 
         // Slow path: read from NMS once
         Object type = ComponentAccess.resolve(key);
-        v = ComponentAccess.getComponent(nmsStack, type);
-        if (v != null) {
+        Object v = ComponentAccess.getComponent(nmsStack, type);
             cachedRoot.put(key, v);
-        }
         return v;
     }
 
@@ -283,40 +238,6 @@ public final class VanillaComponentSession implements ComponentEditor {
         }
 
         buffer.clear();
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<Object, Object> loadRootComponentMapOld(Object nmsStack) {
-        try {
-            Field f = nmsStack.getClass().getDeclaredField("components");
-            f.setAccessible(true);
-
-            Object container = f.get(nmsStack); // vanilla ComponentMap
-            return new HashMap<>((Map<Object, Object>) container);
-        } catch (Exception ex) {
-            logger.logError(ex, () -> "Could not read vanilla component root map");
-            return new HashMap<>();
-        }
-    }
-
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> loadRootComponentMapremove(Object nmsStack) {
-        Map<String, Object> out = new HashMap<>();
-
-        try {
-            Field f = nmsStack.getClass().getDeclaredField("components");
-            f.setAccessible(true);
-            Map<Object, Object> container = (Map<Object, Object>) f.get(nmsStack);
-
-            for (Map.Entry<Object, Object> entry : container.entrySet()) {
-                String id = ComponentAccess.getId(entry.getKey()); // e.g. "minecraft:damage"
-                out.put(id, entry.getValue());
-            }
-        } catch (Exception ex) {
-            logger.logError(ex, () -> "Could not read vanilla component root map");
-        }
-        return out;
     }
 
 }
