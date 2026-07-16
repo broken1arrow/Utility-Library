@@ -38,7 +38,8 @@ public class CompoundTag {
     private final CompoundEditor compoundSession;
 
     /**
-     * Don't invoke this constructor, use the public one.
+     * Private constructor used exclusively to initialize the singleton empty sentinel.
+     * Prevents external instantiation of unbacked compound tags.
      */
     private CompoundTag() {
         this.compoundSession = null;
@@ -61,10 +62,13 @@ public class CompoundTag {
     }
 
     /**
-     * Just instance of the CompoundTag without a usage, used for
-     * crate instance for the get and create compound not return null.
+     * Returns a non-functional, empty {@link CompoundTag} sentinel.
+     * * <p>This sentinel is used primarily as a safe, non-null fallback during
+     * write operations (like {@link NbtEditor#getOrCreateCompound(String)}) if an internal
+     * NMS error occurs. This prevents chain-write calls from throwing
+     * {@link NullPointerException}s.</p>
      *
-     * @return returns an empty non-functional instance.
+     * @return a safe, non-null, non-functional empty tag instance
      */
     public static CompoundTag empty() {
         return new CompoundTag();

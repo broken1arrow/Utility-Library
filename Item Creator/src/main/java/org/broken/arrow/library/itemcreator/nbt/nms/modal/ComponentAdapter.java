@@ -334,7 +334,7 @@ public class ComponentAdapter implements NbtEditor {
             return new CompoundTag(nested);
         } catch (Throwable t) {
             logger.logError(t, () -> "Could not get or set the custom component.");
-            return null;
+            return create ? CompoundTag.empty() : null;
         }
     }
 
