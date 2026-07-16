@@ -76,7 +76,7 @@ public class ComponentAdapter implements NbtEditor {
     private static final Object CUSTOM_DATA_TYPE_KEY;
     private static final boolean READY;
 
-    private static final MethodHandle COMPOUND_IS_EMPTY  ;
+    private static final MethodHandle COMPOUND_IS_EMPTY;
 
     static {
         boolean ok = true;
@@ -102,7 +102,7 @@ public class ComponentAdapter implements NbtEditor {
             compoundClass = Class.forName("net.minecraft.nbt.CompoundTag");
 
             asNms = LOOKUP.findStatic(craftItem, "asNMSCopy", MethodType.methodType(itemStack, ItemStack.class));
-            if(ItemCreator.getVersion().compareTo(21,0).atLeast()) {
+            if (ItemCreator.getVersion().compareTo(21, 0).atLeast()) {
                 asBukkit = LOOKUP.findStatic(craftItem, "asCraftMirror", MethodType.methodType(craftItem, itemStack));
             } else {
                 asBukkit = LOOKUP.findStatic(craftItem, "asBukkitCopy", MethodType.methodType(ItemStack.class, itemStack));
@@ -183,18 +183,6 @@ public class ComponentAdapter implements NbtEditor {
         this.originalBukkit = stack;
         this.nmsStack = toNms(stack);
         this.rootCustomDataCache = loadRootFromItem(this.nmsStack);
-
-      /*  if (this.rootCustomDataCache == null) {
-            rootCustomDataContains = null;
-            return;
-        }
-
-        try {
-            Method contains = rootCustomDataCache.getClass().getMethod("contains", String.class);
-            rootCustomDataContains = LOOKUP.unreflect(contains);
-        } catch (NoSuchMethodException | IllegalAccessException e) {
-            logger.logError(e, () -> "Could not find the contains method ComponentItemDataSession reflections");
-        }*/
     }
 
     @Nonnull
@@ -226,9 +214,8 @@ public class ComponentAdapter implements NbtEditor {
             if (vanillaSession != null && vanillaSession.hasKey(name)) {
                 return true;
             }
-
-            // Then check if it already exists on the actual NMS ItemStack
             try {
+                // Then check if it already exists on the actual NMS ItemStack
                 // ITEMSTACK_GET returns null if the component isn't present
                 return ITEMSTACK_GET.invoke(nmsStack, resolvedComponentType) != null;
             } catch (Throwable t) {
@@ -247,16 +234,17 @@ public class ComponentAdapter implements NbtEditor {
         }
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public CompoundTag getOrCreateCompound() {
         return getOrCreateCompound("");
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public CompoundTag getOrCreateCompound(@Nonnull String name) {
-        return getInternalCompound(name, true);
+        CompoundTag internalCompound = getInternalCompound(name, true);
+        return internalCompound == null ? CompoundTag.empty() : internalCompound;
     }
 
     @Nullable
@@ -327,9 +315,14 @@ public class ComponentAdapter implements NbtEditor {
 
     }
 
-    private CompoundTag getInternalCompound(final String name,final boolean create) {
+    private CompoundTag getInternalCompound(final String name, final boolean create) {
+        if (!READY) {
+            return null;
+        }
+
         try {
-            if(name.isEmpty() && create) {
+            if (name.isEmpty()) {
+                if (!create) return null;
                 if (vanillaSession == null)
                     vanillaSession = new VanillaComponentSession(nmsStack);
                 return new VanillaComponentTag(this.rootCustomDataCache, vanillaSession);
@@ -359,36 +352,10 @@ public class ComponentAdapter implements NbtEditor {
             return new CompoundTag(nested);
         } catch (Throwable t) {
             logger.logError(t, () -> "Could not get or set the custom component.");
-            return create ? CompoundTag.empty() : null;
-        }
-    }
-
-    private CompoundTag getInternalCompoundd(String name, boolean create) {
-        try {
-            if (rootCustomDataCache == null) {
-                if (!create) return null;
-                rootCustomDataCache = NMS_COMPOUND_CLASS.getDeclaredConstructor().newInstance();
-            }
-
-            if (name.isEmpty()) return new CompoundTag(rootCustomDataCache);
-
-            Method contains = rootCustomDataCache.getClass().getMethod("contains", String.class);
-            boolean exists = (boolean) contains.invoke(rootCustomDataCache, name);
-            Object nested;
-            if (!exists) {
-                if (!create) return null;
-                nested = NMS_COMPOUND_CLASS.getDeclaredConstructor().newInstance();
-                NMS_COMPOUND_PUT.invoke(rootCustomDataCache, name, nested);
-            } else {
-                Method getComp = rootCustomDataCache.getClass().getMethod("getCompound", String.class);
-                nested = getComp.invoke(rootCustomDataCache, name);
-            }
-            return new CompoundTag(nested);
-        } catch (Throwable t) {
-            logger.logError(t, () -> "Could not set the custom component.");
             return null;
         }
     }
+
 
     // -------------------- reflection helpers --------------------
     private static Method findMethod(Class<?> holder, Class<?> returnType, Class<?>... params) {
