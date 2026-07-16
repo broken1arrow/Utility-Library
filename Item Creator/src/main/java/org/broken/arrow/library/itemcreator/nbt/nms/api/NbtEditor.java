@@ -73,7 +73,7 @@ public interface NbtEditor {
      *
      * @return the root {@link CompoundTag}, never {@code null} unless reflection failed.
      */
-    @Nullable
+    @Nonnull
     CompoundTag getOrCreateCompound();
 
     /**

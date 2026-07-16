@@ -6,8 +6,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -179,6 +177,14 @@ public final class VanillaComponentSession implements ComponentEditor {
         return "";
     }
 
+    /**
+     * Checks if the session contains any active components, whether pre-existing or pending.
+     *
+     *  @return true if this item has one or more components/tags.
+     */
+    public boolean hasKeys() {
+       return !this.buffer.isEmpty() || !this.cachedRoot.isEmpty();
+    }
 
     @Override
     public boolean hasKey(@Nonnull String key) {
@@ -191,6 +197,7 @@ public final class VanillaComponentSession implements ComponentEditor {
         Object type = ComponentAccess.resolve(key);
         ComponentAccess.removeComponent(nmsStack, type);
         buffer.remove(key);
+        cachedRoot.remove(key);
     }
 
     /**

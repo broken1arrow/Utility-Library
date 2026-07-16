@@ -213,13 +213,32 @@ public class ComponentAdapter implements NbtEditor {
 
     @Override
     public boolean hasTag() {
-        return rootCustomDataCache != null;
+        return rootCustomDataCache != null || (vanillaSession != null && vanillaSession.hasKeys());
     }
 
     @Override
     public boolean hasTag(@Nonnull final String name) {
+
+        // 1. Resolve to see if it's a registered Vanilla Data Component (e.g. "minecraft:custom_name")
+        final Object resolvedComponentType = ComponentAccess.resolve(name);
+        if (resolvedComponentType != null) {
+            // First check if it is sitting in our unsaved fast-track buffer
+            if (vanillaSession != null && vanillaSession.hasKey(name)) {
+                return true;
+            }
+
+            // Then check if it already exists on the actual NMS ItemStack
+            try {
+                // ITEMSTACK_GET returns null if the component isn't present
+                return ITEMSTACK_GET.invoke(nmsStack, resolvedComponentType) != null;
+            } catch (Throwable t) {
+                return false;
+            }
+        }
+        // 2. Otherwise, fall back to checking our custom_data NBT compound
         if (rootCustomDataCache == null || NMS_COMPOUND_CONTAINS == null) return false;
-        if (name.isEmpty()) return true;
+        if (name.isEmpty()) return false;
+
         try {
             Object hasTag = NMS_COMPOUND_CONTAINS.invoke(rootCustomDataCache, name);
             return hasTag != null && (boolean) hasTag;
@@ -308,8 +327,14 @@ public class ComponentAdapter implements NbtEditor {
 
     }
 
-    private CompoundTag getInternalCompound(String name, boolean create) {
+    private CompoundTag getInternalCompound(final String name,final boolean create) {
         try {
+            if(name.isEmpty() && create) {
+                if (vanillaSession == null)
+                    vanillaSession = new VanillaComponentSession(nmsStack);
+                return new VanillaComponentTag(this.rootCustomDataCache, vanillaSession);
+            }
+
             if (rootCustomDataCache == null) {
                 if (!create) return null;
                 // Use MethodHandle for Constructor
