@@ -65,6 +65,11 @@ public class CompoundSession implements CompoundEditor {
     }
 
     @Override
+    public boolean isEmpty() {
+        return this.compoundAccessor.isEmpty();
+    }
+
+    @Override
     public void remove(@Nonnull final String key) {
         this.compoundAccessor.remove(key);
     }

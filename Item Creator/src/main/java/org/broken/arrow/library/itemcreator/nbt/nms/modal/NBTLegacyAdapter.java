@@ -9,6 +9,7 @@ import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,6 +17,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import java.util.logging.Level;
 
 
@@ -47,14 +49,19 @@ public class NBTLegacyAdapter implements NbtEditor {
     private static final MethodHandle HAS_TAG;
     private static final MethodHandle GET_TAG;
     private static final MethodHandle SET_TAG;
+    private static final MethodHandle COMPOUND_IS_EMPTY;
+
     private static final Constructor<?> nbtTagConstructor;
     private static final MethodHandle GET_NESTED_COMPOUND;
     private static final MethodHandle SET_NESTED_COMPOUND;
+
 
     private static final boolean REFLECTION_READY;
     private final Object nmsItemCopy;
     private final ItemStack bukkitItem;
     private CompoundState compoundState = CompoundState.NOT_CREATED;
+
+
 
     static {
         Constructor<?> tagConstructor = null;
@@ -65,6 +72,7 @@ public class NBTLegacyAdapter implements NbtEditor {
         MethodHandle nMSCopyItem = null;
         MethodHandle getNestedCompound = null;
         MethodHandle setNestedCompound = null;
+        MethodHandle isEmptyM = null;
         boolean reflectionDone = false;
 
         try {
@@ -83,6 +91,8 @@ public class NBTLegacyAdapter implements NbtEditor {
             bukkitCopy = lookup.findStatic(craftItemStack, "asBukkitCopy",
                     MethodType.methodType(ItemStack.class, nmsItemStack));
 
+            isEmptyM = lookup.findVirtual(nbtTagCompound, itemTagName.getEmptyName(),
+                    MethodType.methodType(boolean.class));
 
             hasNBTTag = lookup.findVirtual(nmsItemStack, itemTagName.hasTagName(),
                     MethodType.methodType(boolean.class));
@@ -110,6 +120,7 @@ public class NBTLegacyAdapter implements NbtEditor {
         NMS_ITEM_COPY = nMSCopyItem;
         GET_NESTED_COMPOUND = getNestedCompound;
         SET_NESTED_COMPOUND = setNestedCompound;
+        COMPOUND_IS_EMPTY = isEmptyM;
         REFLECTION_READY = reflectionDone;
 
     }
@@ -158,22 +169,16 @@ public class NBTLegacyAdapter implements NbtEditor {
         }
     }
 
-    @Nonnull
     @Override
-    public CompoundTag getVanillaTagEditor() {
-        return new CompoundTag(this.getCompound());
+    public @NonNull CompoundTag getOrCreateCompound() {
+        CompoundTag internalCompound = getInternalCompound("", false);
+        return internalCompound == null? CompoundTag.empty() : internalCompound;
     }
 
     @Override
-    @Nullable
-    public CompoundTag getOrCreateCompound() {
-        return getOrCreateCompoundTag("", false);
-    }
-
-    @Override
-    @Nullable
-    public CompoundTag getOrCreateCompound(@Nonnull final String name) {
-        return getOrCreateCompoundTag(name, true);
+    public @NonNull CompoundTag getOrCreateCompound(@Nonnull final String name) {
+        CompoundTag internalCompound = getInternalCompound(name, true);
+        return internalCompound == null? CompoundTag.empty(): internalCompound;
     }
 
     @Override
@@ -193,16 +198,19 @@ public class NBTLegacyAdapter implements NbtEditor {
     public ItemStack finalizeChanges() {
         if (!REFLECTION_READY || nmsItemCopy == null) return this.bukkitItem;
         if (compoundState != CompoundState.CREATED) {
-            logger.log(() -> "FinalizeChanges: " + compoundState.getMessage());
+            logger.log(Level.WARNING,() -> "FinalizeChanges: " + compoundState.getMessage());
             return this.bukkitItem;
         }
         try {
+
             Object compound = GET_TAG.invoke(nmsItemCopy);
             if (compound == null) {
-                logger.log(() -> "Failed to initialize the item creation, because the compound is not created yet.");
+                logger.log(Level.FINE,() -> "Failed to finalize the item creation, because the compound is not created yet. Returns the original itemStack without changes.");
                 return this.bukkitItem;
             }
-            SET_TAG.invoke(nmsItemCopy, compound);
+            boolean isEmpty = COMPOUND_IS_EMPTY != null &&  (boolean) COMPOUND_IS_EMPTY.invoke(compound);
+
+            SET_TAG.invoke(nmsItemCopy, isEmpty ? null: compound);
             return (ItemStack) AS_BUKKIT_ITEM_COPY.invoke(nmsItemCopy);
         } catch (Throwable e) {
             logger.logError(e, () -> "Failed to apply back to itemStack");
@@ -237,7 +245,7 @@ public class NBTLegacyAdapter implements NbtEditor {
      * @param usingName whether this call is intended for a named compound.
      * @return the requested {@link CompoundTag}, or null if reflection fails.
      */
-    private CompoundTag getOrCreateCompoundTag(final String name, final boolean usingName) {
+    private CompoundTag getInternalCompound(final String name, final boolean usingName) {
         if (usingName && name.isEmpty())
             logger.log(Level.FINE, () -> "Empty string passed to getOrCreateCompound(name). Use getOrCreateCompound() for root instead.");
         try {

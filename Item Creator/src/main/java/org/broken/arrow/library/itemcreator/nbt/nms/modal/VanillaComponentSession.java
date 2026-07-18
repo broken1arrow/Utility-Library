@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * Handle the new way where Minecraft using Codec and MinecraftKey, however in paper and newer spigot
@@ -29,7 +30,7 @@ public final class VanillaComponentSession implements ComponentEditor {
     }
 
     /**
-     * Create vanilla
+     * Create vanilla component session
      *
      * @param nmsStack the nms itemStack
      */
@@ -128,7 +129,7 @@ public final class VanillaComponentSession implements ComponentEditor {
     }
 
     @Override
-    public int @NonNull [] getIntArray(String key) {
+    public int @NonNull [] getIntArray(final String key) {
         Object v = getRaw(key);
         if (v instanceof int[])
             return (int[]) v;
@@ -136,7 +137,7 @@ public final class VanillaComponentSession implements ComponentEditor {
     }
 
     @Override
-    public long @NonNull [] getLongArray(String key) {
+    public long @NonNull [] getLongArray(final String key) {
         Object v = getRaw(key);
         if (v instanceof long[])
             return (long[]) v;
@@ -180,24 +181,45 @@ public final class VanillaComponentSession implements ComponentEditor {
     /**
      * Checks if the session contains any active components, whether pre-existing or pending.
      *
-     *  @return true if this item has one or more components/tags.
+     * @return true if this item has one or more components/tags.
      */
     public boolean hasKeys() {
-       return !this.buffer.isEmpty() || !this.cachedRoot.isEmpty();
+        return !this.buffer.isEmpty() || !this.cachedRoot.isEmpty();
+    }
+
+    /**
+     * Checks if the session contains any pending updates.
+     *
+     * @param key the NBT key to check
+     * @return true if this compund have tags set that sghould be applied.
+     */
+    public boolean hasPendingUpdates(@Nonnull final String key) {
+        return buffer.containsKey(key);
     }
 
     @Override
-    public boolean hasKey(@Nonnull String key) {
-        Object type = getRaw(key);
-        return type != null;
+    public boolean hasKey(@Nonnull final String key) {
+        if (buffer.containsKey(key))
+            return buffer.get(key) != null;
+        if (cachedRoot.containsKey(key))
+            return true;
+
+        final Object type = ComponentAccess.resolve(key);
+        return type != null && ComponentAccess.hasComponent(nmsStack, type);
     }
 
     @Override
-    public void remove(@Nonnull String key) {
-        Object type = ComponentAccess.resolve(key);
-        ComponentAccess.removeComponent(nmsStack, type);
-        buffer.remove(key);
-        cachedRoot.remove(key);
+    public boolean isEmpty() {
+        return !hasKeys();
+    }
+
+    @Override
+    public void remove(@Nonnull final String key) {
+        buffer.put(key, null);
+
+        if (cachedRoot != null) {
+            cachedRoot.remove(key);
+        }
     }
 
     /**
@@ -207,7 +229,7 @@ public final class VanillaComponentSession implements ComponentEditor {
      * @return the component object.
      */
     @Nullable
-    private Object getRaw(String key) {
+    private Object getRaw(final String key) {
         // Pending writes override everything
         if (buffer.containsKey(key))
             return buffer.get(key);
@@ -219,7 +241,7 @@ public final class VanillaComponentSession implements ComponentEditor {
         // Slow path: read from NMS once
         Object type = ComponentAccess.resolve(key);
         Object v = ComponentAccess.getComponent(nmsStack, type);
-            cachedRoot.put(key, v);
+        cachedRoot.put(key, v);
         return v;
     }
 
@@ -237,11 +259,20 @@ public final class VanillaComponentSession implements ComponentEditor {
 
                 // Resolve NMS component type
                 Object type = ComponentAccess.resolve(key);
-                // Write into NMS ItemStack
-                ComponentAccess.setComponent(nmsStack, type, value);
+                if (type == null) {
+                    logger.log(Level.WARNING, () -> "Skipping invalid data component key: " + key);
+                    continue;
+                }
+                if (value == null) {
+                    // Remove NMS type from ItemStack
+                    ComponentAccess.removeComponent(nmsStack, type);
+                } else {
+                    // Write into NMS ItemStack
+                    ComponentAccess.setComponent(nmsStack, type, value);
+                }
             }
         } catch (Exception t) {
-            logger.logError(t, () -> "Could not set the vanilla tags.");
+            logger.logError(t, () -> "Could not apply vanilla components state changes.");
         }
 
         buffer.clear();

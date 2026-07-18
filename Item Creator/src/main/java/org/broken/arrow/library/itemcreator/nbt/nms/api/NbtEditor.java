@@ -39,69 +39,37 @@ public interface NbtEditor {
     boolean hasTag(@Nonnull final String name);
 
     /**
-     * Provides access to the item's vanilla data container.
+     * Returns the root {@link CompoundTag}, creating it if it does not exist.
      *
-     * <ul>
-     *   <li><strong>1.20.5+</strong>: returns a Component-backed {@link CompoundTag}.</li>
-     *   <li><strong>Older versions</strong>: returns the existing NBT tag if present.
-     *       A new root compound is only created if you explicitly call
-     *       {@link #getOrCreateCompound()}, and custom sub-tags can be created via
-     *       {@link #getOrCreateCompound(String)}.</li>
-     * </ul>
-     *
-     * <p><strong>Note:</strong> On older versions, the returned {@link CompoundTag} may not be correctly loaded
-     * until you explicitly create a root tag with the {@link #getOrCreateCompound()} method.</p>
-     *
-     * @return the {@link CompoundTag} instance.
-     */
-    @Nonnull
-    CompoundTag getVanillaTagEditor();
-
-    /**
-     * Returns the root {@link CompoundTag} of this item, creating one if it does not exist.
-     * <p>
-     * <ul>
-     *   <li><strong>1.20.5+</strong>: You don't get the root tag, it will be created under {@code custom_data} tag,
-     *   use the {@link #getVanillaTagEditor()} to work under root tag.
-     *   </li>
-     *   <li><strong>Older versions</strong>: This method always operates on the root compound.
-     *   If you want a nested compound, use {@link #getOrCreateCompound(String)} with a specific name.
-     *   </li>
-     * </ul>
-     * This method always operates on the root compound. If you want a nested compound,
-     * use {@link #getOrCreateCompound(String)} with a specific name.
-     *
-     * @return the root {@link CompoundTag}, never {@code null} unless reflection failed.
+     * @return the root {@link CompoundTag}, never {@code null}
      */
     @Nonnull
     CompoundTag getOrCreateCompound();
 
     /**
-     * Returns a {@link CompoundTag} with the given name, creating it if it does not exist.
-     * <p>
+     * Returns a {@link CompoundTag} with the given name, creating it if necessary.
+     *
      * <ul>
-     *   <li><strong>1.20.5+</strong>: You don't get the root tag, it will be created under {@code custom_data} tag,
-     *   use the {@link #getVanillaTagEditor()} to work under root tag. Don't use empty name, as you risk collide with other plugins.
-     *   </li>
-     *   <li><strong>Older versions</strong>: Use a non-empty name if you want a nested compound separate from the root,
-     *   same as invoke {@link #getOrCreateCompound()}.
-     *   </li>
+     *   <li><strong>1.20.5+</strong>: Named compounds are stored under the
+     *   {@code custom_data} component. It is recommended to use {@link #getOrCreateCompound()}
+     *   for the root rather than using an empty string.</li>
+     *   <li><strong>Older versions</strong>: Non-empty names create nested compounds under the root.</li>
      * </ul>
      *
-     * @param name the name of the nested compound, or empty string for root.
-     * @return the existing or newly created {@link CompoundTag}, or {@code null} if reflection failed.
+     * @param name the name of the compound, or an empty string for the root
+     * @return the existing or newly created {@link CompoundTag}, never {@code null}
      */
-    @Nullable
+    @Nonnull
     CompoundTag getOrCreateCompound(@Nonnull final String name);
 
 
     /**
      * Returns the root {@link CompoundTag} if present.
      * <p>
-     * This method does not create a new compound. Use {@link #getOrCreateCompound()} to
-     * create a root compound if it does not exist.
+     * This method does not create a compound. Use {@link #getOrCreateCompound()}
+     * to create one if it does not exist.
      *
-     * @return the root {@link CompoundTag} if present, otherwise {@code null}.
+     * @return the root {@link CompoundTag}, or {@code null} if not present
      */
     @Nullable
     CompoundTag getCompound();
@@ -109,14 +77,11 @@ public interface NbtEditor {
     /**
      * Returns the {@link CompoundTag} with the given name if present.
      * <p>
-     * If {@code name} is empty (""), this returns the root compound.
-     * For a nested compound, pass a non-empty name.
-     * <p>
-     * This method does not create a compound; use {@link #getOrCreateCompound(String)}
-     * to create one if it does not exist.
+     * This method does not create a compound, use {@link #getOrCreateCompound(String)}
+     * if creation is required.
      *
-     * @param name the name of the nested compound, or empty string for root.
-     * @return the existing {@link CompoundTag} if present, otherwise {@code null}.
+     * @param name the name of the compound. For the root compound, prefer using {@link #getCompound()}.
+     * @return the existing {@link CompoundTag}, or {@code null} if not present
      */
     @Nullable
     CompoundTag getCompound(@Nonnull final String name);

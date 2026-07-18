@@ -35,6 +35,13 @@ public interface NbtCompoundAccessor {
     void remove(@Nonnull final String key);
 
     /**
+     * Check if the compound is empty.
+     *
+     * @return Returns true if the compound is empty.
+     */
+    boolean isEmpty();
+
+    /**
      * Sets an int value in the underlying NBTTagCompound.
      *
      * @param key   the key to set
@@ -242,4 +249,5 @@ public interface NbtCompoundAccessor {
      */
     @Nonnull
     Object getHandle();
+
 }

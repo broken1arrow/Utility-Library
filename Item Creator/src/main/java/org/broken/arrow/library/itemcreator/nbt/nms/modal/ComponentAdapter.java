@@ -19,6 +19,8 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Unified component layer for modern item data handling in Minecraft.
@@ -40,7 +42,7 @@ import java.lang.reflect.Modifier;
  *   <li><code>ComponentItemDataSession</code> handles <strong>CUSTOM_DATA</strong> only.
  *       Its reflection usage is lightweight and initialized eagerly in the static initializer.</li>
  *   <li><code>VanillaComponentSession</code> is a <em>lazy-loaded</em> static nested class.
- *       Its static initializer runs only when {@link #getVanillaTagEditor()} is called,
+ *       Its static initializer runs only when only when empty compound is called on 1.20.5+ and later,
  *       meaning the heavier reflection cost of vanilla component support is incurred only if used.</li>
  * </ul>
  *
@@ -58,6 +60,7 @@ import java.lang.reflect.Modifier;
 public class ComponentAdapter implements NbtEditor {
     private static final Logging logger = new Logging(ComponentAdapter.class);
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
+    private static final String VANILLA_ROOT = "vanilla_root";
     // Core handles (CUSTOM_DATA path)
     private static final MethodHandle AS_NMS_COPY;
     private static final MethodHandle AS_BUKKIT_COPY;
@@ -67,16 +70,16 @@ public class ComponentAdapter implements NbtEditor {
     private static final MethodHandle CUSTOMDATA_COPYTAG;
     private static final MethodHandle NMS_COMPOUND_PUT;
 
-    // --> NEW HANDLES ADDED HERE <--
+    // --> COMPUND METHODS <--
     private static final MethodHandle NMS_COMPOUND_NEW;
     private static final MethodHandle NMS_COMPOUND_CONTAINS;
     private static final MethodHandle NMS_COMPOUND_GET;
+    private static final MethodHandle NMS_COMPOUND_REMOVE;
+    private static final MethodHandle COMPOUND_IS_EMPTY;
 
     private static final Class<?> NMS_COMPOUND_CLASS;
     private static final Object CUSTOM_DATA_TYPE_KEY;
     private static final boolean READY;
-
-    private static final MethodHandle COMPOUND_IS_EMPTY;
 
     static {
         boolean ok = true;
@@ -90,6 +93,7 @@ public class ComponentAdapter implements NbtEditor {
         MethodHandle compoundNew = null;
         MethodHandle compoundContains = null;
         MethodHandle compoundGet = null;
+        MethodHandle compoundRemove = null;
         MethodHandle compoundIsEmpty = null;
         Class<?> compoundClass = null;
         Object customKey = null;
@@ -144,8 +148,11 @@ public class ComponentAdapter implements NbtEditor {
                     LOOKUP.unreflect(getCompMethod) :
                     LOOKUP.findVirtual(compoundClass, "getCompound", MethodType.methodType(compoundClass, String.class));
 
-            Method compoundIsEmptyMethod = customDataClass.getMethod("isEmpty");
+            Method compoundIsEmptyMethod = compoundClass.getMethod("isEmpty");
             compoundIsEmpty = LOOKUP.unreflect(compoundIsEmptyMethod);
+
+            compoundRemove = LOOKUP.findVirtual(compoundClass, "remove",
+                    MethodType.methodType(NbtPathsUtil.getTagInterfaceOrVoid(), String.class));
 
         } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException | NoSuchMethodException t) {
             logger.logError(t, () -> "Could not load ComponentItemDataSession reflections");
@@ -157,21 +164,22 @@ public class ComponentAdapter implements NbtEditor {
         ITEMSTACK_SET = set;
         CUSTOMDATA_OF = customOf;
         CUSTOMDATA_COPYTAG = copyTag;
-        NMS_COMPOUND_PUT = put;
         NMS_COMPOUND_CLASS = compoundClass;
         CUSTOM_DATA_TYPE_KEY = customKey;
         NMS_COMPOUND_NEW = compoundNew;
         NMS_COMPOUND_CONTAINS = compoundContains;
         NMS_COMPOUND_GET = compoundGet;
+        NMS_COMPOUND_PUT = put;
+        NMS_COMPOUND_REMOVE = compoundRemove;
         COMPOUND_IS_EMPTY = compoundIsEmpty;
 
         READY = ok;
     }
 
+    private Map<String, CompoundTag> compoundTagMap = new HashMap<>();
     private final ItemStack originalBukkit;
     private final Object nmsStack;
     private Object rootCustomDataCache; // mutable NMS CompoundTag (copy)
-    private MethodHandle rootCustomDataContains;
     private VanillaComponentSession vanillaSession;
 
     /**
@@ -185,13 +193,6 @@ public class ComponentAdapter implements NbtEditor {
         this.rootCustomDataCache = loadRootFromItem(this.nmsStack);
     }
 
-    @Nonnull
-    @Override
-    public VanillaComponentTag getVanillaTagEditor() {
-        if (vanillaSession == null)
-            vanillaSession = new VanillaComponentSession(nmsStack);
-        return new VanillaComponentTag(this.rootCustomDataCache, vanillaSession);
-    }
 
     // ---------------- NbtEditor API (custom-data only) ----------------
     @Override
@@ -243,7 +244,9 @@ public class ComponentAdapter implements NbtEditor {
     @Nonnull
     @Override
     public CompoundTag getOrCreateCompound(@Nonnull String name) {
-        CompoundTag internalCompound = getInternalCompound(name, true);
+        final CompoundTag internalCompound = getInternalCompound(name, true);
+        if (internalCompound != null)
+            compoundTagMap.put(name.isEmpty() ? VANILLA_ROOT : name, internalCompound);
         return internalCompound == null ? CompoundTag.empty() : internalCompound;
     }
 
@@ -256,7 +259,10 @@ public class ComponentAdapter implements NbtEditor {
     @Nullable
     @Override
     public CompoundTag getCompound(@Nonnull String name) {
-        return getInternalCompound(name, false);
+        final CompoundTag internalCompound = getInternalCompound(name, false);
+        if (internalCompound != null)
+            compoundTagMap.put(name.isEmpty() ? VANILLA_ROOT : name, internalCompound);
+        return internalCompound;
     }
 
     @Nonnull
@@ -298,6 +304,18 @@ public class ComponentAdapter implements NbtEditor {
 
     private void applyCustomDataCache() throws Throwable {
         if (rootCustomDataCache == null) return;
+
+        if (NMS_COMPOUND_REMOVE != null) {
+            for (Map.Entry<String, CompoundTag> tagEntry : compoundTagMap.entrySet()) {
+                CompoundTag compoundTag = tagEntry.getValue();
+                final String tag = tagEntry.getKey();
+                if (tag.equals(VANILLA_ROOT) || compoundTag instanceof VanillaComponentTag) continue;
+
+                if (compoundTag.isEmpty()) {
+                    NMS_COMPOUND_REMOVE.invoke(rootCustomDataCache, tag);
+                }
+            }
+        }
         // Check if cached NBT compound is empty
         boolean isEmpty = true;
         if (COMPOUND_IS_EMPTY != null) {
@@ -325,7 +343,7 @@ public class ComponentAdapter implements NbtEditor {
                 if (!create) return null;
                 if (vanillaSession == null)
                     vanillaSession = new VanillaComponentSession(nmsStack);
-                return new VanillaComponentTag(this.rootCustomDataCache, vanillaSession);
+                return new VanillaComponentTag(vanillaSession);
             }
 
             if (rootCustomDataCache == null) {

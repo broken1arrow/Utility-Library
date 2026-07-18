@@ -1,4 +1,4 @@
-package org.broken.arrow.library.itemcreator.nbt;
+package org.broken.arrow.library.itemcreator.nbt.data;
 
 import org.bukkit.inventory.ItemStack;
 

@@ -31,7 +31,10 @@ public class NBTCompoundMethodNames {
     public final String setNestedCompound;
     public final String getNestedCompound;
 
+    private final String isEmptyMethod;
+
     public final String getCompound;
+
 
     /**
      * Creates a new instance containing the correct method-name mappings
@@ -39,6 +42,7 @@ public class NBTCompoundMethodNames {
      * based on the current server version.
      */
     public NBTCompoundMethodNames() {
+        isEmptyMethod = "isEmpty";
         if (IS_LEGACY_PRE_1_18) {
             hasTagMethod = "hasTag";
             getTagMethod = "getTag";
@@ -111,6 +115,14 @@ public class NBTCompoundMethodNames {
         return this.getCompound;
     }
 
+    /**
+     * Retrieve the empty method name
+     *
+     * @return the method name used to get a compound tag.
+     */
+    public String getEmptyName() {
+        return isEmptyMethod;
+    }
 
     private String hasTagMethodName() {
         if (IS_NEWER_THAN_1_20) {

@@ -1,6 +1,6 @@
 package org.broken.arrow.library.itemcreator.persistent.data.container;
 
-import org.broken.arrow.library.itemcreator.nbt.NBTValue;
+import org.broken.arrow.library.itemcreator.nbt.data.NBTValue;
 import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
 import org.broken.arrow.library.logging.Logging;
 import org.bukkit.inventory.ItemStack;

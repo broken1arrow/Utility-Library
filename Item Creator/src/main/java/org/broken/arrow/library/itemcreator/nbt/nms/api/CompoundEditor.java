@@ -24,6 +24,12 @@ public interface CompoundEditor {
      */
     boolean hasKey(@Nonnull final String key);
 
+    /**
+     * Check if the compound is empty.
+     *
+     * @return Returns true if the compound is empty.
+     */
+    boolean isEmpty();
 
     /**
      * Remove this {@link CompoundTag} value and the given key.
@@ -228,4 +234,6 @@ public interface CompoundEditor {
      */
     @Nonnull
     Object getHandle();
+
+
 }

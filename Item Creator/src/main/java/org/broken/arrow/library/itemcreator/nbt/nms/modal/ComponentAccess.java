@@ -7,6 +7,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -21,6 +22,7 @@ public final class ComponentAccess {
 
     private static final MethodHandle SET;
     private static final MethodHandle GET;
+    private static final MethodHandle HAS;
     private static final MethodHandle REMOVE;
     private static final MethodHandle GET_COMPONENTS;
     private static final MethodHandle GET_TYPE;
@@ -33,11 +35,11 @@ public final class ComponentAccess {
     static {
         MethodHandle set = null;
         MethodHandle get = null;
+        MethodHandle has = null;
         MethodHandle remove = null;
         MethodHandle getComponents = null;
         MethodHandle getType = null;
         MethodHandle getValue = null;
-
 
         try {
             final MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -48,7 +50,11 @@ public final class ComponentAccess {
             final Method mSet = itemstackClass.getMethod("set", dataComponentTypeClass, Object.class);
             final Method mGet = itemstackClass.getMethod("get", dataComponentTypeClass);
             final Method mRemove = itemstackClass.getMethod("remove", dataComponentTypeClass);
-
+            final Method mHas = itemstackClass.getMethod("has", dataComponentTypeClass);
+            set = lookup.unreflect(mSet);
+            get = lookup.unreflect(mGet);
+            remove = lookup.unreflect(mRemove);
+            has = lookup.unreflect(mHas);
 
 
             Field componentsField = null;
@@ -78,17 +84,13 @@ public final class ComponentAccess {
             getType = lookup.unreflect(typeMethod);
             getValue = lookup.unreflect(valueMethod);
 
-            set = lookup.unreflect(mSet);
-            get = lookup.unreflect(mGet);
-            remove = lookup.unreflect(mRemove);
-
-
         } catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException t) {
             ready = false;
             logger.logError(t, () -> "Failed to preload ComponentAccess");
         }
         SET = set;
         GET = get;
+        HAS = has;
         REMOVE = remove;
         GET_COMPONENTS = getComponents;
         GET_TYPE = getType;
@@ -118,8 +120,9 @@ public final class ComponentAccess {
      * @param key the component key string
      * @return the DataComponentType instance.
      */
+    @Nullable
     public static Object resolve(String key) {
-        if (COMPONENT_RESOLVER == null) return "";
+        if (COMPONENT_RESOLVER == null) return null;
 
         return COMPONENT_RESOLVER.resolve(key);
     }
@@ -154,6 +157,22 @@ public final class ComponentAccess {
             logger.logError(e, () -> "Failed to get the component.");
         }
         return null;
+    }
+
+    /**
+     * Checks if the ItemStack contains the specified component type.
+     *
+     * @param nmsStack the nms itemStack
+     * @param type     the type of data.
+     * @return true if the component exists and is not explicitly removed.
+     */
+    public static boolean hasComponent(Object nmsStack, Object type) {
+        try {
+            return (boolean) HAS.invoke(nmsStack, type);
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to check if component exists.");
+        }
+        return false;
     }
 
     /**

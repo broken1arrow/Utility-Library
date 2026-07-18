@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * <p><strong>Reflection loading:</strong></p>
  * <ul>
  *   <li>Vanilla component support is loaded lazily.</li>
- *   <li>Reflection is initialized only when {@link ComponentAdapter#getVanillaTagEditor()} is called.</li>
+ *   <li>Reflection is initialized only when empty compound is called on 1.20.5+ and later.</li>
  *   <li>Method calls are safe — null checks and logging prevent server crashes if reflection is not ready.</li>
  * </ul>
  *
@@ -42,11 +42,10 @@ public final class VanillaComponentTag extends CompoundTag {
     /**
      * Constructs a new wrapper for editing vanilla component data.
      *
-     * @param base           the underlying component root object (not used directly)
      * @param vanillaSession the vanilla component session that performs all read/write operations
      */
-    public VanillaComponentTag(@Nonnull final Object base, @Nonnull final VanillaComponentSession vanillaSession) {
-        super(base);
+    public VanillaComponentTag(@Nonnull final VanillaComponentSession vanillaSession) {
+        super(new Object());
         this.vanillaSession = vanillaSession;
     }
 
@@ -70,6 +69,11 @@ public final class VanillaComponentTag extends CompoundTag {
     @Override
     public boolean hasKey(@Nonnull final String key) {
         return vanillaSession.hasKey(key);
+    }
+
+    @Override
+    public boolean isEmpty() {
+            return vanillaSession.isEmpty();
     }
 
     /**

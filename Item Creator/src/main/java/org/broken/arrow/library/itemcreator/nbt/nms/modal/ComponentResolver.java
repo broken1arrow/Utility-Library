@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ComponentResolver {
     private static final Logging logger = new Logging(ComponentResolver.class);
+    private static final Object INVALID_COMPONENT = new Object();
     private static final Map<String, Object> CACHE = new ConcurrentHashMap<>();
     private static final Object DATA_COMPONENT_REGISTRY;
     private static final MethodHandle CREATE_RESOURCE_LOCATION;
@@ -105,7 +106,10 @@ public class ComponentResolver {
      * @return the DataComponentType instance
      */
     public Object resolve(String key) {
-        return CACHE.computeIfAbsent(key, ComponentResolver::resolveInternal);
+        return CACHE.computeIfAbsent(key, k -> {
+            Object result = resolveInternal(k);
+            return result == null ? INVALID_COMPONENT : result;
+        });
     }
 
     @Nullable

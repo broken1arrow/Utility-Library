@@ -10,7 +10,6 @@ import org.broken.arrow.library.logging.Validate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Wraps a compound data object (either a legacy {@code NBTTagCompound} or a modern
@@ -30,8 +29,7 @@ import java.util.logging.Logger;
  *
  * <p>This class is intended for low-level operations. For high-level, version-independent
  * item data access, consider using {@link NbtWrapper}, which handles the creation of the compound
- * smoothly. Use {@link NbtWrapper#getSession()} to access {@link NbtEditor#getVanillaTagEditor()},
- * and refer to its documentation, as behavior differs between 1.20.5+ and earlier versions.</p>
+ * smoothly. </p>
  */
 public class CompoundTag {
     Logging logger = new Logging(CompoundTag.class);
@@ -100,6 +98,19 @@ public class CompoundTag {
             return;
         }
         this.compoundSession.remove(key);
+    }
+
+    /**
+     * Check if the compound is empty.
+     *
+     * @return Returns true if the compound is empty.
+     */
+    public boolean isEmpty() {
+        if (this.compoundSession == null) {
+            debugLog();
+            return false;
+        }
+        return this.compoundSession.isEmpty();
     }
 
     /**
