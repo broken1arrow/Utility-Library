@@ -337,7 +337,6 @@ public class ComponentAdapter implements NbtEditor {
         if (!READY) {
             return null;
         }
-
         try {
             if (name.isEmpty()) {
                 if (!create) return null;
