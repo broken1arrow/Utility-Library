@@ -1,6 +1,7 @@
-package org.broken.arrow.library.database.builders.wrappers;
+package org.broken.arrow.library.database.builders.wrappers.query;
 
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
+import org.broken.arrow.library.database.builders.wrappers.SaveRecord;
 import org.broken.arrow.library.database.core.SQLDatabaseQuery;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 

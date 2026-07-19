@@ -1,12 +1,14 @@
 package org.broken.arrow.library.database.builders;
 
 import org.broken.arrow.library.database.utility.WhereClauseFunction;
+import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Wrapper used in SQL/database operations to combine
@@ -27,6 +29,7 @@ public class DataWrapper {
     private final ConfigurationSerializable configurationSerialize;
     private final Object value;
     private PrimaryWrapper primaryWrapper;
+    private Consumer<SqlResultRow> callback;
 
     /**
      * Creates a new {@code DataWrapper} using primary key data
@@ -97,14 +100,42 @@ public class DataWrapper {
      * tables that define composite (multi-column) primary keys.
      * </p>
      *
-     *
      * @return legacy primary key value
-     *
      * @deprecated Use {@link PrimaryWrapper#getPrimaryKeys()} when writing data.
      */
     @Deprecated
     public Object getPrimaryValue() {
         return value;
+    }
+
+    /**
+     * Registers a callback to capture and process auto-generated keys or updated column values
+     * returned by the database execution engine for this specific data unit.
+     * <p>
+     * When performing batch insertions or updates, this callback allows developers to intercept
+     * database-managed primary keys (such as {@code AUTOINCREMENT} IDs) or structural increments
+     * immediately after this payload is written to the table.
+     * </p>
+     *
+     * @param callback The consumer callback that will receive the populated {@link SqlResultRow}; cannot be null.
+     * @throws NullPointerException if the provided callback is null.
+     */
+    public void getGeneratedKeyCallback(@Nonnull final Consumer<SqlResultRow> callback) {
+        this.callback = callback;
+    }
+
+    /**
+     * Retrieves the registered generated-key callback mapped to this payload.
+     * <p>
+     * Used internally by the execution engine to bridge user-configured callbacks from the high-level
+     * data structure down into the final compiled execution parameters.
+     * </p>
+     *
+     * @return The registered {@link Consumer} callback, or {@code null} if no callback was configured.
+     */
+    @Nullable
+    public Consumer<SqlResultRow> getGeneratedKeyCallback() {
+        return this.callback;
     }
 
     /**
@@ -181,7 +212,7 @@ public class DataWrapper {
         /**
          * Returns the primary key column-value mappings.
          *
-         * @param key   primary key column name
+         * @param key primary key column name
          * @return the value to your primary key or {@code null} if not exist.
          */
         @Nullable

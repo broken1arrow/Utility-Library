@@ -2,6 +2,9 @@ package org.broken.arrow.library.database.core.databases;
 
 import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.database.connection.HikariCP;
+import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
+import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.core.SQLDatabaseQuery;
 import org.broken.arrow.library.database.utility.DatabaseCommandConfig;
 import org.broken.arrow.library.logging.Logging;
@@ -12,6 +15,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Represents an H2 database connection handler, supporting both direct JDBC connections
@@ -55,7 +60,7 @@ public class H2DB extends SQLDatabaseQuery {
      * @param hikariClazzPath the fully qualified class name of the HikariCP configuration class to check.
      * @param dbPath          a {@link DBPath} object containing the database file location.
      */
-    public H2DB(@Nonnull final String hikariClazzPath,@Nonnull final DBPath dbPath) {
+    public H2DB(@Nonnull final String hikariClazzPath, @Nonnull final DBPath dbPath) {
         super(new ConnectionSettings(dbPath.getDbFile().getPath()));
         this.dbFile = dbPath.getDbFile();
 
@@ -85,11 +90,13 @@ public class H2DB extends SQLDatabaseQuery {
     @Nonnull
     @Override
     public DatabaseCommandConfig databaseConfig() {
-        return new DatabaseCommandConfig(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, (sqlHandler, columnData, whereClause, rowExist) -> {
-            if (rowExist)
-                return sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columnData), whereClause);
-            else
-                return sqlHandler.insertIntoTable(insertHandler -> insertHandler.addAll(columnData));
+        return new DatabaseCommandConfig(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, (queryBuildContext) -> {
+            queryBuildContext.onUpdate((sqlHandler, columnsData, whereClause) ->
+                    sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columnsData), whereClause)
+            );
+            queryBuildContext.onInsert((sqlHandler, columnsData) -> sqlHandler.insertIntoTable(updateBuilder ->
+                    updateBuilder.addAll(columnsData))
+            );
         });
     }
 

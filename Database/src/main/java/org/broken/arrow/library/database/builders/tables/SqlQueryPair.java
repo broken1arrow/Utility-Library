@@ -1,10 +1,14 @@
 package org.broken.arrow.library.database.builders.tables;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
+
 /**
  * Represents a paired SQL query string and its associated parameter values,
  * along with a flag indicating whether the query uses placeholders safely.
@@ -17,6 +21,7 @@ public class SqlQueryPair {
     private final String query;
     private final Map<Integer, Object> values;
     private final boolean safeQuery;
+    private Consumer<SqlResultRow> callback;
 
     /**
      * Constructs a new {@code SqlQueryPair} from the provided {@link QueryBuilder} and
@@ -58,9 +63,39 @@ public class SqlQueryPair {
         return safeQuery;
     }
 
+    /**
+     * Registers a callback to capture and process auto-generated keys or updated column values
+     * returned by the database execution engine.
+     * <p>
+     * This method is intended for short-lived, low-level query execution context tracking.
+     * Developers tracking batch transactions should prefer registering listeners directly on
+     * the higher-level {@link org.broken.arrow.library.database.builders.DataWrapper}.
+     * </p>
+     *
+     * @param callback The consumer callback that will receive the populated {@link SqlResultRow}; cannot be null.
+     * @throws NullPointerException if the provided callback is null.
+     */
+    public void getGeneratedKeyCallback(@Nonnull final Consumer<SqlResultRow> callback) {
+        this.callback = callback;
+    }
+
+    /**
+     * Retrieves the registered generated-key callback for internal engine execution.
+     * <p>
+     * This method is executed by the statement processor immediately following a successful
+     * SQL write transaction to pipeline auto-generated data back to the application.
+     * </p>
+     *
+     * @return The registered {@link Consumer} callback, or {@code null} if no callback was configured.
+     */
+    @Nullable
+    public Consumer<SqlResultRow> getGeneratedKey() {
+        return callback;
+    }
+
     @Override
     public String toString() {
-        return "SqlQueryPair:\n"+
+        return "SqlQueryPair:\n" +
                 "query='" + query + "'\n" +
                 "values=" + values + "'\n" +
                 "===============";

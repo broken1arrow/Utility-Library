@@ -13,7 +13,6 @@ import java.util.function.Predicate;
  * columns are included in queries or updates.
  */
 public class DatabaseSettings {
-
     @Nonnull
     private final String tableName;
     private Predicate<String> filter;

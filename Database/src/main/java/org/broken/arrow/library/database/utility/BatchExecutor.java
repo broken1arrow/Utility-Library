@@ -4,14 +4,16 @@ import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.tables.SqlHandler;
 import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
 import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
-import org.broken.arrow.library.database.builders.wrappers.DatabaseQueryHandler;
+import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQueryHandler;
 import org.broken.arrow.library.database.builders.wrappers.SaveRecord;
+import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuerySaving;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.core.Database;
+import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.logging.Logging;
 
@@ -20,13 +22,16 @@ import javax.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 
@@ -101,33 +106,40 @@ public class BatchExecutor<T> {
             final SqlHandler sqlHandler = new SqlHandler(tableName, database);
             final boolean columnsIsEmpty = columns == null || columns.length == 0;
             boolean canUpdateRow = false;
-            final Object primaryValue = dataWrapper.getPrimaryValue();
+            final Object legacyPrimaryValue = dataWrapper.getPrimaryValue();
             final DataWrapper.PrimaryWrapper primaryWrapper = dataWrapper.getPrimaryWrapper();
-            final WhereClauseFunction whereClause = primaryWrapper.getWhereClause();
+            final WhereClauseFunction whereClauseCallback = primaryWrapper.getWhereClause();
+
+
+            final Function<WhereBuilder, LogicalOperator<WhereBuilder>> finalWhereStrategy = whereBuilder -> {
+                if (whereClauseCallback != null) {
+                    return whereClauseCallback.apply(whereBuilder);
+                }
+                return table.createWhereClauseFromPrimaryColumns(whereBuilder, legacyPrimaryValue);
+            };
 
             if ((!columnsIsEmpty || shallUpdate)) {
-                final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true,
-                        whereBuilder -> {
-                            if (whereClause != null)
-                                return whereClause.apply(whereBuilder);
-                            return table.createWhereClauseFromPrimaryColumns(whereBuilder, primaryValue);
-                        });
+                final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()),
+                        true,
+                        finalWhereStrategy);
                 canUpdateRow = this.checkIfRowExist(query, false);
             }
             sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
             final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns : null));
 
             for (Column primary : table.getPrimaryColumns()) {
-                Object value = primaryValue;
+                Object value = legacyPrimaryValue;
                 if (value == null || value.toString().isEmpty())
                     value = primaryWrapper.getPrimaryValue(primary.getColumnName());
                 columnValueMap.put(primary, value);
             }
-            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, wereClause -> {
-                if (whereClause != null)
-                    return whereClause.apply(wereClause);
-                return table.createWhereClauseFromPrimaryColumns(wereClause, primaryValue);
-            }, canUpdateRow));
+
+            final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, finalWhereStrategy, canUpdateRow);
+            final Consumer<SqlResultRow> rowConsumer = dataWrapper.getGeneratedKeyCallback();
+            if (rowConsumer != null) {
+                queryPair.getGeneratedKeyCallback(rowConsumer);
+            }
+            queryList.add(queryPair);
         }
         this.executeDatabaseTasks(queryList);
     }
@@ -141,7 +153,7 @@ public class BatchExecutor<T> {
      * @param shallUpdate          true to update existing rows if they exist; false to insert only.
      * @param databaseQueryHandler handler to provide queries and filters for saving.
      */
-    public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, final boolean shallUpdate, final DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler) {
+    public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, final boolean shallUpdate, final DatabaseQuerySaving<SaveRecord<K, V>> databaseQueryHandler) {
         final List<SqlQueryPair> queryList = new ArrayList<>();
 
         if (this.dataToProcess.isEmpty()) {
@@ -162,8 +174,13 @@ public class BatchExecutor<T> {
                 final SqlQueryPair wrappedQuery = sqlHandler.wrapQuery(queryBuilder);
                 canUpdateRow = this.checkIfRowExist(wrappedQuery, false);
             }
-            Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
-            queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, toSave, saveRecord.getWhereClause(), canUpdateRow));
+            final Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
+            final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, toSave, saveRecord.getWhereClause(), canUpdateRow);
+            final Consumer<SqlResultRow> rowConsumer = databaseQueryHandler.getGeneratedKeyCallback();
+            if (rowConsumer != null) {
+                queryPair.getGeneratedKeyCallback(rowConsumer);
+            }
+            queryList.add(queryPair);
         }
         this.executeDatabaseTasks(queryList);
     }
@@ -207,8 +224,12 @@ public class BatchExecutor<T> {
             }
             columnValueMap.put(primary, value);
         }
-
-        queryList.add(this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, whereClause, canUpdateRow));
+        final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap,whereClause, canUpdateRow);
+        final Consumer<SqlResultRow> rowConsumer = dataWrapper.getGeneratedKeyCallback();
+        if (rowConsumer != null) {
+            queryPair.getGeneratedKeyCallback(rowConsumer);
+        }
+        queryList.add(queryPair);
         this.executeDatabaseTasks(queryList);
     }
 
@@ -260,7 +281,7 @@ public class BatchExecutor<T> {
      * @param tableName   the database table name.
      * @param whereClause the where clause applier to select the row.
      */
-    public void remove(@Nonnull final String tableName,@Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public void remove(@Nonnull final String tableName, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
         final SqlQueryTable table = this.database.getTableFromName(tableName);
         if (table == null) {
             this.printFailFindTable(tableName);
@@ -490,24 +511,46 @@ public class BatchExecutor<T> {
     }
 
     private void setPreparedStatement(SqlQueryPair sql) throws SQLException {
+        final Map<Integer, Object> cachedDataByColumn = sql.getValues();
+        Consumer<SqlResultRow> callback = sql.getGeneratedKey();
+        int autoGeneratedKeys = callback != null ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS;
 
-        Map<Integer, Object> cachedDataByColumn = sql.getValues();
-        try (PreparedStatement statement = connection.prepareStatement(sql.getQuery(), resultSetType, resultSetConcurrency)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql.getQuery(), autoGeneratedKeys)) {
             boolean valuesSet = false;
-
             if (!cachedDataByColumn.isEmpty()) {
                 for (Map.Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
                     statement.setObject(column.getKey(), column.getValue());
                     valuesSet = true;
                 }
             }
-            if (valuesSet)
-                statement.addBatch();
-            statement.executeBatch();
+           /* if (valuesSet)
+                statement.addBatch();*/
+            statement.executeUpdate();
+            callbackGeneratedKeys(statement, callback);
         } catch (SQLException e) {
             failedSetValuesBatch(sql.getQuery(), e, cachedDataByColumn);
         } catch (ArrayIndexOutOfBoundsException exception) {
             log.log(Level.WARNING, () -> "Could not execute this batch: \"" + sql.getQuery() + "\" . Probably this is not an premed batch with placeholders, check so the query contains ? for all values.");
+        }
+    }
+
+    private static void callbackGeneratedKeys(final PreparedStatement statement, final Consumer<SqlResultRow> callback) throws SQLException {
+        if (callback == null) return;
+
+        try (ResultSet rs = statement.getGeneratedKeys()) {
+            if (!rs.next()) return;
+
+            SqlResultRow rowData = new SqlResultRow();
+            ResultSetMetaData metaData = rs.getMetaData();
+
+            // Dynamically map all returned columns into the compound
+            for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                // getColumnLabel is preferred over getColumnName in JDBC to support SQL aliases
+                String columnName = metaData.getColumnLabel(i);
+                Object value = rs.getObject(i);
+                rowData.put(columnName, value);
+            }
+            callback.accept(rowData);
         }
     }
 

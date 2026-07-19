@@ -2,15 +2,16 @@ package org.broken.arrow.library.database.utility;
 
 import org.broken.arrow.library.database.builders.tables.SqlHandler;
 import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
-import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.utlity.FunctionQuery;
 import org.broken.arrow.library.database.core.Database;
+import org.broken.arrow.library.database.utility.query.build.QueryBuildContext;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -29,7 +30,7 @@ import java.util.function.Function;
 public class DatabaseCommandConfig {
     private final int resultSetType;
     private final int resultSetConcurrency;
-    private final FunctionQuery query;
+    private final Consumer<QueryBuildContext> query;
 
     /**
      * Creates a new configuration with the specified result set type and concurrency.
@@ -49,7 +50,7 @@ public class DatabaseCommandConfig {
      * @param resultSetConcurrency the concurrency mode of the {@link java.sql.ResultSet}
      * @param query                an optional {@link FunctionQuery} to customize query execution
      */
-    public DatabaseCommandConfig(final int resultSetType, final int resultSetConcurrency, final FunctionQuery query) {
+    public DatabaseCommandConfig(final int resultSetType, final int resultSetConcurrency, final Consumer<QueryBuildContext> query) {
         this.resultSetType = resultSetType;
         this.resultSetConcurrency = resultSetConcurrency;
         this.query = query;
@@ -76,29 +77,30 @@ public class DatabaseCommandConfig {
     }
 
     /**
-     * Executes a database command and optionally applies a custom function for additional operations.
-     * This allows modifying the standard behavior, such as altering queries or handling data differently.
-     * Whether this customization is available depends on which constructor is used—if you use
-     * {@link DatabaseCommandConfig#DatabaseCommandConfig(int, int, FunctionQuery)} instead of {@link DatabaseCommandConfig#DatabaseCommandConfig(int, int)},
-     * additional functionality can be applied.
+     * Executes a database command, falling back to a default implementation unless a custom
+     * configuration has been provided via {@link DatabaseCommandConfig}.
+     * <p>
+     * By default, if the row exists, an UPDATE statement is generated. If it does not exist,
+     * a REPLACE statement is generated. If a custom query consumer was provided during configuration,
+     * execution is delegated to the {@link QueryBuildContext} to build the custom SQL.
+     * </p>
      *
-     * @param sqlHandler     Provides access to various query methods for retrieving command and query values.
-     * @param columnValueMap A map of columns and their corresponding values, determining which data belongs to which column.
-     * @param whereClause    Used for updating data, specifying conditions for identifying which row(s) to update.
-     *                       Supports multiple conditions.
-     * @param rowExists      Indicates whether the row already exists in the database. If {@code false}, the method
-     *                       will replace the data by default. Depending on the provided function, additional
-     *                       operations may be executed instead.
-     * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} )} containing the generated SQL query and associated values.
-     * If {@link Database#setSecureQuery(boolean)} is set to {@code false},
-     * the query will not use parameterized values, as they are already included in the generated SQL string.
+     * @param sqlHandler  Provides access to query building methods for generating SQL strings.
+     * @param columns     A map of database columns and their corresponding runtime values.
+     * @param whereClause Used to specify conditions for identifying which row(s) to target (primarily for updates).
+     * @param rowExists   Indicates whether the target row already exists in the database.
+     * @return A {@link SqlQueryPair} containing the generated SQL query and associated parameterized values.
+     *         If {@link Database#setSecureQuery(boolean)} is set to {@code false}, the parameterized
+     *         values map may be empty as values will be injected directly into the SQL string.
      */
-    public SqlQueryPair applyDatabaseCommand(@Nonnull final SqlHandler sqlHandler, final Map<Column, Object> columnValueMap, final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final boolean rowExists) {
+    public SqlQueryPair applyDatabaseCommand(@Nonnull final SqlHandler sqlHandler, final Map<Column, Object> columns, final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final boolean rowExists) {
         if (this.query != null) {
-            return this.query.apply(sqlHandler, columnValueMap, whereClause, rowExists);
+            final QueryBuildContext context = new QueryBuildContext(sqlHandler, columns, whereClause, rowExists);
+            this.query.accept(context);
+            return context.compile();
         }
         if (rowExists)
-            return sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columnValueMap), whereClause);
-        else return sqlHandler.replaceIntoTable(insertHandler -> insertHandler.addAll(columnValueMap));
+            return sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columns), whereClause);
+        else return sqlHandler.replaceIntoTable(insertHandler -> insertHandler.addAll(columns));
     }
 }

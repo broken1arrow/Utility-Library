@@ -1,5 +1,7 @@
-package org.broken.arrow.library.database.builders.wrappers;
+package org.broken.arrow.library.database.builders.wrappers.handlers;
 
+import org.broken.arrow.library.database.builders.wrappers.DatabaseSettings;
+import org.broken.arrow.library.database.builders.wrappers.DatabaseSettingsLoad;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 
 import javax.annotation.Nonnull;

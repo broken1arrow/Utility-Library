@@ -1,5 +1,10 @@
-package org.broken.arrow.library.database.builders.wrappers;
+package org.broken.arrow.library.database.builders.wrappers.query;
 
+import org.broken.arrow.library.database.builders.wrappers.DatabaseSettingsSave;
+import org.broken.arrow.library.database.builders.wrappers.SaveRecord;
+import org.broken.arrow.library.database.builders.wrappers.SaveSetup;
+import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQueryHandler;
+import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuerySaving;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.core.SQLDatabaseQuery;
 import org.broken.arrow.library.database.utility.BatchExecutor;
@@ -74,7 +79,7 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
         final BatchExecutor<SaveRecord<K, V>> batchExecutor;
 
         final DatabaseSettingsSave databaseSettings = new DatabaseSettingsSave(this.tableName);
-        final DatabaseQueryHandler<SaveRecord<K, V>> databaseQueryHandler = new DatabaseQueryHandler<>(databaseSettings);
+        final DatabaseQuerySaving<SaveRecord<K, V>> databaseQueryHandler = new DatabaseQuerySaving<>(databaseSettings);
         if (connection == null) {
             database.printFailToOpen();
             return;
