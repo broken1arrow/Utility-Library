@@ -25,8 +25,8 @@ public final class QueryBuildContext {
     private final SqlHandler sqlHandler;
     private final Map<Column, Object> columnsMap;
     private final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause;
-    private final boolean rowExists;
     private Supplier<SqlQueryPair> executionBlueprint;
+    private final boolean rowExists;
 
     /**
      * Constructs a new context for building a SQL query.
