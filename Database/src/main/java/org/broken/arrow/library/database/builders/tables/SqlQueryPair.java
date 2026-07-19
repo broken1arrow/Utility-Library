@@ -89,7 +89,7 @@ public class SqlQueryPair {
      * @return The registered {@link Consumer} callback, or {@code null} if no callback was configured.
      */
     @Nullable
-    public Consumer<SqlResultRow> getGeneratedKey() {
+    public Consumer<SqlResultRow> getGeneratedKeyCallback() {
         return callback;
     }
 

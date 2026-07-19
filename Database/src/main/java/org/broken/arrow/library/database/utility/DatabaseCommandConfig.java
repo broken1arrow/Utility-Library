@@ -5,7 +5,6 @@ import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
 import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.utlity.FunctionQuery;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.utility.query.build.QueryBuildContext;
 
@@ -24,7 +23,7 @@ import java.util.function.Function;
  * The class supports two usage modes:
  * <ul>
  *   <li>Basic configuration with result set type and concurrency only.</li>
- *   <li>Extended configuration with a {@link FunctionQuery} to customize query execution.</li>
+ *   <li>Extended configuration with a {@link QueryBuildContext} to customize query execution.</li>
  * </ul>
  */
 public class DatabaseCommandConfig {
@@ -48,7 +47,7 @@ public class DatabaseCommandConfig {
      *
      * @param resultSetType        the type of the {@link java.sql.ResultSet}
      * @param resultSetConcurrency the concurrency mode of the {@link java.sql.ResultSet}
-     * @param query                an optional {@link FunctionQuery} to customize query execution
+     * @param query                an optional {@link QueryBuildContext} to customize query execution
      */
     public DatabaseCommandConfig(final int resultSetType, final int resultSetConcurrency, final Consumer<QueryBuildContext> query) {
         this.resultSetType = resultSetType;
