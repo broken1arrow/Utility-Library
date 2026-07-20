@@ -118,10 +118,11 @@ public class DataWrapper {
      * </p>
      *
      * @param callback The consumer callback that will receive the populated {@link SqlResultRow}; cannot be null.
-     * @throws NullPointerException if the provided callback is null.
+     * @return Returns this class for chaining.
      */
-    public void getGeneratedKeyCallback(@Nonnull final Consumer<SqlResultRow> callback) {
+    public DataWrapper setGeneratedKeyCallback(@Nonnull final Consumer<SqlResultRow> callback) {
         this.callback = callback;
+        return this;
     }
 
     /**

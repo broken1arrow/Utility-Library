@@ -4,6 +4,7 @@ import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -29,8 +30,17 @@ public class SqlResultRow {
      */
     public void put(@Nonnull final String columnName,@Nullable final Object value) {
         Validate.checkNotNull(columnName,"Column name cant be null");
-        // Normalize incoming database column names to lowercase
         columns.put(columnName.toLowerCase(Locale.ROOT), value);
+    }
+
+    /**
+     * Retrieves the raw untyped map.
+     *
+     * @return Returns the raw map with all values found.
+     */
+    @Nullable
+    public Object getAll() {
+        return Collections.unmodifiableMap(columns);
     }
 
     /**

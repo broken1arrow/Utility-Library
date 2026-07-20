@@ -59,7 +59,7 @@ public class DatabaseSettingsSave extends DatabaseSettings {
      * @param callback The consumer callback that will receive the populated {@link SqlResultRow}; cannot be null.
      * @throws NullPointerException if the provided callback is null.
      */
-    public void getGeneratedKeyCallback(@Nonnull final Consumer<SqlResultRow> callback) {
+    public void setGeneratedKeyCallback(@Nonnull final Consumer<SqlResultRow> callback) {
         this.callback = callback;
     }
 

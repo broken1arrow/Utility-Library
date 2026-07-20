@@ -135,9 +135,9 @@ public class BatchExecutor<T> {
             }
 
             final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, finalWhereStrategy, canUpdateRow);
-            final Consumer<SqlResultRow> rowConsumer = dataWrapper.getGeneratedKeyCallback();
-            if (rowConsumer != null) {
-                queryPair.getGeneratedKeyCallback(rowConsumer);
+            final Consumer<SqlResultRow> generatedKeyCallback = dataWrapper.getGeneratedKeyCallback();
+            if (generatedKeyCallback != null) {
+                queryPair.setGeneratedKeyCallback(generatedKeyCallback);
             }
             queryList.add(queryPair);
         }
@@ -176,9 +176,9 @@ public class BatchExecutor<T> {
             }
             final Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
             final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, toSave, saveRecord.getWhereClause(), canUpdateRow);
-            final Consumer<SqlResultRow> rowConsumer = databaseQueryHandler.getGeneratedKeyCallback();
-            if (rowConsumer != null) {
-                queryPair.getGeneratedKeyCallback(rowConsumer);
+            final Consumer<SqlResultRow> generatedKeyCallback = databaseQueryHandler.getGeneratedKeyCallback();
+            if (generatedKeyCallback != null) {
+                queryPair.setGeneratedKeyCallback(generatedKeyCallback);
             }
             queryList.add(queryPair);
         }
@@ -225,9 +225,9 @@ public class BatchExecutor<T> {
             columnValueMap.put(primary, value);
         }
         final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap,whereClause, canUpdateRow);
-        final Consumer<SqlResultRow> rowConsumer = dataWrapper.getGeneratedKeyCallback();
-        if (rowConsumer != null) {
-            queryPair.getGeneratedKeyCallback(rowConsumer);
+        final Consumer<SqlResultRow> generatedKeyCallback = dataWrapper.getGeneratedKeyCallback();
+        if (generatedKeyCallback != null) {
+            queryPair.setGeneratedKeyCallback(generatedKeyCallback);
         }
         queryList.add(queryPair);
         this.executeDatabaseTasks(queryList);
