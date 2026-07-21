@@ -57,6 +57,15 @@ public class DataType {
   }
 
   /**
+   * Represents the SQL INT (INTEGER) type.
+   *
+   * @return a DataType instance for INTEGER.
+   */
+  public static DataType dataInteger() {
+    return new DataType("INTEGER");
+  }
+
+  /**
    * Represents the SQL BIGINT type.
    *
    * @return a DataType instance for BIGINT.

@@ -224,7 +224,7 @@ public class BatchExecutor<T> {
             }
             columnValueMap.put(primary, value);
         }
-        final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap,whereClause, canUpdateRow);
+        final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, whereClause, canUpdateRow);
         final Consumer<SqlResultRow> generatedKeyCallback = dataWrapper.getGeneratedKeyCallback();
         if (generatedKeyCallback != null) {
             queryPair.setGeneratedKeyCallback(generatedKeyCallback);
@@ -539,16 +539,23 @@ public class BatchExecutor<T> {
 
         try (ResultSet rs = statement.getGeneratedKeys()) {
             if (!rs.next()) return;
-
-            SqlResultRow rowData = new SqlResultRow();
-            ResultSetMetaData metaData = rs.getMetaData();
-
-            // Dynamically map all returned columns into the compound
+            final SqlResultRow rowData = new SqlResultRow();
+            final ResultSetMetaData metaData = rs.getMetaData();
+            boolean foundExactAutoIncrement = false;
+            
             for (int i = 1; i <= metaData.getColumnCount(); i++) {
-                // getColumnLabel is preferred over getColumnName in JDBC to support SQL aliases
-                String columnName = metaData.getColumnLabel(i);
-                Object value = rs.getObject(i);
+                final String columnName = metaData.getColumnLabel(i);
+                final Object value = rs.getObject(i);
                 rowData.put(columnName, value);
+                if (value instanceof Number) {
+                    boolean isAutoInc = metaData.isAutoIncrement(i);
+                    if (isAutoInc) {
+                        rowData.put("generated_id", value);
+                        foundExactAutoIncrement = true;
+                    } else if (i == 1 && !foundExactAutoIncrement) {
+                        rowData.put("generated_id", value);
+                    }
+                }
             }
             callback.accept(rowData);
         }

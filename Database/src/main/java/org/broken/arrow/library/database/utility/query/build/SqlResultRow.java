@@ -34,12 +34,12 @@ public class SqlResultRow {
     }
 
     /**
-     * Retrieves the raw untyped map.
+     * Retrieves an unmodifiable view of the underlying map.
      *
-     * @return Returns the raw map with all values found.
+     * @return An unmodifiable map containing all the retrieved values.
      */
     @Nullable
-    public Object getAll() {
+    public Map<String, Object> getAll() {
         return Collections.unmodifiableMap(columns);
     }
 
@@ -94,5 +94,15 @@ public class SqlResultRow {
             if (clazz == Byte.class) return clazz.cast(num.byteValue());
         }
         throw new  Validate.ValidateExceptions("Cannot cast SQL type " + value.getClass().getName() + " to " + clazz.getName());
+    }
+
+    /**
+     * Checks if the specified key is already present in the map.
+     *
+     * @param key The key to check for presence.
+     * @return True if the key is found, false otherwise.
+     */
+    public boolean containsKey(@Nonnull final String key) {
+        return columns.containsKey(key.toLowerCase(Locale.ROOT));
     }
 }
