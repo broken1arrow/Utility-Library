@@ -4,6 +4,7 @@ import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
 import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
+import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
@@ -172,7 +173,7 @@ public class PrimaryConstraintWrapper {
         final CreateTableHandler tableHandler = this.queryTable.getTable();
         this.loadMapFromDB = (dataFromDB) -> {
             final T deserialize = this.database.deSerialize(clazz, dataFromDB);
-            final List<Column> primaryColumns = tableHandler.getPrimaryColumns();
+            final List<TableColumn> primaryColumns = tableHandler.getPrimaryColumns();
             final Map<String, Object> objectList = new HashMap<>();
             if (!primaryColumns.isEmpty()) {
                 for (Column column : primaryColumns) {

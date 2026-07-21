@@ -1,11 +1,11 @@
 package org.broken.arrow.library.database.construct.query.columnbuilder;
 
-import com.mongodb.lang.Nullable;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.SQLConstraints;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -73,8 +73,9 @@ public class ColumnManager {
      * Adds all columns from the provided list to the internal list of built columns.
      *
      * @param columns the list of columns to add
+     * @param <T> The type of column.
      */
-    public void addAll(List<Column> columns) {
+    public <T extends Column> void addAll(List<T> columns) {
         columnsBuilt.addAll(columns);
     }
 

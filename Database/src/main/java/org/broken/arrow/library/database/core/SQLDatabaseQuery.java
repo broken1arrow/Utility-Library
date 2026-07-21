@@ -12,6 +12,7 @@ import org.broken.arrow.library.database.builders.wrappers.query.QuerySaver;
 import org.broken.arrow.library.database.builders.wrappers.SaveSetup;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
+import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.utlity.QueryDefinition;
@@ -192,7 +193,7 @@ public abstract class SQLDatabaseQuery extends Database {
                 while (resultSet.next()) {
                     final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet, table.getTable().getColumns());
                     final T deserialize = getDatabase().deSerialize(clazz, dataFromDB);
-                    final List<Column> primaryColumns = table.getTable().getPrimaryColumns();
+                    final List<TableColumn> primaryColumns = table.getTable().getPrimaryColumns();
                     final Map<String, Object> objectList = new HashMap<>();
                     if (!primaryColumns.isEmpty()) {
                         for (Column column : primaryColumns) {

@@ -9,6 +9,7 @@ import org.broken.arrow.library.database.builders.wrappers.SaveRecord;
 import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuerySaving;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
@@ -29,11 +30,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * Handles batch updates and operations on the database.
@@ -86,7 +89,7 @@ public class BatchExecutor<T> {
      * Saves all items from the batch to the specified table, optionally updating existing rows.
      *
      * @param tableName   the database table name.
-     * @param shallUpdate true to update existing rows if they exist; false to insert only.
+     * @param shallUpdate true to update existing rows if they exist, false to allow insert fallback.
      * @param columns     optional list of columns to save or update.
      */
     public void saveAll(@Nonnull final String tableName, final boolean shallUpdate, String... columns) {
@@ -117,20 +120,30 @@ public class BatchExecutor<T> {
                 }
                 return table.createWhereClauseFromPrimaryColumns(whereBuilder, legacyPrimaryValue);
             };
+            final boolean isManualInsertOrUpdate = !table.isAutoIncrementTable();
+            final boolean hasUpdateIntent = !columnsIsEmpty || shallUpdate;
+            final boolean primaryValueSet = primaryWrapper.getPrimaryKeys().values().stream().noneMatch(Objects::isNull);
 
-            if ((!columnsIsEmpty || shallUpdate)) {
-                final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()),
-                        true,
-                        finalWhereStrategy);
+            if (isManualInsertOrUpdate && !primaryValueSet) {
+                System.out.println("You must provide where it shall insert or update rows.");
+            }
+
+            if (primaryValueSet && hasUpdateIntent) {
+                final SqlQueryPair query = sqlHandler.selectRow(columnManger -> {
+                    final List<TableColumn> collect = new ArrayList<>(table.getPrimaryColumns());
+                    columnManger.addAll(collect);
+                }, true, finalWhereStrategy);
                 canUpdateRow = this.checkIfRowExist(query, false);
             }
             sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
             final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns : null));
 
-            for (Column primary : table.getPrimaryColumns()) {
+            for (TableColumn primary : table.getPrimaryColumns()) {
+
                 Object value = legacyPrimaryValue;
                 if (value == null || value.toString().isEmpty())
                     value = primaryWrapper.getPrimaryValue(primary.getColumnName());
+                if (value == null) continue;
                 columnValueMap.put(primary, value);
             }
 
@@ -169,8 +182,9 @@ public class BatchExecutor<T> {
             final SqlHandler sqlHandler = new SqlHandler(tableName, database);
             final boolean columnsFilterSet = databaseQueryHandler.isFilterSet();
             boolean canUpdateRow = false;
+            final boolean hasUpdateIntent = !columnsFilterSet || shallUpdate;
 
-            if ((!columnsFilterSet || shallUpdate)) {
+            if (hasUpdateIntent) {
                 final SqlQueryPair wrappedQuery = sqlHandler.wrapQuery(queryBuilder);
                 canUpdateRow = this.checkIfRowExist(wrappedQuery, false);
             }
@@ -209,19 +223,27 @@ public class BatchExecutor<T> {
         boolean canUpdateRow = false;
         final Object primaryValue = dataWrapper.getPrimaryValue();
         final DataWrapper.PrimaryWrapper primaryWrapper = dataWrapper.getPrimaryWrapper();
+        final boolean isManualInsertOrUpdate = !table.isAutoIncrementTable();
+        final boolean hasUpdateIntent = !columnsIsEmpty || shallUpdate;
+        final boolean primaryValueSet = primaryWrapper.getPrimaryKeys().values().stream().noneMatch(Objects::isNull);
 
-        if ((!columnsIsEmpty || shallUpdate)) {
+        if (isManualInsertOrUpdate && !primaryValueSet) {
+            System.out.println("You must provide where it shall insert or update rows.");
+        }
+
+        if (primaryValueSet && hasUpdateIntent) {
             final SqlQueryPair query = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
             canUpdateRow = this.checkIfRowExist(query, false);
         }
         sqlHandler.setQueryPlaceholders(this.database.isSecureQuery());
         final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns : null));
 
-        for (Column primary : table.getPrimaryColumns()) {
+        for (TableColumn primary : table.getPrimaryColumns()) {
             Object value = primaryValue;
             if (value == null || value.toString().isEmpty()) {
                 value = primaryWrapper.getPrimaryValue(primary.getColumnName());
             }
+            if (value == null) continue;
             columnValueMap.put(primary, value);
         }
         final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, columnValueMap, whereClause, canUpdateRow);
@@ -542,7 +564,7 @@ public class BatchExecutor<T> {
             final SqlResultRow rowData = new SqlResultRow();
             final ResultSetMetaData metaData = rs.getMetaData();
             boolean foundExactAutoIncrement = false;
-            
+
             for (int i = 1; i <= metaData.getColumnCount(); i++) {
                 final String columnName = metaData.getColumnLabel(i);
                 final Object value = rs.getObject(i);

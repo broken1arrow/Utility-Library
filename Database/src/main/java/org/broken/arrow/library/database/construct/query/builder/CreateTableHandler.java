@@ -132,16 +132,18 @@ public class CreateTableHandler {
     /**
      * Returns all primary key columns currently defined for the new table.
      *
-     * @return a list of primary key {@link Column} objects, or an empty list if none are defined
+     * @return a list of primary key {@link TableColumn} objects, or an empty list if none are defined
      */
-    public List<Column> getPrimaryColumns() {
+    public List<TableColumn> getPrimaryColumns() {
         if (selectorWrapper != null) {
             return selectorWrapper.getTableSelector().getTablesColumnsBuilder().getColumns().stream()
-                    .filter(column -> ((TableColumn) column).isPrimaryKey()).collect(Collectors.toList());
+                    .filter(column -> column instanceof TableColumn && ((TableColumn) column).isPrimaryKey())
+                    .map(column -> (TableColumn) column).collect(Collectors.toList());
         }
         if (selector != null) {
             return selector.getSelector().getSelectBuilder().getColumns().stream()
-                    .filter(SQLConstraints::isPrimary).collect(Collectors.toList());
+                    .filter(column -> column instanceof TableColumn && ((TableColumn) column).isPrimaryKey())
+                    .map(column -> (TableColumn) column).collect(Collectors.toList());
         }
         return new ArrayList<>();
     }
@@ -190,7 +192,7 @@ public class CreateTableHandler {
 
         if (selectorDataTable != null) {
             sql.append(" (");
-            List<Column> primaryColumns = getPrimaryColumns();
+            List<TableColumn> primaryColumns = getPrimaryColumns();
             if (primaryColumns.size() > 1) {
                 sql.append(selectorDataTable.getSelectBuilder().buildCampsiteKey());
                 sql.append(", ").append(" PRIMARY KEY (").append(buildComposite(primaryColumns)).append(")");
@@ -203,7 +205,7 @@ public class CreateTableHandler {
     }
 
 
-    private String buildComposite(final List<Column> primaryColumns) {
+    private String buildComposite(final List<TableColumn> primaryColumns) {
         if (primaryColumns.isEmpty()) return "";
         final StringJoiner joiner = new StringJoiner(", ");
 

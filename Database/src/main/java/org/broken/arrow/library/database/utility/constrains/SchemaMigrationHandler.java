@@ -252,7 +252,7 @@ public class SchemaMigrationHandler {
 
     private void setConstraints(final SqlQueryTable queryTable, final Set<String> newPrimaryKeys, final boolean primaryValuesComplete) {
         final List<Column> columnsToBeModified = new ArrayList<>();
-        final List<Column> primaryColumns = queryTable.getPrimaryColumns();
+        final List<TableColumn> primaryColumns = queryTable.getPrimaryColumns();
 
         for (final Column column : primaryColumns) {
             boolean addingPrimary = false;

@@ -3,6 +3,7 @@ package org.broken.arrow.library.database.builders.tables;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 
@@ -66,7 +67,7 @@ public class SqlQueryTable {
      * @param values       the values to match against the primary key columns; if fewer values
      *                     than primary columns are provided, the loop stops early
      * @return the final {@link LogicalOperator} representing the combined WHERE clause,
-     *         or null if no conditions were added
+     * or null if no conditions were added
      */
     @Nullable
     public LogicalOperator<WhereBuilder> createWhereClauseFromPrimaryColumns(@Nonnull final WhereBuilder whereBuilder, final Object... values) {
@@ -93,13 +94,21 @@ public class SqlQueryTable {
         return this.getTable().getColumns();
     }
 
+    /**
+     * Checks whether the table contains at least one auto-incremented column.
+     *
+     * @return {@code true} if an auto-incremented column is found, {@code false} otherwise.
+     */
+    public boolean isAutoIncrementTable() {
+        return getPrimaryColumns().stream().anyMatch(TableColumn::isAutoIncrement);
+    }
 
     /**
      * Returns the list of primary key columns for this table.
      *
      * @return a list of primary key {@link Column} objects
      */
-    public List<Column> getPrimaryColumns() {
+    public List<TableColumn> getPrimaryColumns() {
         return this.getTable().getPrimaryColumns();
     }
 
@@ -140,5 +149,6 @@ public class SqlQueryTable {
                 ", tableHandler=" + tableHandler +
                 '}';
     }
+
 
 }

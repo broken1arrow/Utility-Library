@@ -22,6 +22,7 @@ public class TableColumn extends Column {
     private final SQLConstraints[] constraints;
     private final ColumnManager columnManger;
     private final boolean isPrimaryKey;
+    private final boolean isAutoIncrement;
 
     /**
      * Constructs a new {@code TableColumn} with the specified column manager, name,
@@ -38,6 +39,7 @@ public class TableColumn extends Column {
         this.constraints = constraints;
         this.columnManger = columnManger;
         this.isPrimaryKey = containsPrimaryKey(constraints);
+        this.isAutoIncrement = containsAutoIncrement(constraints);
     }
 
     /**
@@ -68,6 +70,16 @@ public class TableColumn extends Column {
     }
 
     /**
+     * Checks if this column set to auto increment.
+     *
+     * @return {@code true} if the column set to auto increment, {@code false} otherwise
+     */
+    public boolean isAutoIncrement() {
+        return this.isAutoIncrement;
+    }
+
+
+    /**
      * Builds the SQL fragment representing this column's definition,
      * including its name, data type, and constraints.
      *
@@ -92,7 +104,7 @@ public class TableColumn extends Column {
      * table-level constraints).
      *
      * @return the SQL string fragment for the column definition without
-     *         primary key constraints
+     * primary key constraints
      */
     public String buildCampsiteKey() {
         StringJoiner joiner = new StringJoiner(" ");
@@ -159,6 +171,22 @@ public class TableColumn extends Column {
         if (constraints == null) return false;
         for (SQLConstraints constraint : constraints) {
             if (SQLConstraints.isPrimary(constraint)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Helper method to check if the provided constraints contain an auto increment constraint.
+     *
+     * @param constraints the SQL constraints to check
+     * @return {@code true} if an auto increment constraint is found, {@code false} otherwise
+     */
+    private boolean containsAutoIncrement(SQLConstraints... constraints) {
+        if (constraints == null) return false;
+        for (SQLConstraints constraint : constraints) {
+            if (SQLConstraints.isAutoIncrement(constraint)) {
                 return true;
             }
         }
