@@ -4,7 +4,6 @@ import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Aggregation;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.ColumnRef;
 import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 
@@ -64,7 +63,7 @@ public class JoinBuildContext {
      * @param columnName the name of the column for the join condition
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
-    public ComparisonHandler<JoinBuildContext> on(final String columnName, SqlArg arg) {
+    public ComparisonHandler<JoinBuildContext> on(final String columnName) {
         return this.on(columnName, a -> {
         });
     }
@@ -94,8 +93,6 @@ public class JoinBuildContext {
      * @return The join clause SQL fragment (including "on"), or empty string if none.
      */
     public String build() {
-        SqlArg.col("").value();
-        on("", SqlArg.col(""));
         if (conditionsList.isEmpty())
             return "";
         String condition = formatConditions(conditionsList);
