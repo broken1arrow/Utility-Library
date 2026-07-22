@@ -24,6 +24,11 @@ public class JoinBuilder {
     private final List<JoinCondition> joins = new ArrayList<>();
     private final QueryBuilder queryBuilder;
 
+    /**
+     * Creates a new {@code JoinBuilder} instance with the context if query placeholders should be used set in {@link QueryBuilder}.
+     *
+     * @param queryBuilder the query builder to determine placeholder usage.
+     */
     public JoinBuilder(@Nonnull final QueryBuilder queryBuilder) {
         this.queryBuilder = queryBuilder;
     }
@@ -74,20 +79,6 @@ public class JoinBuilder {
     public void rightJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
         JoinBuildContext operator = new JoinBuildContext(queryBuilder);
         this.join(JoinType.RIGHT, table, alias, joinClause.apply(operator));
-        QueryBuilder query = new QueryBuilder();
-        query.select().select(columnBuilder -> {
-                    columnBuilder.add(new Column("users.id", ""));
-                    columnBuilder.add(new Column("users.name", ""));
-                    columnBuilder.add(new Column("orders.total", ""));})
-                .from("users")
-                .join(joinBuilder -> {
-                    joinBuilder.crossJoin("orders","",joinBuildContext -> {
-                        return joinBuildContext.on("users.id").equal("orders.user_id");
-                    });
-                    joinBuilder.leftJoin("orders","",joinBuildContext -> {
-                        return joinBuildContext.on("users.id").between("orders.user_id","users.id");
-                    });
-                }).where(w -> w.where("users.age").greaterThan(18));
     }
 
     /**
