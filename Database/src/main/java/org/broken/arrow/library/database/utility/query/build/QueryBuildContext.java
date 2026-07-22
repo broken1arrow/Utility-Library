@@ -5,6 +5,7 @@ import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinType;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.logging.Validate;
@@ -49,15 +50,6 @@ public final class QueryBuildContext {
         this.columnsMap = columnsMap;
         this.whereClause = whereClause;
         this.rowExists = rowExists;
-        QueryBuilder builder = new QueryBuilder();
-        QueryModifier sql = builder.select()
-                .from("users")
-                .where(whereClausee -> whereClausee.where("id").equal("123"));
-        //complete query
-        builder.build();
-        //complete if using the query placeholders for prepend statements this is the index and the object to save,
-        //you can turn it off in the QueryBuilder but not recommended.
-        Map<Integer, Object> params = builder.getValues();
     }
 
     /**
