@@ -1,9 +1,11 @@
 package org.broken.arrow.library.database.construct.query.columnbuilder;
 
+import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 import org.broken.arrow.library.database.construct.query.utlity.MathOperation;
 import org.broken.arrow.library.database.construct.query.utlity.SqlExpressionType;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,7 +18,7 @@ import java.util.stream.Collectors;
  * alias and aggregation expressions.
  * </p>
  */
-public class Column {
+public class Column implements SqlArg {
     private final String columnName;
     private final String alias;
     private Aggregation aggregation;
@@ -27,9 +29,30 @@ public class Column {
      * @param columnName the name of the database column
      * @param alias      optional alias for the column, can be null or empty if none
      */
-    public Column(String columnName, String alias) {
+    public Column(@Nonnull final String columnName, @Nonnull final String alias) {
         this.columnName = columnName;
         this.alias = alias;
+    }
+
+    /**
+     * Constructs a Column instance with the specified column name and optional alias.
+     *
+     * @param columnName the name of the database column
+     * @param alias      optional alias for the column, can be empty.
+     * @return The column instance.
+     */
+    public static Column of(String columnName, @Nonnull final String alias) {
+        return new Column(columnName, alias);
+    }
+
+    /**
+     * Constructs a Column instance with the specified column name with no alias.
+     *
+     * @param columnName the name of the database column
+     * @return The column instance.
+     */
+    public static Column of(String columnName) {
+        return new Column(columnName, "");
     }
 
     /**
@@ -71,6 +94,11 @@ public class Column {
      */
     public String getColumnName() {
         return this.columnName;
+    }
+
+    @Override
+    public Object value() {
+        return getColumnName();
     }
 
     /**

@@ -7,6 +7,7 @@ import org.broken.arrow.library.database.construct.query.builder.comparison.Cond
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
+import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.utility.WhereClauseFunction;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
@@ -207,7 +208,6 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
                 .collect(Collectors.toList());
         final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereStrategy = clauseFunction::apply;
         this.whereClause = whereStrategy;
-        builder.select(columnList).from(this.tableName).where(whereClause -> whereClause.where("id").equal("123"));
         this.selectData = builder.select(columnList).from(this.tableName).where(whereStrategy);
         this.queryBuilder = builder;
 

@@ -138,6 +138,7 @@ public class WhereBuilder {
         List<Object> values = conditionsList.stream()
                 .map(ComparisonHandler::getValues)
                 .flatMap(Arrays::stream)
+                .filter(object -> !(object instanceof Column))
                 .collect(Collectors.toList());
 
         Map<Integer, Object> valuesMap = new HashMap<>();

@@ -115,6 +115,7 @@ public class HavingBuilder {
                 .map(ComparisonHandler::getValues)
                 .filter(Objects::nonNull)
                 .flatMap(Arrays::stream)
+                .filter(object -> !(object instanceof Column))
                 .collect(Collectors.toList());
 
         Map<Integer, Object> valuesMap = new HashMap<>();

@@ -36,20 +36,20 @@ public class JoinBuilder {
     /**
      * Adds a JOIN clause with the specified type, table, alias, and ON condition.
      *
-     * @param table       the table name to join
-     * @param alias       alias for the joined table
+     * @param table      the table name to join
+     * @param alias      alias for the joined table
      * @param joinClause join condition
      */
     public void innerJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
         JoinBuildContext operator = new JoinBuildContext(queryBuilder);
-        this.join(JoinType.INNER, table, alias,  joinClause.apply(operator));
+        this.join(JoinType.INNER, table, alias, joinClause.apply(operator));
     }
 
     /**
      * Adds a JOIN clause with the specified type, table, alias, and ON condition.
      *
-     * @param table       the table name to join
-     * @param alias       alias for the joined table
+     * @param table      the table name to join
+     * @param alias      alias for the joined table
      * @param joinClause join condition
      */
     public void fullJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
@@ -60,20 +60,20 @@ public class JoinBuilder {
     /**
      * Adds a JOIN clause with the specified type, table, alias, and ON condition.
      *
-     * @param table       the table name to join
-     * @param alias       alias for the joined table
+     * @param table      the table name to join
+     * @param alias      alias for the joined table
      * @param joinClause join condition
      */
     public void leftJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
         JoinBuildContext operator = new JoinBuildContext(queryBuilder);
-        this.join(JoinType.LEFT,table, alias, joinClause.apply(operator));
+        this.join(JoinType.LEFT, table, alias, joinClause.apply(operator));
     }
 
     /**
      * Adds a JOIN clause with the specified type, table, alias, and ON condition.
      *
-     * @param table       the table name to join
-     * @param alias       alias for the joined table
+     * @param table      the table name to join
+     * @param alias      alias for the joined table
      * @param joinClause join condition
      */
     public void rightJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
@@ -95,7 +95,7 @@ public class JoinBuilder {
 
 
     private void join(JoinType joinType, String table, String alias, ConditionChainer<JoinBuildContext> apply) {
-
+        joins.add(new JoinCondition(joinType, table, alias, apply.build().build(), false));
     }
 
     /**

@@ -2,6 +2,8 @@ package org.broken.arrow.library.database.construct.query.builder.comparison;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.condition.ConditionBuilder;
+import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 
@@ -75,6 +77,7 @@ public class ComparisonHandler<T> {
                 this.values = new Object[]{value};
             }
         }
+
     }
 
     private void init(LogicalComparison symbol, Object firstValue, Object secondValue) {
@@ -91,7 +94,7 @@ public class ComparisonHandler<T> {
      * @param value The value
      * @return this class for chaining.
      */
-    public ConditionChainer<T> equal(Object value) {
+    public ConditionChainer<T> equal(SqlArg value) {
         this.init(LogicalComparison.EQUALS, value);
         return this.conditionChainer;
     }

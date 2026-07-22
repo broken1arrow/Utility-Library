@@ -6,6 +6,7 @@ import org.broken.arrow.library.database.construct.query.builder.comparison.Cond
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -77,9 +78,9 @@ public class SqlQueryTable {
             if (values.length < index + 1)
                 break;
             if (values.length > index + 1 && index + 1 < this.getTable().getPrimaryColumns().size())
-                whereBuilder.where(primaryColumns.getColumnName()).equal(values[index]).and();
+                whereBuilder.where(primaryColumns.getColumnName()).equal(SqlArg.val(values[index])).and();
             else
-                conditionChainer = whereBuilder.where(primaryColumns.getColumnName()).equal(values[index]);
+                conditionChainer = whereBuilder.where(primaryColumns.getColumnName()).equal(SqlArg.val(values[index]));
             index++;
         }
         return conditionChainer;

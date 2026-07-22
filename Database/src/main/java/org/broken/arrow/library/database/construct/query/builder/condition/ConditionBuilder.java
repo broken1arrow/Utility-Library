@@ -2,6 +2,7 @@ package org.broken.arrow.library.database.construct.query.builder.condition;
 
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.comparison.SubqueryHandler;
+import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
@@ -76,7 +77,9 @@ public class ConditionBuilder<T> {
         if (subqueryHandler != null) {
             return " " + operator.getSymbol() + " (" + subqueryHandler.getSubquery().build() + ")";
         }
-        if (operator.getValues() != null) {
+        final Object[] values = operator.getValues();
+        if (values != null) {
+
             final LogicalComparison comparison = operator.getComparison();
             if (comparison == LogicalComparison.IN || comparison == LogicalComparison.NOT_IN) {
                 return getInFormatted();
@@ -84,16 +87,14 @@ public class ConditionBuilder<T> {
             if (comparison == LogicalComparison.BETWEEN || comparison == LogicalComparison.NOT_BETWEEN) {
                 return getBetweenFormatted();
             }
-            if (this.marker == Marker.USE_VALUE && operator.getValues().length >= 1) {
-                Object val = operator.getValues()[0];
-                String valStr = (val instanceof String) ? "'" + val + "'" : String.valueOf(val);
-                return " " + operator.getSymbol() + " " + valStr;
+            if (this.marker == Marker.USE_VALUE && values.length >= 1) {
+                Object val = values[0];
+                return " " + operator.getSymbol() + " " + formatValue(val);
             }
         }
-
-
         return " " + operator.getSymbol() + " " + this.getMarker();
     }
+
 
     /**
      * Formats a BETWEEN or NOT BETWEEN clause.
@@ -105,12 +106,10 @@ public class ConditionBuilder<T> {
      */
     @Nonnull
     private String getBetweenFormatted() {
-        if (this.marker == Marker.USE_VALUE) {
-            Object firstValue = operator.getValues().length > 0 ? operator.getValues()[0] : "";
-            Object secondValue = operator.getValues().length > 1 ? operator.getValues()[1] : "";
-            return " " + operator.getSymbol() + " " + firstValue + " AND " + secondValue;
-        }
-        return " " + operator.getSymbol() + " " + this.getMarker() + " AND " + this.getMarker();
+        Object firstValue = operator.getValues().length > 0 ? operator.getValues()[0] : "";
+        Object secondValue = operator.getValues().length > 1 ? operator.getValues()[1] : "";
+
+        return " " + operator.getSymbol() + " " + formatValue(firstValue) + " AND " + formatValue(secondValue);
     }
 
     @Nonnull
@@ -120,13 +119,20 @@ public class ConditionBuilder<T> {
         if (values == null || values.length == 0) {
             return " " + comparisonSymbol + " ()";
         }
-
-        if (this.marker == Marker.USE_VALUE) {
-            String joinedValues = Arrays.stream(values)
-                    .map(val -> val instanceof String ? "'" + val + "'" : String.valueOf(val))
-                    .collect(Collectors.joining(", "));
-            return " " + comparisonSymbol + " (" + joinedValues + ")";
-        }
-        return " " + comparisonSymbol + " (" + StringUtil.repeat(this.getMarker(), values.length) + ")";
+        String joinedValues = Arrays.stream(values)
+                .map(this::formatValue)
+                .collect(Collectors.joining(", "));
+        return " " + comparisonSymbol + " (" + joinedValues + ")";
     }
+
+    private String formatValue(Object val) {
+        if (val instanceof Column) {
+            return ((Column) val).getColumnName();
+        }
+        if (this.marker == Marker.USE_VALUE) {
+            return (val instanceof String) ? "'" + val + "'" : String.valueOf(val);
+        }
+        return this.getMarker();
+    }
+
 }

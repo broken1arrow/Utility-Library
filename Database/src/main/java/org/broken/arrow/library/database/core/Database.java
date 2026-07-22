@@ -15,6 +15,7 @@ import org.broken.arrow.library.database.construct.query.builder.comparison.Cond
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
+import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.core.databases.H2DB;
 import org.broken.arrow.library.database.core.databases.MongoDB;
 import org.broken.arrow.library.database.core.databases.MySQL;
@@ -813,7 +814,7 @@ public abstract class Database {
      */
     private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
         final QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.select(ColumnManager.of().column("*").finish()).from(tableName).where(where -> where.where(columName).equal(""));
+        queryBuilder.select(ColumnManager.of().column("*").finish()).from(tableName).where(where -> where.where(columName).equal(SqlArg.val("")));
         final String checkTableQuery = queryBuilder.build();
 
         try (final PreparedStatement preparedStatement = connection.prepareStatement(checkTableQuery)) {

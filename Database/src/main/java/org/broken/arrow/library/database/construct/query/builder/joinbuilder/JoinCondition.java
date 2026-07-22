@@ -46,7 +46,7 @@ public class JoinCondition {
      */
     @Override
     public String toString() {
-        String aliasPart = alias != null ? " AS " + alias : "";
-        return oldStyle ? ", " + table + aliasPart : " " + type + " " + table + aliasPart + " ON " + onCondition;
+        String aliasPart = alias != null && !alias.isEmpty() ? " AS " + alias : "";
+        return oldStyle ? ", " + table + aliasPart : " " + type + " " + table + aliasPart + " " + onCondition;
     }
 }
