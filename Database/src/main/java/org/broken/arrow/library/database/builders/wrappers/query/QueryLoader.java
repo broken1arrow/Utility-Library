@@ -4,6 +4,7 @@ import org.broken.arrow.library.database.builders.LoadDataWrapper;
 import org.broken.arrow.library.database.builders.wrappers.DatabaseSettingsLoad;
 import org.broken.arrow.library.database.builders.wrappers.LoadSetup;
 import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQueryHandler;
+import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQueryLoader;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
@@ -33,17 +34,14 @@ import java.util.logging.Level;
  *
  * @param <T> the type of objects to load, which must implement {@link ConfigurationSerializable}
  */
-public class QueryLoader<T extends ConfigurationSerializable> extends QueryContext<LoadDataWrapper<T>> {
-    @Nonnull
+public class QueryLoader<T extends ConfigurationSerializable> {
     private final Logging log = new Logging(QueryLoader.class);
-    @Nonnull
+    private final SQLDatabaseQuery sqlDatabaseQuery;
+    private final String tableName;
     private final Class<T> clazz;
-    @Nonnull
     private final Consumer<LoadSetup<T>> setup;
-    @Nonnull
     private final DatabaseSettingsLoad databaseSettings;
-    @Nonnull
-    private final DatabaseQueryHandler<LoadDataWrapper<T>> databaseQueryHandler;
+    private final DatabaseQueryLoader<LoadDataWrapper<T>> databaseQueryHandler;
 
     /**
      * Constructs a new QueryLoader instance.
@@ -54,11 +52,12 @@ public class QueryLoader<T extends ConfigurationSerializable> extends QueryConte
      * @param setup a consumer that configures the loading setup, e.g. specifying filters or columns (never null)
      */
     public QueryLoader(@Nonnull final SQLDatabaseQuery sqlDatabaseQuery, @Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<LoadSetup<T>> setup) {
-        super(sqlDatabaseQuery, tableName);
+        this.sqlDatabaseQuery = sqlDatabaseQuery;
+        this.tableName = tableName;
         this.clazz = clazz;
         this.setup = setup;
         this.databaseSettings = new DatabaseSettingsLoad(tableName);
-        this.databaseQueryHandler = new DatabaseQueryHandler<>(databaseSettings);
+        this.databaseQueryHandler = new DatabaseQueryLoader<>(databaseSettings);
     }
 
     /**
@@ -74,7 +73,7 @@ public class QueryLoader<T extends ConfigurationSerializable> extends QueryConte
     /**
      * Returns the cached results of the query after {@link #load()} has been called.
      * <p>
-     * If you prefer not to use {@link #forEachQuery(Consumer)} for processing results,
+     * If you prefer not to use {@link LoadSetup#forEachMapEntity(Consumer)} for processing results,
      * you can retrieve all processed rows here as a list.
      *
      * @return a non-null list of loaded and processed data wrapped in {@link LoadDataWrapper}
@@ -92,12 +91,12 @@ public class QueryLoader<T extends ConfigurationSerializable> extends QueryConte
      * passes it through any processing logic.
      */
     private void executeLoadQuery() {
-        final LoadSetup<T> loadSetup = new LoadSetup<>(databaseQueryHandler);
+        final LoadSetup<T> loadSetup = new LoadSetup<>(this.databaseQueryHandler);
         this.setup.accept(loadSetup);
         loadSetup.applyConfigure(databaseSettings);
 
         final QueryBuilder selectTableBuilder = this.databaseQueryHandler.getQueryBuilder();
-        SQLDatabaseQuery databaseQuery = this.getSqlDatabaseQuery();
+        SQLDatabaseQuery databaseQuery = this.sqlDatabaseQuery;
         if (selectTableBuilder == null) {
             log.log(Level.WARNING, () -> "The query is not set: " + databaseQueryHandler + ". Make sure you set your query into the consumer.");
             return;
@@ -126,11 +125,11 @@ public class QueryLoader<T extends ConfigurationSerializable> extends QueryConte
                     final Map<String, Object> columnsFiltered = getColumnsFiltered(selectBuilder, databaseQueryHandler, dataFromDB);
                     final LoadDataWrapper<T> loadDataWrapper = new LoadDataWrapper<>(columnsFiltered, deserialize);
 
-                    this.applyQuery(loadDataWrapper);
+                    loadSetup.applyQuery(loadDataWrapper);
                     databaseQueryHandler.add(loadDataWrapper);
                 }
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> "Could not load all data for this table '" + this.getTableName() + "'. Check the stacktrace.");
+                log.log(Level.WARNING, e, () -> "Could not load all data for this table '" + tableName + "'. Check the stacktrace.");
             }
         });
     }

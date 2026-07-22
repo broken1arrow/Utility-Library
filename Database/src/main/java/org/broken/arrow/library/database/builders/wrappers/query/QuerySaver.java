@@ -30,15 +30,15 @@ import java.util.stream.Collectors;
  * @param <K> the type of the cache key
  * @param <V> the type of the cache value, which must implement {@link ConfigurationSerializable}
  */
-public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryContext<SaveRecord<K, V>> {
-    @Nonnull
+public class QuerySaver<K, V extends ConfigurationSerializable> {
     private final Logging log = new Logging(QueryLoader.class);
+    private final SQLDatabaseQuery sqlDatabaseQuery;
     @Nonnull
     private final String tableName;
     @Nonnull
     private final Map<K, V> cacheToSave;
     @Nonnull
-    final Consumer<SaveSetup> strategy;
+    final Consumer<SaveSetup<K, V>> strategy;
 
     /**
      * Creates a new {@code QuerySaver} instance responsible for persisting data
@@ -59,8 +59,8 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
      *                         this save operation, defining how data should be mapped
      *                         and what constraints or clauses to apply.
      */
-    public QuerySaver(@Nonnull final SQLDatabaseQuery sqlDatabaseQuery, @Nonnull String tableName, @Nonnull Map<K, V> cacheToSave, @Nonnull Consumer<SaveSetup> strategy) {
-        super(sqlDatabaseQuery,tableName);
+    public QuerySaver(@Nonnull final SQLDatabaseQuery sqlDatabaseQuery, @Nonnull String tableName, @Nonnull Map<K, V> cacheToSave, @Nonnull Consumer<SaveSetup<K, V>> strategy) {
+        this.sqlDatabaseQuery = sqlDatabaseQuery;
         this.tableName = tableName;
         this.cacheToSave = cacheToSave;
         this.strategy = strategy;
@@ -74,7 +74,7 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
      * </p>
      */
     public void save() {
-        Database database = this.getSqlDatabaseQuery().getDatabase();
+        Database database = this.sqlDatabaseQuery.getDatabase();
         final Connection connection = database.attemptToConnect();
         final BatchExecutor<SaveRecord<K, V>> batchExecutor;
 
@@ -84,11 +84,10 @@ public class QuerySaver<K, V extends ConfigurationSerializable> extends QueryCon
             database.printFailToOpen();
             return;
         }
-        final SaveSetup saveSetup = new SaveSetup();
+        final SaveSetup<K, V> saveSetup = new SaveSetup<>();
         this.strategy.accept(saveSetup);
         saveSetup.applyConfigure(databaseSettings);
-
-        final List<SaveRecord<K, V>> data = cacheToSave.entrySet().stream().map(kvEntry -> this.applyQuery(new SaveRecord<>(this.tableName, kvEntry))).collect(Collectors.toList());
+        final List<SaveRecord<K, V>> data = cacheToSave.entrySet().stream().map(kvEntry -> saveSetup.applyQuery(new SaveRecord<>(this.tableName, kvEntry))).collect(Collectors.toList());
         if (data.isEmpty()) {
             this.log.log(Level.WARNING, () -> "No data in the map for the table:'" + this.tableName + "' . Just must provide data and also don't forget to set your where clause.");
             return;

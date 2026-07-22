@@ -91,9 +91,11 @@ public class H2DB extends SQLDatabaseQuery {
     @Override
     public DatabaseCommandConfig databaseConfig() {
         return new DatabaseCommandConfig(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, (queryBuildContext) -> {
-            queryBuildContext.onUpdate((sqlHandler, columnsData, whereClause) ->
-                    sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columnsData), whereClause)
-            );
+            queryBuildContext.onUpdate((sqlHandler, columnsData, whereClause) -> {
+                if (whereClause != null)
+                    return sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columnsData), whereClause);
+                return sqlHandler.insertIntoTable(updateBuilder -> updateBuilder.addAll(columnsData));
+            });
             queryBuildContext.onInsert((sqlHandler, columnsData) -> sqlHandler.insertIntoTable(updateBuilder ->
                     updateBuilder.addAll(columnsData))
             );

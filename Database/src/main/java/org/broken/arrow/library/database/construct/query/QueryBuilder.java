@@ -43,17 +43,19 @@ import java.util.stream.Collectors;
  * After configuration, the query can be built into an SQL string with {@link #build()}, and the parameter values
  * can be retrieved with {@link #getValues()} for prepared statement usage.
  * <p>
- * Example usage:
- * <pre>
- * {@code
+ * Example usage of building a query with safe parameter placeholders:
+ * <pre>{@code
  * QueryBuilder builder = new QueryBuilder();
- * String sql = builder.select()
- *                     .from("users")
- *                     .where("id", LogicalOperators.EQUALS, 123)
- *                     .build();
+ * QueryModifier sql = builder.select()
+ *         .from("users")
+ *         .where(whereClause -> whereClause.where("id").equal("123"));
+ * // Generates the compiled SQL string (e.g. "SELECT * FROM users WHERE id = ?")
+ * String query = builder.build();
+ *
+ * // Retrieves the mapped index-to-value parameters for PreparedStatement execution.
+ * // (Placeholders can be disabled in QueryBuilder, but keeping them enabled is recommended to prevent SQL injection).
  * Map<Integer, Object> params = builder.getValues();
- * }
- * </pre>
+ * }</pre>
  * <p>
  * Note: The actual method chaining and detailed API for QueryModifier, UpdateBuilder, InsertHandler,
  * and other internal classes provide further query customization capabilities.
@@ -348,8 +350,9 @@ public class QueryBuilder {
         } else if (queryType == QueryType.INSERT || queryType == QueryType.MERGE_INTO || queryType == QueryType.REPLACE_INTO || queryType == QueryType.INSERT_REPLACE) {
             return insertHandler.getIndexedValues();
         } else if (queryType == QueryType.SELECT) {
-            if (!queryModifier.getWhereBuilder().getValues().isEmpty()) {
-                return queryModifier.getWhereBuilder().getValues();
+            final Map<Integer, Object> whereBuilderValues = queryModifier.getWhereBuilder().getValues();
+            if (!whereBuilderValues.isEmpty()) {
+                return whereBuilderValues;
             } else {
                 return queryModifier.getHavingBuilder().getValues();
             }

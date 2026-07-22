@@ -40,7 +40,7 @@ public class ConditionBuilder<T> {
      * @return a list of condition values, or an empty list if none are set
      */
     public List<Object> getValues() {
-        return operator.getValues() != null ? Arrays.asList(operator.getValues()) : new ArrayList<>();
+        return operator.getValues().length > 0 ? Arrays.asList(operator.getValues()) : new ArrayList<>();
     }
 
     /**

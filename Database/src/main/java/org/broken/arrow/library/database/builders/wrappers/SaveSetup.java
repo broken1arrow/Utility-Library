@@ -1,5 +1,8 @@
 package org.broken.arrow.library.database.builders.wrappers;
 
+import org.broken.arrow.library.database.builders.wrappers.query.QueryContext;
+import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
+
 import java.util.function.Consumer;
 
 /**
@@ -9,10 +12,18 @@ import java.util.function.Consumer;
  * including whether rows should be inserted or updated, and which columns should
  * be included or excluded in the operation.
  * </p>
+ *
+ * @param <K> The type of the key used in the original cache map.
+ * @param <V> The type of the value, which must implement {@link ConfigurationSerializable}.
  */
-public class SaveSetup{
-
+public class SaveSetup<K, V extends ConfigurationSerializable> extends QueryContext<SaveRecord<K, V>> {
     private Consumer<DatabaseSettingsSave> settings;
+
+    /**
+     * Creates a new SaveSetup instance.
+     */
+    public SaveSetup() {
+    }
 
     /**
      * Defines database-specific settings such as table name, update behavior,

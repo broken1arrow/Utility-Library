@@ -1,5 +1,6 @@
 package org.broken.arrow.library.database.builders.wrappers;
 
+import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 
 import javax.annotation.Nonnull;

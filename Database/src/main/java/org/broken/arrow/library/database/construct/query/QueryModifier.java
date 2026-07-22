@@ -10,6 +10,7 @@ import org.broken.arrow.library.database.construct.query.builder.wherebuilder.Wh
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 
+import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -63,7 +64,7 @@ public class QueryModifier extends Selector<ColumnBuilder<Column, Void>, Column>
         return this;
     }
     @Override
-    public QueryModifier where(Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
+    public QueryModifier where(@Nonnull Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
         super.where(callback);
         return this;
     }

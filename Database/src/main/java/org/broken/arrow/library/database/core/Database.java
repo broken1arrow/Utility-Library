@@ -64,6 +64,7 @@ public abstract class Database {
     private DatabaseType databaseType = null;
     private char quote = '`';
     private String characterSet = "";
+    private boolean transactional;
     private boolean secureQuery = true;
     private int maximumPoolSize;
     private long connectionTimeout;
@@ -269,7 +270,7 @@ public abstract class Database {
      *
      * @param tableName   The name of the table to save the row to.
      * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.
-     * @param columns     Set the columns you only wants to update in the database. It will not null and not empty,
+     * @param columns     Set the columns you only wants to update in the database. If used not use null and empty,
      *                    updates the existing row with these columns if it exists.
      */
     public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, String... columns) {
@@ -282,46 +283,48 @@ public abstract class Database {
      *
      * @param tableName   The name of the table to save the row to.
      * @param dataWrapper The wrapper with the set values, for primaryKey, primaryValue and serialize data.
-     * @param shallUpdate Set to true if you want to update the row, other wise it will replace the old row.
-     * @param columns     Set the columns you only wants to update in the database. It will not null and not empty,
+     * @param shallUpdate Set to true if you want to update the row, otherwise it will replace the old row.
+     * @param columns     Set the columns you only wants to update in the database. If used not use null and empty,
      *                    updates the existing row with these columns if it exists.
      */
     public abstract void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns);
 
+
     /**
      * Prepares an operation to save one or more rows to a SQL database table.
      * <p>
-     * <b>Note:</b> This method currently supports only SQL databases.
-     * It performs a <i>blocking</i> query, so it's strongly recommended to call
-     * {@link QuerySaver#save()} in a separate thread to avoid blocking the main thread.
+     * <strong>Note:</strong> This method currently supports only SQL databases.
+     * It performs a <i>blocking</i> query, so it is strongly recommended to call
+     * {@link QuerySaver#save()} on a separate asynchronous thread to avoid blocking the main server thread.
      * </p>
      *
      * <p>
-     * You specify the target table and a map of values to save. The table does <b>not</b>
-     * need to be registered in this library — no validation is performed against known tables.
+     * You specify the target table and a map of values to save. The table does <strong>not</strong>
+     * need to be registered in this library — no validation is performed against known tables,
+     * granting you full freedom to write to dynamically generated or external tables.
      * </p>
      *
      * <p>
-     * The values in the map must implement {@link ConfigurationSerializable}, and the keys are up to you.
-     * These keys will be available inside the query logic through {@link QuerySaver#forEachQuery(Consumer)},
-     * where you can configure the update logic and define the WHERE clause.
+     * The values in the map must implement {@link ConfigurationSerializable}. The map keys
+     * will be available inside your setup logic via {@link SaveSetup#forEachMapEntity(Consumer)},
+     * where you can use a {@link org.broken.arrow.library.database.builders.WriteContext} to define missing primary keys and custom WHERE clauses.
      * </p>
      *
      * <p>
-     * You must call {@link QuerySaver#save()} after configuring your query logic using {@code forEachQuery}.
+     * <strong>Important:</strong> This method only prepares the operation. You must explicitly call
+     * {@link QuerySaver#save()} on the returned instance to execute the database transaction.
      * </p>
      *
      * @param tableName   The name of the target table. It must exist in the database, but does not need to be registered in this library.
      * @param cacheToSave A map of data to save. The values must implement {@link ConfigurationSerializable}.
-     *                    The keys are available during query setup via {@link QuerySaver#forEachQuery(Consumer)}.
-     * @param saveSetup   Provides access to define primary keys, WHERE clauses, and column filters for updates.
+     * @param saveSetup   A consumer that configures global execution rules (like update flags) and per-row logic (like WriteContexts).
      * @param <K>         The type of keys used in your cache map.
      * @param <V>         The type of values, which must implement {@link ConfigurationSerializable}.
-     * @return a {@link QuerySaver} instance used to configure and execute the query, and to access results if needed.
-     * @throws UnsupportedOperationException if this database type does not support save operations.
+     * @return a {@link QuerySaver} instance used to execute the query via {@link QuerySaver#save()}.
+     * @throws UnsupportedOperationException if this method is not overridden or does not implement support for this option.
      */
     @Nonnull
-    public <K, V extends ConfigurationSerializable> QuerySaver<K, V> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave, @Nonnull final Consumer<SaveSetup> saveSetup) {
+    public <K, V extends ConfigurationSerializable> QuerySaver<K, V> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave, @Nonnull final Consumer<SaveSetup<K, V>> saveSetup) {
         throw new UnsupportedOperationException("This function is not implemented for this database type yet." + this);
     }
 
@@ -605,7 +608,7 @@ public abstract class Database {
      * when primary key values are incomplete.</p>
      *
      * @return a {@link BiConsumer} that processes primary key migration,
-     *         or {@code null} if no handler is configured.
+     * or {@code null} if no handler is configured.
      */
     @Nullable
     public BiConsumer<String, PrimaryConstraintWrapper> getHandleConstraints() {
@@ -1180,7 +1183,7 @@ public abstract class Database {
         }
     }
 
-    private static String getMessage(final String message, final String tableName , final Object columnsToBeModified) {
+    private static String getMessage(final String message, final String tableName, final Object columnsToBeModified) {
         return message + "'" + columnsToBeModified + "'. To this table '" + tableName + "'";
     }
 

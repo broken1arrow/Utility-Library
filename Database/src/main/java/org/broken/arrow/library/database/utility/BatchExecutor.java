@@ -36,7 +36,6 @@ import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 /**
  * Handles batch updates and operations on the database.
@@ -125,7 +124,7 @@ public class BatchExecutor<T> {
             final boolean primaryValueSet = primaryWrapper.getPrimaryKeys().values().stream().noneMatch(Objects::isNull);
 
             if (isManualInsertOrUpdate && !primaryValueSet) {
-                System.out.println("You must provide where it shall insert or update rows.");
+                System.out.println("You must provide valid where clause if, it shall insert or update rows.");
             }
 
             if (primaryValueSet && hasUpdateIntent) {
@@ -139,7 +138,6 @@ public class BatchExecutor<T> {
             final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns : null));
 
             for (TableColumn primary : table.getPrimaryColumns()) {
-
                 Object value = legacyPrimaryValue;
                 if (value == null || value.toString().isEmpty())
                     value = primaryWrapper.getPrimaryValue(primary.getColumnName());
@@ -189,7 +187,8 @@ public class BatchExecutor<T> {
                 canUpdateRow = this.checkIfRowExist(wrappedQuery, false);
             }
             final Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
-            final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, toSave, saveRecord.getWhereClause(), canUpdateRow);
+            final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause = saveRecord.getWhereClause();
+            final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, toSave, whereClause, canUpdateRow);
             final Consumer<SqlResultRow> generatedKeyCallback = databaseQueryHandler.getGeneratedKeyCallback();
             if (generatedKeyCallback != null) {
                 queryPair.setGeneratedKeyCallback(generatedKeyCallback);

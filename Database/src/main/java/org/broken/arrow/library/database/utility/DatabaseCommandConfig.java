@@ -9,6 +9,7 @@ import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.utility.query.build.QueryBuildContext;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -92,13 +93,14 @@ public class DatabaseCommandConfig {
      *         If {@link Database#setSecureQuery(boolean)} is set to {@code false}, the parameterized
      *         values map may be empty as values will be injected directly into the SQL string.
      */
-    public SqlQueryPair applyDatabaseCommand(@Nonnull final SqlHandler sqlHandler, final Map<Column, Object> columns, final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final boolean rowExists) {
+    public SqlQueryPair applyDatabaseCommand(@Nonnull final SqlHandler sqlHandler, final Map<Column, Object> columns, @Nullable final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final boolean rowExists) {
         if (this.query != null) {
             final QueryBuildContext context = new QueryBuildContext(sqlHandler, columns, whereClause, rowExists);
             this.query.accept(context);
             return context.compile();
         }
-        if (rowExists)
+
+        if (rowExists && whereClause != null)
             return sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columns), whereClause);
         else return sqlHandler.replaceIntoTable(insertHandler -> insertHandler.addAll(columns));
     }

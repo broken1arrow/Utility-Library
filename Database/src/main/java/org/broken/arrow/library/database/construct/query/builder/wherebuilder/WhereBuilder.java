@@ -73,7 +73,8 @@ public class WhereBuilder {
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
     public ComparisonHandler<WhereBuilder> where(final String columnName) {
-        return this.where(columnName,  a -> {});
+        return this.where(columnName, a -> {
+        });
     }
 
     /**
@@ -136,7 +137,6 @@ public class WhereBuilder {
 
         List<Object> values = conditionsList.stream()
                 .map(ComparisonHandler::getValues)
-                .filter(Objects::nonNull)
                 .flatMap(Arrays::stream)
                 .collect(Collectors.toList());
 

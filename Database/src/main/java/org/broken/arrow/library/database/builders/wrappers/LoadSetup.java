@@ -2,8 +2,12 @@ package org.broken.arrow.library.database.builders.wrappers;
 
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
 import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQueryHandler;
+import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQueryLoader;
+import org.broken.arrow.library.database.builders.wrappers.query.QueryContext;
+import org.broken.arrow.library.database.core.SQLDatabaseQuery;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
+import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
 /**
@@ -12,18 +16,17 @@ import java.util.function.Consumer;
  *
  * @param <T> the type of the value, which must implement {@link ConfigurationSerializable}
  */
-public class LoadSetup<T extends ConfigurationSerializable> {
-
-    private final DatabaseQueryHandler<LoadDataWrapper<T>> databaseHandler;
+public class LoadSetup<T extends ConfigurationSerializable> extends QueryContext<LoadDataWrapper<T>> {
+    private final DatabaseQueryLoader<LoadDataWrapper<T>> databaseHandler;
     private Consumer<DatabaseSettingsLoad> settings;
 
     /**
      * Constructs a new LoadSetup instance with the specified database query handler.
      *
-     * @param databaseHandler the database handler used to load data with the configured settings
+     * @param databaseQueryHandler the database handler used to load data with the configured settings
      */
-    public LoadSetup(DatabaseQueryHandler<LoadDataWrapper<T>> databaseHandler) {
-        this.databaseHandler = databaseHandler;
+    public LoadSetup( @Nonnull final DatabaseQueryLoader<LoadDataWrapper<T>> databaseQueryHandler) {
+        this.databaseHandler = databaseQueryHandler;
     }
 
     /**

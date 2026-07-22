@@ -11,6 +11,7 @@ import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBui
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
 /**
  * A generic builder class that supports constructing SQL SELECT queries with
  * flexible clauses including SELECT columns, FROM tables (or subqueries),
@@ -72,7 +73,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
      * @param table the name of the table
      * @return this Selector instance for chaining
      */
-    public Selector<T,V> from(String table) {
+    public Selector<T, V> from(String table) {
         this.table = table;
         return this;
     }
@@ -84,7 +85,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
      * @param alias the alias for the table
      * @return this Selector instance for chaining
      */
-    public Selector<T,V>  from(String table, String alias) {
+    public Selector<T, V> from(String table, String alias) {
         this.table = table;
         this.tableAlias = alias;
         return this;
@@ -96,7 +97,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
      * @param queryBuilder a QueryBuilder representing the subquery
      * @return this Selector instance for chaining
      */
-    protected Selector<T,V>  from(QueryBuilder queryBuilder) {
+    protected Selector<T, V> from(QueryBuilder queryBuilder) {
         this.table = "(" + queryBuilder.build().replace(";", "") + ")";
         return this;
     }
@@ -107,7 +108,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
      * @param whereBuilder the WhereBuilder instance to use
      * @return this Selector instance for chaining
      */
-    public Selector<T,V>  where(WhereBuilder whereBuilder) {
+    public Selector<T, V> where(WhereBuilder whereBuilder) {
         this.whereBuilder = whereBuilder;
         return this;
     }
@@ -118,7 +119,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
      * @param callback a function that configures the WhereBuilder
      * @return this Selector instance for chaining
      */
-    public Selector<T,V>  where(Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
+    public Selector<T, V> where(@Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
         this.whereBuilder = new WhereBuilder(queryBuilder);
         callback.apply(this.whereBuilder);
         return this;
@@ -130,7 +131,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
      * @param callback a consumer that configures the select builder
      * @return this Selector instance for chaining
      */
-    public Selector<T,V>  select(Consumer<T> callback) {
+    public Selector<T, V> select(Consumer<T> callback) {
         callback.accept(selectBuilder);
         return this;
     }
@@ -141,7 +142,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
      * @param callback a consumer that configures the join builder
      * @return this Selector instance for chaining
      */
-    public Selector<T,V> join(Consumer<JoinBuilder> callback) {
+    public Selector<T, V> join(Consumer<JoinBuilder> callback) {
         callback.accept(joinBuilder);
         return this;
     }
@@ -152,7 +153,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
      * @param callback a consumer that configures the having builder
      * @return this Selector instance for chaining
      */
-    public Selector<T,V>  having(Consumer<HavingBuilder> callback) {
+    public Selector<T, V> having(Consumer<HavingBuilder> callback) {
         callback.accept(havingBuilder);
         return this;
     }

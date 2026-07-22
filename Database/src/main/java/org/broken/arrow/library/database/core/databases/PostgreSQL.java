@@ -107,9 +107,11 @@ public class PostgreSQL extends SQLDatabaseQuery {
     @Override
     public DatabaseCommandConfig databaseConfig() {
         return new DatabaseCommandConfig(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, (queryBuildContext) -> {
-            queryBuildContext.onUpdate((sqlHandler, columnsData, whereClause) ->
-                    sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columnsData), whereClause)
-            );
+            queryBuildContext.onUpdate((sqlHandler, columnsData, whereClause) -> {
+                if (whereClause != null)
+                    return sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columnsData), whereClause);
+                return sqlHandler.insertIntoTable(updateBuilder -> updateBuilder.addAll(columnsData));
+            });
             queryBuildContext.onInsert((sqlHandler, columnsData) -> sqlHandler.insertIntoTable(updateBuilder ->
                     updateBuilder.addAll(columnsData))
             );

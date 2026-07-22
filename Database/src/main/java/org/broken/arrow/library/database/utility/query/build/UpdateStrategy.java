@@ -7,6 +7,7 @@ import org.broken.arrow.library.database.construct.query.builder.wherebuilder.Wh
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -27,6 +28,6 @@ public interface UpdateStrategy {
      * @param where   The function used to define the filtering conditions for the update.
      * @return A {@link SqlQueryPair} containing the generated SQL string and parameters.
      */
-    SqlQueryPair build(@Nonnull final  SqlHandler sql,@Nonnull final  Map<Column, Object> columns,@Nonnull final  Function<WhereBuilder, LogicalOperator<WhereBuilder>> where);
+    SqlQueryPair build(@Nonnull final SqlHandler sql, @Nonnull final Map<Column, Object> columns, @Nullable final Function<WhereBuilder, LogicalOperator<WhereBuilder>> where);
 }
 

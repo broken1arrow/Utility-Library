@@ -160,7 +160,7 @@ public abstract class SQLDatabaseQuery extends Database {
     @Nonnull
     @Override
     public <K, V extends ConfigurationSerializable> QuerySaver<K, V> save(@Nonnull final String tableName, @Nonnull final Map<K, V> cacheToSave,
-                                                                          @Nonnull final Consumer<SaveSetup> saveSetup) {
+                                                                          @Nonnull final Consumer<SaveSetup<K, V>> saveSetup) {
         return new QuerySaver<>(this, tableName, cacheToSave, saveSetup);
     }
 
@@ -266,7 +266,7 @@ public abstract class SQLDatabaseQuery extends Database {
         Map<String, Object> objectList = new HashMap<>();
         if (!comparisonHandlerList.isEmpty()) {
             for (ComparisonHandler<?> comparisonHandler : comparisonHandlerList) {
-                String column = comparisonHandler != null ? comparisonHandler.getColumn() : null;
+                String column = comparisonHandler != null ? comparisonHandler.getColumnName() : null;
                 Object primaryValue = dataFromDB.get(column);
                 objectList.put(column, primaryValue);
             }

@@ -25,7 +25,7 @@ import java.util.Map;
 public class ComparisonHandler<T> {
 
     private final LogicalOperator<T> logicalOperator;
-    private final String column;
+    private final String columnName;
     private ConditionBuilder<T> condition;
     private SubqueryHandler<T> subqueryHandler;
     private Object[] values;
@@ -40,13 +40,13 @@ public class ComparisonHandler<T> {
      * </p>
      *
      * @param clazz  the parent query object or builder instance
-     * @param column the name of the column to apply comparisons on
+     * @param columnName the name of the column to apply comparisons on
      * @param marker the marker used to track this condition's grouping or position
      */
-    public ComparisonHandler(T clazz, String column, Marker marker) {
-        this.column = column;
+    public ComparisonHandler(T clazz, String columnName, Marker marker) {
+        this.columnName = columnName;
         condition = new ConditionBuilder<>(this, marker);
-        this.logicalOperator = new LogicalOperator<>(clazz, column, condition);
+        this.logicalOperator = new LogicalOperator<>(clazz, columnName, condition);
     }
 
     /**
@@ -56,7 +56,7 @@ public class ComparisonHandler<T> {
      */
     public ComparisonHandler() {
         this.logicalOperator = null;
-        this.column = "";
+        this.columnName = "";
     }
 
     private void init(LogicalOperators symbol, Object value) {
@@ -284,6 +284,7 @@ public class ComparisonHandler<T> {
      *
      * @return Returns the values used in the comparison.
      */
+    @Nonnull
     public Object[] getValues() {
         if (values == null)
             return new Object[0];
@@ -314,8 +315,8 @@ public class ComparisonHandler<T> {
      * @return Returns the column name for this comparison.
      */
     @Nonnull
-    public String getColumn() {
-        return column;
+    public String getColumnName() {
+        return columnName;
     }
 
     /**

@@ -1,11 +1,13 @@
 package org.broken.arrow.library.database.builders.wrappers;
 
+import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
+import org.broken.arrow.library.database.utility.WhereClauseFunction;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -42,7 +44,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
     private Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause;
 
     /**
-     * Constructs a save context for a given table and entry.
+     * Constructs a save record for a given table and entry.
      *
      * @param tableName the name of the database table this save operation is targeting.
      * @param entry     a map entry containing the key and a {@link ConfigurationSerializable} value.
@@ -57,7 +59,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
     }
 
     /**
-     * Gets the key associated with this save context.
+     * Gets the key associated with this save record.
      *
      * @return The map key instance.
      */
@@ -105,61 +107,58 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
     }
 
     /**
-     * Configures a SELECT command to query the current row in the database, using a custom WHERE clause.
-     * Placeholders in the query are enabled by default.
-     * <p>&nbsp;</p>
-     * <strong>Important:</strong> You should also call {@link #addKeys(String, Object)} to provide any necessary
-     * primary or foreign key values. If the row does not exist and an insert is attempted without the required keys,
-     * a warning will be logged and null values may be used unintentionally—potentially assigning {@code null}
-     * to a primary key column. This is not automatically prevented, as it may be intentional in your design.
+     * Applies a {@link WriteContext} to this save record.
+     * <p>
+     * This automatically registers any supplemental columns (like missing primary keys)
+     * and configures the internal match criteria used to check if the row exists
+     * before performing an update.
+     * </p>
      *
-     * @param whereClause a builder function for defining the WHERE clause.
-     * @return the built {@link QueryBuilder} instance.
+     * @param context the write context containing keys and where clause logic
+     * @return the built {@link QueryBuilder} instance, or {@code null} if no where clause was provided
      */
-    public QueryBuilder setSelectCommand(@Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
-        return this.setSelectCommand(true, whereClause);
+    public QueryBuilder applyContext(@Nonnull final WriteContext context) {
+        context.getColumnContext().forEach(this::addKey);
+        if (context.getWhereClause() != null) {
+            return this.createSelectCommand(true, context.getWhereClause());
+        }
+        return null;
     }
 
     /**
-     * Configures a SELECT command with optional query placeholders and a WHERE clause.
-     * This is useful for checking if the row exists before deciding whether to update or insert it.
-     * <p>&nbsp;</p>
-     * <strong>Important:</strong> You should also call {@link #addKeys(String, Object)} to provide any necessary
-     * primary or foreign key values. If the row does not exist and an insert is attempted without the required keys,
-     * a warning will be logged and null values may be used unintentionally—potentially assigning {@code null}
-     * to a primary key column. This is not automatically prevented, as it may be intentional in your design.
+     * Applies a {@link WriteContext} to this save record.
+     * <p>
+     * This automatically registers any supplemental columns (like missing primary keys)
+     * and configures the internal match criteria used to check if the row exists
+     * before performing an update.
+     * </p>
      *
+     * @param context the write context containing keys and where clause logic
      * @param queryPlaceholder whether to enable query placeholders in the query (recommended).
-     * @param whereClause      a builder function for defining the WHERE clause.
-     * @return the built {@link QueryBuilder} instance.
+     * @return the built {@link QueryBuilder} instance, or {@code null} if no where clause was provided
      */
-    public QueryBuilder setSelectCommand(final boolean queryPlaceholder, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
-        final QueryBuilder builder = new QueryBuilder();
-        builder.setGlobalEnableQueryPlaceholders(queryPlaceholder);
-        List<Column> columnList = value.serialize().keySet().stream()
-                .map(columnName -> ColumnManager.of().column(columnName).getColumn())
-                .collect(Collectors.toList());
-        this.whereClause = whereClause;
-        this.selectData = builder.select(columnList).from(this.tableName).where(whereClause);
-        this.queryBuilder = builder;
-
-        return builder;
+    public QueryBuilder applyContext(@Nonnull final WriteContext context,final boolean queryPlaceholder) {
+        context.getColumnContext().forEach(this::addKey);
+        if (context.getWhereClause() != null) {
+            return this.createSelectCommand(queryPlaceholder, context.getWhereClause());
+        }
+        return null;
     }
 
     /**
-     * Adds an additional column and value pair to the context,
+     * Adds a column and value pair to the context,
      * useful for including data that isn't part of the {@link ConfigurationSerializable},
      * such as primary keys, foreign keys, or other lookup values.
      *
      * @param columnName the column name to associate.
      * @param value      the value to be stored under the column.
      */
-    public void addKeys(String columnName, Object value) {
-        keys.put(ColumnManager.of().column(columnName).getColumn(), value);
+    public void addKey(@Nonnull final String columnName,@Nonnull final Object value) {
+        keys.put(new Column(columnName, ""), value);
     }
 
     /**
-     * Gets all additional key-value pairs added via {@link #addKeys(String, Object)}.
+     * Gets all additional key-value pairs added via {@link #addKey(String, Object)}.
      *
      * @return a map of extra column-to-value entries not included in the serialized value.
      */
@@ -186,6 +185,33 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
             return saveRecord;
         }
         return null;
+    }
+
+    /**
+     * Internal helper that configures a SELECT command to check if the row exists
+     * before deciding whether to update or insert it.
+     * <p>
+     * This is automatically invoked by {@link #applyContext(WriteContext)} when
+     * a custom WHERE clause is provided.
+     * </p>
+     *
+     * @param queryPlaceholder whether to enable query placeholders in the query (recommended).
+     * @param clauseFunction      a builder function for defining the WHERE clause.
+     * @return the built {@link QueryBuilder} instance.
+     */
+    private QueryBuilder createSelectCommand(final boolean queryPlaceholder, @Nonnull final WhereClauseFunction clauseFunction) {
+        final QueryBuilder builder = new QueryBuilder();
+        builder.setGlobalEnableQueryPlaceholders(queryPlaceholder);
+        List<Column> columnList = value.serialize().keySet().stream()
+                .map(columnName -> ColumnManager.of().column(columnName).getColumn())
+                .collect(Collectors.toList());
+        final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereStrategy = clauseFunction::apply;
+        this.whereClause = whereStrategy;
+        builder.select(columnList).from(this.tableName).where(whereClause -> whereClause.where("id").equal("123"));
+        this.selectData = builder.select(columnList).from(this.tableName).where(whereStrategy);
+        this.queryBuilder = builder;
+
+        return builder;
     }
 
     @Override

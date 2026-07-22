@@ -9,6 +9,7 @@ import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 
+import javax.annotation.Nonnull;
 import java.util.function.Function;
 /**
  * Provides methods for selecting columns and applying conditions when
@@ -67,7 +68,7 @@ public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrap
      *         {@link #build()} can be invoked to obtain the creation table handler.
      */
     @Override
-    public SelectorWrapper where(Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
+    public SelectorWrapper where(@Nonnull Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
         super.where(callback);
         return this;
     }

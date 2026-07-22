@@ -29,7 +29,31 @@ public class DataWrapper {
     private final ConfigurationSerializable configurationSerialize;
     private final Object value;
     private PrimaryWrapper primaryWrapper;
+    private WriteContext writeContext;
     private Consumer<SqlResultRow> callback;
+
+    /**
+     * Creates a new {@code DataWrapper} using the provided write context
+     * and an associated {@link ConfigurationSerializable} payload.
+     *
+     * <p>
+     * <strong>Important:</strong> The {@code WriteContext} is the preferred mechanism
+     * for supplying primary key values that are not naturally included in the
+     * {@link ConfigurationSerializable#serialize()} map. Failing to provide required
+     * primary keys here may result in a database constraint violation, unless the
+     * underlying table handles key generation automatically (e.g., via auto-increment
+     * columns or database triggers).
+     * </p>
+     *
+     * @param writeContext Context containing supplemental column constraints (like missing
+     *                     primary keys) and the SQL {@code WHERE} clause logic required
+     *                     to target specific rows for updates.
+     * @param serialize    The serializable configuration payload containing the main data.
+     */
+    public DataWrapper(@Nonnull final WriteContext writeContext, @Nonnull final ConfigurationSerializable serialize) {
+        this("", serialize);
+        this.writeContext = writeContext;
+    }
 
     /**
      * Creates a new {@code DataWrapper} using primary key data
@@ -38,7 +62,10 @@ public class DataWrapper {
      * @param wrapper   primary key wrapper used to provide primary
      *                  key columns, values, and SQL {@code WHERE} clause logic
      * @param serialize serializable configuration payload
+     * @deprecated Use {@link #DataWrapper(WriteContext, ConfigurationSerializable)} as give better tools to
+     * provide keys and values and where clause.
      */
+    @Deprecated
     public DataWrapper(@Nonnull final PrimaryWrapper wrapper, @Nonnull final ConfigurationSerializable serialize) {
         this("", serialize);
         primaryWrapper = wrapper;
@@ -49,7 +76,7 @@ public class DataWrapper {
      *
      * @param primaryValue primary key value
      * @param serialize    serializable configuration payload
-     * @deprecated Use {@link #DataWrapper(PrimaryWrapper, ConfigurationSerializable)}
+     * @deprecated Use {@link #DataWrapper(WriteContext, ConfigurationSerializable)}
      * to support multiple primary keys, as will create problems if you have
      * more than one column as primary key.
      */
@@ -58,6 +85,7 @@ public class DataWrapper {
         this.configurationSerialize = serialize;
         this.value = primaryValue;
         primaryWrapper = new PrimaryWrapper();
+        this.writeContext = WriteContext.empty();
     }
 
     /**
@@ -80,6 +108,30 @@ public class DataWrapper {
     @Nonnull
     public PrimaryWrapper getPrimaryWrapper() {
         return primaryWrapper;
+    }
+
+    /**
+     * Returns the context used to construct both the SQL {@code WHERE} clause
+     * for this operation and any supplemental column constraints.
+     *
+     * <p>
+     * The context provides access to column constraint names and their associated
+     * values, as well as an optional custom {@link WhereClauseFunction} for custom
+     * WHERE clause logic.
+     * </p>
+     *
+     * <p>
+     * If no custom {@link WhereClauseFunction} is provided, column constraints
+     * are combined using default {@code AND} logic when targeting existing rows
+     * for updates.
+     * </p>
+     *
+     * @return the {@link WriteContext} containing supplemental column constraints
+     *         (e.g., missing primary keys) and WHERE clause logic
+     */
+    @Nonnull
+    public WriteContext getWriteContext() {
+        return writeContext;
     }
 
     /**

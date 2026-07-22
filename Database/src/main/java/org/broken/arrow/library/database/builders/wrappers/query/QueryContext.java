@@ -2,10 +2,8 @@ package org.broken.arrow.library.database.builders.wrappers.query;
 
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
 import org.broken.arrow.library.database.builders.wrappers.SaveRecord;
-import org.broken.arrow.library.database.core.SQLDatabaseQuery;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
-import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 /**
  * Encapsulates the context for running a SQL query related to a specific table,
@@ -15,42 +13,12 @@ import java.util.function.Consumer;
  */
 public class QueryContext<T> {
 
-    @Nonnull
-    private final SQLDatabaseQuery sqlDatabaseQuery;
-    @Nonnull
-    private final String tableName;
-
     private Consumer<T> context;
 
     /**
      * Creates a new QueryContext instance.
-     *
-     * @param sqlDatabaseQuery the query utility class to run the database queries
-     * @param tableName        the table name
      */
-    public QueryContext(@Nonnull final SQLDatabaseQuery sqlDatabaseQuery, @Nonnull final String tableName) {
-        this.sqlDatabaseQuery = sqlDatabaseQuery;
-        this.tableName = tableName;
-    }
-
-    /**
-     * Returns the SQLDatabaseQuery instance associated with this context.
-     *
-     * @return the SQLDatabaseQuery instance
-     */
-    @Nonnull
-    public SQLDatabaseQuery getSqlDatabaseQuery() {
-        return sqlDatabaseQuery;
-    }
-
-    /**
-     * Returns the table name associated with this context.
-     *
-     * @return the table name
-     */
-    @Nonnull
-    public String getTableName() {
-        return tableName;
+    public QueryContext() {
     }
 
     /**
@@ -63,7 +31,7 @@ public class QueryContext<T> {
      * <strong>When used for saving:</strong>
      * </p>
      * You should define primary key(s) or other identifying values not included in your
-     * {@link ConfigurationSerializable} implementation by calling {@link SaveRecord#addKeys(String, Object)}.
+     * {@link ConfigurationSerializable} implementation by calling {@link SaveRecord#addKey(String, Object)}.
      * <p>
      * <strong>When used for loading:</strong>
      * </p>
@@ -72,7 +40,7 @@ public class QueryContext<T> {
      *
      * @param query a consumer that modifies a {@link SaveRecord} during saving, or uses a {@link LoadDataWrapper} during loading.
      */
-    public void forEachQuery(final Consumer<T> query) {
+    public void forEachMapEntity(final Consumer<T> query) {
         this.context = query;
     }
 
