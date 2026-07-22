@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.builders.tables;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
@@ -66,23 +66,23 @@ public class SqlQueryTable {
      * @param whereBuilder the {@link WhereBuilder} to append conditions to, must not be null
      * @param values       the values to match against the primary key columns; if fewer values
      *                     than primary columns are provided, the loop stops early
-     * @return the final {@link LogicalOperator} representing the combined WHERE clause,
+     * @return the final {@link ConditionChainer} representing the combined WHERE clause,
      * or null if no conditions were added
      */
     @Nullable
-    public LogicalOperator<WhereBuilder> createWhereClauseFromPrimaryColumns(@Nonnull final WhereBuilder whereBuilder, final Object... values) {
+    public ConditionChainer<WhereBuilder> createWhereClauseFromPrimaryColumns(@Nonnull final WhereBuilder whereBuilder, final Object... values) {
         int index = 0;
-        LogicalOperator<WhereBuilder> logicalOperator = null;
+        ConditionChainer<WhereBuilder> conditionChainer = null;
         for (Column primaryColumns : this.getTable().getPrimaryColumns()) {
             if (values.length < index + 1)
                 break;
             if (values.length > index + 1 && index + 1 < this.getTable().getPrimaryColumns().size())
                 whereBuilder.where(primaryColumns.getColumnName()).equal(values[index]).and();
             else
-                logicalOperator = whereBuilder.where(primaryColumns.getColumnName()).equal(values[index]);
+                conditionChainer = whereBuilder.where(primaryColumns.getColumnName()).equal(values[index]);
             index++;
         }
-        return logicalOperator;
+        return conditionChainer;
     }
 
     /**

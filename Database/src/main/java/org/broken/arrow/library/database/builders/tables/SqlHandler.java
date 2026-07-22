@@ -3,7 +3,7 @@ package org.broken.arrow.library.database.builders.tables;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.InsertHandler;
 import org.broken.arrow.library.database.construct.query.builder.UpdateBuilder;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.core.Database;
@@ -89,7 +89,7 @@ public class SqlHandler {
      * @param whereClause The conditions used to filter which row(s) should be updated.
      * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair updateTable(@Nonnull final Consumer<UpdateBuilder> callback, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public SqlQueryPair updateTable(@Nonnull final Consumer<UpdateBuilder> callback, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.update(this.tableName, callback).getSelector().where(whereClause);
@@ -105,7 +105,7 @@ public class SqlHandler {
      * @param whereClause       The conditions used to filter which row(s) should be selected.
      * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManager> callback, final boolean queryPlaceholders, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public SqlQueryPair selectRow(@Nonnull final Consumer<ColumnManager> callback, final boolean queryPlaceholders, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
         ColumnManager columnManger = new ColumnManager();
         callback.accept(columnManger);
@@ -137,7 +137,7 @@ public class SqlHandler {
      * @param whereClause the where clause it should remove the row from.
      * @return A {@link SqlQueryPair#SqlQueryPair(QueryBuilder, Map)} containing the generated SQL command and associated values.
      */
-    public SqlQueryPair removeRow(@Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public SqlQueryPair removeRow(@Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.deleteFrom(this.tableName).where(whereClause);

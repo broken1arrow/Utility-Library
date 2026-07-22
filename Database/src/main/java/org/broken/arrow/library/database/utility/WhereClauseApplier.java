@@ -1,13 +1,13 @@
 package org.broken.arrow.library.database.utility;
 
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 /**
  * Functional interface for applying conditions to a {@link WhereBuilder}.
  * <p>
  * This interface is typically used to define how a WHERE clause should be constructed
  * based on a provided value. Implementations receive the current {@link WhereBuilder}
- * and a value, then return a {@link LogicalOperator} representing the resulting condition.
+ * and a value, then return a {@link ConditionChainer} representing the resulting condition.
  * </p>
  *
  * <p>Common use cases include:</p>
@@ -17,7 +17,7 @@ import org.broken.arrow.library.database.construct.query.builder.wherebuilder.Wh
  * </ul>
  *
  * @see WhereBuilder
- * @see LogicalOperator
+ * @see ConditionChainer
  */
 @FunctionalInterface
 public interface WhereClauseApplier {
@@ -27,7 +27,7 @@ public interface WhereClauseApplier {
      *
      * @param builder the {@link WhereBuilder} to which the condition is applied
      * @param value   the value to use when constructing the WHERE clause
-     * @return the resulting {@link LogicalOperator} condition
+     * @return the resulting {@link ConditionChainer} condition
      */
-    LogicalOperator<WhereBuilder> apply(WhereBuilder builder, Object value);
+    ConditionChainer<WhereBuilder> apply(WhereBuilder builder, Object value);
 }

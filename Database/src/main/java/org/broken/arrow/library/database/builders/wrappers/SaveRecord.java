@@ -3,7 +3,7 @@ package org.broken.arrow.library.database.builders.wrappers;
 import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.QueryModifier;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
@@ -41,7 +41,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
     private final Class<V> valueClazz;
     private QueryBuilder queryBuilder;
     private QueryModifier selectData;
-    private Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause;
+    private Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause;
 
     /**
      * Constructs a save record for a given table and entry.
@@ -102,7 +102,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      * @return the function that builds a logical where clause, or {@code null} if not set.
      */
     @Nullable
-    public Function<WhereBuilder, LogicalOperator<WhereBuilder>> getWhereClause() {
+    public Function<WhereBuilder, ConditionChainer<WhereBuilder>> getWhereClause() {
         return whereClause;
     }
 
@@ -205,7 +205,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
         List<Column> columnList = value.serialize().keySet().stream()
                 .map(columnName -> ColumnManager.of().column(columnName).getColumn())
                 .collect(Collectors.toList());
-        final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereStrategy = clauseFunction::apply;
+        final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereStrategy = clauseFunction::apply;
         this.whereClause = whereStrategy;
         builder.select(columnList).from(this.tableName).where(whereClause -> whereClause.where("id").equal("123"));
         this.selectData = builder.select(columnList).from(this.tableName).where(whereStrategy);

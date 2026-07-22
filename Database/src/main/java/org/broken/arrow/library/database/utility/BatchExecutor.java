@@ -8,7 +8,7 @@ import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuer
 import org.broken.arrow.library.database.builders.wrappers.SaveRecord;
 import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuerySaving;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
@@ -113,7 +113,7 @@ public class BatchExecutor<T> {
             final WhereClauseFunction whereClauseCallback = primaryWrapper.getWhereClause();
 
 
-            final Function<WhereBuilder, LogicalOperator<WhereBuilder>> finalWhereStrategy = whereBuilder -> {
+            final Function<WhereBuilder, ConditionChainer<WhereBuilder>> finalWhereStrategy = whereBuilder -> {
                 if (whereClauseCallback != null) {
                     return whereClauseCallback.apply(whereBuilder);
                 }
@@ -187,7 +187,7 @@ public class BatchExecutor<T> {
                 canUpdateRow = this.checkIfRowExist(wrappedQuery, false);
             }
             final Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
-            final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause = saveRecord.getWhereClause();
+            final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause = saveRecord.getWhereClause();
             final SqlQueryPair queryPair = this.databaseConfig.applyDatabaseCommand(sqlHandler, toSave, whereClause, canUpdateRow);
             final Consumer<SqlResultRow> generatedKeyCallback = databaseQueryHandler.getGeneratedKeyCallback();
             if (generatedKeyCallback != null) {
@@ -207,7 +207,7 @@ public class BatchExecutor<T> {
      * @param whereClause function to apply WHERE clauses for filtering rows.
      * @param columns     optional list of columns to save or update.
      */
-    public void save(final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause, final String... columns) {
+    public void save(final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause, final String... columns) {
         final SqlQueryTable table = this.database.getTableFromName(tableName);
 
         if (table == null) {
@@ -302,7 +302,7 @@ public class BatchExecutor<T> {
      * @param tableName   the database table name.
      * @param whereClause the where clause applier to select the row.
      */
-    public void remove(@Nonnull final String tableName, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public void remove(@Nonnull final String tableName, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         final SqlQueryTable table = this.database.getTableFromName(tableName);
         if (table == null) {
             this.printFailFindTable(tableName);
@@ -346,7 +346,7 @@ public class BatchExecutor<T> {
      * @param whereClause the where clause function to filter rows.
      * @return {@code true} if the row exists; {@code false} otherwise or if connection issues occur.
      */
-    public boolean checkIfRowExist(@Nonnull String tableName, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public boolean checkIfRowExist(@Nonnull String tableName, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         final SqlQueryTable table = this.database.getTableFromName(tableName);
         if (table == null) {
             this.printFailFindTable(tableName);

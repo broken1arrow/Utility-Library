@@ -2,28 +2,31 @@ package org.broken.arrow.library.database.construct.query.builder.comparison;
 
 import org.broken.arrow.library.database.construct.query.builder.condition.ConditionQuery;
 import org.broken.arrow.library.database.construct.query.builder.condition.ConditionBuilder;
-import org.broken.arrow.library.database.construct.query.utlity.LogicalOperators;
+import org.broken.arrow.library.database.construct.query.utlity.LogicalOperator;
 
 /**
- * Represents a logical operator wrapper used in building SQL condition queries.
- * It provides fluent methods to chain logical operators (AND, OR) with conditions,
- * while keeping track of the owning class instance for chaining.
+ * Fluent wrapper for chaining SQL conditions using logical operators (e.g., {@code AND}, {@code OR}).
+ * <p>
+ * Acts as an intermediate step in the query step-builder pipeline, providing access to logical
+ * operators after a comparison predicate is evaluated while maintaining a reference to the
+ * parent builder context.
+ * </p>
  *
- * @param <T> the type of the parent builder or owner class that uses this logical operator
+ * @param <T> the type of the parent builder or query context for fluent chaining
  */
-public class LogicalOperator<T> {
+public class ConditionChainer<T> {
     private final ConditionQuery<T> conditionQuery;
-    private final T clazz;
+    private final T parentContext;
 
     /**
-     * Constructs a new {@code LogicalOperator} with the provided context.
+     * Constructs a new {@code ConditionChainer} with the provided parent context and condition details.
      *
-     * @param clazz            the parent builder or owner instance
+     * @param parentContext    the parent builder or owner instance
      * @param columnName       the column name for the condition
      * @param conditionBuilder the condition builder associated with this operator
      */
-    public LogicalOperator(T clazz, String columnName,  ConditionBuilder<T> conditionBuilder) {
-        this.clazz = clazz;
+    public ConditionChainer(T parentContext, String columnName, ConditionBuilder<T> conditionBuilder) {
+        this.parentContext = parentContext;
         this.conditionQuery = new ConditionQuery<>(columnName, conditionBuilder);
     }
 
@@ -34,8 +37,8 @@ public class LogicalOperator<T> {
      * @return the parent builder instance
      */
     public T and() {
-        conditionQuery.setLogicalOperator(LogicalOperators.AND);
-        return clazz;
+        conditionQuery.setLogicalOperator(LogicalOperator.AND);
+        return parentContext;
     }
 
     /**
@@ -45,8 +48,8 @@ public class LogicalOperator<T> {
      * @return the parent builder instance
      */
     public T or() {
-        conditionQuery.setLogicalOperator(LogicalOperators.OR);
-        return clazz;
+        conditionQuery.setLogicalOperator(LogicalOperator.OR);
+        return parentContext;
     }
 
     /**
@@ -55,7 +58,7 @@ public class LogicalOperator<T> {
      * @return the parent builder instance
      */
     public T build() {
-        return clazz;
+        return parentContext;
     }
 
     /**

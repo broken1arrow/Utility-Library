@@ -1,13 +1,15 @@
 package org.broken.arrow.library.database.construct.query.builder.condition;
 
-import org.broken.arrow.library.database.construct.query.utlity.LogicalOperators;
+import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
+import org.broken.arrow.library.database.construct.query.utlity.LogicalOperator;
+
 /**
  * Represents a single SQL condition within a query, including its target column,
  * the comparison logic, and an optional logical operator to chain conditions.
  * <p>
  * This class binds a column name to a {@link ConditionBuilder} instance, which
  * defines the actual SQL comparison (e.g., {@code = ?}, {@code BETWEEN ? AND ?}).
- * An optional {@link LogicalOperators} value may be set to combine multiple
+ * An optional {@link LogicalComparison} value may be set to combine multiple
  * conditions (e.g., {@code AND}, {@code OR}).
  *
  * @param <T> the type of the parent query or builder that this condition belongs to
@@ -15,7 +17,7 @@ import org.broken.arrow.library.database.construct.query.utlity.LogicalOperators
 public class ConditionQuery<T> {
     private final String column;
     private final ConditionBuilder<T> conditionBuilder;
-    private LogicalOperators logicalOperator;
+    private LogicalOperator logicalOperator;
 
     /**
      * Creates a new condition query for the given column and condition builder.
@@ -53,7 +55,7 @@ public class ConditionQuery<T> {
      *
      * @return the logical operator, or {@code null} if not set
      */
-    public LogicalOperators getLogicalOperator() {
+    public LogicalOperator getLogicalComparison() {
       return logicalOperator;
     }
 
@@ -62,7 +64,7 @@ public class ConditionQuery<T> {
      *
      * @param logicalOperator the logical operator (e.g., {@code AND}, {@code OR})
      */
-    public void setLogicalOperator(LogicalOperators logicalOperator) {
+    public void setLogicalOperator(LogicalOperator logicalOperator) {
       this.logicalOperator = logicalOperator;
     }
 

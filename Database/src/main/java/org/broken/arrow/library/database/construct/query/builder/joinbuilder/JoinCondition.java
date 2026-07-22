@@ -47,6 +47,6 @@ public class JoinCondition {
     @Override
     public String toString() {
         String aliasPart = alias != null ? " AS " + alias : "";
-        return oldStyle ? ", " + table + aliasPart :" " + type + " " + table + aliasPart + " ON " + onCondition;
+        return oldStyle ? ", " + table + aliasPart : " " + type + " " + table + aliasPart + " ON " + onCondition;
     }
 }

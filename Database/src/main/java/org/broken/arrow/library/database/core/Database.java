@@ -11,7 +11,7 @@ import org.broken.arrow.library.database.builders.wrappers.SaveSetup;
 import org.broken.arrow.library.database.connection.HikariCP;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
@@ -434,7 +434,7 @@ public abstract class Database {
      * @param tableName   name of the table you want to get data from.
      * @param whereClause build your where clause for the conditions needed to match.
      */
-    public void remove(@Nonnull final String tableName, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public void remove(@Nonnull final String tableName, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         BatchExecutor<DataWrapper> batchExecutor;
         Connection connection = this.attemptToConnect();
         if (connection == null) {

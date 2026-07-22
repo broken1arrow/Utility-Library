@@ -2,6 +2,7 @@ package org.broken.arrow.library.database.construct.query.builder.condition;
 
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.comparison.SubqueryHandler;
+import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
 
@@ -9,6 +10,8 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Builds SQL condition strings for a specific comparison operation.
  * <p>
@@ -52,23 +55,6 @@ public class ConditionBuilder<T> {
         return marker != null ? marker.getSymbol() : "?";
     }
 
-    /**
-     * Formats a BETWEEN or NOT BETWEEN clause.
-     * <p>
-     * If the marker is {@link Marker#USE_VALUE}, actual values are inserted.
-     * Otherwise, placeholder markers are used.
-     *
-     * @return the SQL BETWEEN clause fragment
-     */
-    @Nonnull
-    private String getBetweenFormatted() {
-        if(this.marker == Marker.USE_VALUE) {
-            Object firstValue = operator.getValues().length > 0 ? operator.getValues()[0] : "";
-            Object secondValue = operator.getValues().length > 1 ? operator.getValues()[1] : "";
-            return " " + operator.getSymbol() + " " + firstValue + " AND " + secondValue;
-        }
-        return " " + operator.getSymbol() + " " + this.getMarker() + " AND " + this.getMarker();
-    }
 
     /**
      * Returns the SQL representation of this condition.
@@ -91,17 +77,56 @@ public class ConditionBuilder<T> {
             return " " + operator.getSymbol() + " (" + subqueryHandler.getSubquery().build() + ")";
         }
         if (operator.getValues() != null) {
-            if (operator.getSymbol().equals("IN") || operator.getSymbol().equals("NOT IN")) {
-                return " " + operator.getSymbol() + " (" + StringUtil.repeat(this.getMarker(),operator.getValues().length) + ")";
+            final LogicalComparison comparison = operator.getComparison();
+            if (comparison == LogicalComparison.IN || comparison == LogicalComparison.NOT_IN) {
+                return getInFormatted();
             }
-            if (operator.getSymbol().equals("BETWEEN") || operator.getSymbol().equals("NOT BETWEEN")) {
+            if (comparison == LogicalComparison.BETWEEN || comparison == LogicalComparison.NOT_BETWEEN) {
                 return getBetweenFormatted();
             }
-            if (this.marker == Marker.USE_VALUE && operator.getValues().length >= 1)
-                return " " + operator.getSymbol() + " " + operator.getValues()[0];
+            if (this.marker == Marker.USE_VALUE && operator.getValues().length >= 1) {
+                Object val = operator.getValues()[0];
+                String valStr = (val instanceof String) ? "'" + val + "'" : String.valueOf(val);
+                return " " + operator.getSymbol() + " " + valStr;
+            }
         }
 
 
         return " " + operator.getSymbol() + " " + this.getMarker();
+    }
+
+    /**
+     * Formats a BETWEEN or NOT BETWEEN clause.
+     * <p>
+     * If the marker is {@link Marker#USE_VALUE}, actual values are inserted.
+     * Otherwise, placeholder markers are used.
+     *
+     * @return the SQL BETWEEN clause fragment
+     */
+    @Nonnull
+    private String getBetweenFormatted() {
+        if (this.marker == Marker.USE_VALUE) {
+            Object firstValue = operator.getValues().length > 0 ? operator.getValues()[0] : "";
+            Object secondValue = operator.getValues().length > 1 ? operator.getValues()[1] : "";
+            return " " + operator.getSymbol() + " " + firstValue + " AND " + secondValue;
+        }
+        return " " + operator.getSymbol() + " " + this.getMarker() + " AND " + this.getMarker();
+    }
+
+    @Nonnull
+    private String getInFormatted() {
+        Object[] values = operator.getValues();
+        final String comparisonSymbol = operator.getSymbol();
+        if (values == null || values.length == 0) {
+            return " " + comparisonSymbol + " ()";
+        }
+
+        if (this.marker == Marker.USE_VALUE) {
+            String joinedValues = Arrays.stream(values)
+                    .map(val -> val instanceof String ? "'" + val + "'" : String.valueOf(val))
+                    .collect(Collectors.joining(", "));
+            return " " + comparisonSymbol + " (" + joinedValues + ")";
+        }
+        return " " + comparisonSymbol + " (" + StringUtil.repeat(this.getMarker(), values.length) + ")";
     }
 }

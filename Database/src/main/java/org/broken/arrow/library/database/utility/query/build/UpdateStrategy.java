@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.utility.query.build;
 
 import org.broken.arrow.library.database.builders.tables.SqlHandler;
 import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 
@@ -28,6 +28,6 @@ public interface UpdateStrategy {
      * @param where   The function used to define the filtering conditions for the update.
      * @return A {@link SqlQueryPair} containing the generated SQL string and parameters.
      */
-    SqlQueryPair build(@Nonnull final SqlHandler sql, @Nonnull final Map<Column, Object> columns, @Nullable final Function<WhereBuilder, LogicalOperator<WhereBuilder>> where);
+    SqlQueryPair build(@Nonnull final SqlHandler sql, @Nonnull final Map<Column, Object> columns, @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> where);
 }
 

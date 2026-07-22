@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.construct.query.builder.comparison;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.condition.ConditionBuilder;
-import org.broken.arrow.library.database.construct.query.utlity.LogicalOperators;
+import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 
 import javax.annotation.Nonnull;
@@ -24,18 +24,18 @@ import java.util.Map;
  */
 public class ComparisonHandler<T> {
 
-    private final LogicalOperator<T> logicalOperator;
+    private final ConditionChainer<T> conditionChainer;
     private final String columnName;
     private ConditionBuilder<T> condition;
     private SubqueryHandler<T> subqueryHandler;
+    private LogicalComparison operator;
     private Object[] values;
-    private String symbol;
 
 
     /**
      * Creates a new comparison handler for the specified column within the given query context.
      * <p>
-     * This constructor initializes the {@link ConditionBuilder} and {@link LogicalOperator}
+     * This constructor initializes the {@link ConditionBuilder} and {@link ConditionChainer}
      * using the provided parent query instance and a marker for condition grouping or position.
      * </p>
      *
@@ -46,7 +46,7 @@ public class ComparisonHandler<T> {
     public ComparisonHandler(T clazz, String columnName, Marker marker) {
         this.columnName = columnName;
         condition = new ConditionBuilder<>(this, marker);
-        this.logicalOperator = new LogicalOperator<>(clazz, columnName, condition);
+        this.conditionChainer = new ConditionChainer<>(clazz, columnName, condition);
     }
 
     /**
@@ -55,12 +55,12 @@ public class ComparisonHandler<T> {
      * Primarily used as a placeholder or for cases where initialization is deferred.
      */
     public ComparisonHandler() {
-        this.logicalOperator = null;
+        this.conditionChainer = null;
         this.columnName = "";
     }
 
-    private void init(LogicalOperators symbol, Object value) {
-        this.symbol = symbol.getSymbol();
+    private void init(LogicalComparison symbol, Object value) {
+        this.operator = symbol;
         if (value instanceof List<?>) {
             this.values = new ArrayList<>((List<?>) value).toArray();
         } else {
@@ -77,8 +77,8 @@ public class ComparisonHandler<T> {
         }
     }
 
-    private void init(LogicalOperators symbol, Object firstValue, Object secondValue) {
-        this.symbol = symbol.getSymbol();
+    private void init(LogicalComparison symbol, Object firstValue, Object secondValue) {
+        this.operator = symbol;
         if (firstValue instanceof List<?>) {
             this.values = new ArrayList<>((List<?>) firstValue).toArray();
         } else
@@ -91,9 +91,9 @@ public class ComparisonHandler<T> {
      * @param value The value
      * @return this class for chaining.
      */
-    public LogicalOperator<T> equal(Object value) {
-        this.init(LogicalOperators.EQUALS, value);
-        return this.logicalOperator;
+    public ConditionChainer<T> equal(Object value) {
+        this.init(LogicalComparison.EQUALS, value);
+        return this.conditionChainer;
     }
 
     /**
@@ -102,9 +102,9 @@ public class ComparisonHandler<T> {
      * @param subquery The subquery
      * @return this class for chaining.
      */
-    public LogicalOperator<T> equal(QueryBuilder subquery) {
-        this.init(LogicalOperators.EQUALS, new SubqueryHandler<>(subquery));
-        return this.logicalOperator;
+    public ConditionChainer<T> equal(QueryBuilder subquery) {
+        this.init(LogicalComparison.EQUALS, new SubqueryHandler<>(subquery));
+        return this.conditionChainer;
     }
 
     /**
@@ -113,9 +113,9 @@ public class ComparisonHandler<T> {
      * @param value The value
      * @return this class for chaining.
      */
-    public LogicalOperator<T> lessThan(Object value) {
-        this.init(LogicalOperators.LESS_THAN, value);
-        return this.logicalOperator;
+    public ConditionChainer<T> lessThan(Object value) {
+        this.init(LogicalComparison.LESS_THAN, value);
+        return this.conditionChainer;
     }
 
     /**
@@ -124,9 +124,9 @@ public class ComparisonHandler<T> {
      * @param subquery The subquery
      * @return this class for chaining.
      */
-    public LogicalOperator<T> lessThan(QueryBuilder subquery) {
-        this.init(LogicalOperators.LESS_THAN, new SubqueryHandler<>(subquery));
-        return this.logicalOperator;
+    public ConditionChainer<T> lessThan(QueryBuilder subquery) {
+        this.init(LogicalComparison.LESS_THAN, new SubqueryHandler<>(subquery));
+        return this.conditionChainer;
     }
 
     /**
@@ -135,10 +135,10 @@ public class ComparisonHandler<T> {
      * @param value The value.
      * @return this class for chaining.
      */
-    public LogicalOperator<T> like(Object value) {
+    public ConditionChainer<T> like(Object value) {
 
-        this.init(LogicalOperators.LIKE, value);
-        return this.logicalOperator;
+        this.init(LogicalComparison.LIKE, value);
+        return this.conditionChainer;
     }
 
     /**
@@ -147,9 +147,9 @@ public class ComparisonHandler<T> {
      * @param subquery The subquery.
      * @return this class for chaining.
      */
-    public LogicalOperator<T> like(QueryBuilder subquery) {
-        this.init(LogicalOperators.LIKE, new SubqueryHandler<>(subquery));
-        return this.logicalOperator;
+    public ConditionChainer<T> like(QueryBuilder subquery) {
+        this.init(LogicalComparison.LIKE, new SubqueryHandler<>(subquery));
+        return this.conditionChainer;
     }
 
     /**
@@ -159,13 +159,13 @@ public class ComparisonHandler<T> {
      * @return this class for chaining.
      * @throws IllegalArgumentException if no values are provided
      */
-    public LogicalOperator<T> in(Object... values) {
+    public ConditionChainer<T> in(Object... values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException("IN requires at least one value.");
         }
 
-        this.init(LogicalOperators.IN, Arrays.asList(values));
-        return this.logicalOperator;
+        this.init(LogicalComparison.IN, Arrays.asList(values));
+        return this.conditionChainer;
     }
 
     /**
@@ -175,12 +175,12 @@ public class ComparisonHandler<T> {
      * @return this class for chaining.
      * @throws IllegalArgumentException if no values are provided
      */
-    public LogicalOperator<T> in(QueryBuilder subquery) {
+    public ConditionChainer<T> in(QueryBuilder subquery) {
         if (subquery == null) {
             throw new IllegalArgumentException("IN requires a valid subquery.");
         }
-        this.init(LogicalOperators.IN, new SubqueryHandler<>(subquery));
-        return this.logicalOperator;
+        this.init(LogicalComparison.IN, new SubqueryHandler<>(subquery));
+        return this.conditionChainer;
     }
 
     /**
@@ -190,12 +190,12 @@ public class ComparisonHandler<T> {
      * @return this class for chaining.
      * @throws IllegalArgumentException if no values are provided
      */
-    public LogicalOperator<T> notIn(Object... values) {
+    public ConditionChainer<T> notIn(Object... values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException("NOT IN requires at least one value.");
         }
-        this.init(LogicalOperators.NOT_IN, Arrays.asList(values));
-        return this.logicalOperator;
+        this.init(LogicalComparison.NOT_IN, Arrays.asList(values));
+        return this.conditionChainer;
     }
 
     /**
@@ -205,12 +205,12 @@ public class ComparisonHandler<T> {
      * @return this class for chaining.
      * @throws IllegalArgumentException if no values are provided
      */
-    public LogicalOperator<T> notIn(QueryBuilder subquery) {
+    public ConditionChainer<T> notIn(QueryBuilder subquery) {
         if (subquery == null) {
             throw new IllegalArgumentException("NOT IN requires a valid subquery.");
         }
-        this.init(LogicalOperators.NOT_IN, new SubqueryHandler<>(subquery));
-        return this.logicalOperator;
+        this.init(LogicalComparison.NOT_IN, new SubqueryHandler<>(subquery));
+        return this.conditionChainer;
     }
 
     /**
@@ -219,9 +219,9 @@ public class ComparisonHandler<T> {
      * @param value The values.
      * @return this class for chaining.
      */
-    public LogicalOperator<T> greaterThan(Object value) {
-        this.init(LogicalOperators.GREATER_THAN, value);
-        return this.logicalOperator;
+    public ConditionChainer<T> greaterThan(Object value) {
+        this.init(LogicalComparison.GREATER_THAN, value);
+        return this.conditionChainer;
     }
 
     /**
@@ -230,12 +230,12 @@ public class ComparisonHandler<T> {
      * @param subquery The subquery.
      * @return this class for chaining.
      */
-    public LogicalOperator<T> greaterThan(QueryBuilder subquery) {
+    public ConditionChainer<T> greaterThan(QueryBuilder subquery) {
         if (subquery == null) {
             throw new IllegalArgumentException("NOT IN requires a valid subquery.");
         }
-        this.init(LogicalOperators.GREATER_THAN, new SubqueryHandler<>(subquery));
-        return this.logicalOperator;
+        this.init(LogicalComparison.GREATER_THAN, new SubqueryHandler<>(subquery));
+        return this.conditionChainer;
     }
 
     /**
@@ -246,12 +246,12 @@ public class ComparisonHandler<T> {
      * @return this class for chaining.
      * @throws IllegalArgumentException if any value is null.
      */
-    public LogicalOperator<T> between(Object firstValue, Object secondValue) {
+    public ConditionChainer<T> between(Object firstValue, Object secondValue) {
         if (firstValue == null || secondValue == null) {
             throw new IllegalArgumentException("BETWEEN requires exactly two values.");
         }
-        this.init(LogicalOperators.BETWEEN, firstValue, secondValue);
-        return this.logicalOperator;
+        this.init(LogicalComparison.BETWEEN, firstValue, secondValue);
+        return this.conditionChainer;
     }
 
     /**
@@ -262,12 +262,12 @@ public class ComparisonHandler<T> {
      * @return this class for chaining.
      * @throws IllegalArgumentException if any value is null.
      */
-    public LogicalOperator<T> notBetween(Object firstValue, Object secondValue) {
+    public ConditionChainer<T> notBetween(Object firstValue, Object secondValue) {
         if (firstValue == null || secondValue == null) {
             throw new IllegalArgumentException("NOT BETWEEN requires exactly two values.");
         }
-        this.init(LogicalOperators.NOT_BETWEEN, firstValue, secondValue);
-        return this.logicalOperator;
+        this.init(LogicalComparison.NOT_BETWEEN, firstValue, secondValue);
+        return this.conditionChainer;
     }
 
     /**
@@ -297,7 +297,16 @@ public class ComparisonHandler<T> {
      * @return Returns the SQL comparison symbol.
      */
     public String getSymbol() {
-        return symbol;
+        return operator.getSymbol();
+    }
+
+    /**
+     * Returns the SQL comparison symbol.
+     *
+     * @return Returns the SQL comparison enum.
+     */
+    public LogicalComparison getComparison() {
+        return operator;
     }
 
     /**
@@ -324,8 +333,8 @@ public class ComparisonHandler<T> {
      *
      * @return  Returns the logical operator for chaining further conditions.
      */
-    public LogicalOperator<T> getLogicalOperator() {
-        return logicalOperator;
+    public ConditionChainer<T> getLogicalOperator() {
+        return conditionChainer;
     }
 
     /**
@@ -335,7 +344,7 @@ public class ComparisonHandler<T> {
      */
     @Override
     public String toString() {
-        return symbol;
+        return operator.getSymbol();
     }
 
 }

@@ -5,7 +5,7 @@ package org.broken.arrow.library.database.construct.query.utlity;
  * Includes equality, relational, pattern matching, set membership, range, and logical operators.
  * Each operator is associated with its symbolic string representation as used in SQL syntax.
  */
-public enum LogicalOperators {
+public enum LogicalComparison {
 
     /** Equality operator: "=" */
     EQUALS("="),
@@ -29,16 +29,7 @@ public enum LogicalOperators {
     BETWEEN("BETWEEN"),
 
     /** Negated range operator: "NOT BETWEEN" */
-    NOT_BETWEEN("NOT BETWEEN"),
-
-    /** Logical OR operator: "OR" */
-    OR("OR"),
-
-    /** Logical AND operator: "AND" */
-    AND("AND"),
-
-    /** Logical NOT operator: "NOT" */
-    NOT("NOT")
+    NOT_BETWEEN("NOT BETWEEN")
     ;
 
     private final String symbol;
@@ -48,7 +39,7 @@ public enum LogicalOperators {
      *
      * @param symbol The string representation of the operator.
      */
-    LogicalOperators(String symbol) {
+    LogicalComparison(String symbol) {
         this.symbol = symbol;
     }
 

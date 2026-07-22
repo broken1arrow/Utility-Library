@@ -36,19 +36,19 @@ public class Formatting {
             if (comparisonHandler == null) continue;
             final ConditionQuery<?> current = comparisonHandler.getLogicalOperator().getConditionQuery();
             final ComparisonHandler<?> nextComparisonHandler = (i + 1 < conditionsList.size()) ? conditionsList.get(i + 1) : null;
-            final LogicalOperators nextOperator = (nextComparisonHandler != null) ? nextComparisonHandler.getLogicalOperator().getConditionQuery().getLogicalOperator() : null;
-            final boolean nextIsOr = nextOperator == LogicalOperators.OR;
-            final boolean currentIsOr = current.getLogicalOperator() == LogicalOperators.OR;
+            final LogicalOperator nextLogicalOperator = (nextComparisonHandler != null) ? nextComparisonHandler.getLogicalOperator().getConditionQuery().getLogicalComparison() : null;
+            final boolean nextIsOr = nextLogicalOperator == LogicalOperator.OR;
+            final boolean currentIsOr = current.getLogicalComparison() == LogicalOperator.OR;
 
             openParenthesis = setOpenParenthesis(whereClause, nextIsOr, openParenthesis);
             whereClause.append(current.getColumn()).append(current.getWhereCondition());
             openParenthesis = setCloseParenthesis(whereClause, nextComparisonHandler, currentIsOr, openParenthesis);
 
-            if (current.getLogicalOperator() != null) {
-                whereClause.append(" ").append(current.getLogicalOperator()).append(" ");
+            if (current.getLogicalComparison() != null) {
+                whereClause.append(" ").append(current.getLogicalComparison()).append(" ");
             }
 
-            if (currentIsOr && nextOperator != null) {
+            if (currentIsOr && nextLogicalOperator != null) {
                 whereClause.append("(");
                 openParenthesis = true;
             }

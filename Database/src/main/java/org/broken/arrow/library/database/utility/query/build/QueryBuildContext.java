@@ -2,10 +2,7 @@ package org.broken.arrow.library.database.utility.query.build;
 
 import org.broken.arrow.library.database.builders.tables.SqlHandler;
 import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
-import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.QueryModifier;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
-import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinType;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.logging.Validate;
@@ -28,7 +25,7 @@ import java.util.function.Supplier;
 public final class QueryBuildContext {
     private final SqlHandler sqlHandler;
     private final Map<Column, Object> columnsMap;
-    private final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause;
+    private final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause;
     private Supplier<SqlQueryPair> executionBlueprint;
     private final boolean rowExists;
 
@@ -43,7 +40,7 @@ public final class QueryBuildContext {
     public QueryBuildContext(
             @Nonnull final SqlHandler sqlHandler,
             @Nonnull final Map<Column, Object> columnsMap,
-            @Nullable final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause,
+            @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause,
             final boolean rowExists) {
 
         this.sqlHandler = sqlHandler;

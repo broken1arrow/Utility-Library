@@ -3,7 +3,7 @@ package org.broken.arrow.library.database.construct.query.builder.tablebuilder;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
@@ -68,7 +68,7 @@ public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrap
      *         {@link #build()} can be invoked to obtain the creation table handler.
      */
     @Override
-    public SelectorWrapper where(@Nonnull Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
+    public SelectorWrapper where(@Nonnull Function<WhereBuilder, ConditionChainer<WhereBuilder>> callback) {
         super.where(callback);
         return this;
     }

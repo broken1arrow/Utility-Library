@@ -4,7 +4,7 @@ package org.broken.arrow.library.database.construct.query;
 import org.broken.arrow.library.database.construct.query.builder.GroupByBuilder;
 import org.broken.arrow.library.database.construct.query.builder.JoinBuilder;
 import org.broken.arrow.library.database.construct.query.builder.OrderByBuilder;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
@@ -64,7 +64,7 @@ public class QueryModifier extends Selector<ColumnBuilder<Column, Void>, Column>
         return this;
     }
     @Override
-    public QueryModifier where(@Nonnull Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
+    public QueryModifier where(@Nonnull Function<WhereBuilder, ConditionChainer<WhereBuilder>> callback) {
         super.where(callback);
         return this;
     }

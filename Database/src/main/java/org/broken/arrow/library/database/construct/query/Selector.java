@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.construct.query;
 
 
 import org.broken.arrow.library.database.construct.query.builder.JoinBuilder;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
@@ -64,7 +64,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
         this.queryBuilder = queryBuilder;
         whereBuilder = new WhereBuilder(queryBuilder);
         havingBuilder = new HavingBuilder(queryBuilder);
-        joinBuilder = new JoinBuilder();
+        joinBuilder = new JoinBuilder(queryBuilder);
     }
 
     /**
@@ -119,7 +119,7 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
      * @param callback a function that configures the WhereBuilder
      * @return this Selector instance for chaining
      */
-    public Selector<T, V> where(@Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> callback) {
+    public Selector<T, V> where(@Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> callback) {
         this.whereBuilder = new WhereBuilder(queryBuilder);
         callback.apply(this.whereBuilder);
         return this;

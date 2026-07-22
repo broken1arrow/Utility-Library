@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.builders.wrappers;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.core.Database;
@@ -59,7 +59,7 @@ public class DatabaseSettingsLoad extends DatabaseSettings {
      * @param columns A consumer that configures the columns to select via {@link ColumnManager}.
      * @param whereClause A function that builds the WHERE clause using {@link WhereBuilder}.
      */
-    public void setSelectCommand(@Nonnull final Consumer<ColumnManager> columns, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public void setSelectCommand(@Nonnull final Consumer<ColumnManager> columns, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         this.setSelectCommand(true, columns, whereClause);
     }
 
@@ -72,11 +72,11 @@ public class DatabaseSettingsLoad extends DatabaseSettings {
      * @param columns A consumer that configures the columns to select via {@link ColumnManager}.
      * @param whereClause A function that builds the WHERE clause using {@link WhereBuilder}.
      */
-    public void setSelectCommand(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnManager> columns, @Nonnull final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public void setSelectCommand(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnManager> columns, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         this.queryBuilder(queryPlaceholder, columns, whereClause);
     }
 
-    private void queryBuilder(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnManager> columns, @Nullable final Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    private void queryBuilder(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnManager> columns, @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         QueryBuilder builder = new QueryBuilder();
         ColumnManager columnManager = new ColumnManager();
         columns.accept(columnManager);

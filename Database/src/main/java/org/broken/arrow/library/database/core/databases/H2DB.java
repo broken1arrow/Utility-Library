@@ -2,9 +2,6 @@ package org.broken.arrow.library.database.core.databases;
 
 import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.database.connection.HikariCP;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
-import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.core.SQLDatabaseQuery;
 import org.broken.arrow.library.database.utility.DatabaseCommandConfig;
 import org.broken.arrow.library.logging.Logging;
@@ -15,8 +12,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Represents an H2 database connection handler, supporting both direct JDBC connections

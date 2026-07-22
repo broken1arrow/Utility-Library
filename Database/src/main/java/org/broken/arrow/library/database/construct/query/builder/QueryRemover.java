@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.construct.query.builder;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.builder.comparison.LogicalOperator;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
 
 import javax.annotation.Nonnull;
@@ -33,7 +33,7 @@ public class QueryRemover {
      * @param whereClause function to build the WHERE clause
      * @return the parent QueryBuilder for chaining
      */
-    public QueryBuilder where(Function<WhereBuilder, LogicalOperator<WhereBuilder>> whereClause) {
+    public QueryBuilder where(Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         this. whereBuilder = new WhereBuilder(queryBuilder);
         whereClause.apply(whereBuilder);
         return queryBuilder;
