@@ -1,15 +1,14 @@
-package org.broken.arrow.library.database.construct.query.builder;
+package org.broken.arrow.library.database.construct.query.builder.joinbuilder;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
-import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinBuildContext;
-import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinCondition;
-import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinType;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
  * Also supports legacy-style joins.
  * </p>
  */
-public class JoinBuilder {
+public class JoinBuilder implements ParameterSupplier {
     private final List<JoinCondition> joins = new ArrayList<>();
     private final QueryBuilder queryBuilder;
 
@@ -41,8 +40,7 @@ public class JoinBuilder {
      * @param joinClause join condition
      */
     public void innerJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
-        JoinBuildContext operator = new JoinBuildContext(queryBuilder);
-        this.join(JoinType.INNER, table, alias, joinClause.apply(operator));
+        this.join(JoinType.INNER, table, alias, joinClause);
     }
 
     /**
@@ -53,8 +51,7 @@ public class JoinBuilder {
      * @param joinClause join condition
      */
     public void fullJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
-        JoinBuildContext operator = new JoinBuildContext(queryBuilder);
-        this.join(JoinType.FULL, table, alias, joinClause.apply(operator));
+        this.join(JoinType.FULL, table, alias, joinClause);
     }
 
     /**
@@ -65,8 +62,7 @@ public class JoinBuilder {
      * @param joinClause join condition
      */
     public void leftJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
-        JoinBuildContext operator = new JoinBuildContext(queryBuilder);
-        this.join(JoinType.LEFT, table, alias, joinClause.apply(operator));
+        this.join(JoinType.LEFT, table, alias, joinClause);
     }
 
     /**
@@ -77,8 +73,7 @@ public class JoinBuilder {
      * @param joinClause join condition
      */
     public void rightJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
-        JoinBuildContext operator = new JoinBuildContext(queryBuilder);
-        this.join(JoinType.RIGHT, table, alias, joinClause.apply(operator));
+        this.join(JoinType.RIGHT, table, alias, joinClause);
     }
 
     /**
@@ -89,14 +84,9 @@ public class JoinBuilder {
      * @param joinClause join condition
      */
     public void crossJoin(String table, String alias, Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
-        JoinBuildContext operator = new JoinBuildContext(queryBuilder);
-        this.join(JoinType.CROSS, table, alias, joinClause.apply(operator));
+        this.join(JoinType.CROSS, table, alias, joinClause);
     }
 
-
-    private void join(JoinType joinType, String table, String alias, ConditionChainer<JoinBuildContext> apply) {
-        joins.add(new JoinCondition(joinType, table, alias, apply.build().build(), false));
-    }
 
     /**
      * Adds a JOIN clause with the specified type, table, alias, and ON condition.
@@ -126,7 +116,7 @@ public class JoinBuilder {
      * @param alias alias for the table (nullable)
      */
     public void oldJoin(String table, String alias) {
-        joins.add(new JoinCondition(null, table, alias, null, true));
+        joins.add(new JoinCondition(null, table, alias, (String) null, true));
     }
 
     /**
@@ -145,5 +135,28 @@ public class JoinBuilder {
      */
     public boolean hasOldJoins() {
         return joins.stream().anyMatch(JoinCondition::isOldStyle);
+    }
+
+
+    @Nonnull
+    @Override
+    public List<Object> getRawParameters() {
+        return joins.stream()
+                .map(JoinCondition::getRawParameters)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Adds a JOIN clause with the specified type, table, alias, and ON condition if not {@code cross join}.
+     *
+     * @param joinType   the join type (INNER, LEFT, etc.)
+     * @param table      the table name to join
+     * @param alias      alias for the joined table
+     * @param joinClause join condition
+     */
+    private void join(@Nonnull final JoinType joinType, @Nonnull final String table, String alias, final Function<JoinBuildContext, ConditionChainer<JoinBuildContext>> joinClause) {
+        JoinBuildContext operator = new JoinBuildContext(queryBuilder);
+        joins.add(new JoinCondition(joinType, table, alias, joinClause.apply(operator).build(), false));
     }
 }

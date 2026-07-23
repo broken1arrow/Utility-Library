@@ -1,8 +1,10 @@
 package org.broken.arrow.library.database.construct.query.builder.comparison;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.condition.ConditionBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.LiteralVal;
 import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
@@ -10,9 +12,13 @@ import org.broken.arrow.library.database.construct.query.utlity.Marker;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Handles SQL comparison operations for a specific column within a query.
@@ -41,9 +47,9 @@ public class ComparisonHandler<T> {
      * using the provided parent query instance and a marker for condition grouping or position.
      * </p>
      *
-     * @param clazz  the parent query object or builder instance
+     * @param clazz      the parent query object or builder instance
      * @param columnName the name of the column to apply comparisons on
-     * @param marker the marker used to track this condition's grouping or position
+     * @param marker     the marker used to track this condition's grouping or position
      */
     public ComparisonHandler(T clazz, String columnName, Marker marker) {
         this.columnName = columnName;
@@ -295,6 +301,49 @@ public class ComparisonHandler<T> {
     }
 
     /**
+     * Returns the values filtered to only returns relevant values set the comparison.
+     *
+     * @return Returns the values used in the comparison.
+     */
+    @Nonnull
+    public List<Object> getValuesFiltered() {
+        if (values == null)
+            return new ArrayList<>();
+        return Stream.of(values)
+                // 1. Filter out structural column fields
+                .filter(object -> !(object instanceof Column))
+                // 2. Flatten collections, subqueries, and primitives into a uniform stream
+                .flatMap(object -> {
+                    if (object instanceof ParameterSupplier ) {
+                        ParameterSupplier supplier = (ParameterSupplier) object;
+                        return supplier.getRawParameters().stream();
+                    }
+                    if (object instanceof QueryBuilder) {
+                        QueryBuilder qb = (QueryBuilder) object;
+                        return qb.getValues().values().stream();
+                    }
+                    if (object instanceof LiteralVal) {
+                        LiteralVal literalVal = (LiteralVal) object;
+                        return Stream.of(literalVal.value());
+                    }
+
+                    if (object instanceof Collection<?>) {
+                        Collection<?> col = Collections.singleton(object);
+                        return col.stream();
+                    }
+
+                    if (object instanceof Object[] ) {
+                        Object[] arr = (Object[]) object;
+                        return Arrays.stream(arr);
+                    }
+
+                    return Stream.of(object);
+                })
+                .filter(object -> object != null && !object.equals(""))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Returns the SQL comparison symbol.
      *
      * @return Returns the SQL comparison symbol.
@@ -334,7 +383,7 @@ public class ComparisonHandler<T> {
     /**
      * Returns the logical operator for chaining further conditions.
      *
-     * @return  Returns the logical operator for chaining further conditions.
+     * @return Returns the logical operator for chaining further conditions.
      */
     public ConditionChainer<T> getLogicalOperator() {
         return conditionChainer;

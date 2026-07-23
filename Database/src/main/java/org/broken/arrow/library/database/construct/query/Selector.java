@@ -1,7 +1,8 @@
 package org.broken.arrow.library.database.construct.query;
 
 
-import org.broken.arrow.library.database.construct.query.builder.JoinBuilder;
+import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinBuilder;
+import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
@@ -9,8 +10,14 @@ import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Array;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * A generic builder class that supports constructing SQL SELECT queries with
@@ -212,6 +219,26 @@ public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
         if (tableAlias == null || tableAlias.isEmpty())
             return table;
         return table + " " + tableAlias;
+    }
+
+    /**
+     * Retrieve the values set, where placeholders is not used.
+     *
+     * @return returns index as the key for prepared statement and the value to be set.
+     */
+    public Map<Integer, Object> getParameterValues() {
+        final Map<Integer, Object> valuesMap = new LinkedHashMap<>();
+        final int[] paramIndex = {1};
+        Stream.of(
+                        getJoinBuilder(),
+                        getWhereBuilder(),
+                        getHavingBuilder()
+                ).map(ParameterSupplier::getRawParameters)
+                .filter(rawParameters -> !rawParameters.isEmpty())
+                .flatMap(List::stream)
+                .forEachOrdered(value -> valuesMap.put(paramIndex[0]++, value));
+
+        return valuesMap;
     }
 
     /**

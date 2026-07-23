@@ -1,10 +1,10 @@
 package org.broken.arrow.library.database.construct.query.builder.joinbuilder;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Aggregation;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 
 import javax.annotation.Nonnull;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 import static org.broken.arrow.library.database.construct.query.utlity.Formatting.formatConditions;
 
-public class JoinBuildContext {
+public class JoinBuildContext  {
     private final List<ComparisonHandler<JoinBuildContext>> conditionsList = new ArrayList<>();
     private final boolean globalEnableQueryPlaceholders;
 
@@ -90,12 +90,15 @@ public class JoinBuildContext {
      * Builds the full join clause as a String.
      * Returns an empty string if no conditions are present.
      *
+     * @param joinType The type of join.
      * @return The join clause SQL fragment (including "on"), or empty string if none.
      */
-    public String build() {
+    public String build(@Nonnull final JoinType joinType) {
         if (conditionsList.isEmpty())
             return "";
-        String condition = formatConditions(conditionsList);
+        final String condition = formatConditions(conditionsList);
+        if (joinType == JoinType.CROSS)
+            return "";
         return ("ON " + condition).replace(";", "");
     }
 
@@ -115,28 +118,6 @@ public class JoinBuildContext {
      */
     public List<ComparisonHandler<JoinBuildContext>> getConditionsList() {
         return conditionsList;
-    }
-
-    /**
-     * Returns a map of parameter index to values for prepared statement usage.
-     *
-     * @return map of index to value for query parameters
-     */
-    public Map<Integer, Object> getValues() {
-        if (conditionsList.isEmpty())
-            return new HashMap<>();
-
-        List<Object> values = conditionsList.stream()
-                .map(ComparisonHandler::getValues)
-                .flatMap(Arrays::stream)
-                .collect(Collectors.toList());
-
-        Map<Integer, Object> valuesMap = new HashMap<>();
-        for (int i = 0; i < values.size(); i++) {
-            valuesMap.put(i + 1, values.get(i));
-        }
-
-        return valuesMap;
     }
 
     private void addCondition(ComparisonHandler<JoinBuildContext> condition) {

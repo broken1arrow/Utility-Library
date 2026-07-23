@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.construct.query;
 
 
 import org.broken.arrow.library.database.construct.query.builder.GroupByBuilder;
-import org.broken.arrow.library.database.construct.query.builder.JoinBuilder;
+import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinBuilder;
 import org.broken.arrow.library.database.construct.query.builder.OrderByBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.havingbuilder.HavingBuilder;

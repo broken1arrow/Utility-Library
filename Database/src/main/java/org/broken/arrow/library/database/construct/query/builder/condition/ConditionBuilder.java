@@ -3,6 +3,7 @@ package org.broken.arrow.library.database.construct.query.builder.condition;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.comparison.SubqueryHandler;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.LiteralVal;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
@@ -79,7 +80,6 @@ public class ConditionBuilder<T> {
         }
         final Object[] values = operator.getValues();
         if (values != null) {
-
             final LogicalComparison comparison = operator.getComparison();
             if (comparison == LogicalComparison.IN || comparison == LogicalComparison.NOT_IN) {
                 return getInFormatted();
@@ -130,6 +130,10 @@ public class ConditionBuilder<T> {
             return ((Column) val).getColumnName();
         }
         if (this.marker == Marker.USE_VALUE) {
+            if (val instanceof LiteralVal) {
+                Object value = ((LiteralVal) val).value();
+                return (value instanceof String) ? "'" + value + "'" : String.valueOf(value);
+            }
             return (val instanceof String) ? "'" + val + "'" : String.valueOf(val);
         }
         return this.getMarker();

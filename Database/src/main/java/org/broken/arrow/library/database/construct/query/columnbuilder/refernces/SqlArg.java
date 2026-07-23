@@ -32,10 +32,5 @@ public interface SqlArg {
         return new LiteralVal(value);
     }
 
-    /**
-     * Retrieves the underlying payload of this argument.
-     *
-     * @return the raw literal value (for {@link LiteralVal}) or the column name (for {@link Column}).
-     */
-    Object value();
+
 }

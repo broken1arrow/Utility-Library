@@ -96,10 +96,6 @@ public class Column implements SqlArg {
         return this.columnName;
     }
 
-    @Override
-    public Object value() {
-        return getColumnName();
-    }
 
     /**
      * Helper class for chaining column and aggregation operations within a column context.

@@ -2,9 +2,11 @@ package org.broken.arrow.library.database.construct.query.builder.wherebuilder;
 
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Aggregation;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.LiteralVal;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 
 import javax.annotation.Nonnull;
@@ -16,6 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.broken.arrow.library.database.construct.query.utlity.Formatting.formatConditions;
 
@@ -27,7 +30,7 @@ import static org.broken.arrow.library.database.construct.query.utlity.Formattin
  * for safe parameterized SQL.
  * </p>
  */
-public class WhereBuilder {
+public class WhereBuilder implements ParameterSupplier {
     private final List<ComparisonHandler<WhereBuilder>> conditionsList = new ArrayList<>();
     private final boolean globalEnableQueryPlaceholders;
 
@@ -135,12 +138,7 @@ public class WhereBuilder {
         if (conditionsList.isEmpty())
             return new HashMap<>();
 
-        List<Object> values = conditionsList.stream()
-                .map(ComparisonHandler::getValues)
-                .flatMap(Arrays::stream)
-                .filter(object -> !(object instanceof Column))
-                .collect(Collectors.toList());
-
+        List<Object> values = getRawParameters();
         Map<Integer, Object> valuesMap = new HashMap<>();
         for (int i = 0; i < values.size(); i++) {
             valuesMap.put(i + 1, values.get(i));
@@ -153,4 +151,11 @@ public class WhereBuilder {
         conditionsList.add(condition);
     }
 
+    @Nonnull
+    @Override
+    public List<Object> getRawParameters() {
+        return getConditionsList().stream()
+                .flatMap(comparison -> comparison.getValuesFiltered().stream())
+                .collect(Collectors.toList());
+    }
 }

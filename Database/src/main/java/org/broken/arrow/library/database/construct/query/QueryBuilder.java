@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
 /**
  * Central builder class for constructing SQL queries of various types.
  * <p>
@@ -112,7 +113,7 @@ public class QueryBuilder {
     public AlterTable alterTable(String table) {
         this.queryType = QueryType.ALTER_TABLE;
         this.table = table;
-        return  alterTable;
+        return alterTable;
     }
 
     /**
@@ -164,7 +165,7 @@ public class QueryBuilder {
     /**
      * Starts building an UPDATE query for the specified table, applying the given configuration callback.
      *
-     * @param table the name of the table to update
+     * @param table    the name of the table to update
      * @param callback callback to configure the update builder (e.g., setting columns and where clauses)
      * @return the update builder for further configuration or execution
      */
@@ -190,7 +191,7 @@ public class QueryBuilder {
     /**
      * Starts building an INSERT INTO query for the specified table with a configuration callback.
      *
-     * @param table the name of the table to insert into
+     * @param table    the name of the table to insert into
      * @param callback callback to configure the insert handler (e.g., setting columns and values)
      */
     public void insertInto(String table, Consumer<InsertHandler> callback) {
@@ -202,7 +203,7 @@ public class QueryBuilder {
     /**
      * Starts building an INSERT INTO query for the specified table with a configuration callback.
      *
-     * @param table the name of the table to insert into
+     * @param table    the name of the table to insert into
      * @param callback callback to configure the insert handler (e.g., setting columns and values)
      */
     public void insertOrReplaceInto(String table, Consumer<InsertHandler> callback) {
@@ -214,7 +215,7 @@ public class QueryBuilder {
     /**
      * Starts building a MERGE INTO query for the specified table with a configuration callback.
      *
-     * @param table the name of the table to merge into
+     * @param table    the name of the table to merge into
      * @param callback callback to configure the insert handler for merge operation
      */
     public void mergeInto(String table, Consumer<InsertHandler> callback) {
@@ -226,7 +227,7 @@ public class QueryBuilder {
     /**
      * Starts building a REPLACE INTO query for the specified table with a configuration callback.
      *
-     * @param table the name of the table to replace into
+     * @param table    the name of the table to replace into
      * @param callback callback to configure the insert handler for replace operation
      */
     public void replaceInto(String table, Consumer<InsertHandler> callback) {
@@ -344,18 +345,15 @@ public class QueryBuilder {
      * @return a map where keys are parameter indexes and values are the corresponding parameter values
      */
     public Map<Integer, Object> getValues() {
-
+        if (!isGlobalEnableQueryPlaceholders()) {
+            return new HashMap<>();
+        }
         if (queryType == QueryType.UPDATE) {
             return updateBuilder.getIndexedValues();
         } else if (queryType == QueryType.INSERT || queryType == QueryType.MERGE_INTO || queryType == QueryType.REPLACE_INTO || queryType == QueryType.INSERT_REPLACE) {
             return insertHandler.getIndexedValues();
         } else if (queryType == QueryType.SELECT) {
-            final Map<Integer, Object> whereBuilderValues = queryModifier.getWhereBuilder().getValues();
-            if (!whereBuilderValues.isEmpty()) {
-                return whereBuilderValues;
-            } else {
-                return queryModifier.getHavingBuilder().getValues();
-            }
+            return queryModifier.getParameterValues();
         } else if (queryType == QueryType.DELETE) {
             WhereBuilder whereBuilder = queryRemover.getWhereBuilder();
             if (whereBuilder != null)
@@ -465,8 +463,9 @@ public class QueryBuilder {
      *   <li>For SELECT queries, returns the number of columns selected.</li>
      *   <li>For DELETE queries, returns -1.</li>
      * </ul>
-     * @param  queryModifier the query modification like join, where, groupBy and more.
-     * @param sql the builder for the sql command.
+     *
+     * @param queryModifier the query modification like join, where, groupBy and more.
+     * @param sql           the builder for the sql command.
      */
     private void createSelectQuery(final QueryModifier queryModifier, final StringBuilder sql) {
         sql.append("SELECT ");

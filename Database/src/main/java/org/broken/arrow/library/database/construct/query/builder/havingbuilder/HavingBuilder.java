@@ -2,6 +2,7 @@ package org.broken.arrow.library.database.construct.query.builder.havingbuilder;
 
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Aggregation;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
@@ -18,6 +19,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.broken.arrow.library.database.construct.query.utlity.Formatting.formatConditions;
+
 /**
  * Builder class to construct SQL HAVING clause conditions.
  * <p>
@@ -26,7 +28,7 @@ import static org.broken.arrow.library.database.construct.query.utlity.Formattin
  * for safe query parameterization.
  * </p>
  */
-public class HavingBuilder {
+public class HavingBuilder implements ParameterSupplier {
 
     private final List<ComparisonHandler<HavingBuilder>> conditionsList = new ArrayList<>();
     private boolean globalEnableQueryPlaceholders = true;
@@ -48,7 +50,7 @@ public class HavingBuilder {
      * @return a new HavingBuilder instance
      */
     public static HavingBuilder of(@Nonnull final QueryBuilder queryBuilder) {
-        return new HavingBuilder( queryBuilder);
+        return new HavingBuilder(queryBuilder);
     }
 
     /**
@@ -58,7 +60,8 @@ public class HavingBuilder {
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
     public ComparisonHandler<HavingBuilder> having(@Nonnull final String columnName) {
-        return this.having(columnName, a -> {});
+        return this.having(columnName, a -> {
+        });
     }
 
     /**
@@ -111,13 +114,7 @@ public class HavingBuilder {
         if (conditionsList.isEmpty())
             return new HashMap<>();
 
-        List<Object> values = conditionsList.stream()
-                .map(ComparisonHandler::getValues)
-                .filter(Objects::nonNull)
-                .flatMap(Arrays::stream)
-                .filter(object -> !(object instanceof Column))
-                .collect(Collectors.toList());
-
+        List<Object> values = getRawParameters();
         Map<Integer, Object> valuesMap = new HashMap<>();
         for (int i = 0; i < values.size(); i++) {
             valuesMap.put(i + 1, values.get(i));
@@ -126,4 +123,11 @@ public class HavingBuilder {
         return valuesMap;
     }
 
+    @Nonnull
+    @Override
+    public List<Object> getRawParameters() {
+        return getConditionsList().stream()
+                .flatMap(comparison -> comparison.getValuesFiltered().stream())
+                .collect(Collectors.toList());
+    }
 }
