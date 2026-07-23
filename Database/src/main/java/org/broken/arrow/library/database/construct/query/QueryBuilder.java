@@ -337,7 +337,7 @@ public class QueryBuilder {
      * <ul>
      *   <li>UPDATE: Returns parameter values used in the update builder (e.g., SET and WHERE clauses).</li>
      *   <li>INSERT, MERGE_INTO, REPLACE_INTO: Returns parameter values from the insert handler.</li>
-     *   <li>SELECT: Returns parameters from the WHERE clause if present; otherwise, parameters from the HAVING clause.</li>
+     *   <li>SELECT: Returns parameters from the {@link QueryModifier#getParameterValues()}</li>
      *   <li>DELETE: Returns parameters from the WHERE clause if set.</li>
      *   <li>If no parameters exist or query type is not set, returns an empty map.</li>
      * </ul>
@@ -456,28 +456,29 @@ public class QueryBuilder {
     }
 
     /**
-     * Returns the number of columns set for the current query.
-     * <ul>
-     *   <li>For UPDATE queries, returns the number of columns being updated.</li>
-     *   <li>For INSERT queries, returns the number of columns being inserted.</li>
-     *   <li>For SELECT queries, returns the number of columns selected.</li>
-     *   <li>For DELETE queries, returns -1.</li>
-     * </ul>
+     * Constructs a complete SQL {@code SELECT} query string using the clauses provided by the
+     * {@link QueryModifier} and appends it to the given {@link StringBuilder}.
+     * <p>
+     * If no columns are explicitly defined in the select builder, this defaults to selecting
+     * all columns ({@code SELECT *}). Clauses are appended in standard SQL order:
+     * {@code SELECT}, {@code FROM}, {@code JOIN}, {@code WHERE}, {@code GROUP BY},
+     * {@code HAVING}, {@code ORDER BY}, and {@code LIMIT}.
+     * </p>
      *
-     * @param queryModifier the query modification like join, where, groupBy and more.
-     * @param sql           the builder for the sql command.
+     * @param queryModifier the modifier containing the table, columns, and optional query clauses
+     * @param sql           the {@link StringBuilder} destination to append the constructed query to
      */
     private void createSelectQuery(final QueryModifier queryModifier, final StringBuilder sql) {
         sql.append("SELECT ");
-
         sql.append(queryModifier.getSelectBuilder().getColumns().isEmpty() ? "*" : queryModifier.getSelectBuilder().build());
-        sql.append(" FROM ").append(queryModifier.getTableWithAlias())
-                .append(queryModifier.getJoinBuilder().build())
-                .append(queryModifier.getWhereBuilder().build())
-                .append(queryModifier.getGroupByBuilder().build())
-                .append(queryModifier.getHavingBuilder().build())
-                .append(queryModifier.getOrderByBuilder().build())
-                .append(queryModifier.getLimit());
+
+        appendClause(sql, "FROM " + queryModifier.getTableWithAlias());
+        appendClause(sql, queryModifier.getJoinBuilder().build());
+        appendClause(sql, queryModifier.getWhereBuilder().build());
+        appendClause(sql, queryModifier.getGroupByBuilder().build());
+        appendClause(sql, queryModifier.getHavingBuilder().build());
+        appendClause(sql, queryModifier.getOrderByBuilder().build());
+        appendClause(sql, queryModifier.getLimit());
     }
 
     private void createUpdateQuery(final StringBuilder sql) {
@@ -487,8 +488,8 @@ public class QueryBuilder {
         }
         sql.append("UPDATE ").append(table).append(" SET ");
         if (this.globalEnableQueryPlaceholders) {
-            sql.append(updateValues.entrySet().stream()
-                    .map(entry -> entry.getKey() + " = ?")
+            sql.append(updateValues.keySet().stream()
+                    .map(s -> s + " = ?")
                     .collect(Collectors.joining(", ")));
         } else {
             sql.append(updateValues.entrySet().stream()
@@ -526,4 +527,12 @@ public class QueryBuilder {
         return sqlKeyword;
     }
 
+    private void appendClause(StringBuilder sql, String clause) {
+        if (clause != null && !clause.isEmpty()) {
+            if (sql.length() > 0 && sql.charAt(sql.length() - 1) != ' ') {
+                sql.append(' ');
+            }
+            sql.append(clause);
+        }
+    }
 }

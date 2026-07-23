@@ -7,10 +7,13 @@ import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A utility class for managing column-value pairs for an SQL {@code INSERT} operation.
@@ -24,7 +27,7 @@ import java.util.Map;
  * to their corresponding values.
  * </p>
  */
-public class InsertHandler {
+public class InsertHandler implements ParameterSupplier{
 
     private final Map<Integer, InsertBuilder> insertValues = new LinkedHashMap<>();
     private final Map<Integer, Object> values = new LinkedHashMap<>();
@@ -49,7 +52,7 @@ public class InsertHandler {
      * @return this instance for chaining
      */
     public InsertHandler add(InsertBuilder value) {
-        insertValues.put(columnIndex++, value);
+        insertValues.put(insertValues.size() + 1, value);
         return this;
     }
 
@@ -118,72 +121,123 @@ public class InsertHandler {
     }
 
     /**
-     * Returns only the indexed values without column names.
-     * <p>
-     * This is useful for parameter binding in prepared statements.
-     * </p>
+     * Returns 1-based indexed parameter values for prepared statement binding.
      *
      * @return a map of index to column value objects
      */
     public Map<Integer, Object> getIndexedValues() {
-        return values;
+        if (isInsertFromSelect()) {
+            return queryModifier.getParameterValues();
+        }
+
+        final Map<Integer, Object> indexedMap = new LinkedHashMap<>();
+        int paramIndex = 1;
+
+        for (Object value : getRawParameters()) {
+            indexedMap.put(paramIndex++, value);
+        }
+        return indexedMap;
+    }
+
+    @Nonnull
+    @Override
+    public List<Object> getRawParameters() {
+        if (isInsertFromSelect()) {
+            return new ArrayList<>(queryModifier.getParameterValues().values());
+        }
+        if (!this.queryBuilder.isGlobalEnableQueryPlaceholders() || insertValues.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return insertValues.values().stream()
+                .map(InsertBuilder::getColumnValue)
+                .collect(Collectors.toList());
     }
 
     /**
-     * Build the inner parts of the query command.
+     * Builds the SQL fragment for the INSERT operation.
      *
-     * @return the inner parts of the query.
+     * @return the generated SQL fragment
      */
     public String build() {
-        this.values.clear();
-        final StringBuilder sql = new StringBuilder();
-        Map<Integer, InsertBuilder> insertBuilders = this.getInsertValues();
-        if (insertBuilders.isEmpty()) return "";
-        List<String> columnNames = new ArrayList<>();
-        List<Object> columnValues = new ArrayList<>();
+        if (insertValues.isEmpty()) {
+            return "";
+        }
+        List<String> columnNames = insertValues.values().stream()
+                .map(InsertBuilder::getColumnName)
+                .collect(Collectors.toList());
 
-        int index = 1;
-        for (Map.Entry<Integer, InsertBuilder> builder : insertBuilders.entrySet()) {
-            columnNames.add(builder.getValue().getColumnName());
-            if (!this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
-                columnValues.add(builder.getValue().getColumnValue());
-            } else {
-                this.values.put(index++,builder.getValue().getColumnValue());
-            }
+        if (isInsertFromSelect()) {
+            return buildInsertFromSelect(columnNames);
         }
 
-        String select = setSelect(sql, columnNames);
-        if (select != null) return select;
+        return buildStandardInsert(columnNames);
+    }
+
+    private boolean isInsertFromSelect() {
+        return queryModifier.getTable() != null
+                && !queryModifier.getSelectBuilder().getColumns().isEmpty();
+    }
+
+    private String buildInsertFromSelect(List<String> columnNames) {
+        StringBuilder sql = new StringBuilder();
 
         sql.append(" (")
                 .append(StringUtil.stringJoin(columnNames))
-                .append(") VALUES (");
+                .append(") ");
 
-        if (this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
-            sql.append(StringUtil.repeat("?,", insertBuilders.size()).replaceAll(",$", ""));
-        } else {
-            sql.append(StringUtil.stringJoin(columnValues));
+        sql.append("SELECT ")
+                .append(queryModifier.getSelectBuilder().build())
+                .append(" FROM ")
+                .append(queryModifier.getTableWithAlias());
+
+
+        String joins = queryModifier.getJoinBuilder().build();
+        if (joins != null && !joins.isEmpty()) {
+            sql.append(" ").append(joins);
         }
-        sql.append(" )");
+
+        String where = queryModifier.getWhereBuilder().build();
+        if (where != null && !where.isEmpty()) {
+            sql.append(" ").append(where);
+        }
+
+        String groupBy = queryModifier.getGroupByBuilder().build();
+        if (groupBy != null && !groupBy.isEmpty()) {
+            sql.append(" ").append(groupBy);
+        }
+
+        String having = queryModifier.getHavingBuilder().build();
+        if (having != null && !having.isEmpty()) {
+            sql.append(" ").append(having);
+        }
+
+        String orderBy = queryModifier.getOrderByBuilder().build();
+        if (orderBy != null && !orderBy.isEmpty()) {
+            sql.append(" ").append(orderBy);
+        }
+
+        String limit = queryModifier.getLimit();
+        if (limit != null && !limit.isEmpty()) {
+            sql.append(" ").append(limit);
+        }
+
         return sql.toString();
     }
 
-    private String setSelect(final StringBuilder sql, final List<String> columnNames) {
-        final QueryModifier modifier = getQueryModifier();
-        final ColumnBuilder<Column, Void> selectBuilder = modifier.getSelectBuilder();
-        final String from = modifier.getTable();
-        final String selectSql = selectBuilder.build();
+    private String buildStandardInsert(List<String> columnNames) {
+        StringBuilder sql = new StringBuilder();
+        sql.append(" (").append(StringUtil.stringJoin(columnNames)).append(") VALUES (");
 
-        if (!selectSql.isEmpty() && from != null) {
-            sql.append("(")
-                    .append(StringUtil.stringJoin(columnNames))
-                    .append(") SELECT ")
-                    .append(selectSql)
-                    .append(" FROM ")
-                    .append(from);
-            return sql.toString();
+        if (this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
+            sql.append(String.join(", ", Collections.nCopies(insertValues.size(), "?")));
+        } else {
+            List<Object> rawValues = insertValues.values().stream()
+                    .map(InsertBuilder::getColumnValue)
+                    .collect(Collectors.toList());
+            sql.append(StringUtil.stringJoin(rawValues));
         }
-        return null;
-    }
 
+        sql.append(")");
+        return sql.toString();
+    }
 }
