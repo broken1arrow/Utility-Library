@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.broken.arrow.library.database.construct.query.builder.clause.Formatting.formatConditions;
+import static org.broken.arrow.library.database.construct.query.builder.condition.Formatting.formatConditions;
 
 /**
  * Builder class to construct SQL HAVING clause conditions.

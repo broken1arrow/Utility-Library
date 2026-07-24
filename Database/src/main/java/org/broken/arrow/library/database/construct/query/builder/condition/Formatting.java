@@ -1,7 +1,6 @@
-package org.broken.arrow.library.database.construct.query.builder.clause;
+package org.broken.arrow.library.database.construct.query.builder.condition;
 
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
-import org.broken.arrow.library.database.construct.query.builder.condition.ConditionQuery;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalOperator;
 
 import java.util.List;

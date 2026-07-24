@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.broken.arrow.library.database.construct.query.builder.clause.Formatting.formatConditions;
+import static org.broken.arrow.library.database.construct.query.builder.condition.Formatting.formatConditions;
 
 public class JoinBuildContext  {
     private final List<ComparisonHandler<JoinBuildContext>> conditionsList = new ArrayList<>();
