@@ -1,7 +1,5 @@
 package org.broken.arrow.library.database.construct.query.utlity;
 
-import org.broken.arrow.library.database.construct.query.columnbuilder.Aggregation;
-
 /**
  * Enum representing various mathematical and bitwise operations with their associated symbols.
  * <p>

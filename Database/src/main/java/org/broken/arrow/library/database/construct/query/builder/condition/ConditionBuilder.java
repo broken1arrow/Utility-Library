@@ -92,7 +92,8 @@ public class ConditionBuilder<T> {
                 return " " + operator.getSymbol() + " " + formatValue(val);
             }
         }
-        return " " + operator.getSymbol() + " " + this.getMarker();
+        final Object val = values.length > 0 ? values[0] : "";
+        return " " + operator.getSymbol() + " " + formatValue(val);
     }
 
 

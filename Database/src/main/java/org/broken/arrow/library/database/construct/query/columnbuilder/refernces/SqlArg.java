@@ -12,14 +12,6 @@ import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 public interface SqlArg {
 
     /**
-     * Creates a column reference argument.
-     *
-     * @param columnName the qualified or simple column name (e.g., "users.id")
-     * @return a {@link Column} instance representing the schema identifier
-     */
-    static SqlArg col(String columnName) {return Column.of(columnName);}
-
-    /**
      * Wraps a raw value to be used as a query parameter.
      * <p>
      * Values wrapped this way will be safely extracted and passed to the

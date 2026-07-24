@@ -4,21 +4,15 @@ package org.broken.arrow.library.database.construct.query.builder.wherebuilder;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Aggregation;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.LiteralVal;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.broken.arrow.library.database.construct.query.utlity.Formatting.formatConditions;
 
@@ -76,22 +70,18 @@ public class WhereBuilder implements ParameterSupplier {
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
     public ComparisonHandler<WhereBuilder> where(final String columnName) {
-        return this.where(columnName, a -> {
-        });
+        return this.where(Column.of(columnName));
     }
 
     /**
      * Starts a WHERE condition on the specified column with an aggregation callback.
      * Aggregations in WHERE clause are uncommon but supported for flexibility.
      *
-     * @param columnName  the name of the column for the WHERE condition
-     * @param aggregation a consumer to configure aggregation (e.g., for computed columns)
+     * @param column  the column object for the WHERE condition
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
-    public ComparisonHandler<WhereBuilder> where(final String columnName, final Consumer<Aggregation> aggregation) {
+    public ComparisonHandler<WhereBuilder> where(final Column column) {
         Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
-        Column column = new Column(columnName, "");
-        aggregation.accept(column.getAggregation());
 
         ComparisonHandler<WhereBuilder> operator = new ComparisonHandler<>(this, column.toString(), marker);
         addCondition(operator);

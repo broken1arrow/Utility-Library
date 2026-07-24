@@ -383,10 +383,9 @@ public class SchemaMigrationHandler {
                 .getQueryModifier()
                 .select(columnBuilder -> {
                     columnBuilder.add(new Column("'" + tableName + "'", ""));
-                    columnBuilder.add(new Column("id", "").setAggregation()
-                            .withAggregation(CalcFunc.MAX).getColumn());
-                })
-                .from(tableName)
+                    columnBuilder.add(new Column("id", "")
+                            .aggregation(functionContext -> functionContext.function(CalcFunc.MAX)));
+                }).from(tableName)
         );
 
         try (final PreparedStatement statement = connection.prepareStatement(incrementIndexBuilder.build())) {

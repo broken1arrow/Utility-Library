@@ -100,9 +100,16 @@ public class ComparisonHandler<T> {
      * @param value The value
      * @return this class for chaining.
      */
-    public ConditionChainer<T> equal(SqlArg value) {
-        this.init(LogicalComparison.EQUALS, value);
-        return this.conditionChainer;
+    public ConditionChainer<T> equal(Object value) {
+        if (value instanceof Column) {
+            return equal((Column) value);
+        }
+        else if (value instanceof SqlArg) {
+            return equal((SqlArg) value);
+        }
+        else {
+            return equal(SqlArg.val(value));
+        }
     }
 
     /**
@@ -113,6 +120,17 @@ public class ComparisonHandler<T> {
      */
     public ConditionChainer<T> equal(QueryBuilder subquery) {
         this.init(LogicalComparison.EQUALS, new SubqueryHandler<>(subquery));
+        return this.conditionChainer;
+    }
+
+    /**
+     * Adds an {@code =} comparison with the given value.
+     *
+     * @param value The value
+     * @return this class for chaining.
+     */
+    public ConditionChainer<T> equal(SqlArg value) {
+        this.init(LogicalComparison.EQUALS, value);
         return this.conditionChainer;
     }
 
