@@ -6,6 +6,7 @@ import org.broken.arrow.library.database.construct.query.builder.ParameterSuppli
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -82,7 +83,12 @@ public class WhereBuilder implements ParameterSupplier {
      */
     public ComparisonHandler<WhereBuilder> where(final Column column) {
         Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
-
+        if (column.hasAggregate()) {
+            throw new Validate.ValidateExceptions(
+                    "Invalid SQL: Cannot use aggregate functions (like AVG, MIN) in a WHERE clause on column '"
+                            + column.getColumnName() + "'. Use a HAVING clause instead."
+            );
+        }
         ComparisonHandler<WhereBuilder> operator = new ComparisonHandler<>(this, column.toString(), marker);
         addCondition(operator);
         return operator;

@@ -18,7 +18,8 @@ public class SubqueryHandler<T> extends ComparisonHandler<T> {
    * @param subquery the {@link QueryBuilder} representing the subquery
    */
   public SubqueryHandler(QueryBuilder subquery) {
-    this.subquery = subquery;
+      super(false);
+      this.subquery = subquery;
   }
 
   /**

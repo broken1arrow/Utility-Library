@@ -387,7 +387,7 @@ public class BatchExecutor<T> {
             String name = entry.getKey();
             if (isFilteredOutColumn(databaseQueryHandler, columns, name)) continue;
 
-            rowWrapper.put(ColumnManager.of().column(name).getColumn(), entry.getValue());
+            rowWrapper.put(Column.of(name), entry.getValue());
         }
         return rowWrapper;
 

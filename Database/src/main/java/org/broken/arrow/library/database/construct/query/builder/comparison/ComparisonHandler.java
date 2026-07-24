@@ -3,11 +3,13 @@ package org.broken.arrow.library.database.construct.query.builder.comparison;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.condition.ConditionBuilder;
+import org.broken.arrow.library.database.construct.query.builder.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.LiteralVal;
 import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ public class ComparisonHandler<T> {
 
     private final ConditionChainer<T> conditionChainer;
     private final String columnName;
+    private final boolean isWhereClause;
     private ConditionBuilder<T> condition;
     private SubqueryHandler<T> subqueryHandler;
     private LogicalComparison operator;
@@ -55,16 +58,19 @@ public class ComparisonHandler<T> {
         this.columnName = columnName;
         condition = new ConditionBuilder<>(this, marker);
         this.conditionChainer = new ConditionChainer<>(clazz, columnName, condition);
+        this.isWhereClause = clazz instanceof HavingBuilder;
     }
 
     /**
      * Creates an empty comparison handler with no column or logical operator.
      * <p>
      * Primarily used as a placeholder or for cases where initialization is deferred.
+     * @param isWhereClause if it used for a where clause.
      */
-    public ComparisonHandler() {
+    public ComparisonHandler(final boolean isWhereClause) {
         this.conditionChainer = null;
         this.columnName = "";
+        this.isWhereClause = false;
     }
 
     private void init(LogicalComparison symbol, Object value) {
@@ -130,6 +136,15 @@ public class ComparisonHandler<T> {
      * @return this class for chaining.
      */
     public ConditionChainer<T> equal(SqlArg value) {
+        if(this.isWhereClause && value instanceof Column){
+            Column column = (Column) value;
+            if (column.hasAggregate()) {
+                throw new Validate.ValidateExceptions(
+                        "Invalid SQL: Cannot compare against an aggregate function in a WHERE clause. "
+                                + "Found as value for column '" + column.getColumnName() + "'."
+                );
+            }
+        }
         this.init(LogicalComparison.EQUALS, value);
         return this.conditionChainer;
     }

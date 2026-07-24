@@ -6,6 +6,7 @@ import org.broken.arrow.library.database.construct.query.builder.ParameterSuppli
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -68,12 +69,6 @@ public class HavingBuilder implements ParameterSupplier {
      */
     public ComparisonHandler<HavingBuilder> having(@Nonnull final Column column) {
         final Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
-        if (column.hasAggregate()) {
-            throw new IllegalArgumentException(
-                    "Invalid SQL: Cannot use aggregate functions (like AVG, MIN) in a HAVING clause on column '"
-                            + column.getColumnName() + "'."
-            );
-        }
 
         final ComparisonHandler<HavingBuilder> comparisonHandler = new ComparisonHandler<>(this, column.toString(), marker);
         this.conditionsList.add(comparisonHandler);
