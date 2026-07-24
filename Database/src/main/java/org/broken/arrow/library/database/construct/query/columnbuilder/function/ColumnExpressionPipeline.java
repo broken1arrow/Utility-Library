@@ -63,10 +63,6 @@ public class ColumnExpressionPipeline implements ColumnExpressionBuilder {
         return function(CalcFunc.AVG);
     }
 
-    public boolean hasAggregate() {
-        return this.function != null;
-    }
-
     @Override
     public ColumnExpressionPipeline min() {
         return function(CalcFunc.MIN);
@@ -90,6 +86,10 @@ public class ColumnExpressionPipeline implements ColumnExpressionBuilder {
         return this;
     }
 
+    @Override
+    public boolean hasAggregate() {
+        return this.function != null;
+    }
 
     @Nonnull
     @Override

@@ -11,16 +11,6 @@ package org.broken.arrow.library.database.construct.query.utlity;
  * should be applied separately rather than grouped under a single operation. This influences
  * how rounding and other mathematical or logical operations are handled in aggregation contexts.
  * <p>
- * Usage notes for {@link #PER_ROUND}:
- * <ul>
- *   <li>With rounding functions, it ensures each function is rounded independently:
- *   e.g., {@code ROUND(MIN(u.length), 2), ROUND(SUM(u.length), 2)}</li>
- *   <li>Without rounding, it lists functions separately instead of combining them:
- *   e.g., {@code MIN(u.length), SUM(u.length)}</li>
- * </ul>
- * This behavior is the default for {@link Aggregation#withAggregation(CalcFunc)}.
- * When using math operations via {@link Aggregation#round(MathOperation, Number, String)} or
- * {@link Aggregation#round(MathOperation, Number)}, you can choose to combine calculations as needed.
  */
 public enum MathOperation {
 
@@ -72,23 +62,8 @@ public enum MathOperation {
     /**
      * Bitwise right shift operation symbol: "&gt;&gt;"
      */
-    SHIFT_RIGHT(">>"),
+    SHIFT_RIGHT(">>");
 
-    /**
-     * Ensures that each aggregation or function is applied separately rather than grouped under a single operation.
-     * This affects both rounding and mathematical/logical operations.
-     * <p>
-     * - **With ROUND**: Each function gets its own rounding operation instead of being wrapped together.
-     * Example: `ROUND(MIN(u.length), 2), ROUND(SUM(u.length), 2)`
-     * <p>
-     * - **Without ROUND**: Functions are listed separately instead of being combined.
-     * Example: `MIN(u.length), SUM(u.length)`
-     * <p>
-     * This is the default behavior for {@link Aggregation#withAggregation(CalcFunc)}.
-     * If using math operations via {@link Aggregation#round(MathOperation, Number, String)} or
-     * {@link Aggregation#round(MathOperation, Number)}, you can combine calculations as needed.
-     */
-    PER_ROUND(",");
 
     private final String symbol;
 
@@ -110,13 +85,5 @@ public enum MathOperation {
         return symbol;
     }
 
-    /**
-     * Checks if this operation is {@link #PER_ROUND}, indicating that
-     * aggregation or functions should be applied separately.
-     *
-     * @return true if this operation is {@code PER_ROUND}, false otherwise.
-     */
-    public boolean isSplit() {
-        return this == PER_ROUND;
-    }
+
 }

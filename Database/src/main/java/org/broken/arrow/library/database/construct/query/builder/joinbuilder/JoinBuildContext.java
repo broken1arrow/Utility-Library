@@ -58,22 +58,18 @@ public class JoinBuildContext  {
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
     public ComparisonHandler<JoinBuildContext> on(final String columnName) {
-        return this.on(columnName, a -> {
-        });
+        return this.on(Column.of(columnName));
     }
 
     /**
      * Starts a join condition on the specified column with an aggregation callback.
      * Aggregations in join clause are uncommon but supported for flexibility.
      *
-     * @param columnName  the name of the column for the join condition
-     * @param aggregation a consumer to configure aggregation (e.g., for computed columns)
+     * @param column  the column for the join condition
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
-    public ComparisonHandler<JoinBuildContext> on(final String columnName, final Consumer<Aggregation> aggregation) {
+    public ComparisonHandler<JoinBuildContext> on(final Column column) {
         Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
-        Column column = new Column(columnName, "");
-        aggregation.accept(column.getAggregation());
 
         ComparisonHandler<JoinBuildContext> operator = new ComparisonHandler<>(this, column.toString(), marker);
         addCondition(operator);

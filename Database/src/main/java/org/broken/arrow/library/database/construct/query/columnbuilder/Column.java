@@ -91,6 +91,16 @@ public class Column implements SqlArg {
         return this.columnName;
     }
 
+
+    /**
+     * Checks if this column contains an aggregate function (e.g., AVG, MIN, MAX).
+     * <p>
+     * This is highly useful for validating SQL constraints, such as preventing
+     * aggregate functions from being unlawfully executed inside a {@code WHERE} clause.
+     * </p>
+     *
+     * @return {@code true} if an aggregate function has been applied; {@code false} otherwise
+     */
     public boolean hasAggregate() {
         return this.computedContext != null && this.computedContext.hasAggregate();
     }
