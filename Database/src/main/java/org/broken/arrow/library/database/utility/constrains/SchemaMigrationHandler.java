@@ -164,7 +164,7 @@ public class SchemaMigrationHandler {
 
         final QueryBuilder builder = new QueryBuilder();
         builder.select(ColumnManager.of().add(Column.of("*"))).from(queryTable.getTableName());
-        
+
         final String builtQuery = builder.build();
         try (final ResultSet resultSet = this.connection.prepareStatement(builtQuery).executeQuery()) {
             while (resultSet.next()) {
