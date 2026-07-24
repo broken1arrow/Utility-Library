@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.utility;
 
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
-import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 
 /**
  * Functional interface for applying conditions to a {@link WhereBuilder}.

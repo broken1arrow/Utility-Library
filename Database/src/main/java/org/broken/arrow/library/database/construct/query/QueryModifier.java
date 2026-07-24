@@ -1,12 +1,12 @@
 package org.broken.arrow.library.database.construct.query;
 
 
-import org.broken.arrow.library.database.construct.query.builder.GroupByBuilder;
-import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinBuilder;
-import org.broken.arrow.library.database.construct.query.builder.OrderByBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.GroupByBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.OrderByBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
-import org.broken.arrow.library.database.construct.query.builder.havingbuilder.HavingBuilder;
-import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.havingbuilder.HavingBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 

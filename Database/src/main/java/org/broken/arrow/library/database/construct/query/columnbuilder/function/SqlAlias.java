@@ -1,5 +1,7 @@
 package org.broken.arrow.library.database.construct.query.columnbuilder.function;
 
+import org.broken.arrow.library.database.construct.query.columnbuilder.function.strategy.ColumnStrategy;
+
 import javax.annotation.Nonnull;
 
 /**

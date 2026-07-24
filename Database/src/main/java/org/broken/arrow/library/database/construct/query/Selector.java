@@ -1,20 +1,18 @@
 package org.broken.arrow.library.database.construct.query;
 
 
-import org.broken.arrow.library.database.construct.query.builder.joinbuilder.JoinBuilder;
-import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
+import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
-import org.broken.arrow.library.database.construct.query.builder.havingbuilder.HavingBuilder;
-import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.havingbuilder.HavingBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Array;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;

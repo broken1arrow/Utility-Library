@@ -1,6 +1,7 @@
 package org.broken.arrow.library.database.construct.query.columnbuilder.function;
 
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.columnbuilder.function.strategy.ColumnExpressionBuilder;
 import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 import org.broken.arrow.library.database.construct.query.utlity.MathOperation;
 

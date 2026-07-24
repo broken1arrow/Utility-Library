@@ -4,10 +4,8 @@ import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
-import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
-import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.utility.WhereClauseFunction;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 

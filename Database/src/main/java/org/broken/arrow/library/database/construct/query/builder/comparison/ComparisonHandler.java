@@ -1,9 +1,9 @@
 package org.broken.arrow.library.database.construct.query.builder.comparison;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.builder.ParameterSupplier;
+import org.broken.arrow.library.database.construct.query.builder.clause.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.condition.ConditionBuilder;
-import org.broken.arrow.library.database.construct.query.builder.havingbuilder.HavingBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.LiteralVal;
 import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;

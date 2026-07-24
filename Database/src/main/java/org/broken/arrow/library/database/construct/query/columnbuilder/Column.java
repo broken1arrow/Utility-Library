@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.construct.query.columnbuilder;
 
 import org.broken.arrow.library.database.construct.query.columnbuilder.function.ColumnExpressionPipeline;
-import org.broken.arrow.library.database.construct.query.columnbuilder.function.ColumnExpressionBuilder;
+import org.broken.arrow.library.database.construct.query.columnbuilder.function.strategy.ColumnExpressionBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.utlity.SqlExpressionType;
 
@@ -63,7 +63,6 @@ public class Column implements SqlArg {
      * @return the column name optionally suffixed with an alias expression
      */
     public String getFinishColumName() {
-
         if (alias == null || alias.isEmpty())
             return columnName;
         return columnName + " " + SqlExpressionType.AS + " " + alias;

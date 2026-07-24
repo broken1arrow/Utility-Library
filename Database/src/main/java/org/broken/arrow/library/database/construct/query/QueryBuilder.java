@@ -1,12 +1,12 @@
 package org.broken.arrow.library.database.construct.query;
 
-import org.broken.arrow.library.database.construct.query.builder.CreateTableHandler;
-import org.broken.arrow.library.database.construct.query.builder.InsertHandler;
-import org.broken.arrow.library.database.construct.query.builder.QueryRemover;
-import org.broken.arrow.library.database.construct.query.builder.UpdateBuilder;
-import org.broken.arrow.library.database.construct.query.builder.WithManger;
-import org.broken.arrow.library.database.construct.query.builder.tablebuilder.AlterTable;
-import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
+import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
+import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.InsertHandler;
+import org.broken.arrow.library.database.construct.query.builder.statement.QueryRemover;
+import org.broken.arrow.library.database.construct.query.builder.statement.UpdateBuilder;
+import org.broken.arrow.library.database.construct.query.builder.table.cte.WithManager;
+import org.broken.arrow.library.database.construct.query.builder.table.AlterTable;
+import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.QueryType;
@@ -68,7 +68,7 @@ public class QueryBuilder {
     private final CreateTableHandler createTableHandler = new CreateTableHandler(this);
     private final AlterTable alterTable = new AlterTable();
     private final QueryRemover queryRemover = new QueryRemover(this);
-    private final WithManger withManger = new WithManger();
+    private final WithManager withManager = new WithManager();
     private QueryType queryType;
     private String table;
     private boolean globalEnableQueryPlaceholders = true;
@@ -254,10 +254,10 @@ public class QueryBuilder {
      * @param callback callback to configure the WITH manager
      * @return the WITH manager for further query construction
      */
-    public WithManger with(Consumer<WithManger> callback) {
+    public WithManager with(Consumer<WithManager> callback) {
         this.queryType = QueryType.WITH;
-        callback.accept(withManger);
-        return withManger;
+        callback.accept(withManager);
+        return withManager;
     }
 
     /**
@@ -444,7 +444,7 @@ public class QueryBuilder {
                 createInsertQuery(sql);
                 break;
             case WITH:
-                sql.append(withManger.build());
+                sql.append(withManager.build());
                 break;
             case ALTER_TABLE:
                 sql.append("ALTER TABLE ").append(table).append(" ").append(this.alterTable.build());

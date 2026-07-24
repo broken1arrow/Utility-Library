@@ -1,10 +1,10 @@
 package org.broken.arrow.library.database.builders.tables;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.builder.InsertHandler;
-import org.broken.arrow.library.database.construct.query.builder.UpdateBuilder;
+import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.InsertHandler;
+import org.broken.arrow.library.database.construct.query.builder.statement.UpdateBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
-import org.broken.arrow.library.database.construct.query.builder.wherebuilder.WhereBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
 import org.broken.arrow.library.database.core.Database;
 

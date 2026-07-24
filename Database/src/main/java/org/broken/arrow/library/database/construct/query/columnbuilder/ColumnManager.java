@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.construct.query.columnbuilder;
 
-import org.broken.arrow.library.database.construct.query.builder.tablebuilder.SQLConstraints;
-import org.broken.arrow.library.database.construct.query.builder.tablebuilder.TableColumn;
+import org.broken.arrow.library.database.construct.query.builder.table.SQLConstraints;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
 import javax.annotation.Nonnull;
