@@ -360,7 +360,7 @@ public abstract class Database {
      * </p>
      * <p>
      * Use the {@link QueryLoader} instance to define how rows should be handled during loading
-     * via {@link QueryLoader#forEachQuery(Consumer)}, or to retrieve the full list of loaded results afterward.
+     * via {@link LoadSetup#forEachMapEntity(Consumer)} , or to retrieve the full list of loaded results afterward.
      * </p>
      *
      * @param tableName the name of the table to query.
@@ -631,7 +631,7 @@ public abstract class Database {
         try {
             final List<String> column = new ArrayList<>();
             final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.select(ColumnManager.of().column("*").finish()).from(tableName);
+            queryBuilder.select(ColumnManager.of().add(Column.of("*"))).from(tableName);
             final String queryAllColumns = queryBuilder.build();
             statement = connection.prepareStatement(queryAllColumns);
             rs = statement.executeQuery();
@@ -814,7 +814,7 @@ public abstract class Database {
      */
     private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
         final QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.select(ColumnManager.of().column("*").finish()).from(tableName).where(where -> where.where(columName).equal(SqlArg.val("")));
+        queryBuilder.select(ColumnManager.of().add(Column.of("*"))).from(tableName).where(where -> where.where(columName).equal(SqlArg.val("")));
         final String checkTableQuery = queryBuilder.build();
 
         try (final PreparedStatement preparedStatement = connection.prepareStatement(checkTableQuery)) {

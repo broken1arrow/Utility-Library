@@ -204,7 +204,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
         final QueryBuilder builder = new QueryBuilder();
         builder.setGlobalEnableQueryPlaceholders(queryPlaceholder);
         List<Column> columnList = value.serialize().keySet().stream()
-                .map(columnName -> ColumnManager.of().column(columnName).getColumn())
+                .map(Column::of)
                 .collect(Collectors.toList());
         final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereStrategy = clauseFunction::apply;
         this.whereClause = whereStrategy;
