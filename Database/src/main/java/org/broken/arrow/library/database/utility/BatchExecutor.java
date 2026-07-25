@@ -1,9 +1,9 @@
 package org.broken.arrow.library.database.utility;
 
 import org.broken.arrow.library.database.builders.DataWrapper;
-import org.broken.arrow.library.database.builders.tables.TableQuery;
+import org.broken.arrow.library.database.builders.schema.TableQuery;
 import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
-import org.broken.arrow.library.database.builders.tables.TableSchema;
+import org.broken.arrow.library.database.builders.schema.TableSchema;
 import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQueryHandler;
 import org.broken.arrow.library.database.builders.wrappers.SaveRecord;
 import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuerySaving;

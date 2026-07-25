@@ -3,7 +3,7 @@ package org.broken.arrow.library.database.core;
 import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
-import org.broken.arrow.library.database.builders.tables.TableSchema;
+import org.broken.arrow.library.database.builders.schema.TableSchema;
 import org.broken.arrow.library.database.builders.wrappers.LoadSetup;
 import org.broken.arrow.library.database.builders.wrappers.query.QueryLoader;
 import org.broken.arrow.library.database.builders.wrappers.query.QuerySaver;

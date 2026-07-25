@@ -1,4 +1,4 @@
-package org.broken.arrow.library.database.builders.tables;
+package org.broken.arrow.library.database.builders.schema;
 
 import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;

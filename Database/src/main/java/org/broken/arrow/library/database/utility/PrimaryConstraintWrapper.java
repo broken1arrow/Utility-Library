@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.utility;
 
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
-import org.broken.arrow.library.database.builders.tables.TableSchema;
+import org.broken.arrow.library.database.builders.schema.TableSchema;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;

@@ -1,6 +1,6 @@
 package org.broken.arrow.library.database.utility;
 
-import org.broken.arrow.library.database.builders.tables.TableQuery;
+import org.broken.arrow.library.database.builders.schema.TableQuery;
 import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;

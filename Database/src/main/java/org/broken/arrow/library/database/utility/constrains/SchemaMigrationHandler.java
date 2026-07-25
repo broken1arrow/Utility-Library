@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.utility.constrains;
 
 import org.broken.arrow.library.database.builders.DataWrapper;
-import org.broken.arrow.library.database.builders.tables.TableSchema;
+import org.broken.arrow.library.database.builders.schema.TableSchema;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
