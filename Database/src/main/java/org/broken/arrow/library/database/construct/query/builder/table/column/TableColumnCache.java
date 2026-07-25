@@ -2,8 +2,8 @@ package org.broken.arrow.library.database.construct.query.builder.table.column;
 
 
 import org.broken.arrow.library.database.construct.query.builder.table.SQLConstraints;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 
 import java.util.StringJoiner;
 

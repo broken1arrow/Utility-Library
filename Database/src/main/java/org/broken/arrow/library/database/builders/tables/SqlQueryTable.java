@@ -5,8 +5,8 @@ import org.broken.arrow.library.database.construct.query.builder.table.CreateTab
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.refernces.SqlArg;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.construct.query.builder.table.selector
 
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnCache;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
 
 import java.util.List;
 /**

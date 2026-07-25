@@ -1,8 +1,8 @@
 package org.broken.arrow.library.database.construct.query.builder.table.cte;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 
 /**
  * Specialized column builder used within a WITH clause context.

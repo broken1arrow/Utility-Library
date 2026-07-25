@@ -16,7 +16,7 @@ import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
 import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.utility.DatabaseCommandConfig;

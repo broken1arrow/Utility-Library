@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.construct.query.builder.clause.joinbui
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 
 import javax.annotation.Nonnull;

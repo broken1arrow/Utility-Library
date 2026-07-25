@@ -11,7 +11,7 @@ import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;

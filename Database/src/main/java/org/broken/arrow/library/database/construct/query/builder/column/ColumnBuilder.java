@@ -1,4 +1,4 @@
-package org.broken.arrow.library.database.construct.query.columnbuilder;
+package org.broken.arrow.library.database.construct.query.builder.column;
 
 import org.broken.arrow.library.database.construct.query.builder.table.SQLConstraints;
 

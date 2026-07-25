@@ -5,7 +5,7 @@ import org.broken.arrow.library.database.builders.LoadDataWrapper;
 import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 

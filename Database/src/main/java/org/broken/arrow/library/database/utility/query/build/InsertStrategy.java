@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.utility.query.build;
 
 import org.broken.arrow.library.database.builders.tables.SqlHandler;
 import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
 
 import javax.annotation.Nonnull;
 import java.util.Map;

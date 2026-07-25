@@ -7,8 +7,8 @@ import org.broken.arrow.library.database.construct.query.builder.clause.OrderByB
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;

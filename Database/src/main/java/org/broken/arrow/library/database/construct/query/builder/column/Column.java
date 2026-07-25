@@ -1,8 +1,8 @@
-package org.broken.arrow.library.database.construct.query.columnbuilder;
+package org.broken.arrow.library.database.construct.query.builder.column;
 
-import org.broken.arrow.library.database.construct.query.columnbuilder.function.ColumnExpressionPipeline;
-import org.broken.arrow.library.database.construct.query.columnbuilder.function.strategy.ColumnExpressionBuilder;
-import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.SqlArg;
+import org.broken.arrow.library.database.construct.query.builder.column.function.ColumnExpressionPipeline;
+import org.broken.arrow.library.database.construct.query.builder.column.function.strategy.ColumnExpressionBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.utlity.SqlExpressionType;
 
 import javax.annotation.Nonnull;

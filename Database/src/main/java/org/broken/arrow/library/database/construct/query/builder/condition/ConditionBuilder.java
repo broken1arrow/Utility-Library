@@ -2,11 +2,10 @@ package org.broken.arrow.library.database.construct.query.builder.condition;
 
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.comparison.SubqueryHandler;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.refernces.LiteralVal;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.refernces.LiteralVal;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
-import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

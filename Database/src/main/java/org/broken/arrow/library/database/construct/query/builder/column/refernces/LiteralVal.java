@@ -1,4 +1,4 @@
-package org.broken.arrow.library.database.construct.query.columnbuilder.refernces;
+package org.broken.arrow.library.database.construct.query.builder.column.refernces;
 
 import java.util.Objects;
 

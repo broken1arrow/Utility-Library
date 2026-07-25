@@ -1,8 +1,8 @@
 package org.broken.arrow.library.database.construct.query.builder.table.cte;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 import org.broken.arrow.library.logging.Logging;
 /**
  * A helper class for building SQL {@code WITH} and {@code FROM} clauses dynamically.

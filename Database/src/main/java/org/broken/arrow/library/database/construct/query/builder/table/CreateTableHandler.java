@@ -8,8 +8,8 @@ import org.broken.arrow.library.database.construct.query.builder.table.column.Ta
 import org.broken.arrow.library.database.construct.query.builder.table.selector.SelectorWrapper;
 import org.broken.arrow.library.database.construct.query.builder.table.selector.TableSelector;
 import org.broken.arrow.library.database.construct.query.builder.table.selector.TableSelectorWrapper;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.SqlExpressionType;
 
 import java.util.ArrayList;

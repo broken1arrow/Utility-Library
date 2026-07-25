@@ -7,8 +7,8 @@ import org.broken.arrow.library.database.construct.query.builder.statement.Updat
 import org.broken.arrow.library.database.construct.query.builder.table.cte.WithManager;
 import org.broken.arrow.library.database.construct.query.builder.table.AlterTable;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.ColumnManager;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.QueryType;
 
 

@@ -3,7 +3,7 @@ package org.broken.arrow.library.database.construct.query.builder.statement.inse
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.clause.ParameterSupplier;
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
 
 import javax.annotation.Nonnull;

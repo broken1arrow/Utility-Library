@@ -1,7 +1,7 @@
-package org.broken.arrow.library.database.construct.query.columnbuilder.function;
+package org.broken.arrow.library.database.construct.query.builder.column.function;
 
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
-import org.broken.arrow.library.database.construct.query.columnbuilder.function.strategy.ColumnStrategy;
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.function.strategy.ColumnStrategy;
 import org.broken.arrow.library.database.construct.query.utlity.MathOperation;
 
 import javax.annotation.Nonnull;

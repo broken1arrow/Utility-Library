@@ -1,6 +1,4 @@
-package org.broken.arrow.library.database.construct.query.columnbuilder.refernces;
-
-import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
+package org.broken.arrow.library.database.construct.query.builder.column.refernces;
 
 /**
  * Represents an argument used in SQL condition expressions.
