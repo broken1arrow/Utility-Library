@@ -1,6 +1,6 @@
 package org.broken.arrow.library.database.utility;
 
-import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
+import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.logging.Logging;
 
@@ -42,7 +42,7 @@ public class BatchExecutorUnsafe<T> extends BatchExecutor<T> {
      * @param composerList the list of SQL query pairs to execute.
      */
     @Override
-    protected void executeDatabaseTasks(List<SqlQueryPair> composerList) {
+    protected void executeDatabaseTasks(List<SqlQuery> composerList) {
         this.batchUpdateGoingOn = true;
         Connection connection = this.connection;
         if (!this.hasStartWriteToDb)
@@ -53,8 +53,8 @@ public class BatchExecutorUnsafe<T> extends BatchExecutor<T> {
                 // Prevent automatically sending db instructions
                 this.connection.setAutoCommit(false);
 
-                for (final SqlQueryPair sql : composerList)
-                    statement.addBatch(sql.getQuery());
+                for (final SqlQuery sql : composerList)
+                    statement.addBatch(sql.getSql());
                 if (processedCount > 10_000)
                     this.printPressesCount(processedCount);
 

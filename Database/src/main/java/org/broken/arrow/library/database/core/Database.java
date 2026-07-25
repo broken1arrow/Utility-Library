@@ -3,7 +3,7 @@ package org.broken.arrow.library.database.core;
 import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
-import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
+import org.broken.arrow.library.database.builders.tables.TableSchema;
 import org.broken.arrow.library.database.builders.wrappers.LoadSetup;
 import org.broken.arrow.library.database.builders.wrappers.query.QueryLoader;
 import org.broken.arrow.library.database.builders.wrappers.query.QuerySaver;
@@ -59,7 +59,7 @@ import java.util.logging.Level;
 @SuppressWarnings("unused")
 public abstract class Database {
     private final Logging log = new Logging(Database.class);
-    private final Map<String, SqlQueryTable> tablesCache = new HashMap<>();
+    private final Map<String, TableSchema> tablesCache = new HashMap<>();
     private final ConnectionSettings connectionSettings;
     private Set<String> removeColumns = new HashSet<>();
     private DatabaseType databaseType = null;
@@ -146,27 +146,26 @@ public abstract class Database {
     public abstract DatabaseCommandConfig databaseConfig();
 
     /**
-     * Add the tables you want to create inside the database and
-     * don't forget at least 1 primary key.
+     * Adds a new table schema to the database cache.
      *
-     * @param callback the helper to create your sql query.
+     * @param callback function to construct the table layout and constraints
      */
     public void addTable(Function<QueryBuilder, CreateTableHandler> callback) {
-        SqlQueryTable sqlQueryTable = new SqlQueryTable(callback);
+        TableSchema tableSchema = new TableSchema(callback);
 
-        this.tablesCache.put(sqlQueryTable.getTableName(), sqlQueryTable);
+        this.tablesCache.put(tableSchema.getTableName(), tableSchema);
     }
 
     /**
-     * Retrieves the {@link SqlQueryTable} associated with the given table name.
+     * Retrieves the {@link TableSchema} associated with the given table name.
      * <p>
      * The lookup is case-sensitive.
      *
      * @param tableName the exact name of the table (case-sensitive).
-     * @return the {@link SqlQueryTable} for the specified table, or {@code null} if no such table exists.
+     * @return the {@link TableSchema} for the specified table, or {@code null} if no such table exists.
      */
     @Nullable
-    public SqlQueryTable getTableFromName(String tableName) {
+    public TableSchema getTableFromName(String tableName) {
         return tablesCache.get(tableName);
     }
 
@@ -195,7 +194,7 @@ public abstract class Database {
         try {
             createAllTablesIfNotExist(connection);
             try {
-                for (final Entry<String, SqlQueryTable> entityTables : tablesCache.entrySet()) {
+                for (final Entry<String, TableSchema> entityTables : tablesCache.entrySet()) {
                     final List<String> columns = updateTableColumnsInDb(connection, entityTables.getKey());
                     this.createMissingColumns(connection, entityTables.getValue(), columns);
                 }
@@ -394,7 +393,7 @@ public abstract class Database {
             batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
 
-        final SqlQueryTable table = this.getTableFromName(tableName);
+        final TableSchema table = this.getTableFromName(tableName);
         if (table == null) {
             this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
             return;
@@ -420,7 +419,7 @@ public abstract class Database {
         else {
             batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
-        final SqlQueryTable table = this.getTableFromName(tableName);
+        final TableSchema table = this.getTableFromName(tableName);
 
         if (table == null) {
             this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
@@ -446,7 +445,7 @@ public abstract class Database {
         else {
             batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
-        final SqlQueryTable table = this.getTableFromName(tableName);
+        final TableSchema table = this.getTableFromName(tableName);
 
         if (table == null) {
             this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
@@ -501,7 +500,7 @@ public abstract class Database {
         else {
             batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
-        final SqlQueryTable table = this.getTableFromName(tableName);
+        final TableSchema table = this.getTableFromName(tableName);
         if (table == null) {
             log.log(() -> "Could not find this table: '" + tableName + "'");
             return false;
@@ -687,7 +686,7 @@ public abstract class Database {
         }
     }*/
 
-    private void createMissingColumns(final Connection connection, final SqlQueryTable queryTable, final List<String> existingColumns) {
+    private void createMissingColumns(final Connection connection, final TableSchema queryTable, final List<String> existingColumns) {
         if (existingColumns == null) return;
         if (connection == null) {
             log.log(Level.WARNING, () -> "You must set the connection instance.");
@@ -704,12 +703,12 @@ public abstract class Database {
      */
     protected void createAllTablesIfNotExist(final Connection connection) {
         if (tablesCache.isEmpty()) return;
-        for (final Entry<String, SqlQueryTable> sqlQueryTable : tablesCache.entrySet()) {
+        for (final Entry<String, TableSchema> sqlQueryTable : tablesCache.entrySet()) {
             this.createTableIfNotExist(connection, sqlQueryTable);
         }
     }
 
-    private void createTableIfNotExist(Connection connection, Entry<String, SqlQueryTable> sqlQueryTable) {
+    private void createTableIfNotExist(Connection connection, Entry<String, TableSchema> sqlQueryTable) {
         PreparedStatement statement = null;
         String table = "";
         if (sqlQueryTable == null) {
@@ -717,7 +716,7 @@ public abstract class Database {
             return;
         }
 
-        final SqlQueryTable tableQuery = sqlQueryTable.getValue();
+        final TableSchema tableQuery = sqlQueryTable.getValue();
         try {
             if (tableQuery != null) {
                 if (tableQuery.getTableName().isEmpty())
@@ -752,7 +751,7 @@ public abstract class Database {
         String table = "";
         try {
 
-            final SqlQueryTable tableQuery = this.getTableFromName(tableName);
+            final TableSchema tableQuery = this.getTableFromName(tableName);
             if (tableQuery == null) {
                 this.printFailFindTable(tableName);
                 return false;
@@ -895,10 +894,10 @@ public abstract class Database {
     /**
      * Retrieves the cached mapping of table names to their associated SQL query definitions.
      *
-     * @return a map where keys are table names and values are {@link SqlQueryTable} objects.
+     * @return a map where keys are table names and values are {@link TableSchema} objects.
      */
     @Nonnull
-    public Map<String, SqlQueryTable> getTables() {
+    public Map<String, TableSchema> getTables() {
         return tablesCache;
     }
 

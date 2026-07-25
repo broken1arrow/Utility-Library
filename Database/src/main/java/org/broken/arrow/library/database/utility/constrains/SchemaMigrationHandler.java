@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.utility.constrains;
 
 import org.broken.arrow.library.database.builders.DataWrapper;
-import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
+import org.broken.arrow.library.database.builders.tables.TableSchema;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
@@ -80,7 +80,7 @@ public class SchemaMigrationHandler {
      * @param existingColumns List of column names currently present in the database (lowercase expected).
      *
      */
-    public void createMissingColumns(final SqlQueryTable queryTable, final List<String> existingColumns) {
+    public void createMissingColumns(final TableSchema queryTable, final List<String> existingColumns) {
         if (existingColumns == null) return;
         if (this.connection == null) {
             log.log(Level.WARNING, () -> "You must set the connection instance.");
@@ -119,7 +119,7 @@ public class SchemaMigrationHandler {
         this.preparePrimaryKeyMigration(queryTable, newPrimaryKeys);
     }
 
-    private boolean executeCreation(@Nonnull final SqlQueryTable queryTable, @Nonnull final List<Column> columnsToAdd, @Nonnull boolean failCreateColumns) {
+    private boolean executeCreation(@Nonnull final TableSchema queryTable, @Nonnull final List<Column> columnsToAdd, @Nonnull boolean failCreateColumns) {
         if (this.databaseCore.getDatabaseType() == DatabaseType.SQLITE) {
             for (Column col : columnsToAdd) {
                 final QueryBuilder queryBuilder = new QueryBuilder();
@@ -152,7 +152,7 @@ public class SchemaMigrationHandler {
         return failCreateColumns;
     }
 
-    private void preparePrimaryKeyMigration(final SqlQueryTable queryTable, final Set<String> newPrimaryKeys) {
+    private void preparePrimaryKeyMigration(final TableSchema queryTable, final Set<String> newPrimaryKeys) {
         if (newPrimaryKeys.isEmpty()) {
             log.log(Level.FINE, () -> "No new primary key columns detected. Skipping primary key migration for table '" + queryTable.getTableName() + "'");
             return;
@@ -187,7 +187,7 @@ public class SchemaMigrationHandler {
         this.setConstraints(queryTable, newPrimaryKeys, primaryMapValuesSet && primaryValuesComplete);
     }
 
-    private boolean saveDataToColumns(final SqlQueryTable queryTable, final PrimaryConstraintWrapper primaryWrapper) {
+    private boolean saveDataToColumns(final TableSchema queryTable, final PrimaryConstraintWrapper primaryWrapper) {
         boolean primaryMapValuesSet = true;
         final Map<String, List<Map<Integer, Object>>> batchGroups = new LinkedHashMap<>();
 
@@ -217,7 +217,7 @@ public class SchemaMigrationHandler {
         return primaryMapValuesSet;
     }
 
-    private boolean setValuesToDatabase(final SqlQueryTable queryTable, final PrimaryConstraintWrapper primaryWrapper, boolean primaryMapValuesSet, final Map<String, List<Map<Integer, Object>>> batchGroups) {
+    private boolean setValuesToDatabase(final TableSchema queryTable, final PrimaryConstraintWrapper primaryWrapper, boolean primaryMapValuesSet, final Map<String, List<Map<Integer, Object>>> batchGroups) {
         for (DataWrapper.PrimaryWrapper primary : primaryWrapper.getPrimaryWrappers()) {
             if (primary == null) {
                 log.log(Level.WARNING, () -> "A row for this table '" + queryTable.getTableName() + "' is not set.");
@@ -251,7 +251,7 @@ public class SchemaMigrationHandler {
     }
 
 
-    private void setConstraints(final SqlQueryTable queryTable, final Set<String> newPrimaryKeys, final boolean primaryValuesComplete) {
+    private void setConstraints(final TableSchema queryTable, final Set<String> newPrimaryKeys, final boolean primaryValuesComplete) {
         final List<Column> columnsToBeModified = new ArrayList<>();
         final List<TableColumn> primaryColumns = queryTable.getPrimaryColumns();
 
@@ -299,7 +299,7 @@ public class SchemaMigrationHandler {
         }
     }
 
-    private void copyTable(@Nonnull final SqlQueryTable queryTable, @Nonnull final List<Column> columnsToBeModified) {
+    private void copyTable(@Nonnull final TableSchema queryTable, @Nonnull final List<Column> columnsToBeModified) {
         boolean autoCommit = false;
         final Connection databaseConnection = this.connection;
         try {
@@ -323,7 +323,7 @@ public class SchemaMigrationHandler {
         }
     }
 
-    private void recreateTable(final SqlQueryTable queryTable, final List<Column> columnsToBeModified) {
+    private void recreateTable(final TableSchema queryTable, final List<Column> columnsToBeModified) {
         final QueryBuilder queryBuilder = new QueryBuilder();
         final String tableName = queryTable.getTableName();
         final String temporaryTable = tableName + "_new";

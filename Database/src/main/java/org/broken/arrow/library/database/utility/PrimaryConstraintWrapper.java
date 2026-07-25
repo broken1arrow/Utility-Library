@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.utility;
 
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
-import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
+import org.broken.arrow.library.database.builders.tables.TableSchema;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
@@ -61,7 +61,7 @@ import java.util.function.Function;
 public class PrimaryConstraintWrapper {
     private final List<DataWrapper.PrimaryWrapper> primaryWrappers = new ArrayList<>();
     private final Database database;
-    private final SqlQueryTable queryTable;
+    private final TableSchema queryTable;
     private Consumer<Map<String, Object>> loadMapFromDB;
     private boolean unique;
 
@@ -74,7 +74,7 @@ public class PrimaryConstraintWrapper {
      * @param queryTable the table whose primary key constraints are being
      *                   managed or modified.
      */
-    public PrimaryConstraintWrapper(@Nonnull final Database database, @Nonnull final SqlQueryTable queryTable) {
+    public PrimaryConstraintWrapper(@Nonnull final Database database, @Nonnull final TableSchema queryTable) {
         this.database = database;
         this.queryTable = queryTable;
     }

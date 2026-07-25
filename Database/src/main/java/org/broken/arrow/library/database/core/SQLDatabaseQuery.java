@@ -3,9 +3,9 @@ package org.broken.arrow.library.database.core;
 import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
-import org.broken.arrow.library.database.builders.tables.SqlHandler;
-import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
-import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
+import org.broken.arrow.library.database.builders.tables.TableQuery;
+import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
+import org.broken.arrow.library.database.builders.tables.TableSchema;
 import org.broken.arrow.library.database.builders.wrappers.LoadSetup;
 import org.broken.arrow.library.database.builders.wrappers.query.QueryLoader;
 import org.broken.arrow.library.database.builders.wrappers.query.QuerySaver;
@@ -87,7 +87,7 @@ public abstract class SQLDatabaseQuery extends Database {
         else {
             batchExecutor = new BatchExecutorUnsafe<>(getDatabase(), connection, dataWrapperList);
         }
-        SqlQueryTable table = getDatabase().getTableFromName(tableName);
+        TableSchema table = getDatabase().getTableFromName(tableName);
 
         if (table == null) {
             this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' . Did you register your table?");
@@ -125,7 +125,7 @@ public abstract class SQLDatabaseQuery extends Database {
         else {
             batchExecutor = new BatchExecutorUnsafe<>(this, connection, new ArrayList<>());
         }
-        SqlQueryTable table = this.getTableFromName(tableName);
+        TableSchema table = this.getTableFromName(tableName);
         if (table == null) {
             this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' . Did you register your table?");
             return;
@@ -179,7 +179,7 @@ public abstract class SQLDatabaseQuery extends Database {
     @Override
     @Nullable
     public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
-        final SqlQueryTable table = getDatabase().getTableFromName(tableName);
+        final TableSchema table = getDatabase().getTableFromName(tableName);
 
         if (table == null) {
             getDatabase().printFailFindTable(tableName);
@@ -227,22 +227,22 @@ public abstract class SQLDatabaseQuery extends Database {
     @Override
     @Nullable
     public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final String columnValue) {
-        SqlQueryTable table = getDatabase().getTableFromName(tableName);
+        TableSchema table = getDatabase().getTableFromName(tableName);
         if (table == null) {
             getDatabase().printFailFindTable(tableName);
             return null;
         }
 
         final Map<String, Object> dataFromDB = new HashMap<>();
-        final SqlHandler sqlHandler = new SqlHandler(table.getTableName(), getDatabase());
+        final TableQuery tableQuery = new TableQuery(table.getTableName());
 
         final WhereBuilder whereBuilder = WhereBuilder.of(new QueryBuilder().setGlobalEnableQueryPlaceholders(this.isSecureQuery()));
         table.createWhereClauseFromPrimaryColumns(whereBuilder, columnValue);
         Validate.checkBoolean(whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 
-        final SqlQueryPair selectRow = sqlHandler.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), whereBuilder);
+        final SqlQuery selectRow = tableQuery.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), whereBuilder);
 
-        this.executeQuery(QueryDefinition.of(selectRow.getQuery()), statementWrapper -> {
+        this.executeQuery(QueryDefinition.of(selectRow.getSql()), statementWrapper -> {
             PreparedStatement preparedStatement = statementWrapper.getContextResult();
 
             whereBuilder.getValues().forEach((index, value) -> {

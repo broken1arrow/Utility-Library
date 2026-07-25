@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.utility.query.build;
 
-import org.broken.arrow.library.database.builders.tables.SqlHandler;
-import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
+import org.broken.arrow.library.database.builders.tables.TableQuery;
+import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
@@ -26,8 +26,8 @@ public interface UpdateStrategy {
      * @param sql     The handler tool used to construct the update statement.
      * @param columns The column-to-value map containing the data to update.
      * @param where   The function used to define the filtering conditions for the update.
-     * @return A {@link SqlQueryPair} containing the generated SQL string and parameters.
+     * @return A {@link SqlQuery} containing the generated SQL string and parameters.
      */
-    SqlQueryPair build(@Nonnull final SqlHandler sql, @Nonnull final Map<Column, Object> columns, @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> where);
+    SqlQuery build(@Nonnull final TableQuery sql, @Nonnull final Map<Column, Object> columns, @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> where);
 }
 

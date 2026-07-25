@@ -15,7 +15,7 @@ import com.mongodb.client.result.UpdateResult;
 import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
-import org.broken.arrow.library.database.builders.tables.SqlQueryTable;
+import org.broken.arrow.library.database.builders.tables.TableSchema;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.library.database.core.Database;
@@ -88,8 +88,8 @@ public class MongoDB extends Database {
 
     @Override
     public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, final String... columns) {
-        final SqlQueryTable sqlQueryTable = this.getTableFromName(tableName);
-        if (sqlQueryTable == null) {
+        final TableSchema tableSchema = this.getTableFromName(tableName);
+        if (tableSchema == null) {
             this.printFailFindTable(tableName);
             return;
         }
@@ -101,7 +101,7 @@ public class MongoDB extends Database {
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
         MongoCollection<Document> collection = database.getCollection(tableName);
         for (DataWrapper dataWrapper : dataWrapperList) {
-            saveData(dataWrapper, sqlQueryTable, collection);
+            saveData(dataWrapper, tableSchema, collection);
         }
 
         // Close the MongoDB connection
@@ -115,7 +115,7 @@ public class MongoDB extends Database {
 
     @Override
     public void save(@Nonnull final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, String... columns) {
-        SqlQueryTable tableWrapper = this.getTableFromName(tableName);
+        TableSchema tableWrapper = this.getTableFromName(tableName);
         if (tableWrapper == null) {
             this.printFailFindTable(tableName);
             return;
@@ -133,8 +133,8 @@ public class MongoDB extends Database {
     @Nullable
     @Override
     public <T extends ConfigurationSerializable> List<LoadDataWrapper<T>> loadAll(@Nonnull final String tableName, @Nonnull final Class<T> clazz) {
-        SqlQueryTable sqlQueryTable = this.getTableFromName(tableName);
-        if (sqlQueryTable == null) {
+        TableSchema tableSchema = this.getTableFromName(tableName);
+        if (tableSchema == null) {
             this.printFailFindTable(tableName);
             return null;
         }
@@ -178,7 +178,7 @@ public class MongoDB extends Database {
     @Nullable
     @Override
     public <T extends ConfigurationSerializable> LoadDataWrapper<T> load(@Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final String columnValue) {
-        SqlQueryTable tableWrapper = this.getTableFromName(tableName);
+        TableSchema tableWrapper = this.getTableFromName(tableName);
         if (tableWrapper == null) {
             this.printFailFindTable(tableName);
             return null;
@@ -303,7 +303,7 @@ public class MongoDB extends Database {
     public void createTables() {
         if (!openMongo()) return;
         MongoDatabase database = mongoClient.getDatabase(preferences.getDatabaseName());
-        for (final Entry<String, SqlQueryTable> entityTables : this.getTables().entrySet()) {
+        for (final Entry<String, TableSchema> entityTables : this.getTables().entrySet()) {
             boolean collectionExists = database.listCollectionNames().into(new ArrayList<>()).contains(entityTables.getKey());
             if (!collectionExists) {
                 database.createCollection(entityTables.getKey());
@@ -384,7 +384,7 @@ public class MongoDB extends Database {
      * @param tableWrapper the SQL query table metadata
      * @param collection   the MongoDB collection to save into
      */
-    private void saveData(final DataWrapper dataWrapper, final SqlQueryTable tableWrapper, final MongoCollection<Document> collection) {
+    private void saveData(final DataWrapper dataWrapper, final TableSchema tableWrapper, final MongoCollection<Document> collection) {
         Object primaryValue = dataWrapper.getPrimaryValue();
         Document document;
         Bson filter;
@@ -418,7 +418,7 @@ public class MongoDB extends Database {
      * @param columnName   the column name to look for
      * @return the matching column or null if not found
      */
-    private Column getColumn(final SqlQueryTable tableWrapper, final String columnName) {
+    private Column getColumn(final TableSchema tableWrapper, final String columnName) {
         for (Column colum : tableWrapper.getTable().getColumns()) {
             if (colum.getColumnName().equals(columnName))
                 return colum;

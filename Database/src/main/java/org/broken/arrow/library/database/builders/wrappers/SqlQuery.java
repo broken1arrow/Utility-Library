@@ -1,4 +1,4 @@
-package org.broken.arrow.library.database.builders.tables;
+package org.broken.arrow.library.database.builders.wrappers;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
@@ -10,54 +10,52 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * Represents a paired SQL query string and its associated parameter values,
- * along with a flag indicating whether the query uses placeholders safely.
+ * Represents a compiled, parameter-bound SQL query ready for database execution.
  * <p>
- * This class encapsulates a SQL query built from a {@link QueryBuilder} and
- * a map of parameter values indexed by their position in the query.
+ * Encapsulates the generated SQL string, positional parameter values, security configuration,
+ * and optional callbacks for generated keys or updated row data.
  * </p>
  */
-public class SqlQueryPair {
-    private final String query;
-    private final Map<Integer, Object> values;
+public class SqlQuery {
+    private final String sql;
+    private final Map<Integer, Object> parameters;
     private final boolean safeQuery;
     private Consumer<SqlResultRow> callback;
 
     /**
-     * Constructs a new {@code SqlQueryPair} from the provided {@link QueryBuilder} and
-     * parameter values map.
+     * Constructs a {@code SqlQuery} from a {@link QueryBuilder} and its extracted parameter values.
      *
-     * @param query  the {@link QueryBuilder} instance used to build the SQL query.
-     * @param values a map of parameter indices to their corresponding values.
+     * @param builder    the {@link QueryBuilder} instance used to compile the SQL statement
+     * @param parameters a map of 1-based parameter indices to their corresponding values
      */
-    public SqlQueryPair(@Nonnull final QueryBuilder query, @Nonnull final Map<Integer, Object> values) {
-        this.safeQuery = query.isGlobalEnableQueryPlaceholders();
-        this.query = query.build();
-        this.values = values;
+    public SqlQuery(@Nonnull final QueryBuilder builder, @Nonnull final Map<Integer, Object> parameters) {
+        this.safeQuery = builder.isGlobalEnableQueryPlaceholders();
+        this.sql = builder.build();
+        this.parameters = parameters;
     }
 
     /**
      * Returns the generated SQL query string.
      *
-     * @return the SQL query as a string
+     * @return the SQL string
      */
-    public String getQuery() {
-        return query;
+    public String getSql() {
+        return sql;
     }
 
     /**
-     * Returns the map of parameter indices and their corresponding values for this query.
+     * Returns the map of positional parameter indices and their bound values.
      *
-     * @return the parameter values map, where keys are placeholder positions (1-based)
+     * @return map of parameter values indexed by 1-based placeholder position
      */
-    public Map<Integer, Object> getValues() {
-        return values;
+    public Map<Integer, Object> getParameters() {
+        return parameters;
     }
 
     /**
-     * Indicates whether the query uses placeholders safely.
+     * Indicates whether the query uses parameterized placeholders safely.
      *
-     * @return true if placeholders are enabled and used safely; false otherwise
+     * @return {@code true} if placeholders are enabled; {@code false} if values are embedded directly
      */
     public boolean isSafeQuery() {
         return safeQuery;
@@ -95,10 +93,11 @@ public class SqlQueryPair {
 
     @Override
     public String toString() {
-        return "SqlQueryPair:\n" +
-                "query='" + query + "'\n" +
-                "values=" + values + "'\n" +
-                "===============";
+        return "SqlQuery{" +
+                "sql='" + sql + '\'' +
+                ", parameters=" + parameters +
+                ", safeQuery=" + safeQuery +
+                '}';
     }
 
     @Override
@@ -106,16 +105,14 @@ public class SqlQueryPair {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SqlQueryPair that = (SqlQueryPair) o;
-
-        if (!Objects.equals(query, that.query)) return false;
-        return Objects.equals(values, that.values);
+        SqlQuery that = (SqlQuery) o;
+        if (safeQuery != that.safeQuery) return false;
+        if (!Objects.equals(sql, that.sql)) return false;
+        return Objects.equals(parameters, that.parameters);
     }
 
     @Override
     public int hashCode() {
-        int result = query != null ? query.hashCode() : 0;
-        result = 31 * result + (values != null ? values.hashCode() : 0);
-        return result;
+        return Objects.hash(sql, parameters, safeQuery);
     }
 }

@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.utility.query.build;
 
-import org.broken.arrow.library.database.builders.tables.SqlHandler;
-import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
+import org.broken.arrow.library.database.builders.tables.TableQuery;
+import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 
 import javax.annotation.Nonnull;
@@ -22,7 +22,7 @@ public interface InsertStrategy {
      *
      * @param sql     The handler tool used to construct the insert statement.
      * @param columns The column-to-value map containing the data to insert.
-     * @return A {@link SqlQueryPair} containing the generated SQL string and parameters.
+     * @return A {@link SqlQuery} containing the generated SQL string and parameters.
      */
-    SqlQueryPair build(@Nonnull final SqlHandler sql,@Nonnull final Map<Column, Object> columns);
+    SqlQuery build(@Nonnull final TableQuery sql, @Nonnull final Map<Column, Object> columns);
 }

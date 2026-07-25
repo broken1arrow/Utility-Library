@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.utility.query.build;
 
-import org.broken.arrow.library.database.builders.tables.SqlHandler;
-import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
+import org.broken.arrow.library.database.builders.tables.TableQuery;
+import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
@@ -23,27 +23,27 @@ import java.util.function.Supplier;
  * </p>
  */
 public final class QueryBuildContext {
-    private final SqlHandler sqlHandler;
+    private final TableQuery tableQuery;
     private final Map<Column, Object> columnsMap;
     private final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause;
-    private Supplier<SqlQueryPair> executionBlueprint;
+    private Supplier<SqlQuery> executionBlueprint;
     private final boolean rowExists;
 
     /**
      * Constructs a new context for building a SQL query.
      *
-     * @param sqlHandler  The tool used to construct the final SQL statements.
+     * @param tableQuery  The tool used to construct the final SQL statements.
      * @param columnsMap  The column-to-value mappings for the query.
      * @param whereClause The function defining the WHERE conditions (used for updates).
      * @param rowExists   {@code true} if the target row already exists in the database; {@code false} otherwise.
      */
     public QueryBuildContext(
-            @Nonnull final SqlHandler sqlHandler,
+            @Nonnull final TableQuery tableQuery,
             @Nonnull final Map<Column, Object> columnsMap,
             @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause,
             final boolean rowExists) {
 
-        this.sqlHandler = sqlHandler;
+        this.tableQuery = tableQuery;
         this.columnsMap = columnsMap;
         this.whereClause = whereClause;
         this.rowExists = rowExists;
@@ -56,7 +56,7 @@ public final class QueryBuildContext {
      */
     public void onUpdate(@Nonnull final UpdateStrategy strategy) {
         if (!rowExists) return;
-        this.executionBlueprint = () -> strategy.build(sqlHandler, columnsMap, whereClause);
+        this.executionBlueprint = () -> strategy.build(tableQuery, columnsMap, whereClause);
     }
 
     /**
@@ -66,7 +66,7 @@ public final class QueryBuildContext {
      */
     public void onInsert(@Nonnull final InsertStrategy strategy) {
         if (rowExists) return;
-        this.executionBlueprint = () -> strategy.build(sqlHandler, columnsMap);
+        this.executionBlueprint = () -> strategy.build(tableQuery, columnsMap);
     }
 
     /**
@@ -80,7 +80,7 @@ public final class QueryBuildContext {
      * @throws Validate.ValidateExceptions if neither an update nor an insert strategy was configured.
      */
     @Nonnull
-    public SqlQueryPair compile() {
+    public SqlQuery compile() {
         if (executionBlueprint == null) {
             throw new Validate.ValidateExceptions("Neither an update nor an insert strategy was configured for this execution state.");
         }

@@ -1,7 +1,7 @@
 package org.broken.arrow.library.database.utility;
 
-import org.broken.arrow.library.database.builders.tables.SqlHandler;
-import org.broken.arrow.library.database.builders.tables.SqlQueryPair;
+import org.broken.arrow.library.database.builders.tables.TableQuery;
+import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
@@ -85,23 +85,23 @@ public class DatabaseCommandConfig {
      * execution is delegated to the {@link QueryBuildContext} to build the custom SQL.
      * </p>
      *
-     * @param sqlHandler  Provides access to query building methods for generating SQL strings.
+     * @param tableQuery  Provides access to query building methods for generating SQL strings.
      * @param columns     A map of database columns and their corresponding runtime values.
      * @param whereClause Used to specify conditions for identifying which row(s) to target (primarily for updates).
      * @param rowExists   Indicates whether the target row already exists in the database.
-     * @return A {@link SqlQueryPair} containing the generated SQL query and associated parameterized values.
+     * @return A {@link SqlQuery} containing the generated SQL query and associated parameterized values.
      *         If {@link Database#setSecureQuery(boolean)} is set to {@code false}, the parameterized
      *         values map may be empty as values will be injected directly into the SQL string.
      */
-    public SqlQueryPair applyDatabaseCommand(@Nonnull final SqlHandler sqlHandler, final Map<Column, Object> columns, @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause, final boolean rowExists) {
+    public SqlQuery applyDatabaseCommand(@Nonnull final TableQuery tableQuery, final Map<Column, Object> columns, @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause, final boolean rowExists) {
         if (this.query != null) {
-            final QueryBuildContext context = new QueryBuildContext(sqlHandler, columns, whereClause, rowExists);
+            final QueryBuildContext context = new QueryBuildContext(tableQuery, columns, whereClause, rowExists);
             this.query.accept(context);
             return context.compile();
         }
 
         if (rowExists && whereClause != null)
-            return sqlHandler.updateTable(updateBuilder -> updateBuilder.putAll(columns), whereClause);
-        else return sqlHandler.replaceIntoTable(insertHandler -> insertHandler.addAll(columns));
+            return tableQuery.updateTable(updateBuilder -> updateBuilder.putAll(columns), whereClause);
+        else return tableQuery.replaceIntoTable(insertHandler -> insertHandler.addAll(columns));
     }
 }
