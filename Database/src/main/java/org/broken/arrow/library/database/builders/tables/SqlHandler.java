@@ -22,8 +22,6 @@ import java.util.function.Function;
  * </p>
  */
 public class SqlHandler {
-    private final Database database;
-    private final char quote;
     private final String tableName;
     private boolean setGlobalEnableQueryPlaceholders = true;
 
@@ -35,8 +33,6 @@ public class SqlHandler {
      */
     public SqlHandler(@Nonnull final String tableName, @Nonnull final Database database) {
         this.tableName = tableName;
-        this.database = database;
-        this.quote = database.getQuote();
     }
 
 
