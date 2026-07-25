@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 public class SqlFunction implements ColumnStrategy {
     private final CalcFunc function;
     private final Column column;
-    private final String alias;// Optional
+    private final String alias;
 
     /**
      * Constructs a SQL function strategy for the specified function type and target column.
@@ -21,10 +21,10 @@ public class SqlFunction implements ColumnStrategy {
      * @param calcFunc the function to apply (e.g., {@code AVG}, {@code SUM}, {@code COUNT})
      * @param column   the base column being wrapped (maybe null if delegated by a pipeline context)
      */
-    public SqlFunction(@Nonnull final CalcFunc calcFunc, final Column column) {
+    public SqlFunction(@Nonnull final CalcFunc calcFunc, @Nonnull final Column column) {
         this.function = calcFunc;
         this.column = column;
-        this.alias = column != null ? column.getAlias() : "";
+        this.alias = column.getAlias() ;
     }
 
     /**

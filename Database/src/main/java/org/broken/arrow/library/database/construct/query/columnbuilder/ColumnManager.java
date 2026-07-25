@@ -43,9 +43,9 @@ public class ColumnManager {
      * Creates a new {@link Column} column with the specified name and no alias.
      *
      * @param name the column name
-     * @return an Aggregation object for further configuration
+     * @return an ColumnManager object for further configuration
      */
-    public Column column(String name) {
+    public ColumnManager column(String name) {
         return column(name, "");
     }
 
@@ -54,10 +54,10 @@ public class ColumnManager {
      *
      * @param name the column name
      * @param alias the alias for the column (can be empty)
-     * @return an Aggregation object for further configuration
+     * @return an ColumnManager object for further configuration
      */
-    public Column column(String name, String alias) {
-        return Column.of(name, alias);
+    public ColumnManager column(String name, String alias) {
+        return add(Column.of(name, alias));
     }
 
     /**

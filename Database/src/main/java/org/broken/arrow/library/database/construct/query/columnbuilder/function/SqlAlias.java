@@ -15,7 +15,7 @@ public class SqlAlias implements ColumnStrategy {
      *
      * @param alias the SQL alias name to assign
      */
-    public SqlAlias(String alias) {
+    public SqlAlias(@Nonnull final String alias) {
         this.alias = alias;
     }
 
@@ -28,11 +28,12 @@ public class SqlAlias implements ColumnStrategy {
     @Nonnull
     @Override
     public String build(@Nonnull final String context) {
-        if (alias == null || alias.trim().isEmpty()) {
+        if (alias.trim().isEmpty()) {
             return "";
         }
         return " AS " + alias;
     }
+
     @Override
     public String toString() {
         return build("");

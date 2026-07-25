@@ -38,27 +38,6 @@ public interface ColumnExpressionBuilder {
      */
     ColumnExpressionBuilder math(@Nonnull final MathOperation op, @Nonnull final Column right);
 
-    /**
-     * Multiplies this column expression by another column.
-     * <p>
-     * This is a convenience method equivalent to calling {@code math(MathOperation.MULTIPLY, right)}.
-     * </p>
-     *
-     * @param right the column to multiply by
-     * @return this builder instance for method chaining
-     */
-    ColumnExpressionBuilder multiply(@Nonnull final Column right);
-
-    /**
-     * Adds another column to this column expression.
-     * <p>
-     * This is a convenience method equivalent to calling {@code math(MathOperation.ADD, right)}.
-     * </p>
-     *
-     * @param right the column to add
-     * @return this builder instance for method chaining
-     */
-    ColumnExpressionBuilder add(@Nonnull final Column right);
 
     /**
      * Wraps this expression inside the specified SQL aggregate or calculation function.
@@ -67,24 +46,6 @@ public interface ColumnExpressionBuilder {
      * @return this builder instance for method chaining
      */
     ColumnExpressionBuilder function(@Nonnull final CalcFunc func);
-
-    /**
-     * Wraps this expression inside an {@code AVG(...)} aggregate function.
-     * <p>
-     * This is a convenience method equivalent to calling {@code function(CalcFunc.AVG)}.
-     * </p>
-     * @return this builder instance for method chaining
-     */
-    ColumnExpressionBuilder avg();
-
-    /**
-     * Wraps this expression inside a {@code MIN(...)} aggregate function.
-     * <p>
-     * This is a convenience method equivalent to calling {@code function(CalcFunc.MIN)}.
-     * </p>
-     * @return this builder instance for method chaining
-     */
-    ColumnExpressionBuilder min();
 
     /**
      * Assigns a SQL alias to this expression (e.g., {@code AS aliasName}).

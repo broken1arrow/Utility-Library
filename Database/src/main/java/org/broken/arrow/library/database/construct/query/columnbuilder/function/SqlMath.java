@@ -20,7 +20,7 @@ public class SqlMath implements ColumnStrategy {
      * @param operator the mathematical or bitwise operator (e.g., ADD, MULTIPLY)
      * @param right    the right-hand side column or aggregated column
      */
-    public SqlMath(MathOperation operator, Column right) {
+    public SqlMath(@Nonnull final MathOperation operator, @Nonnull final Column right) {
         this.operator = operator;
         this.right = right;
     }

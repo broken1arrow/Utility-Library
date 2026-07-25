@@ -4,6 +4,7 @@ import org.broken.arrow.library.database.construct.query.builder.comparison.Comp
 import org.broken.arrow.library.database.construct.query.utlity.LogicalOperator;
 
 import java.util.List;
+
 /**
  * Utility class for formatting SQL conditions from a list of ComparisonHandlers.
  * <p>
@@ -23,7 +24,7 @@ public class Formatting {
      * Formats a list of conditions into a valid SQL clause segment with proper logical operators
      * and parentheses to ensure correct logical grouping.
      *
-     * @param <T> The type of the builder (e.g. WhereBuilder or HavingBuilder) that owns the conditions.
+     * @param <T>            The type of the builder (e.g. WhereBuilder or HavingBuilder) that owns the conditions.
      * @param conditionsList List of ComparisonHandler conditions to format.
      * @return The formatted SQL condition string.
      */

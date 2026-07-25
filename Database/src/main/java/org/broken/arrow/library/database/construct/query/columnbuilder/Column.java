@@ -40,7 +40,7 @@ public class Column implements SqlArg {
      * @param alias      optional alias for the column, can be empty.
      * @return The column instance.
      */
-    public static Column of(String columnName, @Nonnull final String alias) {
+    public static Column of(@Nonnull final String columnName, @Nonnull final String alias) {
         return new Column(columnName, alias);
     }
 
@@ -50,8 +50,21 @@ public class Column implements SqlArg {
      * @param columnName the name of the database column
      * @return The column instance.
      */
-    public static Column of(String columnName) {
+    public static Column of(@Nonnull final String columnName) {
         return new Column(columnName, "");
+    }
+
+    /**
+     * Constructs a Column instance with the specified column name with no alias.
+     *
+     * @param columnName the name of the database column
+     * @param functionContext the context for the column you want to aggregate
+     * @return The column instance.
+     */
+    public static Column of(@Nonnull final String columnName, @Nonnull final Consumer<ColumnExpressionBuilder> functionContext) {
+        final Column column = new Column(columnName, "");
+        column.aggregation(functionContext);
+        return column;
     }
 
     /**
@@ -74,7 +87,7 @@ public class Column implements SqlArg {
      * @param functionContext the context for the column you want to aggregate
      * @return this class for method chaining.
      */
-    public Column aggregation(Consumer<ColumnExpressionBuilder> functionContext) {
+    public Column aggregation(@Nonnull final Consumer<ColumnExpressionBuilder> functionContext) {
         ColumnExpressionBuilder baseLeaf = new ColumnExpressionPipeline(this);
         functionContext.accept(baseLeaf);
         this.computedContext = baseLeaf;
@@ -129,6 +142,4 @@ public class Column implements SqlArg {
         }
         return getFinishColumName();
     }
-
-
 }

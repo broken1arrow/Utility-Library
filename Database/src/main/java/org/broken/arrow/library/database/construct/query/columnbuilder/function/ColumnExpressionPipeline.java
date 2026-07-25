@@ -2,6 +2,7 @@ package org.broken.arrow.library.database.construct.query.columnbuilder.function
 
 import org.broken.arrow.library.database.construct.query.columnbuilder.Column;
 import org.broken.arrow.library.database.construct.query.columnbuilder.function.strategy.ColumnExpressionBuilder;
+import org.broken.arrow.library.database.construct.query.columnbuilder.function.strategy.ColumnStrategy;
 import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 import org.broken.arrow.library.database.construct.query.utlity.MathOperation;
 
@@ -29,17 +30,17 @@ import javax.annotation.Nonnull;
  */
 public class ColumnExpressionPipeline implements ColumnExpressionBuilder {
     private final Column column;
-    private SqlFunction function;
-    private SqlMath math;
-    private SqlAlias aliasContext;
-    private SqlRound round;
+    private ColumnStrategy function;
+    private ColumnStrategy math;
+    private ColumnStrategy aliasContext;
+    private ColumnStrategy round;
 
     /**
      * Creates a new expression pipeline for the specified base column.
      *
      * @param column the base {@link Column} to which functions and operations will be applied
      */
-    public ColumnExpressionPipeline(final Column column) {
+    public ColumnExpressionPipeline(@Nonnull final Column column) {
         this.column = column;
     }
 
@@ -50,39 +51,19 @@ public class ColumnExpressionPipeline implements ColumnExpressionBuilder {
     }
 
     @Override
-    public ColumnExpressionPipeline multiply(@Nonnull final Column right) {
-        return math(MathOperation.MULTIPLY, right);
-    }
-
-    @Override
-    public ColumnExpressionPipeline add(@Nonnull final Column right) {
-        return math(MathOperation.ADD, right);
-    }
-
-    @Override
-    public ColumnExpressionPipeline avg() {
-        return function(CalcFunc.AVG);
-    }
-
-    @Override
-    public ColumnExpressionPipeline min() {
-        return function(CalcFunc.MIN);
-    }
-
-    @Override
-    public ColumnExpressionPipeline function(@Nonnull CalcFunc func) {
+    public ColumnExpressionPipeline function(@Nonnull final CalcFunc func) {
         function = new SqlFunction(func, this.column);
         return this;
     }
 
     @Override
-    public ColumnExpressionPipeline as(@Nonnull String alias) {
+    public ColumnExpressionPipeline as(@Nonnull final String alias) {
         this.aliasContext = new SqlAlias(alias);
         return this;
     }
 
     @Override
-    public ColumnExpressionPipeline round(int precision) {
+    public ColumnExpressionPipeline round(final int precision) {
         round = new SqlRound(precision);
         return this;
     }
