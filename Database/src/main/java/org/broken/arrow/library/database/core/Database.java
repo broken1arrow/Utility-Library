@@ -206,6 +206,8 @@ public abstract class Database {
      *             // Extract existing data and define the new primary key mapping
      *             Object oldId = dataWrapper.getPrimaryValue("old_id");
      *             return WriteContext.with("new_primary_key", oldId);
+     *         // The class below implements:
+     *         // org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable
      *         }, MyEntity.class);
      *     }
      * });
