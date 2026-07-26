@@ -392,7 +392,7 @@ public class MongoDB extends Database {
             document = new Document("_id", primaryValue);
             filter = Filters.eq("_id", primaryValue);
         } else {
-            final Map<String, Object> primaries = dataWrapper.getPrimaryWrapper().getPrimaryKeys();
+            final Map<String, Object> primaries = dataWrapper.getWriteContext().getColumnContext();
             document = new Document(primaries);
             filter = Filters.eq("_id", document);
         }

@@ -1,6 +1,7 @@
 package org.broken.arrow.library.database.utility;
 
 import org.broken.arrow.library.database.builders.DataWrapper;
+import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.builders.schema.TableQuery;
 import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
 import org.broken.arrow.library.database.builders.schema.TableSchema;
@@ -108,7 +109,7 @@ public class BatchExecutor<T> {
             final boolean columnsIsEmpty = columns == null || columns.length == 0;
             boolean canUpdateRow = false;
             final Object legacyPrimaryValue = dataWrapper.getPrimaryValue();
-            final DataWrapper.PrimaryWrapper primaryWrapper = dataWrapper.getPrimaryWrapper();
+            final WriteContext primaryWrapper = dataWrapper.getWriteContext();
             final WhereClauseFunction whereClauseCallback = primaryWrapper.getWhereClause();
 
 
@@ -120,7 +121,7 @@ public class BatchExecutor<T> {
             };
             final boolean isManualInsertOrUpdate = !table.isAutoIncrementTable();
             final boolean hasUpdateIntent = !columnsIsEmpty || shallUpdate;
-            final boolean primaryValueSet = primaryWrapper.getPrimaryKeys().values().stream().noneMatch(Objects::isNull);
+            final boolean primaryValueSet = primaryWrapper.getColumnContext().values().stream().noneMatch(Objects::isNull);
 
             if (isManualInsertOrUpdate && !primaryValueSet) {
                 System.out.println("You must provide valid where clause if, it shall insert or update rows.");
@@ -139,7 +140,7 @@ public class BatchExecutor<T> {
             for (TableColumn primary : table.getPrimaryColumns()) {
                 Object value = legacyPrimaryValue;
                 if (value == null || value.toString().isEmpty())
-                    value = primaryWrapper.getPrimaryValue(primary.getColumnName());
+                    value = primaryWrapper.getValue(primary.getColumnName());
                 if (value == null) continue;
                 columnValueMap.put(primary, value);
             }
@@ -220,10 +221,10 @@ public class BatchExecutor<T> {
         final boolean columnsIsEmpty = columns == null || columns.length == 0;
         boolean canUpdateRow = false;
         final Object primaryValue = dataWrapper.getPrimaryValue();
-        final DataWrapper.PrimaryWrapper primaryWrapper = dataWrapper.getPrimaryWrapper();
+        final WriteContext primaryWrapper = dataWrapper.getWriteContext();
         final boolean isManualInsertOrUpdate = !table.isAutoIncrementTable();
         final boolean hasUpdateIntent = !columnsIsEmpty || shallUpdate;
-        final boolean primaryValueSet = primaryWrapper.getPrimaryKeys().values().stream().noneMatch(Objects::isNull);
+        final boolean primaryValueSet = primaryWrapper.getColumnContext().values().stream().noneMatch(Objects::isNull);
 
         if (isManualInsertOrUpdate && !primaryValueSet) {
             System.out.println("You must provide where it shall insert or update rows.");
@@ -239,7 +240,7 @@ public class BatchExecutor<T> {
         for (TableColumn primary : table.getPrimaryColumns()) {
             Object value = primaryValue;
             if (value == null || value.toString().isEmpty()) {
-                value = primaryWrapper.getPrimaryValue(primary.getColumnName());
+                value = primaryWrapper.getValue(primary.getColumnName());
             }
             if (value == null) continue;
             columnValueMap.put(primary, value);

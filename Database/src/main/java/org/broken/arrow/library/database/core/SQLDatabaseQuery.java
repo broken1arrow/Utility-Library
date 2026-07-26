@@ -137,7 +137,7 @@ public abstract class SQLDatabaseQuery extends Database {
         }
 
         batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> {
-            final WhereClauseFunction whereClause = dataWrapper.getPrimaryWrapper().getWhereClause();
+            final WhereClauseFunction whereClause = dataWrapper.getWriteContext().getWhereClause();
             if (whereClause != null)
                 return whereClause.apply(where);
             return table.createWhereClauseFromPrimaryColumns(where, primaryValue);

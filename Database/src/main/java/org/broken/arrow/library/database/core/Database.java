@@ -26,7 +26,7 @@ import org.broken.arrow.library.database.utility.BatchExecutor;
 import org.broken.arrow.library.database.utility.BatchExecutorUnsafe;
 import org.broken.arrow.library.database.utility.DatabaseCommandConfig;
 import org.broken.arrow.library.database.utility.DatabaseType;
-import org.broken.arrow.library.database.utility.PrimaryConstraintWrapper;
+import org.broken.arrow.library.database.utility.PrimaryKeyMigrationContext;
 import org.broken.arrow.library.database.utility.constrains.SchemaMigrationHandler;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 import org.broken.arrow.library.serialize.utility.serialize.MethodReflectionUtils;
@@ -72,7 +72,7 @@ public abstract class Database {
     private long idleTimeout;
     private long maxLifeTime;
     private int minimumIdle;
-    private BiConsumer<String, PrimaryConstraintWrapper> handleConstraints;
+    private BiConsumer<String, PrimaryKeyMigrationContext> handleConstraints;
 
     /**
      * The  database instance.
@@ -170,18 +170,51 @@ public abstract class Database {
     }
 
     /**
-     * Create all needed tables if it not exist.
+     * Creates all registered tables if they do not exist, and performs schema updates
+     * (such as adding missing columns) to existing tables.
      */
     public void createTables() {
         this.createTables(null);
     }
 
     /**
-     * Create all needed tables if it not exist.
+     * Creates all registered tables if they do not exist, and performs schema updates
+     * (such as adding missing columns) to existing tables.
+     * <p>
+     * The provided consumer receives two arguments:
+     * <ul>
+     *     <li><strong>{@code String} (Table Name):</strong> The name of the table currently being updated.</li>
+     *     <li><strong>{@link PrimaryKeyMigrationContext}:</strong> The context used to resolve missing data.
+     *     You interact with this by calling methods like {@link PrimaryKeyMigrationContext#forEachLoadedData(Function, Class)}
+     *     to define how existing database rows should be populated to satisfy the new constraint.</li>
+     * </ul>
      *
-     * @param handleConstraints Use this if you set now columns with constraints.
+     * <strong>Example usage:</strong>
+     * <pre>{@code
+     * database.createTables((tableName, migrationContext) -> {
+     *     if ("my_target_table".equals(tableName)) {
+     *         // If you can't provide a primary key value for every existing row,
+     *         // you can fall back to a UNIQUE constraint. Like a primary key, it ensures
+     *         // the column cannot have the same value across multiple rows, but it allows
+     *         // the migration to proceed even if strict primary key requirements aren't met.
+     *         // Note: SQL allows multiple rows to have 'null' (unset) in a UNIQUE column,
+     *         // but empty strings ("") are treated as real values. Do not pass empty strings
+     *         // as placeholders, or the uniqueness check will fail.
+     *         // migrationContext.setUnique(true);
+     *
+     *         migrationContext.forEachLoadedData(dataWrapper -> {
+     *             // Extract existing data and define the new primary key mapping
+     *             Object oldId = dataWrapper.getPrimaryValue("old_id");
+     *             return WriteContext.with("new_primary_key", oldId);
+     *         }, MyEntity.class);
+     *     }
+     * });
+     * }</pre>
+     *
+     * @param handleConstraints A callback triggered during schema migration when new columns requiring
+     *                          constraints (e.g., PRIMARY KEY) are added to an existing table.
      */
-    public void createTables(final BiConsumer<String, PrimaryConstraintWrapper> handleConstraints) {
+    public void createTables(final BiConsumer<String, PrimaryKeyMigrationContext> handleConstraints) {
         this.handleConstraints = handleConstraints;
         if (tablesCache.isEmpty()) {
             log.log(() -> "You don't have added any tables, so it can't check or create your tables.");
@@ -596,14 +629,14 @@ public abstract class Database {
      * It receives:</p>
      * <ul>
      *     <li>The table name</li>
-     *     <li>A {@link PrimaryConstraintWrapper} used to define primary key values
+     *     <li>A {@link PrimaryKeyMigrationContext} used to define primary key values
      *     for existing rows</li>
      * </ul>
      *
      * <p>If no handler is configured, new constraints will not be applied,
      * but missing columns may still be created.</p>
      *
-     * <p>Within the handler, {@link PrimaryConstraintWrapper#setUnique(boolean)}
+     * <p>Within the handler, {@link PrimaryKeyMigrationContext#setUnique(boolean)}
      * can be set to {@code true} to allow a UNIQUE constraint fallback
      * when primary key values are incomplete.</p>
      *
@@ -611,7 +644,7 @@ public abstract class Database {
      * or {@code null} if no handler is configured.
      */
     @Nullable
-    public BiConsumer<String, PrimaryConstraintWrapper> getHandleConstraints() {
+    public BiConsumer<String, PrimaryKeyMigrationContext> getHandleConstraints() {
         return handleConstraints;
     }
 
@@ -1175,7 +1208,7 @@ public abstract class Database {
         log.log(Level.WARNING, () -> "Could not find table " + tableName);
     }
 
-    private void sendLogMessage(final PrimaryConstraintWrapper primaryWrapper, final Map<String, Object> primaryKeys) {
+    private void sendLogMessage(final PrimaryKeyMigrationContext primaryWrapper, final Map<String, Object> primaryKeys) {
         if (primaryWrapper.isUnique()) {
             log.log(Level.FINE, () -> "Primary key values are incomplete (null key or value detected). Provided values: '" + primaryKeys + "'. Primary key will not be created for this row. Unique constraint will be used instead, as configured.");
         } else {

@@ -1,6 +1,6 @@
 package org.broken.arrow.library.database.utility.constrains;
 
-import org.broken.arrow.library.database.builders.DataWrapper;
+import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.builders.schema.TableSchema;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
@@ -13,7 +13,7 @@ import org.broken.arrow.library.database.construct.query.builder.column.ColumnMa
 import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.utility.DatabaseType;
-import org.broken.arrow.library.database.utility.PrimaryConstraintWrapper;
+import org.broken.arrow.library.database.utility.PrimaryKeyMigrationContext;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 
@@ -157,9 +157,9 @@ public class SchemaMigrationHandler {
             log.log(Level.FINE, () -> "No new primary key columns detected. Skipping primary key migration for table '" + queryTable.getTableName() + "'");
             return;
         }
-        final BiConsumer<String, PrimaryConstraintWrapper> handleConstraints = this.databaseCore.getHandleConstraints();
+        final BiConsumer<String, PrimaryKeyMigrationContext> handleConstraints = this.databaseCore.getHandleConstraints();
         Validate.checkNotNull(handleConstraints, "Constraint handler not configured. You must provide a callback to define how constraints should be applied to newly created columns.");
-        final PrimaryConstraintWrapper primaryWrapper = new PrimaryConstraintWrapper(this.databaseCore, queryTable);
+        final PrimaryKeyMigrationContext primaryWrapper = new PrimaryKeyMigrationContext(this.databaseCore, queryTable);
         handleConstraints.accept(queryTable.getTableName(), primaryWrapper);
 
         final QueryBuilder builder = new QueryBuilder();
@@ -187,11 +187,11 @@ public class SchemaMigrationHandler {
         this.setConstraints(queryTable, newPrimaryKeys, primaryMapValuesSet && primaryValuesComplete);
     }
 
-    private boolean saveDataToColumns(final TableSchema queryTable, final PrimaryConstraintWrapper primaryWrapper) {
+    private boolean saveDataToColumns(final TableSchema queryTable, final PrimaryKeyMigrationContext primaryWrapper) {
         boolean primaryMapValuesSet = true;
         final Map<String, List<Map<Integer, Object>>> batchGroups = new LinkedHashMap<>();
 
-        if (!primaryWrapper.getPrimaryWrappers().isEmpty()) {
+        if (!primaryWrapper.getWriteContext().isEmpty()) {
             primaryMapValuesSet = setValuesToDatabase(queryTable, primaryWrapper, primaryMapValuesSet, batchGroups);
         }
 
@@ -217,15 +217,15 @@ public class SchemaMigrationHandler {
         return primaryMapValuesSet;
     }
 
-    private boolean setValuesToDatabase(final TableSchema queryTable, final PrimaryConstraintWrapper primaryWrapper, boolean primaryMapValuesSet, final Map<String, List<Map<Integer, Object>>> batchGroups) {
-        for (DataWrapper.PrimaryWrapper primary : primaryWrapper.getPrimaryWrappers()) {
+    private boolean setValuesToDatabase(final TableSchema queryTable, final PrimaryKeyMigrationContext primaryWrapper, boolean primaryMapValuesSet, final Map<String, List<Map<Integer, Object>>> batchGroups) {
+        for (WriteContext primary : primaryWrapper.getWriteContext()) {
             if (primary == null) {
                 log.log(Level.WARNING, () -> "A row for this table '" + queryTable.getTableName() + "' is not set.");
                 continue;
             }
 
             final QueryBuilder saveBuilder = new QueryBuilder();
-            final Map<String, Object> primaryKeys = primary.getPrimaryKeys();
+            final Map<String, Object> primaryKeys = primary.getColumnContext();
 
             if (primaryKeys.entrySet().stream().anyMatch(entry -> entry.getKey() == null || entry.getValue() == null)) {
                 this.sendLogMessage(primaryWrapper, primaryKeys);
@@ -400,7 +400,7 @@ public class SchemaMigrationHandler {
         return message + "'" + columnsToBeModified + "'. To this table '" + tableName + "'";
     }
 
-    private void sendLogMessage(final PrimaryConstraintWrapper primaryWrapper, final Map<String, Object> primaryKeys) {
+    private void sendLogMessage(final PrimaryKeyMigrationContext primaryWrapper, final Map<String, Object> primaryKeys) {
         if (primaryWrapper.isUnique()) {
             log.log(Level.FINE, () -> "Primary key values are incomplete (null key or value detected). Provided values: '" + primaryKeys + "'. Primary key will not be created for this row. Unique constraint will be used instead, as configured.");
         } else {

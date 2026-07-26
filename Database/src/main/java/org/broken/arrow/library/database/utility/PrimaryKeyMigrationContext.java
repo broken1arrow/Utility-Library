@@ -2,6 +2,7 @@ package org.broken.arrow.library.database.utility;
 
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
+import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.builders.schema.TableSchema;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
@@ -15,51 +16,54 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Wrapper for managing primary key constraints and associated data for a specific database table.
+ * Context provided during database schema migrations to manage and populate new primary key constraints.
  *
  * <p>
- * This class is used to track primary key values when constructing SQL {@code WHERE} clauses,
- * performing updates, and its data is used to generate ALTER TABLE constraints after the table is created.
- * Existing rows can be loaded from the database and transformed into {@link DataWrapper.PrimaryWrapper}
- * objects representing primary key mappings and their corresponding {@code WHERE} clauses.
+ * When a new primary key column is added to an existing table, existing rows in the database
+ * often need to be populated with valid values before the {@code PRIMARY KEY} constraint can be safely applied.
+ * This class acts as a callback mechanism, allowing you to define how existing rows are transformed
+ * into {@link WriteContext} objects (which hold the new primary key values and the necessary {@code WHERE} clause).
  * </p>
  *
  * <p>
  * The recommended usage is through the {@link #forEachLoadedData(Function, Class)}
- * or {@link #forEachLoadedData(Function)} methods, which automatically store
- * the resulting {@code PrimaryWrapper} objects internally. The {@link #addQueryData(DataWrapper.PrimaryWrapper)}
+ * or {@link #forEachLoadedData(Function)} methods. These iterate over existing database rows,
+ * applying your custom logic to map old data to the new constraint requirements. The {@link #addQueryData(WriteContext)}
  * method exists for advanced or manual scenarios but is generally not required.
  * </p>
  *
- * <strong>Example usage</strong>
- * <pre>{@code
- * PrimaryConstraintWrapper primaryWrapper = new PrimaryConstraintWrapper(database, queryTable);
+ * <p>
+ * <strong>Note:</strong> This class is instantiated internally by the schema migration engine and passed
+ * to your constraint handler callback. It is not intended to be instantiated or extended.
+ * </p>
  *
+ * <strong>Example usage:</strong>
+ * <pre>{@code
  * primaryWrapper.forEachLoadedData(loadDataWrapper -> {
  *     Object world = loadDataWrapper.getPrimaryValue("world");
  *     Object x = loadDataWrapper.getPrimaryValue("x");
  *     Object y = loadDataWrapper.getPrimaryValue("y");
  *     Object z = loadDataWrapper.getPrimaryValue("z");
  *
- *     Map<String, Object> map = Map.of(
- *         "world", world,
- *         "x", x,
- *         "y", y,
- *         "z", z
- *     );
- *
- *     return new DataWrapper.PrimaryWrapper(map, whereClause -> whereClause
- *         .where("world").equal(world).and()
- *         .where("x").equal(x).and()
- *         .where("y").equal(y).and()
- *         .where("z").equal(z)
- *     );
- * }, YourConfigurationSerializableClass.class);
+ *     // Highly recommend setting the WHERE clause to accurately target this specific row;
+ *     // otherwise, the fallback will join all provided values with AND clauses.
+ *     return WriteContext.with("world", world)
+ *         .put("x", x)
+ *         .put("y", y)
+ *         .put("z", z)
+ *         .withWhereClause(whereBuilder -> whereBuilder
+ *             .where("world").equal(world).and()
+ *             .where("x").equal(x).and()
+ *             .where("y").equal(y).and()
+ *             .where("z").equal(z)
+ *         );
+ * // The class below implements:
+ * // org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable
+ * }, OurConfigurationSerializableClass.class);
  * }</pre>
  */
-
-public class PrimaryConstraintWrapper {
-    private final List<DataWrapper.PrimaryWrapper> primaryWrappers = new ArrayList<>();
+public class PrimaryKeyMigrationContext {
+    private final List<WriteContext> primaryWrappers = new ArrayList<>();
     private final Database database;
     private final TableSchema queryTable;
     private Consumer<Map<String, Object>> loadMapFromDB;
@@ -74,9 +78,10 @@ public class PrimaryConstraintWrapper {
      * @param queryTable the table whose primary key constraints are being
      *                   managed or modified.
      */
-    public PrimaryConstraintWrapper(@Nonnull final Database database, @Nonnull final TableSchema queryTable) {
+    public PrimaryKeyMigrationContext(@Nonnull final Database database, @Nonnull final TableSchema queryTable) {
         this.database = database;
         this.queryTable = queryTable;
+
     }
 
     /**
@@ -85,15 +90,15 @@ public class PrimaryConstraintWrapper {
      * <p>
      * Normally, this is handled automatically by {@link #forEachLoadedData(Function, Class)}
      * or {@link #forEachLoadedData(Function)} when the callback returns a
-     * {@link DataWrapper.PrimaryWrapper}. This method exists for advanced scenarios
+     * {@link WriteContext}. This method exists for advanced scenarios
      * where you want to populate primary key data manually. Safeguards prevent
      * incomplete or inconsistent primary key mappings from affecting the database.
      * </p>
      *
-     * @param primaryColumnsData the {@link DataWrapper.PrimaryWrapper} containing
+     * @param primaryColumnsData the {@link WriteContext} containing
      *                           column-value mappings and the corresponding {@code WHERE} clause
      */
-    public void addQueryData(@Nonnull final DataWrapper.PrimaryWrapper primaryColumnsData) {
+    public void addQueryData(@Nonnull final WriteContext primaryColumnsData) {
         primaryWrappers.add(primaryColumnsData);
     }
 
@@ -103,7 +108,7 @@ public class PrimaryConstraintWrapper {
      * @return List of primary data wrapper.
      */
     @Nonnull
-    public List<DataWrapper.PrimaryWrapper> getPrimaryWrappers() {
+    public List<WriteContext> getWriteContext() {
         return primaryWrappers;
     }
 
@@ -118,12 +123,12 @@ public class PrimaryConstraintWrapper {
      *
      * @param keys the set of primary key column names to check
      * @return {@code true} if all specified keys have non-null values in every
-     *         {@link DataWrapper.PrimaryWrapper} stored internally, {@code false} otherwise
+     *         {@link WriteContext} stored internally, {@code false} otherwise
      */
     public boolean allPrimaryValuesPresent(@Nonnull final Set<String> keys) {
-        for (DataWrapper.PrimaryWrapper wrapper : primaryWrappers) {
+        for (WriteContext wrapper : primaryWrappers) {
             for (String key : keys) {
-                if (wrapper.getPrimaryValue(key) == null) {
+                if (wrapper.getValue(key) == null) {
                     return false;
                 }
             }
@@ -136,7 +141,8 @@ public class PrimaryConstraintWrapper {
      * If it shall replace the primary key with unique if you not provide
      * value that could be set for the new primary column.
      *
-     * @return Returns {@code true} if it shall replace the primary key constrain with unique.
+     * @return Returns {@code true} if the migration should apply a UNIQUE constraint
+     * as a fallback when incomplete primary key values are provided.
      */
     public boolean isUnique() {
         return unique;
@@ -145,7 +151,8 @@ public class PrimaryConstraintWrapper {
     /**
      * Set the constraint if it shall replace if no value is provided.
      *
-     * @param unique Set to {@code true} if it shall replace the primary key constrain with unique.
+     * @param unique Sets whether to fall back to a UNIQUE
+     *               constraint if primary key values are missing for some rows.
      */
     public void setUnique(final boolean unique) {
         this.unique = unique;
@@ -162,14 +169,14 @@ public class PrimaryConstraintWrapper {
 
     /**
      * Loads each row of data from the database and transforms it into a
-     * {@link DataWrapper.PrimaryWrapper} using the provided callback function.
+     * {@link WriteContext} using the provided callback function.
      * The resulting wrapper is stored internally.
      *
      * @param loadedData the function transforming loaded data into a {@code PrimaryWrapper}
      * @param clazz      the class type to deserialize each row into
      * @param <T>        the type implementing {@link ConfigurationSerializable}
      */
-    public <T extends ConfigurationSerializable> void forEachLoadedData(Function<LoadDataWrapper<T>, DataWrapper.PrimaryWrapper> loadedData, Class<T> clazz) {
+    public <T extends ConfigurationSerializable> void forEachLoadedData(Function<LoadDataWrapper<T>, WriteContext> loadedData, Class<T> clazz) {
         final CreateTableHandler tableHandler = this.queryTable.getTable();
         this.loadMapFromDB = (dataFromDB) -> {
             final T deserialize = this.database.deSerialize(clazz, dataFromDB);
@@ -181,7 +188,7 @@ public class PrimaryConstraintWrapper {
                     objectList.put(column.getColumnName(), primaryValue);
                 }
             }
-            final DataWrapper.PrimaryWrapper data = loadedData.apply(new LoadDataWrapper<>(objectList, deserialize));
+            final WriteContext data = loadedData.apply(new LoadDataWrapper<>(objectList, deserialize));
             if (data != null) {
                 this.addQueryData(data);
             }
@@ -190,14 +197,14 @@ public class PrimaryConstraintWrapper {
 
     /**
      * Loads each row of raw data from the database and transforms it into a
-     * {@link DataWrapper.PrimaryWrapper} using the provided callback function.
+     * {@link WriteContext} using the provided callback function.
      * The resulting wrapper is stored internally.
      *
      * @param loadedData the function transforming raw database rows into a {@code PrimaryWrapper}
      */
-    public void forEachLoadedData(Function<Map<String, Object>, DataWrapper.PrimaryWrapper> loadedData) {
+    public void forEachLoadedData(Function<Map<String, Object>, WriteContext> loadedData) {
         this.loadMapFromDB = (dataFromDB) -> {
-            final DataWrapper.PrimaryWrapper data = loadedData.apply(dataFromDB);
+            final WriteContext data = loadedData.apply(dataFromDB);
             if (data != null) {
                 this.addQueryData(data);
             }

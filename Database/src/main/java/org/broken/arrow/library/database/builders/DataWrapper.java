@@ -84,8 +84,6 @@ public class DataWrapper {
     public DataWrapper(@Nonnull final Object primaryValue, @Nonnull final ConfigurationSerializable serialize) {
         this.configurationSerialize = serialize;
         this.value = primaryValue;
-        primaryWrapper = new PrimaryWrapper();
-        this.writeContext = WriteContext.empty();
     }
 
     /**
@@ -107,6 +105,8 @@ public class DataWrapper {
      */
     @Nonnull
     public PrimaryWrapper getPrimaryWrapper() {
+        if (primaryWrapper == null)
+            return new PrimaryWrapper();
         return primaryWrapper;
     }
 
@@ -127,10 +127,17 @@ public class DataWrapper {
      * </p>
      *
      * @return the {@link WriteContext} containing supplemental column constraints
-     *         (e.g., missing primary keys) and WHERE clause logic
+     * (e.g., missing primary keys) and WHERE clause logic
      */
     @Nonnull
     public WriteContext getWriteContext() {
+        if (writeContext == null)
+            this.writeContext = WriteContext.empty();
+
+        if (primaryWrapper != null && (writeContext.getColumnContext().isEmpty() || writeContext.getWhereClause() == null)) {
+            primaryWrapper.primaryKeys.forEach((s, object) -> writeContext.put(s, object));
+            writeContext.withWhereClause(primaryWrapper.getWhereClause());
+        }
         return writeContext;
     }
 
