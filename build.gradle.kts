@@ -93,7 +93,7 @@ subprojects {
                     artifactId = project.name
                     groupId = project.group.toString()
                     artifactId = project.name
-                    version = "0.136"
+                    version = "0.137"
                     pom {
                         name.set(project.name)
                         description.set("Description for ${project.name}")

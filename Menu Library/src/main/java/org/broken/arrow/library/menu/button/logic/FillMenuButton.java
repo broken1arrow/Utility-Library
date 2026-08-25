@@ -141,7 +141,7 @@ public class FillMenuButton<T> {
      * @param <T> the data type bound to the button elements being processed.
      */
     public static final class FillButtonBuilder<T> {
-        private FillClickAction<T> click = (player, inventory, clickType, stack, fillObject) -> ButtonUpdateAction.NONE;
+        private FillClickAction<T> click = (player, inventory,  fillObject,clickContext) -> ButtonUpdateAction.NONE;
         private ItemProvider<T> itemProvider = FillButtonBuilder::getFallBackStack;
 
         private boolean updateButtonsTimer = false;

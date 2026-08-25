@@ -29,10 +29,9 @@ import java.util.stream.Collectors;
 public class InsertHandler implements ParameterSupplier {
 
     private final Map<Integer, InsertBuilder> insertValues = new LinkedHashMap<>();
-    private final Map<Integer, Object> values = new LinkedHashMap<>();
     private final QueryModifier queryModifier;
     private final QueryBuilder queryBuilder;
-    private int columnIndex = 1;
+
 
     /**
      * This handle the inner parts of your insert command.
@@ -116,7 +115,16 @@ public class InsertHandler implements ParameterSupplier {
      * @return a map of index to {@link InsertBuilder} instances
      */
     public Map<Integer, InsertBuilder> getInsertValues() {
-        return insertValues;
+        return Collections.unmodifiableMap(insertValues);
+    }
+
+    /**
+     * Returns amount of columns stored in this handler.
+     *
+     * @return an amount of columns set.
+     */
+    public int getAmountSet() {
+        return insertValues.size();
     }
 
     /**

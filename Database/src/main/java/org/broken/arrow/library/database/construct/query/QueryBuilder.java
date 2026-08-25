@@ -381,7 +381,7 @@ public class QueryBuilder {
         if (queryType == QueryType.UPDATE) {
             return updateBuilder.getSelector().getSelectBuilder().getColumns().size();
         } else if (queryType == QueryType.INSERT || queryType == QueryType.INSERT_REPLACE) {
-            return insertHandler.getInsertValues().size();
+            return insertHandler.getAmountSet();
         } else if (queryType == QueryType.SELECT) {
             return queryModifier.getSelectBuilder().getColumns().size();
         } else if (queryType == QueryType.DELETE) {
