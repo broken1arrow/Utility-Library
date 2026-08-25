@@ -31,21 +31,5 @@ public interface FillClickAction<T> {
      */
     @Nonnull
     ButtonUpdateAction apply(@Nonnull Player player, @Nonnull ClickType click, @Nullable T fillObject, @Nonnull ClickContext clickContext);
-
-    /**
-     * Handles a contextual click event on a fill button.
-     *
-     * @param player      the player who clicked the button.
-     * @param menu        the menu inventory where the click occurred.
-     * @param click       the type of click (e.g., LEFT, RIGHT, SHIFT_LEFT).
-     * @param clickedItem the actual {@link ItemStack} that was clicked.
-     * @param fillObject  the contextual data object bound to this specific button.
-     * @return the {@link ButtonUpdateAction} detailing how the menu should update.
-     * @deprecated use the {@link #apply(Player, ClickType, Object, ClickContext)} this will not be functional any longer.
-     */
-    @Deprecated
-    default @Nonnull ButtonUpdateAction apply(@Nonnull Player player, @Nonnull Inventory menu, @Nonnull ClickType click, @Nonnull ItemStack clickedItem, @Nullable T fillObject) {
-        return ButtonUpdateAction.NONE;
-    }
-
+    
 }
