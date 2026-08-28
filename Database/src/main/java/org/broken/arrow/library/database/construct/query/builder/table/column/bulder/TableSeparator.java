@@ -2,7 +2,7 @@ package org.broken.arrow.library.database.construct.query.builder.table.column.b
 
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
-import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnRegistry;
 import org.broken.arrow.library.database.construct.query.builder.table.constraint.SQLConstraints;
 import org.broken.arrow.library.database.construct.query.builder.table.constraint.referential.ForeignKeyConfig;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * and add them to a {@link ColumnManager}.
  */
 public class TableSeparator {
-    private final TableColumnBuilder tableColumnBuilder;
+    private final TableColumnRegistry tableColumnBuilder;
     private final TableColumn column;
 
     /**
@@ -26,7 +26,7 @@ public class TableSeparator {
      * @param tableColumnBuilder the table builder to add columns too
      * @param column the {@link TableColumn} to wrap
      */
-    public TableSeparator(@Nonnull final TableColumnBuilder tableColumnBuilder, @Nonnull final TableColumn column) {
+    public TableSeparator(@Nonnull final TableColumnRegistry tableColumnBuilder, @Nonnull final TableColumn column) {
         this.tableColumnBuilder = tableColumnBuilder;
         this.column = column;
         tableColumnBuilder.add(column);
@@ -63,11 +63,11 @@ public class TableSeparator {
     }
 
     /**
-     * Finishes the column building process and returns the associated {@link TableColumnBuilder}.
+     * Finishes the column building process and returns the associated {@link TableColumnRegistry}.
      *
-     * @return the {@link TableColumnBuilder} managing the columns
+     * @return the {@link TableColumnRegistry} managing the columns
      */
-    public TableColumnBuilder build() {
+    public TableColumnRegistry build() {
         return this.tableColumnBuilder;
     }
 

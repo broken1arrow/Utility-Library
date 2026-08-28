@@ -4,11 +4,12 @@ import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.builders.schema.TableSchema;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.table.AlterTable;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 import org.broken.arrow.library.database.core.Database;
@@ -229,7 +230,7 @@ public class SchemaMigrationHandler {
                 this.sendLogMessage(primaryWrapper, primaryKeys);
                 primaryMapValuesSet = false;
             }
-            Selector<ColumnBuilder<Column, Void>, Column> update = saveBuilder
+            final Selector<ColumnBuilder, Column> update = saveBuilder
                     .update(queryTable.getTableName())
                     .putAll(primaryWrapper.convert(primaryKeys))
                     .getSelector()

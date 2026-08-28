@@ -3,6 +3,7 @@ package org.broken.arrow.library.database.construct.query.builder.table.cte;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 
 /**
  * Represents a builder for a Common Table Expression (CTE) in SQL WITH clauses.
@@ -13,7 +14,7 @@ import org.broken.arrow.library.database.construct.query.builder.column.ColumnBu
  */
 public class WithBuilder {
     private final String aliasName;
-    private ColumnBuilder<Column, Void> columnBuilder;
+    private ColumnBuilder columnRegistry;
     private FromWrapper fromWrapper;
 
     /**
@@ -32,20 +33,23 @@ public class WithBuilder {
      * @return this WithBuilder instance for chaining
      */
     public WithBuilder select(Column column) {
-        columnBuilder = new ColumnBuilder<>();
-        columnBuilder.add(column);
+        if (this.columnRegistry == null) {
+            this.columnRegistry = ColumnBuilder.start(columnBuilder -> columnBuilder.add(column));
+        } else {
+            this.columnRegistry.add(column);
+        }
         return this;
     }
 
     /**
-     * Associates a query with this CTE, initializing a {@link WithColumnBuilder}
+     * Associates a query with this CTE, initializing a {@link WithColumnRegistry}
      * that manages the query columns and the subsequent FROM clause.
      *
      * @param query the main query builder for the CTE
      * @return a WithColumnBuilder to continue building the CTE's query
      */
-    public WithColumnBuilder query(QueryBuilder query) {
-        WithColumnBuilder withColumnBuilder = new WithColumnBuilder(this, query);
+    public WithColumnRegistry query(QueryBuilder query) {
+        WithColumnRegistry withColumnBuilder = new WithColumnRegistry(this, query);
         this.fromWrapper = withColumnBuilder.getFromWrapper();
         return withColumnBuilder;
     }
@@ -69,11 +73,11 @@ public class WithBuilder {
     }
 
     /**
-     * Returns the {@link ColumnBuilder} used to build the SELECT columns for this CTE.
+     * Returns the {@link ColumnRegistry} used to build the SELECT columns for this CTE.
      *
      * @return the column builder managing the selected columns
      */
-    public ColumnBuilder<Column, Void> getSelectBuilder() {
-        return columnBuilder;
+    public ColumnBuilder getSelectBuilder() {
+        return columnRegistry;
     }
 }

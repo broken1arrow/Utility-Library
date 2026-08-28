@@ -62,7 +62,7 @@ public class WithManager {
             buildSQLQuery.append(String.join(" ", finalSelects));
         }
 
-        return buildSQLQuery + "";
+        return buildSQLQuery.toString();
     }
 
 }

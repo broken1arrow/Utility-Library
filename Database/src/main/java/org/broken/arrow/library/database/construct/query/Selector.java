@@ -7,7 +7,7 @@ import org.broken.arrow.library.database.construct.query.builder.comparison.Cond
 import org.broken.arrow.library.database.construct.query.builder.clause.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.LinkedHashMap;
@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  * @param <T> the type of the column builder used for building the SELECT clause
  * @param <V> the type of columns managed by the column builder
  */
-public class Selector<T extends ColumnBuilder<V, ?>, V extends Column> {
+public class Selector<T extends ColumnRegistry<?, ?>, V extends Column> {
 
     private final T selectBuilder;
     private final QueryBuilder queryBuilder;

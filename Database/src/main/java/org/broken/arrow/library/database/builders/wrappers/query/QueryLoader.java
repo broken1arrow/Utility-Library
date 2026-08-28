@@ -8,6 +8,7 @@ import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuer
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 import org.broken.arrow.library.database.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.core.SQLDatabaseQuery;
@@ -117,7 +118,7 @@ public class QueryLoader<T extends ConfigurationSerializable> {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    final ColumnBuilder<Column, Void> selectBuilder = selectTableBuilder.getQueryModifier().getSelectBuilder();
+                    final ColumnBuilder selectBuilder = selectTableBuilder.getQueryModifier().getSelectBuilder();
                     Database database = databaseQuery.getDatabase();
 
                     final Map<String, Object> dataFromDB = database.getDataFromDB(resultSet, selectBuilder.getColumns());
@@ -138,15 +139,15 @@ public class QueryLoader<T extends ConfigurationSerializable> {
      * Filters the columns from the full database row data based on the columns specified in the select builder
      * and the database query handler's filtered columns.
      *
-     * @param columnBuilder the column builder that contains the selected columns
+     * @param columnRegistry the column builder that contains the selected columns
      * @param databaseQueryHandler the query handler containing filtered column information
      * @param dataFromDB the full row data fetched from the database
      * @param <V> the type of the ConfigurationSerializable class
      * @return a map containing only the filtered column names and their values
      */
     @Nonnull
-    private <V extends ConfigurationSerializable> Map<String, Object> getColumnsFiltered(final ColumnBuilder<Column, Void> columnBuilder, DatabaseQueryHandler<LoadDataWrapper<V>> databaseQueryHandler, Map<String, Object> dataFromDB) {
-        final List<Column> columnList = columnBuilder.getColumns();
+    private <V extends ConfigurationSerializable> Map<String, Object> getColumnsFiltered(final ColumnBuilder columnRegistry, DatabaseQueryHandler<LoadDataWrapper<V>> databaseQueryHandler, Map<String, Object> dataFromDB) {
+        final List<Column> columnList = columnRegistry.getColumns();
         final Map<String, Object> columnsFiltered = new HashMap<>();
 
         if (columnList.isEmpty()) {

@@ -1,125 +1,35 @@
 package org.broken.arrow.library.database.construct.query.builder.column;
 
-import org.broken.arrow.library.database.construct.query.builder.table.constraint.SQLConstraints;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringJoiner;
+import javax.annotation.Nonnull;
+import java.util.function.Consumer;
 
 /**
- * A builder class for managing and constructing a list of {@link Column} instances or its subclasses.
+ * A concrete implementation of {@link ColumnRegistry} for building a standard list of columns.
  * <p>
- * Supports adding individual columns, collections of columns, or arrays of columns,
- * and building a combined string representation of all added columns.
- * The builder maintains a reference to a generic type {@code V} that can be used for fluent API chaining.
+ * Use {@link #start(Consumer)} to initialize and populate the builder fluently.
  * </p>
- *
- * @param <T> the type of columns managed by this builder, extending {@link Column}
- * @param <V> the type returned by add methods to allow fluent chaining (usually the parent or selector class)
  */
-public class ColumnBuilder<T extends Column, V> {
-    private final List<T> columns = new ArrayList<>();
-    protected V clazzType;
+public class ColumnBuilder extends ColumnRegistry<Column, ColumnBuilder> {
 
-    /**
-     * Creates a ColumnBuilder without a reference to the selector instance.
-     */
-    public ColumnBuilder() {
-        this(null);
+    private ColumnBuilder() {
     }
 
     /**
-     * Creates a ColumnBuilder with a reference to the selector instance, enabling fluent chaining.
+     * Starts building columns fluently using a callback function.
      *
-     * @param clazzType the selector or parent instance to return from add methods
+     * @param callback a consumer function to register the columns
+     * @return a {@link ColumnBuilder} instance to chain additional operations
      */
-    public ColumnBuilder(V clazzType) {
-        this.clazzType = clazzType;
-    }
-
-    /**
-     * Adds a single column to this builder.
-     *
-     * @param column the column to add
-     * @return the selector instance of type {@code V} for fluent chaining
-     */
-    public V add(T column) {
-        columns.add(column);
-        return this.clazzType;
-    }
-
-    /**
-     * Adds all columns from the provided list to this builder.
-     * If the list is null or empty, no columns are added.
-     *
-     * @param columnsList the list of columns to add
-     * @return the selector instance of type {@code V} for fluent chaining
-     */
-    public V addAll(List<T> columnsList) {
-        if (columnsList == null || columnsList.isEmpty())
-            return this.clazzType;
-        columnsList.forEach(this::add);
-        return this.clazzType;
-    }
-
-    /**
-     * Adds all columns from the provided array to this builder.
-     * If the array is null or empty, no columns are added.
-     *
-     * @param columns the array of columns to add
-     * @return the selector instance of type {@code V} for fluent chaining
-     */
-    @SafeVarargs
-    public final V addAll(T... columns) {
-        if (columns != null)
-            Arrays.stream(columns).forEach(this::add);
-        return this.clazzType;
-    }
-
-    /**
-     * Returns the current list of columns managed by this builder.
-     *
-     * @return the list of columns
-     */
-    public List<T> getColumns() {
-        return columns;
-    }
-
-    /**
-     * Returns the selector instance associated with this builder,
-     * which can be used for fluent API chaining.
-     *
-     * @return the selector instance of type {@code V}
-     */
-    public V getSelectorInstance() {
-        return clazzType;
-    }
-
-    /**
-     * Builds a comma-separated string representation of all added columns
-     * by invoking their {@code toString()} methods.
-     * Returns an empty string if no columns have been added.
-     *
-     * @return a comma-separated string of columns.
-     */
-    public String build() {
-        if (columns.isEmpty()) return "";
-        final StringJoiner joiner = new StringJoiner(", ");
-
-        for (T column : this.getColumns()) {
-            joiner.add(column.toString());
-        }
-        return joiner.toString();
+    public static ColumnBuilder start(Consumer<ColumnBuilder> callback) {
+        ColumnBuilder columnBuilder = new ColumnBuilder();
+        callback.accept(columnBuilder);
+        return columnBuilder;
     }
 
 
+    @Nonnull
     @Override
-    public String toString() {
-        return "ColumnBuilder{" +
-                "columns=" + columns +
-                ", clazzType=" + clazzType +
-                '}';
+    protected ColumnBuilder getContext() {
+        return this;
     }
-
 }

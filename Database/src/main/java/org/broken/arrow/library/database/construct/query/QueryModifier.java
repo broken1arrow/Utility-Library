@@ -1,14 +1,16 @@
 package org.broken.arrow.library.database.construct.query;
 
 
+import com.mysql.cj.x.protobuf.MysqlxCrud;
 import org.broken.arrow.library.database.construct.query.builder.clause.GroupByBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.OrderByBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -23,7 +25,7 @@ import java.util.function.Function;
  * grouping, ordering, and pagination features.
  * </p>
  */
-public class QueryModifier extends Selector<ColumnBuilder<Column, Void>, Column> {
+public class QueryModifier extends Selector<ColumnBuilder, Column> {
     private final GroupByBuilder groupByBuilder = new GroupByBuilder();
 
     private final OrderByBuilder orderByBuilder = new OrderByBuilder();
@@ -36,7 +38,7 @@ public class QueryModifier extends Selector<ColumnBuilder<Column, Void>, Column>
      * @param queryBuilder  the query builder used to build the full SQL query
      */
     public QueryModifier(QueryBuilder queryBuilder) {
-        super(new ColumnBuilder<>(), queryBuilder);
+        super(ColumnBuilder.start(columnBuilder -> {}), queryBuilder);
         this.queryBuilder = queryBuilder;
     }
 
@@ -70,7 +72,7 @@ public class QueryModifier extends Selector<ColumnBuilder<Column, Void>, Column>
     }
 
     @Override
-    public QueryModifier select(Consumer<ColumnBuilder<Column, Void>> callback) {
+    public QueryModifier select(Consumer<ColumnBuilder> callback) {
         super.select(callback);
         return this;
     }

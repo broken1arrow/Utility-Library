@@ -1,9 +1,11 @@
 package org.broken.arrow.library.database.construct.query.builder.statement;
 
+import com.mysql.cj.x.protobuf.MysqlxCrud;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.Comparator;
@@ -20,7 +22,7 @@ import java.util.Map;
 public class UpdateBuilder {
     private final Map<String, Object> updateData = new LinkedHashMap<>();
     private final Map<Integer, Object> values = new LinkedHashMap<>();
-    private final Selector<ColumnBuilder<Column, Void>,Column> selector;
+    private final Selector<ColumnBuilder, Column> selector;
     private int columnIndex = 1;
     private boolean built;
     /**
@@ -29,7 +31,7 @@ public class UpdateBuilder {
      * @param queryBuilder parent query builder
      */
     public UpdateBuilder(@Nonnull final QueryBuilder queryBuilder) {
-        this.selector = new Selector<>(new ColumnBuilder<>(), queryBuilder);
+        this.selector = new Selector<>(ColumnBuilder.start(columnBuilder -> {}), queryBuilder);
     }
 
     /**
@@ -74,7 +76,7 @@ public class UpdateBuilder {
      *
      * @return selector instance
      */
-    public Selector<ColumnBuilder<Column, Void>,Column> getSelector() {
+    public Selector<ColumnBuilder, Column> getSelector() {
         return selector;
     }
 

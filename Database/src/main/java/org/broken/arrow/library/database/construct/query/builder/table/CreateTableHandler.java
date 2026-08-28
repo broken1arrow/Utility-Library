@@ -3,7 +3,7 @@ package org.broken.arrow.library.database.construct.query.builder.table;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
-import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnRegistry;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.table.selector.TableSelector;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * This class provides methods for building a table definition from scratch
  * or by copying an existing table. There are three main construction modes:
  * <ul>
- *     <li>{@link #setColumnBuilder(TableColumnBuilder)} – Creates the new table with the
+ *     <li>{@link #setColumnBuilder(TableColumnRegistry)} – Creates the new table with the
  *         explicitly specified columns. The provided columns are ignored if
  *         {@link #as()} or {@link #like()} is used.</li>
  *     <li>{@link #as()} – Creates the new table using an {@code AS SELECT} statement,
@@ -69,7 +69,7 @@ public class CreateTableHandler {
      */
     public TableSelector as() {
         copyMethod = SqlExpressionType.AS;
-        selector = new TableSelector(this, this.queryBuilder, TableColumnBuilder.make());
+        selector = new TableSelector(this, this.queryBuilder, TableColumnRegistry.make());
         return selector;
     }
 
@@ -85,17 +85,17 @@ public class CreateTableHandler {
      */
     public TableSelector like() {
         copyMethod = SqlExpressionType.LIKE;
-        selector = new TableSelector(this, this.queryBuilder, TableColumnBuilder.make());
+        selector = new TableSelector(this, this.queryBuilder, TableColumnRegistry.make());
         return selector;
     }
 
     /**
      * Adds column definitions to the {@code CREATE TABLE} statement.
      *
-     * @param column the {@link TableColumnBuilder} containing the column definitions
+     * @param column the {@link TableColumnRegistry} containing the column definitions
      * @return this handler instance for method chaining
      */
-    public CreateTableHandler setColumnBuilder(TableColumnBuilder column) {
+    public CreateTableHandler setColumnBuilder(TableColumnRegistry column) {
         tableSelector = new TableSelector(this, this.queryBuilder, column);
         return this;
     }
@@ -107,7 +107,7 @@ public class CreateTableHandler {
      * @return this handler instance for method chaining
      */
     public CreateTableHandler addAllColumns(List<TableColumn> column) {
-        tableSelector = new TableSelector(this, this.queryBuilder, TableColumnBuilder.make());
+        tableSelector = new TableSelector(this, this.queryBuilder, TableColumnRegistry.make());
         tableSelector.select(columnBuilder -> columnBuilder.addAll(column));
         return this;
     }
@@ -174,7 +174,7 @@ public class CreateTableHandler {
      */
     public String build() {
         final StringBuilder sql = new StringBuilder();
-        final Selector<TableColumnBuilder, TableColumn> selectorData = this.selector != null ? this.selector.getTableSelector() : null;
+        final Selector<TableColumnRegistry, TableColumn> selectorData = this.selector != null ? this.selector.getTableSelector() : null;
         final TableSelector wrapper = this.tableSelector;
         final SqlExpressionType copyOption = this.getCopyMethod();
 
@@ -195,7 +195,7 @@ public class CreateTableHandler {
 
         }
 
-        Selector<TableColumnBuilder, TableColumn> selectorDataTable = null;
+        Selector<TableColumnRegistry, TableColumn> selectorDataTable = null;
         if (wrapper != null)
             selectorDataTable = wrapper.getTableSelector();
 

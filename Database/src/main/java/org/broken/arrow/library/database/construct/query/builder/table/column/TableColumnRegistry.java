@@ -3,7 +3,7 @@ package org.broken.arrow.library.database.construct.query.builder.table.column;
 
 import org.broken.arrow.library.database.construct.query.builder.table.column.bulder.TableSeparator;
 import org.broken.arrow.library.database.construct.query.builder.table.constraint.SQLConstraints;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
 import javax.annotation.Nonnull;
@@ -11,27 +11,27 @@ import javax.annotation.Nullable;
 import java.util.StringJoiner;
 
 /**
- * Cache for table columns, extending the generic ColumnBuilder.
+ * A specialized registry for managing {@link TableColumn} instances.
  * <p>
- * Builds a comma-separated list of columns by invoking the build method on each cached TableColumn.
+ * This class builds a comma-separated list of SQL column definitions by invoking
+ * the appropriate build methods on each cached {@link TableColumn}.
  * </p>
  */
-public class TableColumnBuilder extends ColumnBuilder<TableColumn, TableColumnBuilder> {
+public class TableColumnRegistry extends ColumnRegistry<TableColumn, TableColumnRegistry> {
 
     /**
      * Default constructor.
      */
-    private TableColumnBuilder() {
-        this.clazzType = this;
+    private TableColumnRegistry() {
     }
 
     /**
-     * Build your columns with this builder pattern.
+     * Creates a new, empty instance of {@link TableColumnRegistry}.
      *
-     * @return new instance of the builder cache.
+     * @return a new registry instance
      */
-    public static TableColumnBuilder make(){
-        return new TableColumnBuilder();
+    public static TableColumnRegistry make(){
+        return new TableColumnRegistry();
     }
 
     /**
@@ -43,14 +43,14 @@ public class TableColumnBuilder extends ColumnBuilder<TableColumn, TableColumnBu
      * @return a {@link TableSeparator} instance to chain additional columns or foreign keys
      */
     public static TableSeparator start(@Nonnull final String columnName, @Nonnull final DataType datatype, @Nullable final SQLConstraints... constraints) {
-        final TableColumnBuilder builder = make();
+        final TableColumnRegistry builder = make();
         return new TableSeparator(builder, new TableColumn(columnName, datatype, constraints));
     }
 
     /**
-     * Builds the comma-separated list of column strings.
+     * Builds the comma-separated list of SQL column definitions.
      *
-     * @return concatenated column SQL strings
+     * @return the concatenated SQL string for all columns
      */
     @Override
     public String build() {
@@ -58,19 +58,19 @@ public class TableColumnBuilder extends ColumnBuilder<TableColumn, TableColumnBu
         for(TableColumn column : this.getColumns()){
             joiner.add(column.build());
         }
-        return joiner + "";
+        return joiner.toString();
     }
 
     /**
-     * Builds the SQL fragment representing this column's definition,
+     * Builds the SQL fragment representing the column definitions,
      * excluding any {@link SQLConstraints#primaryKey() primary key} constraints.
      * <p>
      * This method is intended for generating column definitions in contexts
-     * where primary keys are defined separately (e.g. composite keys or
+     * where primary keys are defined separately (e.g., composite keys or
      * table-level constraints).
+     * </p>
      *
-     * @return the SQL string fragment for the column definition without
-     *         primary key constraints
+     * @return the SQL string fragment for the column definitions without primary key constraints
      */
     public String buildWithoutPrimaryKey() {
         StringJoiner joiner = new StringJoiner(", ");
@@ -78,6 +78,12 @@ public class TableColumnBuilder extends ColumnBuilder<TableColumn, TableColumnBu
             joiner.add(column.buildWithoutPrimaryKey());
         }
         return joiner.toString();
+    }
+
+    @Nonnull
+    @Override
+    protected TableColumnRegistry getContext() {
+        return this;
     }
 
 }

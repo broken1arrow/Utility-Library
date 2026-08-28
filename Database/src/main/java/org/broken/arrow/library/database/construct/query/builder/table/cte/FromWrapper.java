@@ -3,11 +3,12 @@ package org.broken.arrow.library.database.construct.query.builder.table.cte;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 import org.broken.arrow.library.logging.Logging;
 /**
  * A helper class for building SQL {@code WITH} and {@code FROM} clauses dynamically.
  * <p>
- * This class works in conjunction with {@link WithColumnBuilder}, {@link ColumnBuilder}, and {@link QueryBuilder}
+ * This class works in conjunction with {@link WithColumnRegistry}, {@link ColumnRegistry}, and {@link QueryBuilder}
  * to assemble complex SQL queries that make use of Common Table Expressions (CTEs) via the {@code WITH} clause.
  * It supports aliasing, column renaming, and ensures column count validation when defining CTEs.
  * </p>
@@ -23,8 +24,8 @@ import org.broken.arrow.library.logging.Logging;
 public class FromWrapper {
     private final StringBuilder withCommandBuilder = new StringBuilder();
     private final StringBuilder fromClause = new StringBuilder();
-    private final WithColumnBuilder columnBuilder;
-    private final ColumnBuilder<Column, Void> selectWithBuilder;
+    private final WithColumnRegistry columnBuilder;
+    private final ColumnBuilder selectWithBuilder;
     private final QueryBuilder query;
     private final String aliasName;
     private final Logging logging = new Logging(FromWrapper.class);
@@ -37,7 +38,7 @@ public class FromWrapper {
      * @param withBuilder       builder containing the alias name and select column builder for the CTE
      * @param query             the {@link QueryBuilder} used to generate the inner query for the CTE
      */
-    public FromWrapper(WithColumnBuilder withColumnBuilder, WithBuilder withBuilder, QueryBuilder query) {
+    public FromWrapper(WithColumnRegistry withColumnBuilder, WithBuilder withBuilder, QueryBuilder query) {
         this.columnBuilder = withColumnBuilder;
         this.query = query;
 
@@ -48,7 +49,7 @@ public class FromWrapper {
     /**
      * Builds the {@code FROM} clause string using the alias name and selected columns.
      * <p>
-     * If no columns are defined via the {@link WithColumnBuilder}, the method defaults to using {@code *}.
+     * If no columns are defined via the {@link WithColumnRegistry}, the method defaults to using {@code *}.
      * </p>
      */
     public void from() {

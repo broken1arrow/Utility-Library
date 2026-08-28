@@ -1,6 +1,6 @@
 package org.broken.arrow.library.database.construct.query.builder.column;
 
-import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnRegistry;
 import org.broken.arrow.library.database.construct.query.builder.table.column.bulder.TableSeparator;
 import org.broken.arrow.library.database.construct.query.builder.table.constraint.SQLConstraints;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
@@ -38,7 +38,7 @@ public class ColumnManager {
      * @return a new TableColumn.Separator instance for further configuration
      */
     public static TableSeparator tableOf(@Nonnull final String columnName, @Nonnull final DataType datatype, @Nullable final SQLConstraints... constraints) {
-        final TableColumnBuilder tableColumnBuilder = TableColumnBuilder.make();
+        final TableColumnRegistry tableColumnBuilder = TableColumnRegistry.make();
         return new TableSeparator(tableColumnBuilder, new TableColumn(columnName, datatype, constraints));
     }
 

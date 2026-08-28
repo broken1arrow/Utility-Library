@@ -7,7 +7,7 @@ import org.broken.arrow.library.database.construct.query.builder.clause.wherebui
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
-import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.function.Function;
@@ -24,7 +24,7 @@ import java.util.function.Function;
  * can be called to retrieve the associated {@link CreateTableHandler} for further processing.
  * </p>
  */
-public class SelectorWrapper extends Selector<TableColumnBuilder, TableColumn> {
+public class SelectorWrapper extends Selector<TableColumnRegistry, TableColumn> {
     private final CreateTableHandler createTableHandler;
 
     /**
@@ -34,7 +34,7 @@ public class SelectorWrapper extends Selector<TableColumnBuilder, TableColumn> {
      * @param queryBuilder       the query builder used for constructing SQL queries
      */
     public SelectorWrapper(@Nonnull final CreateTableHandler createTableHandler,@Nonnull final QueryBuilder queryBuilder) {
-        super(TableColumnBuilder.make(), queryBuilder);
+        super(TableColumnRegistry.make(), queryBuilder);
         this.createTableHandler = createTableHandler;
     }
 
