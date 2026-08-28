@@ -113,8 +113,8 @@ public class TableSchema {
      *
      * @return list of {@link Column} objects
      */
-    public List<Column> getColumns() {
-        return this.getTable().getColumns();
+    public List<TableColumn> getColumns() {
+        return this.getTable().getTableColumns();
     }
 
     /**
@@ -152,7 +152,10 @@ public class TableSchema {
      */
     public String selectTable() {
         QueryBuilder selectTableBuilder = new QueryBuilder();
-        selectTableBuilder.select(this.getTable().getColumns()).from(this.getQueryBuilder().getTableName());
+        selectTableBuilder.select(this.getTable().getTableColumns()
+                .stream().map(tableColumn -> (Column) tableColumn)
+                .collect(Collectors.toList()))
+                .from(this.getQueryBuilder().getTableName());
         return selectTableBuilder.build();
     }
 

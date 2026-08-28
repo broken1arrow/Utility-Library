@@ -3,13 +3,10 @@ package org.broken.arrow.library.database.construct.query.builder.table;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
-import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnCache;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnBuilder;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
-import org.broken.arrow.library.database.construct.query.builder.table.selector.SelectorWrapper;
 import org.broken.arrow.library.database.construct.query.builder.table.selector.TableSelector;
-import org.broken.arrow.library.database.construct.query.builder.table.selector.TableSelectorWrapper;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.SqlExpressionType;
 
 import java.util.ArrayList;
@@ -23,7 +20,7 @@ import java.util.stream.Collectors;
  * This class provides methods for building a table definition from scratch
  * or by copying an existing table. There are three main construction modes:
  * <ul>
- *     <li>{@link #addColumns(ColumnManager)} – Creates the new table with the
+ *     <li>{@link #setColumnBuilder(TableColumnBuilder)} – Creates the new table with the
  *         explicitly specified columns. The provided columns are ignored if
  *         {@link #as()} or {@link #like()} is used.</li>
  *     <li>{@link #as()} – Creates the new table using an {@code AS SELECT} statement,
@@ -47,8 +44,8 @@ import java.util.stream.Collectors;
 public class CreateTableHandler {
     private final QueryBuilder queryBuilder;
     private SqlExpressionType copyMethod = null;
-    private TableSelectorWrapper selectorWrapper;
-    private SelectorWrapper selector;
+    private TableSelector tableSelector;
+    private TableSelector selector;
 
     /**
      * Creates a new handler for building {@code CREATE TABLE} statements.
@@ -68,11 +65,11 @@ public class CreateTableHandler {
      * Works similarly to {@link #like()}, but {@code AS SELECT} copies both the schema and the data,
      * whereas {@code LIKE} copies only the schema.
      *
-     * @return a {@link SelectorWrapper} to define the selection query for the table copy
+     * @return a {@link TableSelector} to define the selection query for the table copy
      */
-    public SelectorWrapper as() {
+    public TableSelector as() {
         copyMethod = SqlExpressionType.AS;
-        selector = new SelectorWrapper(this, this.queryBuilder);
+        selector = new TableSelector(this, this.queryBuilder, TableColumnBuilder.make());
         return selector;
     }
 
@@ -84,48 +81,60 @@ public class CreateTableHandler {
      * Works similarly to {@link #as()}, but {@code LIKE} does not insert any data,
      * only replicates the schema definition.
      *
-     * @return a {@link SelectorWrapper} to select the source table for the structure copy
+     * @return a {@link TableSelector} to select the source table for the structure copy
      */
-    public SelectorWrapper like() {
+    public TableSelector like() {
         copyMethod = SqlExpressionType.LIKE;
-        selector = new SelectorWrapper(this, this.queryBuilder);
+        selector = new TableSelector(this, this.queryBuilder, TableColumnBuilder.make());
         return selector;
     }
 
     /**
      * Adds column definitions to the {@code CREATE TABLE} statement.
      *
-     * @param column the {@link ColumnManager} containing the column definitions
+     * @param column the {@link TableColumnBuilder} containing the column definitions
      * @return this handler instance for method chaining
      */
-    public CreateTableHandler addColumns(ColumnManager column) {
-        selectorWrapper = new TableSelectorWrapper(this, new TableSelector(this.queryBuilder, new TableColumnCache()));
-        selectorWrapper.select(column.getColumnsBuilt());
+    public CreateTableHandler setColumnBuilder(TableColumnBuilder column) {
+        tableSelector = new TableSelector(this, this.queryBuilder, column);
         return this;
     }
 
     /**
      * Adds column definitions to the {@code CREATE TABLE} statement.
      *
-     * @param column the list of {@link ColumnManager} containing the column definitions
+     * @param column the list of {@link TableColumn} containing the column definitions for the table
      * @return this handler instance for method chaining
      */
-    public CreateTableHandler addAllColumns(List<Column> column) {
-        selectorWrapper = new TableSelectorWrapper(this, new TableSelector(this.queryBuilder, new TableColumnCache()));
-        selectorWrapper.select(column);
+    public CreateTableHandler addAllColumns(List<TableColumn> column) {
+        tableSelector = new TableSelector(this, this.queryBuilder, TableColumnBuilder.make());
+        tableSelector.select(columnBuilder -> columnBuilder.addAll(column));
         return this;
     }
 
     /**
-     * Returns all columns currently defined for the new table.
+     * Returns all columns currently defined for the table.
+     *
+     * @return a list of {@link TableColumn} objects, or an empty list if none are defined
+     */
+    public List<TableColumn> getTableColumns() {
+        if (tableSelector != null)
+            return tableSelector.getTableSelector().getSelectBuilder().getColumns();
+        if (selector != null)
+            return selector.getTableSelector().getSelectBuilder().getColumns();
+        return new ArrayList<>();
+    }
+
+    /**
+     * Returns all columns currently defined for the table.
      *
      * @return a list of {@link Column} objects, or an empty list if none are defined
      */
     public List<Column> getColumns() {
-        if (selectorWrapper != null)
-            return selectorWrapper.getTableSelector().getSelectBuilder().getColumns();
+        if (tableSelector != null)
+            return new ArrayList<>(tableSelector.getTableSelector().getSelectBuilder().getColumns());
         if (selector != null)
-            return selector.getSelector().getSelectBuilder().getColumns();
+            return new ArrayList<>(selector.getTableSelector().getSelectBuilder().getColumns());
         return new ArrayList<>();
     }
 
@@ -135,14 +144,14 @@ public class CreateTableHandler {
      * @return a list of primary key {@link TableColumn} objects, or an empty list if none are defined
      */
     public List<TableColumn> getPrimaryColumns() {
-        if (selectorWrapper != null) {
-            return selectorWrapper.getTableSelector().getTablesColumnsBuilder().getColumns().stream()
-                    .filter(column -> column instanceof TableColumn && ((TableColumn) column).isPrimaryKey())
+        if (tableSelector != null) {
+            return tableSelector.getTableSelector().getTablesColumnsBuilder().getColumns().stream()
+                    .filter(column -> column != null && column.isPrimaryKey())
                     .map(column -> (TableColumn) column).collect(Collectors.toList());
         }
         if (selector != null) {
-            return selector.getSelector().getSelectBuilder().getColumns().stream()
-                    .filter(column -> column instanceof TableColumn && ((TableColumn) column).isPrimaryKey())
+            return selector.getTableSelector().getSelectBuilder().getColumns().stream()
+                    .filter(column -> column != null && column.isPrimaryKey())
                     .map(column -> (TableColumn) column).collect(Collectors.toList());
         }
         return new ArrayList<>();
@@ -165,8 +174,8 @@ public class CreateTableHandler {
      */
     public String build() {
         final StringBuilder sql = new StringBuilder();
-        final Selector<?, ?> selectorData = this.selector != null ? this.selector.getSelector() : null;
-        final TableSelectorWrapper wrapper = this.selectorWrapper;
+        final Selector<TableColumnBuilder, TableColumn> selectorData = this.selector != null ? this.selector.getTableSelector() : null;
+        final TableSelector wrapper = this.tableSelector;
         final SqlExpressionType copyOption = this.getCopyMethod();
 
         if (copyOption != null && wrapper == null && selectorData != null) {
@@ -186,7 +195,7 @@ public class CreateTableHandler {
 
         }
 
-        Selector<?, ?> selectorDataTable = null;
+        Selector<TableColumnBuilder, TableColumn> selectorDataTable = null;
         if (wrapper != null)
             selectorDataTable = wrapper.getTableSelector();
 
@@ -194,14 +203,38 @@ public class CreateTableHandler {
             sql.append(" (");
             List<TableColumn> primaryColumns = getPrimaryColumns();
             if (primaryColumns.size() > 1) {
-                sql.append(selectorDataTable.getSelectBuilder().buildCampsiteKey());
+                sql.append(selectorDataTable.getSelectBuilder().buildWithoutPrimaryKey());
                 sql.append(", ").append(" PRIMARY KEY (").append(buildComposite(primaryColumns)).append(")");
-            }else {
+            } else {
                 sql.append(selectorDataTable.getSelectBuilder().build());
             }
+
+            setForeignKeys(sql);
             sql.append(")");
         }
-        return sql + "";
+        return sql.toString();
+    }
+
+    private void setForeignKeys(StringBuilder sql) {
+        List<TableColumn> tableColumns = this.getTableColumns();
+        if (tableColumns == null) return;
+
+        for (TableColumn col : tableColumns) {
+            if (col != null) {
+                final TableColumn tableCol = col;
+                tableCol.getForeignKeyConfig().ifPresent(fk -> {
+                    sql.append(", FOREIGN KEY (").append(tableCol.getFinishColumName()).append(") ")
+                            .append("REFERENCES ").append(fk.getParentTable()).append("(").append(fk.getParentColumn()).append(")");
+
+                    if (fk.getRemoveAction() != null) {
+                        sql.append(" ON DELETE ").append(fk.getRemoveAction().getAction());
+                    }
+                    if (fk.getUpdateAction() != null) {
+                        sql.append(" ON UPDATE ").append(fk.getUpdateAction().getAction());
+                    }
+                });
+            }
+        }
     }
 
 

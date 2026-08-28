@@ -1,5 +1,7 @@
 package org.broken.arrow.library.database.construct.query.utlity;
 
+import javax.annotation.Nonnull;
+
 /**
  * Represents SQL data types used for database column definitions.
  * Provides factory methods to create instances for common SQL data types,
@@ -7,18 +9,16 @@ package org.broken.arrow.library.database.construct.query.utlity;
  * as well as ENUM and SET types with specific values.
  */
 public class DataType {
-
-  private final String value;
+  private final String baseType;
 
   /**
    * Constructs a new DataType with the specified SQL type definition.
    *
-   * @param value the SQL type as a string (e.g., "INT", "VARCHAR(255)")
+   * @param baseType the SQL type as a string (e.g., "INT", "VARCHAR(255)")
    */
-  public DataType(String value) {
-    this.value = value;
+  public DataType(@Nonnull final String baseType) {
+    this.baseType = baseType;
   }
-
 
   /**
    * Represents the SQL TINYINT type.
@@ -308,8 +308,8 @@ public class DataType {
    *
    * @return the SQL type string.
    */
-  public String getValue() {
-    return value;
+  public String getType() {
+    return toString();
   }
 
   /**
@@ -319,7 +319,7 @@ public class DataType {
    */
   @Override
   public String toString() {
-    return value;
+    return baseType;
   }
 }
 

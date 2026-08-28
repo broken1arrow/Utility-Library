@@ -31,7 +31,7 @@ public class AlterTable {
      * @return this instance for chaining
      */
     public AlterTable add(@Nonnull final String columnName, @Nonnull final DataType dataType) {
-        TableColumn tableColumn = new TableColumn(null, columnName, dataType);
+        TableColumn tableColumn = new TableColumn(columnName, dataType);
         this.add(tableColumn);
         return this;
     }

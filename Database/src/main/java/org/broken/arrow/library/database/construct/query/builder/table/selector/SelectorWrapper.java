@@ -5,12 +5,13 @@ import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
-import org.broken.arrow.library.database.construct.query.builder.column.Column;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnBuilder;
 
 import javax.annotation.Nonnull;
 import java.util.function.Function;
+
 /**
  * Provides methods for selecting columns and applying conditions when
  * constructing a table creation query.
@@ -23,7 +24,7 @@ import java.util.function.Function;
  * can be called to retrieve the associated {@link CreateTableHandler} for further processing.
  * </p>
  */
-public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrapper>, Column> {
+public class SelectorWrapper extends Selector<TableColumnBuilder, TableColumn> {
     private final CreateTableHandler createTableHandler;
 
     /**
@@ -32,8 +33,8 @@ public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrap
      * @param createTableHandler the handler responsible for managing table creation
      * @param queryBuilder       the query builder used for constructing SQL queries
      */
-    public SelectorWrapper(final CreateTableHandler createTableHandler,final QueryBuilder queryBuilder) {
-        super(new ColumnBuilder<>(), queryBuilder);
+    public SelectorWrapper(@Nonnull final CreateTableHandler createTableHandler,@Nonnull final QueryBuilder queryBuilder) {
+        super(TableColumnBuilder.make(), queryBuilder);
         this.createTableHandler = createTableHandler;
     }
 
@@ -44,7 +45,7 @@ public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrap
      * @return this SelectorWrapper instance for method chaining
      */
     public SelectorWrapper select(final ColumnManager column) {
-        super.select(tableColumn -> tableColumn.addAll(column.getColumnsBuilt()));
+        //super.select(tableColumn -> tableColumn.addAll(column.getColumnsBuilt()));
         return this;
     }
 
@@ -65,7 +66,7 @@ public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrap
      *
      * @param callback a function to build the WHERE clause
      * @return this SelectorWrapper instance for method chaining; after calling this,
-     *         {@link #build()} can be invoked to obtain the creation table handler.
+     * {@link #build()} can be invoked to obtain the creation table handler.
      */
     @Override
     public SelectorWrapper where(@Nonnull Function<WhereBuilder, ConditionChainer<WhereBuilder>> callback) {
@@ -87,7 +88,7 @@ public class SelectorWrapper extends Selector<ColumnBuilder<Column, SelectorWrap
      *
      * @return this SelectorWrapper instance as a Selector
      */
-    public Selector<ColumnBuilder<Column, SelectorWrapper>, Column> getSelector() {
+    public SelectorWrapper getSelector() {
         return this;
     }
 

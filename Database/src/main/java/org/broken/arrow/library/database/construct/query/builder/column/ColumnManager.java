@@ -1,6 +1,8 @@
 package org.broken.arrow.library.database.construct.query.builder.column;
 
-import org.broken.arrow.library.database.construct.query.builder.table.SQLConstraints;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.table.column.bulder.TableSeparator;
+import org.broken.arrow.library.database.construct.query.builder.table.constraint.SQLConstraints;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
@@ -8,6 +10,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * Manages a collection of {@link Column} instances being built,
  * providing methods to create columns with optional aliases and constraints,
@@ -26,17 +29,17 @@ public class ColumnManager {
     }
 
     /**
-     * Creates a new {@link TableColumn.Separator} with the given parameters,
+     * Creates a new {@link TableSeparator} with the given parameters,
      * initializing the column manager and table column with constraints.
      *
-     * @param communeName the name of the column
-     * @param datatype the data type of the column
+     * @param columnName the name of the column
+     * @param datatype    the data type of the column
      * @param constraints optional SQL constraints applied to the column
      * @return a new TableColumn.Separator instance for further configuration
      */
-    public static TableColumn.Separator tableOf(@Nonnull final String communeName, @Nonnull final DataType datatype, @Nullable final SQLConstraints... constraints) {
-        final ColumnManager columnManger = new ColumnManager();
-        return new TableColumn.Separator(new TableColumn(columnManger, communeName, datatype, constraints));
+    public static TableSeparator tableOf(@Nonnull final String columnName, @Nonnull final DataType datatype, @Nullable final SQLConstraints... constraints) {
+        final TableColumnBuilder tableColumnBuilder = TableColumnBuilder.make();
+        return new TableSeparator(tableColumnBuilder, new TableColumn(columnName, datatype, constraints));
     }
 
     /**
@@ -52,7 +55,7 @@ public class ColumnManager {
     /**
      * Creates a new {@link Column} column with the specified name and alias.
      *
-     * @param name the column name
+     * @param name  the column name
      * @param alias the alias for the column (can be empty)
      * @return an ColumnManager object for further configuration
      */
@@ -75,7 +78,7 @@ public class ColumnManager {
      * Adds all columns from the provided list to the internal list of built columns.
      *
      * @param columns the list of columns to add
-     * @param <T> The type of column.
+     * @param <T>     The type of column.
      */
     public <T extends Column> void addAll(List<T> columns) {
         columnsBuilt.addAll(columns);

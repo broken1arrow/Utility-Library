@@ -191,7 +191,7 @@ public abstract class SQLDatabaseQuery extends Database {
         this.executeQuery(QueryDefinition.of(selectRow), statementWrapper -> {
             try (ResultSet resultSet = statementWrapper.getContextResult().executeQuery()) {
                 while (resultSet.next()) {
-                    final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet, table.getTable().getColumns());
+                    final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet,  table.getTable().getColumns());
                     final T deserialize = getDatabase().deSerialize(clazz, dataFromDB);
                     final List<TableColumn> primaryColumns = table.getTable().getPrimaryColumns();
                     final Map<String, Object> objectList = new HashMap<>();
@@ -240,7 +240,7 @@ public abstract class SQLDatabaseQuery extends Database {
         table.createWhereClauseFromPrimaryColumns(whereBuilder, columnValue);
         Validate.checkBoolean(whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 
-        final SqlQuery selectRow = tableQuery.selectRow(columnManger -> columnManger.addAll(table.getTable().getColumns()), whereBuilder);
+        final SqlQuery selectRow = tableQuery.selectRow(columnManger -> columnManger.addAll(table.getTable().getTableColumns()), whereBuilder);
 
         this.executeQuery(QueryDefinition.of(selectRow.getSql()), statementWrapper -> {
             PreparedStatement preparedStatement = statementWrapper.getContextResult();

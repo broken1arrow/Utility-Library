@@ -90,18 +90,16 @@ public class SchemaMigrationHandler {
         final List<Column> columnsToAdd = new ArrayList<>();
         boolean failCreateColumns = false;
 
-        for (final Column column : queryTable.getTable().getColumns()) {
+        for (final TableColumn column : queryTable.getTable().getTableColumns()) {
             String columnName = column.getColumnName();
             if (databaseCore.getRemoveColumns().contains(columnName) || existingColumns.contains(columnName.toLowerCase()))
                 continue;
             Column tableColumn = column;
 
-            if (column instanceof TableColumn) {
-                final boolean isPrimaryKey = ((TableColumn) column).isPrimaryKey();
-                if (isPrimaryKey) {
-                    newPrimaryKeys.add(columnName);
-                    tableColumn = new TableColumn(null, column.getColumnName(), ((TableColumn) column).getDataType());
-                }
+            final boolean isPrimaryKey = column.isPrimaryKey();
+            if (isPrimaryKey) {
+                newPrimaryKeys.add(columnName);
+                tableColumn = new TableColumn(column.getColumnName(), column.getDataType());
             }
             columnsToAdd.add(tableColumn);
         }
@@ -252,10 +250,10 @@ public class SchemaMigrationHandler {
 
 
     private void setConstraints(final TableSchema queryTable, final Set<String> newPrimaryKeys, final boolean primaryValuesComplete) {
-        final List<Column> columnsToBeModified = new ArrayList<>();
+        final List<TableColumn> columnsToBeModified = new ArrayList<>();
         final List<TableColumn> primaryColumns = queryTable.getPrimaryColumns();
 
-        for (final Column column : primaryColumns) {
+        for (final TableColumn column : primaryColumns) {
             boolean addingPrimary = false;
             if (primaryValuesComplete) {
                 columnsToBeModified.add(column);
@@ -299,7 +297,7 @@ public class SchemaMigrationHandler {
         }
     }
 
-    private void copyTable(@Nonnull final TableSchema queryTable, @Nonnull final List<Column> columnsToBeModified) {
+    private void copyTable(@Nonnull final TableSchema queryTable, @Nonnull final List<TableColumn> columnsToBeModified) {
         boolean autoCommit = false;
         final Connection databaseConnection = this.connection;
         try {
@@ -323,7 +321,7 @@ public class SchemaMigrationHandler {
         }
     }
 
-    private void recreateTable(final TableSchema queryTable, final List<Column> columnsToBeModified) {
+    private void recreateTable(final TableSchema queryTable, final List<TableColumn> columnsToBeModified) {
         final QueryBuilder queryBuilder = new QueryBuilder();
         final String tableName = queryTable.getTableName();
         final String temporaryTable = tableName + "_new";
@@ -339,10 +337,11 @@ public class SchemaMigrationHandler {
         }
 
         final QueryBuilder queryInsertBuilder = new QueryBuilder();
+        final ArrayList<Column> columns = new ArrayList<>(queryTable.getColumns());
         queryInsertBuilder.insertInto(temporaryTable, insertHandler -> {
-            insertHandler.addAll(queryTable.getColumns()).getQueryModifier()
+            insertHandler.addAll(columns).getQueryModifier()
                     .select(columnBuilder ->
-                            columnBuilder.addAll(queryTable.getColumns()))
+                            columnBuilder.addAll(columns))
                     .from(tableName);
         });
         final String insertQuery = queryInsertBuilder.build();

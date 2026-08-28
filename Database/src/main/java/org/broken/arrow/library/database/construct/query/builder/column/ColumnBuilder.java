@@ -1,6 +1,6 @@
 package org.broken.arrow.library.database.construct.query.builder.column;
 
-import org.broken.arrow.library.database.construct.query.builder.table.SQLConstraints;
+import org.broken.arrow.library.database.construct.query.builder.table.constraint.SQLConstraints;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +20,7 @@ import java.util.StringJoiner;
  */
 public class ColumnBuilder<T extends Column, V> {
     private final List<T> columns = new ArrayList<>();
-    private final V clazzType;
+    protected V clazzType;
 
     /**
      * Creates a ColumnBuilder without a reference to the selector instance.
@@ -110,23 +110,9 @@ public class ColumnBuilder<T extends Column, V> {
         for (T column : this.getColumns()) {
             joiner.add(column.toString());
         }
-        return joiner + "";
+        return joiner.toString();
     }
 
-    /**
-     * Builds the SQL fragment representing this column's definition,
-     * excluding for example {@link SQLConstraints#primaryKey() primary key} constraints.
-     * <p>
-     * This method is intended for generating column definitions in contexts
-     * where like primary keys are defined separately (e.g. composite keys or
-     * table-level constraints).
-     *
-     * @return the SQL string fragment for the column definition without
-     *         some constraints. 
-     */
-    public  String buildCampsiteKey(){
-        return "";
-    }
 
     @Override
     public String toString() {
