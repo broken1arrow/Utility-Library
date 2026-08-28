@@ -30,6 +30,6 @@ public interface FillClickAction<T> {
      * @return the {@link ButtonUpdateAction} detailing how the menu should update.
      */
     @Nonnull
-    ButtonUpdateAction apply(@Nonnull Player player, @Nonnull ClickType click, @Nullable T fillObject, @Nonnull ClickContext clickContext);
-    
+    ButtonUpdateAction apply(@Nonnull final Player player, @Nonnull final ClickType click, @Nullable final T fillObject, @Nonnull final ClickContext clickContext);
+
 }
