@@ -31,6 +31,6 @@ public class GroupByBuilder {
      * @return SQL GROUP BY clause or empty string if no columns added
      */
     public String build() {
-        return groupByColumns.isEmpty() ? "" : " GROUP BY " + String.join(", ", groupByColumns);
+        return groupByColumns.isEmpty() ? "" : "GROUP BY " + String.join(", ", groupByColumns);
     }
 }

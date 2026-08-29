@@ -28,6 +28,6 @@ public class OrderByBuilder {
      * @return SQL ORDER BY clause or empty string if no columns added
      */
     public String build() {
-        return orderByColumns.isEmpty() ? "" : " ORDER BY " + String.join(", ", orderByColumns);
+        return orderByColumns.isEmpty() ? "" : "ORDER BY " + String.join(", ", orderByColumns);
     }
 }

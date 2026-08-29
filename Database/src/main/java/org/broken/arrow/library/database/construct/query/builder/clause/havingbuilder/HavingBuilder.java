@@ -83,7 +83,7 @@ public class HavingBuilder implements ParameterSupplier {
         if (conditionsList.isEmpty())
             return "";
         String condition = formatConditions(conditionsList);
-        return (" HAVING " + condition).replace(";", "");
+        return ("HAVING " + condition).replace(";", "");
     }
 
     /**

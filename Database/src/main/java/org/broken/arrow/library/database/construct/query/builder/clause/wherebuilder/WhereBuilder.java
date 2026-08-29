@@ -104,7 +104,7 @@ public class WhereBuilder implements ParameterSupplier {
         if (conditionsList.isEmpty())
             return "";
         String condition = formatConditions(conditionsList);
-        return (" WHERE " + condition).replace(";", "");
+        return ("WHERE " + condition).replace(";", "");
     }
 
     /**

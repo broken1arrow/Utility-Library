@@ -202,8 +202,9 @@ public final class Logging {
             if (placeholders.isEmpty()) {
                 return message;
             }
+            msgCopy = message;
             placeholders.forEach((placeholderKey, value) ->
-                    msgCopy = message.replace(placeholderKey, value != null ? value : ""));
+                    msgCopy = msgCopy.replace(placeholderKey, value != null ? value : ""));
             return msgCopy;
         }
     }

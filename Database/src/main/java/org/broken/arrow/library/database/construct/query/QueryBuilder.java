@@ -339,6 +339,7 @@ public class QueryBuilder {
      *   <li>INSERT, MERGE_INTO, REPLACE_INTO: Returns parameter values from the insert handler.</li>
      *   <li>SELECT: Returns parameters from the {@link QueryModifier#getParameterValues()}</li>
      *   <li>DELETE: Returns parameters from the WHERE clause if set.</li>
+     *   <li>WITH: Returns parameters from the queries used to create the command.</li>
      *   <li>If no parameters exist or query type is not set, returns an empty map.</li>
      * </ul>
      *
@@ -358,6 +359,8 @@ public class QueryBuilder {
             WhereBuilder whereBuilder = queryRemover.getWhereBuilder();
             if (whereBuilder != null)
                 return whereBuilder.getValues();
+        } else if (queryType == QueryType.WITH) {
+            return withManager.getValues();
         }
         return new HashMap<>();
     }
