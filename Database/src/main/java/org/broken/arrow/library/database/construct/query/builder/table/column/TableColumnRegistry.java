@@ -1,6 +1,7 @@
 package org.broken.arrow.library.database.construct.query.builder.table.column;
 
 
+import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.table.column.bulder.TableSeparator;
 import org.broken.arrow.library.database.construct.query.builder.table.constraint.SQLConstraints;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
@@ -30,7 +31,7 @@ public class TableColumnRegistry extends ColumnRegistry<TableColumn, TableColumn
      *
      * @return a new registry instance
      */
-    public static TableColumnRegistry make(){
+    public static TableColumnRegistry empty() {
         return new TableColumnRegistry();
     }
 
@@ -42,8 +43,8 @@ public class TableColumnRegistry extends ColumnRegistry<TableColumn, TableColumn
      * @param constraints optional SQL constraints applied to the initial column
      * @return a {@link TableSeparator} instance to chain additional columns or foreign keys
      */
-    public static TableSeparator start(@Nonnull final String columnName, @Nonnull final DataType datatype, @Nullable final SQLConstraints... constraints) {
-        final TableColumnRegistry builder = make();
+    public static TableSeparator make(@Nonnull final String columnName, @Nonnull final DataType datatype, @Nullable final SQLConstraints... constraints) {
+        final TableColumnRegistry builder = empty();
         return new TableSeparator(builder, new TableColumn(columnName, datatype, constraints));
     }
 
@@ -55,7 +56,7 @@ public class TableColumnRegistry extends ColumnRegistry<TableColumn, TableColumn
     @Override
     public String build() {
         StringJoiner joiner = new StringJoiner(", ");
-        for(TableColumn column : this.getColumns()){
+        for (TableColumn column : this.getColumns()) {
             joiner.add(column.build());
         }
         return joiner.toString();
@@ -74,7 +75,7 @@ public class TableColumnRegistry extends ColumnRegistry<TableColumn, TableColumn
      */
     public String buildWithoutPrimaryKey() {
         StringJoiner joiner = new StringJoiner(", ");
-        for(TableColumn column : this.getColumns()){
+        for (TableColumn column : this.getColumns()) {
             joiner.add(column.buildWithoutPrimaryKey());
         }
         return joiner.toString();
@@ -86,4 +87,9 @@ public class TableColumnRegistry extends ColumnRegistry<TableColumn, TableColumn
         return this;
     }
 
+    @Nonnull
+    @Override
+    protected TableColumn createColumn(@Nonnull String columnName) {
+        return new TableColumn(columnName, DataType.varchar(128));
+    }
 }

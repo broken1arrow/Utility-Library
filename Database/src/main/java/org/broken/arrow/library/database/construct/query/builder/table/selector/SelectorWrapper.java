@@ -34,7 +34,7 @@ public class SelectorWrapper extends Selector<TableColumnRegistry, TableColumn> 
      * @param queryBuilder       the query builder used for constructing SQL queries
      */
     public SelectorWrapper(@Nonnull final CreateTableHandler createTableHandler,@Nonnull final QueryBuilder queryBuilder) {
-        super(TableColumnRegistry.make(), queryBuilder);
+        super(TableColumnRegistry.empty(), queryBuilder);
         this.createTableHandler = createTableHandler;
     }
 

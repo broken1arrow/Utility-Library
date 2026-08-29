@@ -31,12 +31,37 @@ public abstract class ColumnRegistry<T extends Column, V> {
     protected abstract V getContext();
 
     /**
+     * Creates a column instance of type {@code T} from a given column name.
+     *
+     * @param columnName the name of the column
+     * @return a new column instance of type {@code T}
+     */
+    @Nonnull
+    protected abstract T createColumn(@Nonnull String columnName);
+
+    /**
+     * Add column or columns to this registry.
+     *
+     * @param columnsName the column to add
+     * @return the context instance of type {@code V} for fluent chaining
+     */
+    public V add(@Nonnull final String... columnsName) {
+        if (columnsName == null) {
+            return this.getContext();
+        }
+        for (String column : columnsName) {
+            this.add(this.createColumn(column));
+        }
+        return this.getContext();
+    }
+
+    /**
      * Adds a single column to this registry.
      *
      * @param column the column to add
      * @return the context instance of type {@code V} for fluent chaining
      */
-    public V add(T column) {
+    public V add(@Nonnull final T column) {
         columns.add(column);
         return this.getContext();
     }
@@ -48,7 +73,7 @@ public abstract class ColumnRegistry<T extends Column, V> {
      * @param columnsList the list of columns to add
      * @return the context instance of type {@code V} for fluent chaining
      */
-    public V addAll(List<T> columnsList) {
+    public V addAll(@Nonnull final List<T> columnsList) {
         if (columnsList == null || columnsList.isEmpty())
             return this.getContext();
         columnsList.forEach(this::add);
@@ -63,7 +88,7 @@ public abstract class ColumnRegistry<T extends Column, V> {
      * @return the context instance of type {@code V} for fluent chaining
      */
     @SafeVarargs
-    public final V addAll(T... columns) {
+    public final V addAll(@Nonnull final T... columns) {
         if (columns != null)
             Arrays.stream(columns).forEach(this::add);
         return this.getContext();

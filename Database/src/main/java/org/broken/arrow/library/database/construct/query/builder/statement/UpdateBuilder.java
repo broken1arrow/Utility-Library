@@ -1,11 +1,9 @@
 package org.broken.arrow.library.database.construct.query.builder.statement;
 
-import com.mysql.cj.x.protobuf.MysqlxCrud;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.Comparator;
@@ -31,7 +29,7 @@ public class UpdateBuilder {
      * @param queryBuilder parent query builder
      */
     public UpdateBuilder(@Nonnull final QueryBuilder queryBuilder) {
-        this.selector = new Selector<>(ColumnBuilder.start(columnBuilder -> {}), queryBuilder);
+        this.selector = new Selector<>(ColumnBuilder.make(columnBuilder -> {}), queryBuilder);
     }
 
     /**

@@ -69,7 +69,7 @@ public class CreateTableHandler {
      */
     public TableSelector as() {
         copyMethod = SqlExpressionType.AS;
-        selector = new TableSelector(this, this.queryBuilder, TableColumnRegistry.make());
+        selector = new TableSelector(this, this.queryBuilder, TableColumnRegistry.empty());
         return selector;
     }
 
@@ -85,7 +85,7 @@ public class CreateTableHandler {
      */
     public TableSelector like() {
         copyMethod = SqlExpressionType.LIKE;
-        selector = new TableSelector(this, this.queryBuilder, TableColumnRegistry.make());
+        selector = new TableSelector(this, this.queryBuilder, TableColumnRegistry.empty());
         return selector;
     }
 
@@ -107,7 +107,7 @@ public class CreateTableHandler {
      * @return this handler instance for method chaining
      */
     public CreateTableHandler addAllColumns(List<TableColumn> column) {
-        tableSelector = new TableSelector(this, this.queryBuilder, TableColumnRegistry.make());
+        tableSelector = new TableSelector(this, this.queryBuilder, TableColumnRegistry.empty());
         tableSelector.select(columnBuilder -> columnBuilder.addAll(column));
         return this;
     }

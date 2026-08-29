@@ -3,7 +3,6 @@ package org.broken.arrow.library.database.construct.query.builder.table.cte.buil
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
-import org.broken.arrow.library.database.construct.query.builder.table.cte.WithManager;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 
@@ -39,7 +38,7 @@ public class WithBuilder {
      */
     public WithBuilder add(Column column) {
         if (this.columnBuilder == null) {
-            this.columnBuilder = ColumnBuilder.start(columnBuilder -> columnBuilder.add(column));
+            this.columnBuilder = ColumnBuilder.make(columnBuilder -> columnBuilder.add(column));
         } else {
             this.columnBuilder.add(column);
         }

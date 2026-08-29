@@ -38,7 +38,7 @@ public class ColumnManager {
      * @return a new TableColumn.Separator instance for further configuration
      */
     public static TableSeparator tableOf(@Nonnull final String columnName, @Nonnull final DataType datatype, @Nullable final SQLConstraints... constraints) {
-        final TableColumnRegistry tableColumnBuilder = TableColumnRegistry.make();
+        final TableColumnRegistry tableColumnBuilder = TableColumnRegistry.empty();
         return new TableSeparator(tableColumnBuilder, new TableColumn(columnName, datatype, constraints));
     }
 

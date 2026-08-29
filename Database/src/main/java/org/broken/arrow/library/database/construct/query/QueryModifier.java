@@ -1,7 +1,6 @@
 package org.broken.arrow.library.database.construct.query;
 
 
-import com.mysql.cj.x.protobuf.MysqlxCrud;
 import org.broken.arrow.library.database.construct.query.builder.clause.GroupByBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.OrderByBuilder;
@@ -10,7 +9,6 @@ import org.broken.arrow.library.database.construct.query.builder.comparison.Cond
 import org.broken.arrow.library.database.construct.query.builder.clause.havingbuilder.HavingBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -38,7 +36,7 @@ public class QueryModifier extends Selector<ColumnBuilder, Column> {
      * @param queryBuilder  the query builder used to build the full SQL query
      */
     public QueryModifier(QueryBuilder queryBuilder) {
-        super(ColumnBuilder.start(columnBuilder -> {}), queryBuilder);
+        super(ColumnBuilder.make(columnBuilder -> {}), queryBuilder);
         this.queryBuilder = queryBuilder;
     }
 
