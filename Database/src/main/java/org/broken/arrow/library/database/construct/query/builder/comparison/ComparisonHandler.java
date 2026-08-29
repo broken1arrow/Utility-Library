@@ -343,9 +343,7 @@ public class ComparisonHandler<T> {
         if (values == null)
             return new ArrayList<>();
         return Stream.of(values)
-                // 1. Filter out structural column fields
                 .filter(object -> !(object instanceof Column))
-                // 2. Flatten collections, subqueries, and primitives into a uniform stream
                 .flatMap(object -> {
                     if (object instanceof ParameterSupplier ) {
                         ParameterSupplier supplier = (ParameterSupplier) object;

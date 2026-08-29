@@ -132,7 +132,7 @@ public class ConditionBuilder<T> {
         if (this.marker == Marker.USE_VALUE) {
             if (val instanceof LiteralVal) {
                 Object value = ((LiteralVal) val).value();
-                return (value instanceof String) ? "'" + value + "'" : String.valueOf(value);
+                return (value instanceof String) ?  "'" + value + "'": String.valueOf(value);
             }
             return (val instanceof String) ? "'" + val + "'" : String.valueOf(val);
         }

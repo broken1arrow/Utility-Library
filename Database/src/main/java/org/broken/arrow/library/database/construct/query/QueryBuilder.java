@@ -356,9 +356,10 @@ public class QueryBuilder {
         } else if (queryType == QueryType.SELECT) {
             return queryModifier.getParameterValues();
         } else if (queryType == QueryType.DELETE) {
-            WhereBuilder whereBuilder = queryRemover.getWhereBuilder();
+            final WhereBuilder whereBuilder = queryRemover.getWhereBuilder();
             if (whereBuilder != null)
                 return whereBuilder.getValues();
+
         } else if (queryType == QueryType.WITH) {
             return withManager.getValues();
         }

@@ -16,7 +16,7 @@ public class JoinBuildContext  {
     private final boolean globalEnableQueryPlaceholders;
 
     /**
-     * Creates a new {@code WhereBuilder} with placeholders enabled by default.
+     * Creates a new {@code JoinBuildContext} with placeholders enabled by default.
      */
     public JoinBuildContext() {
         this.globalEnableQueryPlaceholders = true;

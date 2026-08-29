@@ -38,20 +38,20 @@ public class Formatting {
             final ConditionQuery<?> current = comparisonHandler.getLogicalOperator().getConditionQuery();
             final ComparisonHandler<?> nextComparisonHandler = (i + 1 < conditionsList.size()) ? conditionsList.get(i + 1) : null;
             final LogicalOperator nextLogicalOperator = (nextComparisonHandler != null) ? nextComparisonHandler.getLogicalOperator().getConditionQuery().getLogicalComparison() : null;
+
             final boolean nextIsOr = nextLogicalOperator == LogicalOperator.OR;
+            final boolean nextIsAnd = nextLogicalOperator == LogicalOperator.AND;
             final boolean currentIsOr = current.getLogicalComparison() == LogicalOperator.OR;
 
-            openParenthesis = setOpenParenthesis(whereClause, nextIsOr, openParenthesis);
+            if ((!currentIsOr && !nextIsOr && nextIsAnd) || !openParenthesis) {
+                whereClause.append("(");
+                openParenthesis = true;
+            }
             whereClause.append(current.getColumn()).append(current.getWhereCondition());
             openParenthesis = setCloseParenthesis(whereClause, nextComparisonHandler, currentIsOr, openParenthesis);
 
             if (current.getLogicalComparison() != null) {
                 whereClause.append(" ").append(current.getLogicalComparison()).append(" ");
-            }
-
-            if (currentIsOr && nextLogicalOperator != null) {
-                whereClause.append("(");
-                openParenthesis = true;
             }
         }
         return whereClause.toString();
