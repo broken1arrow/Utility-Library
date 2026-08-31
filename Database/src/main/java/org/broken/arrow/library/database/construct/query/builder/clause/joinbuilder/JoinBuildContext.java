@@ -11,33 +11,19 @@ import java.util.List;
 
 import static org.broken.arrow.library.database.construct.query.builder.condition.Formatting.formatConditions;
 
-public class JoinBuildContext  {
+public class JoinBuildContext {
     private final List<ComparisonHandler<JoinBuildContext>> conditionsList = new ArrayList<>();
+    private final JoinType joinType;
     private final boolean globalEnableQueryPlaceholders;
-
-    /**
-     * Creates a new {@code JoinBuildContext} with placeholders enabled by default.
-     */
-    public JoinBuildContext() {
-        this.globalEnableQueryPlaceholders = true;
-    }
 
     /**
      * Creates a new {@code WhereBuilder} instance with configuration from the given {@link QueryBuilder}.
      *
      * @param queryBuilder the query builder to determine placeholder usage
      */
-    public JoinBuildContext(@Nonnull final QueryBuilder queryBuilder) {
+    public JoinBuildContext(@Nonnull final JoinType joinType, @Nonnull final QueryBuilder queryBuilder) {
+        this.joinType = joinType;
         this.globalEnableQueryPlaceholders = queryBuilder.isGlobalEnableQueryPlaceholders();
-    }
-
-    /**
-     * Returns whether query placeholders are enabled globally for this builder.
-     *
-     * @return true if placeholders are enabled; false otherwise
-     */
-    public boolean isGlobalEnableQueryPlaceholders() {
-        return globalEnableQueryPlaceholders;
     }
 
     /**
@@ -46,8 +32,8 @@ public class JoinBuildContext  {
      * @param queryBuilder the query builder to determine placeholder usage
      * @return a new WhereBuilder instance
      */
-    public static JoinBuildContext of(@Nonnull final QueryBuilder queryBuilder) {
-        return new JoinBuildContext(queryBuilder);
+    public static JoinBuildContext of(@Nonnull final JoinType joinType, @Nonnull final QueryBuilder queryBuilder) {
+        return new JoinBuildContext(joinType, queryBuilder);
     }
 
     /**
@@ -64,13 +50,12 @@ public class JoinBuildContext  {
      * Starts a join condition on the specified column with an aggregation callback.
      * Aggregations in join clause are uncommon but supported for flexibility.
      *
-     * @param column  the column for the join condition
+     * @param column the column for the join condition
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
     public ComparisonHandler<JoinBuildContext> on(final Column column) {
-        Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
-
-        ComparisonHandler<JoinBuildContext> operator = new ComparisonHandler<>(this, column.toString(), marker);
+        final Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
+        final ComparisonHandler<JoinBuildContext> operator = new ComparisonHandler<>(this, column.toString(), marker);
         addCondition(operator);
         return operator;
     }
@@ -79,15 +64,14 @@ public class JoinBuildContext  {
      * Builds the full join clause as a String.
      * Returns an empty string if no conditions are present.
      *
-     * @param joinType The type of join.
      * @return The join clause SQL fragment (including "on"), or empty string if none.
      */
-    public String build(@Nonnull final JoinType joinType) {
+    public String build() {
         if (conditionsList.isEmpty())
             return "";
-        final String condition = formatConditions(conditionsList);
-        if (joinType == JoinType.CROSS)
+        if (this.joinType == JoinType.CROSS)
             return "";
+        final String condition = formatConditions(conditionsList);
         return ("ON " + condition).replace(";", "");
     }
 

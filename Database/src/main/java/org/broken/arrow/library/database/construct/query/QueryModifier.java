@@ -25,7 +25,6 @@ import java.util.function.Function;
  */
 public class QueryModifier extends Selector<ColumnBuilder, Column> {
     private final GroupByBuilder groupByBuilder = new GroupByBuilder();
-
     private final OrderByBuilder orderByBuilder = new OrderByBuilder();
     private final QueryBuilder queryBuilder;
     private int limit;

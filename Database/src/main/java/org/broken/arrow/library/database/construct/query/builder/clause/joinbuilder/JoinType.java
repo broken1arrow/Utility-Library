@@ -5,6 +5,8 @@ package org.broken.arrow.library.database.construct.query.builder.clause.joinbui
  * Each enum constant is associated with its SQL keyword representation.
  */
 public enum JoinType {
+    /** Represents a OLD JOIN in SQL that is empty */
+    OLD(""),
     /** Represents an INNER JOIN in SQL */
     INNER("INNER JOIN"),
     /** Represents a LEFT JOIN in SQL */

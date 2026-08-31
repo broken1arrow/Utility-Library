@@ -182,9 +182,9 @@ public class Selector<T extends ColumnRegistry<?, ?>, V extends Column> {
     }
 
     /**
-     * Returns having builder
+     * Returns join builder
      *
-     * @return the having builder.
+     * @return the join builder.
      */
     public JoinBuilder getJoinBuilder() {
         return joinBuilder;
