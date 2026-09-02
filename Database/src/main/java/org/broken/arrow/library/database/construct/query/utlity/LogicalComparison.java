@@ -29,8 +29,19 @@ public enum LogicalComparison {
     BETWEEN("BETWEEN"),
 
     /** Negated range operator: "NOT BETWEEN" */
-    NOT_BETWEEN("NOT BETWEEN")
-    ;
+    NOT_BETWEEN("NOT BETWEEN"),
+
+    /** Negated not exist operator: "NOT EXISTS" */
+    NOT_EXISTS("NOT EXISTS"),
+
+    /** Exist operator: "EXISTS" */
+    EXISTS("EXISTS"),
+
+    /** Is null operator: "IS NULL" */
+    IS_NULL("IS NULL"),
+
+    /** Is not null operator: "IS NOT NULL" */
+    IS_NOT_NULL("IS NOT NULL");
 
     private final String symbol;
 

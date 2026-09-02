@@ -149,6 +149,15 @@ public class JoinBuilder implements ParameterSupplier {
     }
 
     /**
+     * Get all joins added to the query.
+     *
+     * @return list of set joins.
+     */
+    public List<JoinCondition>  getJoinBuilders() {
+        return this.joins;
+    }
+
+    /**
      * Adds a JOIN clause with the specified type, table, alias, and ON condition if not {@code cross join}.
      *
      * @param joinType   the join type (INNER, LEFT, etc.)
@@ -161,4 +170,5 @@ public class JoinBuilder implements ParameterSupplier {
         joinClause.apply(condition.getJoinBuild());
         joins.add(condition);
     }
+
 }

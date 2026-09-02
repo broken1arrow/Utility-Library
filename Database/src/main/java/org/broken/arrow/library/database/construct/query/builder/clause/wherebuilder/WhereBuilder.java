@@ -5,6 +5,7 @@ import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 import org.broken.arrow.library.logging.Validate;
 
@@ -78,7 +79,7 @@ public class WhereBuilder implements ParameterSupplier {
      * Starts a WHERE condition on the specified column with an aggregation callback.
      * Aggregations in WHERE clause are uncommon but supported for flexibility.
      *
-     * @param column  the column object for the WHERE condition
+     * @param column the column object for the WHERE condition
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
     public ComparisonHandler<WhereBuilder> where(final Column column) {
@@ -92,6 +93,14 @@ public class WhereBuilder implements ParameterSupplier {
         ComparisonHandler<WhereBuilder> operator = new ComparisonHandler<>(this, column.toString(), marker);
         addCondition(operator);
         return operator;
+    }
+
+    public ConditionChainer<WhereBuilder> addWhere() {
+        final Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
+        ComparisonHandler<WhereBuilder> operator = new ComparisonHandler<>(this, "", marker);
+        if (!this.conditionsList.isEmpty())
+            addCondition(operator);
+        return operator.getLogicalOperator();
     }
 
     /**
@@ -143,7 +152,7 @@ public class WhereBuilder implements ParameterSupplier {
         return valuesMap;
     }
 
-    private void addCondition(ComparisonHandler<WhereBuilder> condition) {
+    void addCondition(ComparisonHandler<WhereBuilder> condition) {
         conditionsList.add(condition);
     }
 

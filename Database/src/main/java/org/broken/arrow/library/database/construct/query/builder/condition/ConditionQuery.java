@@ -3,6 +3,8 @@ package org.broken.arrow.library.database.construct.query.builder.condition;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalOperator;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents a single SQL condition within a query, including its target column,
  * the comparison logic, and an optional logical operator to chain conditions.
@@ -55,6 +57,7 @@ public class ConditionQuery<T> {
      *
      * @return the logical operator, or {@code null} if not set
      */
+    @Nullable
     public LogicalOperator getLogicalComparison() {
       return logicalOperator;
     }

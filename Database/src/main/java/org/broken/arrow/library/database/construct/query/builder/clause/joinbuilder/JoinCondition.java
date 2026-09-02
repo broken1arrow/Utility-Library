@@ -47,6 +47,25 @@ public class JoinCondition {
         return oldStyle;
     }
 
+    /**
+     * Get the type of join (eg, LEFT JOIN, RIGHT JOIN, INNER JOIN).
+     *
+     * @return returns the type of join.
+     */
+    @Nonnull
+    public JoinType getType() {
+        return type;
+    }
+
+    /**
+     * Get the table used for the join.
+     *
+     * @return the table name.
+     */
+    @Nonnull
+    public String getTable() {
+        return table;
+    }
 
     /**
      * Returns the string representation of this join condition,

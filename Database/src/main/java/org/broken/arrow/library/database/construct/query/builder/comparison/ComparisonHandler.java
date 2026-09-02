@@ -313,6 +313,58 @@ public class ComparisonHandler<T> {
     }
 
     /**
+     * Adds a {@code IS NULL} comparison for the column.
+     *
+     * @return this class for chaining.
+     * @throws IllegalArgumentException if any value is null.
+     */
+    public ConditionChainer<T> isNull() {
+
+        this.init(LogicalComparison.IS_NULL,"");
+        return this.conditionChainer;
+    }
+
+    /**
+     * Adds a {@code NULL} comparison for the column.
+     *
+     * @return this class for chaining.
+     * @throws IllegalArgumentException if any value is null.
+     */
+    public ConditionChainer<T> isNotNull() {
+
+        this.init(LogicalComparison.IS_NOT_NULL,"");
+        return this.conditionChainer;
+    }
+
+    /**
+     * Adds a {@code NOT EXISTS} comparison for the query.
+     *
+     * @return this class for chaining.
+     * @throws IllegalArgumentException if any value is null.
+     */
+    public ConditionChainer<T> notExists(@Nonnull final QueryBuilder subQuery) {
+        if (subQuery == null) {
+            throw new IllegalArgumentException("NOT EXISTS requires a valid subquery.");
+        }
+        this.init(LogicalComparison.NOT_EXISTS, new SubqueryHandler<>(subQuery));
+        return this.conditionChainer;
+    }
+
+    /**
+     * Adds a {@code EXISTS} comparison for the query.
+     *
+     * @return this class for chaining.
+     * @throws IllegalArgumentException if any value is null.
+     */
+    public ConditionChainer<T> exists(@Nonnull final QueryBuilder subQuery) {
+        if (subQuery == null) {
+            throw new IllegalArgumentException("EXISTS requires a valid subquery.");
+        }
+        this.init(LogicalComparison.EXISTS, new SubqueryHandler<>(subQuery));
+        return this.conditionChainer;
+    }
+
+    /**
      * Returns the associated subquery handler if present.
      *
      * @return Returns the associated subquery handler if present.
@@ -429,5 +481,6 @@ public class ComparisonHandler<T> {
     public String toString() {
         return operator.getSymbol();
     }
+
 
 }

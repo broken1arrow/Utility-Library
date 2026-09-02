@@ -4,6 +4,8 @@ import org.broken.arrow.library.database.construct.query.builder.condition.Condi
 import org.broken.arrow.library.database.construct.query.builder.condition.ConditionBuilder;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalOperator;
 
+import javax.annotation.Nonnull;
+
 /**
  * Fluent wrapper for chaining SQL conditions using logical operators (e.g., {@code AND}, {@code OR}).
  * <p>
@@ -66,6 +68,7 @@ public class ConditionChainer<T> {
      *
      * @return the condition query instance
      */
+    @Nonnull
     public ConditionQuery<T> getConditionQuery() {
         return conditionQuery;
     }
