@@ -339,6 +339,7 @@ public class ComparisonHandler<T> {
     /**
      * Adds a {@code NOT EXISTS} comparison for the query.
      *
+     * @param subQuery The subquery.
      * @return this class for chaining.
      * @throws IllegalArgumentException if any value is null.
      */
@@ -353,6 +354,7 @@ public class ComparisonHandler<T> {
     /**
      * Adds a {@code EXISTS} comparison for the query.
      *
+     * @param subQuery The subquery.
      * @return this class for chaining.
      * @throws IllegalArgumentException if any value is null.
      */

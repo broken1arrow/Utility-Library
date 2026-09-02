@@ -94,6 +94,11 @@ public class JoinCondition {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieve the join build context.
+     *
+     * @return returns the join context.
+     */
     public JoinBuildContext getJoinBuild() {
         return this.context;
     }

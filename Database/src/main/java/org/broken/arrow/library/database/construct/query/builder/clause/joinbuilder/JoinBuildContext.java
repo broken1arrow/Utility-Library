@@ -19,6 +19,7 @@ public class JoinBuildContext {
     /**
      * Creates a new {@code WhereBuilder} instance with configuration from the given {@link QueryBuilder}.
      *
+     * @param joinType the type of join used.
      * @param queryBuilder the query builder to determine placeholder usage
      */
     public JoinBuildContext(@Nonnull final JoinType joinType, @Nonnull final QueryBuilder queryBuilder) {
@@ -29,6 +30,7 @@ public class JoinBuildContext {
     /**
      * Static factory method to create a {@code WhereBuilder} instance.
      *
+     * @param joinType the type of join used.
      * @param queryBuilder the query builder to determine placeholder usage
      * @return a new WhereBuilder instance
      */

@@ -83,7 +83,13 @@ public class WhereBuilder implements ParameterSupplier {
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
     public ComparisonHandler<WhereBuilder> where(final Column column) {
-        Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
+        if (!this.conditionsList.isEmpty()) {
+            ComparisonHandler<WhereBuilder> handler = this.conditionsList.get(this.conditionsList.size() - 1);
+            Validate.checkBoolean(handler != null && handler.getLogicalOperator() == null,
+                    "Can't start a new WHERE condition directly. You must chain the previous condition with .and(), .or(), or use chainWhere()");
+        }
+
+        final Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
         if (column.hasAggregate()) {
             throw new Validate.ValidateExceptions(
                     "Invalid SQL: Cannot use aggregate functions (like AVG, MIN) in a WHERE clause on column '"
@@ -95,7 +101,12 @@ public class WhereBuilder implements ParameterSupplier {
         return operator;
     }
 
-    public ConditionChainer<WhereBuilder> addWhere() {
+    /**
+     * Add new where clause to existing one or if non exist this will work same as call the {@link #where(Column)} methods directly.
+     *
+     * @return add new where clause
+     */
+    public ConditionChainer<WhereBuilder> chainWhere() {
         final Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
         ComparisonHandler<WhereBuilder> operator = new ComparisonHandler<>(this, "", marker);
         if (!this.conditionsList.isEmpty())

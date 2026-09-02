@@ -208,7 +208,7 @@ public class QueryRemover {
                     WhereBuilder subWhere = new WhereBuilder();
                     transferConditions(join, subWhere);
                     modifier.where(subWhere);
-                    mainWhereBuilder.addWhere().and().where("").notExists(subQueryBuilder);
+                    mainWhereBuilder.chainWhere().and().where("").notExists(subQueryBuilder);
                     break;
 
                 case RIGHT:
