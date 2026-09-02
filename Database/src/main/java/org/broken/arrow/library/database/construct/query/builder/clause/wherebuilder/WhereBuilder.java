@@ -85,7 +85,7 @@ public class WhereBuilder implements ParameterSupplier {
     public ComparisonHandler<WhereBuilder> where(final Column column) {
         if (!this.conditionsList.isEmpty()) {
             ComparisonHandler<WhereBuilder> handler = this.conditionsList.get(this.conditionsList.size() - 1);
-            Validate.checkBoolean(handler != null && handler.getLogicalOperator() == null,
+            Validate.checkBoolean(handler == null || handler.getLogicalOperator() == null,
                     "Can't start a new WHERE condition directly. You must chain the previous condition with .and(), .or(), or use chainWhere()");
         }
 
