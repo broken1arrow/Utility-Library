@@ -75,7 +75,7 @@ public class ConditionBuilder<T> {
     public String toString() {
         SubqueryHandler<T> subqueryHandler = operator.getSubqueryHandler();
         if (subqueryHandler != null) {
-            return " " + operator.getSymbol() + " (" + subqueryHandler.getSubquery().build() + ")";
+            return operator.getSymbol() + " (" + subqueryHandler.getSubquery().build() + ")";
         }
         final Object[] values = operator.getValues();
         if (values != null) {
@@ -88,11 +88,13 @@ public class ConditionBuilder<T> {
             }
             if (this.marker == Marker.USE_VALUE && values.length >= 1) {
                 Object val = values[0];
-                return " " + operator.getSymbol() + " " + formatValue(val);
+                return operator.getSymbol() + " " + formatValue(val);
             }
         }
         final Object val = values.length > 0 ? values[0] : "";
-        return " " + operator.getSymbol() + " " + formatValue(val);
+        if (operator.getSymbol().isEmpty())
+            return "";
+        return operator.getSymbol() + " " + formatValue(val);
     }
 
 
@@ -109,7 +111,7 @@ public class ConditionBuilder<T> {
         Object firstValue = operator.getValues().length > 0 ? operator.getValues()[0] : "";
         Object secondValue = operator.getValues().length > 1 ? operator.getValues()[1] : "";
 
-        return " " + operator.getSymbol() + " " + formatValue(firstValue) + " AND " + formatValue(secondValue);
+        return operator.getSymbol() + " " + formatValue(firstValue) + " AND " + formatValue(secondValue);
     }
 
     @Nonnull
@@ -117,12 +119,12 @@ public class ConditionBuilder<T> {
         Object[] values = operator.getValues();
         final String comparisonSymbol = operator.getSymbol();
         if (values == null || values.length == 0) {
-            return " " + comparisonSymbol + " ()";
+            return comparisonSymbol + " ()";
         }
         String joinedValues = Arrays.stream(values)
                 .map(this::formatValue)
                 .collect(Collectors.joining(", "));
-        return " " + comparisonSymbol + " (" + joinedValues + ")";
+        return comparisonSymbol + " (" + joinedValues + ")";
     }
 
     private String formatValue(Object val) {
@@ -132,7 +134,7 @@ public class ConditionBuilder<T> {
         if (this.marker == Marker.USE_VALUE) {
             if (val instanceof LiteralVal) {
                 Object value = ((LiteralVal) val).value();
-                return (value instanceof String) ?  "'" + value + "'": String.valueOf(value);
+                return (value instanceof String) ? "'" + value + "'" : String.valueOf(value);
             }
             return (val instanceof String) ? "'" + val + "'" : String.valueOf(val);
         }

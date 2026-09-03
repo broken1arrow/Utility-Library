@@ -35,9 +35,9 @@ public class Formatting {
         for (int i = 0; i < conditionsList.size(); i++) {
             final ComparisonHandler<?> comparisonHandler = conditionsList.get(i);
             if (comparisonHandler == null) continue;
-            final ConditionQuery<?> current = comparisonHandler.getLogicalOperator().getConditionQuery();
+            final ConditionQuery<?> current = comparisonHandler.getConditionChainer().getConditionQuery();
             final ComparisonHandler<?> nextComparisonHandler = (i + 1 < conditionsList.size()) ? conditionsList.get(i + 1) : null;
-            final LogicalOperator nextLogicalOperator = (nextComparisonHandler != null) ? nextComparisonHandler.getLogicalOperator().getConditionQuery().getLogicalComparison() : null;
+            final LogicalOperator nextLogicalOperator = (nextComparisonHandler != null) ? nextComparisonHandler.getConditionChainer().getConditionQuery().getLogicalComparison() : null;
 
             final boolean nextIsOr = nextLogicalOperator == LogicalOperator.OR;
             final boolean nextIsAnd = nextLogicalOperator == LogicalOperator.AND;
@@ -47,11 +47,17 @@ public class Formatting {
                 whereClause.append("(");
                 openParenthesis = true;
             }
-            whereClause.append(current.getColumn()).append(current.getWhereCondition());
+            final boolean columnNotEmpty = !current.getColumn().isEmpty();
+            if (columnNotEmpty)
+                whereClause.append(current.getColumn()).append(" ");
+            whereClause.append(current.getWhereCondition());
             openParenthesis = setCloseParenthesis(whereClause, nextComparisonHandler, currentIsOr, openParenthesis);
 
             if (current.getLogicalComparison() != null) {
-                whereClause.append(" ").append(current.getLogicalComparison()).append(" ");
+                whereClause.append(" ").append(current.getLogicalComparison());
+                final char last = whereClause.charAt(whereClause.length() - 1);
+                whereClause.append(" ");
+
             }
         }
         return whereClause.toString();

@@ -434,6 +434,8 @@ public class ComparisonHandler<T> {
      * @return Returns the SQL comparison symbol.
      */
     public String getSymbol() {
+        if(operator == null)
+            return "";
         return operator.getSymbol();
     }
 
@@ -466,11 +468,11 @@ public class ComparisonHandler<T> {
     }
 
     /**
-     * Returns the logical operator for chaining further conditions.
+     * Returns the condition chained instance for chaining further conditions.
      *
      * @return Returns the logical operator for chaining further conditions.
      */
-    public ConditionChainer<T> getLogicalOperator() {
+    public ConditionChainer<T> getConditionChainer() {
         return conditionChainer;
     }
 

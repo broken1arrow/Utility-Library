@@ -356,10 +356,7 @@ public class QueryBuilder {
         } else if (queryType == QueryType.SELECT) {
             return queryModifier.getParameterValues();
         } else if (queryType == QueryType.DELETE) {
-            final WhereBuilder whereBuilder = queryRemover.getWhereBuilder();
-            if (whereBuilder != null)
-                return whereBuilder.getValues();
-
+                return queryRemover.getValues();
         } else if (queryType == QueryType.WITH) {
             return withManager.getValues();
         }
@@ -422,11 +419,9 @@ public class QueryBuilder {
                 createSelectQuery(queryModifier, sql);
                 break;
             case DELETE:
-                sql.append("DELETE FROM ").append(table);
-                WhereBuilder whereBuilder = this.queryRemover.getWhereBuilder();
-                sql.append(whereBuilder != null ? whereBuilder.build() : "");
+                sql.append("DELETE FROM ").append(table).append(" ");
+                sql.append(this.queryRemover.build());
                 break;
-
             case DROP:
                 sql.append("DROP TABLE ").append(table);
                 break;

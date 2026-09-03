@@ -91,13 +91,14 @@ public class QueryRemover {
 
         final RemoveModifier modifier = this.removeModifier;
         if (modifier != null) {
-            if (databaseType == DatabaseType.POSTGRESQL) {
-                translateJoin(modifier.getJoinBuilder(), sql);
-            } else {
+            if (databaseType != DatabaseType.POSTGRESQL) {
                 sql.append(modifier.getJoinBuilder().build());
             }
         }
         final WhereBuilder whereBuilder = this.getWhereBuilder();
+        if (databaseType == DatabaseType.POSTGRESQL)
+            translateJoin(modifier.getJoinBuilder(), sql, whereBuilder);
+
         sql.append(whereBuilder != null ? whereBuilder.build() : "");
 
         if (modifier != null) {
@@ -122,7 +123,7 @@ public class QueryRemover {
         final Map<Integer, Object> values = new HashMap<>();
         int index = 1;
 
-        if (modifier != null) {
+        if (modifier != null && databaseType != DatabaseType.POSTGRESQL) {
             for (Object value : modifier.getJoinBuilder().getRawParameters()) {
                 values.put(index++, value);
             }
@@ -137,59 +138,6 @@ public class QueryRemover {
         return values;
     }
 
-    private void translateJoin(JoinBuilder joinBuilder, StringBuilder sql) {
-        for (JoinCondition join : joinBuilder.getJoinBuilders()) {
-            final QueryBuilder queryBuild = new QueryBuilder();
-            final QueryModifier modifier = queryBuild.select(ColumnManager.of().column("*")).from(join.getTable());
-            WhereBuilder where = new WhereBuilder();
-            for (ComparisonHandler<JoinBuildContext> comparisonHandler : join.getJoinBuild().getConditionsList()) {
-                List<Object> values = comparisonHandler.getCondition().getValues();
-                @Nullable final LogicalOperator logicalComparison = comparisonHandler.getLogicalOperator().getConditionQuery().getLogicalComparison();
-                if (!values.isEmpty()) {
-                    Object object = values.get(0);
-                    if (comparisonHandler.getComparison() == LogicalComparison.EQUALS) {
-                        if (logicalComparison == LogicalOperator.OR)
-                            where.where(comparisonHandler.getColumnName()).equal(object).or();
-                        else if (logicalComparison != null)
-                            where.where(comparisonHandler.getColumnName()).equal(object).and();
-                    }
-                    if (comparisonHandler.getComparison() == LogicalComparison.IN) {
-                        if (logicalComparison == LogicalOperator.OR)
-                            where.where(comparisonHandler.getColumnName()).in(object).or();
-                        else if (logicalComparison != null)
-                            where.where(comparisonHandler.getColumnName()).in(object).and();
-                    }
-                    if (comparisonHandler.getComparison() == LogicalComparison.BETWEEN) {
-                        if (values.size() >= 2) {
-                            if (logicalComparison == LogicalOperator.OR)
-                                where.where(comparisonHandler.getColumnName()).between(object, values.get(1)).or();
-                            else if (logicalComparison != null)
-                                where.where(comparisonHandler.getColumnName()).between(object, values.get(1)).and();
-                        }
-                    }
-                }
-            }
-            modifier.where(where);
-            //The query
-            queryBuild.build();
-            switch (join.getType()) {
-                case INNER:
-                    // Apply your parenthesis trick: WHERE (join_conditions) AND (user_conditions)
-                    break;
-                case LEFT:
-                    // Translate the ON conditions into an EXISTS / NOT EXISTS subquery inside WHERE
-                    break;
-
-                case RIGHT:
-                case FULL:
-                case CROSS:
-                    throw new UnsupportedOperationException(
-                            "RIGHT, FULL, and CROSS joins are not supported in DELETE queries for this database dialect."
-                    );
-            }
-        }
-    }
-
     private void translateJoin(JoinBuilder joinBuilder, StringBuilder sql, WhereBuilder mainWhereBuilder) {
         // We might need to collect tables for the Postgres USING clause
         List<String> usingTables = new ArrayList<>();
@@ -197,7 +145,9 @@ public class QueryRemover {
             switch (join.getType()) {
                 case INNER:
                     usingTables.add(join.getTable());
-                    transferConditions(join, mainWhereBuilder);
+                    WhereBuilder subWheree = new WhereBuilder();
+                    transferConditions(join, mainWhereBuilder.chainWhere().and());
+                    //mainWhereBuilder.addWhere(subWheree).and();
                     break;
 
                 case LEFT:
@@ -221,37 +171,39 @@ public class QueryRemover {
         }
         // If you are building the USING clause for Postgres directly in the sql StringBuilder:
         if (!usingTables.isEmpty()) {
-            sql.append(" USING ").append(String.join(", ", usingTables));
+            sql.append("USING ").append(String.join(", ", usingTables)).append(" ");
         }
     }
 
-    private void transferConditions(JoinCondition join, WhereBuilder targetWhere) {
+    private void transferConditions(JoinCondition join, WhereBuilder where) {
+
         for (ComparisonHandler<JoinBuildContext> handler : join.getJoinBuild().getConditionsList()) {
             List<Object> values = handler.getCondition().getValues();
-            LogicalOperator nextOp = handler.getLogicalOperator().getConditionQuery().getLogicalComparison();
+            final LogicalOperator nextOp = handler.getConditionChainer().getConditionQuery().getLogicalComparison();
             ConditionChainer<WhereBuilder> chainer = null;
+
             if (!values.isEmpty()) {
                 Object rightSide = values.get(0);
                 // Map EQUALS
                 if (handler.getComparison() == LogicalComparison.EQUALS) {
-                    chainer = targetWhere.where(handler.getColumnName()).equal(rightSide);
+                    chainer = where.where(handler.getColumnName()).equal(rightSide);
                 }
                 // Map IN
                 else if (handler.getComparison() == LogicalComparison.IN) {
-                    chainer = targetWhere.where(handler.getColumnName()).in(rightSide);
+                    chainer = where.where(handler.getColumnName()).in(rightSide);
                 }
                 // Map BETWEEN
                 else if (handler.getComparison() == LogicalComparison.BETWEEN && values.size() >= 2) {
-                    chainer = targetWhere.where(handler.getColumnName()).between(rightSide, values.get(1));
+                    chainer = where.where(handler.getColumnName()).between(rightSide, values.get(1));
                 }
 
                 // Note: Make sure to map LIKE, NOT_EQUALS, IS_NULL, etc. as you expand this!
             }
             if (handler.getComparison() == LogicalComparison.IS_NULL) {
-                chainer = targetWhere.where(handler.getColumnName()).isNull();
+                chainer = where.where(handler.getColumnName()).isNull();
             }
             if (handler.getComparison() == LogicalComparison.IS_NOT_NULL) {
-                chainer = targetWhere.where(handler.getColumnName()).isNotNull();
+                chainer = where.where(handler.getColumnName()).isNotNull();
             }
 
             // Safely apply the chaining operator for the NEXT condition

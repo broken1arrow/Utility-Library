@@ -77,7 +77,7 @@ public class JoinCondition {
     public String toString() {
         String aliasPart = alias != null && !alias.isEmpty() ? " AS " + alias : "";
         String onCondition = context.build();
-        return oldStyle ? ", " + table + aliasPart : " " + type + " " + table + aliasPart + " " + onCondition;
+        return oldStyle ? ", " + table + aliasPart : type + " " + table + aliasPart + " " + onCondition;
     }
 
     /**

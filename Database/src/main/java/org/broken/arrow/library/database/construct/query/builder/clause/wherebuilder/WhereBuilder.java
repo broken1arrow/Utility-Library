@@ -85,10 +85,9 @@ public class WhereBuilder implements ParameterSupplier {
     public ComparisonHandler<WhereBuilder> where(final Column column) {
         if (!this.conditionsList.isEmpty()) {
             ComparisonHandler<WhereBuilder> handler = this.conditionsList.get(this.conditionsList.size() - 1);
-            Validate.checkBoolean(handler == null || handler.getLogicalOperator() == null,
+            Validate.checkBoolean(handler == null || handler.getConditionChainer().getConditionQuery().getLogicalComparison() == null,
                     "Can't start a new WHERE condition directly. You must chain the previous condition with .and(), .or(), or use chainWhere()");
         }
-
         final Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
         if (column.hasAggregate()) {
             throw new Validate.ValidateExceptions(
@@ -111,7 +110,7 @@ public class WhereBuilder implements ParameterSupplier {
         ComparisonHandler<WhereBuilder> operator = new ComparisonHandler<>(this, "", marker);
         if (!this.conditionsList.isEmpty())
             addCondition(operator);
-        return operator.getLogicalOperator();
+        return operator.getConditionChainer();
     }
 
     /**

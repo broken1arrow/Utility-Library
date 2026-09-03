@@ -6,11 +6,6 @@ package org.broken.arrow.library.database.construct.query.utlity;
  * This includes common arithmetic operations like addition, subtraction, multiplication,
  * division, modulus, and exponentiation, as well as bitwise operations such as AND, OR,
  * and bit shifts.
- * <p>
- * The special constant {@link #PER_ROUND} is used to indicate that each aggregation or function
- * should be applied separately rather than grouped under a single operation. This influences
- * how rounding and other mathematical or logical operations are handled in aggregation contexts.
- * <p>
  */
 public enum MathOperation {
 
