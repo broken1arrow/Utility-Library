@@ -86,10 +86,12 @@ public class QueryRemover {
     @Nonnull
     public String build() {
         StringBuilder sql = new StringBuilder();
-
         final RemoveModifier modifier = this.removeModifier;
         if (modifier != null) {
-            if (databaseType != DatabaseType.POSTGRESQL) {
+            String[] tables = modifier.usingTables;
+            if (tables.length > 0) {
+                sql.append("USING ").append(String.join(", ", tables)).append(" ");
+            } else if (databaseType != DatabaseType.POSTGRESQL) {
                 sql.append(modifier.getJoinBuilder().build());
             }
         }
@@ -121,12 +123,14 @@ public class QueryRemover {
         final Map<Integer, Object> values = new HashMap<>();
         int index = 1;
 
-        if (modifier != null && databaseType != DatabaseType.POSTGRESQL) {
-            for (Object value : modifier.getJoinBuilder().getRawParameters()) {
-                values.put(index++, value);
+        if (modifier != null) {
+            String[] tables = modifier.usingTables;
+            if (tables.length == 0 && databaseType != DatabaseType.POSTGRESQL) {
+                for (Object value : modifier.getJoinBuilder().getRawParameters()) {
+                    values.put(index++, value);
+                }
             }
         }
-
         final WhereBuilder whereBuilder = this.getWhereBuilder();
         if (whereBuilder != null) {
             for (Object value : whereBuilder.getRawParameters()) {
