@@ -90,7 +90,7 @@ public class QueryRemover {
         final WhereBuilder whereBuilder = this.getWhereBuilder();
 
         if (modifier != null) {
-            final String[] tables = modifier.usingTables;
+            final String[] tables = modifier.getUsingTables();
             final JoinBuilder joinBuilder = modifier.getJoinBuilder();
             if (tables.length > 0) {
                 sql.append("USING ").append(String.join(", ", tables)).append(" ");
@@ -126,7 +126,7 @@ public class QueryRemover {
         int index = 1;
 
         if (modifier != null) {
-            String[] tables = modifier.usingTables;
+            String[] tables = modifier.getUsingTables();
             if (tables.length == 0 && databaseType != DatabaseType.POSTGRESQL) {
                 for (Object value : modifier.getJoinBuilder().getRawParameters()) {
                     values.put(index++, value);
