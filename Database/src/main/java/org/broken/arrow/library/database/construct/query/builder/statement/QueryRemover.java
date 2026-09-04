@@ -213,6 +213,7 @@ public class QueryRemover {
         /**
          * Set the using tables.
          *
+         * @param tables The tables to set for the remove.
          * @return this RemoveModifier instance for chaining
          */
         public RemoveModifier using(@Nonnull final String... tables) {
