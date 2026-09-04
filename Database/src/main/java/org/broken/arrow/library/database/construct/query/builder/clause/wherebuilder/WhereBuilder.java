@@ -27,14 +27,20 @@ import static org.broken.arrow.library.database.construct.query.builder.conditio
  * </p>
  */
 public class WhereBuilder implements ParameterSupplier {
-    private final List<ComparisonHandler<WhereBuilder>> conditionsList = new ArrayList<>();
+    private final List<ComparisonHandler<WhereBuilder>> conditionsList;
     private final boolean globalEnableQueryPlaceholders;
+
+    private WhereBuilder(@Nonnull final WhereBuilder whereBuilder) {
+        conditionsList = new ArrayList<>(whereBuilder.conditionsList);
+        globalEnableQueryPlaceholders = whereBuilder.globalEnableQueryPlaceholders;
+    }
 
     /**
      * Creates a new {@code WhereBuilder} with placeholders enabled by default.
      */
     public WhereBuilder() {
         this.globalEnableQueryPlaceholders = true;
+        this.conditionsList = new ArrayList<>();
     }
 
     /**
@@ -44,7 +50,9 @@ public class WhereBuilder implements ParameterSupplier {
      */
     public WhereBuilder(@Nonnull final QueryBuilder queryBuilder) {
         this.globalEnableQueryPlaceholders = queryBuilder.isGlobalEnableQueryPlaceholders();
+        this.conditionsList = new ArrayList<>();
     }
+
 
     /**
      * Returns whether query placeholders are enabled globally for this builder.
@@ -172,5 +180,14 @@ public class WhereBuilder implements ParameterSupplier {
         return getConditionsList().stream()
                 .flatMap(comparison -> comparison.getValuesFiltered().stream())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Copy current instance of the where builder.
+     *
+     * @return creates new copy.
+     */
+    public WhereBuilder copy() {
+        return new WhereBuilder(this);
     }
 }

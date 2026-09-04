@@ -147,12 +147,12 @@ public class CreateTableHandler {
         if (tableSelector != null) {
             return tableSelector.getTableSelector().getTablesColumnsBuilder().getColumns().stream()
                     .filter(column -> column != null && column.isPrimaryKey())
-                    .map(column -> (TableColumn) column).collect(Collectors.toList());
+                    .map(column -> column).collect(Collectors.toList());
         }
         if (selector != null) {
             return selector.getTableSelector().getSelectBuilder().getColumns().stream()
                     .filter(column -> column != null && column.isPrimaryKey())
-                    .map(column -> (TableColumn) column).collect(Collectors.toList());
+                    .map(column -> column).collect(Collectors.toList());
         }
         return new ArrayList<>();
     }

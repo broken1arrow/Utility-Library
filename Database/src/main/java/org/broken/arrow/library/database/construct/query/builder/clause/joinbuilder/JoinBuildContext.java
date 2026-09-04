@@ -68,6 +68,7 @@ public class JoinBuildContext {
      *
      * @return The join clause SQL fragment (including "on"), or empty string if none.
      */
+    @Nonnull
     public String build() {
         if (conditionsList.isEmpty())
             return "";

@@ -29,37 +29,43 @@ public class Formatting {
      * @return The formatted SQL condition string.
      */
     public static <T> String formatConditions(final List<ComparisonHandler<T>> conditionsList) {
+        if (conditionsList == null || conditionsList.isEmpty()) {
+            return "";
+        }
+
         final StringBuilder whereClause = new StringBuilder();
-        boolean openParenthesis = false;
+        boolean inGroup = false;
 
         for (int i = 0; i < conditionsList.size(); i++) {
-            final ComparisonHandler<?> comparisonHandler = conditionsList.get(i);
-            if (comparisonHandler == null) continue;
-            final ConditionQuery<?> current = comparisonHandler.getConditionChainer().getConditionQuery();
-            final ComparisonHandler<?> nextComparisonHandler = (i + 1 < conditionsList.size()) ? conditionsList.get(i + 1) : null;
-            final LogicalOperator nextLogicalOperator = (nextComparisonHandler != null) ? nextComparisonHandler.getConditionChainer().getConditionQuery().getLogicalComparison() : null;
+            final ComparisonHandler<?> handler = conditionsList.get(i);
+            if (handler == null) continue;
 
-            final boolean nextIsOr = nextLogicalOperator == LogicalOperator.OR;
-            final boolean nextIsAnd = nextLogicalOperator == LogicalOperator.AND;
-            final boolean currentIsOr = current.getLogicalComparison() == LogicalOperator.OR;
+            final ConditionQuery<?> current = handler.getConditionChainer().getConditionQuery();
+            final LogicalOperator currentOp = current.getLogicalComparison();
 
-            if ((!currentIsOr && !nextIsOr && nextIsAnd) || !openParenthesis) {
+            if (!inGroup) {
                 whereClause.append("(");
-                openParenthesis = true;
+                inGroup = true;
             }
-            final boolean columnNotEmpty = !current.getColumn().isEmpty();
-            if (columnNotEmpty)
+
+            if (!current.getColumn().isEmpty()) {
                 whereClause.append(current.getColumn()).append(" ");
+            }
             whereClause.append(current.getWhereCondition());
-            openParenthesis = setCloseParenthesis(whereClause, nextComparisonHandler, currentIsOr, openParenthesis);
 
-            if (current.getLogicalComparison() != null) {
-                whereClause.append(" ").append(current.getLogicalComparison());
-                final char last = whereClause.charAt(whereClause.length() - 1);
-                whereClause.append(" ");
+            boolean isLast = (i == conditionsList.size() - 1);
+            boolean closesGroup = (currentOp == LogicalOperator.OR || isLast);
 
+            if (closesGroup) {
+                whereClause.append(")");
+                inGroup = false;
+            }
+
+            if (!isLast && currentOp != null) {
+                whereClause.append(" ").append(currentOp).append(" ");
             }
         }
+
         return whereClause.toString();
     }
 

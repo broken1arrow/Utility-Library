@@ -14,9 +14,7 @@ import org.broken.arrow.library.database.utility.DatabaseType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,6 +28,7 @@ import java.util.function.Function;
 public class QueryRemover {
     private final QueryBuilder queryBuilder;
     private final DatabaseType databaseType;
+    private WhereBuilder whereBuilderCopy;
     private WhereBuilder whereBuilder;
     private RemoveModifier removeModifier;
 
@@ -87,7 +86,7 @@ public class QueryRemover {
     public String build() {
         StringBuilder sql = new StringBuilder();
         final RemoveModifier modifier = this.removeModifier;
-        final WhereBuilder whereBuilder = this.getWhereBuilder();
+        final WhereBuilder whereBuilder = getOrCreateWhereBuilder(modifier);
 
         if (modifier != null) {
             final String[] tables = modifier.getUsingTables();
@@ -97,12 +96,8 @@ public class QueryRemover {
             } else if (databaseType != DatabaseType.POSTGRESQL) {
                 sql.append(joinBuilder.build());
             }
-            if (tables.length == 0 && databaseType == DatabaseType.POSTGRESQL)
-                translateJoin(joinBuilder, sql, whereBuilder);
         }
-
         sql.append(whereBuilder != null ? whereBuilder.build() : "");
-
         if (modifier != null) {
             sql.append(modifier.getOrderByBuilder().build());
             sql.append(modifier.getLimit());
@@ -133,7 +128,7 @@ public class QueryRemover {
                 }
             }
         }
-        final WhereBuilder whereBuilder = this.getWhereBuilder();
+        final WhereBuilder whereBuilder = getOrCreateWhereBuilder(modifier);
         if (whereBuilder != null) {
             for (Object value : whereBuilder.getRawParameters()) {
                 values.put(index++, value);
@@ -142,19 +137,25 @@ public class QueryRemover {
         return values;
     }
 
-    private void translateJoin(JoinBuilder joinBuilder, StringBuilder sql, WhereBuilder mainWhereBuilder) {
-        // We might need to collect tables for the Postgres USING clause
-        List<String> usingTables = new ArrayList<>();
+    private void translateJoin(JoinBuilder joinBuilder, WhereBuilder mainWhereBuilder) {
+        if (mainWhereBuilder == null) return;
+
         for (JoinCondition join : joinBuilder.getJoinBuilders()) {
             switch (join.getType()) {
                 case INNER:
-                    usingTables.add(join.getTable());
-                    transferConditions(join, mainWhereBuilder.chainWhere().and());
+                    final QueryBuilder innerSubBuilder = new QueryBuilder();
+                    final QueryModifier innerModifier = innerSubBuilder.select(ColumnManager.of().column("1"))
+                            .from(join.getTable(), join.getTableAlias());
+
+                    WhereBuilder builder = new WhereBuilder();
+                    transferConditions(join, builder);
+                    innerModifier.where(builder);
+                    mainWhereBuilder.chainWhere().and().where("").exists(innerSubBuilder);
                     break;
                 case LEFT:
                     final QueryBuilder subQueryBuilder = new QueryBuilder();
                     final QueryModifier modifier = subQueryBuilder.select(ColumnManager.of().column("1"))
-                            .from(join.getTable());
+                            .from(join.getTable(), join.getTableAlias());
 
                     WhereBuilder subWhere = new WhereBuilder();
                     transferConditions(join, subWhere);
@@ -170,16 +171,42 @@ public class QueryRemover {
                     );
             }
         }
-        // If you are building the USING clause for Postgres directly in the sql StringBuilder:
-        if (!usingTables.isEmpty()) {
-            sql.append("USING ").append(String.join(", ", usingTables)).append(" ");
-        }
     }
 
     private void transferConditions(JoinCondition join, WhereBuilder where) {
         for (ComparisonHandler<JoinBuildContext> handler : join.getJoinBuild().getConditionsList()) {
             handler.transferTo(where::where);
         }
+    }
+
+    /**
+     * Retrieve the original WhereBuilder, or a copy containing translated
+     * JOINs if the current dialect requires it.
+     *
+     * @param modifier the modifier for the remove context.
+     * @return the original WhereBuilder, or a copy containing translated
+     * JOINs if the current dialect requires it.
+     */
+    @Nullable
+    private WhereBuilder getOrCreateWhereBuilder(@Nullable final RemoveModifier modifier) {
+        final WhereBuilder baseWhere = this.getWhereBuilder();
+        if (modifier == null) {
+            return baseWhere;
+        }
+
+        final String[] tables = modifier.getUsingTables();
+        if (tables.length > 0 || databaseType != DatabaseType.POSTGRESQL) {
+            return baseWhere;
+        }
+
+        final JoinBuilder joinBuilder = modifier.getJoinBuilder();
+        if (joinBuilder.getJoinBuilders().isEmpty()) {
+            return baseWhere;
+        }
+
+        WhereBuilder safeCopy = baseWhere != null ? baseWhere.copy() : new WhereBuilder();
+        this.translateJoin(joinBuilder, safeCopy);
+        return safeCopy;
     }
 
 

@@ -116,13 +116,17 @@ public class TableColumn extends Column {
      * @return the SQL string fragment for the column definition
      */
     public String build() {
-        StringJoiner joiner = new StringJoiner(" ");
+        final StringJoiner joiner = new StringJoiner(" ");
+        final String constraints;
         if (this.constraints != null)
             for (SQLConstraints constraint : this.constraints) {
                 joiner.add(constraint.toString());
             }
-
-        return this.getColumnName() + " " + dataType.getType() + " " + joiner + " ";
+        if (joiner.length() > 0)
+            constraints = " " + joiner;
+        else
+            constraints = "";
+        return this.getColumnName() + " " + dataType.getType() + constraints;
     }
 
     /**
@@ -135,14 +139,21 @@ public class TableColumn extends Column {
      * @return the SQL string fragment for the column definition without primary key constraints
      */
     public String buildWithoutPrimaryKey() {
-        StringJoiner joiner = new StringJoiner(" ");
+        final StringJoiner joiner = new StringJoiner(" ");
+        final String constraints;
         if (this.constraints != null) {
             for (SQLConstraints constraint : this.constraints) {
                 if (!SQLConstraints.isPrimary(constraint))
                     joiner.add(constraint.toString());
             }
         }
-        return this.getColumnName() + " " + dataType.getType() + " " + joiner + " ";
+
+        if (joiner.length() > 0)
+            constraints = " " + joiner;
+        else
+            constraints = "";
+
+        return this.getColumnName() + " " + dataType.getType() + constraints;
     }
 
     /**
