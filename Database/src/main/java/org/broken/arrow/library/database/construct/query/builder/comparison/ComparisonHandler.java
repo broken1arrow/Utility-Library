@@ -8,6 +8,7 @@ import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.refernces.LiteralVal;
 import org.broken.arrow.library.database.construct.query.builder.column.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
+import org.broken.arrow.library.database.construct.query.utlity.LogicalOperator;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 import org.broken.arrow.library.logging.Validate;
 
@@ -19,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,6 +67,7 @@ public class ComparisonHandler<T> {
      * Creates an empty comparison handler with no column or logical operator.
      * <p>
      * Primarily used as a placeholder or for cases where initialization is deferred.
+     *
      * @param isWhereClause if it used for a where clause.
      */
     public ComparisonHandler(final boolean isWhereClause) {
@@ -109,11 +112,9 @@ public class ComparisonHandler<T> {
     public ConditionChainer<T> equal(Object value) {
         if (value instanceof Column) {
             return equal((Column) value);
-        }
-        else if (value instanceof SqlArg) {
+        } else if (value instanceof SqlArg) {
             return equal((SqlArg) value);
-        }
-        else {
+        } else {
             return equal(SqlArg.val(value));
         }
     }
@@ -136,7 +137,7 @@ public class ComparisonHandler<T> {
      * @return this class for chaining.
      */
     public ConditionChainer<T> equal(SqlArg value) {
-        if(this.isWhereClause && value instanceof Column){
+        if (this.isWhereClause && value instanceof Column) {
             Column column = (Column) value;
             if (column.hasAggregate()) {
                 throw new Validate.ValidateExceptions(
@@ -320,7 +321,7 @@ public class ComparisonHandler<T> {
      */
     public ConditionChainer<T> isNull() {
 
-        this.init(LogicalComparison.IS_NULL,"");
+        this.init(LogicalComparison.IS_NULL, "");
         return this.conditionChainer;
     }
 
@@ -332,7 +333,7 @@ public class ComparisonHandler<T> {
      */
     public ConditionChainer<T> isNotNull() {
 
-        this.init(LogicalComparison.IS_NOT_NULL,"");
+        this.init(LogicalComparison.IS_NOT_NULL, "");
         return this.conditionChainer;
     }
 
@@ -399,7 +400,7 @@ public class ComparisonHandler<T> {
         return Stream.of(values)
                 .filter(object -> !(object instanceof Column))
                 .flatMap(object -> {
-                    if (object instanceof ParameterSupplier ) {
+                    if (object instanceof ParameterSupplier) {
                         ParameterSupplier supplier = (ParameterSupplier) object;
                         return supplier.getRawParameters().stream();
                     }
@@ -417,7 +418,7 @@ public class ComparisonHandler<T> {
                         return col.stream();
                     }
 
-                    if (object instanceof Object[] ) {
+                    if (object instanceof Object[]) {
                         Object[] arr = (Object[]) object;
                         return Arrays.stream(arr);
                     }
@@ -434,7 +435,7 @@ public class ComparisonHandler<T> {
      * @return Returns the SQL comparison symbol.
      */
     public String getSymbol() {
-        if(operator == null)
+        if (operator == null)
             return "";
         return operator.getSymbol();
     }
@@ -444,7 +445,7 @@ public class ComparisonHandler<T> {
      *
      * @return Returns the SQL comparison enum.
      */
-    public LogicalComparison getComparison() {
+    public LogicalComparison getLogicalComparison() {
         return operator;
     }
 
@@ -474,6 +475,29 @@ public class ComparisonHandler<T> {
      */
     public ConditionChainer<T> getConditionChainer() {
         return conditionChainer;
+    }
+
+
+    /**
+     * Transfers the current condition—including its column, comparison operator, values,
+     * and chaining logic (AND/OR)—to a new builder using the provided starter function.
+     *
+     * @param targetStarter a function that initializes the condition on the target builder
+     *                      (e.g., {@code where::where} or {@code having::having})
+     * @param <S>           the builder type of the target condition (e.g., WhereBuilder, HavingBuilder)
+     */
+    public <S> void transferTo(@Nonnull final Function<String, ComparisonHandler<S>> targetStarter) {
+        final ComparisonHandler<S> targetHandler = targetStarter.apply(this.getColumnName());
+        final ConditionChainer<S> chainer = this.getLogicalComparison().applyTo(targetHandler, this.getCondition().getValues());
+        final LogicalOperator nextOp = this.getConditionChainer().getConditionQuery().getLogicalComparison();
+
+        if (chainer != null && nextOp != null) {
+            if (nextOp == LogicalOperator.OR) {
+                chainer.or();
+            } else if (nextOp == LogicalOperator.AND) {
+                chainer.and();
+            }
+        }
     }
 
     /**

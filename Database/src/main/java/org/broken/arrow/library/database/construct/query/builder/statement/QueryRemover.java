@@ -10,7 +10,6 @@ import org.broken.arrow.library.database.construct.query.builder.column.ColumnMa
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalOperator;
 import org.broken.arrow.library.database.utility.DatabaseType;
 
@@ -145,11 +144,8 @@ public class QueryRemover {
             switch (join.getType()) {
                 case INNER:
                     usingTables.add(join.getTable());
-                    WhereBuilder subWheree = new WhereBuilder();
                     transferConditions(join, mainWhereBuilder.chainWhere().and());
-                    //mainWhereBuilder.addWhere(subWheree).and();
                     break;
-
                 case LEFT:
                     final QueryBuilder subQueryBuilder = new QueryBuilder();
                     final QueryModifier modifier = subQueryBuilder.select(ColumnManager.of().column("1"))
@@ -176,46 +172,11 @@ public class QueryRemover {
     }
 
     private void transferConditions(JoinCondition join, WhereBuilder where) {
-
         for (ComparisonHandler<JoinBuildContext> handler : join.getJoinBuild().getConditionsList()) {
-            List<Object> values = handler.getCondition().getValues();
-            final LogicalOperator nextOp = handler.getConditionChainer().getConditionQuery().getLogicalComparison();
-            ConditionChainer<WhereBuilder> chainer = null;
-
-            if (!values.isEmpty()) {
-                Object rightSide = values.get(0);
-                // Map EQUALS
-                if (handler.getComparison() == LogicalComparison.EQUALS) {
-                    chainer = where.where(handler.getColumnName()).equal(rightSide);
-                }
-                // Map IN
-                else if (handler.getComparison() == LogicalComparison.IN) {
-                    chainer = where.where(handler.getColumnName()).in(rightSide);
-                }
-                // Map BETWEEN
-                else if (handler.getComparison() == LogicalComparison.BETWEEN && values.size() >= 2) {
-                    chainer = where.where(handler.getColumnName()).between(rightSide, values.get(1));
-                }
-
-                // Note: Make sure to map LIKE, NOT_EQUALS, IS_NULL, etc. as you expand this!
-            }
-            if (handler.getComparison() == LogicalComparison.IS_NULL) {
-                chainer = where.where(handler.getColumnName()).isNull();
-            }
-            if (handler.getComparison() == LogicalComparison.IS_NOT_NULL) {
-                chainer = where.where(handler.getColumnName()).isNotNull();
-            }
-
-            // Safely apply the chaining operator for the NEXT condition
-            if (chainer != null) {
-                if (nextOp == LogicalOperator.OR) {
-                    chainer.or();
-                } else if (nextOp == LogicalOperator.AND) {
-                    chainer.and();
-                }
-            }
+            handler.transferTo(where::where);
         }
     }
+
 
     /**
      * Builder modifier for configuring JOINs, ORDER BY, and LIMIT clauses.

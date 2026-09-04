@@ -79,7 +79,7 @@ public class ConditionBuilder<T> {
         }
         final Object[] values = operator.getValues();
         if (values != null) {
-            final LogicalComparison comparison = operator.getComparison();
+            final LogicalComparison comparison = operator.getLogicalComparison();
             if (comparison == LogicalComparison.IN || comparison == LogicalComparison.NOT_IN) {
                 return getInFormatted();
             }

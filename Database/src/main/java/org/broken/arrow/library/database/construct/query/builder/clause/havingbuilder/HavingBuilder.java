@@ -3,9 +3,11 @@ package org.broken.arrow.library.database.construct.query.builder.clause.havingb
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.ParameterSupplier;
+import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -66,6 +68,11 @@ public class HavingBuilder implements ParameterSupplier {
      * @return a {@link ComparisonHandler} to specify comparison operations
      */
     public ComparisonHandler<HavingBuilder> having(@Nonnull final Column column) {
+        if (!this.conditionsList.isEmpty()) {
+            ComparisonHandler<HavingBuilder> handler = this.conditionsList.get(this.conditionsList.size() - 1);
+            Validate.checkBoolean(handler == null || handler.getConditionChainer().getConditionQuery().getLogicalComparison() == null,
+                    "Can't start a new HAVING condition directly. You must chain the previous condition with .and(), .or(), or use chainHaving()");
+        }
         final Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
 
         final ComparisonHandler<HavingBuilder> comparisonHandler = new ComparisonHandler<>(this, column.toString(), marker);
