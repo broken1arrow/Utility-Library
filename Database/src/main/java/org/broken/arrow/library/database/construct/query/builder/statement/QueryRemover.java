@@ -87,17 +87,19 @@ public class QueryRemover {
     public String build() {
         StringBuilder sql = new StringBuilder();
         final RemoveModifier modifier = this.removeModifier;
+        final WhereBuilder whereBuilder = this.getWhereBuilder();
+
         if (modifier != null) {
-            String[] tables = modifier.usingTables;
+            final String[] tables = modifier.usingTables;
+            final JoinBuilder joinBuilder = modifier.getJoinBuilder();
             if (tables.length > 0) {
                 sql.append("USING ").append(String.join(", ", tables)).append(" ");
             } else if (databaseType != DatabaseType.POSTGRESQL) {
-                sql.append(modifier.getJoinBuilder().build());
+                sql.append(joinBuilder.build());
             }
+            if (tables.length == 0 && databaseType == DatabaseType.POSTGRESQL)
+                translateJoin(joinBuilder, sql, whereBuilder);
         }
-        final WhereBuilder whereBuilder = this.getWhereBuilder();
-        if (databaseType == DatabaseType.POSTGRESQL)
-            translateJoin(modifier.getJoinBuilder(), sql, whereBuilder);
 
         sql.append(whereBuilder != null ? whereBuilder.build() : "");
 
