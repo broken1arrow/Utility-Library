@@ -10,7 +10,6 @@ import org.broken.arrow.library.database.construct.query.builder.column.ColumnMa
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.utlity.LogicalOperator;
 import org.broken.arrow.library.database.utility.DatabaseType;
 
 import javax.annotation.Nonnull;
@@ -183,6 +182,7 @@ public class QueryRemover {
      */
     public class RemoveModifier {
         private final OrderByBuilder orderByBuilder = new OrderByBuilder();
+        private String[] usingTables;
         private final JoinBuilder joinBuilder;
         private int limit = -1;
 
@@ -201,8 +201,18 @@ public class QueryRemover {
          * @param callback a consumer that configures the join builder
          * @return this RemoveModifier instance for chaining
          */
-        public RemoveModifier join(Consumer<JoinBuilder> callback) {
+        public RemoveModifier join(@Nonnull final Consumer<JoinBuilder> callback) {
             callback.accept(joinBuilder);
+            return this;
+        }
+
+        /**
+         * Set the using tables.
+         *
+         * @return this RemoveModifier instance for chaining
+         */
+        public RemoveModifier using(@Nonnull final String... tables) {
+            usingTables = tables;
             return this;
         }
 
@@ -212,7 +222,7 @@ public class QueryRemover {
          * @param callback a consumer that configures the order by builder
          * @return this RemoveModifier instance for chaining
          */
-        public RemoveModifier orderBy(Consumer<OrderByBuilder> callback) {
+        public RemoveModifier orderBy(@Nonnull final Consumer<OrderByBuilder> callback) {
             callback.accept(orderByBuilder);
             return this;
         }
@@ -223,7 +233,7 @@ public class QueryRemover {
          * @param limit the row limit (must be greater than zero)
          * @return this RemoveModifier instance for chaining
          */
-        public RemoveModifier limit(int limit) {
+        public RemoveModifier limit(final int limit) {
             this.limit = limit;
             return this;
         }
@@ -256,6 +266,18 @@ public class QueryRemover {
             if (limit < 1)
                 return "";
             return " LIMIT " + limit;
+        }
+
+        /**
+         * Set the using tables.
+         *
+         * @return The list of tables set.
+         */
+        @Nonnull
+        public String[] getUsingTables() {
+            if (this.usingTables == null) return new String[0];
+
+            return this.usingTables;
         }
     }
 }
