@@ -50,15 +50,12 @@ subprojects {
     plugins.apply("signing")
     plugins.apply("checkstyle")
 
-    /*   java {
-           toolchain {
-               languageVersion.set(JavaLanguageVersion.of(8))
-           }
-       }
-   */
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
     tasks.withType<JavaCompile> {
-        //sourceCompatibility = "1.8"
-        // targetCompatibility = "1.8"
         options.encoding = Charsets.UTF_8.name()
         options.release.set(8)
     }

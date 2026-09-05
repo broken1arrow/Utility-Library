@@ -4,6 +4,7 @@ import org.broken.arrow.library.command.CommandRegister;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,13 +14,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * The {@code CommandHolder} class serves as a base class for creating commands in your application.
  * By extending this class, you can define specific commands and set their properties either directly
  * in the extending class or alternatively when you register the subcommand using
- * {@link CommandRegister#registerSubCommand(CommandProperty)}.
+ * {@link CommandRegister#registerCommand(Plugin, String, Consumer)}.
  * Since the properties return the {@code CommandProperty} class, you can add these methods directly
  * into the {@code registerSubCommand} argument.
  * <p>
@@ -57,7 +59,7 @@ import java.util.function.Function;
  * tab completion suggestions for your command and help users know what they should type.</p>
  *
  * @see CommandProperty
- * @see CommandRegister#registerSubCommand(CommandProperty)
+ * @see CommandRegister#registerCommand(Plugin, String, Consumer)
  */
 public abstract class CommandHolder extends CommandProperty {
     private String[] arguments;
