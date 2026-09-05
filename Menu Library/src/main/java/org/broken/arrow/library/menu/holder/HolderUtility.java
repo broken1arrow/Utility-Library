@@ -368,7 +368,9 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
      * @return true if it could set the page.
      */
     public boolean setPage(final int page) {
-        if (!this.containsPage(page))
+        int totalItems = this.getListOfFillItems() == null ? 0 : this.getListOfFillItems().size();
+        int totalPages = totalItems == 0 ? 1 : (totalItems + this.getInventorySize() - 1) / this.getInventorySize();
+        if (page < 0 || page >= totalPages)
             return false;
 
         this.pageNumber = page;
@@ -415,7 +417,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
             }
             this.putAddedButtonsCache(page, menuDataUtility);
         }
-       this.updateEvent.markUpdated();
+        this.updateEvent.markUpdated();
     }
 
 
@@ -517,7 +519,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         return this.getLoadInventoryHandler().getMenuCacheKey();
     }
 
-    private void refreshButton(@Nonnull final MenuButton menuButton,@Nonnull final MenuDataUtility<T> menuDataUtility,@Nonnull final Inventory menu,final int slot) {
+    private void refreshButton(@Nonnull final MenuButton menuButton, @Nonnull final MenuDataUtility<T> menuDataUtility, @Nonnull final Inventory menu, final int slot) {
         final ButtonData<T> buttonData = menuDataUtility.getButton(slot);
         if (buttonData == null) return;
 
@@ -531,7 +533,7 @@ public abstract class HolderUtility<T> extends MenuUtility<T> {
         if (buttonAt != null) {
             final ItemStack itemStack = getMenuItem(buttonAt, buttonData, slot, true);
             menu.setItem(slot, itemStack);
-            menuDataUtility.putButton(slot, buttonAt,  dataWrapper -> dataWrapper
+            menuDataUtility.putButton(slot, buttonAt, dataWrapper -> dataWrapper
                     .setItemStack(itemStack)
                     .setObject(buttonData.getObject())
                     .setFillButton(buttonData.isFillButton())
