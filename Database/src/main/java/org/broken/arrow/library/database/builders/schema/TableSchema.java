@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 public class TableSchema {
     private final QueryBuilder queryBuilder;
     private final CreateTableHandler tableHandler;
+    private boolean failedToCreateTable;
 
     /**
      * Constructs a new {@code TableSchema} using the provided callback to define the table structure.
@@ -34,6 +35,19 @@ public class TableSchema {
     public TableSchema(@Nonnull final Function<QueryBuilder, CreateTableHandler> callback) {
         this.queryBuilder = new QueryBuilder();
         this.tableHandler = callback.apply(queryBuilder);
+    }
+
+    /**
+     * Internal copy constructor used to duplicate an existing schema while setting the failure flag.
+     * <p>
+     *
+     * @param original          the original TableSchema to copy
+     * @param failedToCreateTable the new failure status
+     */
+    public TableSchema(@Nonnull final TableSchema original, boolean failedToCreateTable) {
+        this.queryBuilder = original.queryBuilder;
+        this.tableHandler = original.tableHandler;
+        this.failedToCreateTable = failedToCreateTable;
     }
 
     /**
@@ -153,10 +167,19 @@ public class TableSchema {
     public String selectTable() {
         QueryBuilder selectTableBuilder = new QueryBuilder();
         selectTableBuilder.select(this.getTable().getTableColumns()
-                .stream().map(tableColumn -> (Column) tableColumn)
-                .collect(Collectors.toList()))
+                        .stream().map(tableColumn -> (Column) tableColumn)
+                        .collect(Collectors.toList()))
                 .from(this.getQueryBuilder().getTableName());
         return selectTableBuilder.build();
+    }
+
+    /**
+     * Check if it fails to create the table.
+     *
+     * @return returns {@code true} if it has failed.
+     */
+    public boolean hasFailedToCreateTable() {
+        return this.failedToCreateTable;
     }
 
     /**

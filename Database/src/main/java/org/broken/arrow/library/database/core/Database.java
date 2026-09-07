@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -59,7 +60,7 @@ import java.util.logging.Level;
 @SuppressWarnings("unused")
 public abstract class Database {
     private final Logging log = new Logging(Database.class);
-    private final Map<String, TableSchema> tablesCache = new HashMap<>();
+    private final Map<String, TableSchema> tablesCache = new ConcurrentHashMap<>();
     private final ConnectionSettings connectionSettings;
     private Set<String> removeColumns = new HashSet<>();
     private DatabaseType databaseType = null;
@@ -230,6 +231,8 @@ public abstract class Database {
             createAllTablesIfNotExist(connection);
             try {
                 for (final Entry<String, TableSchema> entityTables : tablesCache.entrySet()) {
+                    if (entityTables.getValue().hasFailedToCreateTable()) continue;
+
                     final List<String> columns = updateTableColumnsInDb(connection, entityTables.getKey());
                     this.createMissingColumns(connection, entityTables.getValue(), columns);
                 }
@@ -764,9 +767,11 @@ public abstract class Database {
                 checkIfTableExist(connection, tableQuery.getTableName(), column.getColumnName());
             }
         } catch (final SQLException e) {
-            log.log(() -> "Something not working when try create this table: '" + tableQuery.getTableName() + "'");
+            log.log(() -> "Something not working when try to create this table: '" + tableQuery.getTableName() + "'");
             final String finalTable = table;
             log.log(e, () -> "With this command: " + finalTable);
+            TableSchema failedSchema = new TableSchema(tableQuery, true);
+            tablesCache.put(failedSchema.getTableName(), failedSchema);
         } finally {
             close(statement);
         }
