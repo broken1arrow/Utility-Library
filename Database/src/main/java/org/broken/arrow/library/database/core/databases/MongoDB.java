@@ -419,7 +419,7 @@ public class MongoDB extends Database {
      * @return the matching column or null if not found
      */
     private Column getColumn(final TableSchema tableWrapper, final String columnName) {
-        for (Column colum : tableWrapper.getTable().getTableColumns()) {
+        for (Column colum : tableWrapper.getColumnsWrapped()) {
             if (colum.getColumnName().equals(columnName))
                 return colum;
         }

@@ -354,7 +354,7 @@ public class BatchExecutor<T> {
         }
         final TableQuery tableQuery = new TableQuery(tableName);
         final SqlQuery query = tableQuery.selectRow(columnManger ->
-                columnManger.addAll(new ArrayList<>(table.getPrimaryColumns())), true, whereClause);
+                columnManger.addAll(table.getPrimaryColumnsWrapped()), true, whereClause);
         return this.checkIfRowExist(query, true);
     }
 

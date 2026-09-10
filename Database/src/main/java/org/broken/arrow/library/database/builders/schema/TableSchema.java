@@ -26,6 +26,8 @@ public class TableSchema {
     private final QueryBuilder queryBuilder;
     private final CreateTableHandler tableHandler;
     private boolean failedToCreateTable;
+    private List<Column> primaryColumns;
+    private List<Column> columns;
 
     /**
      * Constructs a new {@code TableSchema} using the provided callback to define the table structure.
@@ -41,7 +43,7 @@ public class TableSchema {
      * Internal copy constructor used to duplicate an existing schema while setting the failure flag.
      * <p>
      *
-     * @param original          the original TableSchema to copy
+     * @param original            the original TableSchema to copy
      * @param failedToCreateTable the new failure status
      */
     public TableSchema(@Nonnull final TableSchema original, boolean failedToCreateTable) {
@@ -57,16 +59,6 @@ public class TableSchema {
      */
     public QueryBuilder getQueryBuilder() {
         return queryBuilder;
-    }
-
-    /**
-     * Returns the {@link CreateTableHandler} managing column definitions and table constraints.
-     *
-     * @return the table handler instance, never null
-     */
-    @Nonnull
-    public CreateTableHandler getTable() {
-        return tableHandler;
     }
 
     /**
@@ -132,12 +124,34 @@ public class TableSchema {
     }
 
     /**
+     * Returns all defined columns for this table.
+     *
+     * @return list of {@link Column} objects
+     */
+    public List<Column> getColumnsWrapped() {
+        if (this.columns == null)
+            this.columns = this.getTable().getTableColumns().stream().map(tableColumn -> Column.of(tableColumn.getColumnName())).collect(Collectors.toList());
+        return  this.columns ;
+    }
+
+    /**
      * Returns all primary key columns for this table.
      *
      * @return list of primary key {@link TableColumn} objects
      */
     public List<TableColumn> getPrimaryColumns() {
         return this.getTable().getPrimaryColumns();
+    }
+
+    /**
+     * Returns all primary key columns for this table, wrapped to parent class.
+     *
+     * @return list of primary key {@link Column} objects
+     */
+    public List<Column> getPrimaryColumnsWrapped() {
+        if (this.primaryColumns == null)
+            this.primaryColumns = this.getTable().getPrimaryColumns().stream().map(tableColumn -> Column.of(tableColumn.getColumnName())).collect(Collectors.toList());
+        return this.primaryColumns;
     }
 
     /**
@@ -189,6 +203,16 @@ public class TableSchema {
      */
     public String createTable() {
         return queryBuilder.build();
+    }
+
+    /**
+     * Returns the {@link CreateTableHandler} managing column definitions and table constraints.
+     *
+     * @return the table handler instance, never null
+     */
+    @Nonnull
+    protected CreateTableHandler getTable() {
+        return tableHandler;
     }
 
     @Override

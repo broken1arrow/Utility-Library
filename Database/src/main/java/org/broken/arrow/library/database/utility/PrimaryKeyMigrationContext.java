@@ -177,10 +177,9 @@ public class PrimaryKeyMigrationContext {
      * @param <T>        the type implementing {@link ConfigurationSerializable}
      */
     public <T extends ConfigurationSerializable> void forEachLoadedData(Function<LoadDataWrapper<T>, WriteContext> loadedData, Class<T> clazz) {
-        final CreateTableHandler tableHandler = this.queryTable.getTable();
+        final List<Column> primaryColumns  = this.queryTable.getPrimaryColumnsWrapped();
         this.loadMapFromDB = (dataFromDB) -> {
             final T deserialize = this.database.deSerialize(clazz, dataFromDB);
-            final List<TableColumn> primaryColumns = tableHandler.getPrimaryColumns();
             final Map<String, Object> objectList = new HashMap<>();
             if (!primaryColumns.isEmpty()) {
                 for (Column column : primaryColumns) {

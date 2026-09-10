@@ -191,9 +191,9 @@ public abstract class SQLDatabaseQuery extends Database {
         this.executeQuery(QueryDefinition.of(selectRow), statementWrapper -> {
             try (ResultSet resultSet = statementWrapper.getContextResult().executeQuery()) {
                 while (resultSet.next()) {
-                    final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet,  table.getTable().getColumns());
+                    final Map<String, Object> dataFromDB = getDatabase().getDataFromDB(resultSet, table.getColumnsWrapped());
                     final T deserialize = getDatabase().deSerialize(clazz, dataFromDB);
-                    final List<TableColumn> primaryColumns = table.getTable().getPrimaryColumns();
+                    final List<TableColumn> primaryColumns = table.getPrimaryColumns();
                     final Map<String, Object> objectList = new HashMap<>();
                     if (!primaryColumns.isEmpty()) {
                         for (Column column : primaryColumns) {
@@ -240,7 +240,7 @@ public abstract class SQLDatabaseQuery extends Database {
         table.createWhereClauseFromPrimaryColumns(whereBuilder, columnValue);
         Validate.checkBoolean(whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 
-        final SqlQuery selectRow = tableQuery.selectRow(columnManger -> columnManger.addAll(new ArrayList<>(table.getTable().getTableColumns())), whereBuilder);
+        final SqlQuery selectRow = tableQuery.selectRow(columnManger -> columnManger.addAll(table.getColumnsWrapped()), whereBuilder);
 
         this.executeQuery(QueryDefinition.of(selectRow.getSql()), statementWrapper -> {
             PreparedStatement preparedStatement = statementWrapper.getContextResult();
@@ -254,7 +254,7 @@ public abstract class SQLDatabaseQuery extends Database {
             });
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next())
-                    dataFromDB.putAll(getDatabase().getDataFromDB(resultSet, table.getTable().getColumns()));
+                    dataFromDB.putAll(getDatabase().getDataFromDB(resultSet, table.getColumnsWrapped()));
             } catch (SQLException e) {
                 log.log(Level.WARNING, e, () -> "Could not load the data from " + columnValue + ". Check the stacktrace.");
             }

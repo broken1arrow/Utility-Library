@@ -91,7 +91,7 @@ public class SchemaMigrationHandler {
         final List<Column> columnsToAdd = new ArrayList<>();
         boolean failCreateColumns = false;
 
-        for (final TableColumn column : queryTable.getTable().getTableColumns()) {
+        for (final TableColumn column : queryTable.getColumns()) {
             String columnName = column.getColumnName();
             if (databaseCore.getRemoveColumns().contains(columnName) || existingColumns.contains(columnName.toLowerCase()))
                 continue;
@@ -167,8 +167,8 @@ public class SchemaMigrationHandler {
         final String builtQuery = builder.build();
         try (final ResultSet resultSet = this.connection.prepareStatement(builtQuery).executeQuery()) {
             while (resultSet.next()) {
-                final CreateTableHandler tableHandler = queryTable.getTable();
-                final Map<String, Object> dataFromDB = this.databaseCore.getDataFromDB(resultSet, tableHandler.getColumns());
+                final List<Column> columns = queryTable.getColumnsWrapped();
+                final Map<String, Object> dataFromDB = this.databaseCore.getDataFromDB(resultSet, columns);
                 primaryWrapper.loadMap(dataFromDB);
             }
         } catch (final SQLException throwable) {
