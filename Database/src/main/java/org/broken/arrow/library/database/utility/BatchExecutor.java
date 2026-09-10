@@ -231,7 +231,7 @@ public class BatchExecutor<T> {
         }
 
         if (primaryValueSet && hasUpdateIntent) {
-            final SqlQuery query = tableQuery.selectRow(columnManger -> columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
+            final SqlQuery query = tableQuery.selectRow(columnManger -> columnManger.addAll(new ArrayList<>(table.getPrimaryColumns())), true, whereClause);
             canUpdateRow = this.checkIfRowExist(query, false);
         }
         tableQuery.setQueryPlaceholders(this.database.isSecureQuery());
@@ -354,7 +354,7 @@ public class BatchExecutor<T> {
         }
         final TableQuery tableQuery = new TableQuery(tableName);
         final SqlQuery query = tableQuery.selectRow(columnManger ->
-                columnManger.addAll(table.getPrimaryColumns()), true, whereClause);
+                columnManger.addAll(new ArrayList<>(table.getPrimaryColumns())), true, whereClause);
         return this.checkIfRowExist(query, true);
     }
 

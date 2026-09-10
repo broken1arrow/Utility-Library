@@ -19,6 +19,7 @@ public class ColumnBuilder extends ColumnRegistry<Column, ColumnBuilder> {
      *
      * @return a {@link ColumnBuilder} instance to chain additional operations
      */
+    @Nonnull
     public static ColumnBuilder empty() {
         return new ColumnBuilder();
     }
@@ -29,6 +30,7 @@ public class ColumnBuilder extends ColumnRegistry<Column, ColumnBuilder> {
      * @param callback a consumer function to register the columns
      * @return a {@link ColumnBuilder} instance to chain additional operations
      */
+    @Nonnull
     public static ColumnBuilder make(@Nonnull final Consumer<ColumnBuilder> callback) {
         ColumnBuilder columnBuilder = new ColumnBuilder();
         callback.accept(columnBuilder);
