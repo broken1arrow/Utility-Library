@@ -1,6 +1,7 @@
 package org.broken.arrow.library.database.builders.wrappers;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
@@ -35,9 +36,9 @@ public class DatabaseSettingsLoad extends DatabaseSettings {
      * Use this when you want to load a subset of the columns, instead of selecting all.
      * This method uses placeholders in the query by default.
      *
-     * @param columns A consumer that configures the columns to select via {@link ColumnManager}.
+     * @param columns A consumer that configures the columns to select via {@link ColumnBuilder}.
      */
-    public void setSelectCommand(@Nonnull final Consumer<ColumnManager> columns) {
+    public void setSelectCommand(@Nonnull final Consumer<ColumnBuilder> columns) {
         this.setSelectCommand(true, columns);
     }
 
@@ -46,9 +47,9 @@ public class DatabaseSettingsLoad extends DatabaseSettings {
      * and optionally whether to use query placeholders.
      *
      * @param queryPlaceholder Whether the query should use placeholders for parameters.
-     * @param columns A consumer that configures the columns to select via {@link ColumnManager}.
+     * @param columns A consumer that configures the columns to select via {@link ColumnBuilder}.
      */
-    public void setSelectCommand(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnManager> columns) {
+    public void setSelectCommand(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnBuilder> columns) {
         this.queryBuilder(queryPlaceholder, columns, null);
     }
 
@@ -56,10 +57,10 @@ public class DatabaseSettingsLoad extends DatabaseSettings {
      * Defines both the selected columns and a WHERE clause for loading data.
      * This method uses placeholders in the query by default.
      *
-     * @param columns A consumer that configures the columns to select via {@link ColumnManager}.
+     * @param columns A consumer that configures the columns to select via {@link ColumnBuilder}.
      * @param whereClause A function that builds the WHERE clause using {@link WhereBuilder}.
      */
-    public void setSelectCommand(@Nonnull final Consumer<ColumnManager> columns, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
+    public void setSelectCommand(@Nonnull final Consumer<ColumnBuilder> columns, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         this.setSelectCommand(true, columns, whereClause);
     }
 
@@ -69,23 +70,21 @@ public class DatabaseSettingsLoad extends DatabaseSettings {
      * and define a WHERE clause.
      *
      * @param queryPlaceholder Whether to use placeholders for values in the query.
-     * @param columns A consumer that configures the columns to select via {@link ColumnManager}.
+     * @param callback A consumer that configures the columns to select via {@link ColumnBuilder}.
      * @param whereClause A function that builds the WHERE clause using {@link WhereBuilder}.
      */
-    public void setSelectCommand(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnManager> columns, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
-        this.queryBuilder(queryPlaceholder, columns, whereClause);
+    public void setSelectCommand(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnBuilder> callback, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
+        this.queryBuilder(queryPlaceholder, callback, whereClause);
     }
 
-    private void queryBuilder(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnManager> columns, @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
+    private void queryBuilder(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnBuilder> callback, @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
         QueryBuilder builder = new QueryBuilder();
-        ColumnManager columnManager = new ColumnManager();
-        columns.accept(columnManager);
         builder.setGlobalEnableQueryPlaceholders(queryPlaceholder);
 
         if (whereClause != null)
-            builder.select(columnManager).from(this.getTableName()).where(whereClause);
+            builder.select(callback).from(this.getTableName()).where(whereClause);
         else
-            builder.select(columnManager).from(this.getTableName());
+            builder.select(callback).from(this.getTableName());
         this.queryBuilder = builder;
     }
 

@@ -129,7 +129,7 @@ public class BatchExecutor<T> {
 
             if (primaryValueSet && hasUpdateIntent) {
                 final SqlQuery query = tableQuery.selectRow(columnManger -> {
-                    final List<TableColumn> collect = new ArrayList<>(table.getPrimaryColumns());
+                    final List<Column> collect = new ArrayList<>(table.getPrimaryColumns());
                     columnManger.addAll(collect);
                 }, true, finalWhereStrategy);
                 canUpdateRow = this.checkIfRowExist(query, false);

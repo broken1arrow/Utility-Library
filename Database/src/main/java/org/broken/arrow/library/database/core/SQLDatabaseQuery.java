@@ -240,7 +240,7 @@ public abstract class SQLDatabaseQuery extends Database {
         table.createWhereClauseFromPrimaryColumns(whereBuilder, columnValue);
         Validate.checkBoolean(whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 
-        final SqlQuery selectRow = tableQuery.selectRow(columnManger -> columnManger.addAll(table.getTable().getTableColumns()), whereBuilder);
+        final SqlQuery selectRow = tableQuery.selectRow(columnManger -> columnManger.addAll(new ArrayList<>(table.getTable().getTableColumns())), whereBuilder);
 
         this.executeQuery(QueryDefinition.of(selectRow.getSql()), statementWrapper -> {
             PreparedStatement preparedStatement = statementWrapper.getContextResult();

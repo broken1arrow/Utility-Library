@@ -6,6 +6,7 @@ import org.broken.arrow.library.database.construct.query.builder.clause.OrderByB
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuildContext;
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinCondition;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
@@ -144,7 +145,7 @@ public class QueryRemover {
             switch (join.getType()) {
                 case INNER:
                     final QueryBuilder innerSubBuilder = new QueryBuilder();
-                    final QueryModifier innerModifier = innerSubBuilder.select(ColumnManager.of().column("1"))
+                    final QueryModifier innerModifier = innerSubBuilder.select( columnBuilder -> columnBuilder.add("1"))
                             .from(join.getTable(), join.getTableAlias());
 
                     WhereBuilder builder = new WhereBuilder();
@@ -154,7 +155,7 @@ public class QueryRemover {
                     break;
                 case LEFT:
                     final QueryBuilder subQueryBuilder = new QueryBuilder();
-                    final QueryModifier modifier = subQueryBuilder.select(ColumnManager.of().column("1"))
+                    final QueryModifier modifier = subQueryBuilder.select(columnBuilder -> columnBuilder.add("1"))
                             .from(join.getTable(), join.getTableAlias());
 
                     WhereBuilder subWhere = new WhereBuilder();

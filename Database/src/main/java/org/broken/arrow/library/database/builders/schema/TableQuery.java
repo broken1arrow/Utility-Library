@@ -2,6 +2,7 @@ package org.broken.arrow.library.database.builders.schema;
 
 import org.broken.arrow.library.database.builders.wrappers.SqlQuery;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.InsertHandler;
 import org.broken.arrow.library.database.construct.query.builder.statement.UpdateBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
@@ -99,12 +100,11 @@ public class TableQuery {
      * @param whereClause       a function defining the conditions used to filter which row(s) to select
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
-    public SqlQuery selectRow(@Nonnull final Consumer<ColumnManager> callback, final boolean queryPlaceholders, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
-        QueryBuilder queryBuilder = new QueryBuilder();
-        ColumnManager columnManger = new ColumnManager();
-        callback.accept(columnManger);
+    public SqlQuery selectRow(@Nonnull final Consumer<ColumnBuilder> callback, final boolean queryPlaceholders, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
+        final QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(queryPlaceholders);
-        queryBuilder.select(columnManger).from(this.tableName).where(whereClause);
+        queryBuilder.select(callback).from(this.tableName).where(whereClause);
+
         return new SqlQuery(queryBuilder, queryBuilder.getValues());
     }
 
@@ -117,12 +117,10 @@ public class TableQuery {
      * @param whereClause the conditions used to filter which row(s) to select
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
-    public SqlQuery selectRow(@Nonnull final Consumer<ColumnManager> callback, @Nonnull final WhereBuilder whereClause) {
-        QueryBuilder queryBuilder = new QueryBuilder();
-        ColumnManager columnManger = new ColumnManager();
-        callback.accept(columnManger);
+    public SqlQuery selectRow(@Nonnull final Consumer<ColumnBuilder> callback, @Nonnull final WhereBuilder whereClause) {
+        final QueryBuilder queryBuilder = new QueryBuilder();
+        queryBuilder.select(callback).from(this.tableName).where(whereClause);
 
-        queryBuilder.select(columnManger).from(this.tableName).where(whereClause);
         return new SqlQuery(queryBuilder, queryBuilder.getValues());
     }
 
@@ -136,6 +134,7 @@ public class TableQuery {
         QueryBuilder queryBuilder = new QueryBuilder();
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.deleteFrom(this.tableName).where(whereClause);
+
         return new SqlQuery(queryBuilder, queryBuilder.getValues());
     }
 

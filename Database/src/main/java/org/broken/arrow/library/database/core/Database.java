@@ -668,7 +668,7 @@ public abstract class Database {
         try {
             final List<String> column = new ArrayList<>();
             final QueryBuilder queryBuilder = new QueryBuilder();
-            queryBuilder.select(ColumnManager.of().add(Column.of("*"))).from(tableName);
+            queryBuilder.select(columnBuilder -> columnBuilder.add("*")).from(tableName);
             final String queryAllColumns = queryBuilder.build();
             statement = connection.prepareStatement(queryAllColumns);
             rs = statement.executeQuery();
@@ -853,7 +853,7 @@ public abstract class Database {
      */
     private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
         final QueryBuilder queryBuilder = new QueryBuilder();
-        queryBuilder.select(ColumnManager.of().add(Column.of("*"))).from(tableName).where(where -> where.where(columName).equal(SqlArg.val("")));
+        queryBuilder.select(columnBuilder -> columnBuilder.add("*")).from(tableName).where(where -> where.where(columName).equal(SqlArg.val("")));
         final String checkTableQuery = queryBuilder.build();
 
         try (final PreparedStatement preparedStatement = connection.prepareStatement(checkTableQuery)) {

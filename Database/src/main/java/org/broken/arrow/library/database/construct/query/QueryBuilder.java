@@ -1,5 +1,6 @@
 package org.broken.arrow.library.database.construct.query;
 
+import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.InsertHandler;
 import org.broken.arrow.library.database.construct.query.builder.statement.QueryRemover;
@@ -147,6 +148,18 @@ public class QueryBuilder {
     public QueryModifier select(ColumnManager column) {
         this.queryType = QueryType.SELECT;
         queryModifier.select(selectBuilder -> selectBuilder.addAll(column.getColumnsBuilt()));
+        return queryModifier;
+    }
+
+    /**
+     * Starts building a SELECT query with the given ColumnBuilder instance.
+     *
+     * @param callback build the columns to select in the query.
+     * @return the query modifier for configuring the select query
+     */
+    public QueryModifier select(@Nonnull final Consumer<ColumnBuilder> callback) {
+        this.queryType = QueryType.SELECT;
+        queryModifier.select(callback);
         return queryModifier;
     }
 
