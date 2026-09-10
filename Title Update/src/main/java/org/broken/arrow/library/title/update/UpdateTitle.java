@@ -169,7 +169,10 @@ public class UpdateTitle {
 
 				inventoryView.setTitle(titleUtility.getTitle(SERVER_VERSION) + "");
 			} catch (IllegalArgumentException e) {
-				logger.log(Level.INFO, () -> "Could not render this inventory: " + inventoryView.getType());
+				if (titleUtility.isTitleSet())
+					logger.log(Level.INFO, () -> "Could not render this inventory: '" + inventoryView.getType() + "' The text: '" + titleUtility.getTitle(SERVER_VERSION) + "'");
+				else
+					logger.log(Level.INFO, () -> "Could not render this inventory: '" + inventoryView.getType() + "' The text: ''");
 			} catch (Exception exception) {
 				logger.log(Level.WARNING, exception, () -> "Something was not working when update the title: " + inventoryView.getType());
 				hasCastEx = true;
