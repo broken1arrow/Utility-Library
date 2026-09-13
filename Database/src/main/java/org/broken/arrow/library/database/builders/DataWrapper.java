@@ -69,7 +69,7 @@ public class DataWrapper {
     public DataWrapper(@Nonnull final PrimaryWrapper wrapper, @Nonnull final ConfigurationSerializable serialize) {
         this("", serialize);
         primaryWrapper = wrapper;
-        this.writeContext = WriteContext.empty();
+        this.writeContext = WriteContext.whereClause(primaryWrapper.getWhereClause());
     }
 
     /**
@@ -132,14 +132,17 @@ public class DataWrapper {
      */
     @Nonnull
     public WriteContext getWriteContext() {
-        if (writeContext == null)
-            this.writeContext = WriteContext.empty();
+        WriteContext context = this.writeContext;
+        if (context == null)
+            context = WriteContext.whereClause(null);
 
-        if (primaryWrapper != null && (writeContext.getColumnContext().isEmpty() || writeContext.getWhereClause() == null)) {
-            primaryWrapper.primaryKeys.forEach((s, object) -> writeContext.put(s, object));
-            writeContext.withWhereClause(primaryWrapper.getWhereClause());
+        if (primaryWrapper != null) {
+            if (context.getWhereClause() == null)
+                context = WriteContext.whereClause(primaryWrapper.getWhereClause());
+            primaryWrapper.primaryKeys.forEach(context::put);
         }
-        return writeContext;
+        this.writeContext = context;
+        return context;
     }
 
     /**

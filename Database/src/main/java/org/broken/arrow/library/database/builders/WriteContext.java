@@ -1,6 +1,11 @@
 package org.broken.arrow.library.database.builders;
 
+import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
+import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
 import org.broken.arrow.library.database.utility.WhereClauseFunction;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -9,27 +14,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Contextual data used when executing database write operations (e.g., UPDATE, DELETE).
+ * Contextual data and lookup logic used when executing database write operations (e.g., INSERT, UPDATE, DELETE).
  * <p>
- * This is particularly useful for storing extra mapped key/value pairs that are not natively
- * included in the main serialized data payload. Examples include composite primary keys,
- * tenant identifiers, extra map keys, or complex types (like a location) that
- * need to be split and mapped across multiple separate database columns.
+ * This class serves as the canonical builder for write operations by requiring a target {@link WhereClauseFunction}
+ * as its primary entry point. It cleanly separates the <strong>conditions used to find target rows</strong> from the
+ * <strong>explicit column assignments (values) being written</strong>.
  * </p>
  * <p>
- * It pairs these extra column constraints with an optional {@link WhereClauseFunction} to
- * precisely target specific rows during the operation.
- * </p>
- * <p>
- * <strong>Note:</strong> It is recommended to also set a custom {@link #withWhereClause(WhereClauseFunction)} if
- * complex targeting is needed; otherwise, the database operation will typically fall back
- * to a standard equality check against the provided keys (e.g., {@code WHERE key = value}) with
- * an {@code "and"} clause for several key/values.
+ * Column assignments (e.g., extra mapped columns, tenant identifiers, or composite key values) can be chained
+ * via {@link #put(String, Object)} or {@link #putAll(Map)}. If no explicit column values are provided, the context
+ * will attempt to automatically infer single-value equality conditions from the {@link WhereClauseFunction}.
  * </p>
  */
 public class WriteContext {
     private final Map<String, Object> columnContext;
-    private WhereClauseFunction whereClause;
+    private final WhereClauseFunction whereClause;
+    private boolean valuesCompiled;
 
     private WriteContext(@Nonnull final Map<String, Object> columnContext, @Nullable final WhereClauseFunction whereClause) {
         this.columnContext = new HashMap<>(columnContext);
@@ -37,50 +37,26 @@ public class WriteContext {
     }
 
     /**
-     * Creates an empty write context, to populate later.
-     *
-     * @return a new context without any key/value mappings set.
-     */
-    @Nonnull
-    public static WriteContext empty() {
-        return new WriteContext(new HashMap<>(), null);
-    }
-
-    /**
-     * Convenience factory to start a write context initialized with a single key-value mapping.
-     *
-     * @param key   the primary column name.
-     * @param value the value for the column.
-     * @return a new context containing the specified key/value pair.
-     */
-    @Nonnull
-    public static WriteContext with(@Nonnull final String key, @Nonnull final Object value) {
-        return empty().put(key, value);
-    }
-
-    /**
-     * Creates a write context populated from an existing map of keys.
+     * Entry point for creating a write context initialized with a target WHERE clause.
      * <p>
-     * Useful for bulk-loading extra column context, such as predefined composite keys
-     * or a map of auxiliary data fields.
+     * Use this method to establish row-targeting logic (e.g., exact match, IN, BETWEEN, complex AND/OR chains).
+     * Additional key/value pairs to be updated or inserted can then be appended using
+     * {@link #put(String, Object)} or {@link #putAll(Map)}.
      * </p>
      *
-     * @param columnContext the map containing column names and their corresponding values.
-     * @return a new context initialized with the provided column mappings.
+     * @param whereClause the logical WHERE clause defining row targeting criteria for the query.
+     * @return a new, empty context configured with the specified WHERE clause.
      */
     @Nonnull
-    public static WriteContext fromMap(@Nonnull final Map<String, Object> columnContext) {
-        return new WriteContext(columnContext, null);
+    public static WriteContext whereClause(@Nullable final WhereClauseFunction whereClause) {
+        return new WriteContext(new HashMap<>(), whereClause);
     }
 
     /**
-     * Adds an extra column mapping and its associated value, returning {@code this} for chaining.
-     * <p>
-     * Use this to append additional contextual data, such as extra map keys, routing keys,
-     * or split fields that belong in their own distinct columns.
+     * Adds an explicitly defined column and its associated value to the cache.
      *
-     * @param key   the column name.
-     * @param value the value for the column.
+     * @param key   the target database column name.
+     * @param value the value to set for the column.
      * @return this context instance for method chaining.
      */
     @Nonnull
@@ -90,45 +66,86 @@ public class WriteContext {
     }
 
     /**
-     * Sets the custom WHERE clause function.
+     * Adds an explicit set of column mappings to the cache.
      *
-     * @param whereClause the logical WHERE clause to apply to the database query.
+     * @param columnContext a map containing column names and their corresponding write values.
      * @return this context instance for method chaining.
      */
     @Nonnull
-    public WriteContext withWhereClause(@Nullable final WhereClauseFunction whereClause) {
-        this.whereClause = whereClause;
+    public WriteContext putAll(@Nonnull final Map<String, Object> columnContext) {
+        this.columnContext.putAll(columnContext);
         return this;
     }
 
     /**
-     * Returns an unmodifiable view of the current column constraints.
+     * Returns an unmodifiable view of the data column mappings to be written.
      *
-     * @return a map of the targeted columns and their associated values.
+     * @return an unmodifiable map of the targeted write columns and their values.
      */
     @Nonnull
     public Map<String, Object> getColumnContext() {
+        compileValues();
         return Collections.unmodifiableMap(columnContext);
     }
 
     /**
-     * Returns the target value for a specific column constraint.
+     * Returns the target write value for a specific column.
      *
      * @param column the column name to look up.
-     * @return the value associated with the column, or {@code null} if not present or explicitly set to null.
+     * @return the value associated with the column, or {@code null} if not present or set to null.
      */
     @Nullable
     public Object getValue(@Nonnull final String column) {
+        compileValues();
         return columnContext.get(column);
     }
 
     /**
-     * Returns the custom WHERE clause applier, if one has been set.
+     * Returns the custom WHERE clause function used to target specific rows, if one was configured.
      *
-     * @return the WHERE clause function, or {@code null} if none is configured.
+     * @return the WHERE clause function, or {@code null} if none is set.
      */
     @Nullable
     public WhereClauseFunction getWhereClause() {
         return whereClause;
+    }
+
+    /**
+     * Lazily parses the WHERE clause to autofill the column assignments when explicit values are omitted.
+     */
+    private synchronized void compileValues() {
+        if (!this.columnContext.isEmpty()) return;
+        if (this.valuesCompiled) return;
+
+        final WhereClauseFunction clause = getWhereClause();
+        if (clause == null) {
+            throw new Validate.ValidateExceptions(
+                    "No WHERE clause or column values were configured for this WriteContext. " +
+                            "You must specify write values using put(column, value) or putAll(map), " +
+                            "or provide a valid whereClause function."
+            );
+        }
+        final WhereBuilder builder = new WhereBuilder(new QueryBuilder());
+        clause.apply(builder);
+
+        for (ComparisonHandler<WhereBuilder> comparison : builder.getConditionsList()) {
+            if (!comparison.getLogicalComparison().equals(LogicalComparison.EQUALS) || comparison.getValues().length != 1) {
+                throw new Validate.ValidateExceptions(
+                        "No explicit column values were provided, and automatic inference failed. " +
+                                "Column '" + comparison.getColumnName() + "' uses a non-EQUALS or multi-value operator. " +
+                                "You must explicitly specify the values to write using put(column, value) or putAll(map)."
+                );
+            }
+            this.columnContext.put(comparison.getColumnName(), comparison.getValues()[0]);
+        }
+        this.valuesCompiled = true;
+    }
+
+    @Override
+    public String toString() {
+        return "WriteContext{" +
+                "columnContext=" + columnContext +
+                ", hasWhereClause=" + (whereClause != null) +
+                '}';
     }
 }

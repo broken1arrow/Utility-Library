@@ -52,26 +52,10 @@ import java.util.stream.Collectors;
  * @param <T> The type of data to be saved or processed.
  */
 public class BatchExecutor<T> {
-
-    /**
-     * Database instance.
-     */
     protected final Database database;
-    /**
-     * Data to process.
-     */
     protected final List<T> dataToProcess;
-    /**
-     * Database connection.
-     */
     protected final Connection connection;
-    /**
-     * Result set.
-     */
     protected final int resultSetType;
-    /**
-     * Result set concurrency.
-     */
     protected final int resultSetConcurrency;
     private final Logging log = new Logging(BatchExecutor.class);
     private final DatabaseCommandConfig databaseConfig;
@@ -755,6 +739,9 @@ public class BatchExecutor<T> {
         /**
          * Extracts keys from the first valid DataWrapper in the batch.
          * This acts as the fallback "truth" when the dev doesn't explicitly provide matchKeys.
+         *
+         * @param dataToProcess the data to progress
+         * @return A list of set columns.
          */
         private List<String> inferKeysFromData(List<T> dataToProcess) {
             for (T item : dataToProcess) {
@@ -804,7 +791,7 @@ public class BatchExecutor<T> {
         }
 
         @Nonnull
-        private QueryBuilder buildJoinQuery(@NonNull final  String targetTable) {
+        private QueryBuilder buildJoinQuery(@NonNull final String targetTable) {
             final QueryBuilder checkMatch = new QueryBuilder();
             checkMatch.select(c -> matchKeys.forEach(col -> c.add(Column.of("temp." + col))))
                     .from(targetTable, "target")
@@ -832,11 +819,11 @@ public class BatchExecutor<T> {
     // THE BUILDER
     // =========================================================================
 
-   private static <T> Builder<T> builder(Connection connection) {
+    private static <T> Builder<T> builder(Connection connection) {
         return new Builder<>(connection);
     }
 
-    static class Builder<T> {
+    public static class Builder<T> {
         private final Connection connection;
         private List<T> rows = new ArrayList<>();
         private List<String> matchKeys = new ArrayList<>();
