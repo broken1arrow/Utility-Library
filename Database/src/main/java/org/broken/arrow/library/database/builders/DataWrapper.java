@@ -69,6 +69,7 @@ public class DataWrapper {
     public DataWrapper(@Nonnull final PrimaryWrapper wrapper, @Nonnull final ConfigurationSerializable serialize) {
         this("", serialize);
         primaryWrapper = wrapper;
+        this.writeContext = WriteContext.empty();
     }
 
     /**

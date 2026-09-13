@@ -93,6 +93,7 @@ public class QueryBuilder {
         return createTableHandler;
     }
 
+
     /**
      * Starts building a CREATE TABLE IF NOT EXISTS query for the specified table.
      *
@@ -103,6 +104,19 @@ public class QueryBuilder {
         this.queryType = QueryType.CREATE_IF_NOT_EXISTS;
         this.table = table;
         return createTableHandler;
+    }
+
+    /**
+     * Starts building a CREATE TEMPORARY TABLE query for the specified table.
+     *
+     * @param table the name of the table to create if not exists
+     * @return the handler to configure the table creation details
+     */
+    public CreateTableHandler createTemporaryTable(String table) {
+        this.queryType = QueryType.CREATE_TEMPORARY;
+        this.table = table;
+        return createTableHandler;
+
     }
 
     /**
@@ -446,6 +460,9 @@ public class QueryBuilder {
             case CREATE_IF_NOT_EXISTS:
                 sql.append("CREATE TABLE IF NOT EXISTS ").append(table).append(this.createTableHandler.build());
                 break;
+            case CREATE_TEMPORARY:
+                sql.append("CREATE TEMPORARY TABLE ").append(table).append(this.createTableHandler.build());
+                break;
             case UPDATE:
                 createUpdateQuery(sql);
                 break;
@@ -547,4 +564,6 @@ public class QueryBuilder {
             sql.append(clause);
         }
     }
+
+
 }

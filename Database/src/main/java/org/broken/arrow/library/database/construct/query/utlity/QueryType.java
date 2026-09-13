@@ -25,6 +25,9 @@ public enum QueryType {
     /** A {@code CREATE IF NOT EXISTS} query, used to create a new object only if it does not already exist. */
     CREATE_IF_NOT_EXISTS,
 
+    /** A {@code CREATE TEMPORARY} query, used to create a temporary table (e.g., table, view). */
+    CREATE_TEMPORARY,
+
     /** An {@code UPDATE} query, used to modify existing rows in a table. */
     UPDATE,
 
@@ -48,7 +51,7 @@ public enum QueryType {
 
     /** Indicates that no valid query type was detected. */
     NON,
-  ;
+   ;
 
     /**
      * Attempts to match a string to an exact {@link QueryType}.
