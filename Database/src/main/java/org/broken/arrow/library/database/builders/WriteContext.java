@@ -116,17 +116,7 @@ public class WriteContext {
     private synchronized void compileValues() {
         if (!this.columnContext.isEmpty()) return;
         if (this.valuesCompiled) return;
-
-        final WhereClauseFunction clause = getWhereClause();
-        if (clause == null) {
-            throw new Validate.ValidateExceptions(
-                    "No WHERE clause or column values were configured for this WriteContext. " +
-                            "You must specify write values using put(column, value) or putAll(map), " +
-                            "or provide a valid whereClause function."
-            );
-        }
-        final WhereBuilder builder = new WhereBuilder(new QueryBuilder());
-        clause.apply(builder);
+        final WhereBuilder builder = getWhereBuilder();
 
         for (ComparisonHandler<WhereBuilder> comparison : builder.getConditionsList()) {
             if (!comparison.getLogicalComparison().equals(LogicalComparison.EQUALS) || comparison.getValues().length != 1) {
@@ -139,6 +129,21 @@ public class WriteContext {
             this.columnContext.put(comparison.getColumnName(), comparison.getValues()[0]);
         }
         this.valuesCompiled = true;
+    }
+
+    @Nonnull
+    private WhereBuilder getWhereBuilder() {
+        final WhereClauseFunction clause = getWhereClause();
+        if (clause == null) {
+            throw new Validate.ValidateExceptions(
+                    "No WHERE clause or column values were configured for this WriteContext. " +
+                            "You must specify write values using put(column, value) or putAll(map), " +
+                            "or provide a valid whereClause function."
+            );
+        }
+        final WhereBuilder builder = new WhereBuilder(new QueryBuilder());
+        clause.apply(builder);
+        return builder;
     }
 
     @Override

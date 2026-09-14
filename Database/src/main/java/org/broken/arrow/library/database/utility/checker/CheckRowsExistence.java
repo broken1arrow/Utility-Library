@@ -122,7 +122,7 @@ public class CheckRowsExistence<T> {
      */
     private List<String> inferKeysFromData(List<T> dataToProcess) {
         for (T item : dataToProcess) {
-            DataWrapper dataWrapper = getDataWrapper(item);
+            final DataWrapper dataWrapper = getDataWrapper(item);
             if (dataWrapper != null) {
                 Map<String, Object> ctx = dataWrapper.getWriteContext().getColumnContext();
                 if (!ctx.isEmpty()) {
