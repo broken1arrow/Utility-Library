@@ -32,6 +32,22 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+/**
+ * An efficient batch processor that determines which rows from a dataset already exist in a target database table.
+ *
+ * <p>This class is primarily used to separate a dataset into "inserts" and "updates". It achieves
+ * high performance for batch operations by:
+ * <ol>
+ *     <li>Creating a lightweight temporary table.</li>
+ *     <li>Inserting the composite keys of the provided rows into this temp table.</li>
+ *     <li>Performing an inner join between the temporary table and the target table to find exact matches.</li>
+ * </ol>
+ *
+ * <p>The result is partitioned into a {@link Map} where {@code true} represents rows that exist in the target table,
+ * and {@code false} represents missing rows.
+ *
+ * @param <T> the type of the data items being processed. Items are typically expected to be instances of {@code DataWrapper}.
+ */
 public class CheckRowsExistence<T> {
     private final Logging log = new Logging(CheckRowsExistence.class);
     private final String tempTableName = "temp_keys";
@@ -40,7 +56,12 @@ public class CheckRowsExistence<T> {
     private final List<T> rows;
     private final List<String> matchKeys;
 
-    // Private constructor forces the use of the Builder
+    /**
+     * Private constructor forcing the use of the {@link Builder}.
+     *
+     * @param builder the configured builder containing the connection, data, and matching criteria
+     * @throws IllegalArgumentException if matching keys cannot be determined from the builder or inferred from the data
+     */
     private CheckRowsExistence(@Nonnull final Builder<T> builder) {
         this.connection = Objects.requireNonNull(builder.connection, "Connection cannot be null");
         this.rows = Objects.requireNonNull(builder.rows, "dataToProcess cannot be null");
@@ -57,6 +78,20 @@ public class CheckRowsExistence<T> {
         }
     }
 
+    /**
+     * Evaluates the provided batch of rows against the target table to verify their existence.
+     *
+     * <p>This method safely handles the lifecycle of the internal temporary table, ensuring it is
+     * dropped even if the matching query fails.
+     *
+     * @param targetTable the name of the database table to check for existing records
+     * @return a map partitioning the original rows:
+     *         <ul>
+     *           <li>{@code true} maps to a list of rows that <b>already exist</b> in the target table (candidates for UPDATE).</li>
+     *           <li>{@code false} maps to a list of rows that <b>do not exist</b> (candidates for INSERT).</li>
+     *         </ul>
+     * @throws SQLException if a database access error occurs during temp table creation, insertion, or execution of the join query
+     */
     public Map<Boolean, List<T>> partitionByCompositeKeys(@Nonnull final String targetTable) throws SQLException {
         if (rows.isEmpty()) {
             return new HashMap<>();
@@ -114,11 +149,11 @@ public class CheckRowsExistence<T> {
     }
 
     /**
-     * Extracts keys from the first valid DataWrapper in the batch.
-     * This acts as the fallback "truth" when the dev doesn't explicitly provide matchKeys.
+     * Extracts keys from the first valid {@code DataWrapper} in the batch.
+     * This acts as the fallback "truth" when the developer doesn't explicitly provide matchKeys.
      *
-     * @param dataToProcess the data to progress
-     * @return A list of set columns.
+     * @param dataToProcess the collection of data being processed
+     * @return a list of column names derived from the data context, or an empty list if none are found
      */
     private List<String> inferKeysFromData(List<T> dataToProcess) {
         for (T item : dataToProcess) {
@@ -133,7 +168,12 @@ public class CheckRowsExistence<T> {
         return Collections.emptyList();
     }
 
-
+    /**
+     * Creates an empty temporary table structured with only the columns necessary for key matching.
+     *
+     * @param targetTable the source table to derive column types from
+     * @throws SQLException if a database access error occurs
+     */
     private void createTempTable(String targetTable) throws SQLException {
         final QueryBuilder createTemp = new QueryBuilder();
         createTemp.createTemporaryTable(tempTableName)
@@ -147,6 +187,12 @@ public class CheckRowsExistence<T> {
         }
     }
 
+    /**
+     * Inserts the extracted composite key values of the current batch into the temporary table.
+     *
+     * @param extractKeyValues a function that extracts ordered key values from a single row
+     * @throws SQLException if batch insertion fails
+     */
     private void insertData(@NonNull final Function<T, List<Object>> extractKeyValues) throws SQLException {
         final QueryBuilder insertTemp = new QueryBuilder();
         insertTemp.insertInto(tempTableName, insert -> {
@@ -167,6 +213,13 @@ public class CheckRowsExistence<T> {
         }
     }
 
+    /**
+     * Constructs the inner join query between the target table and the temporary table
+     * to identify existing records.
+     *
+     * @param targetTable the destination table being checked against
+     * @return a {@link QueryBuilder} configured to select matched keys
+     */
     @Nonnull
     private QueryBuilder buildJoinQuery(@NonNull final String targetTable) {
         final QueryBuilder checkMatch = new QueryBuilder();
@@ -187,33 +240,63 @@ public class CheckRowsExistence<T> {
         return checkMatch;
     }
 
+    /**
+     * Safely casts the generic item to a {@code DataWrapper} if possible.
+     *
+     * @param item the generic item
+     * @return the cast {@code DataWrapper}, or null if the item is not of that type
+     */
     private DataWrapper getDataWrapper(@Nullable final T item) {
         return (item instanceof DataWrapper) ? (DataWrapper) item : null;
     }
 
-    // =========================================================================
-    // THE BUILDER
-    // =========================================================================
+    /**
+     * Initializes a new builder for {@link CheckRowsExistence}.
+     *
+     * @param connection the database connection to use
+     * @param <T> the type of data rows to be processed
+     * @return a new builder instance
+     */
     public static <T> Builder<T> builder(Connection connection) {
         return new Builder<>(connection);
     }
 
+    /**
+     * Builder class for configuring and instantiating {@link CheckRowsExistence}.
+     *
+     * @param <T> the type of the data rows being processed
+     */
     static class Builder<T> {
         private final Connection connection;
         private List<T> rows = new ArrayList<>();
         private List<String> matchKeys = new ArrayList<>();
 
+        /**
+         * Builder class for configuring and instantiating {@link CheckRowsExistence}.
+         *
+         * @param connection the database connection to use
+         */
         public Builder(Connection connection) {
             this.connection = connection;
         }
 
+        /**
+         * Sets the dataset to be evaluated.
+         *
+         * @param dataToProcess a list of records to check for existence
+         * @return this builder instance
+         */
         public Builder<T> withData(@Nonnull List<T> dataToProcess) {
             this.rows = dataToProcess;
             return this;
         }
 
         /**
-         * Optional: Explicitly define columns to match on using Varargs.
+         * Explicitly defines the column names that form the composite key to match on, using Varargs.
+         * If not provided, the class will attempt to infer these keys from the dataset.
+         *
+         * @param columns the names of the database columns to use for matching
+         * @return this builder instance
          */
         public Builder<T> matchOn(String... columns) {
             this.matchKeys = Arrays.asList(columns);
@@ -221,13 +304,22 @@ public class CheckRowsExistence<T> {
         }
 
         /**
-         * Optional: Explicitly define columns to match on using a List.
+         * Explicitly defines the column names that form the composite key to match on, using a List.
+         * If not provided, the class will attempt to infer these keys from the dataset.
+         *
+         * @param columns a list of database column names to use for matching
+         * @return this builder instance
          */
         public Builder<T> matchOn(List<String> columns) {
             this.matchKeys = columns;
             return this;
         }
 
+        /**
+         * Constructs the configured {@link CheckRowsExistence} instance.
+         *
+         * @return a fully initialized {@link CheckRowsExistence}
+         */
         public CheckRowsExistence<T> build() {
             return new CheckRowsExistence<>(this);
         }
