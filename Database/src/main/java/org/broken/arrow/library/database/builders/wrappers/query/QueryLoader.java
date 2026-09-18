@@ -48,16 +48,16 @@ public class QueryLoader<T extends ConfigurationSerializable> {
      * Constructs a new QueryLoader instance.
      *
      * @param sqlDatabaseQuery the underlying database query executor (never null)
-     * @param tableName the name of the database table to query (never null)
-     * @param clazz the class of the type {@code T} to deserialize rows into (never null)
-     * @param setup a consumer that configures the loading setup, e.g. specifying filters or columns (never null)
+     * @param tableName        the name of the database table to query (never null)
+     * @param clazz            the class of the type {@code T} to deserialize rows into (never null)
+     * @param setup            a consumer that configures the loading setup, e.g. specifying filters or columns (never null)
      */
     public QueryLoader(@Nonnull final SQLDatabaseQuery sqlDatabaseQuery, @Nonnull final String tableName, @Nonnull final Class<T> clazz, @Nonnull final Consumer<LoadSetup<T>> setup) {
         this.sqlDatabaseQuery = sqlDatabaseQuery;
         this.tableName = tableName;
         this.clazz = clazz;
         this.setup = setup;
-        this.databaseSettings = new DatabaseSettingsLoad(tableName);
+        this.databaseSettings = new DatabaseSettingsLoad(sqlDatabaseQuery.getDatabaseType(), tableName);
         this.databaseQueryHandler = new DatabaseQueryLoader<>(databaseSettings);
     }
 
@@ -139,10 +139,10 @@ public class QueryLoader<T extends ConfigurationSerializable> {
      * Filters the columns from the full database row data based on the columns specified in the select builder
      * and the database query handler's filtered columns.
      *
-     * @param columnRegistry the column builder that contains the selected columns
+     * @param columnRegistry       the column builder that contains the selected columns
      * @param databaseQueryHandler the query handler containing filtered column information
-     * @param dataFromDB the full row data fetched from the database
-     * @param <V> the type of the ConfigurationSerializable class
+     * @param dataFromDB           the full row data fetched from the database
+     * @param <V>                  the type of the ConfigurationSerializable class
      * @return a map containing only the filtered column names and their values
      */
     @Nonnull

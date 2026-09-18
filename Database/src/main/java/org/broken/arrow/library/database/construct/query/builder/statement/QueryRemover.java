@@ -29,7 +29,6 @@ import java.util.function.Function;
 public class QueryRemover {
     private final QueryBuilder queryBuilder;
     private final DatabaseType databaseType;
-    private WhereBuilder whereBuilderCopy;
     private WhereBuilder whereBuilder;
     private RemoveModifier removeModifier;
 
@@ -41,7 +40,7 @@ public class QueryRemover {
      */
     public QueryRemover(@Nonnull final QueryBuilder queryBuilder) {
         this.queryBuilder = queryBuilder;
-        this.databaseType = DatabaseType.POSTGRESQL;
+        this.databaseType = queryBuilder.getDatabaseType();
 
     }
 
@@ -144,7 +143,7 @@ public class QueryRemover {
         for (JoinCondition join : joinBuilder.getJoinBuilders()) {
             switch (join.getType()) {
                 case INNER:
-                    final QueryBuilder innerSubBuilder = new QueryBuilder();
+                    final QueryBuilder innerSubBuilder = new QueryBuilder(this.databaseType);
                     final QueryModifier innerModifier = innerSubBuilder.select( columnBuilder -> columnBuilder.add("1"))
                             .from(join.getTable(), join.getTableAlias());
 
@@ -154,7 +153,7 @@ public class QueryRemover {
                     mainWhereBuilder.chainWhere().and().where("").exists(innerSubBuilder);
                     break;
                 case LEFT:
-                    final QueryBuilder subQueryBuilder = new QueryBuilder();
+                    final QueryBuilder subQueryBuilder = new QueryBuilder(this.databaseType);
                     final QueryModifier modifier = subQueryBuilder.select(columnBuilder -> columnBuilder.add("1"))
                             .from(join.getTable(), join.getTableAlias());
 

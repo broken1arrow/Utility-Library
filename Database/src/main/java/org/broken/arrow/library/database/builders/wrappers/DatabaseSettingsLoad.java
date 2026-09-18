@@ -4,8 +4,8 @@ import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.core.Database;
+import org.broken.arrow.library.database.utility.DatabaseType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,16 +19,18 @@ import java.util.function.Function;
  * that support partial or conditional fetching of rows.
  */
 public class DatabaseSettingsLoad extends DatabaseSettings {
-
+    private final DatabaseType databaseType;
     private QueryBuilder queryBuilder;
 
     /**
      * Constructs a new load settings instance for the specified table.
      *
-     * @param tableName The name of the table to load data from.
+     * @param databaseType the type of database used for this settings context.
+     * @param tableName    The name of the table to load data from.
      */
-    public DatabaseSettingsLoad(@Nonnull String tableName) {
+    public DatabaseSettingsLoad(@Nonnull final DatabaseType  databaseType, @Nonnull final String tableName) {
         super(tableName);
+        this.databaseType = databaseType;
     }
 
     /**
@@ -78,7 +80,7 @@ public class DatabaseSettingsLoad extends DatabaseSettings {
     }
 
     private void queryBuilder(final boolean queryPlaceholder, @Nonnull final Consumer<ColumnBuilder> callback, @Nullable final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
-        QueryBuilder builder = new QueryBuilder();
+        QueryBuilder builder = new QueryBuilder(this.databaseType);
         builder.setGlobalEnableQueryPlaceholders(queryPlaceholder);
 
         if (whereClause != null)

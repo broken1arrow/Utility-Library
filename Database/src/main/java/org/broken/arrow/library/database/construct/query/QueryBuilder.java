@@ -11,6 +11,7 @@ import org.broken.arrow.library.database.construct.query.builder.clause.wherebui
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.QueryType;
+import org.broken.arrow.library.database.utility.DatabaseType;
 
 
 import javax.annotation.Nonnull;
@@ -63,6 +64,7 @@ import java.util.stream.Collectors;
  * and other internal classes provide further query customization capabilities.
  */
 public class QueryBuilder {
+    private final DatabaseType databaseType;
     private final UpdateBuilder updateBuilder = new UpdateBuilder(this);
     private final InsertHandler insertHandler = new InsertHandler(this);
     private final QueryModifier queryModifier = new QueryModifier(this);
@@ -75,10 +77,23 @@ public class QueryBuilder {
     private boolean globalEnableQueryPlaceholders = true;
 
     /**
-     * Build a query with query type set to non.
+     * Build a query with query type set to non. Recommended you use {@link QueryBuilder(DatabaseType)} or
+     * it will be set to {@link DatabaseType#MYSQL}
+     *
      */
     public QueryBuilder() {
         this.queryType = QueryType.NON;
+        this.databaseType = DatabaseType.MYSQL;
+    }
+
+    /**
+     * Build a query with query type set to non.
+     *
+     * @param databaseType the database type you are target.
+     */
+    public QueryBuilder(@Nonnull final DatabaseType databaseType) {
+        this.queryType = QueryType.NON;
+        this.databaseType = databaseType;
     }
 
     /**
@@ -344,6 +359,16 @@ public class QueryBuilder {
     }
 
     /**
+     * Gets the database type this command will run inside.
+     *
+     * @return returns the database type.
+     */
+    @Nonnull
+    public DatabaseType getDatabaseType() {
+        return this.databaseType;
+    }
+
+    /**
      * Builds and returns the complete SQL query string with a trailing semicolon.
      *
      * @return the SQL query string
@@ -564,6 +589,5 @@ public class QueryBuilder {
             sql.append(clause);
         }
     }
-
 
 }

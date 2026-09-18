@@ -121,7 +121,7 @@ public class SchemaMigrationHandler {
     private boolean executeCreation(@Nonnull final TableSchema queryTable, @Nonnull final List<Column> columnsToAdd, @Nonnull boolean failCreateColumns) {
         if (this.databaseCore.getDatabaseType() == DatabaseType.SQLITE) {
             for (Column col : columnsToAdd) {
-                final QueryBuilder queryBuilder = new QueryBuilder();
+                final QueryBuilder queryBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
                 final AlterTable alterBuilder = queryBuilder.alterTable(queryTable.getTableName());
                 alterBuilder.add(col);
                 final String query = queryBuilder.build();
@@ -134,7 +134,7 @@ public class SchemaMigrationHandler {
                 }
             }
         } else {
-            final QueryBuilder queryBuilder = new QueryBuilder();
+            final QueryBuilder queryBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
             final AlterTable alterBuilder = queryBuilder.alterTable(queryTable.getTableName());
             for (Column col : columnsToAdd) {
                 alterBuilder.add(col);
@@ -161,7 +161,7 @@ public class SchemaMigrationHandler {
         final PrimaryKeyMigrationContext primaryWrapper = new PrimaryKeyMigrationContext(this.databaseCore, queryTable);
         handleConstraints.accept(queryTable.getTableName(), primaryWrapper);
 
-        final QueryBuilder builder = new QueryBuilder();
+        final QueryBuilder builder = new QueryBuilder(this.databaseCore.getDatabaseType());
         builder.select(columnBuilder -> columnBuilder.add("*")).from(queryTable.getTableName());
 
         final String builtQuery = builder.build();
@@ -223,7 +223,7 @@ public class SchemaMigrationHandler {
                 continue;
             }
 
-            final QueryBuilder saveBuilder = new QueryBuilder();
+            final QueryBuilder saveBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
             final Map<String, Object> primaryKeys = primary.getColumnContext();
 
             if (primaryKeys.entrySet().stream().anyMatch(entry -> entry.getKey() == null || entry.getValue() == null)) {
@@ -273,7 +273,7 @@ public class SchemaMigrationHandler {
         final String tableName = queryTable.getTableName();
 
         if (!columnsToBeModified.isEmpty() && !primaryValuesComplete) {
-            final QueryBuilder queryBuilder = new QueryBuilder();
+            final QueryBuilder queryBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
             queryBuilder.alterTable(tableName).setConstraints(modifyConstraints ->
                     modifyConstraints.addUnique(columnsToBeModified.stream().map(Column::getColumnName).toArray(String[]::new)));
             final String query = queryBuilder.build();
@@ -284,7 +284,7 @@ public class SchemaMigrationHandler {
             }
         }
         if (!columnsToBeModified.isEmpty() && primaryValuesComplete) {
-            final QueryBuilder queryBuilder = new QueryBuilder();
+            final QueryBuilder queryBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
             queryBuilder.alterTable(tableName).setConstraints(modifyConstraints -> {
                 modifyConstraints.dropPrimaryKey();
                 modifyConstraints.addPrimaryKey(columnsToBeModified.stream().map(Column::getColumnName).toArray(String[]::new));
@@ -323,7 +323,7 @@ public class SchemaMigrationHandler {
     }
 
     private void recreateTable(final TableSchema queryTable, final List<TableColumn> columnsToBeModified) {
-        final QueryBuilder queryBuilder = new QueryBuilder();
+        final QueryBuilder queryBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
         final String tableName = queryTable.getTableName();
         final String temporaryTable = tableName + "_new";
 
@@ -337,7 +337,7 @@ public class SchemaMigrationHandler {
             log.log(throwable, () -> getMessage("Failed to create table during primary key migration. Columns ", tableName, columnsToBeModified));
         }
 
-        final QueryBuilder queryInsertBuilder = new QueryBuilder();
+        final QueryBuilder queryInsertBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
         final ArrayList<Column> columns = new ArrayList<>(queryTable.getColumns());
         queryInsertBuilder.insertInto(temporaryTable, insertHandler -> {
             insertHandler.addAll(columns).getQueryModifier()
@@ -354,7 +354,7 @@ public class SchemaMigrationHandler {
         //todo handle when the the the primary column is an index.
         // updateIndex(connection, tableName);
 
-        final QueryBuilder queryDropBuilder = new QueryBuilder();
+        final QueryBuilder queryDropBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
         queryDropBuilder.dropTable(tableName);
         final String dropQuery = queryDropBuilder.build();
         try (final PreparedStatement statement = databaseConnection.prepareStatement(dropQuery)) {
@@ -363,7 +363,7 @@ public class SchemaMigrationHandler {
             log.log(throwable, () -> getMessage("Failed to drop table during primary key migration. Query ", tableName, dropQuery));
         }
 
-        final QueryBuilder queryAlterBuilder = new QueryBuilder();
+        final QueryBuilder queryAlterBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
         queryAlterBuilder.alterTable(temporaryTable).rename(tableName);
         final String alterQuery = queryAlterBuilder.build();
         try (final PreparedStatement statement = databaseConnection.prepareStatement(alterQuery)) {
@@ -375,7 +375,7 @@ public class SchemaMigrationHandler {
 
     private void updateIndex(final Connection connection, final String tableName) {
 
-        final QueryBuilder incrementIndexBuilder = new QueryBuilder();
+        final QueryBuilder incrementIndexBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
         List<Column> columns = new ArrayList<>();
         columns.add(new Column("name", ""));
         columns.add(new Column("seq", ""));

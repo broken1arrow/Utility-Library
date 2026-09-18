@@ -7,7 +7,7 @@ import org.broken.arrow.library.database.construct.query.builder.statement.inser
 import org.broken.arrow.library.database.construct.query.builder.statement.UpdateBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
+import org.broken.arrow.library.database.utility.DatabaseType;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -21,15 +21,18 @@ import java.util.function.Function;
  * </p>
  */
 public class TableQuery {
+    private final DatabaseType databaseType;
     private final String tableName;
     private boolean setGlobalEnableQueryPlaceholders = true;
 
     /**
      * Creates a new {@code TableQuery} for the specified table.
      *
-     * @param tableName the name of the database table this builder operates on
+     * @param databaseType the database type create the query for
+     * @param tableName    the name of the database table this builder operates on
      */
-    public TableQuery(@Nonnull final String tableName) {
+    public TableQuery(@Nonnull final DatabaseType databaseType, @Nonnull final String tableName) {
+        this.databaseType = databaseType;
         this.tableName = tableName;
     }
 
@@ -40,7 +43,7 @@ public class TableQuery {
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
     public SqlQuery replaceIntoTable(@Nonnull final Consumer<InsertHandler> callback) {
-        QueryBuilder queryBuilder = new QueryBuilder();
+        QueryBuilder queryBuilder = new QueryBuilder(this.databaseType);
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.replaceInto(this.tableName, callback);
         return new SqlQuery(queryBuilder, queryBuilder.getValues());
@@ -53,7 +56,7 @@ public class TableQuery {
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
     public SqlQuery insertIntoTable(@Nonnull final Consumer<InsertHandler> callback) {
-        QueryBuilder queryBuilder = new QueryBuilder();
+        QueryBuilder queryBuilder = new QueryBuilder(this.databaseType);
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.insertInto(this.tableName, callback);
         return new SqlQuery(queryBuilder, queryBuilder.getValues());
@@ -70,7 +73,7 @@ public class TableQuery {
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
     public SqlQuery mergeIntoTable(@Nonnull final Consumer<InsertHandler> callback) {
-        QueryBuilder queryBuilder = new QueryBuilder();
+        QueryBuilder queryBuilder = new QueryBuilder(this.databaseType);
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.mergeInto(this.tableName, callback);
         return new SqlQuery(queryBuilder, queryBuilder.getValues());
@@ -84,7 +87,7 @@ public class TableQuery {
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
     public SqlQuery updateTable(@Nonnull final Consumer<UpdateBuilder> callback, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
-        QueryBuilder queryBuilder = new QueryBuilder();
+        QueryBuilder queryBuilder = new QueryBuilder(this.databaseType);
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.update(this.tableName, callback).getSelector().where(whereClause);
         return new SqlQuery(queryBuilder, queryBuilder.getValues());
@@ -101,7 +104,7 @@ public class TableQuery {
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
     public SqlQuery selectRow(@Nonnull final Consumer<ColumnBuilder> callback, final boolean queryPlaceholders, @Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
-        final QueryBuilder queryBuilder = new QueryBuilder();
+        final QueryBuilder queryBuilder = new QueryBuilder(this.databaseType);
         queryBuilder.setGlobalEnableQueryPlaceholders(queryPlaceholders);
         queryBuilder.select(callback).from(this.tableName).where(whereClause);
 
@@ -118,7 +121,7 @@ public class TableQuery {
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
     public SqlQuery selectRow(@Nonnull final Consumer<ColumnBuilder> callback, @Nonnull final WhereBuilder whereClause) {
-        final QueryBuilder queryBuilder = new QueryBuilder();
+        final QueryBuilder queryBuilder = new QueryBuilder(this.databaseType);
         queryBuilder.select(callback).from(this.tableName).where(whereClause);
 
         return new SqlQuery(queryBuilder, queryBuilder.getValues());
@@ -131,7 +134,7 @@ public class TableQuery {
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
     public SqlQuery removeRow(@Nonnull final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause) {
-        QueryBuilder queryBuilder = new QueryBuilder();
+        QueryBuilder queryBuilder = new QueryBuilder(this.databaseType);
         queryBuilder.setGlobalEnableQueryPlaceholders(this.isQueryPlaceholdersEnabled());
         queryBuilder.deleteFrom(this.tableName).where(whereClause);
 
@@ -144,7 +147,7 @@ public class TableQuery {
      * @return a {@link SqlQuery} containing the generated SQL command and associated values
      */
     public SqlQuery dropTable() {
-        QueryBuilder queryBuilder = new QueryBuilder();
+        QueryBuilder queryBuilder = new QueryBuilder(this.databaseType);
         queryBuilder.dropTable(this.tableName);
 
         return new SqlQuery(queryBuilder, queryBuilder.getValues());

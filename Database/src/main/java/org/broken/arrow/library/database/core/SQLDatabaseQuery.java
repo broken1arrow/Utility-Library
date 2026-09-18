@@ -232,11 +232,10 @@ public abstract class SQLDatabaseQuery extends Database {
             getDatabase().printFailFindTable(tableName);
             return null;
         }
-
         final Map<String, Object> dataFromDB = new HashMap<>();
-        final TableQuery tableQuery = new TableQuery(table.getTableName());
+        final TableQuery tableQuery = new TableQuery(this.getDatabaseType(), table.getTableName());
 
-        final WhereBuilder whereBuilder = WhereBuilder.of(new QueryBuilder().setGlobalEnableQueryPlaceholders(this.isSecureQuery()));
+        final WhereBuilder whereBuilder = WhereBuilder.of(new QueryBuilder(this.getDatabaseType()).setGlobalEnableQueryPlaceholders(this.isSecureQuery()));
         table.createWhereClauseFromPrimaryColumns(whereBuilder, columnValue);
         Validate.checkBoolean(whereBuilder.isEmpty(), "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
 

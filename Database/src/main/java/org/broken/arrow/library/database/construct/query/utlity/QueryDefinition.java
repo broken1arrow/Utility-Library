@@ -1,6 +1,7 @@
 package org.broken.arrow.library.database.construct.query.utlity;
 
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
+import org.broken.arrow.library.database.utility.DatabaseType;
 
 import javax.annotation.Nonnull;
 
@@ -36,7 +37,7 @@ public class QueryDefinition {
      * @return a new QueryDefinition containing the raw query string
      */
     public static QueryDefinition of(@Nonnull final String query) {
-        return new QueryDefinition(new QueryBuilder(), query);
+        return new QueryDefinition(new QueryBuilder(DatabaseType.MYSQL), query);
     }
 
     /**

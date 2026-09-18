@@ -152,8 +152,7 @@ public abstract class Database {
      * @param callback function to construct the table layout and constraints
      */
     public void addTable(Function<QueryBuilder, CreateTableHandler> callback) {
-        TableSchema tableSchema = new TableSchema(callback);
-
+        TableSchema tableSchema = new TableSchema(this.getDatabaseType(), callback);
         this.tablesCache.put(tableSchema.getTableName(), tableSchema);
     }
 
@@ -667,7 +666,7 @@ public abstract class Database {
 
         try {
             final List<String> column = new ArrayList<>();
-            final QueryBuilder queryBuilder = new QueryBuilder();
+            final QueryBuilder queryBuilder = new QueryBuilder(this.getDatabaseType());
             queryBuilder.select(columnBuilder -> columnBuilder.add("*")).from(tableName);
             final String queryAllColumns = queryBuilder.build();
             statement = connection.prepareStatement(queryAllColumns);
@@ -852,7 +851,7 @@ public abstract class Database {
      * @param columName  the name of the column to check within the table.
      */
     private void checkIfTableExist(@Nonnull final Connection connection, String tableName, String columName) {
-        final QueryBuilder queryBuilder = new QueryBuilder();
+        final QueryBuilder queryBuilder = new QueryBuilder(this.getDatabaseType());
         queryBuilder.select(columnBuilder -> columnBuilder.add("*")).from(tableName).where(where -> where.where(columName).equal(SqlArg.val("")));
         final String checkTableQuery = queryBuilder.build();
 

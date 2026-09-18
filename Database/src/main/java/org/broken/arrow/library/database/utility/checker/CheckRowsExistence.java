@@ -9,7 +9,7 @@ import org.broken.arrow.library.database.construct.query.builder.column.refernce
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.InsertBuilder;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
-import org.broken.arrow.library.database.utility.BatchExecutor;
+import org.broken.arrow.library.database.utility.DatabaseType;
 import org.broken.arrow.library.logging.Logging;
 
 import javax.annotation.Nonnull;
@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
  * @param <T> the type of the data items being processed. Items are typically expected to be instances of {@code DataWrapper}.
  */
 public class CheckRowsExistence<T> {
+    private final DatabaseType databaseType;
     private final Logging log = new Logging(CheckRowsExistence.class);
     private final String tempTableName = "temp_keys";
 
@@ -59,10 +60,12 @@ public class CheckRowsExistence<T> {
     /**
      * Private constructor forcing the use of the {@link Builder}.
      *
-     * @param builder the configured builder containing the connection, data, and matching criteria
+     * @param databaseType the type of database used.
+     * @param builder      the configured builder containing the connection, data, and matching criteria
      * @throws IllegalArgumentException if matching keys cannot be determined from the builder or inferred from the data
      */
-    private CheckRowsExistence(@Nonnull final Builder<T> builder) {
+    private CheckRowsExistence(@Nonnull final DatabaseType databaseType, @Nonnull final Builder<T> builder) {
+        this.databaseType = databaseType;
         this.connection = Objects.requireNonNull(builder.connection, "Connection cannot be null");
         this.rows = Objects.requireNonNull(builder.rows, "dataToProcess cannot be null");
 
@@ -86,10 +89,10 @@ public class CheckRowsExistence<T> {
      *
      * @param targetTable the name of the database table to check for existing records
      * @return a map partitioning the original rows:
-     *         <ul>
-     *           <li>{@code true} maps to a list of rows that <b>already exist</b> in the target table (candidates for UPDATE).</li>
-     *           <li>{@code false} maps to a list of rows that <b>do not exist</b> (candidates for INSERT).</li>
-     *         </ul>
+     * <ul>
+     *   <li>{@code true} maps to a list of rows that <b>already exist</b> in the target table (candidates for UPDATE).</li>
+     *   <li>{@code false} maps to a list of rows that <b>do not exist</b> (candidates for INSERT).</li>
+     * </ul>
      * @throws SQLException if a database access error occurs during temp table creation, insertion, or execution of the join query
      */
     public Map<Boolean, List<T>> partitionByCompositeKeys(@Nonnull final String targetTable) throws SQLException {
@@ -133,7 +136,7 @@ public class CheckRowsExistence<T> {
                 }
             }
         } finally {
-            final QueryBuilder dropTemp = new QueryBuilder();
+            final QueryBuilder dropTemp = new QueryBuilder(this.databaseType);
             dropTemp.dropTable(tempTableName);
             try (Statement dropStmt = connection.createStatement()) {
                 dropStmt.execute(dropTemp.build());
@@ -175,7 +178,7 @@ public class CheckRowsExistence<T> {
      * @throws SQLException if a database access error occurs
      */
     private void createTempTable(String targetTable) throws SQLException {
-        final QueryBuilder createTemp = new QueryBuilder();
+        final QueryBuilder createTemp = new QueryBuilder(this.databaseType);
         createTemp.createTemporaryTable(tempTableName)
                 .as()
                 .select(c -> matchKeys.forEach(col -> c.add((TableColumn) TableColumn.of(col))))
@@ -194,7 +197,7 @@ public class CheckRowsExistence<T> {
      * @throws SQLException if batch insertion fails
      */
     private void insertData(@NonNull final Function<T, List<Object>> extractKeyValues) throws SQLException {
-        final QueryBuilder insertTemp = new QueryBuilder();
+        final QueryBuilder insertTemp = new QueryBuilder(this.databaseType);
         insertTemp.insertInto(tempTableName, insert -> {
             matchKeys.forEach(col -> insert.add(InsertBuilder.of(col, SqlArg.raw("?"))));
         });
@@ -222,7 +225,7 @@ public class CheckRowsExistence<T> {
      */
     @Nonnull
     private QueryBuilder buildJoinQuery(@NonNull final String targetTable) {
-        final QueryBuilder checkMatch = new QueryBuilder();
+        final QueryBuilder checkMatch = new QueryBuilder(this.databaseType);
         checkMatch.select(c -> matchKeys.forEach(col -> c.add(Column.of("temp." + col))))
                 .from(targetTable, "target")
                 .join(j -> j.innerJoin(tempTableName, "temp", ctx -> {
@@ -253,12 +256,13 @@ public class CheckRowsExistence<T> {
     /**
      * Initializes a new builder for {@link CheckRowsExistence}.
      *
-     * @param connection the database connection to use
-     * @param <T> the type of data rows to be processed
+     * @param databaseType the type of database set.
+     * @param connection   the database connection to use
+     * @param <T>          the type of data rows to be processed
      * @return a new builder instance
      */
-    public static <T> Builder<T> builder(Connection connection) {
-        return new Builder<>(connection);
+    public static <T> Builder<T> builder(@Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+        return new Builder<>(databaseType, connection);
     }
 
     /**
@@ -266,7 +270,8 @@ public class CheckRowsExistence<T> {
      *
      * @param <T> the type of the data rows being processed
      */
-    static class Builder<T> {
+    public static class Builder<T> {
+        private final DatabaseType databaseType;
         private final Connection connection;
         private List<T> rows = new ArrayList<>();
         private List<String> matchKeys = new ArrayList<>();
@@ -274,9 +279,11 @@ public class CheckRowsExistence<T> {
         /**
          * Builder class for configuring and instantiating {@link CheckRowsExistence}.
          *
-         * @param connection the database connection to use
+         * @param databaseType the type of database set.
+         * @param connection   the database connection to use
          */
-        public Builder(Connection connection) {
+        public Builder(@Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+            this.databaseType = databaseType;
             this.connection = connection;
         }
 
@@ -321,7 +328,7 @@ public class CheckRowsExistence<T> {
          * @return a fully initialized {@link CheckRowsExistence}
          */
         public CheckRowsExistence<T> build() {
-            return new CheckRowsExistence<>(this);
+            return new CheckRowsExistence<>(databaseType, this);
         }
     }
 }

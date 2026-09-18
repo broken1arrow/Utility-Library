@@ -1,6 +1,5 @@
 package org.broken.arrow.library.database.utility;
 
-import com.mongodb.lang.NonNull;
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.builders.schema.TableQuery;
@@ -10,10 +9,7 @@ import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuer
 import org.broken.arrow.library.database.builders.wrappers.SaveRecord;
 import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuerySaving;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
-import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuildContext;
-import org.broken.arrow.library.database.construct.query.builder.column.refernces.SqlArg;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
-import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.InsertBuilder;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
@@ -31,20 +27,15 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 /**
  * Handles batch updates and operations on the database.
@@ -98,7 +89,7 @@ public class BatchExecutor<T> {
 
             final DataWrapper dataWrapper = (DataWrapper) dataToSave;
 
-            final TableQuery tableQuery = new TableQuery(tableName);
+            final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
             final boolean columnsIsEmpty = columns == null || columns.length == 0;
             boolean canUpdateRow = false;
             final Object legacyPrimaryValue = dataWrapper.getPrimaryValue();
@@ -169,7 +160,7 @@ public class BatchExecutor<T> {
             final QueryBuilder queryBuilder = saveRecord != null ? saveRecord.getQueryBuilder() : null;
             if (saveRecord == null || queryBuilder == null || checkIfQuerySet(saveRecord, queryBuilder)) continue;
 
-            final TableQuery tableQuery = new TableQuery(tableName);
+            final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
             final boolean columnsFilterSet = databaseQueryHandler.isFilterSet();
             boolean canUpdateRow = false;
             final boolean hasUpdateIntent = !columnsFilterSet || shallUpdate;
@@ -209,7 +200,7 @@ public class BatchExecutor<T> {
         if (!checkIfNotNull(dataWrapper)) return;
 
         final List<SqlQuery> queryList = new ArrayList<>();
-        final TableQuery tableQuery = new TableQuery(tableName);
+        final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
         final boolean columnsIsEmpty = columns == null || columns.length == 0;
         boolean canUpdateRow = false;
         final Object primaryValue = dataWrapper.getPrimaryValue();
@@ -260,7 +251,7 @@ public class BatchExecutor<T> {
             this.printFailFindTable(tableName);
             return;
         }
-        final TableQuery tableQuery = new TableQuery(tableName);
+        final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
         List<SqlQuery> queryList = new ArrayList<>();
         for (String value : values) {
             queryList.add(tableQuery.removeRow(where -> whereClause.apply(where, value)));
@@ -282,7 +273,7 @@ public class BatchExecutor<T> {
             return;
         }
 
-        final TableQuery tableQuery = new TableQuery(tableName);
+        final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
         List<SqlQuery> queryList = new ArrayList<>();
         queryList.add(tableQuery.removeRow(where -> whereClause.apply(where, value)));
         this.executeDatabaseTasks(queryList);
@@ -301,7 +292,7 @@ public class BatchExecutor<T> {
             return;
         }
 
-        final TableQuery tableQuery = new TableQuery(tableName);
+        final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
         List<SqlQuery> queryList = new ArrayList<>();
         queryList.add(tableQuery.removeRow(whereClause));
         this.executeDatabaseTasks(queryList);
@@ -321,7 +312,7 @@ public class BatchExecutor<T> {
             return;
         }
 
-        final TableQuery tableQuery = new TableQuery(tableName);
+        final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
         List<SqlQuery> queryList = new ArrayList<>();
         queryList.add(tableQuery.dropTable());
         this.executeDatabaseTasks(queryList);
@@ -344,7 +335,7 @@ public class BatchExecutor<T> {
             this.printFailFindTable(tableName);
             return false;
         }
-        final TableQuery tableQuery = new TableQuery(tableName);
+        final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
         final SqlQuery query = tableQuery.selectRow(columnManger ->
                 columnManger.addAll(table.getPrimaryColumnsWrapped()), true, whereClause);
         return this.checkIfRowExist(query, true);
@@ -529,11 +520,9 @@ public class BatchExecutor<T> {
         int autoGeneratedKeys = callback != null ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS;
 
         try (PreparedStatement statement = connection.prepareStatement(sql.getSql(), autoGeneratedKeys)) {
-            boolean valuesSet = false;
             if (!cachedDataByColumn.isEmpty()) {
                 for (Map.Entry<Integer, Object> column : cachedDataByColumn.entrySet()) {
                     statement.setObject(column.getKey(), column.getValue());
-                    valuesSet = true;
                 }
             }
            /* if (valuesSet)

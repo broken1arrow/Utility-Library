@@ -6,6 +6,7 @@ import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.utility.DatabaseType;
 import org.broken.arrow.library.database.utility.WhereClauseFunction;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
  */
 public class SaveRecord<K, V extends ConfigurationSerializable> {
     private final Map<Column, Object> keys = new HashMap<>();
+    private final DatabaseType databaseType;
     private final String tableName;
     private final K key;
     private final V value;
@@ -49,13 +51,15 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      * @param entry     a map entry containing the key and a {@link ConfigurationSerializable} value.
      */
     @SuppressWarnings("unchecked")
-    public SaveRecord(@Nonnull final String tableName, Map.Entry<K, V> entry) {
+    public SaveRecord(@Nonnull final DatabaseType databaseType, @Nonnull final String tableName, @Nonnull final Map.Entry<K, V> entry) {
+        this.databaseType = databaseType;
         this.tableName = tableName;
         this.key = entry.getKey();
         this.value = entry.getValue();
         this.keyClazz = (Class<K>) this.key.getClass();
         this.valueClazz = (Class<V>) this.value.getClass();
     }
+
 
     /**
      * Gets the key associated with this save record.
@@ -132,11 +136,11 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      * before performing an update.
      * </p>
      *
-     * @param context the write context containing keys and where clause logic
+     * @param context          the write context containing keys and where clause logic
      * @param queryPlaceholder whether to enable query placeholders in the query (recommended).
      * @return the built {@link QueryBuilder} instance, or {@code null} if no where clause was provided
      */
-    public QueryBuilder applyContext(@Nonnull final WriteContext context,final boolean queryPlaceholder) {
+    public QueryBuilder applyContext(@Nonnull final WriteContext context, final boolean queryPlaceholder) {
         context.getColumnContext().forEach(this::addKey);
         if (context.getWhereClause() != null) {
             return this.createSelectCommand(queryPlaceholder, context.getWhereClause());
@@ -152,7 +156,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      * @param columnName the column name to associate.
      * @param value      the value to be stored under the column.
      */
-    public void addKey(@Nonnull final String columnName,@Nonnull final Object value) {
+    public void addKey(@Nonnull final String columnName, @Nonnull final Object value) {
         keys.put(new Column(columnName, ""), value);
     }
 
@@ -195,11 +199,11 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      * </p>
      *
      * @param queryPlaceholder whether to enable query placeholders in the query (recommended).
-     * @param clauseFunction      a builder function for defining the WHERE clause.
+     * @param clauseFunction   a builder function for defining the WHERE clause.
      * @return the built {@link QueryBuilder} instance.
      */
     private QueryBuilder createSelectCommand(final boolean queryPlaceholder, @Nonnull final WhereClauseFunction clauseFunction) {
-        final QueryBuilder builder = new QueryBuilder();
+        final QueryBuilder builder = new QueryBuilder(this.databaseType);
         builder.setGlobalEnableQueryPlaceholders(queryPlaceholder);
         List<Column> columnList = value.serialize().keySet().stream()
                 .map(Column::of)

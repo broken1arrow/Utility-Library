@@ -87,9 +87,9 @@ public class QuerySaver<K, V extends ConfigurationSerializable> {
         final SaveSetup<K, V> saveSetup = new SaveSetup<>();
         this.strategy.accept(saveSetup);
         saveSetup.applyConfigure(databaseSettings);
-        final List<SaveRecord<K, V>> data = cacheToSave.entrySet().stream().map(kvEntry -> saveSetup.applyQuery(new SaveRecord<>(this.tableName, kvEntry))).collect(Collectors.toList());
+        final List<SaveRecord<K, V>> data = cacheToSave.entrySet().stream().map(kvEntry -> saveSetup.applyQuery(new SaveRecord<>( this.sqlDatabaseQuery.getDatabaseType(),this.tableName, kvEntry))).collect(Collectors.toList());
         if (data.isEmpty()) {
-            this.log.log(Level.WARNING, () -> "No data in the map for the table:'" + this.tableName + "' . Just must provide data and also don't forget to set your where clause.");
+            this.log.log(Level.WARNING, () -> "No data in the map for the table: '" + this.tableName + "' . Just must provide data and also don't forget to set your where clause.");
             return;
         }
 

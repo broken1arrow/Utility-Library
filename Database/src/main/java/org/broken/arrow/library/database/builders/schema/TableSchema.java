@@ -7,6 +7,7 @@ import org.broken.arrow.library.database.construct.query.builder.table.column.Ta
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.refernces.SqlArg;
+import org.broken.arrow.library.database.utility.DatabaseType;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
  */
 public class TableSchema {
     private final QueryBuilder queryBuilder;
+    private final DatabaseType databaseType;
     private final CreateTableHandler tableHandler;
     private boolean failedToCreateTable;
     private List<Column> primaryColumns;
@@ -32,10 +34,12 @@ public class TableSchema {
     /**
      * Constructs a new {@code TableSchema} using the provided callback to define the table structure.
      *
-     * @param callback a function that configures the {@link CreateTableHandler} using a {@link QueryBuilder}; cannot be null
+     * @param databaseType the type of database used for set the table schema.
+     * @param callback     a function that configures the {@link CreateTableHandler} using a {@link QueryBuilder}; cannot be null
      */
-    public TableSchema(@Nonnull final Function<QueryBuilder, CreateTableHandler> callback) {
-        this.queryBuilder = new QueryBuilder();
+    public TableSchema(@Nonnull final DatabaseType databaseType, @Nonnull final Function<QueryBuilder, CreateTableHandler> callback) {
+        this.queryBuilder = new QueryBuilder(databaseType);
+        this.databaseType = databaseType;
         this.tableHandler = callback.apply(queryBuilder);
     }
 
@@ -49,6 +53,7 @@ public class TableSchema {
     public TableSchema(@Nonnull final TableSchema original, boolean failedToCreateTable) {
         this.queryBuilder = original.queryBuilder;
         this.tableHandler = original.tableHandler;
+        this.databaseType = original.databaseType;
         this.failedToCreateTable = failedToCreateTable;
     }
 
@@ -131,7 +136,7 @@ public class TableSchema {
     public List<Column> getColumnsWrapped() {
         if (this.columns == null)
             this.columns = this.getTable().getTableColumns().stream().map(tableColumn -> Column.of(tableColumn.getColumnName())).collect(Collectors.toList());
-        return  this.columns ;
+        return this.columns;
     }
 
     /**
@@ -179,7 +184,7 @@ public class TableSchema {
      * @return the generated SQL SELECT query string
      */
     public String selectTable() {
-        QueryBuilder selectTableBuilder = new QueryBuilder();
+        QueryBuilder selectTableBuilder = new QueryBuilder(this.databaseType);
         selectTableBuilder.select(this.getTable().getTableColumns()
                         .stream().map(tableColumn -> (Column) tableColumn)
                         .collect(Collectors.toList()))

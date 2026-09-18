@@ -4,6 +4,7 @@ import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.utlity.LogicalComparison;
+import org.broken.arrow.library.database.utility.DatabaseType;
 import org.broken.arrow.library.database.utility.WhereClauseFunction;
 import org.broken.arrow.library.logging.Validate;
 
@@ -141,7 +142,7 @@ public class WriteContext {
                             "or provide a valid whereClause function."
             );
         }
-        final WhereBuilder builder = new WhereBuilder(new QueryBuilder());
+        final WhereBuilder builder = new WhereBuilder(new QueryBuilder(DatabaseType.MYSQL));
         clause.apply(builder);
         return builder;
     }
