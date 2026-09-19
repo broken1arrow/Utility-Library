@@ -226,8 +226,8 @@ public class CreateTableHandler {
                     sql.append(", FOREIGN KEY (").append(tableCol.getFinishColumName()).append(") ")
                             .append("REFERENCES ").append(fk.getParentTable()).append("(").append(fk.getParentColumn()).append(")");
 
-                    if (fk.getRemoveAction() != null) {
-                        sql.append(" ON DELETE ").append(fk.getRemoveAction().getAction());
+                    if (fk.getDeleteAction() != null) {
+                        sql.append(" ON DELETE ").append(fk.getDeleteAction().getAction());
                     }
                     if (fk.getUpdateAction() != null) {
                         sql.append(" ON UPDATE ").append(fk.getUpdateAction().getAction());

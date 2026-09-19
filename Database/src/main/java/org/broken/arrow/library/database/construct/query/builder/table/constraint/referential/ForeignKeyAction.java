@@ -1,37 +1,37 @@
 package org.broken.arrow.library.database.construct.query.builder.table.constraint.referential;
 
 /**
- * Represents standard SQL referential actions used with {@code ON UPDATE} foreign key constraints.
- * <p>
- * These actions define how the database engine should handle rows in a child table
- * when the referenced primary key in the parent table is modified.
- * </p>
+ * Represents the referential action applied to a foreign key for ON UPDATE or ON DELETE events.
  */
-public enum ForeignKeyUpdateAction {
+public enum ForeignKeyAction {
 
     /**
-     * Sets the foreign key column(s) in the child table to their default values.
+     * Sets the foreign key column(s) in the child table to their default values
+     * when the parent key is updated or deleted.
      */
     SET_DEFAULT("SET DEFAULT"),
 
     /**
-     * Sets the foreign key column(s) in the child table to {@code NULL}.
+     * Sets the foreign key column(s) in the child table to {@code NULL}
+     * when the parent key is updated or deleted.
      */
     SET_NULL("SET NULL"),
 
     /**
-     * Automatically updates the matching rows in the child table to the new parent key value.
+     * Automatically cascades the operation. For an update, matching rows in the child table
+     * are updated to the new parent key. For a delete, matching rows are deleted.
      */
     CASCADE("CASCADE"),
 
     /**
-     * Rejects the update operation in the parent table if dependent rows exist in the child table.
+     * Rejects the update or delete operation in the parent table if dependent rows exist
+     * in the child table.
      */
     RESTRICT("RESTRICT"),
 
     /**
-     * Rejects the update operation. Depending on the database engine, this may defer
-     * validation until the end of the transaction.
+     * Rejects the update or delete operation. Depending on the database engine, this may
+     * defer validation until the end of the transaction.
      */
     NO_ACTION("NO ACTION");
 
@@ -42,7 +42,7 @@ public enum ForeignKeyUpdateAction {
      *
      * @param action the raw SQL expression string
      */
-    ForeignKeyUpdateAction(final String action) {
+    ForeignKeyAction(final String action) {
         this.action = action;
 
     }

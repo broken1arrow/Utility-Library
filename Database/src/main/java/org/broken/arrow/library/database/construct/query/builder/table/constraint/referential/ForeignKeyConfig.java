@@ -13,8 +13,8 @@ import javax.annotation.Nonnull;
 public class ForeignKeyConfig {
     private final String parentTable;
     private final String parentColumn;
-    private ForeignKeyDeleteAction foreignKeyDELETEAction;
-    private ForeignKeyUpdateAction updateAction;
+    private ForeignKeyAction deleteAction;
+    private ForeignKeyAction updateAction;
 
     /**
      * Constructs a new foreign key configuration linking to a parent table.
@@ -30,21 +30,21 @@ public class ForeignKeyConfig {
     /**
      * Sets the action to perform when the referenced parent row is deleted.
      *
-     * @param removeAction the {@link ForeignKeyDeleteAction} to apply (must not be null)
+     * @param removeAction the {@link ForeignKeyAction} to apply (must not be null)
      * @return this configuration instance for method chaining
      */
-    public ForeignKeyConfig setRemoveAction(@Nonnull final ForeignKeyDeleteAction removeAction) {
-        this.foreignKeyDELETEAction = removeAction;
+    public ForeignKeyConfig onDelete(@Nonnull final ForeignKeyAction removeAction) {
+        this.deleteAction = removeAction;
         return this;
     }
 
     /**
      * Sets the action to perform when the referenced parent row is updated.
      *
-     * @param updateAction the {@link ForeignKeyUpdateAction} to apply (must not be null)
+     * @param updateAction the {@link ForeignKeyAction} to apply (must not be null)
      * @return this configuration instance for method chaining
      */
-    public ForeignKeyConfig setUpdateAction(@Nonnull final ForeignKeyUpdateAction updateAction) {
+    public ForeignKeyConfig onUpdate(@Nonnull final ForeignKeyAction updateAction) {
         this.updateAction = updateAction;
         return this;
     }
@@ -52,18 +52,18 @@ public class ForeignKeyConfig {
     /**
      * Gets the action to perform when the referenced parent row is deleted.
      *
-     * @return the {@link ForeignKeyDeleteAction}, or {@code null} if not set
+     * @return the {@link ForeignKeyAction}, or {@code null} if not set
      */
-    public ForeignKeyDeleteAction getRemoveAction() {
-        return foreignKeyDELETEAction;
+    public ForeignKeyAction getDeleteAction() {
+        return deleteAction;
     }
 
     /**
      * Gets the action to perform when the referenced parent row is updated.
      *
-     * @return the {@link ForeignKeyUpdateAction}, or {@code null} if not set
+     * @return the {@link ForeignKeyAction}, or {@code null} if not set
      */
-    public ForeignKeyUpdateAction getUpdateAction() {
+    public ForeignKeyAction getUpdateAction() {
         return updateAction;
     }
 

@@ -46,7 +46,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
 
     /**
      * Constructs a save record for a given table and entry.
-     * 
+     *
      * @param databaseType the database type you are target.
      * @param tableName the name of the database table this save operation is targeting.
      * @param entry     a map entry containing the key and a {@link ConfigurationSerializable} value.
