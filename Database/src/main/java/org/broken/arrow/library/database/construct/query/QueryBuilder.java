@@ -443,6 +443,16 @@ public class QueryBuilder {
         return -1;
     }
 
+    /**
+     * Retrieve the table name.
+     *
+     * @return Returns the table name.
+     */
+    @Nonnull
+    public String getTable() {
+        return this.table;
+    }
+
     @Override
     public String toString() {
         return "QueryBuilder{" +

@@ -9,6 +9,7 @@ import org.broken.arrow.library.database.construct.query.builder.table.selector.
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.utlity.SqlExpressionType;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -208,14 +209,13 @@ public class CreateTableHandler {
             } else {
                 sql.append(selectorDataTable.getSelectBuilder().build());
             }
-
             setForeignKeys(sql);
             sql.append(")");
         }
         return sql.toString();
     }
 
-    private void setForeignKeys(StringBuilder sql) {
+    private void setForeignKeys(@Nonnull final StringBuilder sql) {
         List<TableColumn> tableColumns = this.getTableColumns();
         if (tableColumns == null) return;
 
@@ -223,7 +223,10 @@ public class CreateTableHandler {
             if (col != null) {
                 final TableColumn tableCol = col;
                 tableCol.getForeignKeyConfig().ifPresent(fk -> {
-                    sql.append(", FOREIGN KEY (").append(tableCol.getFinishColumName()).append(") ")
+                    final String constraintName = "fk_" + this.queryBuilder.getTable() + "_" + tableCol.getFinishColumName();
+
+                    sql.append(", CONSTRAINT ").append(constraintName);
+                    sql.append(" FOREIGN KEY (").append(tableCol.getFinishColumName()).append(") ")
                             .append("REFERENCES ").append(fk.getParentTable()).append("(").append(fk.getParentColumn()).append(")");
 
                     if (fk.getDeleteAction() != null) {
