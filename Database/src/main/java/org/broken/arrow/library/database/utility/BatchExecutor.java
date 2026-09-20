@@ -525,8 +525,6 @@ public class BatchExecutor<T> {
                     statement.setObject(column.getKey(), column.getValue());
                 }
             }
-           /* if (valuesSet)
-                statement.addBatch();*/
             statement.executeUpdate();
             callbackGeneratedKeys(statement, callback);
         } catch (SQLException e) {

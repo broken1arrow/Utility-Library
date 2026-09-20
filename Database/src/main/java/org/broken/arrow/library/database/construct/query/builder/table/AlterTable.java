@@ -1,5 +1,6 @@
 package org.broken.arrow.library.database.construct.query.builder.table;
 
+import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
@@ -18,10 +19,19 @@ import java.util.function.Consumer;
  * </p>
  */
 public class AlterTable {
-
     private final List<String> columns = new ArrayList<>();
+    private final QueryBuilder queryBuilder;
     private ModifyConstraints modifyConstraints;
     private String newTableName;
+
+    /**
+     * Constructs a new AlterTable.
+     *
+     * @param queryBuilder the parent query builder providing the database context
+     */
+    public AlterTable(@Nonnull final QueryBuilder queryBuilder) {
+        this.queryBuilder = queryBuilder;
+    }
 
     /**
      * Adds a new column to the ALTER TABLE statement using a name and data type.
@@ -72,7 +82,8 @@ public class AlterTable {
      * @param constraints callback to set your constraints for the table.
      */
     public void setConstraints(@Nonnull final Consumer<ModifyConstraints> constraints) {
-        this.modifyConstraints = new ModifyConstraints();
+        String tableName = queryBuilder.getTableName();
+        this.modifyConstraints = new ModifyConstraints(tableName);
         constraints.accept(this.modifyConstraints);
     }
 
@@ -118,6 +129,11 @@ public class AlterTable {
                 if (addUnique != null)
                     build.add(addUnique);
             }
+
+            for (String fkAction : this.modifyConstraints.getConstraintsActions()) {
+                build.add(fkAction);
+            }
+
             return build + "";
         }
         final StringJoiner build = new StringJoiner(", ");

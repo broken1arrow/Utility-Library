@@ -4,14 +4,19 @@ import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.clause.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.strategy.ConflictBuilder;
+import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.strategy.ConflictStrategy;
 import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +36,7 @@ public class InsertHandler implements ParameterSupplier {
     private final Map<Integer, InsertBuilder> insertValues = new LinkedHashMap<>();
     private final QueryModifier queryModifier;
     private final QueryBuilder queryBuilder;
+    private ConflictStrategy conflictStrategy;
 
 
     /**
@@ -101,6 +107,33 @@ public class InsertHandler implements ParameterSupplier {
     }
 
     /**
+     * Defines the behavior when an insertion encounters a collision, such as a
+     * primary key or unique constraint violation.
+     * <p>
+     * This provides cross-database support for "upsert" operations, abstracting
+     * away differences like {@code ON CONFLICT} in PostgreSQL/SQLite and
+     * {@code ON DUPLICATE KEY UPDATE} in MySQL/MariaDB.
+     * </p>
+     *
+     * <p><b>Example:</b></p>
+     * <pre>{@code
+     * insertHandler.onConflict(conflict -> conflict
+     *     .target("id")
+     *     .doUpdate("username", "last_login")
+     * );
+     * }</pre>
+     *
+     * @param callback a consumer providing a {@link ConflictStrategy} to configure
+     *                 how the collision should be handled (e.g., ignore, update specific columns).
+     * @return this {@code InsertHandler} instance for method chaining
+     */
+    public InsertHandler onConflict(@Nonnull final Consumer<ConflictStrategy> callback) {
+        this.conflictStrategy = new ConflictStrategy(this.queryBuilder);
+        callback.accept(this.conflictStrategy);
+        return this;
+    }
+
+    /**
      * Get the modifier like select and similar for modify a table.
      *
      * @return the modifies instance for the insert operation.
@@ -155,9 +188,13 @@ public class InsertHandler implements ParameterSupplier {
         if (!this.queryBuilder.isGlobalEnableQueryPlaceholders() || insertValues.isEmpty()) {
             return Collections.emptyList();
         }
-        return insertValues.values().stream()
+        List<Object> parameters = insertValues.values().stream()
                 .map(InsertBuilder::getColumnValue)
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
+        if (conflictStrategy != null) {
+            parameters.addAll(conflictStrategy.getRawParameters());
+        }
+        return parameters;
     }
 
     /**
@@ -243,8 +280,29 @@ public class InsertHandler implements ParameterSupplier {
                     .collect(Collectors.toList());
             sql.append(StringUtil.stringJoin(rawValues));
         }
-
         sql.append(")");
+
+        if (conflictStrategy != null) {
+            final ConflictBuilder conflictBuilder = conflictStrategy.getConflictBuilder();
+
+            if ( conflictBuilder.isUpdateAll()) {
+                String[] targetColumns = conflictStrategy.getTargetColumns();
+                List<String> targets = targetColumns != null
+                        ? Arrays.asList(targetColumns)
+                        : Collections.emptyList();
+
+                Validate.checkBoolean(targets.isEmpty(),"You can't build with all columns with a conflict strategy," +
+                        " without set excluding targets columns like primary keys.");
+
+                for (String col : columnNames) {
+                    if (!targets.contains(col)) {
+                        conflictBuilder.doUpdate(col);
+                    }
+                }
+            }
+
+            sql.append(" ").append(conflictStrategy.build());
+        }
         return sql.toString();
     }
 }

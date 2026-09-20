@@ -22,7 +22,7 @@ public class ForeignKeyConfig {
      * @param parentTable  the name of the referenced parent table
      * @param parentColumn the name of the referenced column in the parent table
      */
-    public ForeignKeyConfig(String parentTable, String parentColumn) {
+    public ForeignKeyConfig(@Nonnull final String parentTable, @Nonnull final String parentColumn) {
         this.parentTable = parentTable;
         this.parentColumn = parentColumn;
     }

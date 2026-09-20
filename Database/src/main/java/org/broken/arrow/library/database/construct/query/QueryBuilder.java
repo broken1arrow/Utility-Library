@@ -12,6 +12,7 @@ import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.QueryType;
 import org.broken.arrow.library.database.utility.DatabaseType;
+import org.broken.arrow.library.logging.Validate;
 
 
 import javax.annotation.Nonnull;
@@ -69,7 +70,7 @@ public class QueryBuilder {
     private final InsertHandler insertHandler = new InsertHandler(this);
     private final QueryModifier queryModifier = new QueryModifier(this);
     private final CreateTableHandler createTableHandler = new CreateTableHandler(this);
-    private final AlterTable alterTable = new AlterTable();
+    private final AlterTable alterTable = new AlterTable(this);
     private final QueryRemover queryRemover = new QueryRemover(this);
     private final WithManager withManager = new WithManager();
     private QueryType queryType;
@@ -140,7 +141,8 @@ public class QueryBuilder {
      * @param table the name of the table to alter
      * @return the handler to configure the alteration details
      */
-    public AlterTable alterTable(String table) {
+    public AlterTable alterTable(final String table) {
+        Validate.checkBoolean(table == null || table.isEmpty(), "Table name must not be null or empty.");
         this.queryType = QueryType.ALTER_TABLE;
         this.table = table;
         return alterTable;
