@@ -285,13 +285,13 @@ public class InsertHandler implements ParameterSupplier {
         if (conflictStrategy != null) {
             final ConflictBuilder conflictBuilder = conflictStrategy.getConflictBuilder();
 
-            if ( conflictBuilder.isUpdateAll()) {
+            if (conflictBuilder.isUpdateAll()) {
                 String[] targetColumns = conflictStrategy.getTargetColumns();
                 List<String> targets = targetColumns != null
                         ? Arrays.asList(targetColumns)
                         : Collections.emptyList();
 
-                Validate.checkBoolean(targets.isEmpty(),"You can't build with all columns with a conflict strategy," +
+                Validate.checkBoolean(targets.isEmpty(), "You can't build with all columns with a conflict strategy," +
                         " without set excluding targets columns like primary keys.");
 
                 for (String col : columnNames) {
@@ -300,7 +300,6 @@ public class InsertHandler implements ParameterSupplier {
                     }
                 }
             }
-
             sql.append(" ").append(conflictStrategy.build());
         }
         return sql.toString();
