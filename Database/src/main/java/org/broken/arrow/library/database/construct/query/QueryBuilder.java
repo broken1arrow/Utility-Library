@@ -1,6 +1,8 @@
 package org.broken.arrow.library.database.construct.query;
 
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
+import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.strategy.ConflictBuilder;
+import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.strategy.ConflictStrategy;
 import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.InsertHandler;
 import org.broken.arrow.library.database.construct.query.builder.statement.QueryRemover;
@@ -566,9 +568,22 @@ public class QueryBuilder {
     }
 
     private void createInsertQuery(final StringBuilder sql) {
-        String sqlKeyword = getInsertStart();
-        sql.append(sqlKeyword).append(table)
-                .append(this.insertHandler.build());
+        final String sqlKeyword = getInsertStart();
+        final InsertHandler handler = this.insertHandler;
+        final ConflictStrategy conflictStrategy = handler.getConflictStrategy();
+        if (conflictStrategy != null && queryType == QueryType.INSERT && databaseType == DatabaseType.MYSQL) {
+            final ConflictBuilder conflictBuilder = conflictStrategy.getConflictBuilder();
+            final boolean isDoNothing = conflictBuilder.isDoNothing();
+            if (isDoNothing || conflictBuilder.isUpdateColumnsEmpty()) {
+                sql.append("INSERT IGNORE")
+                        .append(table)
+                        .append(handler.build());
+                return;
+            }
+        }
+        sql.append(sqlKeyword)
+                .append(table)
+                .append(handler.build());
     }
 
     @Nonnull

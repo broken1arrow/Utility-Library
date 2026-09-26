@@ -56,6 +56,7 @@ public class ConflictStrategy implements ParameterSupplier {
      *
      * @return the conflict builder
      */
+    @Nonnull
     public ConflictBuilder getConflictBuilder() {
         return conflictBuilder;
     }
@@ -122,11 +123,13 @@ public class ConflictStrategy implements ParameterSupplier {
         final List<Object> parameters = new ArrayList<>();
         final ConflictBuilder conflictBuilder = this.getConflictBuilder();
 
-        conflictBuilder.getUpdateColumns().forEach((s, object) -> {
-            if (object instanceof LiteralVal) {
-                parameters.add(((LiteralVal) object).value());
-            }
-        });
+        if (this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
+            conflictBuilder.getUpdateColumns().forEach((s, object) -> {
+                if (object instanceof LiteralVal) {
+                    parameters.add(((LiteralVal) object).value());
+                }
+            });
+        }
         return parameters;
     }
 

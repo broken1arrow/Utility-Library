@@ -10,6 +10,7 @@ import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -131,6 +132,16 @@ public class InsertHandler implements ParameterSupplier {
         this.conflictStrategy = new ConflictStrategy(this.queryBuilder);
         callback.accept(this.conflictStrategy);
         return this;
+    }
+
+    /**
+     * Retrieve the conflict strategy.
+     *
+     * @return the conflict strategy or {@code null} if not set.
+     */
+    @Nullable
+    public ConflictStrategy getConflictStrategy() {
+        return conflictStrategy;
     }
 
     /**
