@@ -173,6 +173,27 @@ public class NbtCompoundWrapper extends CompoundWrapper {
     }
 
     @Override
+    public void setLongArray(String key, long[] value) {
+        if (value == null) return;
+        if (setLongArray != null) {
+            try {
+                setLongArray.invoke(handle, key, value);
+            } catch (Throwable e) {
+                logger.logError(e, () -> "Failed to set long value from reflection");
+            }
+            return;
+        }
+        logger.log(Level.WARNING, () -> "Long Array is not supported on this Minecraft version. Saving as Int Array via bit-splitting instead.");
+        int[] fallbackArray = new int[value.length * 2];
+        for (int i = 0; i < value.length; i++) {
+            long val = value[i];
+            fallbackArray[i * 2] = (int) (val >> 32);
+            fallbackArray[i * 2 + 1] = (int) val;
+        }
+        this.setIntArray(key, fallbackArray);
+    }
+
+    @Override
     public long @NonNull [] getLongArray(String key) {
         if (getLongArray != null) {
             try {
@@ -198,7 +219,7 @@ public class NbtCompoundWrapper extends CompoundWrapper {
         }
         return restoredArray;
     }
-    
+
     private final static class NbtMethodMappings {
 
         private final String hasKey;

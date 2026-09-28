@@ -12,6 +12,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Optional;
+import java.util.logging.Level;
 
 /**
  * Provides a version-independent adapter for interacting with Minecraft's
@@ -186,28 +187,6 @@ public class ModernCompoundWrapper extends CompoundWrapper {
     }
 
     @Override
-    public void setIntArray(String key, int[] value) {
-        if (setIntArray == null) return;
-
-        try {
-            setIntArray.invoke(handle, key, value);
-        } catch (Throwable e) {
-            logger.logError(e, () -> "Failed to set byte value from reflection");
-        }
-    }
-
-    @Override
-    public void setLongArray(String key, long[] value) {
-        if (setLongArray == null) return;
-
-        try {
-            setLongArray.invoke(handle, key, value);
-        } catch (Throwable e) {
-            logger.logError(e, () -> "Failed to set byte value from reflection");
-        }
-    }
-
-    @Override
     public int @NonNull [] getIntArray(String key) {
         if (getIntArray == null) return new int[0];
 
@@ -242,11 +221,5 @@ public class ModernCompoundWrapper extends CompoundWrapper {
         }
         return new long[0];
     }
-
-    @Override
-    public boolean isReady() {
-        return remove != null && getBoolean != null;
-    }
-
 
 }

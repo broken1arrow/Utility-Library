@@ -94,7 +94,7 @@ public abstract class CompoundWrapper implements NbtCompoundAccessor {
         try {
             remove.invoke(handle, key);
         } catch (Throwable e) {
-            logger.logError(e, () -> "Failed to check if the compound have the key.");
+            logger.logError(e, () -> "Failed to remove the compound with that key.");
         }
     }
 
@@ -105,7 +105,7 @@ public abstract class CompoundWrapper implements NbtCompoundAccessor {
         try {
             return (boolean) isEmpty.invoke(handle);
         } catch (Throwable e) {
-            logger.logError(e, () -> "Failed to check if the compound have the key.");
+            logger.logError(e, () -> "Failed to check if the compound is empty.");
         }
         return true;
     }
@@ -338,14 +338,7 @@ public abstract class CompoundWrapper implements NbtCompoundAccessor {
             }
             return;
         }
-        logger.log(Level.WARNING, () -> "Long Array is not supported on this Minecraft version. Saving as Int Array via bit-splitting instead.");
-        int[] fallbackArray = new int[value.length * 2];
-        for (int i = 0; i < value.length; i++) {
-            long val = value[i];
-            fallbackArray[i * 2] = (int) (val >> 32);
-            fallbackArray[i * 2 + 1] = (int) val;
-        }
-        this.setIntArray(key, fallbackArray);
+        logger.log(Level.WARNING, () -> "Long Array is not supported on this Minecraft version, report if you get this error.");
     }
 
     @Override
@@ -375,19 +368,8 @@ public abstract class CompoundWrapper implements NbtCompoundAccessor {
             }
             return new long[0];
         }
-        logger.log(Level.WARNING, () -> "Long Array is not supported on this Minecraft version. It will try to solve it as a Int Array.");
-        int[] intArray = this.getIntArray(key);
-        if (intArray.length == 0 || intArray.length % 2 != 0) {
-            logger.log(Level.WARNING, () -> "This Int Array could not be restored: " + (intArray.length == 0 ? "The array is empty" : "The Array can't be divided by two."));
-            return new long[0];
-        }
-        long[] restoredArray = new long[intArray.length / 2];
-        for (int i = 0; i < restoredArray.length; i++) {
-            long high = intArray[i * 2];
-            long low = intArray[i * 2 + 1];
-            restoredArray[i] = (high << 32) | (low & 0xFFFFFFFFL);
-        }
-        return restoredArray;
+        logger.log(Level.WARNING, () -> "Long Array is not supported on this Minecraft version.");
+        return new long[0];
     }
 
     @Override
