@@ -78,7 +78,7 @@ public class ConditionBuilder<T> {
             return operator.getSymbol() + " (" + subqueryHandler.getSubquery().build() + ")";
         }
         final Object[] values = operator.getValues();
-        if (values != null) {
+        if (values.length > 0) {
             final LogicalComparison comparison = operator.getLogicalComparison();
             if (comparison == LogicalComparison.IN || comparison == LogicalComparison.NOT_IN) {
                 return getInFormatted();
@@ -86,7 +86,7 @@ public class ConditionBuilder<T> {
             if (comparison == LogicalComparison.BETWEEN || comparison == LogicalComparison.NOT_BETWEEN) {
                 return getBetweenFormatted();
             }
-            if (this.marker == Marker.USE_VALUE && values.length >= 1) {
+            if (this.marker == Marker.USE_VALUE) {
                 Object val = values[0];
                 return operator.getSymbol() + " " + formatValue(val);
             }
