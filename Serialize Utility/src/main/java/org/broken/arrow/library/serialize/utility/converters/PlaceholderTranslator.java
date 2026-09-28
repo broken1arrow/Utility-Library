@@ -82,11 +82,13 @@ public class PlaceholderTranslator {
         if (replacement != null) {
             text = replaceBooleans(text, replacement);
         }
-        for (int i = 0; i < placeholders.length; i++) {
-            Object value = placeholders[i];
-            if (value instanceof Collection) continue;
+        if (placeholders != null) {
+            for (int i = 0; i < placeholders.length; i++) {
+                Object value = placeholders[i];
+                if (value instanceof Collection) continue;
 
-            text = text.replace("{" + i + "}", value != null ? value.toString() : "");
+                text = text.replace("{" + i + "}", value != null ? value.toString() : "");
+            }
         }
         return text;
     }
