@@ -1,6 +1,8 @@
 package org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.v_21;
 
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.CompoundWrapper;
 import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.NbtCompoundAccessor;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.v_21_5.ModernCompoundWrapper;
 import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -31,43 +33,8 @@ import java.util.logging.Level;
  *
  * <p>This class is intended for internal library usage.</p>
  */
-public class ModernCompoundWrapperTwentyOne implements NbtCompoundAccessor {
+public class ModernCompoundWrapperTwentyOne extends CompoundWrapper {
     private static final Logging logger = new Logging(ModernCompoundWrapperTwentyOne.class);
-
-    private static final MethodHandle hasKey;
-    private static final MethodHandle remove;
-    private static final MethodHandle isEmpty;
-
-    private static final MethodHandle setString;
-    private static final MethodHandle getString;
-
-    private static final MethodHandle setInt;
-    private static final MethodHandle getInt;
-
-    private static final MethodHandle setDouble;
-    private static final MethodHandle getDouble;
-
-    private static final MethodHandle setLong;
-    private static final MethodHandle getLong;
-
-    private static final MethodHandle getShort;
-    private static final MethodHandle setShort;
-
-    private static final MethodHandle setByte;
-    private static final MethodHandle getByte;
-
-    private static final MethodHandle setByteArray;
-    private static final MethodHandle getByteArray;
-
-    private static final MethodHandle setIntArray;
-    private static final MethodHandle getIntArray;
-
-    private static final MethodHandle setLongArray;
-    private static final MethodHandle getLongArray;
-
-    private static final MethodHandle setBoolean;
-    private static final MethodHandle getBoolean;
-
 
     static {
         MethodHandle hasTagKey = null;
@@ -186,7 +153,6 @@ public class ModernCompoundWrapperTwentyOne implements NbtCompoundAccessor {
         setBoolean = setBooleanM;
         getBoolean = getBooleanM;
     }
-
 
     private final Object handle;
 
@@ -510,7 +476,7 @@ public class ModernCompoundWrapperTwentyOne implements NbtCompoundAccessor {
             }
             return new long[0];
         }
-        logger.log(Level.WARNING, () -> "Long Array is not supported on this Minecraft version. It will try solve it as a Int Array.");
+        logger.log(Level.WARNING, () -> "Long Array is not supported on this Minecraft version. It will try to solve it as a Int Array.");
         int[] intArray = this.getIntArray(key);
         if (intArray.length == 0 || intArray.length % 2 != 0) {
             logger.log(Level.WARNING, () -> "This Int Array could not be restored: " + (intArray.length == 0 ? "The array is empty" : "The Array can't be divided by two."));

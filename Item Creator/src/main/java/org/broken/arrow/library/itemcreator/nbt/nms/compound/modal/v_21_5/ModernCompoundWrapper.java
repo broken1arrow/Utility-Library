@@ -1,7 +1,6 @@
 package org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.v_21_5;
 
-import org.broken.arrow.library.itemcreator.ItemCreator;
-import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.NbtCompoundAccessor;
+import org.broken.arrow.library.itemcreator.nbt.nms.compound.modal.CompoundWrapper;
 import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
@@ -34,42 +33,9 @@ import java.util.Optional;
  * <p>This class is intended for internal use by the library and should not
  * normally be instantiated directly.</p>
  */
-public class ModernCompoundWrapper implements NbtCompoundAccessor {
+public class ModernCompoundWrapper extends CompoundWrapper {
     private static final Logging logger = new Logging(ModernCompoundWrapper.class);
 
-    private static final MethodHandle hasKey;
-    private static final MethodHandle remove;
-    private static final MethodHandle isEmpty;
-
-    private static final MethodHandle setString;
-    private static final MethodHandle getString;
-
-    private static final MethodHandle setInt;
-    private static final MethodHandle getInt;
-
-    private static final MethodHandle setDouble;
-    private static final MethodHandle getDouble;
-
-    private static final MethodHandle setLong;
-    private static final MethodHandle getLong;
-
-    private static final MethodHandle getShort;
-    private static final MethodHandle setShort;
-
-    private static final MethodHandle setByte;
-    private static final MethodHandle getByte;
-
-    private static final MethodHandle setByteArray;
-    private static final MethodHandle getByteArray;
-
-    private static final MethodHandle setIntArray;
-    private static final MethodHandle getIntArray;
-
-    private static final MethodHandle setLongArray;
-    private static final MethodHandle getLongArray;
-
-    private static final MethodHandle setBoolean;
-    private static final MethodHandle getBoolean;
     static {
         MethodHandle hasTagKey = null;
         MethodHandle removeM = null;
@@ -186,10 +152,7 @@ public class ModernCompoundWrapper implements NbtCompoundAccessor {
         getBoolean = getBooleanM;
     }
 
-
     private final Object handle;
-
-
 
     /**
      * Creates an adapter around an internal Minecraft NBT compound instance.
