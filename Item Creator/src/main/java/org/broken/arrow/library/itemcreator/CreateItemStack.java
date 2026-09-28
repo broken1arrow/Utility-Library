@@ -73,10 +73,10 @@ public class CreateItemStack {
      * @param itemCreator The main utility class.
      * @param itemBuilder The builder for the item stacks.
      */
-    public CreateItemStack(final ItemCreator itemCreator, final ItemBuilder itemBuilder) {
+    public CreateItemStack(@Nonnull final ItemCreator itemCreator, @Nonnull final ItemBuilder itemBuilder) {
         this.itemCreator = itemCreator;
         this.serverVersion = ItemCreator.getVersion();
-        this.newerThan_12 =  serverVersion.compareTo(12, 2).newer();
+        this.newerThan_12 = serverVersion.compareTo(12, 2).newer();
         this.convertItems = itemCreator.getConvertItems();
 
         this.itemBuilder = itemBuilder;
@@ -648,13 +648,13 @@ public class CreateItemStack {
     }
 
     private ItemMeta setUnbreakableMeta(final ItemMeta itemMeta) {
-        if(!isUnbreakable())
+        if (!isUnbreakable())
             return itemMeta;
         return UnbreakableUtil.applyToMeta(itemMeta, unbreakable);
     }
 
     private void addCustomModelData(final ItemMeta itemMeta) {
-        if (this.getCustomModelData() > 0 && serverVersion.compareTo(14,0).atLeast())
+        if (this.getCustomModelData() > 0 && serverVersion.compareTo(14, 0).atLeast())
             itemMeta.setCustomModelData(this.getCustomModelData());
     }
 
@@ -704,7 +704,7 @@ public class CreateItemStack {
     }
 
     private void createNBTWrapperIfMissing() {
-        if(nbtDataWrapper == null)
+        if (nbtDataWrapper == null)
             nbtDataWrapper = NBTDataWrapper.of(this.itemCreator);
     }
 
