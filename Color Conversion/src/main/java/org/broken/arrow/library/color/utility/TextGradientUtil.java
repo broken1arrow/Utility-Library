@@ -21,13 +21,6 @@ import java.util.List;
 public class TextGradientUtil {
 
     /**
-     * Constructs a new {@code TextGradientUtil} instance.
-     */
-    public TextGradientUtil() {
-
-    }
-
-    /**
      * Interpolates a list of colors across a given text string, calculating either RGB or HSV steps.
      * <p>
      * This method can accept optional portion distributions to alter how much width each segment spans.
@@ -64,8 +57,13 @@ public class TextGradientUtil {
             p = Arrays.stream(portions).mapToDouble(Double::doubleValue).toArray();
         }
 
-        int index = 0;
+        this.addGradients(result, type, text, colors, p, length);
 
+        return result;
+    }
+
+    private void addGradients(@Nonnull final List<GradientChar> result, @Nonnull final GradientType type, final String text, final Color[] colors, final double[] p, int length) {
+        int index = 0;
         for (int seg = 0; seg < colors.length - 1; seg++) {
             int segLength = (int) Math.round(p[seg] * length);
 
@@ -92,8 +90,6 @@ public class TextGradientUtil {
                 result.add(new GradientChar(text.charAt(index), toHex(color)));
             }
         }
-
-        return result;
     }
 
 

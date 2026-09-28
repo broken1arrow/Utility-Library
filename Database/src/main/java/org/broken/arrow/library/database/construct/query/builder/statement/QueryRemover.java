@@ -162,13 +162,14 @@ public class QueryRemover {
                     modifier.where(subWhere);
                     mainWhereBuilder.chainWhere().and().where("").notExists(subQueryBuilder);
                     break;
-
                 case RIGHT:
                 case FULL:
                 case CROSS:
                     throw new UnsupportedOperationException(
                             join.getType() + " is not supported in DELETE queries."
                     );
+                default:
+                    break;
             }
         }
     }

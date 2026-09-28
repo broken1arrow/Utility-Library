@@ -20,12 +20,6 @@ public class SaveSetup<K, V extends ConfigurationSerializable> extends QueryCont
     private Consumer<DatabaseSettingsSave> settings;
 
     /**
-     * Creates a new SaveSetup instance.
-     */
-    public SaveSetup() {
-    }
-
-    /**
      * Defines database-specific settings such as table name, update behavior,
      * and optional column filtering.
      *

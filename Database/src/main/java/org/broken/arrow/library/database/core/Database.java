@@ -432,7 +432,7 @@ public abstract class Database {
 
         final TableSchema table = this.getTableFromName(tableName);
         if (table == null) {
-            this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
+            logTableMissing(tableName);
             return;
         }
         batchExecutor.removeAll(tableName, values, table::createWhereClauseFromPrimaryColumns);
@@ -459,7 +459,7 @@ public abstract class Database {
         final TableSchema table = this.getTableFromName(tableName);
 
         if (table == null) {
-            this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
+            logTableMissing(tableName);
             return;
         }
         batchExecutor.remove(tableName, value, table::createWhereClauseFromPrimaryColumns);
@@ -485,7 +485,7 @@ public abstract class Database {
         final TableSchema table = this.getTableFromName(tableName);
 
         if (table == null) {
-            this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
+            logTableMissing(tableName);
             return;
         }
         batchExecutor.remove(tableName, whereClause);
@@ -1224,6 +1224,10 @@ public abstract class Database {
 
     private static String getMessage(final String message, final String tableName, final Object columnsToBeModified) {
         return message + "'" + columnsToBeModified + "'. To this table '" + tableName + "'";
+    }
+
+    private void logTableMissing(@Nonnull final String tableName) {
+        this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' when attempting to remove your list of primary values. Did you register your table?");
     }
 
 }

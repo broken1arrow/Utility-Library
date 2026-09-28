@@ -16,12 +16,6 @@ public class QueryContext<T> {
     private Consumer<T> context;
 
     /**
-     * Creates a new QueryContext instance.
-     */
-    public QueryContext() {
-    }
-
-    /**
      * Sets the logic to prepare or handle query data for each entry in the cache.
      * <p>
      * This method is used by both saving and loading processes, and its behavior depends

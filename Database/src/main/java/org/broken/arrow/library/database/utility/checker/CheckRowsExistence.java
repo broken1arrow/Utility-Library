@@ -9,6 +9,7 @@ import org.broken.arrow.library.database.construct.query.builder.column.refernce
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.InsertBuilder;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
+import org.broken.arrow.library.database.construct.query.utlity.DataType;
 import org.broken.arrow.library.database.utility.DatabaseType;
 import org.broken.arrow.library.logging.Logging;
 
@@ -52,10 +53,12 @@ public class CheckRowsExistence<T> {
     private final DatabaseType databaseType;
     private final Logging log = new Logging(CheckRowsExistence.class);
     private final String tempTableName = "temp_keys";
+    private final String TEMP = "temp.";
 
     private final Connection connection;
     private final List<T> rows;
     private final List<String> matchKeys;
+
 
     /**
      * Private constructor forcing the use of the {@link Builder}.
@@ -181,7 +184,7 @@ public class CheckRowsExistence<T> {
         final QueryBuilder createTemp = new QueryBuilder(this.databaseType);
         createTemp.createTemporaryTable(tempTableName)
                 .as()
-                .select(c -> matchKeys.forEach(col -> c.add((TableColumn) TableColumn.of(col))))
+                .select(c -> matchKeys.forEach(col -> c.add(new TableColumn(col, DataType.varchar(16)))))
                 .from(targetTable)
                 .where(w -> w.where("1").equal(0));
 
@@ -226,17 +229,17 @@ public class CheckRowsExistence<T> {
     @Nonnull
     private QueryBuilder buildJoinQuery(@NonNull final String targetTable) {
         final QueryBuilder checkMatch = new QueryBuilder(this.databaseType);
-        checkMatch.select(c -> matchKeys.forEach(col -> c.add(Column.of("temp." + col))))
+        checkMatch.select(c -> matchKeys.forEach(col -> c.add(Column.of(TEMP + col))))
                 .from(targetTable, "target")
                 .join(j -> j.innerJoin(tempTableName, "temp", ctx -> {
                     ConditionChainer<JoinBuildContext> currentJoinContext = ctx.on(Column.of("target." + matchKeys.get(0)))
-                            .equal(Column.of("temp." + matchKeys.get(0)));
+                            .equal(Column.of(TEMP + matchKeys.get(0)));
 
                     for (int i = 1; i < matchKeys.size(); i++) {
                         String colName = matchKeys.get(i);
                         currentJoinContext = currentJoinContext.and()
                                 .on(Column.of("target." + colName))
-                                .equal(Column.of("temp." + colName));
+                                .equal(Column.of(TEMP  + colName));
                     }
                     return currentJoinContext;
                 }));

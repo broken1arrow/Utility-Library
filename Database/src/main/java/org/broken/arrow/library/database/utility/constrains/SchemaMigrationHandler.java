@@ -5,12 +5,9 @@ import org.broken.arrow.library.database.builders.schema.TableSchema;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.Selector;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
-import org.broken.arrow.library.database.construct.query.builder.table.CreateTableHandler;
 import org.broken.arrow.library.database.construct.query.builder.table.AlterTable;
 import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.utility.DatabaseType;
@@ -272,17 +269,8 @@ public class SchemaMigrationHandler {
         }
         final String tableName = queryTable.getTableName();
 
-        if (!columnsToBeModified.isEmpty() && !primaryValuesComplete) {
-            final QueryBuilder queryBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
-            queryBuilder.alterTable(tableName).setConstraints(modifyConstraints ->
-                    modifyConstraints.addUnique(columnsToBeModified.stream().map(Column::getColumnName).toArray(String[]::new)));
-            final String query = queryBuilder.build();
-            try (final PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.execute();
-            } catch (final SQLException throwable) {
-                log.log(throwable, () -> getMessage("Failed to apply UNIQUE constraint during primary key migration. Columns '", tableName, columnsToBeModified));
-            }
-        }
+        applyUnique(primaryValuesComplete, columnsToBeModified, tableName);
+
         if (!columnsToBeModified.isEmpty() && primaryValuesComplete) {
             final QueryBuilder queryBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
             queryBuilder.alterTable(tableName).setConstraints(modifyConstraints -> {
@@ -294,6 +282,20 @@ public class SchemaMigrationHandler {
                 statement.execute();
             } catch (final SQLException throwable) {
                 log.log(throwable, () -> getMessage("Failed to apply PRIMARY KEY constraint during migration. Columns ", tableName, columnsToBeModified));
+            }
+        }
+    }
+
+    private void applyUnique(boolean primaryValuesComplete, List<TableColumn> columnsToBeModified, String tableName) {
+        if (!columnsToBeModified.isEmpty() && !primaryValuesComplete) {
+            final QueryBuilder queryBuilder = new QueryBuilder(this.databaseCore.getDatabaseType());
+            queryBuilder.alterTable(tableName).setConstraints(modifyConstraints ->
+                    modifyConstraints.addUnique(columnsToBeModified.stream().map(Column::getColumnName).toArray(String[]::new)));
+            final String query = queryBuilder.build();
+            try (final PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.execute();
+            } catch (final SQLException throwable) {
+                log.log(throwable, () -> getMessage("Failed to apply UNIQUE constraint during primary key migration. Columns '", tableName, columnsToBeModified));
             }
         }
     }
