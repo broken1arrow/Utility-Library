@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 
 public final class ComponentAccess {
@@ -61,14 +62,7 @@ public final class ComponentAccess {
             try {
                 componentsField = itemstackClass.getDeclaredField("components");
             } catch (NoSuchFieldException e) {
-                // Fallback for different mappings
-                for (Field field : itemstackClass.getDeclaredFields()) {
-                    if (field.getType().getSimpleName().equals("PatchedDataComponentMap") ||
-                            field.getType().getSimpleName().equals("DataComponentMap")) {
-                        componentsField = field;
-                        break;
-                    }
-                }
+                componentsField = getComponentsField(itemstackClass);
             }
 
             if (componentsField != null) {
@@ -323,4 +317,42 @@ public final class ComponentAccess {
         return resLocOpt.get().invoke(keyObj);
     }
 
+
+    private static Field getComponentsField(Class<?> itemstackClass) {
+        Field componentsField = null;
+        Class<?> dataComponentMap = null;
+        Class<?> patchedDataComponent = null;
+        try {
+            dataComponentMap = Class.forName("net.minecraft.core.component.DataComponentMap");
+        } catch (ClassNotFoundException ignore) {
+        }
+        try {
+            patchedDataComponent = Class.forName("net.minecraft.core.component.PatchedDataComponentMap");
+        } catch (ClassNotFoundException ignore) {
+        }
+        // Fallback for different mappings
+        for (Field field : itemstackClass.getDeclaredFields()) {
+            if (dataComponentMap != null && dataComponentMap.isAssignableFrom(field.getType())) {
+                componentsField = field;
+                break;
+            }
+            if (patchedDataComponent != null && patchedDataComponent.isAssignableFrom(field.getType())) {
+                componentsField = field;
+                break;
+            }
+        }
+
+        if (componentsField == null) {
+            if (dataComponentMap == null && patchedDataComponent == null) {
+                logger.log(Level.WARNING, () -> "Could not find either DataComponentMap or PatchedDataComponentMap classes. Did the package change?");
+            } else if (dataComponentMap == null) {
+                logger.log(Level.WARNING, () -> "Could not find the DataComponentMap class.");
+            } else if (patchedDataComponent == null) {
+                logger.log(Level.WARNING, () -> "Could not find the PatchedDataComponentMap class.");
+            } else {
+                logger.log(Level.WARNING, () -> "Classes found, but could not find the matching field inside: " + itemstackClass.getSimpleName());
+            }
+        }
+        return componentsField;
+    }
 }
