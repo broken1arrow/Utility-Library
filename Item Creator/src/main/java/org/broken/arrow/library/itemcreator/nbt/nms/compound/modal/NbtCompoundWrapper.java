@@ -32,43 +32,12 @@ import java.util.logging.Level;
  *
  * <p>This class is intended for internal library usage.</p>
  */
-public class NbtCompoundWrapper implements NbtCompoundAccessor {
+public class NbtCompoundWrapper extends CompoundWrapper {
     private static final Logging logger = new Logging(NbtCompoundWrapper.class);
     private static final boolean LEGACY_NBT_METHOD_NAMES = ItemCreator.getVersion().compareTo(18, 0).older();
     private static final boolean LEGACY_NBT_METHOD_AT_LEAST_12 = ItemCreator.getVersion().compareTo(12, 0).atLeast();
 
-    private static final MethodHandle hasKey;
-    private static final MethodHandle remove;
-    private static final MethodHandle isEmpty ;
-    private static final MethodHandle setString;
-    private static final MethodHandle getString;
 
-    private static final MethodHandle setInt;
-    private static final MethodHandle getInt;
-
-    private static final MethodHandle setDouble;
-    private static final MethodHandle getDouble;
-
-    private static final MethodHandle setLong;
-    private static final MethodHandle getLong;
-
-    private static final MethodHandle getShort;
-    private static final MethodHandle setShort;
-
-    private static final MethodHandle setByte;
-    private static final MethodHandle getByte;
-
-    private static final MethodHandle setByteArray;
-    private static final MethodHandle getByteArray;
-
-    private static final MethodHandle setIntArray;
-    private static final MethodHandle getIntArray;
-
-    private static final MethodHandle setLongArray;
-    private static final MethodHandle getLongArray;
-
-    private static final MethodHandle setBoolean;
-    private static final MethodHandle getBoolean;
 
     static {
         MethodHandle hasTagKey = null;
