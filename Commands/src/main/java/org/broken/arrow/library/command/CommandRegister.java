@@ -38,11 +38,8 @@ public class CommandRegister implements CommandRegistering {
     private static boolean hasColorLib;
     private boolean registeredMainCommand;
 
-    /**
-     * Create new instance where it also checks if the color translator is included
-     * when shaded
-     */
-    public CommandRegister() {
+
+    static {
         try {
             TextTranslator.getInstance();
             hasColorLib = true;
