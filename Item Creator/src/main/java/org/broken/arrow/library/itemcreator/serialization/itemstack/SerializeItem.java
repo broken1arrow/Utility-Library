@@ -74,10 +74,9 @@ public class SerializeItem {
         if (meta != null) {
             if (meta.hasDisplayName()) data.name = meta.getDisplayName();
             if (meta.hasLore()) data.lore = meta.getLore();
-            if (ItemCreator.getVersion().versionNewer(12.2) && meta.hasCustomModelData()) {
-                data.customModelData = meta.getCustomModelData();
-            }
-            if (ItemCreator.getVersion().versionNewer(12.2)) data.unbreakable = meta.isUnbreakable();
+
+            setModeldata(meta, data);
+            setUnbreakable(data, meta);
 
             data.itemFlags.addAll(meta.getItemFlags());
 
@@ -388,6 +387,16 @@ public class SerializeItem {
     @Override
     public int hashCode() {
         return Objects.hash(type, amount, name, lore, enchantments, customModelData, unbreakable, itemFlags, skullOwner, skinPlayerId, potionEffects, attributeModifiers, armorColor, patterns, fireworkMeta, bookMenta);
+    }
+
+    private static void setModeldata(ItemMeta meta, SerializeItem data) {
+        if (ItemCreator.getVersion().versionNewer(12.2) && meta.hasCustomModelData()) {
+            data.customModelData = meta.getCustomModelData();
+        }
+    }
+
+    private static void setUnbreakable(SerializeItem data, ItemMeta meta) {
+        if (ItemCreator.getVersion().versionNewer(12.2)) data.unbreakable = meta.isUnbreakable();
     }
 
     private void setOwnerToMeta(@Nonnull final SkullMeta skull) {

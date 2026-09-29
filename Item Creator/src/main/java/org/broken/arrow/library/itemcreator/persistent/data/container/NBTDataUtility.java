@@ -31,13 +31,7 @@ public final class NBTDataUtility {
     private static final ItemStackTagType ITEM_TAG_TYPE = new ItemStackTagType();
     private static final UUIDItemTagType UUID_TAG_TYPE = new UUIDItemTagType();
 
-    /**
-     * Creates a new persistent data utility for the specified plugin.
-     *
-     */
-    public NBTDataUtility(){}
-
-
+    
     /**
      * Sets a value in the given {@link PersistentDataContainer} using the appropriate data type.
      * <p>
