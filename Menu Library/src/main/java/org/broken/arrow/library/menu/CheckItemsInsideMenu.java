@@ -280,24 +280,28 @@ public class CheckItemsInsideMenu {
         while (iterator.hasNext()) {
             Entry<UUID, ItemOverflowBatch> mapEntry = iterator.next();
             mapEntry.getValue().getItem(duplicateStacks -> {
-                for (final Entry<ItemStack, Integer> items : duplicateStacks.entrySet()) {
-                    final ItemStack itemStack = items.getKey();
-                    final int amount = items.getValue();
-                    if (amount <= 0 || itemStack == null || itemStack.getType() == Material.AIR)
-                        continue;
-
-                    itemStack.setAmount(amount);
-                    final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(mapEntry.getKey());
-                    final Player player = offlinePlayer.getPlayer();
-                    if (player != null) {
-                        this.returnsBackItems(player, itemStack);
-                        this.registerMenuAPI.getMessages().sendDuplicatedMessage(player, new DuplicatedItemWrapper(itemStack, duplicateStacks.size(), amount));
-                    } else if (location != null && location.getWorld() != null) {
-                        location.getWorld().dropItemNaturally(location, itemStack);
-                    }
-                }
+                giveBack(location, duplicateStacks, mapEntry);
             });
             iterator.remove();
+        }
+    }
+
+    private void giveBack(final Location location,final Map<ItemStack, Integer> duplicateStacks,final Entry<UUID, ItemOverflowBatch> mapEntry) {
+        for (final Entry<ItemStack, Integer> items : duplicateStacks.entrySet()) {
+            final ItemStack itemStack = items.getKey();
+            final int amount = items.getValue();
+            if (amount <= 0 || itemStack == null || itemStack.getType() == Material.AIR)
+                continue;
+
+            itemStack.setAmount(amount);
+            final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(mapEntry.getKey());
+            final Player player = offlinePlayer.getPlayer();
+            if (player != null) {
+                this.returnsBackItems(player, itemStack);
+                this.registerMenuAPI.getMessages().sendDuplicatedMessage(player, new DuplicatedItemWrapper(itemStack, duplicateStacks.size(), amount));
+            } else if (location != null && location.getWorld() != null) {
+                location.getWorld().dropItemNaturally(location, itemStack);
+            }
         }
     }
 

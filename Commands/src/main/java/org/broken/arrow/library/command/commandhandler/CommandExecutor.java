@@ -99,16 +99,7 @@ public class CommandExecutor extends Command {
                 final List<String> tabComplete = mainCommand.executeTabComplete(sender, alias, args);
                 return tabComplete != null && checkPermission(sender, mainCommand) ? tabComplete : new ArrayList<>();
             }
-            if (args.length > 0) {
-                final CommandProperty subcommand = commandHandler.getCommandBuilder(args[0], true);
-                if (subcommand == null) return new ArrayList<>();
-                if (args.length == 1) {
-                    return tabCompleteSubcommands(sender, commandHandler, args[0]);
-                }
-                final List<String> tabComplete = subcommand.executeTabComplete(sender, alias, Arrays.copyOfRange(args, 1, args.length));
-                return tabComplete != null && checkPermission(sender, subcommand) ? tabComplete : new ArrayList<>();
-            }
-            return new ArrayList<>();
+            return getTabComplete(commandHandler, sender, alias, args);
         }
         return new ArrayList<>();
     }
@@ -145,7 +136,6 @@ public class CommandExecutor extends Command {
         return CommandRegister.translateColors(message);
     }
 
-
     private boolean handleSubCommand(@NonNull final CommandSender sender, @NonNull final String commandLabel, @NonNull final MainCommandHandler commandHandler, @NonNull final String[] args) {
         if (commandHandler.isSubCommandsSet()) return false;
 
@@ -165,6 +155,20 @@ public class CommandExecutor extends Command {
             return executeCommand;
         }
         return false;
+    }
+
+    @NonNull
+    private List<String> getTabComplete(@NonNull final MainCommandHandler commandHandler, @NonNull final CommandSender sender, @NonNull final String alias, final String @NonNull [] args) {
+        if (args.length > 0) {
+            final CommandProperty subcommand = commandHandler.getCommandBuilder(args[0], true);
+            if (subcommand == null) return new ArrayList<>();
+            if (args.length == 1) {
+                return tabCompleteSubcommands(sender, commandHandler, args[0]);
+            }
+            final List<String> tabComplete = subcommand.executeTabComplete(sender, alias, Arrays.copyOfRange(args, 1, args.length));
+            return tabComplete != null && checkPermission(sender, subcommand) ? tabComplete : new ArrayList<>();
+        }
+        return new ArrayList<>();
     }
 
     private boolean sendHelpMessage(@NonNull final MainCommandHandler commandHandler, @NonNull final CommandSender sender, @NonNull final String commandLabel, @NonNull final String[] args, final boolean executeCommand) {
@@ -291,7 +295,7 @@ public class CommandExecutor extends Command {
         List<String> resultList = new ArrayList<>();
 
         for (String message : messages) {
-            if(message != null) {
+            if (message != null) {
                 final String messageFormated = message
                         .replace("{label}", "/" + commandLabel + (subcommand != null ? " " + this.formatSet(subcommand.getCommandLabels()) : ""))
                         .replace("{perm}", permission);

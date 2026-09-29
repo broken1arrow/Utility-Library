@@ -1,10 +1,7 @@
 package org.broken.arrow.library.serialize.utility.converters;
 
-import org.broken.arrow.library.color.ChatColors;
-import org.broken.arrow.library.color.TextTranslator;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.serialize.utility.Pair;
-import org.bukkit.Color;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -230,19 +227,23 @@ public class PlaceholderTranslator {
             Object value = placeholders[i];
             String key = "{" + i + "}";
             List<String> newResult = new ArrayList<>();
-            for (String current : result) {
-                if (value instanceof Collection && current.contains(key)) {
-                    final Collection<?> split = split((Collection<?>) value);
-                    for (Object element : split) {
-                        newResult.add(current.replace(key, element.toString()));
-                    }
-                } else {
-                    newResult.add(current.replace(key, value != null ? value.toString() : ""));
-                }
-            }
+            addResult(result, value, key, newResult);
             result = newResult;
         }
         return result;
+    }
+
+    private static void addResult(final List<String> result, final Object value, final String key, final List<String> newResult) {
+        for (String current : result) {
+            if (value instanceof Collection && current.contains(key)) {
+                final Collection<?> split = split((Collection<?>) value);
+                for (Object element : split) {
+                    newResult.add(current.replace(key, element.toString()));
+                }
+            } else {
+                newResult.add(current.replace(key, value != null ? value.toString() : ""));
+            }
+        }
     }
 
     private static List<String> applyPlaceholders(final List<String> input, final Map.Entry<String, Object> entry) {
@@ -252,22 +253,26 @@ public class PlaceholderTranslator {
         Object value = entry.getValue();
 
         for (String current : input) {
-            if (current == null || !current.contains(key)) {
-                result.add(current);
-                continue;
-            }
-            if (value instanceof Collection) {
-                final Collection<?> split = split((Collection<?>) value);
-                for (Object element : split) {
-                    final String replacedPlaceholders = current.replace(key, element != null ? element.toString() : "");
-                    result.add(replacedPlaceholders);
-                }
-            } else {
-                String replacedPlaceholders = current.replace(key, value != null ? value.toString() : "");
-                result.add(replacedPlaceholders);
-            }
+            addPlaceholders(result, current, key, value);
         }
         return result;
+    }
+
+    private static void addPlaceholders(final List<String> result, final String current, final String key, final Object value) {
+        if (current == null || !current.contains(key)) {
+            result.add(current);
+            return;
+        }
+        if (value instanceof Collection) {
+            final Collection<?> split = split((Collection<?>) value);
+            for (Object element : split) {
+                final String replacedPlaceholders = current.replace(key, element != null ? element.toString() : "");
+                result.add(replacedPlaceholders);
+            }
+        } else {
+            String replacedPlaceholders = current.replace(key, value != null ? value.toString() : "");
+            result.add(replacedPlaceholders);
+        }
     }
 
     private static List<?> split(Collection<?> input) {

@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -259,31 +260,37 @@ public class ButtonAnimation<T> extends BukkitRunnable {
             final ButtonData<T> buttonData = buttons.get(slot);
             if (buttonData == null) continue;
 
-            MenuButton resolvedButton = buttonData.getMenuButton();
-            final long carriedScheduledTime = getCurrentTime(resolvedButton);
-            final boolean refreshButtons = this.menuUtility.isFullyRefreshButtons();
-            if (refreshButtons) {
-                if (resolvedButton != null) {
-                    this.removeUpdateTime(resolvedButton);
-                }
-                resolvedButton = this.menuUtility.getFillSpace().contains(slot)
-                        ? this.menuUtility.getFillButtonAt(slot)
-                        : null;
-
-                if (resolvedButton == null)
-                    resolvedButton = this.menuUtility.getButtonAt(slot);
-            } else if (resolvedButton == null) {
-                resolvedButton = menuDataUtility.getFillMenuButton(slot);
-            }
+            final MenuButton resolvedButton = getResolvedButton(menuDataUtility, buttonData, slot);
             if (resolvedButton == null) continue;
+
+            final long carriedScheduledTime = getCurrentTime(resolvedButton);
             final int buttonID = resolvedButton.getId();
-            final MenuButton finalResolvedButton = resolvedButton;
 
             this.updateScheduledTime(resolvedButton, carriedScheduledTime);
-            slotMap.computeIfAbsent(buttonID, k -> new ButtonAnimationGroup(finalResolvedButton)).add(slot);
-            menuDataUtility.updateButton(slot, finalResolvedButton, (dataWrapper) -> dataWrapper.setMenuButton(finalResolvedButton));
+            slotMap.computeIfAbsent(buttonID, k -> new ButtonAnimationGroup(resolvedButton)).add(slot);
+            menuDataUtility.updateButton(slot, resolvedButton, (dataWrapper) -> dataWrapper.setMenuButton(resolvedButton));
         }
         return slotMap;
+    }
+
+    @Nullable
+    private MenuButton getResolvedButton(@NonNull final MenuDataUtility<T> menuDataUtility, final ButtonData<T> buttonData, final int slot) {
+        MenuButton resolvedButton = buttonData.getMenuButton();
+        final boolean refreshButtons = this.menuUtility.isFullyRefreshButtons();
+        if (refreshButtons) {
+            if (resolvedButton != null) {
+                this.removeUpdateTime(resolvedButton);
+            }
+            resolvedButton = this.menuUtility.getFillSpace().contains(slot)
+                    ? this.menuUtility.getFillButtonAt(slot)
+                    : null;
+
+            if (resolvedButton == null)
+                resolvedButton = this.menuUtility.getButtonAt(slot);
+        } else if (resolvedButton == null) {
+            resolvedButton = menuDataUtility.getFillMenuButton(slot);
+        }
+        return resolvedButton;
     }
 
 
