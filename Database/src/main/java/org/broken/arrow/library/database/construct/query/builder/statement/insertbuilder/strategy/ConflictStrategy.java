@@ -88,10 +88,10 @@ public class ConflictStrategy implements ParameterSupplier {
     @Nonnull
     public String build() {
         final DatabaseType type = this.queryBuilder.getDatabaseType();
-        final ConflictBuilder conflictBuilder = this.getConflictBuilder();
+        final ConflictBuilder conflict = this.getConflictBuilder();
         final boolean isPostgreSqlite = type == DatabaseType.POSTGRESQL || type == DatabaseType.SQLITE;
 
-        if (conflictBuilder.isDoNothing() || conflictBuilder.isUpdateColumnsEmpty()) {
+        if (conflict.isDoNothing() || conflict.isUpdateColumnsEmpty()) {
             if (isPostgreSqlite) {
                 return "ON CONFLICT DO NOTHING";
             } else {

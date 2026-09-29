@@ -43,6 +43,7 @@ import java.util.logging.Level;
  * @param <T> The type of data to be saved or processed.
  */
 public class BatchExecutor<T> {
+    private final Logging LOG = new Logging(BatchExecutor.class);
     protected final Database database;
     protected final List<T> dataToProcess;
     protected final Connection connection;
@@ -157,7 +158,7 @@ public class BatchExecutor<T> {
         final boolean primaryValueSet = primaryWrapper.getColumnContext().values().stream().noneMatch(Objects::isNull);
 
         if (isManualInsertOrUpdate && !primaryValueSet) {
-            System.out.println("You must provide where it shall insert or update rows.");
+            LOG.log(() -> "You must provide where it shall insert or update rows.");
         }
 
         if (primaryValueSet && hasUpdateIntent) {

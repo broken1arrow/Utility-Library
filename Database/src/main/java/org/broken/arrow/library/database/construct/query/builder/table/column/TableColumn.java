@@ -117,16 +117,16 @@ public class TableColumn extends Column {
      */
     public String build() {
         final StringJoiner joiner = new StringJoiner(" ");
-        final String constraints;
+        final String constraintsFinished;
         if (this.constraints != null)
             for (SQLConstraints constraint : this.constraints) {
                 joiner.add(constraint.toString());
             }
         if (joiner.length() > 0)
-            constraints = " " + joiner;
+            constraintsFinished = " " + joiner;
         else
-            constraints = "";
-        return this.getColumnName() + " " + dataType.getType() + constraints;
+            constraintsFinished = "";
+        return this.getColumnName() + " " + dataType.getType() + constraintsFinished;
     }
 
     /**

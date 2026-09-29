@@ -38,7 +38,7 @@ public class WithBuilder {
      */
     public WithBuilder add(Column column) {
         if (this.columnBuilder == null) {
-            this.columnBuilder = ColumnBuilder.make(columnBuilder -> columnBuilder.add(column));
+            this.columnBuilder = ColumnBuilder.make(builder -> builder.add(column));
         } else {
             this.columnBuilder.add(column);
         }

@@ -196,11 +196,11 @@ public class CommandRegister implements CommandRegistering {
         final MainCommandHandler commandHandler = commands.get(mainCommand);
         if (commandHandler != null) {
             final CommandProperty commandProperty = commandHandler.getMainCommand();
-            final Collection<CommandProperty> commands = commandHandler.getSubcommands();
+            final Collection<CommandProperty> subcommands = commandHandler.getSubcommands();
             if (commandProperty != null)
                 log.log(() -> "The command is already registered: '" + mainCommand + "' and have this command registered:" + commandProperty);
-            if (commands != null)
-                log.log(() -> "The command is already registered: '" + mainCommand + "' and have this sub commands registered: '" + commands + "'");
+            if (subcommands != null)
+                log.log(() -> "The command is already registered: '" + mainCommand + "' and have this sub commands registered: '" + subcommands + "'");
             return true;
         }
         return false;

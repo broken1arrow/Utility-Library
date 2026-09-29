@@ -68,33 +68,6 @@ public class Formatting {
 
         return whereClause.toString();
     }
-
-    private static boolean setOpenParenthesis(final StringBuilder whereClause, final boolean nextIsOr, boolean hasOpenParenthesis) {
-        if (nextIsOr && !hasOpenParenthesis) {
-            whereClause.append("(");
-            hasOpenParenthesis = true;
-        }
-        return hasOpenParenthesis;
-    }
-
-    private static boolean setCloseParenthesis(final StringBuilder whereClause, final ComparisonHandler<?> next, final boolean currentIsOr, boolean hasOpenParenthesis) {
-        if (checkIfHasOpenParenthesis(next, currentIsOr, hasOpenParenthesis)) {
-            hasOpenParenthesis = appendCloseParenthesis(whereClause);
-        }
-        return hasOpenParenthesis;
-    }
-
-    private static boolean checkIfHasOpenParenthesis(final ComparisonHandler<?> next, final boolean currentIsOr, boolean hasOpenParenthesis) {
-        if (currentIsOr && next != null)
-            return true;
-        return hasOpenParenthesis && (currentIsOr || next == null);
-    }
-
-    private static boolean appendCloseParenthesis(StringBuilder whereClause) {
-        whereClause.append(")");
-        return false;
-    }
-
-
+    
 }
 

@@ -56,13 +56,7 @@ public class ComponentResolver {
             keyField.setAccessible(true);
             registryKey = keyField.get(dataComponentRegistry);
 
-            try {
-                Method parseMethod = resourceLocationClass.getMethod("parse", String.class);
-                createResourceLocation = lookup.unreflect(parseMethod);
-            } catch (NoSuchMethodException e) {
-                Constructor<?> constructor = resourceLocationClass.getConstructor(String.class);
-                createResourceLocation = lookup.unreflectConstructor(constructor);
-            }
+            createResourceLocation = getResourceLocation(resourceLocationClass, lookup);
 
             Method mCreate = resourceKeyClass.getMethod("create", resourceKeyClass, resourceLocationClass);
             Method mGet = dataComponentRegistry.getClass().getMethod("get", resourceKeyClass);
@@ -153,5 +147,18 @@ public class ComponentResolver {
         if (i == -1)
             return "minecraft:" + key;
         return key;
+    }
+
+    private static MethodHandle getResourceLocation(final Class<?> resourceLocationClass, final MethodHandles.Lookup lookup) throws IllegalAccessException, NoSuchMethodException {
+        MethodHandle createResourceLocation = null;
+        try {
+            Method parseMethod = resourceLocationClass.getMethod("parse", String.class);
+            createResourceLocation = lookup.unreflect(parseMethod);
+        } catch (NoSuchMethodException e) {
+            Constructor<?> constructor = resourceLocationClass.getConstructor(String.class);
+            createResourceLocation = lookup.unreflectConstructor(constructor);
+        }
+
+        return createResourceLocation;
     }
 }

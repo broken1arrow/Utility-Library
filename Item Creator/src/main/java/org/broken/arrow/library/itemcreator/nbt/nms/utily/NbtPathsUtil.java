@@ -7,6 +7,9 @@ public class NbtPathsUtil {
     private static final boolean IS_NEVER_16 = ItemCreator.getVersion().compareTo(16, 5).newer();
     private final static boolean IS_AT_LEAST_21_11 = ItemCreator.getVersion().compareTo(21, 11).atLeast();
 
+    private NbtPathsUtil() {
+    }
+
     /**
      * Retrieve the compound path
      *

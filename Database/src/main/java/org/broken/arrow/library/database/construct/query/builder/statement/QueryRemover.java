@@ -86,7 +86,7 @@ public class QueryRemover {
     public String build() {
         StringBuilder sql = new StringBuilder();
         final RemoveModifier modifier = this.removeModifier;
-        final WhereBuilder whereBuilder = getOrCreateWhereBuilder(modifier);
+        final WhereBuilder where = getOrCreateWhereBuilder(modifier);
 
         if (modifier != null) {
             final String[] tables = modifier.getUsingTables();
@@ -97,7 +97,7 @@ public class QueryRemover {
                 sql.append(joinBuilder.build());
             }
         }
-        sql.append(whereBuilder != null ? whereBuilder.build() : "");
+        sql.append(where != null ? where.build() : "");
         if (modifier != null) {
             sql.append(modifier.getOrderByBuilder().build());
             sql.append(modifier.getLimit());

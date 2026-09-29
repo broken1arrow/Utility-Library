@@ -160,22 +160,4 @@ public class MainCommandHandler {
     }
 
 
-    /**
-     * Checks and add the subcommand from the specified command builder with the given command labels.
-     *
-     * @param subCommand    The command builder to collect subcommands from.
-     * @param commandLabels The command labels to assign to the subcommands.
-     * @return {@code true} if subcommands were collected, {@code false} otherwise.
-     */
-    private boolean addCommands(CommandProperty subCommand, Set<String> commandLabels) {
-        if (!commandLabels.isEmpty()) {
-            for (final String label : commandLabels) {
-                if (label == null)
-                    throw new CommandException("&c" + "You can´t register a command with a label set to null.");
-            }
-            return true;
-        } else {
-            throw new CommandException("&c" + "You can´t register a command without labels");
-        }
-    }
 }

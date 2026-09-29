@@ -202,6 +202,7 @@ public class CommandProperty extends CommandMessages {
      * @param permissionMessage The permission failure message.
      * @return The class instance.
      */
+    @Override
     public CommandProperty setPermissionMessage(final String permissionMessage) {
         super.setPermissionMessage(permissionMessage);
         return this;

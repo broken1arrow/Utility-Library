@@ -58,7 +58,7 @@ public class TableSelector extends Selector<TableColumnRegistry, TableColumn> {
     /**
      * Returns this Selector instance for further query building or inspection.
      *
-     * @return this SelectorWrapper instance as a Selector
+     * @return this TableSelector instance as a Selector
      */
     public TableSelector getTableSelector() {
         return this;
