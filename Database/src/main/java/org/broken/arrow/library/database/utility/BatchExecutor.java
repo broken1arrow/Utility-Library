@@ -84,59 +84,10 @@ public class BatchExecutor<T> {
             return;
         }
 
-        for (T dataToSave : this.dataToProcess) {
-            if (!(dataToSave instanceof DataWrapper)) continue;
-
-            final DataWrapper dataWrapper = (DataWrapper) dataToSave;
-
-            final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
-            final boolean columnsIsEmpty = columns == null || columns.length == 0;
-            boolean canUpdateRow = false;
-            final Object legacyPrimaryValue = dataWrapper.getPrimaryValue();
-            final WriteContext primaryWrapper = dataWrapper.getWriteContext();
-            final WhereClauseFunction whereClauseCallback = primaryWrapper.getWhereClause();
-
-
-            final Function<WhereBuilder, ConditionChainer<WhereBuilder>> finalWhereStrategy = whereBuilder -> {
-                if (whereClauseCallback != null) {
-                    return whereClauseCallback.apply(whereBuilder);
-                }
-                return table.createWhereClauseFromPrimaryColumns(whereBuilder, legacyPrimaryValue);
-            };
-            final boolean isManualInsertOrUpdate = !table.isAutoIncrementTable();
-            final boolean hasUpdateIntent = !columnsIsEmpty || shallUpdate;
-            final boolean primaryValueSet = primaryWrapper.getColumnContext().values().stream().noneMatch(Objects::isNull);
-
-            if (isManualInsertOrUpdate && !primaryValueSet) {
-                System.out.println("You must provide valid where clause if, it shall insert or update rows.");
-            }
-
-            if (primaryValueSet && hasUpdateIntent) {
-                final SqlQuery query = tableQuery.selectRow(columnManger -> {
-                    columnManger.addAll(table.getPrimaryColumnsWrapped());
-                }, true, finalWhereStrategy);
-                canUpdateRow = this.checkIfRowExist(query, false);
-            }
-            tableQuery.setQueryPlaceholders(this.database.isSecureQuery());
-            final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns : null));
-
-            for (TableColumn primary : table.getPrimaryColumns()) {
-                Object value = legacyPrimaryValue;
-                if (value == null || value.toString().isEmpty())
-                    value = primaryWrapper.getValue(primary.getColumnName());
-                if (value == null) continue;
-                columnValueMap.put(primary, value);
-            }
-
-            final SqlQuery queryPair = this.databaseConfig.applyDatabaseCommand(tableQuery, columnValueMap, finalWhereStrategy, canUpdateRow);
-            final Consumer<SqlResultRow> generatedKeyCallback = dataWrapper.getGeneratedKeyCallback();
-            if (generatedKeyCallback != null) {
-                queryPair.setGeneratedKeyCallback(generatedKeyCallback);
-            }
-            queryList.add(queryPair);
-        }
+        this.handleBatchSave(queryList, shallUpdate, columns, table);
         this.executeDatabaseTasks(queryList);
     }
+
 
     /**
      * Saves data items with a custom query handler, optionally updating existing rows.
@@ -193,11 +144,7 @@ public class BatchExecutor<T> {
     public void save(final String tableName, @Nonnull final DataWrapper dataWrapper, final boolean shallUpdate, final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause, final String... columns) {
         final TableSchema table = this.database.getTableFromName(tableName);
 
-        if (table == null) {
-            this.printFailFindTable(tableName);
-            return;
-        }
-        if (!checkIfNotNull(dataWrapper)) return;
+        if (checkTableValid(tableName, dataWrapper, table)) return;
 
         final List<SqlQuery> queryList = new ArrayList<>();
         final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
@@ -629,6 +576,78 @@ public class BatchExecutor<T> {
                 toSave.putAll(saveRecord.getKeys());
         }
         return toSave;
+    }
+
+    private boolean checkTableValid(final String tableName, @Nullable final DataWrapper dataWrapper, @Nullable final TableSchema table) {
+        if (table == null) {
+            this.printFailFindTable(tableName);
+            return true;
+        }
+        return !checkIfNotNull(dataWrapper);
+    }
+
+    private void handleBatchSave(@Nonnull final List<SqlQuery> queryList, final boolean shallUpdate, final String[] columns, final TableSchema table) {
+        final String tableName = table.getTableName();
+        for (T dataToSave : this.dataToProcess) {
+            if (!(dataToSave instanceof DataWrapper)) continue;
+
+            final DataWrapper dataWrapper = (DataWrapper) dataToSave;
+
+            final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
+            final boolean columnsIsEmpty = columns == null || columns.length == 0;
+            boolean canUpdateRow = false;
+            final Object legacyPrimaryValue = dataWrapper.getPrimaryValue();
+            final WriteContext primaryWrapper = dataWrapper.getWriteContext();
+            final WhereClauseFunction whereClauseCallback = primaryWrapper.getWhereClause();
+
+
+            final Function<WhereBuilder, ConditionChainer<WhereBuilder>> finalWhereStrategy = this.getWhereStrategy(table, whereClauseCallback, legacyPrimaryValue);
+            final boolean isManualInsertOrUpdate = !table.isAutoIncrementTable();
+            final boolean hasUpdateIntent = !columnsIsEmpty || shallUpdate;
+            final boolean primaryValueSet = primaryWrapper.getColumnContext().values().stream().noneMatch(Objects::isNull);
+
+            if (isManualInsertOrUpdate && !primaryValueSet) {
+                System.out.println("You must provide valid where clause if, it shall insert or update rows.");
+            }
+
+            if (primaryValueSet && hasUpdateIntent) {
+                final SqlQuery query = tableQuery.selectRow(columnManger -> {
+                    columnManger.addAll(table.getPrimaryColumnsWrapped());
+                }, true, finalWhereStrategy);
+                canUpdateRow = this.checkIfRowExist(query, false);
+            }
+            tableQuery.setQueryPlaceholders(this.database.isSecureQuery());
+            final Map<Column, Object> columnValueMap = new HashMap<>(formatData(dataWrapper, canUpdateRow ? columns : null));
+
+            setPrimaryColumnsWithValue(table, legacyPrimaryValue, primaryWrapper, columnValueMap);
+
+            final SqlQuery queryPair = this.databaseConfig.applyDatabaseCommand(tableQuery, columnValueMap, finalWhereStrategy, canUpdateRow);
+            final Consumer<SqlResultRow> generatedKeyCallback = dataWrapper.getGeneratedKeyCallback();
+            if (generatedKeyCallback != null) {
+                queryPair.setGeneratedKeyCallback(generatedKeyCallback);
+            }
+            queryList.add(queryPair);
+        }
+    }
+
+    @Nonnull
+    private Function<WhereBuilder, ConditionChainer<WhereBuilder>> getWhereStrategy(TableSchema table, WhereClauseFunction whereClauseCallback, Object legacyPrimaryValue) {
+        return whereBuilder -> {
+            if (whereClauseCallback != null) {
+                return whereClauseCallback.apply(whereBuilder);
+            }
+            return table.createWhereClauseFromPrimaryColumns(whereBuilder, legacyPrimaryValue);
+        };
+    }
+
+    private static void setPrimaryColumnsWithValue(TableSchema table, Object legacyPrimaryValue, WriteContext primaryWrapper, Map<Column, Object> columnValueMap) {
+        for (TableColumn primary : table.getPrimaryColumns()) {
+            Object value = legacyPrimaryValue;
+            if (value == null || value.toString().isEmpty())
+                value = primaryWrapper.getValue(primary.getColumnName());
+            if (value == null) continue;
+            columnValueMap.put(primary, value);
+        }
     }
 
 

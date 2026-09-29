@@ -4,6 +4,7 @@ import org.broken.arrow.library.itemcreator.meta.enhancement.EnhancementMeta;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -318,26 +319,32 @@ public class MetaHandler {
     public void applyMeta(@Nonnull final ItemStack itemStack, @Nullable final ItemMeta itemMeta) {
         if (itemMeta != null) {
             this.setBannerMeta(itemStack, itemMeta);
-
-            if (bottleEffect != null)
-                bottleEffect.applyBottleEffects(itemMeta);
             if (enhancements != null)
                 enhancements.applyEnchantments(itemMeta);
-            if (firework != null)
-                firework.applyFireworkEffect(itemMeta);
-            if (leatherMeta != null)
-                leatherMeta.applyLeatherColor(itemMeta);
-            if (shieldMeta != null) {
-                shieldMeta.applyShieldBanner(itemMeta);
-            }
-            if (mapMeta != null) {
-                mapMeta.applyMapMeta(itemStack, itemMeta);
-            }
-            if (this.bookMeta != null)
-                this.bookMeta.applyBookMenta(itemMeta);
 
-            if (this.itemFlagsMeta != null)
-                this.itemFlagsMeta.applyFlagsMenta(itemMeta);
+            this.setMeta(itemStack, itemMeta);
+        }
+    }
+
+    private void setMeta(@NonNull ItemStack itemStack, @NonNull ItemMeta itemMeta) {
+        if (bottleEffect != null)
+            bottleEffect.applyBottleEffects(itemMeta);
+        if (firework != null)
+            firework.applyFireworkEffect(itemMeta);
+        if (leatherMeta != null)
+            leatherMeta.applyLeatherColor(itemMeta);
+        if (shieldMeta != null) {
+            shieldMeta.applyShieldBanner(itemMeta);
+        }
+        if (mapMeta != null) {
+            mapMeta.applyMapMeta(itemStack, itemMeta);
+        }
+        if (this.bookMeta != null) {
+            this.bookMeta.applyBookMenta(itemMeta);
+        }
+
+        if (this.itemFlagsMeta != null) {
+            this.itemFlagsMeta.applyFlagsMenta(itemMeta);
         }
     }
 

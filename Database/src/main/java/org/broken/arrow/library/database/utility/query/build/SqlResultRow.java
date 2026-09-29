@@ -84,16 +84,7 @@ public class SqlResultRow {
 
         // Essential for SQLite/MySQL drivers which frequently fluctuate 
         // between returning Integer and Long for numeric IDs
-        if (value instanceof Number && Number.class.isAssignableFrom(clazz)) {
-            Number num = (Number) value;
-            if (clazz == Long.class) return clazz.cast(num.longValue());
-            if (clazz == Integer.class) return clazz.cast(num.intValue());
-            if (clazz == Double.class) return clazz.cast(num.doubleValue());
-            if (clazz == Float.class) return clazz.cast(num.floatValue());
-            if (clazz == Short.class) return clazz.cast(num.shortValue());
-            if (clazz == Byte.class) return clazz.cast(num.byteValue());
-        }
-        throw new  Validate.ValidateExceptions("Cannot cast SQL type " + value.getClass().getName() + " to " + clazz.getName());
+        return this.getType(clazz, value);
     }
 
     /**
@@ -104,5 +95,19 @@ public class SqlResultRow {
      */
     public boolean containsKey(@Nonnull final String key) {
         return columns.containsKey(key.toLowerCase(Locale.ROOT));
+    }
+
+    @Nonnull
+    private <T> T getType(@Nonnull Class<T> clazz, Object value) {
+        if (value instanceof Number && Number.class.isAssignableFrom(clazz)) {
+            Number num = (Number) value;
+            if (clazz == Long.class) return clazz.cast(num.longValue());
+            if (clazz == Integer.class) return clazz.cast(num.intValue());
+            if (clazz == Double.class) return clazz.cast(num.doubleValue());
+            if (clazz == Float.class) return clazz.cast(num.floatValue());
+            if (clazz == Short.class) return clazz.cast(num.shortValue());
+            if (clazz == Byte.class) return clazz.cast(num.byteValue());
+        }
+        throw new  Validate.ValidateExceptions("Cannot cast SQL type " + value.getClass().getName() + " to " + clazz.getName());
     }
 }

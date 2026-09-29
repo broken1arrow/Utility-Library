@@ -342,6 +342,11 @@ public final class ComponentAccess {
             }
         }
 
+        logWarn(itemstackClass, componentsField, dataComponentMap, patchedDataComponent);
+        return componentsField;
+    }
+
+    private static void logWarn(Class<?> itemstackClass, Field componentsField, Class<?> dataComponentMap, Class<?> patchedDataComponent) {
         if (componentsField == null) {
             if (dataComponentMap == null && patchedDataComponent == null) {
                 logger.log(Level.WARNING, () -> "Could not find either DataComponentMap or PatchedDataComponentMap classes. Did the package change?");
@@ -353,6 +358,5 @@ public final class ComponentAccess {
                 logger.log(Level.WARNING, () -> "Classes found, but could not find the matching field inside: " + itemstackClass.getSimpleName());
             }
         }
-        return componentsField;
     }
 }
