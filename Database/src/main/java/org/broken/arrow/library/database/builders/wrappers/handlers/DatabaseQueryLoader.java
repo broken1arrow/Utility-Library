@@ -25,6 +25,7 @@ public class DatabaseQueryLoader<T> extends DatabaseQueryHandler<T> {
      *
      * @return the {@link QueryBuilder} instance or {@code null} if not set.
      */
+    @Override
     public QueryBuilder getQueryBuilder() {
         return databaseSettings.getQueryBuilder();
 
