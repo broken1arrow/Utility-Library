@@ -15,6 +15,7 @@ import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -347,7 +348,7 @@ public abstract class YamlFileManager {
 	 * @return the name without the extension added if it is missing.
 	 */
 	public String setExtensionIfExist(String name) {
-		Valid.checkBoolean(name != null && !name.isEmpty(), "The given path must not be empty!");
+		Valid.checkBoolean(name != null && !name.isEmpty(), getNotEmptyText());
 		if (!isSingleFile())
 			return name;
 		final int pos = name.lastIndexOf(".");
@@ -620,7 +621,7 @@ public abstract class YamlFileManager {
 	 * @throws IllegalArgumentException if the given path is {@code null} or empty
 	 */
 	public String getNameOfFile(String path) {
-		Valid.checkBoolean(path != null && !path.isEmpty(), "The given path must not be empty!");
+		Valid.checkBoolean(path != null && !path.isEmpty(), getNotEmptyText());
 		int pos;
 
 		if (path.lastIndexOf("/") == -1)
@@ -645,7 +646,7 @@ public abstract class YamlFileManager {
 	 * @throws IllegalArgumentException if the given path is {@code null} or empty
 	 */
 	public String getFileName(String path) {
-		Valid.checkBoolean(path != null && !path.isEmpty(), "The given path must not be empty!");
+		Valid.checkBoolean(path != null && !path.isEmpty(), getNotEmptyText());
 		final int pos;
 
 		if (path.lastIndexOf("/") == -1)
@@ -940,4 +941,7 @@ public abstract class YamlFileManager {
 		return result.toArray(new File[0]);
 	}
 
+	private static @NonNull String getNotEmptyText() {
+		return "The given path must not be empty!";
+	}
 }

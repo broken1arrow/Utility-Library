@@ -71,7 +71,7 @@ public abstract class CommandHolder extends CommandProperty {
      * @param commandLabel The label for your command.
      * @throws IllegalArgumentException if no command labels are provided.
      */
-    public CommandHolder(final String commandLabel) {
+    protected CommandHolder(final String commandLabel) {
         super(commandLabel);
     }
 
@@ -81,7 +81,7 @@ public abstract class CommandHolder extends CommandProperty {
      * @param commandLabel The different labels for your command. At least one label must be provided.
      * @throws IllegalArgumentException if no command labels are provided.
      */
-    public CommandHolder(final String... commandLabel) {
+    protected CommandHolder(final String... commandLabel) {
         super(commandLabel);
     }
 

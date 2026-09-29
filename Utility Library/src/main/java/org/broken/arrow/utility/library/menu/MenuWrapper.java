@@ -39,6 +39,7 @@ public class MenuWrapper extends RegisterMenuAPI {
 
     @Override
     protected void registerMenuEvent(Plugin plugin) {
+        //Not in use, as registered in the main class.
     }
 
 

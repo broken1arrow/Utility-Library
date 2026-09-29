@@ -94,15 +94,15 @@ public final class ConversionsGradients {
         Validate.checkBoolean(raw.isEmpty(), "Gradient colors cannot be empty");
 
         String[] split = raw.split(":");
-        List<Color> colors = new ArrayList<>();
+        List<Color> colorList = new ArrayList<>();
 
         for (String s : split) {
             s = s.trim();
             Validate.checkBoolean(!StringUtility.isValidHexCode(s), "Invalid color in gradient: " + s);
-            colors.add(Color.decode(normalizeHex(s)));
+            colorList.add(Color.decode(normalizeHex(s)));
         }
-        Validate.checkBoolean(colors.size() < 2, "Gradient requires at least 2 colors");
-        return colors.toArray(new Color[0]);
+        Validate.checkBoolean(colorList.size() < 2, "Gradient requires at least 2 colors");
+        return colorList.toArray(new Color[0]);
     }
 
     private static String normalizeHex(final String hex) {

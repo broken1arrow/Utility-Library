@@ -283,18 +283,22 @@ public class ParticleCreator {
                     this.player.playEffect(location, this.effect, haveClaasSet);
                 }
             } else {
-                if (this.dataType == Material.class)
-                    this.player.playEffect(location, this.effect, this.effectAccessor.getMaterial());
-                if (this.dataType == MaterialData.class)
-                    this.player.playEffect(location, this.effect, this.effectAccessor.getMaterialData());
-                if (this.dataType == BlockFace.class)
-                    this.player.playEffect(location, this.effect, this.effectAccessor.getBlockFace());
-
-                spawnPotionEffect(location);
+                this.playEffect(location);
             }
         } else {
             spawnInWorld(location, radius);
         }
+    }
+
+    private void playEffect(Location location) {
+        if (this.dataType == Material.class)
+            this.player.playEffect(location, this.effect, this.effectAccessor.getMaterial());
+        if (this.dataType == MaterialData.class)
+            this.player.playEffect(location, this.effect, this.effectAccessor.getMaterialData());
+        if (this.dataType == BlockFace.class)
+            this.player.playEffect(location, this.effect, this.effectAccessor.getBlockFace());
+
+        spawnPotionEffect(location);
     }
 
     private void spawnInWorld(final Location location, final int radius) {

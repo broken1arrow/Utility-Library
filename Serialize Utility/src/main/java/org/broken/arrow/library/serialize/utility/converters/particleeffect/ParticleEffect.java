@@ -559,6 +559,18 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
 
 
         Object particleData = map.get("ParticleData");
+       final ParticleDataResolver particleDataResolver = getDataResolver(particleData);
+
+        builder.setBlockFace(facing)
+                .setDustOptions(options)
+                .setExtra(data)
+                .setParticleData(particleDataResolver)
+                .build();
+
+        return builder.build();
+    }
+
+    private static @Nullable ParticleDataResolver getDataResolver(Object particleData) {
         ParticleDataResolver particleDataResolver = null;
         if (particleData instanceof Map) {
             particleDataResolver = ParticleDataResolver.deserialize((Map<String, Object>) particleData);
@@ -569,15 +581,7 @@ public final class ParticleEffect implements ConfigurationSerializable, Particle
                     particleDataResolver = ParticleDataResolver.deserialize((Map<String, Object>) dataObject);
             }
         }
-
-        builder.setBlockFace(facing)
-                .setDustOptions(options)
-                .setExtra(data)
-                .setParticleData(particleDataResolver)
-                .build();
-
-        return builder.build();
-
+        return particleDataResolver;
     }
 
     private static void setMaterial(Material material, Class<?> dataType, Builder builder) {

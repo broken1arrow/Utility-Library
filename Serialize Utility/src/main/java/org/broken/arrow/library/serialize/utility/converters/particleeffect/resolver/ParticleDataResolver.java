@@ -34,6 +34,12 @@ import java.util.Map;
  */
 public class ParticleDataResolver implements ConfigurationSerializable {
     private static final Logging logger = new Logging(ParticleDataResolver.class);
+    private static final String MATERIAL_NAME = "material";
+    private static final String BLOCK_FACE = "blockFace";
+    private static final String MATERIAL_DATA = "materialData";
+    private static final String BLOCK_DATA = "blockData";
+    private static final String POTION = "potion";
+
     private Material material;
     private Class<? extends MaterialData> materialData;
     private BlockData blockData;
@@ -287,16 +293,16 @@ public class ParticleDataResolver implements ConfigurationSerializable {
     public Map<String, Object> serialize() {
         final Map<String, Object> map = new LinkedHashMap<>();
         if (material != null)
-            map.put("material", material.name());
+            map.put(MATERIAL_NAME, material.name());
 
         if (materialData != null)
-            map.put("materialData", materialData.getName());
+            map.put(MATERIAL_DATA, materialData.getName());
 
         if (blockData != null)
-            map.put("blockData", blockData.getAsString());
+            map.put(BLOCK_DATA, blockData.getAsString());
 
         if (blockFace != null)
-            map.put("blockFace", blockFace.name());
+            map.put(BLOCK_FACE, blockFace.name());
 
         if (integerData != null)
             map.put("integer", true);
@@ -305,7 +311,7 @@ public class ParticleDataResolver implements ConfigurationSerializable {
             map.put("float", true);
 
         if (potionsData != null)
-            map.put("potion", potionsData.getPotion() + "");
+            map.put(POTION, potionsData.getPotion() + "");
 
         return map;
     }
@@ -320,28 +326,28 @@ public class ParticleDataResolver implements ConfigurationSerializable {
 
         Object resolved = null;
 
-        if (map.containsKey("material")) {
+        if (map.containsKey(MATERIAL_NAME)) {
             resolved = Material.getMaterial(
-                    ((String) map.get("material")).toUpperCase()
+                    ((String) map.get(MATERIAL_NAME)).toUpperCase()
             );
         }
 
-        if (map.containsKey("blockFace")) {
+        if (map.containsKey(BLOCK_FACE)) {
             resolved = BlockFace.valueOf(
-                    ((String) map.get("blockFace")).toUpperCase()
+                    ((String) map.get(BLOCK_FACE)).toUpperCase()
             );
         }
 
-        if (map.containsKey("materialData")) {
+        if (map.containsKey(MATERIAL_DATA)) {
             try {
-                resolved = Class.forName((String) map.get("materialData"));
+                resolved = Class.forName((String) map.get(MATERIAL_DATA));
             } catch (ClassNotFoundException e) {
                 throw new IllegalArgumentException("Unknown MaterialData class", e);
             }
         }
 
-        if (map.containsKey("blockData")) {
-            resolved = Bukkit.createBlockData((String) map.get("blockData"));
+        if (map.containsKey(BLOCK_DATA)) {
+            resolved = Bukkit.createBlockData((String) map.get(BLOCK_DATA));
         }
 
         if (map.containsKey("integer")) {
@@ -352,8 +358,8 @@ public class ParticleDataResolver implements ConfigurationSerializable {
             resolved = Float.valueOf(0f);
         }
 
-        if (map.containsKey("potion")) {
-            resolved = new PotionsData(map.get("potion"));
+        if (map.containsKey(POTION)) {
+            resolved = new PotionsData(map.get(POTION));
         }
 
         return new ParticleDataResolver(resolved);

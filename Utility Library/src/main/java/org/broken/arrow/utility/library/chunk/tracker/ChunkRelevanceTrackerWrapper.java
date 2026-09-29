@@ -27,7 +27,9 @@ public class ChunkRelevanceTrackerWrapper extends ChunkRelevanceTracker {
     }
 
     @Override
-    protected void registerListener(@NonNull Plugin plugin) {}
+    protected void registerListener(@NonNull Plugin plugin) {
+        //Not in use, as registered in the main class.
+    }
 
     @Override
     public void processChunkState(@NonNull ChunkKey chunkKey, @Nullable Chunk chunk, @Nullable ChunkStatus chunkStatus, @NonNull Consumer<ChunkEntry> callback) {
