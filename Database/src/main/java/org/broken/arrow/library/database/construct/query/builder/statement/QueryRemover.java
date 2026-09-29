@@ -128,9 +128,9 @@ public class QueryRemover {
                 }
             }
         }
-        final WhereBuilder whereBuilder = getOrCreateWhereBuilder(modifier);
-        if (whereBuilder != null) {
-            for (Object value : whereBuilder.getRawParameters()) {
+        final WhereBuilder builder = getOrCreateWhereBuilder(modifier);
+        if (builder != null) {
+            for (Object value : builder.getRawParameters()) {
                 values.put(index++, value);
             }
         }
