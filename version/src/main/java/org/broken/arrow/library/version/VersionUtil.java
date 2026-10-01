@@ -361,6 +361,7 @@ public class VersionUtil {
             try {
                 patch = Integer.parseInt(patchString);
             } catch (NumberFormatException ignore) {
+                //I just ignore if the number is not valid for the patch.
             }
             this.serverVersion = new Version(majorVersion, minor, patch);
             versionNumber = Double.parseDouble(majorVersion + "." + minor);

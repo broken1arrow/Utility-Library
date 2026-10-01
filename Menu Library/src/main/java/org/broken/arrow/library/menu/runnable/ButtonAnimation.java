@@ -258,9 +258,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
 
         for (int slot = 0; slot < inventorySize; slot++) {
             final ButtonData<T> buttonData = buttons.get(slot);
-            if (buttonData == null) continue;
-
-            final MenuButton resolvedButton = getResolvedButton(menuDataUtility, buttonData, slot);
+            final MenuButton resolvedButton = buttonData == null ? null : getResolvedButton(menuDataUtility, buttonData, slot);
             if (resolvedButton == null) continue;
 
             final long carriedScheduledTime = getCurrentTime(resolvedButton);
@@ -274,7 +272,7 @@ public class ButtonAnimation<T> extends BukkitRunnable {
     }
 
     @Nullable
-    private MenuButton getResolvedButton(@NonNull final MenuDataUtility<T> menuDataUtility, final ButtonData<T> buttonData, final int slot) {
+    private MenuButton getResolvedButton(@NonNull final MenuDataUtility<T> menuDataUtility, @NonNull final ButtonData<T> buttonData, final int slot) {
         MenuButton resolvedButton = buttonData.getMenuButton();
         final boolean refreshButtons = this.menuUtility.isFullyRefreshButtons();
         if (refreshButtons) {

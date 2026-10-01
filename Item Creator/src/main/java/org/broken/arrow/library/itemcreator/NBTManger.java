@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
  * </p>
  */
 public class NBTManger {
-    Logging LOG = new Logging(NBTManger.class);
+    private static final Logging LOG = new Logging(NBTManger.class);
     private RegisterNbtAPI nbtApi;
 
     /**
