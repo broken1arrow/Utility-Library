@@ -36,6 +36,7 @@ public class UpdateTitle {
 	 *
 	 * @param player the player that open the inventory.
 	 * @param title  the title should be showed.
+	 * @deprecated is not in use this option.
 	 */
 	@Deprecated
 	public static void update(final Player player, final JsonArray title) {

@@ -266,7 +266,7 @@ public class RegisterMenuAPI {
 
     private class MenuHolderListener implements Listener {
 
-        private final MenuCache menuCache = getMenuCache();
+        private final MenuCache cachedMenu = getMenuCache();
         private final Map<UUID, SwapData> cacheData = new HashMap<>();
 
         @EventHandler(priority = EventPriority.LOW)
@@ -362,7 +362,7 @@ public class RegisterMenuAPI {
             if (metadataPlayer.hasPlayerMetadata(player, MenuMetadataKey.MENU_OPEN)) {
                 menuUtility = metadataPlayer.getPlayerMenuMetadata(player, MenuMetadataKey.MENU_OPEN);
             } else {
-                menuUtility = menuCache.getMenuInCache(menukey, MenuUtility.class);
+                menuUtility = cachedMenu.getMenuInCache(menukey, MenuUtility.class);
             }
             return menuUtility;
         }

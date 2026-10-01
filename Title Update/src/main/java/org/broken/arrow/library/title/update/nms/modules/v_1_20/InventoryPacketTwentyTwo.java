@@ -102,19 +102,6 @@ public class InventoryPacketTwentyTwo implements InventoryNMS {
 				return "p";
 			case SHULKER_BOX:
 				return "t";
-        /*todo should this be implemented? class do you find in net.minecraft.world.level.block.entity.TileEntityBarrel
-            and source is from InventoryEnderChest inside net.minecraft.world.entity.player.EntityHuman and what I looking for.
-           Check this nms code it use the field 'protected static final DataWatcherObject<NBTTagCompound> bR;':
-              protected boolean a(EntityHuman entityhuman) {
-                if (entityhuman.bR instanceof ContainerChest) {
-                    IInventory iinventory = ((ContainerChest)entityhuman.bR).l();
-                    return iinventory == TileEntityBarrel.this;
-                } else {
-                    return false;
-                }
-            }
-			case BARREL:
-				break;*/
 		}
 		return null;
 	}

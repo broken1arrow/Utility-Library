@@ -96,7 +96,6 @@ public class ChatFormatParser {
         final JsonArray parts = new JsonArray();
         final ActiveModifiers modifiers = new ActiveModifiers(defaultColor);
         Builder component = new Builder();
-        //modifiers.applyTo(component);
 
         final StringBuilder textBuffer = new StringBuilder();
         int i = 0;

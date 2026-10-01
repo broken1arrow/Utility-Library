@@ -2,6 +2,7 @@ package org.broken.arrow.library.nbt.utility;
 
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import org.bukkit.inventory.ItemStack;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -73,21 +74,28 @@ public class ConvertObjectType {
             compound.setUUID(key, (UUID) object);
             return;
         }
+
+        if (handleArrayCast(compound, key, object, targetType)) return;
+
+        compound.setString(key, object + "");
+    }
+
+    private static boolean handleArrayCast(@NonNull ReadWriteNBT compound, @NonNull String key, @NonNull Object object, Class<?> targetType) {
         if (targetType.isArray() && object.getClass().isArray()) {
             // Handle array casting here, e.g., for int[] or ItemStack[]
             if (object instanceof byte[]) {
                 compound.setByteArray(key, (byte[]) object);
-                return;
+                return true;
             }
             if (object instanceof int[]) {
                 compound.setIntArray(key, (int[]) object);
-                return;
+                return true;
             }
             if (object instanceof ItemStack[]) {
                 compound.setItemStackArray(key, (ItemStack[]) object);
-                return;
+                return true;
             }
         }
-        compound.setString(key, object + "");
+        return false;
     }
 }

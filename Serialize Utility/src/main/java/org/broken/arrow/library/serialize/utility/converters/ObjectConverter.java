@@ -151,11 +151,11 @@ public class ObjectConverter {
 	 */
 	public static List<Pair<String, Object>> convertToPair(@Nonnull final String pathStartWith, @Nonnull final Map<String, Object> serializedMap) {
 		final List<Pair<String, Object>> values = new ArrayList<>();
-		for (final Map.Entry<String, Object> entity : serializedMap.entrySet()) {
-			if (entity.getKey().startsWith(pathStartWith)) {
-				values.add(Pair.of(entity.getKey().substring(entity.getKey().lastIndexOf('.') + 1), entity.getValue()));
+		serializedMap.forEach((path, object) -> {
+			if (path.startsWith(pathStartWith)) {
+				values.add(Pair.of(path.substring(path.lastIndexOf('.') + 1), object));
 			}
-		}
+		});
 		return values;
 	}
 

@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -659,13 +660,21 @@ public class CreateItemStack {
     }
 
     private List<String> translateColors(final List<String> rawLore) {
+        if(rawLore == null)
+            return Collections.emptyList();
+
         if (!this.enableColorTranslation) {
             return new ArrayList<>(rawLore);
         }
+
         final List<String> listOfLore = new ArrayList<>();
-        for (final String lore : rawLore)
-            if (lore != null)
+        rawLore.forEach(lore -> {
+            if (lore != null) {
                 listOfLore.add(setColors(lore));
+            } else {
+                listOfLore.add(null);
+            }
+        });
         return listOfLore;
     }
 
