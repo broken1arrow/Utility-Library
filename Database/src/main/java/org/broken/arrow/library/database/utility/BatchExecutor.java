@@ -102,7 +102,7 @@ public class BatchExecutor<T> {
         final List<SqlQuery> queryList = new ArrayList<>();
 
         if (this.dataToProcess.isEmpty()) {
-            this.LOG.log(Level.WARNING, () -> "No query is not set for this table: " + tableName + ". You must have at least 1 command to save data to the database.");
+            LOG.log(Level.WARNING, () -> "No query is not set for this table: " + tableName + ". You must have at least 1 command to save data to the database.");
             return;
         }
 
@@ -346,7 +346,7 @@ public class BatchExecutor<T> {
      * @return true if the column name is in the array; false otherwise.
      */
     private boolean checkIfUpdateColumn(final String[] columns, final String columnName) {
-        if (columns == null || columns.length == 0)
+        if (columns == null)
             return false;
 
         for (String column : columns) {
@@ -537,12 +537,12 @@ public class BatchExecutor<T> {
     @Nullable
     private <K, V extends ConfigurationSerializable> SaveRecord<K, V> getSaveRecord(T dataToSave) {
         if (!(dataToSave instanceof SaveRecord<?, ?>)) {
-            this.LOG.log(Level.WARNING, () -> "Failed to process this data as it is: '" + dataToSave + "' or not an instance of SaveContext");
+            LOG.log(Level.WARNING, () -> "Failed to process this data as it is: '" + dataToSave + "' or not an instance of SaveContext");
             return null;
         }
         final SaveRecord<K, V> saveRecord = ((SaveRecord<?, ?>) dataToSave).isSaveContext(dataToSave);
         if (saveRecord == null) {
-            this.LOG.log(Level.WARNING, () -> "Failed to process this: " + dataToSave + ". As it is a class mismatch for the saveContext class for the generic type.");
+            LOG.log(Level.WARNING, () -> "Failed to process this: " + dataToSave + ". As it is a class mismatch for the saveContext class for the generic type.");
             return null;
         }
         return saveRecord;
@@ -550,16 +550,16 @@ public class BatchExecutor<T> {
 
     private <K, V extends ConfigurationSerializable> boolean checkIfQuerySet(SaveRecord<K, V> saveRecord, QueryBuilder queryBuilder) {
         if (queryBuilder == null || saveRecord.getSelectData() == null) {
-            this.LOG.log(Level.WARNING, () -> "Missing queryBuilder for key: " + saveRecord.getKey() + ". Did you forget to call setSelectCommand()?");
+            LOG.log(Level.WARNING, () -> "Missing queryBuilder for key: " + saveRecord.getKey() + ". Did you forget to call setSelectCommand()?");
             return true;
         }
         if (!queryBuilder.isQuerySet()) {
-            this.LOG.log(Level.WARNING, () -> "query is not correct setup: " + saveRecord.getKey() + ". It seams like you never chose the type of command to execute on the database.");
+            LOG.log(Level.WARNING, () -> "query is not correct setup: " + saveRecord.getKey() + ". It seams like you never chose the type of command to execute on the database.");
             return true;
         }
 
         if (saveRecord.getSelectData().getWhereBuilder().isEmpty()) {
-            this.LOG.log(Level.WARNING, () -> "Missing where clause for key: " + saveRecord.getKey() + ". You must set it via setSelectCommand() to avoid replacing entire table.");
+            LOG.log(Level.WARNING, () -> "Missing where clause for key: " + saveRecord.getKey() + ". You must set it via setSelectCommand() to avoid replacing entire table.");
             return true;
         }
         return false;
@@ -569,7 +569,7 @@ public class BatchExecutor<T> {
         Map<Column, Object> toSave = formatData(saveRecord.getValue(), canUpdateRow ? databaseQueryHandler : null, new String[0]);
         if (!canUpdateRow) {
             if (saveRecord.getKeys().isEmpty())
-                this.LOG.log(Level.WARNING, () -> "Primary key and/or foreign key values were not set. It will still attempt to save the data, which may result in " +
+                LOG.log(Level.WARNING, () -> "Primary key and/or foreign key values were not set. It will still attempt to save the data, which may result in " +
                         "certain columns being saved as null unless your ConfigurationSerializable implementation explicitly handles missing columns and values.");
             else
                 toSave.putAll(saveRecord.getKeys());
@@ -653,7 +653,7 @@ public class BatchExecutor<T> {
     @Nullable
     private DataWrapper getDataWrapper(T dataToSave) {
         if (!(dataToSave instanceof DataWrapper)) {
-            this.LOG.log(Level.WARNING, () -> "Failed to process this save record as it is: '" + dataToSave.getClass() + "' or not an instance of DataWrapper");
+            LOG.log(Level.WARNING, () -> "Failed to process this save record as it is: '" + dataToSave.getClass() + "' or not an instance of DataWrapper");
             return null;
         }
         return (DataWrapper) dataToSave;
