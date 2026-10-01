@@ -25,6 +25,8 @@ import java.util.Set;
  * </p>
  */
 public class CommandExecutor extends Command {
+    private static final String LABEL = "{label}";
+    private static final String PERM = "{perm}";
 
     private final CommandRegister commandRegister;
 
@@ -296,9 +298,10 @@ public class CommandExecutor extends Command {
 
         for (String message : messages) {
             if (message != null) {
+
                 final String messageFormated = message
-                        .replace("{label}", "/" + commandLabel + (subcommand != null ? " " + this.formatSet(subcommand.getCommandLabels()) : ""))
-                        .replace("{perm}", permission);
+                        .replace(LABEL, "/" + commandLabel + (subcommand != null ? " " + this.formatSet(subcommand.getCommandLabels()) : ""))
+                        .replace(PERM, permission);
 
                 if (!messageFormated.isEmpty()) {
                     resultList.add(this.translateColors(messageFormated));
@@ -313,7 +316,7 @@ public class CommandExecutor extends Command {
         String permission = subcommand != null ? subcommand.getPermission() : null;
         if (permission == null) permission = "";
 
-        final String string = message.replace("{label}", "/" + commandLabel + (subcommand != null ? " " + this.formatSet(subcommand.getCommandLabels()) : "")).replace("{perm}", permission);
+        final String string = message.replace(LABEL, "/" + commandLabel + (subcommand != null ? " " + this.formatSet(subcommand.getCommandLabels()) : "")).replace(PERM, permission);
         return new String[]{this.translateColors(string)};
     }
 
@@ -323,7 +326,7 @@ public class CommandExecutor extends Command {
         String permission = labelPermission != null && !labelPermission.isEmpty() ? labelPermission : null;
         if (permission == null) permission = "";
 
-        final String string = message.replace("{label}", "/" + commandLabel).replace("{perm}", permission);
+        final String string = message.replace(LABEL, "/" + commandLabel).replace(PERM, permission);
         return new String[]{this.translateColors(string)};
     }
 
