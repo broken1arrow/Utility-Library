@@ -49,7 +49,6 @@ public class BatchExecutor<T> {
     protected final Connection connection;
     protected final int resultSetType;
     protected final int resultSetConcurrency;
-    private final Logging log = new Logging(BatchExecutor.class);
     private final DatabaseCommandConfig databaseConfig;
     private volatile boolean batchUpdateGoingOn;
 
@@ -103,7 +102,7 @@ public class BatchExecutor<T> {
         final List<SqlQuery> queryList = new ArrayList<>();
 
         if (this.dataToProcess.isEmpty()) {
-            this.log.log(Level.WARNING, () -> "No query is not set for this table: " + tableName + ". You must have at least 1 command to save data to the database.");
+            this.LOG.log(Level.WARNING, () -> "No query is not set for this table: " + tableName + ". You must have at least 1 command to save data to the database.");
             return;
         }
 
@@ -381,7 +380,7 @@ public class BatchExecutor<T> {
                     try {
                         preparedStatement.setObject(index, value);
                     } catch (SQLException e) {
-                        log.log(Level.WARNING, e, () -> "Failed to set where clause values. for this query: " + query.getSql() + ". Check the stacktrace.");
+                        LOG.log(Level.WARNING, e, () -> "Failed to set where clause values. for this query: " + query.getSql() + ". Check the stacktrace.");
                     }
                 });
             }
@@ -389,7 +388,7 @@ public class BatchExecutor<T> {
                 return resultSet.next();
             }
         } catch (SQLException e) {
-            log.log(e, () -> "Could not search for your the row with this query '" + query + "' .");
+            LOG.log(e, () -> "Could not search for your the row with this query '" + query + "' .");
         }
         if (closeConnection) {
             try {
@@ -418,7 +417,7 @@ public class BatchExecutor<T> {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (batchUpdateGoingOn) log.log(() -> "Still executing, DO NOT SHUTDOWN YOUR SERVER.");
+                if (batchUpdateGoingOn) LOG.log(() -> "Still executing, DO NOT SHUTDOWN YOUR SERVER.");
                 else cancel();
             }
         }, 1000 * 30L, 1000 * 30L);
@@ -437,18 +436,18 @@ public class BatchExecutor<T> {
             }
             databaseConnection.commit();
         } catch (SQLException e) {
-            log.log(Level.WARNING, e, () -> "Error during batch execution. Rolling back changes.");
+            LOG.log(Level.WARNING, e, () -> "Error during batch execution. Rolling back changes.");
             try {
                 databaseConnection.rollback();
             } catch (SQLException rollbackEx) {
-                log.log(Level.SEVERE, rollbackEx, () -> "Failed to rollback changes after error.");
+                LOG.log(Level.SEVERE, rollbackEx, () -> "Failed to rollback changes after error.");
             }
             this.batchUpdateGoingOn = false;
         } finally {
             try {
                 databaseConnection.setAutoCommit(true);
             } catch (SQLException ex) {
-                log.log(Level.WARNING, ex, () -> "Could not reset auto-commit to true.");
+                LOG.log(Level.WARNING, ex, () -> "Could not reset auto-commit to true.");
             }
             try {
                 databaseConnection.close();
@@ -477,7 +476,7 @@ public class BatchExecutor<T> {
         } catch (SQLException e) {
             failedSetValuesBatch(sql.getSql(), e, cachedDataByColumn);
         } catch (ArrayIndexOutOfBoundsException exception) {
-            log.log(Level.WARNING, () -> "Could not execute this batch: \"" + sql.getSql() + "\" . Probably this is not an premed batch with placeholders, check so the query contains ? for all values.");
+            LOG.log(Level.WARNING, () -> "Could not execute this batch: \"" + sql.getSql() + "\" . Probably this is not an premed batch with placeholders, check so the query contains ? for all values.");
         }
     }
 
@@ -515,7 +514,7 @@ public class BatchExecutor<T> {
      */
     protected void printPressesCount(int processedCount) {
         if (processedCount > 10_000)
-            log.log(() -> ("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed."));
+            LOG.log(() -> ("Updating your database (" + processedCount + " entries)... PLEASE BE PATIENT THIS WILL TAKE " + (processedCount > 50_000 ? "10-20 MINUTES" : "5-10 MINUTES") + " - If server will print a crash report, ignore it, update will proceed."));
     }
 
     private boolean checkIfNotNull(Object object) {
@@ -523,27 +522,27 @@ public class BatchExecutor<T> {
     }
 
     private void failedSetValuesBatch(String sql, SQLException e, Map<Integer, Object> cachedDataByColumn) {
-        log.log(Level.WARNING, () -> "Could not execute this prepared batch: \"" + sql + "\"");
-        log.log(e, () -> "Values that could not be executed: '" + cachedDataByColumn.values() + "'");
+        LOG.log(Level.WARNING, () -> "Could not execute this prepared batch: \"" + sql + "\"");
+        LOG.log(e, () -> "Values that could not be executed: '" + cachedDataByColumn.values() + "'");
     }
 
     private void failedCloseConnection(SQLException e) {
-        log.log(Level.WARNING, e, () -> "Failed to close database connection.");
+        LOG.log(Level.WARNING, e, () -> "Failed to close database connection.");
     }
 
     private void printFailFindTable(String tableName) {
-        log.log(Level.WARNING, () -> "Could not find table " + tableName);
+        LOG.log(Level.WARNING, () -> "Could not find table " + tableName);
     }
 
     @Nullable
     private <K, V extends ConfigurationSerializable> SaveRecord<K, V> getSaveRecord(T dataToSave) {
         if (!(dataToSave instanceof SaveRecord<?, ?>)) {
-            this.log.log(Level.WARNING, () -> "Failed to process this data as it is: '" + dataToSave + "' or not an instance of SaveContext");
+            this.LOG.log(Level.WARNING, () -> "Failed to process this data as it is: '" + dataToSave + "' or not an instance of SaveContext");
             return null;
         }
         final SaveRecord<K, V> saveRecord = ((SaveRecord<?, ?>) dataToSave).isSaveContext(dataToSave);
         if (saveRecord == null) {
-            this.log.log(Level.WARNING, () -> "Failed to process this: " + dataToSave + ". As it is a class mismatch for the saveContext class for the generic type.");
+            this.LOG.log(Level.WARNING, () -> "Failed to process this: " + dataToSave + ". As it is a class mismatch for the saveContext class for the generic type.");
             return null;
         }
         return saveRecord;
@@ -551,16 +550,16 @@ public class BatchExecutor<T> {
 
     private <K, V extends ConfigurationSerializable> boolean checkIfQuerySet(SaveRecord<K, V> saveRecord, QueryBuilder queryBuilder) {
         if (queryBuilder == null || saveRecord.getSelectData() == null) {
-            this.log.log(Level.WARNING, () -> "Missing queryBuilder for key: " + saveRecord.getKey() + ". Did you forget to call setSelectCommand()?");
+            this.LOG.log(Level.WARNING, () -> "Missing queryBuilder for key: " + saveRecord.getKey() + ". Did you forget to call setSelectCommand()?");
             return true;
         }
         if (!queryBuilder.isQuerySet()) {
-            this.log.log(Level.WARNING, () -> "query is not correct setup: " + saveRecord.getKey() + ". It seams like you never chose the type of command to execute on the database.");
+            this.LOG.log(Level.WARNING, () -> "query is not correct setup: " + saveRecord.getKey() + ". It seams like you never chose the type of command to execute on the database.");
             return true;
         }
 
         if (saveRecord.getSelectData().getWhereBuilder().isEmpty()) {
-            this.log.log(Level.WARNING, () -> "Missing where clause for key: " + saveRecord.getKey() + ". You must set it via setSelectCommand() to avoid replacing entire table.");
+            this.LOG.log(Level.WARNING, () -> "Missing where clause for key: " + saveRecord.getKey() + ". You must set it via setSelectCommand() to avoid replacing entire table.");
             return true;
         }
         return false;
@@ -570,7 +569,7 @@ public class BatchExecutor<T> {
         Map<Column, Object> toSave = formatData(saveRecord.getValue(), canUpdateRow ? databaseQueryHandler : null, new String[0]);
         if (!canUpdateRow) {
             if (saveRecord.getKeys().isEmpty())
-                this.log.log(Level.WARNING, () -> "Primary key and/or foreign key values were not set. It will still attempt to save the data, which may result in " +
+                this.LOG.log(Level.WARNING, () -> "Primary key and/or foreign key values were not set. It will still attempt to save the data, which may result in " +
                         "certain columns being saved as null unless your ConfigurationSerializable implementation explicitly handles missing columns and values.");
             else
                 toSave.putAll(saveRecord.getKeys());
@@ -654,7 +653,7 @@ public class BatchExecutor<T> {
     @Nullable
     private DataWrapper getDataWrapper(T dataToSave) {
         if (!(dataToSave instanceof DataWrapper)) {
-            this.log.log(Level.WARNING, () -> "Failed to process this save record as it is: '" + dataToSave.getClass() + "' or not an instance of DataWrapper");
+            this.LOG.log(Level.WARNING, () -> "Failed to process this save record as it is: '" + dataToSave.getClass() + "' or not an instance of DataWrapper");
             return null;
         }
         return (DataWrapper) dataToSave;

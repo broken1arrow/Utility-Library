@@ -509,11 +509,10 @@ public class SkullCreator {
                 blockProfileField.setAccessible(true);
             }
             blockProfileField.set(block, makeProfile(b64));
-        } catch (NoSuchMethodError | NoSuchFieldException | IllegalAccessException e) {
-            if (e instanceof Exception)
-                LOG.log((Exception) e, () -> "Failed to change the skull block");
-            else
-                LOG.log(Level.WARNING, () -> "Failed to change the skull block, as 'getProperties()' method not exist in this Minecraft version.");
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            LOG.log(e, () -> "Failed to change the skull block");
+        } catch (NoSuchMethodError e) {
+            LOG.log(Level.WARNING, () -> "Failed to change the skull block, as 'getProperties()' method not exist in this Minecraft version.");
         }
     }
 
