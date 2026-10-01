@@ -200,17 +200,17 @@ public class ModernCompoundWrapper extends CompoundWrapper {
 
     @Override
     public long getLong(@Nonnull final String key) {
-        if (getLong == null) return (long) -1;
+        if (getLong == null) return -1;
 
         try {
             Object intObject = getLong.invoke(handle, key, (long) -1);
             if (intObject == null)
-                return (long) -1;
+                return -1;
             return (long) intObject;
         } catch (Throwable e) {
             logger.logError(e, () -> "Failed to retrieve long value from reflection");
         }
-        return (long) -1;
+        return -1;
     }
 
     @Override
