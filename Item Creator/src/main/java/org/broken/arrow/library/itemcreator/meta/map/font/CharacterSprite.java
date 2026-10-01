@@ -127,6 +127,7 @@ public class CharacterSprite {
         map.put("width", width);
         map.put("spacing", spacing);
         List<Boolean> boolList = new ArrayList<>(data.length);
+
         for (boolean b : data) {
             boolList.add(b);
         }

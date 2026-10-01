@@ -20,9 +20,9 @@ import org.broken.arrow.library.itemcreator.ItemCreator;
  * the correct method names for the current server version.</p>
  */
 public class NBTCompoundMethodNames {
-    private final static boolean IS_LEGACY_PRE_1_18 = ItemCreator.getVersion().compareTo(18, 0).older();
-    private final static boolean IS_AT_LEAST_1_19 = ItemCreator.getVersion().compareTo(19, 0).atLeast();
-    private final static boolean IS_NEWER_THAN_1_20 = ItemCreator.getVersion().compareTo(20, 0).newer();
+    private static final boolean IS_LEGACY_PRE_1_18 = ItemCreator.getVersion().compareTo(18, 0).older();
+    private static final boolean IS_AT_LEAST_1_19 = ItemCreator.getVersion().compareTo(19, 0).atLeast();
+    private static final boolean IS_NEWER_THAN_1_20 = ItemCreator.getVersion().compareTo(20, 0).newer();
 
     public final String hasTagMethod;
     public final String getTagMethod;

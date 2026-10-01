@@ -4,7 +4,6 @@ import org.broken.arrow.library.database.builders.LoadDataWrapper;
 import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQueryHandler;
 import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQueryLoader;
 import org.broken.arrow.library.database.builders.wrappers.query.QueryContext;
-import org.broken.arrow.library.database.core.SQLDatabaseQuery;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;

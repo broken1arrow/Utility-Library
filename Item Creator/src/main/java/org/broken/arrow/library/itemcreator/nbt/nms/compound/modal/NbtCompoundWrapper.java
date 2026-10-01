@@ -220,7 +220,7 @@ public class NbtCompoundWrapper extends CompoundWrapper {
         return restoredArray;
     }
 
-    private final static class NbtMethodMappings {
+    private static final class NbtMethodMappings {
 
         private final String hasKey;
         private final String isEmpty;

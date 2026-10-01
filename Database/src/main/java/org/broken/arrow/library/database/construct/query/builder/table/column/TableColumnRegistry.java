@@ -1,7 +1,5 @@
 package org.broken.arrow.library.database.construct.query.builder.table.column;
 
-
-import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.table.column.bulder.TableSeparator;
 import org.broken.arrow.library.database.construct.query.builder.table.constraint.SQLConstraints;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;

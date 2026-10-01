@@ -1,7 +1,5 @@
 package org.broken.arrow.library.command.builers;
 
-import org.broken.arrow.library.command.command.CommandProperty;
-
 import javax.annotation.Nonnull;
 
 /**

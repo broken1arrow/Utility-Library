@@ -6,8 +6,6 @@ import org.broken.arrow.library.database.construct.query.builder.clause.OrderByB
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuildContext;
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinCondition;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.builder.clause.wherebuilder.WhereBuilder;

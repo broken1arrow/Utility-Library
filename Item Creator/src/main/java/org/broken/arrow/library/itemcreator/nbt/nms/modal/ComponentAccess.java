@@ -2,12 +2,12 @@ package org.broken.arrow.library.itemcreator.nbt.nms.modal;
 
 import org.broken.arrow.library.logging.Logging;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -56,19 +56,7 @@ public final class ComponentAccess {
             get = lookup.unreflect(mGet);
             remove = lookup.unreflect(mRemove);
             has = lookup.unreflect(mHas);
-
-
-            Field componentsField = null;
-            try {
-                componentsField = itemstackClass.getDeclaredField("components");
-            } catch (NoSuchFieldException e) {
-                componentsField = getComponentsField(itemstackClass);
-            }
-
-            if (componentsField != null) {
-                componentsField.setAccessible(true);
-                getComponents = lookup.unreflectGetter(componentsField);
-            }
+            getComponents = getComponents(lookup, itemstackClass);
 
             // 2. Resolve TypedDataComponent (1.20.5+) record methods
             Class<?> typedDataComponentClass = Class.forName("net.minecraft.core.component.TypedDataComponent");
@@ -274,6 +262,7 @@ public final class ComponentAccess {
                         f.setAccessible(true);
                         return Optional.of(LOOKUP.unreflectGetter(f));
                     } catch (IllegalAccessException ignored) {
+                        //Ignore logging if access checking fails.
                     }
                 }
             }
@@ -306,7 +295,9 @@ public final class ComponentAccess {
                         f.setAccessible(true);
                         return Optional.of(LOOKUP.unreflectGetter(f));
                     } catch (IllegalAccessException ignored) {
+                        //Ignore logging if access checking fails, as this should not happen.
                     }
+
                 }
             }
             return Optional.empty();
@@ -317,6 +308,22 @@ public final class ComponentAccess {
         return resLocOpt.get().invoke(keyObj);
     }
 
+    private static MethodHandle getComponents(@Nonnull final MethodHandles.Lookup lookup, @Nonnull final Class<?> itemstackClass) throws IllegalAccessException {
+        MethodHandle getComponents = null;
+        Field componentsField = null;
+        try {
+            componentsField = itemstackClass.getDeclaredField("components");
+        } catch (NoSuchFieldException e) {
+            componentsField = getComponentsField(itemstackClass);
+        }
+
+        if (componentsField != null) {
+            componentsField.setAccessible(true);
+            getComponents = lookup.unreflectGetter(componentsField);
+        }
+
+        return getComponents;
+    }
 
     private static Field getComponentsField(Class<?> itemstackClass) {
         Field componentsField = null;
@@ -325,10 +332,12 @@ public final class ComponentAccess {
         try {
             dataComponentMap = Class.forName("net.minecraft.core.component.DataComponentMap");
         } catch (ClassNotFoundException ignore) {
+            //Not logging the fail here.
         }
         try {
             patchedDataComponent = Class.forName("net.minecraft.core.component.PatchedDataComponentMap");
         } catch (ClassNotFoundException ignore) {
+            //Not logging the fail here.
         }
         // Fallback for different mappings
         for (Field field : itemstackClass.getDeclaredFields()) {

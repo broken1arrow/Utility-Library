@@ -90,7 +90,7 @@ public class JoinCondition {
         String aliasPart = alias != null && !alias.isEmpty() ? " AS " + alias : "";
         String onCondition = context.build();
 
-        return oldStyle ? ", " + table + aliasPart : type + " " + table + aliasPart + (onCondition.isEmpty() ? "" : " " + onCondition);
+        return join(aliasPart, onCondition);
     }
 
     /**
@@ -114,5 +114,14 @@ public class JoinCondition {
      */
     public JoinBuildContext getJoinBuild() {
         return this.context;
+    }
+
+    @Nonnull
+    private String join(String aliasPart, String onCondition) {
+        final String condition = onCondition.isEmpty() ? "" : " " + onCondition;
+        if (oldStyle) {
+            return table + aliasPart + condition;
+        }
+        return type + " " + table + aliasPart + condition;
     }
 }

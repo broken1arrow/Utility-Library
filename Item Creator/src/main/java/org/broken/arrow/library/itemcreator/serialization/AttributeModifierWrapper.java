@@ -3,7 +3,6 @@ package org.broken.arrow.library.itemcreator.serialization;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
@@ -19,7 +18,7 @@ import java.util.UUID;
 public class AttributeModifierWrapper {
     private String uuid;
     private String equipmentSlot;
-    private String attribute;
+    private String attributeName;
     private String name;
     private String operation;
     private double amount;
@@ -33,7 +32,7 @@ public class AttributeModifierWrapper {
      */
     public static AttributeModifierWrapper from(Attribute attr, AttributeModifier mod) {
         AttributeModifierWrapper data = new AttributeModifierWrapper();
-        data.attribute = attr.name();
+        data.attributeName = attr.name();
         data.name = mod.getName();
         data.amount = mod.getAmount();
         data.operation = mod.getOperation().name();
@@ -80,7 +79,7 @@ public class AttributeModifierWrapper {
          * @param attributeModifier the attribute modifier to associate
          */
         public AttributeEntry(@Nonnull final AttributeModifier attributeModifier) {
-            this.attribute = AttributeModifierWrapper.this.attribute;
+            this.attribute = AttributeModifierWrapper.this.attributeName;
             this.attributeModifier = attributeModifier;
         }
 

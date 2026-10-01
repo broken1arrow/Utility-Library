@@ -73,14 +73,6 @@ public class AnimationContext {
     /**
      * Compares this instance to another object for equality.
      * Two {@code AnimationContext} instances are equal if their
-     * menu and page are equal.
-     *
-     * @param o the object to compare with
-     * @return {@code true} if equal; {@code false} otherwise.
-     */
-    /**
-     * Compares this instance to another object for equality.
-     * Two {@code AnimationContext} instances are equal if their
      * menu, player, and page are equal.
      *
      * @param o the object to compare with

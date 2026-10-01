@@ -3,7 +3,6 @@ package org.broken.arrow.library.database.construct.query.builder.table.column;
 import org.broken.arrow.library.database.construct.query.builder.table.constraint.referential.ForeignKeyConfig;
 import org.broken.arrow.library.database.construct.query.builder.table.constraint.SQLConstraints;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnManager;
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
 import javax.annotation.Nonnull;
@@ -140,7 +139,7 @@ public class TableColumn extends Column {
      */
     public String buildWithoutPrimaryKey() {
         final StringJoiner joiner = new StringJoiner(" ");
-        final String constraints;
+        final String constraintFinished;
         if (this.constraints != null) {
             for (SQLConstraints constraint : this.constraints) {
                 if (!SQLConstraints.isPrimary(constraint))
@@ -149,11 +148,11 @@ public class TableColumn extends Column {
         }
 
         if (joiner.length() > 0)
-            constraints = " " + joiner;
+            constraintFinished = " " + joiner;
         else
-            constraints = "";
+            constraintFinished = "";
 
-        return this.getColumnName() + " " + dataType.getType() + constraints;
+        return this.getColumnName() + " " + dataType.getType() + constraintFinished;
     }
 
     /**

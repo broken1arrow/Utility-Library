@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.broken.arrow.library.color.ChatColors;
 import org.broken.arrow.library.color.Component;
-import org.broken.arrow.library.color.TextTranslator;
 
 import java.util.regex.Pattern;
 

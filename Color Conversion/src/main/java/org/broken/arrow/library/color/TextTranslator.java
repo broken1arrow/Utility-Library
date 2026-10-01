@@ -1,11 +1,9 @@
 package org.broken.arrow.library.color;
 
 import com.google.gson.JsonObject;
-import org.broken.arrow.library.color.Component.Builder;
 import org.broken.arrow.library.color.utility.ChatFormatParser;
-
 import org.broken.arrow.library.color.utility.FormatParserLegacy;
-import java.util.regex.Pattern;
+
 
 /**
  * Utility class for translating and formatting text with color codes and gradients.

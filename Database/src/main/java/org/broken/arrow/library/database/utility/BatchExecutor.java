@@ -43,7 +43,7 @@ import java.util.logging.Level;
  * @param <T> The type of data to be saved or processed.
  */
 public class BatchExecutor<T> {
-    private final Logging LOG = new Logging(BatchExecutor.class);
+    private static final Logging LOG = new Logging(BatchExecutor.class);
     protected final Database database;
     protected final List<T> dataToProcess;
     protected final Connection connection;
@@ -201,9 +201,8 @@ public class BatchExecutor<T> {
         }
         final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
         List<SqlQuery> queryList = new ArrayList<>();
-        for (String value : values) {
-            queryList.add(tableQuery.removeRow(where -> whereClause.apply(where, value)));
-        }
+        values.forEach(value-> queryList.add(tableQuery.removeRow(where -> whereClause.apply(where, value))));
+
         this.executeDatabaseTasks(queryList);
     }
 
@@ -608,7 +607,7 @@ public class BatchExecutor<T> {
             final boolean primaryValueSet = primaryWrapper.getColumnContext().values().stream().noneMatch(Objects::isNull);
 
             if (isManualInsertOrUpdate && !primaryValueSet) {
-                System.out.println("You must provide valid where clause if, it shall insert or update rows.");
+                LOG.log(Level.WARNING,() -> "You must provide valid where clause if, it shall insert or update rows.");
             }
 
             if (primaryValueSet && hasUpdateIntent) {

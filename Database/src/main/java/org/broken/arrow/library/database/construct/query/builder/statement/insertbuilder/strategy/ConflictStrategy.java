@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
-import java.util.function.Consumer;
 
 /**
  * Orchestrates the generation of SQL collision clauses (e.g., {@code ON CONFLICT} or
@@ -121,10 +120,10 @@ public class ConflictStrategy implements ParameterSupplier {
     @Nonnull
     public List<Object> getRawParameters() {
         final List<Object> parameters = new ArrayList<>();
-        final ConflictBuilder conflictBuilder = this.getConflictBuilder();
+        final ConflictBuilder builder = this.getConflictBuilder();
 
         if (this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
-            conflictBuilder.getUpdateColumns().forEach((s, object) -> {
+            builder.getUpdateColumns().forEach((s, object) -> {
                 if (object instanceof LiteralVal) {
                     parameters.add(((LiteralVal) object).value());
                 }
@@ -135,10 +134,10 @@ public class ConflictStrategy implements ParameterSupplier {
 
     @Nonnull
     private StringJoiner getClause(String prefix, String suffix) {
-        final ConflictBuilder conflictBuilder = this.getConflictBuilder();
+        final ConflictBuilder builder = this.getConflictBuilder();
         final StringJoiner setClause = new StringJoiner(", ");
 
-        for (Map.Entry<String, Object> col : conflictBuilder.getUpdateColumns().entrySet()) {
+        for (Map.Entry<String, Object> col : builder.getUpdateColumns().entrySet()) {
             Object value = col.getValue();
             if (value instanceof Column) {
                 setClause.add(col.getKey() + " = " + ((Column) value).getColumnName());

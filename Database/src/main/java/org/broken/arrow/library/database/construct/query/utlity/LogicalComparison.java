@@ -7,7 +7,7 @@ import org.broken.arrow.library.database.construct.query.builder.comparison.Cond
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Function;
+
 
 /**
  * Enum representing various logical and comparison operators commonly used in SQL queries.

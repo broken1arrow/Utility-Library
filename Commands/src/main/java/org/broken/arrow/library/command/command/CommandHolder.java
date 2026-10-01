@@ -302,8 +302,7 @@ public abstract class CommandHolder extends CommandProperty {
         String[] args = this.arguments;
         if (args != null)
             lastArg = args.length > 0 ? args[args.length - 1] : "";
-        for (final T suggestion : suggestions)
-            list.add(toString.apply(suggestion));
+        suggestions.forEach(suggestion -> list.add(toString.apply(suggestion)));
 
         return complete(lastArg, list.toArray());
     }
@@ -353,9 +352,7 @@ public abstract class CommandHolder extends CommandProperty {
         final ArrayList<String> tab = new ArrayList<>();
         if (partialName == null)
             partialName = "";
-        for (final String s : all)
-            tab.add(s);
-
+        all.forEach(tab::add);
         partialName = partialName.toLowerCase();
 
         for (final Iterator<String> iterator = tab.iterator(); iterator.hasNext(); ) {

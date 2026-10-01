@@ -3,9 +3,7 @@ package org.broken.arrow.library.color.utility;
 import org.broken.arrow.library.color.TextTranslator.GradientType;
 import org.broken.arrow.library.color.gradient.GradientChar;
 
-
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -193,7 +191,9 @@ public class TextGradientUtil {
     }
 
     private Color hslToRgb(float h, float s, float l) {
-        float r, g, b;
+        float r;
+        float g;
+        float b;
 
         if (s == 0f) {
             r = g = b = l; // achromatic (gray)

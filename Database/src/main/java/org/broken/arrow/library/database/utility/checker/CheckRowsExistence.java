@@ -50,11 +50,11 @@ import java.util.stream.Collectors;
  * @param <T> the type of the data items being processed. Items are typically expected to be instances of {@code DataWrapper}.
  */
 public class CheckRowsExistence<T> {
-    private final DatabaseType databaseType;
-    private final Logging log = new Logging(CheckRowsExistence.class);
-    private final String tempTableName = "temp_keys";
-    private final String TEMP = "temp.";
+    private static final Logging LOG = new Logging(CheckRowsExistence.class);
+    private static final String TEMP_TABLE_NAME = "temp_keys";
+    private static final String TEMP = "temp.";
 
+    private final DatabaseType databaseType;
     private final Connection connection;
     private final List<T> rows;
     private final List<String> matchKeys;
@@ -132,19 +132,23 @@ public class CheckRowsExistence<T> {
                  ResultSet rs = selectStmt.executeQuery(checkMatch.build())) {
                 while (rs.next()) {
                     List<Object> compositeKey = new ArrayList<>(matchKeys.size());
-                    for (String col : matchKeys) {
-                        compositeKey.add(rs.getObject(col));
-                    }
+                    matchKeys.forEach(col -> {
+                        try {
+                            compositeKey.add(rs.getObject(col));
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    });
                     foundKeys.add(compositeKey);
                 }
             }
         } finally {
             final QueryBuilder dropTemp = new QueryBuilder(this.databaseType);
-            dropTemp.dropTable(tempTableName);
+            dropTemp.dropTable(TEMP_TABLE_NAME);
             try (Statement dropStmt = connection.createStatement()) {
                 dropStmt.execute(dropTemp.build());
             } catch (SQLException e) {
-                log.log(Level.WARNING, e, () -> "Failed to drop temporary table: " + tempTableName);
+                LOG.log(Level.WARNING, e, () -> "Failed to drop temporary table: " + TEMP_TABLE_NAME);
             }
         }
 
@@ -182,7 +186,7 @@ public class CheckRowsExistence<T> {
      */
     private void createTempTable(String targetTable) throws SQLException {
         final QueryBuilder createTemp = new QueryBuilder(this.databaseType);
-        createTemp.createTemporaryTable(tempTableName)
+        createTemp.createTemporaryTable(TEMP_TABLE_NAME)
                 .as()
                 .select(c -> matchKeys.forEach(col -> c.add(new TableColumn(col, DataType.varchar(16)))))
                 .from(targetTable)
@@ -201,7 +205,7 @@ public class CheckRowsExistence<T> {
      */
     private void insertData(@NonNull final Function<T, List<Object>> extractKeyValues) throws SQLException {
         final QueryBuilder insertTemp = new QueryBuilder(this.databaseType);
-        insertTemp.insertInto(tempTableName, insert -> {
+        insertTemp.insertInto(TEMP_TABLE_NAME, insert -> {
             matchKeys.forEach(col -> insert.add(InsertBuilder.of(col, SqlArg.raw("?"))));
         });
 
@@ -231,7 +235,7 @@ public class CheckRowsExistence<T> {
         final QueryBuilder checkMatch = new QueryBuilder(this.databaseType);
         checkMatch.select(c -> matchKeys.forEach(col -> c.add(Column.of(TEMP + col))))
                 .from(targetTable, "target")
-                .join(j -> j.innerJoin(tempTableName, "temp", ctx -> {
+                .join(j -> j.innerJoin(TEMP_TABLE_NAME, "temp", ctx -> {
                     ConditionChainer<JoinBuildContext> currentJoinContext = ctx.on(Column.of("target." + matchKeys.get(0)))
                             .equal(Column.of(TEMP + matchKeys.get(0)));
 
@@ -239,7 +243,7 @@ public class CheckRowsExistence<T> {
                         String colName = matchKeys.get(i);
                         currentJoinContext = currentJoinContext.and()
                                 .on(Column.of("target." + colName))
-                                .equal(Column.of(TEMP  + colName));
+                                .equal(Column.of(TEMP + colName));
                     }
                     return currentJoinContext;
                 }));

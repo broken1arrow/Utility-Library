@@ -181,7 +181,7 @@ public class SendMsgDuplicatedItems {
      * Sends the blacklist message to the player regarding the specified blacklisted item.
      * The message supports color codes and placeholder replacement.
      *
-     * @param player               the player to send the message to
+     * @param player              e BlacklistMessage the player to send the message to
      * @param blacklistItemWrapper the blacklist wrapper for the item stack triggering the message
      */
     public void sendBlacklistMessage(final Player player, @Nonnull final BlacklistItemWrapper blacklistItemWrapper) {

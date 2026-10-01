@@ -1,7 +1,5 @@
 package org.broken.arrow.library.menu.utility.message;
 
-import org.broken.arrow.library.menu.messages.SendMsgDuplicatedItems;
-
 import javax.annotation.Nonnull;
 /**
  * Represents the blacklisted item message.

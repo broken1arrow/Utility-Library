@@ -8,7 +8,6 @@ import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuer
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.construct.query.builder.column.ColumnBuilder;
-import org.broken.arrow.library.database.construct.query.builder.column.ColumnRegistry;
 import org.broken.arrow.library.database.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.core.SQLDatabaseQuery;

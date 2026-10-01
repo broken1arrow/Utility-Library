@@ -75,8 +75,8 @@ public final class NBTDataUtility {
             return;
         }
         if (targetType == Float.class) {
-            //dataContainer.setFloat(key, (Float) value);
-            //return;
+            compound.setDouble(key, (Float) value);
+            return;
         }
         if (targetType == ItemStack.class) {
             compound.setString(key, ITEM_TAG_TYPE.toPrimitive((ItemStack) value));

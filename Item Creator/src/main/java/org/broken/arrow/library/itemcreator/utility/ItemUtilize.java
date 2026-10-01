@@ -32,8 +32,7 @@ public class ItemUtilize {
      */
     public static List<String> translateColors(final List<String> rawLore) {
         final List<String> loreList = new ArrayList<>();
-        for (final String lore : rawLore)
-            loreList.add(translateHexCodes(lore));
+        rawLore.forEach(lore-> loreList.add(translateHexCodes(lore)));
         return loreList;
     }
 

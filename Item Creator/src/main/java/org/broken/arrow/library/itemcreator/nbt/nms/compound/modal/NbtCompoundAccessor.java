@@ -1,7 +1,5 @@
 package org.broken.arrow.library.itemcreator.nbt.nms.compound.modal;
 
-import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 

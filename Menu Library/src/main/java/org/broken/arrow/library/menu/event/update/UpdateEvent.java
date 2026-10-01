@@ -3,7 +3,6 @@ package org.broken.arrow.library.menu.event.update;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Simple event dispatcher for update triggers within a menu lifecycle.

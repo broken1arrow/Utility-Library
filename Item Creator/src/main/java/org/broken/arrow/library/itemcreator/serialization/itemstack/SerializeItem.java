@@ -125,41 +125,13 @@ public class SerializeItem {
             this.setEnchantment(meta);
             this.setAttributeModifier(meta);
             this.setBannerMeta(meta);
-
-            if (meta instanceof SkullMeta) {
-                SkullMeta skull = (SkullMeta) meta;
-                setOwnerToMeta(skull);
-            }
-
-            if (meta instanceof PotionMeta && potionEffects != null) {
-                BottleEffectMeta effect = potionEffects;
-                effect.applyBottleEffects(meta);
-            }
-
-            if (meta instanceof LeatherArmorMeta && armorColor != null) {
-                LeatherArmorMeta armorMeta = (LeatherArmorMeta) meta;
-                armorMeta.setColor(armorColor);
-            }
-
-            if (meta instanceof BookMeta && this.bookMenta != null) {
-                final BookMeta bookMeta = (BookMeta) meta;
-                this.bookMenta.applyBookMenta(bookMeta);
-            }
-
-            if (meta instanceof FireworkMeta && fireworkMeta != null) {
-                FireworkMeta fwm = (FireworkMeta) meta;
-                fireworkMeta.applyFireworkEffect(fwm);
-            }
-
-            if (meta instanceof MapMeta && mapViewMeta != null) {
-                MapMeta fwm = (MapMeta) meta;
-                mapViewMeta.applyMapMeta(item, fwm);
-            }
+            this.setMeta(meta, item);
 
             item.setItemMeta(meta);
         }
         return item;
     }
+
 
     /**
      * Serializes this item to a pretty-printed JSON string.
@@ -397,6 +369,39 @@ public class SerializeItem {
 
     private static void setUnbreakable(SerializeItem data, ItemMeta meta) {
         if (ItemCreator.getVersion().versionNewer(12.2)) data.unbreakable = meta.isUnbreakable();
+    }
+
+
+    private void setMeta(@Nonnull final ItemMeta meta, @Nonnull final ItemStack item) {
+        if (meta instanceof SkullMeta) {
+            SkullMeta skull = (SkullMeta) meta;
+            setOwnerToMeta(skull);
+        }
+
+        if (meta instanceof PotionMeta && potionEffects != null) {
+            BottleEffectMeta effect = potionEffects;
+            effect.applyBottleEffects(meta);
+        }
+
+        if (meta instanceof LeatherArmorMeta && armorColor != null) {
+            LeatherArmorMeta armorMeta = (LeatherArmorMeta) meta;
+            armorMeta.setColor(armorColor);
+        }
+
+        if (meta instanceof BookMeta && this.bookMenta != null) {
+            final BookMeta bookMeta = (BookMeta) meta;
+            this.bookMenta.applyBookMenta(bookMeta);
+        }
+
+        if (meta instanceof FireworkMeta && fireworkMeta != null) {
+            FireworkMeta fwm = (FireworkMeta) meta;
+            fireworkMeta.applyFireworkEffect(fwm);
+        }
+
+        if (meta instanceof MapMeta && mapViewMeta != null) {
+            MapMeta fwm = (MapMeta) meta;
+            mapViewMeta.applyMapMeta(item, fwm);
+        }
     }
 
     private void setOwnerToMeta(@Nonnull final SkullMeta skull) {

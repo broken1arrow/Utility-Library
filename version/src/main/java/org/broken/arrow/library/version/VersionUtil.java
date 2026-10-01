@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 
 public class VersionUtil {
     private Version serverVersion;
-    private double version;
+    private double versionNumber;
 
     /**
      * Constructs a ServerVersion instance by extracting the server version
@@ -130,7 +130,7 @@ public class VersionUtil {
      */
     @Deprecated
     public double getServerVersion() {
-        return version;
+        return versionNumber;
     }
 
     /**
@@ -363,7 +363,7 @@ public class VersionUtil {
             } catch (NumberFormatException ignore) {
             }
             this.serverVersion = new Version(majorVersion, minor, patch);
-            version = Double.parseDouble(majorVersion + "." + minor);
+            versionNumber = Double.parseDouble(majorVersion + "." + minor);
             return;
         }
         setVersionLegacy(firstString, versionPieces);
@@ -386,7 +386,7 @@ public class VersionUtil {
             int endIndex = secondString.lastIndexOf("-");
             secondNumber = secondString.substring(0, Math.max(endIndex, 1));
         }
-        version = Double.parseDouble(firstNumber + "." + secondNumber);
+        versionNumber = Double.parseDouble(firstNumber + "." + secondNumber);
         int major = 1;
         int minor = Integer.parseInt(firstNumber);
         int patch = Integer.parseInt(secondNumber);
