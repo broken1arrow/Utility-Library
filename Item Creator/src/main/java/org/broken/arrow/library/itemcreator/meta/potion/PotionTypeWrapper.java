@@ -32,11 +32,11 @@ public enum PotionTypeWrapper {
     /**
      * Thick potion (usually for brewing).
      */
-    THICK(getPotionType("THICK"), PotionModifier.NORMAL),
+    THICK(getPotionType(Constants.THICK), PotionModifier.NORMAL),
     /**
      * Awkward potion (base potion for many effects).
      */
-    AWKWARD(getPotionType("AWKWARD"), PotionModifier.NORMAL),
+    AWKWARD(getPotionType(Constants.AWKWARD), PotionModifier.NORMAL),
     /**
      * Night Vision potion, normal duration.
      */
@@ -168,29 +168,30 @@ public enum PotionTypeWrapper {
     /**
      * Luck potion, normal duration (if applicable).
      */
-    LUCK(getPotionType("LUCK"), PotionModifier.NORMAL),
+    LUCK(getPotionType(Constants.LUCK), PotionModifier.NORMAL),
     /**
      * Turtle Master potion, normal duration.
      */
-    TURTLE_MASTER(getPotionType("TURTLE_MASTER"), PotionModifier.NORMAL),
+    TURTLE_MASTER(getPotionType(Constants.TURTLE_MASTER), PotionModifier.NORMAL),
     /**
      * Turtle Master potion, long duration.
      */
-    LONG_TURTLE_MASTER(getPotionType("TURTLE_MASTER"), PotionModifier.LONG),
+    LONG_TURTLE_MASTER(getPotionType(Constants.TURTLE_MASTER), PotionModifier.LONG),
     /**
      * Turtle Master potion, strong effect.
      */
-    STRONG_TURTLE_MASTER(getPotionType("TURTLE_MASTER"), PotionModifier.STRONG),
+    STRONG_TURTLE_MASTER(getPotionType(Constants.TURTLE_MASTER), PotionModifier.STRONG),
     /**
      * Slow Falling potion, normal duration.
      */
-    SLOW_FALLING(getPotionType("SLOW_FALLING"), PotionModifier.NORMAL),
+    SLOW_FALLING(getPotionType(Constants.SLOW_FALLING), PotionModifier.NORMAL),
     /**
      * Slow Falling potion, long duration.
      */
-    LONG_SLOW_FALLING(getPotionType("SLOW_FALLING"), PotionModifier.LONG);
+    LONG_SLOW_FALLING(getPotionType(Constants.SLOW_FALLING), PotionModifier.LONG);
 
     private static final Map<String, PotionTypeWrapper> POTION_TYPE_NAME = loadPotions();
+
     private final PotionType potionType;
     private final PotionModifier potionModifier;
     private final double serverVersion = ItemCreator.getServerVersion();
@@ -485,7 +486,7 @@ public enum PotionTypeWrapper {
     @Nonnull
     private static PotionType getUncraftable() {
         try {
-            return PotionType.valueOf("UNCRAFTABLE");
+            return PotionType.valueOf(Constants.UNCRAFTABLE);
         } catch (IllegalArgumentException | NoSuchFieldError ex) {
             try {
                 return PotionType.MUNDANE;
@@ -498,7 +499,7 @@ public enum PotionTypeWrapper {
     @Nonnull
     private static PotionType getMundane() {
         try {
-            return PotionType.valueOf("MUNDANE");
+            return PotionType.valueOf(Constants.MUNDANE);
         } catch (IllegalArgumentException | NoSuchFieldError ex) {
             return PotionType.WATER;
         }
@@ -512,4 +513,13 @@ public enum PotionTypeWrapper {
         }
     }
 
+    private static class Constants {
+        public static final String TURTLE_MASTER = "TURTLE_MASTER";
+        public static final String THICK = "THICK";
+        public static final String AWKWARD = "AWKWARD";
+        public static final String SLOW_FALLING = "SLOW_FALLING";
+        public static final String LUCK = "LUCK";
+        public static final String UNCRAFTABLE = "UNCRAFTABLE";
+        public static final String MUNDANE = "MUNDANE";
+    }
 }
