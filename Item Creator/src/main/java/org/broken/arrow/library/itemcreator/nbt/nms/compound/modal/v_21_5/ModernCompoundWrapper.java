@@ -169,6 +169,109 @@ public class ModernCompoundWrapper extends CompoundWrapper {
     }
 
     @Override
+    public double getDouble(@Nonnull final String key) {
+        if (getDouble == null) return -1.0;
+
+        try {
+            Object intObject = getDouble.invoke(handle, key, -1.0);
+            if (intObject == null)
+                return -1.0;
+            return (double) intObject;
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to retrieve double value from reflection");
+        }
+        return -1.0;
+    }
+
+    @Override
+    public int getInt(@Nonnull final String key) {
+        if (getInt == null) return -1;
+
+        try {
+            Object intObject = getInt.invoke(handle, key, -1);
+            if (intObject == null)
+                return -1;
+            return (int) intObject;
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to retrieve int value from reflection");
+        }
+        return -1;
+    }
+
+    @Override
+    public long getLong(@Nonnull final String key) {
+        if (getLong == null) return (long) -1;
+
+        try {
+            Object intObject = getLong.invoke(handle, key, (long) -1);
+            if (intObject == null)
+                return (long) -1;
+            return (long) intObject;
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to retrieve long value from reflection");
+        }
+        return (long) -1;
+    }
+
+    @Override
+    @Nonnull
+    public String getString(@Nonnull final String key) {
+        if (getString == null) return "";
+
+        try {
+            Object stringObject = getString.invoke(handle, key, "");
+            if (stringObject == null) return "";
+            return (String) stringObject;
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to retrieve string value from reflection");
+        }
+        return "";
+    }
+
+    @Override
+    public byte getByte(@Nonnull final String key) {
+        if (getByte == null) return -1;
+
+        try {
+            Object byteObject = getByte.invoke(handle, key, (byte) -1);
+            if (byteObject == null) return -1;
+            return (byte) byteObject;
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to retrieve byte value from reflection");
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean getBoolean(@Nonnull final String key) {
+        if (getBoolean == null) return false;
+
+        try {
+            Object booleanObject = getBoolean.invoke(handle, key, false);
+            if (booleanObject == null) return false;
+            return (boolean) booleanObject;
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to retrieve boolean value from reflection");
+        }
+        return false;
+    }
+
+    @Override
+    public short getShort(@Nonnull final String key) {
+        if (getShort == null) return -1;
+
+        try {
+            Object shortObject = getShort.invoke(handle, key, (short) -1);
+            if (shortObject == null) return -1;
+            return (short) shortObject;
+        } catch (Throwable e) {
+            logger.logError(e, () -> "Failed to retrieve short value from reflection");
+        }
+        return -1;
+    }
+
+
+    @Override
     @Nullable
     public byte[] getByteArray(@Nonnull final String key) {
         if (getByteArray == null) return new byte[0];

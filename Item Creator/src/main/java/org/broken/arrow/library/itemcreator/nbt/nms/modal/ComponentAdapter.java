@@ -1,5 +1,6 @@
 package org.broken.arrow.library.itemcreator.nbt.nms.modal;
 
+import de.tr7zw.changeme.nbtapi.utils.nmsmappings.ClassWrapper;
 import org.broken.arrow.library.itemcreator.ItemCreator;
 import org.broken.arrow.library.itemcreator.nbt.nms.compound.CompoundTag;
 import org.broken.arrow.library.itemcreator.nbt.nms.NbtWrapper;
@@ -10,6 +11,7 @@ import org.broken.arrow.library.itemcreator.nbt.nms.utily.NbtPathsUtil;
 import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 import org.bukkit.inventory.ItemStack;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,6 +21,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -107,7 +110,7 @@ public class ComponentAdapter implements NbtEditor {
 
             asNms = LOOKUP.findStatic(craftItem, "asNMSCopy", MethodType.methodType(itemStack, ItemStack.class));
             if (ItemCreator.getVersion().compareTo(21, 0).atLeast()) {
-                asBukkit = LOOKUP.findStatic(craftItem, "asCraftMirror", MethodType.methodType(craftItem, itemStack));
+                asBukkit = getCraftMirror(craftItem, itemStack);
             } else {
                 asBukkit = LOOKUP.findStatic(craftItem, "asBukkitCopy", MethodType.methodType(ItemStack.class, itemStack));
             }
@@ -439,5 +442,17 @@ public class ComponentAdapter implements NbtEditor {
             f = dataComponentsClass.getField("b");
         }
         return f;
+    }
+
+    private static @NonNull MethodHandle getCraftMirror(@Nonnull final Class<?> craftItem, @Nonnull final Class<?> itemStack) throws NoSuchMethodException, IllegalAccessException {
+        Method method;
+        try {
+            method = craftItem.getDeclaredMethod("asCraftMirror", itemStack);
+        } catch (NoSuchMethodException e) {
+            method = craftItem.getDeclaredMethod("asBukkitMirror", itemStack);
+        }
+
+        method.setAccessible(true);
+        return LOOKUP.unreflect(method);
     }
 }
