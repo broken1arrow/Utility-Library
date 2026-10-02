@@ -51,7 +51,8 @@ public class DataWrapper {
      * @param serialize    The serializable configuration payload containing the main data.
      */
     public DataWrapper(@Nonnull final WriteContext writeContext, @Nonnull final ConfigurationSerializable serialize) {
-        this("", serialize);
+        this.value = "";
+        this.configurationSerialize = serialize;
         this.writeContext = writeContext;
     }
 
@@ -67,24 +68,10 @@ public class DataWrapper {
      */
     @Deprecated
     public DataWrapper(@Nonnull final PrimaryWrapper wrapper, @Nonnull final ConfigurationSerializable serialize) {
-        this("", serialize);
+        this.value = "";
+        this.configurationSerialize = serialize;
         primaryWrapper = wrapper;
         this.writeContext = WriteContext.whereClause(primaryWrapper.getWhereClause());
-    }
-
-    /**
-     * Legacy constructor accepting a single primary key value.
-     *
-     * @param primaryValue primary key value
-     * @param serialize    serializable configuration payload
-     * @deprecated Use {@link #DataWrapper(WriteContext, ConfigurationSerializable)}
-     * to support multiple primary keys, as will create problems if you have
-     * more than one column as primary key.
-     */
-    @Deprecated
-    public DataWrapper(@Nonnull final Object primaryValue, @Nonnull final ConfigurationSerializable serialize) {
-        this.configurationSerialize = serialize;
-        this.value = primaryValue;
     }
 
     /**
@@ -164,7 +151,7 @@ public class DataWrapper {
      * </p>
      *
      * @return legacy primary key value
-     * @deprecated Use {@link PrimaryWrapper#getPrimaryKeys()} when writing data.
+     * @deprecated Use {@link WriteContext#put(String, Object)} when writing the column name and the corresponding value.
      */
     @Deprecated
     public Object getPrimaryValue() {

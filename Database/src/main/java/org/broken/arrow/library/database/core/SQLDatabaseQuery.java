@@ -131,13 +131,14 @@ public abstract class SQLDatabaseQuery extends Database {
             return;
         }
         final Object primaryValue = dataWrapper.getPrimaryValue();
-        if (table.getPrimaryColumns().isEmpty() || primaryValue.toString().isEmpty()) {
-            this.log.log(Level.WARNING, () -> "Could not find any set where clause for this table:'" + tableName + "' . Did you set a primary key for at least 1 column?");
+
+        final WhereClauseFunction whereClause = dataWrapper.getWriteContext().getWhereClause();
+        if (whereClause == null && (primaryValue == null || primaryValue.toString().isEmpty())) {
+            this.log.log(Level.WARNING, () -> "Could not set where clause for this table:'" + tableName + "' . You have not set either the primary value or a where clause");
             return;
         }
 
         batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> {
-            final WhereClauseFunction whereClause = dataWrapper.getWriteContext().getWhereClause();
             if (whereClause != null)
                 return whereClause.apply(where);
             return table.createWhereClauseFromPrimaryColumns(where, primaryValue);
