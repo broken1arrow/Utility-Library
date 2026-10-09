@@ -12,6 +12,7 @@ import org.broken.arrow.library.database.construct.query.builder.table.column.Ta
 import org.broken.arrow.library.database.construct.query.utlity.DataType;
 import org.broken.arrow.library.database.utility.DatabaseType;
 import org.broken.arrow.library.logging.Logging;
+import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -56,7 +56,7 @@ public class CheckRowsExistence<T> {
 
     private final DatabaseType databaseType;
     private final Connection connection;
-    private final List<T> rows;
+    private final List<T> dataToProcess;
     private final List<String> matchKeys;
 
 
@@ -68,16 +68,19 @@ public class CheckRowsExistence<T> {
      * @throws IllegalArgumentException if matching keys cannot be determined from the builder or inferred from the data
      */
     private CheckRowsExistence(@Nonnull final DatabaseType databaseType, @Nonnull final Builder<T> builder) {
-        this.databaseType = databaseType;
-        this.connection = Objects.requireNonNull(builder.connection, "Connection cannot be null");
-        this.rows = Objects.requireNonNull(builder.rows, "dataToProcess cannot be null");
+        Validate.checkBoolean(builder.connection == null, "Connection must be set.");
+        Validate.checkBoolean(builder.dataToProcess == null || builder.dataToProcess.isEmpty(), "Data to process can't be null or empty.");
+        Validate.checkBoolean(databaseType == null, "You must set the database type.");
 
-        // If the developer provided keys explicitly, use them.
-        // Otherwise, infer the "truth" directly from the provided data.
+        this.databaseType = databaseType;
+        this.connection = builder.connection;
+        this.dataToProcess = builder.dataToProcess;
+
         if (builder.matchKeys != null && !builder.matchKeys.isEmpty()) {
             this.matchKeys = new ArrayList<>(builder.matchKeys);
         } else {
-            this.matchKeys = inferKeysFromData(this.rows);
+            this.matchKeys = inferKeysFromData(this.dataToProcess);
+            LOG.log(Level.WARNING, () -> "You did not set columns to check, it uses all columns you set from the first row of data set in the list.");
         }
         if (this.matchKeys.isEmpty()) {
             throw new IllegalArgumentException("Cannot determine match columns. Either explicitly provide them using matchOn() or ensure dataToProcess contains valid WriteContext columns.");
@@ -99,7 +102,7 @@ public class CheckRowsExistence<T> {
      * @throws SQLException if a database access error occurs during temp table creation, insertion, or execution of the join query
      */
     public Map<Boolean, List<T>> partitionByCompositeKeys(@Nonnull final String targetTable) throws SQLException {
-        if (rows.isEmpty()) {
+        if (dataToProcess.isEmpty()) {
             return new HashMap<>();
         }
 
@@ -152,7 +155,7 @@ public class CheckRowsExistence<T> {
             }
         }
 
-        return rows.stream().collect(Collectors.partitioningBy(row -> {
+        return dataToProcess.stream().collect(Collectors.partitioningBy(row -> {
             List<Object> rowKeyValues = extractKeyValues.apply(row);
             return rowKeyValues != null && foundKeys.contains(rowKeyValues);
         }));
@@ -210,9 +213,9 @@ public class CheckRowsExistence<T> {
         });
 
         try (PreparedStatement insertStmt = connection.prepareStatement(insertTemp.build())) {
-            for (T row : rows) {
+            for (T row : dataToProcess) {
                 List<Object> keyValues = extractKeyValues.apply(row);
-                if (keyValues == null) continue; // Skip incomplete records
+                if (keyValues == null) continue;
 
                 for (int i = 0; i < keyValues.size(); i++) {
                     insertStmt.setObject(i + 1, keyValues.get(i));
@@ -241,7 +244,7 @@ public class CheckRowsExistence<T> {
 
                     for (int i = 1; i < matchKeys.size(); i++) {
                         String colName = matchKeys.get(i);
-                        currentJoinContext = currentJoinContext.and()
+                        currentJoinContext.and()
                                 .on(Column.of("target." + colName))
                                 .equal(Column.of(TEMP + colName));
                     }
@@ -280,7 +283,7 @@ public class CheckRowsExistence<T> {
     public static class Builder<T> {
         private final DatabaseType databaseType;
         private final Connection connection;
-        private List<T> rows = new ArrayList<>();
+        private List<T> dataToProcess = new ArrayList<>();
         private List<String> matchKeys = new ArrayList<>();
 
         /**
@@ -300,8 +303,8 @@ public class CheckRowsExistence<T> {
          * @param dataToProcess a list of records to check for existence
          * @return this builder instance
          */
-        public Builder<T> withData(@Nonnull List<T> dataToProcess) {
-            this.rows = dataToProcess;
+        public Builder<T> withData(@Nonnull final List<T> dataToProcess) {
+            this.dataToProcess = dataToProcess;
             return this;
         }
 
@@ -312,7 +315,7 @@ public class CheckRowsExistence<T> {
          * @param columns the names of the database columns to use for matching
          * @return this builder instance
          */
-        public Builder<T> matchOn(String... columns) {
+        public Builder<T> matchOn(@Nonnull final String... columns) {
             this.matchKeys = Arrays.asList(columns);
             return this;
         }
@@ -324,7 +327,7 @@ public class CheckRowsExistence<T> {
          * @param columns a list of database column names to use for matching
          * @return this builder instance
          */
-        public Builder<T> matchOn(List<String> columns) {
+        public Builder<T> matchOn(@Nonnull final List<String> columns) {
             this.matchKeys = columns;
             return this;
         }

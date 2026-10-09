@@ -6,6 +6,7 @@ import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSeriali
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,7 +29,6 @@ import java.util.UUID;
  * is not currently loaded or available.
  */
 public final class BlockKeyResolver implements ConfigurationSerializable {
-    private static Logging LOG = new Logging(BlockKeyResolver.class);
     private final UUID worldId;
     private final int x;
     private final int y;
@@ -50,9 +50,10 @@ public final class BlockKeyResolver implements ConfigurationSerializable {
      * @throws IllegalArgumentException if the location's world is null.
      */
     public static BlockKeyResolver of(@Nonnull final Location loc) {
-        Validate.checkNotNull(loc.getWorld(), "World cannot be null");
+        final World world = loc.getWorld();
+        Validate.checkNotNull(world, "World cannot be null for this location: " + getLocationSerialized(loc));
         return new BlockKeyResolver(
-                loc.getWorld().getUID(),
+                world.getUID(),
                 loc.getBlockX(),
                 loc.getBlockY(),
                 loc.getBlockZ()
@@ -210,4 +211,11 @@ public final class BlockKeyResolver implements ConfigurationSerializable {
                 " z=" + z +
                 " cachedLocation=" + cachedLocation;
     }
+
+    private static @NonNull String getLocationSerialized(@Nullable final Location loc) {
+        if(loc == null)
+            return "'error location null'";
+        return "world=" + loc.getWorld() + " x=" + loc.getBlockX() + " y=" + loc.getBlockY() + " z=" + loc.getBlockZ();
+    }
+
 }

@@ -1,6 +1,9 @@
 package org.broken.arrow.library.serialize.utility.converters;
 
+import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
+
+import javax.annotation.Nullable;
 
 public class SpigotBlockFace {
 
@@ -11,17 +14,15 @@ public class SpigotBlockFace {
 	 * Get the block face from string.
 	 *
 	 * @param blockFace the sound name.
-	 * @return bukkit sound.
+	 * @return bukkit blockFace or {@code null} if not valid blockFace.
 	 */
-	public static BlockFace getBlockFace(String blockFace) {
+	public static BlockFace getBlockFace(@Nullable String blockFace) {
 		if (blockFace == null) return null;
-		final BlockFace[] blockFaces = BlockFace.values();
 		blockFace = blockFace.toUpperCase();
-
-		for (final BlockFace face : blockFaces) {
-			if (face.name().equals(blockFace))
-				return face;
+		try {
+			return BlockFace.valueOf(blockFace);
+		} catch (IllegalArgumentException e) {
+			return null;
 		}
-		return null;
 	}
 }

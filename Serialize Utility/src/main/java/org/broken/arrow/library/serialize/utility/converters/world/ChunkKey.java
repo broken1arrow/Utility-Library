@@ -53,29 +53,30 @@ public class ChunkKey {
      * Creates a chunk key from a {@link ChunkSnapshot}.
      *
      * <p>
-     * The world is resolved using the snapshot's world name.
+     * The world is resolved using the snapshot's world name, and you can't invoke this
+     * asynchronously and world must be loaded.
      *
      * @param snapshot the chunk snapshot
      * @return a new chunk key representing the given snapshot
-     * @throws IllegalArgumentException if the world cannot be resolved
+     * @throws Validate.ValidateExceptions if the world cannot be resolved
      */
     public static ChunkKey of(@Nonnull final ChunkSnapshot snapshot) {
         Validate.checkNotNull(snapshot, "Chunk snapshot can't be null.");
         final World world = Bukkit.getWorld(snapshot.getWorldName());
-        Validate.checkNotNull(world, "World is not loaded for snapshot: " + snapshot.getWorldName());
+        Validate.checkNotNull(world, "World is not loaded for snapshot world: " + snapshot.getWorldName());
         return of(world, snapshot.getX(), snapshot.getZ());
     }
 
     /**
-     * Creates a chunk key from a {@link ChunkSnapshot}.
-     *
+     * Creates a chunk key from a world UUID and a {@link ChunkSnapshot}.
      * <p>
-     * The world is resolved using the snapshot's world name.
+     * This method is safe to invoke asynchronously, as it bypasses the need to look up
+     * loaded {@link org.bukkit.World} instances.
      *
-     * @param snapshot the chunk snapshot
      * @param worldId the world UUID
+     * @param snapshot the chunk snapshot
      * @return a new chunk key representing the given snapshot
-     * @throws IllegalArgumentException if the world id cannot be resolved
+     * @throws Validate.ValidateExceptions if the worldId or snapshot is null
      */
     public static ChunkKey of(@Nonnull final UUID worldId, @Nonnull final ChunkSnapshot snapshot) {
         Validate.checkNotNull(worldId, "World UUID can't be null.");
@@ -91,7 +92,7 @@ public class ChunkKey {
      *
      * @param loc the location
      * @return a new chunk key representing the chunk containing the location
-     * @throws IllegalArgumentException if the location's world is {@code null}
+     * @throws Validate.ValidateExceptions if the location's world is {@code null}
      */
     public static ChunkKey of(@Nonnull final Location loc) {
         Validate.checkNotNull(loc, "Location can't be null.");

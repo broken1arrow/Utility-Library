@@ -4,6 +4,7 @@ import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.QueryModifier;
 import org.broken.arrow.library.database.construct.query.builder.clause.ParameterSupplier;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.column.refernces.LiteralVal;
 import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.strategy.ConflictBuilder;
 import org.broken.arrow.library.database.construct.query.builder.statement.insertbuilder.strategy.ConflictStrategy;
 import org.broken.arrow.library.database.construct.query.utlity.StringUtil;
@@ -13,12 +14,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A utility class for managing column-value pairs for an SQL {@code INSERT} operation.
@@ -199,9 +202,7 @@ public class InsertHandler implements ParameterSupplier {
         if (!this.queryBuilder.isGlobalEnableQueryPlaceholders() || insertValues.isEmpty()) {
             return Collections.emptyList();
         }
-        List<Object> parameters = insertValues.values().stream()
-                .map(InsertBuilder::getColumnValue)
-                .collect(Collectors.toCollection(ArrayList::new));
+        final List<Object> parameters = getValues();
         if (conflictStrategy != null) {
             parameters.addAll(conflictStrategy.getRawParameters());
         }
@@ -286,9 +287,7 @@ public class InsertHandler implements ParameterSupplier {
         if (this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
             sql.append(String.join(", ", Collections.nCopies(insertValues.size(), "?")));
         } else {
-            List<Object> rawValues = insertValues.values().stream()
-                    .map(InsertBuilder::getColumnValue)
-                    .collect(Collectors.toList());
+            final List<Object> rawValues = getValues();
             sql.append(StringUtil.stringJoin(rawValues));
         }
         sql.append(")");
@@ -314,5 +313,30 @@ public class InsertHandler implements ParameterSupplier {
             sql.append(" ").append(conflictStrategy.build());
         }
         return sql.toString();
+    }
+
+    @Nonnull
+    private List<Object> getValues() {
+        return insertValues.values().stream()
+                .map(InsertBuilder::getColumnValue)
+                .map(object -> {
+                    if (object instanceof Column) {
+                        Column column = (Column) object;
+                        return Stream.of(column.getColumnName());
+                    }
+                    if (object instanceof LiteralVal) {
+                        LiteralVal literalVal = (LiteralVal) object;
+                        return Stream.of(literalVal.value());
+                    }
+                    if (object instanceof Collection<?>) {
+                        Collection<?> col = Collections.singleton(object);
+                        return col.stream();
+                    }
+                    if (object instanceof Object[]) {
+                        Object[] arr = (Object[]) object;
+                        return Arrays.stream(arr);
+                    }
+                    return Stream.of(object);
+                }).collect(Collectors.toCollection(ArrayList::new));
     }
 }
