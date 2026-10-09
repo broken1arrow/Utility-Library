@@ -105,25 +105,8 @@ public class CheckRowsExistence<T> {
         if (dataToProcess.isEmpty()) {
             return new HashMap<>();
         }
-
         final Set<List<Object>> foundKeys = new HashSet<>();
-        // Reusable key extractor strictly against our matchKeys
-        final Function<T, List<Object>> extractKeyValues = row -> {
-            DataWrapper dataWrapper = getDataWrapper(row);
-            if (dataWrapper == null) return null;
-
-            Map<String, Object> columnContext = dataWrapper.getWriteContext().getColumnContext();
-            List<Object> keys = new ArrayList<>(matchKeys.size());
-
-            for (String keyCol : matchKeys) {
-                Object val = columnContext.get(keyCol);
-                if (val == null && !columnContext.containsKey(keyCol)) {
-                    return null; // Row missing a required key
-                }
-                keys.add(val);
-            }
-            return keys;
-        };
+        final Function<T, List<Object>> extractKeyValues = getExtractKeyValues();
 
         createTempTable(targetTable);
 
@@ -132,7 +115,7 @@ public class CheckRowsExistence<T> {
             final QueryBuilder checkMatch = buildJoinQuery(targetTable);
 
             try (Statement selectStmt = connection.createStatement();
-                 ResultSet rs = selectStmt.executeQuery(checkMatch.build())) {
+                 final ResultSet rs = selectStmt.executeQuery(checkMatch.build())) {
                 while (rs.next()) {
                     List<Object> compositeKey = new ArrayList<>(matchKeys.size());
                     matchKeys.forEach(col -> {
@@ -159,6 +142,26 @@ public class CheckRowsExistence<T> {
             List<Object> rowKeyValues = extractKeyValues.apply(row);
             return rowKeyValues != null && foundKeys.contains(rowKeyValues);
         }));
+    }
+
+    @Nonnull
+    private Function<T, List<Object>> getExtractKeyValues() {
+        return row -> {
+            final DataWrapper dataWrapper = getDataWrapper(row);
+            if (dataWrapper == null) return null;
+
+            final Map<String, Object> columnContext = dataWrapper.getWriteContext().getColumnContext();
+            final List<Object> keys = new ArrayList<>(matchKeys.size());
+
+            for (String keyCol : matchKeys) {
+                Object val = columnContext.get(keyCol);
+                if (val == null && !columnContext.containsKey(keyCol)) {
+                    return null;
+                }
+                keys.add(val);
+            }
+            return keys;
+        };
     }
 
     /**
