@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  */
 public class CheckRowsExistence<T> {
     private static final Logging LOG = new Logging(CheckRowsExistence.class);
-    private static final String TEMP_TABLE_NAME = "temp_keys";
+    private static final String TEMP_TABLE_NAME = "temp_table.";
     private static final String TEMP = "temp.";
 
     private final DatabaseType databaseType;
@@ -128,7 +128,7 @@ public class CheckRowsExistence<T> {
         createTempTable(targetTable);
 
         try {
-            insertData(extractKeyValues);
+            insertData(targetTable, extractKeyValues);
             final QueryBuilder checkMatch = buildJoinQuery(targetTable);
 
             try (Statement selectStmt = connection.createStatement();
@@ -147,11 +147,11 @@ public class CheckRowsExistence<T> {
             }
         } finally {
             final QueryBuilder dropTemp = new QueryBuilder(this.databaseType);
-            dropTemp.dropTable(TEMP_TABLE_NAME);
+            dropTemp.dropTable(this.getTempTableName(targetTable));
             try (Statement dropStmt = connection.createStatement()) {
                 dropStmt.execute(dropTemp.build());
             } catch (SQLException e) {
-                LOG.log(Level.WARNING, e, () -> "Failed to drop temporary table: " + TEMP_TABLE_NAME);
+                LOG.log(Level.WARNING, e, () -> "Failed to drop temporary table: " + this.getTempTableName(targetTable));
             }
         }
 
@@ -189,7 +189,7 @@ public class CheckRowsExistence<T> {
      */
     private void createTempTable(String targetTable) throws SQLException {
         final QueryBuilder createTemp = new QueryBuilder(this.databaseType);
-        createTemp.createTemporaryTable(TEMP_TABLE_NAME)
+        createTemp.createTemporaryTable(this.getTempTableName(targetTable))
                 .as()
                 .select(c -> matchKeys.forEach(col -> c.add(new TableColumn(col, DataType.varchar(16)))))
                 .from(targetTable)
@@ -203,12 +203,13 @@ public class CheckRowsExistence<T> {
     /**
      * Inserts the extracted composite key values of the current batch into the temporary table.
      *
+     * @param targetTable      the table it shall copy.
      * @param extractKeyValues a function that extracts ordered key values from a single row
      * @throws SQLException if batch insertion fails
      */
-    private void insertData(@NonNull final Function<T, List<Object>> extractKeyValues) throws SQLException {
+    private void insertData(@NonNull final String targetTable, @NonNull final Function<T, List<Object>> extractKeyValues) throws SQLException {
         final QueryBuilder insertTemp = new QueryBuilder(this.databaseType);
-        insertTemp.insertInto(TEMP_TABLE_NAME, insert -> {
+        insertTemp.insertInto(this.getTempTableName(targetTable), insert -> {
             matchKeys.forEach(col -> insert.add(InsertBuilder.of(col, SqlArg.raw("?"))));
         });
 
@@ -226,6 +227,11 @@ public class CheckRowsExistence<T> {
         }
     }
 
+    @Nonnull
+    private String getTempTableName(String targetTable) {
+        return TEMP_TABLE_NAME + targetTable;
+    }
+
     /**
      * Constructs the inner join query between the target table and the temporary table
      * to identify existing records.
@@ -238,7 +244,7 @@ public class CheckRowsExistence<T> {
         final QueryBuilder checkMatch = new QueryBuilder(this.databaseType);
         checkMatch.select(c -> matchKeys.forEach(col -> c.add(Column.of(TEMP + col))))
                 .from(targetTable, "target")
-                .join(j -> j.innerJoin(TEMP_TABLE_NAME, "temp", ctx -> {
+                .join(j -> j.innerJoin(this.getTempTableName(targetTable), "temp", ctx -> {
                     ConditionChainer<JoinBuildContext> currentJoinContext = ctx.on(Column.of("target." + matchKeys.get(0)))
                             .equal(Column.of(TEMP + matchKeys.get(0)));
 
