@@ -47,9 +47,9 @@ import java.util.stream.Collectors;
  * <p>The result is partitioned into a {@link Map} where {@code true} represents rows that exist in the target table,
  * and {@code false} represents missing rows.
  *
- * @param <T> the type of the data items being processed. Items are typically expected to be instances of {@code DataWrapper}.
+ * @param <T> the type of the data items being processed, need to be instanced or extended class to {@code DataWrapper}.
  */
-public class CheckRowsExistence<T> {
+public class CheckRowsExistence<T extends DataWrapper> {
     private static final Logging LOG = new Logging(CheckRowsExistence.class);
     private static final String TEMP_TABLE_NAME = "temp_table.";
     private static final String TEMP = "temp.";
@@ -58,7 +58,6 @@ public class CheckRowsExistence<T> {
     private final Connection connection;
     private final List<T> dataToProcess;
     private final List<String> matchKeys;
-
 
     /**
      * Private constructor forcing the use of the {@link Builder}.
@@ -75,9 +74,10 @@ public class CheckRowsExistence<T> {
         this.databaseType = databaseType;
         this.connection = builder.connection;
         this.dataToProcess = builder.dataToProcess;
+        final List<String> keys = builder.matchKeys;
 
-        if (builder.matchKeys != null && !builder.matchKeys.isEmpty()) {
-            this.matchKeys = new ArrayList<>(builder.matchKeys);
+        if (keys != null && !keys.isEmpty()) {
+            this.matchKeys = new ArrayList<>(keys);
         } else {
             this.matchKeys = inferKeysFromData(this.dataToProcess);
             LOG.log(Level.WARNING, () -> "You did not set columns to check, it uses all columns you set from the first row of data set in the list.");
@@ -85,6 +85,18 @@ public class CheckRowsExistence<T> {
         if (this.matchKeys.isEmpty()) {
             throw new IllegalArgumentException("Cannot determine match columns. Either explicitly provide them using matchOn() or ensure dataToProcess contains valid WriteContext columns.");
         }
+    }
+
+    /**
+     * Initializes a new builder for {@link CheckRowsExistence}.
+     *
+     * @param databaseType the type of database set.
+     * @param connection   the database connection to use
+     * @param <T>          the type of data rows to be processed
+     * @return a new builder instance
+     */
+    public static <T extends DataWrapper> Builder<T> builder(@Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+        return new Builder<>(databaseType, connection);
     }
 
     /**
@@ -106,7 +118,7 @@ public class CheckRowsExistence<T> {
             return new HashMap<>();
         }
         final Set<List<Object>> foundKeys = new HashSet<>();
-        final Function<T, List<Object>> extractKeyValues = getExtractKeyValues();
+        final Function<T, List<Object>> extractKeyValues = this.getExtractKeyValues();
 
         createTempTable(targetTable);
 
@@ -146,11 +158,10 @@ public class CheckRowsExistence<T> {
 
     @Nonnull
     private Function<T, List<Object>> getExtractKeyValues() {
-        return row -> {
-            final DataWrapper dataWrapper = getDataWrapper(row);
-            if (dataWrapper == null) return null;
+        return rowData -> {
+            if (rowData == null) return null;
 
-            final Map<String, Object> columnContext = dataWrapper.getWriteContext().getColumnContext();
+            final Map<String, Object> columnContext = rowData.getWriteContext().getColumnContext();
             final List<Object> keys = new ArrayList<>(matchKeys.size());
 
             for (String keyCol : matchKeys) {
@@ -172,10 +183,9 @@ public class CheckRowsExistence<T> {
      * @return a list of column names derived from the data context, or an empty list if none are found
      */
     private List<String> inferKeysFromData(List<T> dataToProcess) {
-        for (T item : dataToProcess) {
-            final DataWrapper dataWrapper = getDataWrapper(item);
-            if (dataWrapper != null) {
-                Map<String, Object> ctx = dataWrapper.getWriteContext().getColumnContext();
+        for (T rowData : dataToProcess) {
+            if (rowData != null) {
+                Map<String, Object> ctx = rowData.getWriteContext().getColumnContext();
                 if (!ctx.isEmpty()) {
                     return new ArrayList<>(ctx.keySet());
                 }
@@ -231,7 +241,7 @@ public class CheckRowsExistence<T> {
     }
 
     @Nonnull
-    private String getTempTableName(String targetTable) {
+    private String getTempTableName(@Nonnull final String targetTable) {
         return TEMP_TABLE_NAME + targetTable;
     }
 
@@ -263,33 +273,11 @@ public class CheckRowsExistence<T> {
     }
 
     /**
-     * Safely casts the generic item to a {@code DataWrapper} if possible.
-     *
-     * @param item the generic item
-     * @return the cast {@code DataWrapper}, or null if the item is not of that type
-     */
-    private DataWrapper getDataWrapper(@Nullable final T item) {
-        return (item instanceof DataWrapper) ? (DataWrapper) item : null;
-    }
-
-    /**
-     * Initializes a new builder for {@link CheckRowsExistence}.
-     *
-     * @param databaseType the type of database set.
-     * @param connection   the database connection to use
-     * @param <T>          the type of data rows to be processed
-     * @return a new builder instance
-     */
-    public static <T> Builder<T> builder(@Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
-        return new Builder<>(databaseType, connection);
-    }
-
-    /**
      * Builder class for configuring and instantiating {@link CheckRowsExistence}.
      *
      * @param <T> the type of the data rows being processed
      */
-    public static class Builder<T> {
+    public static class Builder<T extends DataWrapper> {
         private final DatabaseType databaseType;
         private final Connection connection;
         private List<T> dataToProcess = new ArrayList<>();
