@@ -180,16 +180,21 @@ public class CreateTableHandler {
         final SqlExpressionType copyOption = this.getCopyMethod();
 
         if (copyOption != null && wrapper == null && selectorData != null) {
+            StringJoiner joiner = new StringJoiner(", ");
+            for (TableColumn column : this.getTableColumns()) {
+                joiner.add(column.getColumnName());
+            }
             sql.append(" ")
                     .append(copyOption.toString())
                     .append(" ")
                     .append("SELECT")
                     .append(" ")
-                    .append(selectorData.getSelectBuilder().build())
+                    .append(joiner)
                     .append(" ")
                     .append("FROM")
                     .append(" ")
                     .append(selectorData.getTableWithAlias())
+                    .append(" ")
                     .append(selectorData.getWhereBuilder().build());
 
             return sql + "";

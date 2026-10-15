@@ -281,4 +281,12 @@ public class DataWrapper {
             return whereClause;
         }
     }
+
+    @Override
+    public String toString() {
+        return "DataWrapper{" +
+                "configurationSerialize=" + configurationSerialize +
+                ", writeContext=" + writeContext +
+                '}';
+    }
 }

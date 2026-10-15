@@ -89,7 +89,7 @@ public class ComparisonHandler<T> {
                         .sorted(Comparator.comparingInt(Map.Entry::getKey))
                         .map(Map.Entry::getValue).toArray();
             } else {
-                this.values = new Object[]{value};
+                    this.values = new Object[]{value};
             }
         }
 

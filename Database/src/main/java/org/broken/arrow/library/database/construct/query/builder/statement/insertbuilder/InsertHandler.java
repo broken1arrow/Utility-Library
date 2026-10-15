@@ -319,7 +319,10 @@ public class InsertHandler implements ParameterSupplier {
     private List<Object> getValues() {
         return insertValues.values().stream()
                 .map(InsertBuilder::getColumnValue)
-                .map(object -> {
+                .flatMap(object -> {
+                    if (object == null) {
+                        return Stream.of(this.queryBuilder.isGlobalEnableQueryPlaceholders() ? null : "NULL");
+                    }
                     if (object instanceof Column) {
                         Column column = (Column) object;
                         return Stream.of(column.getColumnName());
@@ -329,14 +332,37 @@ public class InsertHandler implements ParameterSupplier {
                         return Stream.of(literalVal.value());
                     }
                     if (object instanceof Collection<?>) {
-                        Collection<?> col = Collections.singleton(object);
-                        return col.stream();
+                        final Collection<?> col = (Collection<?>) object;
+                        return col.stream().map(this::formatValue);
                     }
                     if (object instanceof Object[]) {
-                        Object[] arr = (Object[]) object;
-                        return Arrays.stream(arr);
+                        final Object[] arr = (Object[]) object;
+                        return Arrays.stream(arr).flatMap(this::formatValue);
+                    }
+                    if (object instanceof String && !this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
+                        String escaped = ((String) object).replace("'", "''");
+                        return Stream.of("'" + escaped + "'");
                     }
                     return Stream.of(object);
                 }).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private Stream<Object> formatValue(@Nullable final Object object) {
+        final boolean queryPlaceholders = this.queryBuilder.isGlobalEnableQueryPlaceholders();
+
+        if (object == null) {
+            return Stream.of(queryPlaceholders ? null : "NULL");
+        }
+        if (object instanceof Column) {
+            return Stream.of(((Column) object).getColumnName());
+        }
+        if (object instanceof LiteralVal) {
+            return Stream.of(((LiteralVal) object).value());
+        }
+        if (object instanceof String && !queryPlaceholders) {
+            String escaped = ((String) object).replace("'", "''");
+            return Stream.of("'" + escaped + "'");
+        }
+        return Stream.of(object);
     }
 }

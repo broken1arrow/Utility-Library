@@ -460,7 +460,7 @@ public class QueryBuilder {
     public String toString() {
         return "QueryBuilder{" +
                 "queryType=" + queryType +
-                ", table='" + table + '\'' +
+                ", query='" + build() + '\'' +
                 ", globalEnableQueryPlaceholders=" + globalEnableQueryPlaceholders +
                 '}';
     }
@@ -537,6 +537,8 @@ public class QueryBuilder {
      */
     private void createSelectQuery(final QueryModifier queryModifier, final StringBuilder sql) {
         sql.append("SELECT ");
+        if(queryModifier.isDistinct())
+            sql.append("DISTINCT ");
         sql.append(queryModifier.getSelectBuilder().getColumns().isEmpty() ? "*" : queryModifier.getSelectBuilder().build());
 
         appendClause(sql, "FROM " + queryModifier.getTableWithAlias());

@@ -28,6 +28,7 @@ public class QueryModifier extends Selector<ColumnBuilder, Column> {
     private final OrderByBuilder orderByBuilder = new OrderByBuilder();
     private final QueryBuilder queryBuilder;
     private int limit;
+    private boolean distinct;
 
     /**
      * Creates a new query modifier instance with the given query builder.
@@ -84,6 +85,31 @@ public class QueryModifier extends Selector<ColumnBuilder, Column> {
     public QueryModifier having(Consumer<HavingBuilder> callback) {
         super.having(callback);
         return this;
+    }
+
+    /**
+     * Configures whether the query should return unique rows by removing duplicate records.
+     * <p>
+     * When set to {@code true}, the {@code DISTINCT} keyword is applied to the SQL query.
+     * This ensures that if multiple rows have identical values across all selected columns,
+     * only one unique row combination is returned in the result set.
+     * </p>
+     *
+     * @param distinct {@code true} to filter out duplicate rows; {@code false} to include all matching records.
+     * @return this {@code QueryModifier} instance for method chaining.
+     */
+    public QueryModifier distinct(final boolean distinct) {
+        this.distinct = distinct;
+        return this;
+    }
+
+    /**
+     * Checks if the query is configured to filter out duplicate rows.
+     *
+     * @return {@code true} if the {@code DISTINCT} modifier is enabled, {@code false} otherwise.
+     */
+    public boolean isDistinct() {
+        return distinct;
     }
 
     /**

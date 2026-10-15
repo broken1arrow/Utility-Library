@@ -77,9 +77,13 @@ public class ConditionBuilder<T> {
         if (subqueryHandler != null) {
             return operator.getSymbol() + " (" + subqueryHandler.getSubquery().build() + ")";
         }
+        final LogicalComparison comparison = operator.getLogicalComparison();
+        if (comparison == LogicalComparison.IS_NOT_NULL || comparison == LogicalComparison.IS_NULL) {
+            return operator.getSymbol();
+        }
+
         final Object[] values = operator.getValues();
         if (values.length > 0) {
-            final LogicalComparison comparison = operator.getLogicalComparison();
             if (comparison == LogicalComparison.IN || comparison == LogicalComparison.NOT_IN) {
                 return getInFormatted();
             }

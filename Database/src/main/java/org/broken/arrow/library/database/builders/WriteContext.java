@@ -69,7 +69,7 @@ public class WriteContext {
     /**
      * Adds an explicit set of column mappings to the cache.
      *
-     * @param columnContext a map containing column names and their corresponding write values.
+     * @param columnContext a map containing column names and their corresponding to write values.
      * @return this context instance for method chaining.
      */
     @Nonnull
