@@ -1,8 +1,6 @@
 package org.broken.arrow.library.database.utility.checker;
 
-import com.mongodb.lang.NonNull;
 import org.broken.arrow.library.database.builders.DataWrapper;
-import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuildContext;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
@@ -16,7 +14,6 @@ import org.broken.arrow.library.logging.Logging;
 import org.broken.arrow.library.logging.Validate;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,16 +23,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 /**
  * An efficient batch processor that determines which rows from a dataset already exist in a target database table.
@@ -65,24 +56,24 @@ public class RowExistenceChecker<T extends DataWrapper> {
     private final int batchSize;
 
     /**
-     * Private constructor forcing the use of the {@link Builder}.
+     * Private constructor forcing the use of the {@link RowExistenceBuilder}.
      *
      * @param table        the name of the database table to check for existing records
      * @param databaseType the type of database used
-     * @param builder      the configured builder containing connection, dataset, and matching criteria
+     * @param existenceBuilder      the configured builder containing connection, dataset, and matching criteria
      * @throws Validate.ValidateExceptions if matching keys cannot be determined from the builder or inferred from the dataset
      */
-    private RowExistenceChecker(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Builder<T> builder) {
-        Validate.checkBoolean(builder.connection == null, "Connection must be set.");
-        Validate.checkBoolean(builder.dataToProcess == null || builder.dataToProcess.isEmpty(), "Data to process can't be null or empty.");
+    private RowExistenceChecker(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final RowExistenceBuilder<T> existenceBuilder) {
+        Validate.checkBoolean(existenceBuilder.connection == null, "Connection must be set.");
+        Validate.checkBoolean(existenceBuilder.dataToProcess == null || existenceBuilder.dataToProcess.isEmpty(), "Data to process can't be null or empty.");
         Validate.checkNotNull(databaseType, "You must set the database type.");
 
         this.table = table;
         this.databaseType = databaseType;
-        this.connection = builder.connection;
-        this.dataToProcess = builder.dataToProcess;
-        this.batchSize = builder.batchSize;
-        final List<String> keys = builder.matchKeys;
+        this.connection = existenceBuilder.connection;
+        this.dataToProcess = existenceBuilder.dataToProcess;
+        this.batchSize = existenceBuilder.batchSize;
+        final List<String> keys = existenceBuilder.matchKeys;
 
         if (keys != null && !keys.isEmpty()) {
             this.matchKeys = new ArrayList<>(keys);
@@ -103,10 +94,10 @@ public class RowExistenceChecker<T extends DataWrapper> {
      * @param table        the name of the database table to check for existing records
      * @param databaseType the type of database engine used
      * @param connection   the database connection to execute queries against
-     * @return a new {@link Builder} instance
+     * @return a new {@link RowExistenceBuilder} instance
      */
-    public static <T extends DataWrapper> Builder<T> make(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
-        return new Builder<>(table, databaseType, connection);
+    public static <T extends DataWrapper> RowExistenceBuilder<T> make(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+        return new RowExistenceBuilder<>(table, databaseType, connection);
     }
 
     /**
@@ -118,7 +109,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
      * @return an {@link ExistingRowKeys} holding the set of composite keys that already exist in the target table
      * @throws SQLException if a database access error occurs during temporary table creation, batch insertion, or join execution
      */
-    public ExistingRowKeys findExisting() throws SQLException {
+    public ExistingRowKeysView findExisting() throws SQLException {
         final ExistingRowKeys existingRowKeys = new ExistingRowKeys(this.matchKeys);
         if (dataToProcess.isEmpty()) {
             return existingRowKeys;
@@ -307,7 +298,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
      *
      * @param <T> the type of the data rows being processed
      */
-    public static class Builder<T extends DataWrapper> {
+    public static class RowExistenceBuilder<T extends DataWrapper> {
         private final String table;
         private final DatabaseType databaseType;
         private final Connection connection;
@@ -322,7 +313,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
          * @param databaseType the type of database engine used
          * @param connection   the database connection to execute queries against
          */
-        public Builder(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+        public RowExistenceBuilder(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
             this.table = table;
             this.databaseType = databaseType;
             this.connection = connection;
@@ -334,7 +325,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
          * @param dataToProcess a list of records to check for existence
          * @return this builder instance
          */
-        public Builder<T> withData(@Nonnull final List<T> dataToProcess) {
+        public RowExistenceBuilder<T> withData(@Nonnull final List<T> dataToProcess) {
             this.dataToProcess = dataToProcess;
             return this;
         }
@@ -346,7 +337,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
          * @param columns the names of the database columns to use for matching
          * @return this builder instance
          */
-        public Builder<T> matchOn(@Nonnull final String... columns) {
+        public RowExistenceBuilder<T> matchOn(@Nonnull final String... columns) {
             this.matchKeys = Arrays.asList(columns);
             return this;
         }
@@ -358,7 +349,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
          * @param columns a list of database column names to use for matching
          * @return this builder instance
          */
-        public Builder<T> matchOn(@Nonnull final List<String> columns) {
+        public RowExistenceBuilder<T> matchOn(@Nonnull final List<String> columns) {
             this.matchKeys = columns;
             return this;
         }
@@ -382,7 +373,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
          * @param batchSize the number of statements per executeBatch call, defaults to 1 if set to zero or below
          * @return this builder instance for method chaining
          */
-        public Builder<T> setBatchSize(final int batchSize) {
+        public RowExistenceBuilder<T> setBatchSize(final int batchSize) {
             if (batchSize > 10_000) {
                 LOG.warn(() -> "Configured batchSize (" + batchSize + ") is unusually large. " +
                         "This may cause excessive memory consumption or exceed database driver packet limits.");
@@ -394,10 +385,10 @@ public class RowExistenceChecker<T extends DataWrapper> {
         /**
          * Constructs the {@link RowExistenceChecker} processor and executes the row existence query.
          *
-         * @return an {@link ExistingRowKeys} holding existing record keys found in the database
+         * @return an {@link ExistingRowKeysView} holding existing record keys found in the database
          * @throws SQLException if database execution fails
          */
-        public ExistingRowKeys findExisting() throws SQLException {
+        public ExistingRowKeysView findExisting() throws SQLException {
             final RowExistenceChecker<T> rowExistenceChecker = new RowExistenceChecker<>(this.table, databaseType, this);
             return rowExistenceChecker.findExisting();
         }
