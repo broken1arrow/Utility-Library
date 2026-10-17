@@ -2,6 +2,7 @@ package org.broken.arrow.library.database.utility.checker;
 
 import com.mongodb.lang.NonNull;
 import org.broken.arrow.library.database.builders.DataWrapper;
+import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.clause.joinbuilder.JoinBuildContext;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
@@ -26,8 +27,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -36,44 +40,48 @@ import java.util.stream.Collectors;
 /**
  * An efficient batch processor that determines which rows from a dataset already exist in a target database table.
  *
- * <p>This class is primarily used to separate a dataset into "inserts" and "updates". It achieves
- * high performance for batch operations by:
+ * <p>This class evaluates a batch of in-memory records against a database table by:
  * <ol>
- *     <li>Creating a lightweight temporary table.</li>
- *     <li>Inserting the composite keys of the provided rows into this temp table.</li>
- *     <li>Performing an inner join between the temporary table and the target table to find exact matches.</li>
+ *     <li>Creating a lightweight temporary table matching the composite key structure.</li>
+ *     <li>Inserting the composite key values of the provided rows into the temporary table in chunked batches.</li>
+ *     <li>Performing an inner join between the temporary table and the target table to locate matching records.</li>
  * </ol>
  *
- * <p>The result is partitioned into a {@link Map} where {@code true} represents rows that exist in the target table,
- * and {@code false} represents missing rows.
+ * <p>The result is returned as an {@link ExistingRowKeys} set containing the matching composite keys, allowing fast lookup
+ * via {@link ExistingRowKeys#contains(DataWrapper)}.
  *
- * @param <T> the type of the data items being processed, need to be instanced or extended class to {@code DataWrapper}.
+ * @param <T> the type of the data items being processed, extending {@link DataWrapper}.
  */
-public class CheckRowsExistence<T extends DataWrapper> {
-    private static final Logging LOG = new Logging(CheckRowsExistence.class);
-    private static final String TEMP_TABLE_NAME = "temp_table.";
+public class RowExistenceChecker<T extends DataWrapper> {
+    private static final Logging LOG = new Logging(RowExistenceChecker.class);
+    private static final String TEMP_TABLE_NAME = "temp.table_";
     private static final String TEMP = "temp.";
 
+    private final String table;
     private final DatabaseType databaseType;
     private final Connection connection;
     private final List<T> dataToProcess;
     private final List<String> matchKeys;
+    private final int batchSize;
 
     /**
      * Private constructor forcing the use of the {@link Builder}.
      *
-     * @param databaseType the type of database used.
-     * @param builder      the configured builder containing the connection, data, and matching criteria
-     * @throws IllegalArgumentException if matching keys cannot be determined from the builder or inferred from the data
+     * @param table        the name of the database table to check for existing records
+     * @param databaseType the type of database used
+     * @param builder      the configured builder containing connection, dataset, and matching criteria
+     * @throws Validate.ValidateExceptions if matching keys cannot be determined from the builder or inferred from the dataset
      */
-    private CheckRowsExistence(@Nonnull final DatabaseType databaseType, @Nonnull final Builder<T> builder) {
+    private RowExistenceChecker(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Builder<T> builder) {
         Validate.checkBoolean(builder.connection == null, "Connection must be set.");
         Validate.checkBoolean(builder.dataToProcess == null || builder.dataToProcess.isEmpty(), "Data to process can't be null or empty.");
-        Validate.checkBoolean(databaseType == null, "You must set the database type.");
+        Validate.checkNotNull(databaseType, "You must set the database type.");
 
+        this.table = table;
         this.databaseType = databaseType;
         this.connection = builder.connection;
         this.dataToProcess = builder.dataToProcess;
+        this.batchSize = builder.batchSize;
         final List<String> keys = builder.matchKeys;
 
         if (keys != null && !keys.isEmpty()) {
@@ -87,57 +95,52 @@ public class CheckRowsExistence<T extends DataWrapper> {
         }
     }
 
+
     /**
-     * Initializes a new builder for {@link CheckRowsExistence}.
+     * Initializes a new builder for {@link RowExistenceChecker}.
      *
-     * @param databaseType the type of database set.
-     * @param connection   the database connection to use
      * @param <T>          the type of data rows to be processed
-     * @return a new builder instance
+     * @param table        the name of the database table to check for existing records
+     * @param databaseType the type of database engine used
+     * @param connection   the database connection to execute queries against
+     * @return a new {@link Builder} instance
      */
-    public static <T extends DataWrapper> Builder<T> builder(@Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
-        return new Builder<>(databaseType, connection);
+    public static <T extends DataWrapper> Builder<T> make(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+        return new Builder<>(table, databaseType, connection);
     }
 
     /**
      * Evaluates the provided batch of rows against the target table to verify their existence.
      *
-     * <p>This method safely handles the lifecycle of the internal temporary table, ensuring it is
-     * dropped even if the matching query fails.
+     * <p>This method safely manages the full lifecycle of the temporary table, ensuring it is
+     * cleaned up even if a database operation fails.
      *
-     * @param targetTable the name of the database table to check for existing records
-     * @return a map partitioning the original rows:
-     * <ul>
-     *   <li>{@code true} maps to a list of rows that <b>already exist</b> in the target table (candidates for UPDATE).</li>
-     *   <li>{@code false} maps to a list of rows that <b>do not exist</b> (candidates for INSERT).</li>
-     * </ul>
-     * @throws SQLException if a database access error occurs during temp table creation, insertion, or execution of the join query
+     * @return an {@link ExistingRowKeys} holding the set of composite keys that already exist in the target table
+     * @throws SQLException if a database access error occurs during temporary table creation, batch insertion, or join execution
      */
-    public Map<Boolean, List<T>> partitionByCompositeKeys(@Nonnull final String targetTable) throws SQLException {
+    public ExistingRowKeys findExisting() throws SQLException {
+        final ExistingRowKeys existingRowKeys = new ExistingRowKeys(this.matchKeys);
         if (dataToProcess.isEmpty()) {
-            return new HashMap<>();
+            return existingRowKeys;
         }
-        final Set<List<Object>> foundKeys = new HashSet<>();
-        final Function<T, List<Object>> extractKeyValues = this.getExtractKeyValues();
-
+        @Nonnull final String targetTable = this.table;
         createTempTable(targetTable);
 
         try {
-            insertData(targetTable, extractKeyValues);
+            this.insertData(targetTable);
             final QueryBuilder checkMatch = buildJoinQuery(targetTable);
-
             try (Statement selectStmt = connection.createStatement();
                  final ResultSet rs = selectStmt.executeQuery(checkMatch.build())) {
                 while (rs.next()) {
-                    List<Object> compositeKey = new ArrayList<>(matchKeys.size());
+                    final Map<String, Object> map = new HashMap<>(matchKeys.size());
                     matchKeys.forEach(col -> {
                         try {
-                            compositeKey.add(rs.getObject(col));
+                            map.put(col, rs.getObject(col));
                         } catch (SQLException ex) {
                             throw new RuntimeException(ex);
                         }
                     });
-                    foundKeys.add(compositeKey);
+                    existingRowKeys.add(new CompositeKey(map));
                 }
             }
         } finally {
@@ -149,13 +152,15 @@ public class CheckRowsExistence<T extends DataWrapper> {
                 LOG.log(Level.WARNING, e, () -> "Failed to drop temporary table: " + this.getTempTableName(targetTable));
             }
         }
-
-        return dataToProcess.stream().collect(Collectors.partitioningBy(row -> {
-            List<Object> rowKeyValues = extractKeyValues.apply(row);
-            return rowKeyValues != null && foundKeys.contains(rowKeyValues);
-        }));
+        return existingRowKeys;
     }
 
+    /**
+     * Creates a key extractor function for mapping a {@link DataWrapper} instance
+     * to its corresponding list of composite key values.
+     *
+     * @return a function extracting key column values from a row wrapper
+     */
     @Nonnull
     private Function<T, List<Object>> getExtractKeyValues() {
         return rowData -> {
@@ -176,10 +181,10 @@ public class CheckRowsExistence<T extends DataWrapper> {
     }
 
     /**
-     * Extracts keys from the first valid {@code DataWrapper} in the batch.
-     * This acts as the fallback "truth" when the developer doesn't explicitly provide matchKeys.
+     * Extracts column key names from the first non-empty {@link DataWrapper} in the batch.
+     * This acts as the fallback mechanism when match keys are not explicitly configured on the builder.
      *
-     * @param dataToProcess the collection of data being processed
+     * @param dataToProcess the collection of data rows being evaluated
      * @return a list of column names derived from the data context, or an empty list if none are found
      */
     private List<String> inferKeysFromData(List<T> dataToProcess) {
@@ -195,16 +200,17 @@ public class CheckRowsExistence<T extends DataWrapper> {
     }
 
     /**
-     * Creates an empty temporary table structured with only the columns necessary for key matching.
+     * Creates an empty temporary table structured with only the columns required for composite key matching.
      *
-     * @param targetTable the source table to derive column types from
-     * @throws SQLException if a database access error occurs
+     * @param targetTable the source table to derive matching schema context from
+     * @throws SQLException if a database error occurs during table creation
      */
     private void createTempTable(String targetTable) throws SQLException {
         final QueryBuilder createTemp = new QueryBuilder(this.databaseType);
+        createTemp.setGlobalEnableQueryPlaceholders(false);
         createTemp.createTemporaryTable(this.getTempTableName(targetTable))
                 .as()
-                .select(c -> matchKeys.forEach(col -> c.add(new TableColumn(col, DataType.varchar(16)))))
+                .select(c -> matchKeys.forEach(col -> c.add(new TableColumn(col, DataType.varchar(64)))))
                 .from(targetTable)
                 .where(w -> w.where("1").equal(0));
 
@@ -214,17 +220,19 @@ public class CheckRowsExistence<T extends DataWrapper> {
     }
 
     /**
-     * Inserts the extracted composite key values of the current batch into the temporary table.
+     * Inserts the extracted composite key values into the temporary table using chunked batch execution.
      *
-     * @param targetTable      the table it shall copy.
-     * @param extractKeyValues a function that extracts ordered key values from a single row
+     * @param targetTable the target database table being checked against
      * @throws SQLException if batch insertion fails
      */
-    private void insertData(@NonNull final String targetTable, @NonNull final Function<T, List<Object>> extractKeyValues) throws SQLException {
+    private void insertData(final String targetTable) throws SQLException {
+        final Function<T, List<Object>> extractKeyValues = this.getExtractKeyValues();
         final QueryBuilder insertTemp = new QueryBuilder(this.databaseType);
         insertTemp.insertInto(this.getTempTableName(targetTable), insert -> {
             matchKeys.forEach(col -> insert.add(InsertBuilder.of(col, SqlArg.raw("?"))));
         });
+        final int batchSize = this.batchSize;
+        int pendingInBatch = 0;
 
         try (PreparedStatement insertStmt = connection.prepareStatement(insertTemp.build())) {
             for (T row : dataToProcess) {
@@ -235,37 +243,59 @@ public class CheckRowsExistence<T extends DataWrapper> {
                     insertStmt.setObject(i + 1, keyValues.get(i));
                 }
                 insertStmt.addBatch();
+                pendingInBatch++;
+                if (pendingInBatch == batchSize) {
+                    insertStmt.executeBatch();
+                    pendingInBatch = 0;
+                }
             }
-            insertStmt.executeBatch();
+            if (pendingInBatch > 0) {
+                insertStmt.executeBatch();
+            }
         }
     }
 
+    /**
+     * Generates a unique temporary table name based on the target table name.
+     *
+     * @param targetTable the name of the target database table
+     * @return the fully qualified temporary table identifier
+     */
     @Nonnull
     private String getTempTableName(@Nonnull final String targetTable) {
         return TEMP_TABLE_NAME + targetTable;
     }
 
     /**
-     * Constructs the inner join query between the target table and the temporary table
+     * Constructs the inner join query between the target table and the temporary key table
      * to identify existing records.
      *
      * @param targetTable the destination table being checked against
-     * @return a {@link QueryBuilder} configured to select matched keys
+     * @return a {@link QueryBuilder} configured to execute the match query
      */
     @Nonnull
-    private QueryBuilder buildJoinQuery(@NonNull final String targetTable) {
+    private QueryBuilder buildJoinQuery(final String targetTable) {
         final QueryBuilder checkMatch = new QueryBuilder(this.databaseType);
         checkMatch.select(c -> matchKeys.forEach(col -> c.add(Column.of(TEMP + col))))
+                .distinct(true)
                 .from(targetTable, "target")
                 .join(j -> j.innerJoin(this.getTempTableName(targetTable), "temp", ctx -> {
-                    ConditionChainer<JoinBuildContext> currentJoinContext = ctx.on(Column.of("target." + matchKeys.get(0)))
-                            .equal(Column.of(TEMP + matchKeys.get(0)));
+                    final String columnName = "target." + matchKeys.get(0);
+                    final String tempColumnName = TEMP + matchKeys.get(0);
+                    ConditionChainer<JoinBuildContext> currentJoinContext = ctx.on(Column.of(columnName)).equal(Column.of(tempColumnName))
+						/*	.or()
+							.on(columnName).isNull()
+							.and()
+							.on(tempColumnName).isNull()*/;
 
                     for (int i = 1; i < matchKeys.size(); i++) {
                         String colName = matchKeys.get(i);
                         currentJoinContext.and()
-                                .on(Column.of("target." + colName))
-                                .equal(Column.of(TEMP + colName));
+                                .on(Column.of("target." + colName)).equal(Column.of(TEMP + colName))
+								/*.or()
+								.on("target." + colName).isNull()
+								.and()
+								.on(TEMP + colName).isNull()*/;
                     }
                     return currentJoinContext;
                 }));
@@ -273,23 +303,27 @@ public class CheckRowsExistence<T extends DataWrapper> {
     }
 
     /**
-     * Builder class for configuring and instantiating {@link CheckRowsExistence}.
+     * Builder class for configuring and instantiating {@link RowExistenceChecker}.
      *
      * @param <T> the type of the data rows being processed
      */
     public static class Builder<T extends DataWrapper> {
+        private final String table;
         private final DatabaseType databaseType;
         private final Connection connection;
+        private int batchSize = 2000;
         private List<T> dataToProcess = new ArrayList<>();
         private List<String> matchKeys = new ArrayList<>();
 
         /**
-         * Builder class for configuring and instantiating {@link CheckRowsExistence}.
+         * Constructs a new builder with the required target configuration.
          *
-         * @param databaseType the type of database set.
-         * @param connection   the database connection to use
+         * @param table        the name of the database table to check for existing records
+         * @param databaseType the type of database engine used
+         * @param connection   the database connection to execute queries against
          */
-        public Builder(@Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+        public Builder(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+            this.table = table;
             this.databaseType = databaseType;
             this.connection = connection;
         }
@@ -330,12 +364,42 @@ public class CheckRowsExistence<T extends DataWrapper> {
         }
 
         /**
-         * Constructs the configured {@link CheckRowsExistence} instance.
+         * Sets the batch size used when executing batch SQL statements against the target table.
+         * If not set, it defaults to a batch size of {@code 2000}.
+         * <p>
+         * Controls how many rows are accumulated in memory before sending an
+         * {@code executeBatch()} command to the database driver. Tuning this value can help balance
+         * network round-trip overhead with database memory utilization.
+         * </p>
          *
-         * @return a fully initialized {@link CheckRowsExistence}
+         * <ul>
+         *   <li><b>Minimum value:</b> {@code 1} (Executes after every row, useful for debugging).</li>
+         *   <li><b>Recommended default:</b> {@code 2000}.</li>
+         *   <li><b>Large values:</b> Setting this higher than {@code 10000} may cause high memory
+         *       usage on the client or hit database packet limits (e.g., maximum parameters per statement).</li>
+         * </ul>
+         *
+         * @param batchSize the number of statements per executeBatch call, defaults to 1 if set to zero or below
+         * @return this builder instance for method chaining
          */
-        public CheckRowsExistence<T> build() {
-            return new CheckRowsExistence<>(databaseType, this);
+        public Builder<T> setBatchSize(final int batchSize) {
+            if (batchSize > 10_000) {
+                LOG.warn(() -> "Configured batchSize (" + batchSize + ") is unusually large. " +
+                        "This may cause excessive memory consumption or exceed database driver packet limits.");
+            }
+            this.batchSize = Math.max(batchSize, 1);
+            return this;
+        }
+
+        /**
+         * Constructs the {@link RowExistenceChecker} processor and executes the row existence query.
+         *
+         * @return an {@link ExistingRowKeys} holding existing record keys found in the database
+         * @throws SQLException if database execution fails
+         */
+        public ExistingRowKeys findExisting() throws SQLException {
+            final RowExistenceChecker<T> rowExistenceChecker = new RowExistenceChecker<>(this.table, databaseType, this);
+            return rowExistenceChecker.findExisting();
         }
     }
 }
