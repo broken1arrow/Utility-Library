@@ -5,6 +5,7 @@ import org.broken.arrow.library.database.construct.query.builder.column.function
 import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * Strategy implementation that wraps a SQL expression in a calculation or aggregate
@@ -46,4 +47,15 @@ public class SqlFunction implements ColumnStrategy {
         return build(target);
     }
 
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof SqlFunction)) return false;
+        SqlFunction that = (SqlFunction) object;
+        return function == that.function && Objects.equals(column, that.column) && Objects.equals(alias, that.alias);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(function, column, alias);
+    }
 }

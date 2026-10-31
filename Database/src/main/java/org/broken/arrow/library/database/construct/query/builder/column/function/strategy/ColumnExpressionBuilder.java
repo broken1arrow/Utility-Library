@@ -64,6 +64,13 @@ public interface ColumnExpressionBuilder {
     ColumnExpressionBuilder round(final int precision);
 
     /**
+     * Check if any expression is set.
+     *
+     * @return Returns {@code true} if set any expression, otherwise {@code true}
+     */
+    boolean hasSetExpression();
+
+    /**
      * Compiles the applied operations into a valid SQL string.
      *
      * @return the fully constructed SQL string for this column expression
@@ -78,7 +85,7 @@ public interface ColumnExpressionBuilder {
      * aggregate functions from being unlawfully executed inside a {@code WHERE} clause.
      * </p>
      *
-     * @return {@code true} if an aggregate function has been applied; {@code false} otherwise
+     * @return {@code true} if an aggregate function has been applied, {@code false} otherwise
      */
     boolean hasAggregate();
 }

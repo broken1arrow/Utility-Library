@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
  * @param <V> The type of the value, which must implement {@link ConfigurationSerializable}.
  */
 public class SaveRecord<K, V extends ConfigurationSerializable> {
+    private SaveRecordContext context;
     private final Map<Column, Object> keys = new HashMap<>();
     private final DatabaseType databaseType;
     private final String tableName;
@@ -53,6 +54,7 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      */
     @SuppressWarnings("unchecked")
     public SaveRecord(@Nonnull final DatabaseType databaseType, @Nonnull final String tableName, @Nonnull final Map.Entry<K, V> entry) {
+        this.context = new SaveRecordContext();
         this.databaseType = databaseType;
         this.tableName = tableName;
         this.key = entry.getKey();
@@ -119,14 +121,14 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      * </p>
      *
      * @param context the write context containing keys and where clause logic
-     * @return the built {@link QueryBuilder} instance, or {@code null} if no where clause was provided
+     * @return the built {@link SaveRecordContext} instance
      */
-    public QueryBuilder applyContext(@Nonnull final WriteContext context) {
-        context.getColumnContext().forEach(this::addKey);
+    public SaveRecordContext applyContext(@Nonnull final WriteContext context) {
+        context.getColumnContext().forEach(this.context::putValue);
         if (context.getWhereClause() != null) {
-            return this.createSelectCommand(true, context.getWhereClause());
+             this.createSelectCommand(true, context.getWhereClause());
         }
-        return null;
+        return this.context;
     }
 
     /**
@@ -139,35 +141,25 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      *
      * @param context          the write context containing keys and where clause logic
      * @param queryPlaceholder whether to enable query placeholders in the query (recommended).
-     * @return the built {@link QueryBuilder} instance, or {@code null} if no where clause was provided
+     * @return the built {@link SaveRecordContext} instance
      */
-    public QueryBuilder applyContext(@Nonnull final WriteContext context, final boolean queryPlaceholder) {
-        context.getColumnContext().forEach(this::addKey);
+    public SaveRecordContext applyContext(@Nonnull final WriteContext context, final boolean queryPlaceholder) {
+
+        context.getColumnContext();
+        context.getColumnContext().forEach(this.context::putValue);
         if (context.getWhereClause() != null) {
-            return this.createSelectCommand(queryPlaceholder, context.getWhereClause());
+            this.createSelectCommand(queryPlaceholder, context.getWhereClause());
         }
-        return null;
+        return this.context;
     }
 
     /**
-     * Adds a column and value pair to the context,
-     * useful for including data that isn't part of the {@link ConfigurationSerializable},
-     * such as primary keys, foreign keys, or other lookup values.
-     *
-     * @param columnName the column name to associate.
-     * @param value      the value to be stored under the column.
-     */
-    public void addKey(@Nonnull final String columnName, @Nonnull final Object value) {
-        keys.put(new Column(columnName, ""), value);
-    }
-
-    /**
-     * Gets all additional key-value pairs added via {@link #addKey(String, Object)}.
+     * Gets all additional key-value pairs added via {@link #applyContext(WriteContext)} or {@link SaveRecordContext#putValue(String, Object)}}.
      *
      * @return a map of extra column-to-value entries not included in the serialized value.
      */
     public Map<Column, Object> getKeys() {
-        return keys;
+        return context.getColumnValues();
     }
 
     /**
@@ -201,9 +193,8 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
      *
      * @param queryPlaceholder whether to enable query placeholders in the query (recommended).
      * @param clauseFunction   a builder function for defining the WHERE clause.
-     * @return the built {@link QueryBuilder} instance.
      */
-    private QueryBuilder createSelectCommand(final boolean queryPlaceholder, @Nonnull final WhereClauseFunction clauseFunction) {
+    private void createSelectCommand(final boolean queryPlaceholder, @Nonnull final WhereClauseFunction clauseFunction) {
         final QueryBuilder builder = new QueryBuilder(this.databaseType);
         builder.setGlobalEnableQueryPlaceholders(queryPlaceholder);
         List<Column> columnList = value.serialize().keySet().stream()
@@ -214,7 +205,6 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
         this.selectData = builder.select(columnList).from(this.tableName).where(whereStrategy);
         this.queryBuilder = builder;
 
-        return builder;
     }
 
     @Override

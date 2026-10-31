@@ -28,8 +28,8 @@ public class SqlResultRow {
      * @param value      The value to associate with the column.
      * @throws Validate.ValidateExceptions if the column name is null.
      */
-    public void put(@Nonnull final String columnName,@Nullable final Object value) {
-        Validate.checkNotNull(columnName,"Column name cant be null");
+    public void put(@Nonnull final String columnName, @Nullable final Object value) {
+        Validate.checkNotNull(columnName, "Column name cant be null");
         columns.put(columnName.toLowerCase(Locale.ROOT), value);
     }
 
@@ -52,7 +52,7 @@ public class SqlResultRow {
      */
     @Nullable
     public Object get(@Nonnull final String columnName) {
-        Validate.checkNotNull(columnName,"Column name cant be null");
+        Validate.checkNotNull(columnName, "Column name cant be null");
         return columns.get(columnName.toLowerCase(Locale.ROOT));
     }
 
@@ -66,10 +66,10 @@ public class SqlResultRow {
      * </p>
      *
      * @param <T>        The expected target return type.
-     * @param columnName The name of the database column; cannot be null.
-     * @param clazz      The class representation of the target type; cannot be null.
+     * @param columnName The name of the database column, can't be null.
+     * @param clazz      The class representation of the target type, can't be null.
      * @return The cast or converted object, or {@code null} if the database value is null.
-     * @throws Validate.ValidateExceptions if the value cannot be assigned or converted into the target class.
+     * @throws Validate.ValidateExceptions if the value can't be assigned or converted into the target class.
      */
     @Nullable
     public <T> T get(@Nonnull final String columnName, @Nonnull final Class<T> clazz) {
@@ -108,6 +108,6 @@ public class SqlResultRow {
             if (clazz == Short.class) return clazz.cast(num.shortValue());
             if (clazz == Byte.class) return clazz.cast(num.byteValue());
         }
-        throw new  Validate.ValidateExceptions("Cannot cast SQL type " + value.getClass().getName() + " to " + clazz.getName());
+        throw new Validate.ValidateExceptions("Cannot cast SQL type " + value.getClass().getName() + " to " + clazz.getName());
     }
 }

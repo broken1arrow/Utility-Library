@@ -7,6 +7,7 @@ import org.broken.arrow.library.database.construct.query.utlity.CalcFunc;
 import org.broken.arrow.library.database.construct.query.utlity.MathOperation;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * A stateful implementation of {@link ColumnExpressionBuilder} that constructs SQL column
@@ -73,6 +74,11 @@ public class ColumnExpressionPipeline implements ColumnExpressionBuilder {
         return this.function != null;
     }
 
+    @Override
+    public boolean hasSetExpression() {
+        return this.function != null || this.math != null || this.round != null || this.aliasContext != null;
+    }
+
     @Nonnull
     @Override
     public String build() {
@@ -97,5 +103,17 @@ public class ColumnExpressionPipeline implements ColumnExpressionBuilder {
     @Override
     public String toString() {
         return build();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof ColumnExpressionPipeline)) return false;
+        ColumnExpressionPipeline that = (ColumnExpressionPipeline) object;
+        return Objects.equals(column, that.column) && Objects.equals(function, that.function) && Objects.equals(math, that.math) && Objects.equals(aliasContext, that.aliasContext) && Objects.equals(round, that.round);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(column, function, math, aliasContext, round);
     }
 }

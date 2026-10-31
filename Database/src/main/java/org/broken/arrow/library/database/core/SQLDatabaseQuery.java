@@ -74,7 +74,7 @@ public abstract class SQLDatabaseQuery extends Database {
      * @param columns         optional columns to save or update.
      */
     @Override
-    public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate, String... columns) {
+    public void saveAll(@Nonnull final String tableName, @Nonnull final List<DataWrapper> dataWrapperList, final boolean shallUpdate,@Nullable final String... columns) {
         final Connection connection = getDatabase().attemptToConnect();
         final BatchExecutor<DataWrapper> batchExecutor;
 
@@ -130,19 +130,13 @@ public abstract class SQLDatabaseQuery extends Database {
             this.log.log(Level.WARNING, () -> "Could not find this table:'" + tableName + "' . Did you register your table?");
             return;
         }
-        final Object primaryValue = dataWrapper.getPrimaryValue();
 
         final WhereClauseFunction whereClause = dataWrapper.getWriteContext().getWhereClause();
-        if (whereClause == null && (primaryValue == null || primaryValue.toString().isEmpty())) {
+        if (whereClause == null) {
             this.log.log(Level.WARNING, () -> "Could not set where clause for this table:'" + tableName + "' . You have not set either the primary value or a where clause");
             return;
         }
-
-        batchExecutor.save(tableName, dataWrapper, shallUpdate, where -> {
-            if (whereClause != null)
-                return whereClause.apply(where);
-            return table.createWhereClauseFromPrimaryColumns(where, primaryValue);
-        }, columns);
+        batchExecutor.save(tableName, dataWrapper, shallUpdate, whereClause::apply, columns);
     }
 
     /**

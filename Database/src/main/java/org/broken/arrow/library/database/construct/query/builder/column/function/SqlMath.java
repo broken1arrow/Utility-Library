@@ -5,6 +5,7 @@ import org.broken.arrow.library.database.construct.query.builder.column.function
 import org.broken.arrow.library.database.construct.query.utlity.MathOperation;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * Represents a binary mathematical operation combining the current SQL expression
@@ -40,5 +41,17 @@ public class SqlMath implements ColumnStrategy {
     @Override
     public String toString() {
         return "(... " + operator.getSymbol() + " " + right.toString() + ")";
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof SqlMath)) return false;
+        SqlMath sqlMath = (SqlMath) object;
+        return operator == sqlMath.operator && Objects.equals(right, sqlMath.right);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(operator, right);
     }
 }

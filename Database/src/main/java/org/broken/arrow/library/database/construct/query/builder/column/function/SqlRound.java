@@ -3,6 +3,8 @@ package org.broken.arrow.library.database.construct.query.builder.column.functio
 import org.broken.arrow.library.database.construct.query.builder.column.function.strategy.ColumnStrategy;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
+
 /**
  * Represents a SQL {@code ROUND(expression, precision)} function wrapper.
  */
@@ -32,5 +34,17 @@ public class SqlRound implements ColumnStrategy {
     @Override
     public String toString() {
         return "ROUND(..., " + ", " + precision + ")";
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof SqlRound)) return false;
+        SqlRound sqlRound = (SqlRound) object;
+        return precision == sqlRound.precision;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(precision);
     }
 }

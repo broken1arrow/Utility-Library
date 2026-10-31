@@ -6,6 +6,7 @@ import org.broken.arrow.library.database.construct.query.builder.column.refernce
 import org.broken.arrow.library.database.construct.query.utlity.SqlExpressionType;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -57,7 +58,7 @@ public class Column implements SqlArg {
     /**
      * Constructs a Column instance with the specified column name with no alias.
      *
-     * @param columnName the name of the database column
+     * @param columnName      the name of the database column
      * @param functionContext the context for the column you want to aggregate
      * @return The column instance.
      */
@@ -76,9 +77,14 @@ public class Column implements SqlArg {
      * @return the column name optionally suffixed with an alias expression
      */
     public String getFinishColumName() {
+        ColumnExpressionBuilder expression = this.computedContext;
+        if (expression != null) {
+            final String build = expression.build();
+            return build == null || !expression.hasSetExpression() ? this.getFullColumnName() : build;
+        }
         if (alias == null || alias.isEmpty())
             return columnName;
-        return columnName + " " + SqlExpressionType.AS + " " + alias;
+        return this.getFullColumnName();
     }
 
     /**
@@ -126,7 +132,6 @@ public class Column implements SqlArg {
         return this.alias;
     }
 
-
     /**
      * Returns the SQL expression string representing this column,
      * including any aggregation and rounding functions applied.
@@ -137,9 +142,26 @@ public class Column implements SqlArg {
     public String toString() {
         ColumnExpressionBuilder expression = this.computedContext;
         if (expression != null) {
-            String build = expression.build();
+            final String build = expression.build();
             return build == null || build.isEmpty() ? getFinishColumName() : build;
         }
         return getFinishColumName();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof Column)) return false;
+        Column column = (Column) object;
+        return Objects.equals(columnName, column.columnName) && Objects.equals(alias, column.alias) && Objects.equals(computedContext, column.computedContext);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(columnName, alias, computedContext);
+    }
+
+    @Nonnull
+    private String getFullColumnName() {
+        return columnName + " " + SqlExpressionType.AS + " " + alias;
     }
 }

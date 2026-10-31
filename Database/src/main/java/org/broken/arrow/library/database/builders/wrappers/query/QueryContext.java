@@ -2,6 +2,7 @@ package org.broken.arrow.library.database.builders.wrappers.query;
 
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
 import org.broken.arrow.library.database.builders.wrappers.SaveRecord;
+import org.broken.arrow.library.database.builders.wrappers.SaveRecordContext;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import java.util.function.Consumer;
@@ -25,7 +26,7 @@ public class QueryContext<T> {
      * <strong>When used for saving:</strong>
      * </p>
      * You should define primary key(s) or other identifying values not included in your
-     * {@link ConfigurationSerializable} implementation by calling {@link SaveRecord#addKey(String, Object)}.
+     * {@link ConfigurationSerializable} implementation by calling {@link SaveRecordContext#putValue(String, Object)}.
      * <p>
      * <strong>When used for loading:</strong>
      * </p>

@@ -385,17 +385,9 @@ public class MongoDB extends Database {
      * @param collection   the MongoDB collection to save into
      */
     private void saveData(final DataWrapper dataWrapper, final TableSchema tableWrapper, final MongoCollection<Document> collection) {
-        Object primaryValue = dataWrapper.getPrimaryValue();
-        Document document;
-        Bson filter;
-        if (primaryValue != null) {
-            document = new Document("_id", primaryValue);
-            filter = Filters.eq("_id", primaryValue);
-        } else {
-            final Map<String, Object> primaries = dataWrapper.getWriteContext().getColumnContext();
-            document = new Document(primaries);
-            filter = Filters.eq("_id", document);
-        }
+        final Map<String, Object> primaries = dataWrapper.getWriteContext().getColumnContext();
+        final Document  document = new Document(primaries);
+        final Bson filter = Filters.eq("_id", document);
 
 
         for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {

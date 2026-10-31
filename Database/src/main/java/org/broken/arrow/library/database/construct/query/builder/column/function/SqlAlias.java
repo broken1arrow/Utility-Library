@@ -3,6 +3,7 @@ package org.broken.arrow.library.database.construct.query.builder.column.functio
 import org.broken.arrow.library.database.construct.query.builder.column.function.strategy.ColumnStrategy;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * Represents a SQL column alias segment (e.g., {@code AS alias_name}).
@@ -37,5 +38,17 @@ public class SqlAlias implements ColumnStrategy {
     @Override
     public String toString() {
         return build("");
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof SqlAlias)) return false;
+        SqlAlias sqlAlias = (SqlAlias) object;
+        return Objects.equals(alias, sqlAlias.alias);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(alias);
     }
 }
