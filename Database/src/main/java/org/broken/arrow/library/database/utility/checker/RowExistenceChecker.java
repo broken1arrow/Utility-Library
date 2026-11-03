@@ -39,11 +39,11 @@ import java.util.logging.Level;
  * </ol>
  *
  * <p>The result is returned as an {@link ExistingRowKeys} set containing the matching composite keys, allowing fast lookup
- * via {@link ExistingRowKeys#contains(DataWrapper)}.
+ * via {@link ExistingRowKeys#contains(RowContext)}.
  *
- * @param <T> the type of the data items being processed, extending {@link DataWrapper}.
+ * @param <T> the type of the data items being processed, extending {@link  RowContext }.
  */
-public class RowExistenceChecker<T extends DataWrapper> {
+public class RowExistenceChecker<T extends RowContext> {
     private static final Logging LOG = new Logging(RowExistenceChecker.class);
     private static final String TEMP_TABLE_NAME = "temp.table_";
     private static final String TEMP = "temp.";
@@ -58,9 +58,9 @@ public class RowExistenceChecker<T extends DataWrapper> {
     /**
      * Private constructor forcing the use of the {@link RowExistenceBuilder}.
      *
-     * @param table        the name of the database table to check for existing records
-     * @param databaseType the type of database used
-     * @param existenceBuilder      the configured builder containing connection, dataset, and matching criteria
+     * @param table            the name of the database table to check for existing records
+     * @param databaseType     the type of database used
+     * @param existenceBuilder the configured builder containing connection, dataset, and matching criteria
      * @throws Validate.ValidateExceptions if matching keys cannot be determined from the builder or inferred from the dataset
      */
     private RowExistenceChecker(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final RowExistenceBuilder<T> existenceBuilder) {
@@ -96,7 +96,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
      * @param connection   the database connection to execute queries against
      * @return a new {@link RowExistenceBuilder} instance
      */
-    public static <T extends DataWrapper> RowExistenceBuilder<T> make(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+    public static <T extends RowContext> RowExistenceBuilder<T> make(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
         return new RowExistenceBuilder<>(table, databaseType, connection);
     }
 
@@ -157,7 +157,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
         return rowData -> {
             if (rowData == null) return null;
 
-            final Map<String, Object> columnContext = rowData.getWriteContext().getColumnContext();
+            final Map<String, Object> columnContext = rowData.getColumnContext();
             final List<Object> keys = new ArrayList<>(matchKeys.size());
 
             for (String keyCol : matchKeys) {
@@ -181,7 +181,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
     private List<String> inferKeysFromData(List<T> dataToProcess) {
         for (T rowData : dataToProcess) {
             if (rowData != null) {
-                Map<String, Object> ctx = rowData.getWriteContext().getColumnContext();
+                Map<String, Object> ctx = rowData.getColumnContext();
                 if (!ctx.isEmpty()) {
                     return new ArrayList<>(ctx.keySet());
                 }
@@ -298,7 +298,7 @@ public class RowExistenceChecker<T extends DataWrapper> {
      *
      * @param <T> the type of the data rows being processed
      */
-    public static class RowExistenceBuilder<T extends DataWrapper> {
+    public static class RowExistenceBuilder<T extends RowContext> {
         private final String table;
         private final DatabaseType databaseType;
         private final Connection connection;

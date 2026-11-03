@@ -12,21 +12,14 @@ import java.util.List;
  */
 public interface ExistingRowKeysView {
 
-    /**
-     *  Checks whether the supplied {@link DataWrapper} represents an existing row.
-     *
-     * @param dataWrapper the record wrapper to evaluate
-     * @return {@code true} if the row exists in the target table, {@code false} otherwise
-     */
-    boolean contains(@Nonnull DataWrapper dataWrapper);
 
     /**
-     * Checks whether the supplied {@link WriteContext} represents an existing row.
+     * Checks whether the supplied {@link RowContext} represents an existing row.
      *
-     * @param writeContext the write context containing column context mappings
+     * @param context the context containing column context mappings
      * @return {@code true} if the row exists in the target table, {@code false} otherwise
      */
-    boolean contains(@Nonnull WriteContext writeContext);
+    boolean contains(@Nonnull RowContext context);
 
     /**
      * Checks whether the supplied {@link CompositeKey} key exists in the result.

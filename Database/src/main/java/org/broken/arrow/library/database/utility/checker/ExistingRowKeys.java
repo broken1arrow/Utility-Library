@@ -41,15 +41,9 @@ public final class ExistingRowKeys implements ExistingRowKeysView {
     }
 
     @Override
-    public boolean contains(@Nonnull final DataWrapper dataWrapper) {
-        Validate.checkNotNull(dataWrapper, "DataWrapper cannot be null.");
-        return this.contains(dataWrapper.getWriteContext());
-    }
-
-    @Override
-    public boolean contains(@Nonnull final WriteContext writeContext) {
-        Validate.checkNotNull(writeContext, "WriteContext cannot be null.");
-        return this.contains(writeContext.getColumnContext());
+    public boolean contains(@Nonnull final RowContext context) {
+        Validate.checkNotNull(context, "RowContext cannot be null.");
+        return this.contains(context.getColumnContext());
     }
 
     @Override

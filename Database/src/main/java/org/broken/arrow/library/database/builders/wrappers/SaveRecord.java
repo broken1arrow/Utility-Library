@@ -8,6 +8,7 @@ import org.broken.arrow.library.database.construct.query.builder.clause.wherebui
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.utility.DatabaseType;
 import org.broken.arrow.library.database.utility.WhereClauseFunction;
+import org.broken.arrow.library.database.utility.checker.RowContext;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  * @param <K> The type of the key used in the original cache map.
  * @param <V> The type of the value, which must implement {@link ConfigurationSerializable}.
  */
-public class SaveRecord<K, V extends ConfigurationSerializable> {
+public class SaveRecord<K, V extends ConfigurationSerializable> implements RowContext {
     private SaveRecordContext context;
     private final Map<Column, Object> keys = new HashMap<>();
     private final DatabaseType databaseType;
@@ -162,6 +163,18 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
         return context.getColumnValues();
     }
 
+    @Nonnull
+    @Override
+    public Map<String, Object> getColumnContext() {
+        return context.getColumnValues()
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().getColumnName(),
+                        Map.Entry::getValue, (existingValue, newValue) -> newValue
+                ));
+    }
+
     /**
      * Attempts to safely cast an object to a {@code SaveContext<k, v>} of the expected types.
      *
@@ -218,4 +231,6 @@ public class SaveRecord<K, V extends ConfigurationSerializable> {
                 ", valueClazz=" + valueClazz +
                 '}';
     }
+
+
 }

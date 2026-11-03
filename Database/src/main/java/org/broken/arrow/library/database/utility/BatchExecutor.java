@@ -15,6 +15,7 @@ import org.broken.arrow.library.database.construct.query.builder.clause.wherebui
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.utility.checker.ExistingRowKeysView;
+import org.broken.arrow.library.database.utility.checker.RowContext;
 import org.broken.arrow.library.database.utility.checker.RowExistenceChecker;
 import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 import org.broken.arrow.library.logging.Validate;
@@ -104,7 +105,7 @@ public class BatchExecutor<T> {
      */
     public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, final boolean shallUpdate, final DatabaseQuerySaving<SaveRecord<K, V>> databaseQueryHandler) {
         final List<SqlQuery> queryList = new ArrayList<>();
-        final List<SaveRecord<K, V>> toProcess = this.dataToProcess.stream()
+        final List<RowContext> toProcess = this.dataToProcess.stream()
                 .filter(SaveRecord.class::isInstance)
                 .map(this::<K, V>getSaveRecord)
                 .collect(Collectors.toList());
@@ -113,14 +114,17 @@ public class BatchExecutor<T> {
             return;
         }
 
-        toProcess.forEach(record -> {
-            record.getSelectData().getWhereBuilder().getConditionsList().forEach(comparisonHandler -> {
-                comparisonHandler.getColumnName();
-            });
+        try {
+            RowExistenceChecker.make(tableName, this.database.getDatabaseType(), connection)
+                    .matchOn("")
+                    .withData(toProcess)
+                    .findExisting();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
-        });
-
-        for (SaveRecord<K, V> saveRecord : toProcess) {
+        for (RowContext rowContext : toProcess) {
+            final SaveRecord<K, V> saveRecord = this.getSaveRecord(rowContext);
             final QueryBuilder queryBuilder = saveRecord != null ? saveRecord.getQueryBuilder() : null;
             if (saveRecord == null || queryBuilder == null || checkIfQuerySet(saveRecord, queryBuilder)) continue;
 
@@ -545,7 +549,7 @@ public class BatchExecutor<T> {
     }
 
     @Nullable
-    private <K, V extends ConfigurationSerializable> SaveRecord<K, V> getSaveRecord(T dataToSave) {
+    private <K, V extends ConfigurationSerializable> SaveRecord<K, V> getSaveRecord(Object dataToSave) {
         if (!(dataToSave instanceof SaveRecord<?, ?>)) {
             LOG.log(Level.WARNING, () -> "Failed to process this data as it is: '" + dataToSave + "' or not an instance of SaveContext");
             return null;
@@ -597,15 +601,16 @@ public class BatchExecutor<T> {
 
     private void handleBatchSave(@Nonnull final List<SqlQuery> queryList, final boolean shallUpdate, @Nullable final String[] columns, @Nonnull final TableSchema table) {
         final String tableName = table.getTableName();
-        final List<DataWrapper> toProcess = this.dataToProcess.stream()
+        final List<RowContext> toProcess = this.dataToProcess.stream()
                 .filter(DataWrapper.class::isInstance)
-                .map(DataWrapper.class::cast)
+                .map(RowContext.class::cast)
                 .collect(Collectors.toList());
         Validate.checkBoolean(toProcess.isEmpty(), "Can't prooses an empty list, for this table:" + tableName);
 
         final ExistingRowKeysView keysView = cacheRowsThatExists(tableName, toProcess, columns);
 
-        for (DataWrapper dataWrapper : toProcess) {
+        for (RowContext rowContext : toProcess) {
+            final DataWrapper dataWrapper = (DataWrapper) rowContext;
             final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
             final boolean columnsIsEmpty = columns == null || columns.length == 0;
             boolean canUpdateRow = false;
@@ -643,14 +648,14 @@ public class BatchExecutor<T> {
     }
 
     @Nullable
-    private ExistingRowKeysView cacheRowsThatExists(@Nonnull final String tableName, @Nonnull final List<DataWrapper> toProcess, @Nullable final String[] columns) {
+    private ExistingRowKeysView cacheRowsThatExists(@Nonnull final String tableName, @Nonnull final List<RowContext> toProcess, @Nullable final String[] columns) {
         ExistingRowKeysView keysView = null;
         try {
             final String[] matchingColumns;
             if (columns == null || columns.length == 0) {
                 String[] columnsContext = null;
-                for (DataWrapper dataWrapper : toProcess) {
-                    columnsContext = dataWrapper.getWriteContext().getColumnContext().keySet().toArray(new String[0]);
+                for (RowContext dataWrapper : toProcess) {
+                    columnsContext = dataWrapper.getColumnContext().keySet().toArray(new String[0]);
                     break;
                 }
                 matchingColumns = columnsContext;

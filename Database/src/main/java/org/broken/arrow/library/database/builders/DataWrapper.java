@@ -1,6 +1,7 @@
 package org.broken.arrow.library.database.builders;
 
 import org.broken.arrow.library.database.utility.WhereClauseFunction;
+import org.broken.arrow.library.database.utility.checker.RowContext;
 import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 import org.broken.arrow.library.serialize.utility.serialize.ConfigurationSerializable;
 
@@ -24,7 +25,7 @@ import java.util.function.Consumer;
  * </ul>
  * </p>
  */
-public class DataWrapper {
+public class DataWrapper implements RowContext {
 
     private final ConfigurationSerializable configurationSerialize;
     private final Object value;
@@ -187,6 +188,12 @@ public class DataWrapper {
     @Nullable
     public Consumer<SqlResultRow> getGeneratedKeyCallback() {
         return this.callback;
+    }
+
+    @Nonnull
+    @Override
+    public Map<String, Object> getColumnContext() {
+        return getWriteContext().getColumnContext();
     }
 
     /**
