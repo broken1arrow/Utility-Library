@@ -42,6 +42,8 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import static org.broken.arrow.library.database.utility.checker.RowExistenceChecker.make;
+
 /**
  * Handles batch updates and operations on the database.
  *
@@ -113,9 +115,9 @@ public class BatchExecutor<T> {
             LOG.log(Level.WARNING, () -> "No query is not set for this table: '" + tableName + "'. You must have at least 1 query command for allowing saving data to the database.");
             return;
         }
-
+        ExistingRowKeysView existenceBuilder;
         try {
-            RowExistenceChecker.make(tableName, this.database.getDatabaseType(), connection)
+             existenceBuilder = RowExistenceChecker.make(tableName, this.database.getDatabaseType(), connection)
                     .matchOn("")
                     .withData(toProcess)
                     .findExisting();
@@ -135,7 +137,7 @@ public class BatchExecutor<T> {
 
             if (hasUpdateIntent) {
                 final SqlQuery wrappedQuery = tableQuery.wrapQuery(queryBuilder);
-                canUpdateRow = this.checkIfRowExist(wrappedQuery, false);
+                canUpdateRow = this.checkIfRowExist(wrappedQuery, false);// existenceBuilder.contains(rowContext);
             }
             final Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
             final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause = saveRecord.getWhereClause();
@@ -630,7 +632,7 @@ public class BatchExecutor<T> {
                 final SqlQuery query = tableQuery.selectRow(columnManger -> {
                     columnManger.addAll(table.getPrimaryColumnsWrapped());
                 }, true, whereStrategy);
-                canUpdateRow = this.checkIfRowExist(query, false); // keysView.contains(dataWrapper);
+                canUpdateRow = this.checkIfRowExist(query, false); // keysView.contains(rowContext);
             }
 
             tableQuery.setQueryPlaceholders(this.database.isSecureQuery());
@@ -662,7 +664,7 @@ public class BatchExecutor<T> {
             } else {
                 matchingColumns = columns;
             }
-            keysView = RowExistenceChecker.make(tableName, this.database.getDatabaseType(), connection)
+            keysView = make(tableName, this.database.getDatabaseType(), connection)
                     .matchOn(matchingColumns)
                     .withData(toProcess)
                     .findExisting();
