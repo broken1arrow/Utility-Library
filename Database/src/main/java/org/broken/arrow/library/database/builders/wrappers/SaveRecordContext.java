@@ -27,6 +27,7 @@ public class SaveRecordContext {
     /**
      * Gets all additional key-value pairs added via {@link #putValue(String, Object)}.
      *
+     * @param columnName the column name to associate.
      * @return a map of extra column-to-value entries not included in the serialized value.
      */
     @Nullable

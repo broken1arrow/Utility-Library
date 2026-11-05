@@ -94,6 +94,7 @@ public class RowExistenceChecker<T extends RowContext> {
      * @param table        the name of the database table to check for existing records
      * @param databaseType the type of database engine used
      * @param connection   the database connection to execute queries against
+     * @param dataToProcess a list of records to check for existence
      * @return a new {@link RowExistenceBuilder} instance
      */
     public static <T extends RowContext> RowExistenceBuilder<T> make(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection, @Nonnull final List<T> dataToProcess) {
