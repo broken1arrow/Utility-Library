@@ -10,13 +10,16 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import org.broken.arrow.library.database.builders.ConnectionSettings;
 import org.broken.arrow.library.database.builders.DataWrapper;
 import org.broken.arrow.library.database.builders.LoadDataWrapper;
+import org.broken.arrow.library.database.builders.WriteContext;
 import org.broken.arrow.library.database.builders.schema.TableSchema;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.table.column.TableColumn;
 import org.broken.arrow.library.database.construct.query.utlity.QueryDefinition;
 import org.broken.arrow.library.database.core.Database;
 import org.broken.arrow.library.database.utility.DatabaseCommandConfig;
@@ -385,22 +388,42 @@ public class MongoDB extends Database {
      * @param collection   the MongoDB collection to save into
      */
     private void saveData(final DataWrapper dataWrapper, final TableSchema tableWrapper, final MongoCollection<Document> collection) {
-        final Map<String, Object> primaries = dataWrapper.getWriteContext().getColumnContext();
-        final Document  document = new Document(primaries);
-        final Bson filter = Filters.eq("_id", document);
+        final WriteContext writeContext = dataWrapper.getWriteContext();
+        final Document filter = new Document();
 
+        for (TableColumn primary : tableWrapper.getPrimaryColumns()) {
+            Object primaryVal = writeContext.getValue(primary.getColumnName());
+            if (primaryVal != null) {
+                filter.append(primary.getColumnName(), primaryVal);
+            }
+        }
 
+        if (filter.isEmpty()) {
+            Object idVal = writeContext.getColumnContext().get("_id");
+            if (idVal != null) {
+                filter.append("_id", idVal);
+            }
+        }
+        final Document setFields = new Document();
         for (Entry<String, Object> entry : dataWrapper.getConfigurationSerialize().serialize().entrySet()) {
             Column column = getColumn(tableWrapper, entry.getKey());
-
             if (column == null) continue;
-            Bson updatedRow = Updates.set(entry.getKey(), entry.getValue());
-            UpdateResult updateResult = collection.updateOne(filter, updatedRow);
-            if (updateResult.getMatchedCount() == 0)
-                document.append(entry.getKey(), entry.getValue());
+            setFields.append(entry.getKey(), entry.getValue());
         }
-        if (document.size() > 1)
-            collection.insertOne(document);
+
+        for (TableColumn primary : tableWrapper.getPrimaryColumns()) {
+            Object primaryVal = writeContext.getValue(primary.getColumnName());
+            if (primaryVal != null) {
+                setFields.append(primary.getColumnName(), primaryVal);
+            }
+        }
+        if (!filter.isEmpty() && !setFields.isEmpty()) {
+            Bson updateOperation = new Document("$set", setFields);
+            UpdateOptions options = new UpdateOptions().upsert(true);
+            collection.updateOne(filter, updateOperation, options);
+        } else {
+            collection.insertOne(setFields);
+        }
     }
 
     /**

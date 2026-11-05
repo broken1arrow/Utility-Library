@@ -42,7 +42,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import static org.broken.arrow.library.database.utility.checker.RowExistenceChecker.make;
 
 /**
  * Handles batch updates and operations on the database.
@@ -115,15 +114,9 @@ public class BatchExecutor<T> {
             LOG.log(Level.WARNING, () -> "No query is not set for this table: '" + tableName + "'. You must have at least 1 query command for allowing saving data to the database.");
             return;
         }
-        ExistingRowKeysView existenceBuilder;
-        try {
-             existenceBuilder = RowExistenceChecker.make(tableName, this.database.getDatabaseType(), connection)
-                    .matchOn("")
-                    .withData(toProcess)
-                    .findExisting();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+
+        final List<String> matchKeys = databaseQueryHandler.getMatchKeys();
+        final RowResult rowResult = this.cacheRowsThatExists(tableName, toProcess, matchKeys.isEmpty() ? null : matchKeys.toArray(new String[0]));
 
         for (RowContext rowContext : toProcess) {
             final SaveRecord<K, V> saveRecord = this.getSaveRecord(rowContext);
@@ -137,7 +130,7 @@ public class BatchExecutor<T> {
 
             if (hasUpdateIntent) {
                 final SqlQuery wrappedQuery = tableQuery.wrapQuery(queryBuilder);
-                canUpdateRow = this.checkIfRowExist(wrappedQuery, false);// existenceBuilder.contains(rowContext);
+                canUpdateRow = !rowResult.isAreAllEqual() ? this.checkIfRowExist(wrappedQuery, false) : rowResult.contains(saveRecord);
             }
             final Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
             final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause = saveRecord.getWhereClause();
@@ -609,7 +602,7 @@ public class BatchExecutor<T> {
                 .collect(Collectors.toList());
         Validate.checkBoolean(toProcess.isEmpty(), "Can't prooses an empty list, for this table:" + tableName);
 
-        final ExistingRowKeysView keysView = cacheRowsThatExists(tableName, toProcess, columns);
+        final RowResult keysView = this.cacheRowsThatExists(tableName, toProcess, columns);
 
         for (RowContext rowContext : toProcess) {
             final DataWrapper dataWrapper = (DataWrapper) rowContext;
@@ -632,7 +625,7 @@ public class BatchExecutor<T> {
                 final SqlQuery query = tableQuery.selectRow(columnManger -> {
                     columnManger.addAll(table.getPrimaryColumnsWrapped());
                 }, true, whereStrategy);
-                canUpdateRow = this.checkIfRowExist(query, false); // keysView.contains(rowContext);
+                canUpdateRow = !keysView.isAreAllEqual() ? this.checkIfRowExist(query, false) : keysView.contains(dataWrapper);
             }
 
             tableQuery.setQueryPlaceholders(this.database.isSecureQuery());
@@ -649,29 +642,38 @@ public class BatchExecutor<T> {
         }
     }
 
-    @Nullable
-    private ExistingRowKeysView cacheRowsThatExists(@Nonnull final String tableName, @Nonnull final List<RowContext> toProcess, @Nullable final String[] columns) {
+    @Nonnull
+    private RowResult cacheRowsThatExists(@Nonnull final String tableName, @Nonnull final List<RowContext> toProcess, @Nullable final String[] columns) {
         ExistingRowKeysView keysView = null;
+        boolean areAllEqual = true;
         try {
             final String[] matchingColumns;
             if (columns == null || columns.length == 0) {
                 String[] columnsContext = null;
+                int minAmount = Integer.MAX_VALUE;
+                int maxAmount = Integer.MIN_VALUE;
                 for (RowContext dataWrapper : toProcess) {
-                    columnsContext = dataWrapper.getColumnContext().keySet().toArray(new String[0]);
-                    break;
+                    final Map<String, Object> columnContext = dataWrapper.getColumnContext();
+                    final int currentLength = columnContext.size();
+
+                    if (columnsContext == null) {
+                        columnsContext = columnContext.keySet().toArray(new String[0]);
+                    }
+                    minAmount = Math.min(minAmount, currentLength);
+                    maxAmount = Math.max(maxAmount, currentLength);
                 }
+                areAllEqual = (minAmount == maxAmount);
                 matchingColumns = columnsContext;
             } else {
                 matchingColumns = columns;
             }
-            keysView = make(tableName, this.database.getDatabaseType(), connection)
+            keysView = RowExistenceChecker.make(tableName, this.database.getDatabaseType(), connection, toProcess)
                     .matchOn(matchingColumns)
-                    .withData(toProcess)
                     .findExisting();
         } catch (SQLException e) {
             LOG.log(e, () -> "Could not check if the rows exists, check the stack trace.");
         }
-        return keysView;
+        return new RowResult(keysView, areAllEqual);
     }
 
     @Nullable
@@ -697,6 +699,26 @@ public class BatchExecutor<T> {
             return null;
         }
         return (DataWrapper) dataToSave;
+    }
+
+    private static class RowResult {
+        private final ExistingRowKeysView keysView;
+        private final boolean areAllEqual;
+
+        public RowResult(ExistingRowKeysView keysView, boolean areAllEqual) {
+            this.keysView = keysView;
+            this.areAllEqual = areAllEqual;
+        }
+
+        public boolean contains(@Nonnull final RowContext context) {
+            if (keysView == null)
+                return false;
+            return keysView.contains(context);
+        }
+
+        public boolean isAreAllEqual() {
+            return areAllEqual;
+        }
     }
 
 }

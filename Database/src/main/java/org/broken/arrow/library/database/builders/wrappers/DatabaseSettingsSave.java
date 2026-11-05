@@ -1,9 +1,13 @@
 package org.broken.arrow.library.database.builders.wrappers;
 
+import org.broken.arrow.library.database.builders.wrappers.handlers.DatabaseQuerySaving;
 import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -11,6 +15,7 @@ import java.util.function.Consumer;
  */
 public class DatabaseSettingsSave extends DatabaseSettings {
     private boolean shallUpdate;
+    private List<String> matchKeys;
     private Consumer<SqlResultRow> callback;
 
     /**
@@ -64,6 +69,30 @@ public class DatabaseSettingsSave extends DatabaseSettings {
     }
 
     /**
+     * Explicitly defines the column names that form the keys to match on, using Varargs.
+     * If not provided, the class will attempt to infer these keys from the dataset.
+     *
+     * @param columns the names of the database columns to use for matching
+     * @return this settings instance
+     */
+    public DatabaseSettingsSave matchOn(@Nonnull final String... columns) {
+        this.matchKeys = Arrays.asList(columns);
+        return this;
+    }
+
+    /**
+     * Explicitly defines the column names that form the keys to match on, using a List.
+     * If not provided, the class will attempt to infer these keys from the dataset.
+     *
+     * @param columns a list of database column names to use for matching
+     * @return this settings instance
+     */
+    public DatabaseSettingsSave  matchOn(@Nonnull final List<String> columns) {
+        this.matchKeys = columns;
+        return this;
+    }
+
+    /**
      * Retrieves the registered generated-key callback mapped to this payload.
      * <p>
      * Used internally by the execution engine to bridge user-configured callbacks from the high-level
@@ -77,4 +106,15 @@ public class DatabaseSettingsSave extends DatabaseSettings {
         return this.callback;
     }
 
+    /**
+     * Retrieve the explicitly defines the column names that form the key to match on.
+     *
+     * @return the list of the keys you want match at.
+     */
+    @Nonnull
+    public List<String> getMatchKeys() {
+        if(matchKeys == null)
+            return new ArrayList<>();
+        return matchKeys;
+    }
 }

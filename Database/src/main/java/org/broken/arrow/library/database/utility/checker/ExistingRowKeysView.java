@@ -19,7 +19,7 @@ public interface ExistingRowKeysView {
      * @param context the context containing column context mappings
      * @return {@code true} if the row exists in the target table, {@code false} otherwise
      */
-    boolean contains(@Nonnull RowContext context);
+    boolean contains(@Nonnull final RowContext context);
 
     /**
      * Checks whether the supplied {@link CompositeKey} key exists in the result.
@@ -27,7 +27,7 @@ public interface ExistingRowKeysView {
      * @param compositeKey the row key identifier to check
      * @return {@code true} if the key identifier exists; {@code false} otherwise
      */
-    boolean contains(@Nonnull CompositeKey compositeKey);
+    boolean contains(@Nonnull final CompositeKey compositeKey);
 
     /**
      * Returns an immutable snapshot of all identified database keys.

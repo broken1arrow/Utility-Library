@@ -96,8 +96,8 @@ public class RowExistenceChecker<T extends RowContext> {
      * @param connection   the database connection to execute queries against
      * @return a new {@link RowExistenceBuilder} instance
      */
-    public static <T extends RowContext> RowExistenceBuilder<T> make(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
-        return new RowExistenceBuilder<>(table, databaseType, connection);
+    public static <T extends RowContext> RowExistenceBuilder<T> make(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection, @Nonnull final List<T> dataToProcess) {
+        return new RowExistenceBuilder<>(table, databaseType, connection, dataToProcess);
     }
 
     /**
@@ -299,35 +299,26 @@ public class RowExistenceChecker<T extends RowContext> {
      * @param <T> the type of the data rows being processed
      */
     public static class RowExistenceBuilder<T extends RowContext> {
+        private final List<T> dataToProcess;
+        private List<String> matchKeys = new ArrayList<>();
         private final String table;
         private final DatabaseType databaseType;
         private final Connection connection;
         private int batchSize = 2000;
-        private List<T> dataToProcess = new ArrayList<>();
-        private List<String> matchKeys = new ArrayList<>();
 
         /**
          * Constructs a new builder with the required target configuration.
          *
-         * @param table        the name of the database table to check for existing records
-         * @param databaseType the type of database engine used
-         * @param connection   the database connection to execute queries against
+         * @param table         the name of the database table to check for existing records
+         * @param databaseType  the type of database engine used
+         * @param connection    the database connection to execute queries against
+         * @param dataToProcess a list of records to check for existence
          */
-        public RowExistenceBuilder(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection) {
+        public RowExistenceBuilder(@Nonnull final String table, @Nonnull final DatabaseType databaseType, @Nonnull final Connection connection, @Nonnull final List<T> dataToProcess) {
             this.table = table;
+            this.dataToProcess = dataToProcess;
             this.databaseType = databaseType;
             this.connection = connection;
-        }
-
-        /**
-         * Sets the dataset to be evaluated.
-         *
-         * @param dataToProcess a list of records to check for existence
-         * @return this builder instance
-         */
-        public RowExistenceBuilder<T> withData(@Nonnull final List<T> dataToProcess) {
-            this.dataToProcess = dataToProcess;
-            return this;
         }
 
         /**

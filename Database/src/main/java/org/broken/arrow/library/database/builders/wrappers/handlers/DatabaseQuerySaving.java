@@ -1,14 +1,16 @@
 package org.broken.arrow.library.database.builders.wrappers.handlers;
 
 import org.broken.arrow.library.database.builders.wrappers.DatabaseSettingsSave;
+import org.broken.arrow.library.database.utility.checker.RowExistenceChecker;
 import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class DatabaseQuerySaving<T> extends DatabaseQueryHandler<T> {
-    @Nonnull
     private final DatabaseSettingsSave databaseSettings;
 
     /**
@@ -19,6 +21,16 @@ public class DatabaseQuerySaving<T> extends DatabaseQueryHandler<T> {
     public DatabaseQuerySaving(@Nonnull final DatabaseSettingsSave databaseSettings) {
         super(databaseSettings);
         this.databaseSettings = databaseSettings;
+    }
+
+    /**
+     * Retrieve the explicitly defines the column names that form the key to match on.
+     *
+     * @return the list of the keys you want match at.
+     */
+    @Nonnull
+    public List<String> getMatchKeys() {
+        return this.databaseSettings.getMatchKeys();
     }
 
     /**
