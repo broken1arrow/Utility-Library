@@ -124,7 +124,7 @@ public class BatchExecutor<T> {
 
             if (hasUpdateIntent) {
                 final SqlQuery wrappedQuery = tableQuery.wrapQuery(queryBuilder);
-                canUpdateRow = isCanUpdateRow(rowResult, wrappedQuery, saveRecord );
+                canUpdateRow = isCanUpdateRow(rowResult, wrappedQuery, saveRecord);
             }
             final Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
             final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause = saveRecord.getWhereClause();
@@ -636,8 +636,8 @@ public class BatchExecutor<T> {
         }
     }
 
-    private boolean isCanUpdateRow(@Nonnull final RowResult keysView,@Nonnull final SqlQuery query,@Nonnull final RowContext rowContext) {
-        return !keysView.isAreAllEqual() ? this.checkIfRowExist(query, false) : keysView.contains(rowContext);
+    private boolean isCanUpdateRow(@Nonnull final RowResult keysView, @Nonnull final SqlQuery query, @Nonnull final RowContext rowContext) {
+        return keysView.isAreAllEqual() ? keysView.contains(rowContext) : this.checkIfRowExist(query, false);
     }
 
     @Nonnull

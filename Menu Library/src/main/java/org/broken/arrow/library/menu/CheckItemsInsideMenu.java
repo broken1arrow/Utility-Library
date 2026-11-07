@@ -221,7 +221,7 @@ public class CheckItemsInsideMenu {
         if (checkItemAreOnBlacklist(cloneItem)) {
             addItemsBackToPlayer(player, cloneItem);
         } else {
-            items.put(slot, !isAir(cloneItem.getType()) ? cloneItem : null);
+            items.put(slot, isAir(cloneItem.getType()) ? null : cloneItem);
         }
 
     }
@@ -286,7 +286,7 @@ public class CheckItemsInsideMenu {
         }
     }
 
-    private void giveBack(final Location location,final Map<ItemStack, Integer> duplicateStacks,final Entry<UUID, ItemOverflowBatch> mapEntry) {
+    private void giveBack(final Location location, final Map<ItemStack, Integer> duplicateStacks, final Entry<UUID, ItemOverflowBatch> mapEntry) {
         for (final Entry<ItemStack, Integer> items : duplicateStacks.entrySet()) {
             final ItemStack itemStack = items.getKey();
             final int amount = items.getValue();

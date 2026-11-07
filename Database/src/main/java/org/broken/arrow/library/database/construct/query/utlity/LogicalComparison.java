@@ -119,7 +119,7 @@ public enum LogicalComparison {
      */
     @Nullable
     public <T> ConditionChainer<T> applyTo(@Nonnull final ComparisonHandler<T> targetHandler, @Nonnull final List<Object> values) {
-        final Object rightSide = !values.isEmpty() ? values.get(0) : null;
+        final Object rightSide = values.isEmpty() ? null : values.get(0);
         ConditionChainer<T> chainer = null;
 
         switch (this) {
