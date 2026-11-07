@@ -3,6 +3,7 @@ package org.broken.arrow.library.database.construct.query.builder.clause.joinbui
 import org.broken.arrow.library.database.construct.query.QueryBuilder;
 import org.broken.arrow.library.database.construct.query.builder.comparison.ComparisonHandler;
 import org.broken.arrow.library.database.construct.query.builder.column.Column;
+import org.broken.arrow.library.database.construct.query.builder.comparison.ConditionChainer;
 import org.broken.arrow.library.database.construct.query.utlity.Marker;
 
 import javax.annotation.Nonnull;
@@ -60,6 +61,19 @@ public class JoinBuildContext {
         final ComparisonHandler<JoinBuildContext> operator = new ComparisonHandler<>(this, column.toString(), marker);
         addCondition(operator);
         return operator;
+    }
+
+    /**
+     * Add new join to existing one or if non exist this will work same as call the {@link #on(Column)} methods directly.
+     *
+     * @return add new join
+     */
+    public ConditionChainer<JoinBuildContext> chainJoin() {
+        final Marker marker = globalEnableQueryPlaceholders ? Marker.PLACEHOLDER : Marker.USE_VALUE;
+        ComparisonHandler<JoinBuildContext> operator = new ComparisonHandler<>(this, "", marker);
+        if (!this.conditionsList.isEmpty())
+            addCondition(operator);
+        return operator.getConditionChainer();
     }
 
     /**

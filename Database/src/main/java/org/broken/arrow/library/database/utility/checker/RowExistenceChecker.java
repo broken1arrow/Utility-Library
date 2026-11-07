@@ -282,8 +282,8 @@ public class RowExistenceChecker<T extends RowContext> {
 
                     for (int i = 1; i < matchKeys.size(); i++) {
                         String colName = matchKeys.get(i);
-                        currentJoinContext.and()
-                                .on(Column.of("target." + colName)).equal(Column.of(TEMP + colName))
+                        currentJoinContext.build().chainJoin()
+                                .and().on(Column.of("target." + colName)).equal(Column.of(TEMP + colName))
 								/*.or()
 								.on("target." + colName).isNull()
 								.and()
