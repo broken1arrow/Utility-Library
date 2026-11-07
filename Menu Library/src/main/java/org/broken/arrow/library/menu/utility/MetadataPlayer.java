@@ -86,7 +86,7 @@ public final class MetadataPlayer {
      * @param player the player whose metadata to retrieve
      * @param key    the metadata key to look for
      * @param clazz  the class object to cast the metadata value to
-     * @return the casted metadata value if present and of the correct type, or null otherwise
+     * @return the cast metadata value if present and of the correct type, or null otherwise
      */
     @Nullable
     public <T> T getPlayerMetadata(@Nonnull final Player player, @Nonnull final MetadataKey key,  @Nonnull final  Class<T> clazz) {

@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This cache is for when you want to tied the menu to specific location
+ * This cache is for when you want to tied the menu to specific location,
  * and you also get the benefit several players can use same menu at the
  * same time.
  */
