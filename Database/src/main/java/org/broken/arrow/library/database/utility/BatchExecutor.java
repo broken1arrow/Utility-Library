@@ -702,15 +702,6 @@ public class BatchExecutor<T> {
         return toProcess;
     }
 
-    @Nullable
-    private DataWrapper getDataWrapper(T dataToSave) {
-        if (!(dataToSave instanceof DataWrapper)) {
-            LOG.log(Level.WARNING, () -> "Failed to process this save record as it is: '" + dataToSave.getClass() + "' or not an instance of DataWrapper");
-            return null;
-        }
-        return (DataWrapper) dataToSave;
-    }
-
     private static class RowResult {
         private final ExistingRowKeysView keysView;
         private final boolean areAllEqual;
