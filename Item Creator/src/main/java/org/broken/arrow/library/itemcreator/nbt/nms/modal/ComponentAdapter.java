@@ -179,7 +179,7 @@ public class ComponentAdapter implements NbtEditor {
         READY = ok;
     }
 
-    private Map<String, CompoundTag> compoundTagMap = new HashMap<>();
+    private final Map<String, CompoundTag> compoundTagMap = new HashMap<>();
     private final ItemStack originalBukkit;
     private final Object nmsStack;
     private Object rootCustomDataCache; // mutable NMS CompoundTag (copy)

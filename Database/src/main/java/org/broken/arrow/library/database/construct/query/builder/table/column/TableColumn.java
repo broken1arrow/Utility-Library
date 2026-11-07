@@ -7,6 +7,8 @@ import org.broken.arrow.library.database.construct.query.utlity.DataType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
@@ -153,6 +155,19 @@ public class TableColumn extends Column {
             constraintFinished = "";
 
         return this.getColumnName() + " " + dataType.getType() + constraintFinished;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        if (!super.equals(object)) return false;
+        TableColumn that = (TableColumn) object;
+        return isPrimaryKey == that.isPrimaryKey && isAutoIncrement == that.isAutoIncrement && Objects.equals(dataType, that.dataType) && Objects.deepEquals(constraints, that.constraints) && Objects.equals(foreignKeyConfig, that.foreignKeyConfig);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), dataType, Arrays.hashCode(constraints), isPrimaryKey, isAutoIncrement, foreignKeyConfig);
     }
 
     /**

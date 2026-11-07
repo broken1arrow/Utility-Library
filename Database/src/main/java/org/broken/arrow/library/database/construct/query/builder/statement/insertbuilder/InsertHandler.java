@@ -319,32 +319,36 @@ public class InsertHandler implements ParameterSupplier {
     private List<Object> getValues() {
         return insertValues.values().stream()
                 .map(InsertBuilder::getColumnValue)
-                .flatMap(object -> {
-                    if (object == null) {
-                        return Stream.of(this.queryBuilder.isGlobalEnableQueryPlaceholders() ? null : "NULL");
-                    }
-                    if (object instanceof Column) {
-                        Column column = (Column) object;
-                        return Stream.of(column.getColumnName());
-                    }
-                    if (object instanceof LiteralVal) {
-                        LiteralVal literalVal = (LiteralVal) object;
-                        return Stream.of(literalVal.value());
-                    }
-                    if (object instanceof Collection<?>) {
-                        final Collection<?> col = (Collection<?>) object;
-                        return col.stream().map(this::formatValue);
-                    }
-                    if (object instanceof Object[]) {
-                        final Object[] arr = (Object[]) object;
-                        return Arrays.stream(arr).flatMap(this::formatValue);
-                    }
-                    if (object instanceof String && !this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
-                        String escaped = ((String) object).replace("'", "''");
-                        return Stream.of("'" + escaped + "'");
-                    }
-                    return Stream.of(object);
-                }).collect(Collectors.toCollection(ArrayList::new));
+                .flatMap(this::getStream)
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    @Nonnull
+    private Stream<?> getStream(Object object) {
+        if (object == null) {
+            return Stream.of(this.queryBuilder.isGlobalEnableQueryPlaceholders() ? null : "NULL");
+        }
+        if (object instanceof Column) {
+            Column column = (Column) object;
+            return Stream.of(column.getColumnName());
+        }
+        if (object instanceof LiteralVal) {
+            LiteralVal literalVal = (LiteralVal) object;
+            return Stream.of(literalVal.value());
+        }
+        if (object instanceof Collection<?>) {
+            final Collection<?> col = (Collection<?>) object;
+            return col.stream().map(this::formatValue);
+        }
+        if (object instanceof Object[]) {
+            final Object[] arr = (Object[]) object;
+            return Arrays.stream(arr).flatMap(this::formatValue);
+        }
+        if (object instanceof String && !this.queryBuilder.isGlobalEnableQueryPlaceholders()) {
+            String escaped = ((String) object).replace("'", "''");
+            return Stream.of("'" + escaped + "'");
+        }
+        return Stream.of(object);
     }
 
     private Stream<Object> formatValue(@Nullable final Object object) {

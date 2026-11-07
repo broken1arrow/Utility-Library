@@ -106,14 +106,8 @@ public class BatchExecutor<T> {
      */
     public <K, V extends ConfigurationSerializable> void save(@Nonnull final String tableName, final boolean shallUpdate, final DatabaseQuerySaving<SaveRecord<K, V>> databaseQueryHandler) {
         final List<SqlQuery> queryList = new ArrayList<>();
-        final List<RowContext> toProcess = this.dataToProcess.stream()
-                .filter(SaveRecord.class::isInstance)
-                .map(this::<K, V>getSaveRecord)
-                .collect(Collectors.toList());
-        if (toProcess.isEmpty()) {
-            LOG.log(Level.WARNING, () -> "No query is not set for this table: '" + tableName + "'. You must have at least 1 query command for allowing saving data to the database.");
-            return;
-        }
+        final List<RowContext> toProcess = getRowContexts(tableName);
+        if (toProcess == null) return;
 
         final List<String> matchKeys = databaseQueryHandler.getMatchKeys();
         final RowResult rowResult = this.cacheRowsThatExists(tableName, toProcess, matchKeys.isEmpty() ? null : matchKeys.toArray(new String[0]));
@@ -130,7 +124,7 @@ public class BatchExecutor<T> {
 
             if (hasUpdateIntent) {
                 final SqlQuery wrappedQuery = tableQuery.wrapQuery(queryBuilder);
-                canUpdateRow = !rowResult.isAreAllEqual() ? this.checkIfRowExist(wrappedQuery, false) : rowResult.contains(saveRecord);
+                canUpdateRow = isCanUpdateRow(rowResult, wrappedQuery, saveRecord );
             }
             final Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
             final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause = saveRecord.getWhereClause();
@@ -625,7 +619,7 @@ public class BatchExecutor<T> {
                 final SqlQuery query = tableQuery.selectRow(columnManger -> {
                     columnManger.addAll(table.getPrimaryColumnsWrapped());
                 }, true, whereStrategy);
-                canUpdateRow = !keysView.isAreAllEqual() ? this.checkIfRowExist(query, false) : keysView.contains(dataWrapper);
+                canUpdateRow = isCanUpdateRow(keysView, query, dataWrapper);
             }
 
             tableQuery.setQueryPlaceholders(this.database.isSecureQuery());
@@ -640,6 +634,10 @@ public class BatchExecutor<T> {
             }
             queryList.add(queryPair);
         }
+    }
+
+    private boolean isCanUpdateRow(@Nonnull final RowResult keysView,@Nonnull final SqlQuery query,@Nonnull final RowContext rowContext) {
+        return !keysView.isAreAllEqual() ? this.checkIfRowExist(query, false) : keysView.contains(rowContext);
     }
 
     @Nonnull
@@ -691,6 +689,18 @@ public class BatchExecutor<T> {
         }
     }
 
+    @Nullable
+    private <K, V extends ConfigurationSerializable> List<RowContext> getRowContexts(@Nonnull String tableName) {
+        final List<RowContext> toProcess = this.dataToProcess.stream()
+                .filter(SaveRecord.class::isInstance)
+                .map(this::<K, V>getSaveRecord)
+                .collect(Collectors.toList());
+        if (toProcess.isEmpty()) {
+            LOG.log(Level.WARNING, () -> "No query is not set for this table: '" + tableName + "'. You must have at least 1 query command for allowing saving data to the database.");
+            return null;
+        }
+        return toProcess;
+    }
 
     @Nullable
     private DataWrapper getDataWrapper(T dataToSave) {

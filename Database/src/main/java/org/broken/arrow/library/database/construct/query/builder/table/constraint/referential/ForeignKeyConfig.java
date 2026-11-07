@@ -1,6 +1,7 @@
 package org.broken.arrow.library.database.construct.query.builder.table.constraint.referential;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * Configuration builder for defining SQL {@code FOREIGN KEY} constraints on a column.
@@ -83,5 +84,17 @@ public class ForeignKeyConfig {
      */
     public String getParentColumn() {
         return parentColumn;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        ForeignKeyConfig that = (ForeignKeyConfig) object;
+        return Objects.equals(parentTable, that.parentTable) && Objects.equals(parentColumn, that.parentColumn) && deleteAction == that.deleteAction && updateAction == that.updateAction;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(parentTable, parentColumn, deleteAction, updateAction);
     }
 }

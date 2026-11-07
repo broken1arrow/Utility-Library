@@ -223,7 +223,7 @@ public class RowExistenceChecker<T extends RowContext> {
         insertTemp.insertInto(this.getTempTableName(targetTable), insert -> {
             matchKeys.forEach(col -> insert.add(InsertBuilder.of(col, SqlArg.raw("?"))));
         });
-        final int batchSize = this.batchSize;
+        final int size = this.batchSize;
         int pendingInBatch = 0;
 
         try (PreparedStatement insertStmt = connection.prepareStatement(insertTemp.build())) {
@@ -236,7 +236,7 @@ public class RowExistenceChecker<T extends RowContext> {
                 }
                 insertStmt.addBatch();
                 pendingInBatch++;
-                if (pendingInBatch == batchSize) {
+                if (pendingInBatch == size) {
                     insertStmt.executeBatch();
                     pendingInBatch = 0;
                 }

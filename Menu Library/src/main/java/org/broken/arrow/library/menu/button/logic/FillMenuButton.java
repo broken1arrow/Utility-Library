@@ -22,10 +22,8 @@ import java.util.function.Consumer;
  * @param <T> the type of data object associated with this button template.
  */
 public class FillMenuButton<T> {
-
-
-    private FillClickAction<T> click;
-    private ItemProvider<T> itemProvider;
+    private final FillClickAction<T> click;
+    private final ItemProvider<T> itemProvider;
 
     private boolean updateButtonsTimer;
     private long updateTime;

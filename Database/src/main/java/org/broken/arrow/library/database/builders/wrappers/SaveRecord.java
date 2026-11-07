@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * @param <V> The type of the value, which must implement {@link ConfigurationSerializable}.
  */
 public class SaveRecord<K, V extends ConfigurationSerializable> implements RowContext {
-    private SaveRecordContext context;
+    private final SaveRecordContext context;
     private final Map<Column, Object> keys = new HashMap<>();
     private final DatabaseType databaseType;
     private final String tableName;
@@ -187,10 +187,10 @@ public class SaveRecord<K, V extends ConfigurationSerializable> implements RowCo
     public <Z, Y extends ConfigurationSerializable> SaveRecord<Z, Y> isSaveContext(Object obj) {
         if (!(obj instanceof SaveRecord)) return null;
 
-        SaveRecord<?, ?> context = (SaveRecord<?, ?>) obj;
-        if (keyClazz.isInstance(context.getKey()) && valueClazz.isInstance(context.getValue())) {
+        SaveRecord<?, ?> saveRecordObject = (SaveRecord<?, ?>) obj;
+        if (keyClazz.isInstance(saveRecordObject.getKey()) && valueClazz.isInstance(saveRecordObject.getValue())) {
             @SuppressWarnings("unchecked")
-            SaveRecord<Z, Y> saveRecord = (SaveRecord<Z, Y>) context;
+            SaveRecord<Z, Y> saveRecord = (SaveRecord<Z, Y>) saveRecordObject;
             return saveRecord;
         }
         return null;

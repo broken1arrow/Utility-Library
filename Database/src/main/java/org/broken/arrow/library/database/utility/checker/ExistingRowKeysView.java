@@ -1,8 +1,5 @@
 package org.broken.arrow.library.database.utility.checker;
 
-import org.broken.arrow.library.database.builders.DataWrapper;
-import org.broken.arrow.library.database.builders.WriteContext;
-
 import javax.annotation.Nonnull;
 import java.util.List;
 
