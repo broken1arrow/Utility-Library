@@ -30,7 +30,7 @@ import java.sql.SQLException;
  */
 public class SQLite extends SQLDatabaseQuery {
     private final Logging log = new Logging(SQLite.class);
-    private File dbFile;
+    private final File dbFile;
     private final String parent;
     private final String child;
     private final boolean isHikariAvailable;

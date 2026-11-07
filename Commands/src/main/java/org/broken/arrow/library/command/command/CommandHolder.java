@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -361,9 +362,7 @@ public abstract class CommandHolder extends CommandProperty {
             if (!val.toLowerCase().startsWith(partialName))
                 iterator.remove();
         }
-
-        Collections.sort(tab);
-
+        tab.sort(Comparator.naturalOrder());
         return tab;
     }
 
