@@ -669,7 +669,7 @@ public class BatchExecutor<T> {
                     .matchOn(matchingColumns)
                     .findExisting();
         } catch (SQLException e) {
-            LOG.log(e, () -> "Could not check if the rows exists, check the stack trace.");
+            LOG.log(e, () -> "Could not check if the rows exists for table '" + tableName + "', check the stack trace.");
         }
         return new RowResult(keysView, areAllEqual);
     }
