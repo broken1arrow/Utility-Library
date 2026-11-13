@@ -31,6 +31,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +112,7 @@ public class BatchExecutor<T> {
         if (toProcess == null) return;
 
         final List<String> matchKeys = databaseQueryHandler.getMatchKeys();
-        final RowResult rowResult = this.cacheRowsThatExists(tableName, toProcess, matchKeys.isEmpty() ? null : matchKeys.toArray(new String[0]));
+        final RowResult rowResult = this.findExistingRows(tableName, toProcess, matchKeys.isEmpty() ? null : matchKeys.toArray(new String[0]));
 
         for (RowContext rowContext : toProcess) {
             final SaveRecord<K, V> saveRecord = this.getSaveRecord(rowContext);
@@ -595,8 +597,7 @@ public class BatchExecutor<T> {
                 .map(RowContext.class::cast)
                 .collect(Collectors.toList());
         Validate.checkBoolean(toProcess.isEmpty(), "Can't prooses an empty list, for this table:" + tableName);
-
-        final RowResult keysView = this.cacheRowsThatExists(tableName, toProcess, columns);
+        final RowResult keysView = this.findExistingRows(tableName, toProcess, columns);
 
         for (RowContext rowContext : toProcess) {
             final DataWrapper dataWrapper = (DataWrapper) rowContext;
@@ -636,42 +637,50 @@ public class BatchExecutor<T> {
         }
     }
 
-    private boolean isCanUpdateRow(@Nonnull final RowResult keysView, @Nonnull final SqlQuery query, @Nonnull final RowContext rowContext) {
-        return keysView.isAreAllEqual() ? keysView.contains(rowContext) : this.checkIfRowExist(query, false);
+    private boolean isCanUpdateRow(@Nonnull final RowResult rowResult, @Nonnull final SqlQuery query, @Nonnull final RowContext rowContext) {
+        return rowResult.contains(rowContext);
     }
 
     @Nonnull
-    private RowResult cacheRowsThatExists(@Nonnull final String tableName, @Nonnull final List<RowContext> toProcess, @Nullable final String[] columns) {
-        ExistingRowKeysView keysView = null;
-        boolean areAllEqual = true;
-        try {
-            final String[] matchingColumns;
-            if (columns == null || columns.length == 0) {
-                String[] columnsContext = null;
-                int minAmount = Integer.MAX_VALUE;
-                int maxAmount = Integer.MIN_VALUE;
-                for (RowContext dataWrapper : toProcess) {
-                    final Map<String, Object> columnContext = dataWrapper.getColumnContext();
-                    final int currentLength = columnContext.size();
+    private RowResult findExistingRows(@Nonnull final String tableName, @Nonnull final List<RowContext> toProcess, @Nullable final String[] columns) {
+        final RowResult rowResult = new RowResult();
 
-                    if (columnsContext == null) {
-                        columnsContext = columnContext.keySet().toArray(new String[0]);
-                    }
-                    minAmount = Math.min(minAmount, currentLength);
-                    maxAmount = Math.max(maxAmount, currentLength);
+        try {
+            if (columns == null || columns.length == 0) {
+                final Map<List<String>, List<RowContext>> rowContext = new HashMap<>();
+                for (RowContext context : toProcess) {
+                    final Map<String, Object> columnContext = context.getColumnContext();
+                    final List<String> columnNames = new ArrayList<>(columnContext.keySet());
+                    Collections.sort(columnNames);
+                    rowContext.computeIfAbsent(columnNames, (strings) -> new ArrayList<>()).add(context);
                 }
-                areAllEqual = (minAmount == maxAmount);
-                matchingColumns = columnsContext;
+                this.queryPartitionedRows(tableName, rowResult, rowContext);
             } else {
-                matchingColumns = columns;
+                final ExistingRowKeysView keysView = RowExistenceChecker.make(tableName, this.database.getDatabaseType(), this.connection, toProcess)
+                        .matchOn(columns)
+                        .findExisting();
+                List<String> columnList = Arrays.asList(columns);
+                rowResult.putIfAbsent(columnList, keysView);
             }
-            keysView = RowExistenceChecker.make(tableName, this.database.getDatabaseType(), connection, toProcess)
-                    .matchOn(matchingColumns)
-                    .findExisting();
         } catch (SQLException e) {
             LOG.log(e, () -> "Could not check if the rows exists for table '" + tableName + "', check the stack trace.");
         }
-        return new RowResult(keysView, areAllEqual);
+        return rowResult;
+    }
+
+    private void queryPartitionedRows(final String tableName, final RowResult rowResult, final Map<List<String>, List<RowContext>> rowContext) {
+        rowContext.forEach((columnNames, rowContexts) -> {
+            rowResult.computeIfAbsent(columnNames, (keys) -> {
+                try {
+                    return RowExistenceChecker.make(tableName, this.database.getDatabaseType(), this.connection, rowContexts)
+                            .matchOn(keys)
+                            .findExisting();
+                } catch (SQLException e) {
+                    LOG.log(e, () -> "Could not check if the rows exists for table '" + tableName + "' and these columns '" + keys + "', check the stack trace.");
+                    return null;
+                }
+            });
+        });
     }
 
     @Nullable
@@ -703,23 +712,31 @@ public class BatchExecutor<T> {
     }
 
     private static class RowResult {
-        private final ExistingRowKeysView keysView;
-        private final boolean areAllEqual;
+        private final Map<List<String>, ExistingRowKeysView> mapRowKeysView = new HashMap<>();
 
-        public RowResult(ExistingRowKeysView keysView, boolean areAllEqual) {
-            this.keysView = keysView;
-            this.areAllEqual = areAllEqual;
+        public void computeIfAbsent(List<String> columnNames, Function<List<String>, ExistingRowKeysView> callback) {
+            this.mapRowKeysView.computeIfAbsent(columnNames, callback);
+        }
+
+        public void putIfAbsent(List<String> columnNames, ExistingRowKeysView keysView) {
+            this.mapRowKeysView.putIfAbsent(columnNames, keysView);
         }
 
         public boolean contains(@Nonnull final RowContext context) {
-            if (keysView == null)
+            if (mapRowKeysView.isEmpty()) {
                 return false;
-            return keysView.contains(context);
+            }
+            final List<String> columnNames = new ArrayList<>(context.getColumnContext().keySet());
+            Collections.sort(columnNames);
+
+            final ExistingRowKeysView view = mapRowKeysView.get(columnNames);
+            return view != null && view.contains(context);
         }
 
-        public boolean isAreAllEqual() {
-            return areAllEqual;
+        public boolean isEmpty() {
+            return mapRowKeysView.isEmpty();
         }
+
     }
 
 }
