@@ -719,12 +719,12 @@ public class BatchExecutor<T> {
     private static class RowResult {
         private final Map<List<String>, ExistingRowKeysView> mapRowKeysView = new HashMap<>();
 
-        public void computeIfAbsent(List<String> columnNames, Function<List<String>, ExistingRowKeysView> callback) {
+        public void computeIfAbsent(@Nonnull final List<String> columnNames, @Nonnull final Function<List<String>, ExistingRowKeysView> callback) {
             sortList(columnNames);
             this.mapRowKeysView.computeIfAbsent(columnNames, callback);
         }
 
-        public void putIfAbsent(List<String> columnNames, ExistingRowKeysView keysView) {
+        public void putIfAbsent(@Nonnull final List<String> columnNames, @Nonnull final ExistingRowKeysView keysView) {
             sortList(columnNames);
             this.mapRowKeysView.putIfAbsent(columnNames, keysView);
         }
