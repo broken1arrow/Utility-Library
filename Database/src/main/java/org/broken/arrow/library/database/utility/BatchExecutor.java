@@ -24,15 +24,18 @@ import org.broken.arrow.library.logging.Logging;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -651,7 +654,9 @@ public class BatchExecutor<T> {
                 for (RowContext context : toProcess) {
                     final Map<String, Object> columnContext = context.getColumnContext();
                     final List<String> columnNames = new ArrayList<>(columnContext.keySet());
-                    Collections.sort(columnNames);
+                    final Collator collator = Collator.getInstance();
+                    collator.setStrength(Collator.SECONDARY);
+                    columnNames.sort(collator);
                     rowContext.computeIfAbsent(columnNames, (strings) -> new ArrayList<>()).add(context);
                 }
                 this.queryPartitionedRows(tableName, rowResult, rowContext);
@@ -715,10 +720,12 @@ public class BatchExecutor<T> {
         private final Map<List<String>, ExistingRowKeysView> mapRowKeysView = new HashMap<>();
 
         public void computeIfAbsent(List<String> columnNames, Function<List<String>, ExistingRowKeysView> callback) {
+            sortList(columnNames);
             this.mapRowKeysView.computeIfAbsent(columnNames, callback);
         }
 
         public void putIfAbsent(List<String> columnNames, ExistingRowKeysView keysView) {
+            sortList(columnNames);
             this.mapRowKeysView.putIfAbsent(columnNames, keysView);
         }
 
@@ -727,7 +734,7 @@ public class BatchExecutor<T> {
                 return false;
             }
             final List<String> columnNames = new ArrayList<>(context.getColumnContext().keySet());
-            Collections.sort(columnNames);
+            sortList(columnNames);
 
             final ExistingRowKeysView view = mapRowKeysView.get(columnNames);
             return view != null && view.contains(context);
@@ -737,6 +744,11 @@ public class BatchExecutor<T> {
             return mapRowKeysView.isEmpty();
         }
 
+        private void sortList(@Nonnull final List<String> columnNames) {
+            final Collator collator = Collator.getInstance();
+            collator.setStrength(Collator.SECONDARY);
+            columnNames.sort(collator);
+        }
     }
 
 }
