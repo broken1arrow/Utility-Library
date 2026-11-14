@@ -674,18 +674,16 @@ public class BatchExecutor<T> {
     }
 
     private void queryPartitionedRows(final String tableName, final RowResult rowResult, final Map<List<String>, List<RowContext>> rowContext) {
-        rowContext.forEach((columnNames, rowContexts) -> {
-            rowResult.computeIfAbsent(columnNames, (keys) -> {
-                try {
-                    return RowExistenceChecker.make(tableName, this.database.getDatabaseType(), this.connection, rowContexts)
-                            .matchOn(keys)
-                            .findExisting();
-                } catch (SQLException e) {
-                    LOG.log(e, () -> "Could not check if the rows exists for table '" + tableName + "' and these columns '" + keys + "', check the stack trace.");
-                    return null;
-                }
-            });
-        });
+        rowContext.forEach((columnNames, rowContexts) -> rowResult.computeIfAbsent(columnNames, (keys) -> {
+            try {
+                return RowExistenceChecker.make(tableName, this.database.getDatabaseType(), this.connection, rowContexts)
+                        .matchOn(keys)
+                        .findExisting();
+            } catch (SQLException e) {
+                LOG.log(e, () -> "Could not check if the rows exists for table '" + tableName + "' and these columns '" + keys + "', check the stack trace.");
+                return null;
+            }
+        }));
     }
 
     @Nullable
