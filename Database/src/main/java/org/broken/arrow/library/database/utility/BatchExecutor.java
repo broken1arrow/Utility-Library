@@ -24,7 +24,6 @@ import org.broken.arrow.library.logging.Logging;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.swing.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -33,9 +32,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,8 +110,7 @@ public class BatchExecutor<T> {
         final List<RowContext> toProcess = getRowContexts(tableName);
         if (toProcess == null) return;
 
-        final List<String> matchKeys = databaseQueryHandler.getMatchKeys();
-        final RowResult rowResult = this.findExistingRows(tableName, toProcess, matchKeys.isEmpty() ? null : matchKeys.toArray(new String[0]));
+        final RowResult rowResult = this.findExistingRows(tableName, toProcess);
 
         for (RowContext rowContext : toProcess) {
             final SaveRecord<K, V> saveRecord = this.getSaveRecord(rowContext);
@@ -125,11 +120,10 @@ public class BatchExecutor<T> {
             final TableQuery tableQuery = new TableQuery(this.database.getDatabaseType(), tableName);
             final boolean columnsFilterSet = databaseQueryHandler.isFilterSet();
             boolean canUpdateRow = false;
-            final boolean hasUpdateIntent = !columnsFilterSet || shallUpdate;
+            final boolean hasUpdateIntent = columnsFilterSet || shallUpdate;
 
             if (hasUpdateIntent) {
-                final SqlQuery wrappedQuery = tableQuery.wrapQuery(queryBuilder);
-                canUpdateRow = isCanUpdateRow(rowResult, wrappedQuery, saveRecord);
+                canUpdateRow = rowResult.contains(rowContext);
             }
             final Map<Column, Object> toSave = this.getColumns(databaseQueryHandler, saveRecord, canUpdateRow);
             final Function<WhereBuilder, ConditionChainer<WhereBuilder>> whereClause = saveRecord.getWhereClause();
@@ -600,7 +594,7 @@ public class BatchExecutor<T> {
                 .map(RowContext.class::cast)
                 .collect(Collectors.toList());
         Validate.checkBoolean(toProcess.isEmpty(), "Can't prooses an empty list, for this table:" + tableName);
-        final RowResult keysView = this.findExistingRows(tableName, toProcess, columns);
+        final RowResult keysView = this.findExistingRows(tableName, toProcess);
 
         for (RowContext rowContext : toProcess) {
             final DataWrapper dataWrapper = (DataWrapper) rowContext;
@@ -620,10 +614,7 @@ public class BatchExecutor<T> {
             }
 
             if (whereStrategy != null && primaryValueSet && hasUpdateIntent) {
-                final SqlQuery query = tableQuery.selectRow(columnManger -> {
-                    columnManger.addAll(table.getPrimaryColumnsWrapped());
-                }, true, whereStrategy);
-                canUpdateRow = isCanUpdateRow(keysView, query, dataWrapper);
+                canUpdateRow = isCanUpdateRow(keysView, null, dataWrapper);
             }
 
             tableQuery.setQueryPlaceholders(this.database.isSecureQuery());
@@ -645,31 +636,19 @@ public class BatchExecutor<T> {
     }
 
     @Nonnull
-    private RowResult findExistingRows(@Nonnull final String tableName, @Nonnull final List<RowContext> toProcess, @Nullable final String[] columns) {
+    private RowResult findExistingRows(@Nonnull final String tableName, @Nonnull final List<RowContext> toProcess) {
         final RowResult rowResult = new RowResult();
+        final Map<List<String>, List<RowContext>> rowContext = new HashMap<>();
 
-        try {
-            if (columns == null || columns.length == 0) {
-                final Map<List<String>, List<RowContext>> rowContext = new HashMap<>();
-                for (RowContext context : toProcess) {
-                    final Map<String, Object> columnContext = context.getColumnContext();
-                    final List<String> columnNames = new ArrayList<>(columnContext.keySet());
-                    final Collator collator = Collator.getInstance();
-                    collator.setStrength(Collator.SECONDARY);
-                    columnNames.sort(collator);
-                    rowContext.computeIfAbsent(columnNames, (strings) -> new ArrayList<>()).add(context);
-                }
-                this.queryPartitionedRows(tableName, rowResult, rowContext);
-            } else {
-                final ExistingRowKeysView keysView = RowExistenceChecker.make(tableName, this.database.getDatabaseType(), this.connection, toProcess)
-                        .matchOn(columns)
-                        .findExisting();
-                List<String> columnList = Arrays.asList(columns);
-                rowResult.putIfAbsent(columnList, keysView);
-            }
-        } catch (SQLException e) {
-            LOG.log(e, () -> "Could not check if the rows exists for table '" + tableName + "', check the stack trace.");
+        for (RowContext context : toProcess) {
+            final Map<String, Object> columnContext = context.getColumnContext();
+            final List<String> columnNames = new ArrayList<>(columnContext.keySet());
+            final Collator collator = Collator.getInstance();
+            collator.setStrength(Collator.SECONDARY);
+            columnNames.sort(collator);
+            rowContext.computeIfAbsent(columnNames, (strings) -> new ArrayList<>()).add(context);
         }
+        this.queryPartitionedRows(tableName, rowResult, rowContext);
         return rowResult;
     }
 
@@ -747,6 +726,7 @@ public class BatchExecutor<T> {
             collator.setStrength(Collator.SECONDARY);
             columnNames.sort(collator);
         }
+
     }
 
 }

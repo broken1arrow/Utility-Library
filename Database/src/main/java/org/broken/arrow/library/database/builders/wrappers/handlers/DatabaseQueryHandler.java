@@ -61,7 +61,7 @@ public class DatabaseQueryHandler<T> {
     /**
      * Checks if a filter predicate is set in the associated {@link DatabaseSettings}.
      *
-     * @return {@code true} if a filter is defined; {@code false} otherwise
+     * @return {@code true} if a filter is defined, {@code false} otherwise
      */
     public boolean isFilterSet() {
         final Predicate<String> filter = this.getFilter();

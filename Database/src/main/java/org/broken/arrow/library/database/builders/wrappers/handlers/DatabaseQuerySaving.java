@@ -22,16 +22,6 @@ public class DatabaseQuerySaving<T> extends DatabaseQueryHandler<T> {
     }
 
     /**
-     * Retrieve the explicitly defines the column names that form the key to match on.
-     *
-     * @return the list of the keys you want match at.
-     */
-    @Nonnull
-    public List<String> getMatchKeys() {
-        return this.databaseSettings.getMatchKeys();
-    }
-
-    /**
      * Retrieves the registered generated-key callback mapped to this payload.
      * <p>
      * Used internally by the execution engine to bridge user-configured callbacks from the high-level
