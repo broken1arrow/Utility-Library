@@ -32,6 +32,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -695,25 +697,24 @@ public class BatchExecutor<T> {
 
     private static class RowResult {
         private final Map<List<String>, ExistingRowKeysView> mapRowKeysView = new HashMap<>();
+        private final Collator collator = Collator.getInstance();
 
-        public void computeIfAbsent(@Nonnull final List<String> columnNames, @Nonnull final Function<List<String>, ExistingRowKeysView> callback) {
-            sortList(columnNames);
-            this.mapRowKeysView.computeIfAbsent(columnNames, callback);
+        public RowResult() {
+            this.collator.setStrength(Collator.SECONDARY);
         }
 
-        public void putIfAbsent(@Nonnull final List<String> columnNames, @Nonnull final ExistingRowKeysView keysView) {
-            sortList(columnNames);
-            this.mapRowKeysView.putIfAbsent(columnNames, keysView);
+        public void computeIfAbsent(@Nonnull final List<String> columnNames, @Nonnull final Function<List<String>, ExistingRowKeysView> callback) {
+            final List<String> sortedKey = toSortedCopy(columnNames);
+            this.mapRowKeysView.computeIfAbsent(sortedKey, callback);
         }
 
         public boolean contains(@Nonnull final RowContext context) {
             if (mapRowKeysView.isEmpty()) {
                 return false;
             }
-            final List<String> columnNames = new ArrayList<>(context.getColumnContext().keySet());
-            sortList(columnNames);
-
+            final List<String> columnNames = toSortedCopy(context.getColumnContext().keySet());
             final ExistingRowKeysView view = mapRowKeysView.get(columnNames);
+
             return view != null && view.contains(context);
         }
 
@@ -721,12 +722,12 @@ public class BatchExecutor<T> {
             return mapRowKeysView.isEmpty();
         }
 
-        private void sortList(@Nonnull final List<String> columnNames) {
-            final Collator collator = Collator.getInstance();
-            collator.setStrength(Collator.SECONDARY);
-            columnNames.sort(collator);
+        @Nonnull
+        private List<String> toSortedCopy(@Nonnull final Collection<String> columnNames) {
+            final List<String> copy = new ArrayList<>(columnNames);
+            copy.sort(this.collator);
+            return Collections.unmodifiableList(copy);
         }
-
     }
 
 }
