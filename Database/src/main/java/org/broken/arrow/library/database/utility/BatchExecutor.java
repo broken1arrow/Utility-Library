@@ -614,7 +614,7 @@ public class BatchExecutor<T> {
             }
 
             if (whereStrategy != null && primaryValueSet && hasUpdateIntent) {
-                canUpdateRow = isCanUpdateRow(keysView, null, dataWrapper);
+                canUpdateRow = isCanUpdateRow(keysView, dataWrapper);
             }
 
             tableQuery.setQueryPlaceholders(this.database.isSecureQuery());
@@ -631,7 +631,7 @@ public class BatchExecutor<T> {
         }
     }
 
-    private boolean isCanUpdateRow(@Nonnull final RowResult rowResult, @Nonnull final SqlQuery query, @Nonnull final RowContext rowContext) {
+    private boolean isCanUpdateRow(@Nonnull final RowResult rowResult, @Nonnull final RowContext rowContext) {
         return rowResult.contains(rowContext);
     }
 

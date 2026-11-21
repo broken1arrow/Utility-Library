@@ -5,7 +5,6 @@ import org.broken.arrow.library.database.utility.query.build.SqlResultRow;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class DatabaseQuerySaving<T> extends DatabaseQueryHandler<T> {
