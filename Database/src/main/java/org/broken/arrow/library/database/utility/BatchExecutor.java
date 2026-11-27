@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
  */
 public class BatchExecutor<T> {
     private static final Logging LOG = new Logging(BatchExecutor.class);
+    private final Collator collator = Collator.getInstance();
     protected final Database database;
     protected final List<T> dataToProcess;
     protected final Connection connection;
@@ -75,6 +76,7 @@ public class BatchExecutor<T> {
         this.databaseConfig = this.database.databaseConfig();
         this.resultSetType = this.databaseConfig.getResultSetType();
         this.resultSetConcurrency = this.databaseConfig.getResultSetConcurrency();
+        this.collator.setStrength(Collator.SECONDARY);
     }
 
     /**
@@ -645,9 +647,7 @@ public class BatchExecutor<T> {
         for (RowContext context : toProcess) {
             final Map<String, Object> columnContext = context.getColumnContext();
             final List<String> columnNames = new ArrayList<>(columnContext.keySet());
-            final Collator collator = Collator.getInstance();
-            collator.setStrength(Collator.SECONDARY);
-            columnNames.sort(collator);
+            columnNames.sort(this.collator);
             rowContext.computeIfAbsent(columnNames, (strings) -> new ArrayList<>()).add(context);
         }
         this.queryPartitionedRows(tableName, rowResult, rowContext);
